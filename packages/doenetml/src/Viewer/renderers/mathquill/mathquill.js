@@ -3147,8 +3147,9 @@ var saneKeyboardEvents = (function () {
         }
         // An `input` event that `typedText` will take as typed by an Android
         // on-screen keyboard: text the browser named, not composed, that is
-        // all the textarea holds, after a keydown with no modifiers that
-        // Chrome names "Unidentified" and Firefox names "Process".
+        // all the textarea holds, after a keydown with no modifiers named
+        // "Unidentified" (Chrome) or "Process" (Firefox for Android, and
+        // desktop input methods, whose committed text is taken the same way).
         function isOnScreenKeyboardInsert(input) {
             return (
                 !!keydown &&
@@ -3165,10 +3166,14 @@ var saneKeyboardEvents = (function () {
             );
         }
         // An Android keyboard's composition that is being typed into the
-        // field as it changes: { shown } holds the text already typed for
-        // it. Samsung Keyboard composes every letter, even with
-        // autocorrect and spellcheck off, and finishes the composition only
-        // at the next symbol, space or Enter.
+        // field as it changes. Samsung Keyboard composes every letter, even
+        // with autocorrect and spellcheck off, and finishes the composition
+        // only at the next symbol, space or Enter.
+        //   shown: the text already typed for it.
+        //   parent, left: where MathQuill's cursor was after that typing.
+        //   floor: how much of `shown` is out of reach of Backspace, because
+        //     the cursor has moved since it was typed (a tap in the field, or
+        //     a key of the Doenet keyboard).
         var composition = null;
         // Set when such a composition ends, until the next keyup or input:
         // Samsung Keyboard may follow it with a bare 229 keydown and keyup
@@ -3188,10 +3193,24 @@ var saneKeyboardEvents = (function () {
                 controller.keystroke("Backspace", e);
             }
         }
+        function recordCursor() {
+            var cursor = controller.cursor;
+            composition.parent = cursor && cursor.parent;
+            composition.left = cursor && cursor[L];
+        }
         // Make the field follow the composition: delete what it no longer
-        // has, then type what it added.
+        // has, then type what it added. Once the cursor has moved, what was
+        // typed before the move stays, and the composition's later changes
+        // are typed at the cursor.
         function followComposition(text, e) {
             var shown = composition.shown;
+            var cursor = controller.cursor;
+            if (
+                cursor &&
+                (cursor.parent !== composition.parent ||
+                    cursor[L] !== composition.left)
+            )
+                composition.floor = shown.length;
             var common = 0;
             while (
                 common < shown.length &&
@@ -3199,15 +3218,19 @@ var saneKeyboardEvents = (function () {
                 shown[common] === text[common]
             )
                 common++;
-            for (var k = shown.length; k > common; k--) pressBackspace(e);
-            for (var j = common; j < text.length; j++) typeCharacter(text[j]);
+            var keep = Math.max(common, composition.floor);
+            for (var k = shown.length; k > keep; k--) pressBackspace(e);
+            for (var j = keep; j < text.length; j++) typeCharacter(text[j]);
             composition.shown = text;
+            composition.floor = Math.min(composition.floor, text.length);
+            recordCursor();
         }
         function onCompositionStart() {
             // Only a composition an Android on-screen keyboard starts, on a
             // textarea that holds nothing else for it to take back. A
-            // desktop input method names its keydown "Process" and is still
-            // ignored.
+            // desktop input method's keydown is named "Process"; its
+            // compositions are not followed, and `typedText` reads what it
+            // commits from the textarea.
             composition = null;
             if (
                 keydown &&
@@ -3221,7 +3244,8 @@ var saneKeyboardEvents = (function () {
                     (textarea.selectionStart === 0 &&
                         textarea.selectionEnd === textarea.value.length))
             ) {
-                composition = { shown: "" };
+                composition = { shown: "", floor: 0 };
+                recordCursor();
             }
         }
         function onCompositionEnd(e) {
@@ -3399,16 +3423,16 @@ var saneKeyboardEvents = (function () {
             // Due to how this feature works, it's vital to completely ignore Ctrl-Shift-U no matter how the input event appears to Mathquill as clearing the textarea by mistake breaks the expected input flow.
             // DOENET: local patch to this vendored bundle -- preserve it when
             // updating MathQuill from upstream. See Doenet/DoenetML#2557.
-            // An on-screen keyboard on Android (seen with Gboard) reports
-            // every key as a keydown of "Unidentified" (keyCode 229),
-            // then says exactly what it typed in an `input` event of type
-            // `insertText`. Ignoring every "Unidentified" keydown, as the
-            // guard below does, dropped all typing from such a keyboard. When
-            // the browser has named the one character inserted, outside a
-            // composition, take it. The Ctrl-Shift-U keydowns described
-            // above carry modifiers and are still ignored; the ChromeOS case
-            // without modifiers has not been reproduced, and if it names its
-            // character in a plain `insertText`, that character is now typed.
+            // Chrome on Android reports every key of an on-screen keyboard
+            // as a keydown of "Unidentified" (keyCode 229), then says
+            // exactly what it typed in an `input` event of type
+            // `insertText`. When the browser has named the text inserted,
+            // outside a composition, and it is all the textarea holds, it is
+            // taken and the guard below is skipped. The Ctrl-Shift-U
+            // keydowns described above carry modifiers, so the guard still
+            // applies to them. The ChromeOS case without modifiers has not
+            // been reproduced; if it names its character in a plain
+            // `insertText`, that character is typed.
             var insertedByOnScreenKeyboard =
                 isOnScreenKeyboardInsert(lastInput);
             if (
@@ -3433,10 +3457,22 @@ var saneKeyboardEvents = (function () {
                     controller.typedText(text);
                 }
             } else if (insertedByOnScreenKeyboard && text.length > 1) {
-                // DOENET (#2557): a word or emoji an on-screen keyboard
-                // inserted whole (a suggestion, a swiped word in Gboard).
+                // DOENET (#2557): text an on-screen keyboard inserted whole:
+                // a tapped suggestion, a swiped word, or a formula from the
+                // keyboard's clipboard. Pasted when it reads as LaTeX, as a
+                // paste would be, so that `x^2+1` keeps its exponent; typed
+                // otherwise.
                 textarea.value = "";
-                Array.from(text).forEach(typeCharacter);
+                if (
+                    latexMathParser
+                        .skip(Parser.eof)
+                        .or(Parser.all.result(false))
+                        .parse(text)
+                ) {
+                    controller.paste(text);
+                } else {
+                    Array.from(text).forEach(typeCharacter);
+                }
             } // in Firefox, keys that don't type text, just clear seln, fire keypress
             // https://github.com/mathquill/mathquill/issues/293#issuecomment-40997668
             else maybeReselect(); // re-select if that's why we're here

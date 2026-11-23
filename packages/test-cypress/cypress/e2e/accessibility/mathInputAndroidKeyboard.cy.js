@@ -367,16 +367,26 @@ describe(
         it("takes nothing from a key with a modifier, a keypress or text left in the textarea", () => {
             cy.get("#mi textarea").focus();
             cy.get("#mi textarea").then(($ta) => {
-                const ta = $ta[0];
-                typeAll(ta, ["x", "y"]);
-                for (const modifier of ["ctrlKey", "altKey", "metaKey"]) {
-                    const withModifier = { ...K229, [modifier]: true };
+                typeAll($ta[0], ["x", "y"]);
+            });
+            fieldShould("mi", "xy");
+            for (const modifier of ["ctrlKey", "altKey", "metaKey"]) {
+                const withModifier = { ...K229, [modifier]: true };
+                cy.get("#mi textarea").then(($ta) => {
                     // Neither a backspace...
-                    androidBackspace(ta, withModifier);
+                    androidBackspace($ta[0], withModifier);
                     // ...nor a character.
-                    androidKey(ta, "u", { keydownInit: withModifier });
-                    ta.value = "";
-                }
+                    androidKey($ta[0], "u", { keydownInit: withModifier });
+                });
+                // MathQuill reads the textarea on its next tick: let it see
+                // the "u" before the textarea is cleared.
+                cy.wait(50);
+                cy.get("#mi textarea").then(($ta) => {
+                    $ta[0].value = "";
+                });
+            }
+            cy.get("#mi textarea").then(($ta) => {
+                const ta = $ta[0];
                 // A key that sends keypress is not the bare pair.
                 down(ta);
                 ta.dispatchEvent(
@@ -388,14 +398,20 @@ describe(
                 up(ta);
                 // Text left in the textarea (from a composition, say): the
                 // next key's character is not all that is there, so nothing
-                // is typed, and a bare pair is not a backspace.
+                // is typed.
                 ta.value = "ab";
                 androidKey(ta, "z");
-                ta.value = "a";
-                androidBackspace(ta);
-                ta.value = "";
+            });
+            cy.wait(50);
+            cy.get("#mi textarea").then(($ta) => {
+                // Nor is a bare pair a backspace while text is left.
+                $ta[0].value = "a";
+                androidBackspace($ta[0]);
             });
             cy.wait(200);
+            cy.get("#mi textarea").then(($ta) => {
+                $ta[0].value = "";
+            });
             fieldShould("mi", "xy");
         });
 
@@ -497,17 +513,61 @@ describe(
                 });
             });
             fieldShould("mi", "abyes");
-            // A selection MathQuill put in the textarea is not taken for one.
+            // A word inserted over a selection replaces it.
             cy.get("#mi textarea").type("{shift}{leftarrow}{leftarrow}", {
                 force: true,
             });
             cy.get("#mi textarea").then(($ta) => {
                 expect($ta[0].value.length).to.be.greaterThan(1);
-                down($ta[0]);
-                up($ta[0]);
+                androidKey($ta[0], "zw");
             });
-            cy.wait(200);
-            fieldShould("mi", "abyes");
+            fieldShould("mi", "abyzw");
+        });
+
+        it("pastes a formula the keyboard inserts whole", () => {
+            // Text that reads as LaTeX, as from the keyboard's clipboard,
+            // keeps its structure: the exponent ends after the 2.
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                androidKey($ta[0], "x^2+1");
+            });
+            fieldShould("mi", "x2+1");
+            cy.get("#mi textarea").type("{enter}", { force: true });
+            cy.get("#c").should("have.text", "1");
+        });
+
+        it("types inserted text that does not read as LaTeX", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                androidKey($ta[0], "a}");
+            });
+            fieldShould("mi", "a");
+        });
+
+        it("keeps what it typed for a composition once the cursor moves", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "a", { start: true });
+                samsungCompose($ta[0], "ab");
+            });
+            fieldShould("mi", "ab");
+            // The cursor moves between a and b while the keyboard is still
+            // composing "ab" (a tap in the field does the same).
+            cy.get("#mi textarea").type("{leftarrow}", { force: true });
+            cy.get("#mi textarea").then(($ta) => {
+                $ta[0].value = "ab";
+                // The keyboard's backspace shortens its composition, but the
+                // b was typed before the cursor moved: it is not deleted, and
+                // neither is the a beside the cursor.
+                samsungCompose($ta[0], "a");
+            });
+            cy.wait(100);
+            fieldShould("mi", "ab");
+            cy.get("#mi textarea").then(($ta) => {
+                // What the composition adds now is typed at the cursor.
+                samsungCompose($ta[0], "ac");
+            });
+            fieldShould("mi", "acb");
         });
 
         it("does not delete for the bare pair after a composition ends", () => {
@@ -545,6 +605,10 @@ describe(
             cy.get("#mi textarea").focus();
             cy.get("#mi textarea").then(($ta) => {
                 androidKey($ta[0], "x", { inputType: "insertCompositionText" });
+            });
+            // Let MathQuill read the textarea before it is cleared.
+            cy.wait(50);
+            cy.get("#mi textarea").then(($ta) => {
                 $ta[0].value = "";
                 androidKey($ta[0], "y", { isComposing: true });
             });
