@@ -31,9 +31,15 @@ import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/act
 import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
 import {
     LIST_LIKE,
+    Reads,
     SECTION_KINDS,
+    childrenLatex,
+    mdLatex,
+    pointLatex,
 } from "../../../../doenetml-worker/src/cells/contracts";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
+import { latexToText } from "../../utils/math";
+import { convertLatexWithBlanks } from "../../utils/embeddedMathInputs";
 
 /** The types whose children are their entries' rows (ADR 0041, decision
  * 4): each row is addressed as `list:k`. */
@@ -226,11 +232,34 @@ const awardReaders: Record<string, Reader> = {
     },
     awarded: (g) => g("awarded") > 0,
 };
+/** What the bridge reads of the core to write a renderer's props, here
+ * unrecorded: the LaTeX is the bridge's (`cells/contracts.ts`), the
+ * rounding and writing the core's (`sym::Display`). */
+function reads(x: Ctx): Reads {
+    return new Reads(x.cells.table, (c) => c, null);
+}
+
+/** Whether an `<md>` has `<mrow>`s (an `<me>` has none). */
+function hasRows(x: Ctx): boolean {
+    return x.cells.table
+        .children(x.idx)
+        .some(
+            (c) =>
+                "component" in c &&
+                x.cells.table.componentType(c.component) === "mrow",
+        );
+}
+
+/** A math's `latex`: its value rounded and written by its number-display
+ * settings, as the bridge sends it. */
+const mathLatex: Reader = (_g, x) => reads(x).mathLatex(x.idx);
+
 const mathReaders: Record<string, Reader> = {
     value: mathValue,
     immediateValue: mathValue,
     valueForDisplay: mathValue,
     text: (_g, x) => x.cells.core.component_text(x.idx),
+    latex: mathLatex,
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
@@ -446,6 +475,23 @@ function sectionLevel(cells: Cells, c: number): number {
     return 1;
 }
 
+/** Nothing, for a component no `lang` other than English applies to; the
+ * words are English only, so one in another language is a gap. */
+function englishOnly(x: Ctx): undefined {
+    for (
+        let p: number | null = x.idx;
+        p !== null;
+        p = x.cells.table.parent(p)
+    ) {
+        const lang = x.cells.table.attr(p, "lang");
+        if (lang !== null) {
+            if (lang.trim().toLowerCase().startsWith("en")) return undefined;
+            throw new CellsCoreGap(`section words in the language \`${lang}\``);
+        }
+    }
+    return undefined;
+}
+
 /** The readers of a sectioning component's heading (`title`,
  * `titlePrefix`, `sectionName`), composed in English as the current
  * core's `composeTitlePrefix` composes them, from the number the core
@@ -455,6 +501,7 @@ function sectionLevel(cells: Cells, c: number): number {
 function headingReaders(autoNumber: boolean): Record<string, Reader> {
     const sectionName = (x: Ctx) =>
         x.cells.table.attr(x.idx, "renameTo") ??
+        englishOnly(x) ??
         sectionNameWord(
             english,
             sectioningTag(x.cells, x.idx),
@@ -623,6 +670,7 @@ const STATE: Record<string, Record<string, Reader>> = {
         numDimensions: () => 2,
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
+        latex: (_g, x) => pointLatex(reads(x), x.idx),
     },
     circle: {
         center: (g) => pt(g, "cx", "cy"),
@@ -915,6 +963,30 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     // Values with entries inside a math (ADR 0041, decision 8).
     interval: mathReaders,
+    // Math notation's LaTeX, and a point's, as the bridge writes them.
+    // An `<m>`'s text is its LaTeX read as math, as the current core's
+    // `MMeMen.js` makes it.
+    m: {
+        latex: (_g, x) => childrenLatex(reads(x), x.idx),
+        text: (_g, x) =>
+            convertLatexWithBlanks(childrenLatex(reads(x), x.idx), latexToText),
+        renderMode: () => "inline",
+    },
+    // An `<md>` with rows is aligned; one without (an `<me>`) is one
+    // displayed equation, whose text is an `<m>`'s.
+    md: {
+        latex: (_g, x) => mdLatex(reads(x), x.idx),
+        renderMode: (_g, x) => (hasRows(x) ? "align" : "display"),
+        text: (_g, x) => {
+            if (hasRows(x)) {
+                throw new CellsCoreGap("state variable `md.text` of rows");
+            }
+            return convertLatexWithBlanks(
+                mdLatex(reads(x), x.idx),
+                latexToText,
+            );
+        },
+    },
     // A proof: a sectioning component that takes no number (ADR 0054).
     proof: {
         ...headingReaders(false),
