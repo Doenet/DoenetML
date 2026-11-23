@@ -78,7 +78,77 @@ impl<'c> Builder<'c> {
                 reason: format!("more than {} references", crate::limits::MAX_REFERENCES),
             });
         }
-        Ok(self.planned_source(PlannedOp::Template { template, post }, &leaves))
+        Ok(self.planned_source(
+            PlannedOp::Template {
+                template,
+                post,
+                blank: false,
+            },
+            &leaves,
+        ))
+    }
+
+    /// The value prop of instance `inst` (of `component_type`) that stands
+    /// for its expression prop `pi`, when it is a lowered `<math>`'s value
+    /// of math text `expr`, as the template graph finds it.
+    pub(in crate::build) fn lowered_value(
+        &self,
+        inst: Instance,
+        component_type: crate::components::ComponentType,
+        pi: usize,
+        expr: ExprId,
+    ) -> Option<usize> {
+        let vp = component_type.value_of_expr(pi)?;
+        let plan = self.compiled.plans.templates[inst.template.index()].plan(inst.elem);
+        matches!(plan.props.get(vp), Some(Source::Flow(Flow::MathValue(x))) if *x == expr)
+            .then_some(vp)
+    }
+
+    /// A lowered math's expression (ADR 0046): math text `expr` with
+    /// `post`, made from its leaves only while slot `value` is missing, so
+    /// a missing operand shows as the blank in it. NaN, the numeric math's
+    /// expression, for text with no leaf, a numeric-only function, or text
+    /// the engine does not parse: the value was lowered all the same.
+    pub(in crate::build) fn blank_source(
+        &mut self,
+        expr: ExprId,
+        post: Post,
+        scope: ScopeId,
+        value: SlotId,
+    ) -> Result<BuiltSource> {
+        let compiled = self.compiled;
+        let Some(sym) = compiled.plans.sym_text.get(&expr) else {
+            return Ok(BuiltSource::Const(f64::NAN));
+        };
+        if compiled.plans.arena.has_call(expr) {
+            return Ok(BuiltSource::Const(f64::NAN));
+        }
+        let text = || sym.spell(compiled.dast);
+        let parsed;
+        let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
+            cached.get_or_init(|| self.engine.parse_tree(&text()))
+        } else {
+            parsed = self.engine.parse_tree(&text());
+            &parsed
+        };
+        let Ok(tree) = tree else {
+            return Ok(BuiltSource::Const(f64::NAN));
+        };
+        let mut leaves = vec![value];
+        let tree = self.bind_leaves(tree, scope, &mut leaves)?;
+        if leaves.len() == 1 {
+            return Ok(BuiltSource::Const(f64::NAN));
+        }
+        let template = SymTemplateId::from_index(self.sym_templates.len());
+        self.sym_templates.push(tree);
+        Ok(self.planned_source(
+            PlannedOp::Template {
+                template,
+                post,
+                blank: true,
+            },
+            &leaves,
+        ))
     }
 
     /// Constant expression `constant` as imported (`h`), its post applied

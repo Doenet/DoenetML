@@ -79,6 +79,15 @@ chose the principles:
    a math's LaTeX, a text, a list entry, a point's coordinate in text, and
    a boolean's value. A missing point in a graph has NaN coordinates and is
    not drawn.
+6. **A lowered math shows the blank too.** A `<math>` the core lowers to
+   operators (ADR 0005) has no expression to hold a blank, so its `expr`
+   port is `SymKind::InstantiateBlank` over its value and its leaves: NaN
+   while the value is there, the math's text instantiated, in the order
+   written, while it is missing (`<math>1 + $l[5]</math>` shows `1 + ＿`).
+   The engine runs only then; otherwise the instruction is one check. Its
+   cell keeps its port's type, a number, since only the display reads the
+   handle. A math with a numeric-only function (`round`, `min`, ...) or
+   text the engine does not parse keeps a NaN expression and shows `＿`.
 
 ## Consequences
 
@@ -91,10 +100,9 @@ chose the principles:
 - A spec's expected `MISSING` matches only the missing value and an
   expected `NaN` only a NaN (`testing::spec`), so a test says which it
   means.
-- A `<math>` the core lowers to a number (ADR 0005) shows `＿` when an
-  operand is missing, where the principles show `＿ + 1`: the lowered
-  value has no expression to hold the blank. Showing it would mean
-  printing the math's text with its leaves at display time.
+- A drawn `<math>` the core lowers costs one more instruction, which
+  calls the engine only while its value is missing (one in the golden
+  set).
 - The checks every operator now makes on its inputs cost one comparison
   of bits per input, in the tick's inner loop.
 - Not done here: a property a type has but that holds no value now

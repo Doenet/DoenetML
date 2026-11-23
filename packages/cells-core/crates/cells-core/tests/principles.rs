@@ -290,3 +290,22 @@ fn val_5_a_missing_value_earns_no_credit() {
     doc.submit(doc.resolve_path("a").unwrap());
     assert_eq!(v(&doc, "a", "creditAchieved"), 0.0);
 }
+
+/// VAL-5, D40: a math holds the blank, a lowered one too (ADR 0005): its
+/// expression is made, in the order written, while its value is missing,
+/// and goes when the value comes back.
+#[test]
+fn val_5_a_lowered_math_shows_the_blank_in_its_expression() {
+    let mut doc = load(
+        r#"<numberList name="l">1 2</numberList><numberInput name="k" value="7"/>
+           <p name="a"><math>$l[5]+1</math></p>
+           <p name="b"><math>1 + $l[5]</math></p>
+           <p name="c"><math>2 $l[$k] - 3</math></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "a"), "＿ + 1");
+    assert_eq!(text(&doc, "b"), "1 + ＿");
+    assert_eq!(text(&doc, "c"), "2 ＿ - 3");
+    set(&mut doc, "k", "value", 2.0);
+    assert_eq!(text(&doc, "c"), "1");
+}
