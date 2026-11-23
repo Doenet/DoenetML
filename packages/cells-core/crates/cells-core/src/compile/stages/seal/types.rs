@@ -205,8 +205,9 @@ impl<'s, 'a> Types<'s, 'a> {
                 }
             },
             Source::Flow(flow) => match flow {
-                // Credit, a number, a count.
-                Flow::Aggregate(_) | Flow::VecOut(..) => PortType::Num,
+                // Credit, a number, a count; an operator's value, numeric
+                // or evaluated.
+                Flow::Aggregate(_) | Flow::VecOut(..) | Flow::ValueOf(..) => PortType::Num,
                 // Lowered to operators, or NaN: a number either way.
                 Flow::Math(id) | Flow::MathValue(id) => {
                     if check {

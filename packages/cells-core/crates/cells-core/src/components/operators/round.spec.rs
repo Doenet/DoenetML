@@ -43,4 +43,15 @@ spec! {
         request { "mi.value" = 2.47 }
         expect { "n.value" = 2.5, "r.value" = 2.5 }
     }
+
+    case "over math: every number in it rounded, constants floated" {
+        doenet r#"<round name="a">log(31)</round>
+                  <round name="b" numDecimals="2">log(31)</round>
+                  <round name="c" numDigits="3">sin(55.3252326 x)</round>
+                  <round name="d" numDecimals="-6">exp(20) pi</round>"#;
+        expect {
+            "a.expr" = "3", "a.value" = 3, "b.value" = 3.43, "c.expr" = "sin(55.3 x)",
+            "d.value" = 1524000000,
+        }
+    }
 }

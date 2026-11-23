@@ -62,7 +62,8 @@ pub enum SymKind {
     SampleQuadratic,
 }
 
-/// What a `<math>` does to its expression after instantiating it.
+/// What a `<math>`, or an operator over math (ADR 0043), does to its
+/// expression after instantiating it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Post {
     /// Nothing: the expression as instantiated.
@@ -74,6 +75,59 @@ pub enum Post {
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
     SimplifyExpand,
+    /// Its absolute value: a number when it evaluates to one, else
+    /// `abs(..)` (`<abs>`).
+    Abs,
+    /// Its sign, likewise (`<sign>`).
+    Sign,
+    /// Rounded down, likewise, a value within roundoff of an integer
+    /// taken as it (`<floor>`).
+    Floor,
+    /// Rounded up, likewise (`<ceil>`).
+    Ceil,
+    /// Every number in it rounded to this many decimal places (`<round>`).
+    RoundDecimals(i32),
+    /// Every number in it rounded to this many significant digits.
+    RoundDigits(i32),
+    /// Every number in it of magnitude below the threshold, these bits of
+    /// an `f64`, made 0 (`<setSmallToZero>`).
+    SmallToZero(u64),
+}
+
+impl Post {
+    /// `h` with this applied, by `engine`.
+    pub fn apply(self, engine: &mut crate::sym::Engine, h: Handle) -> Handle {
+        match self {
+            Post::None => h,
+            Post::Simplify => engine.simplify(h),
+            Post::Expand => engine.expand(h),
+            Post::SimplifyExpand => {
+                let h = engine.simplify(h);
+                engine.expand(h)
+            }
+            Post::Abs => engine.apply_numeric(h, "abs", f64::abs),
+            Post::Sign => engine.apply_numeric(h, "sign", sign),
+            Post::Floor => {
+                engine.apply_numeric(h, "floor", |v| near_integer(v).unwrap_or(v.floor()))
+            }
+            Post::Ceil => engine.apply_numeric(h, "ceil", |v| near_integer(v).unwrap_or(v.ceil())),
+            Post::RoundDecimals(n) => engine.round_decimals(h, n),
+            Post::RoundDigits(n) => engine.round_digits(h, n),
+            Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+        }
+    }
+}
+
+/// -1, 0 or 1 by the sign of `v`, as JavaScript's `Math.sign`.
+fn sign(v: f64) -> f64 {
+    if v == 0.0 { 0.0 } else { v.signum() }
+}
+
+/// The integer `v` is within roundoff of (relative 1e-15), as the current
+/// core's `<floor>` and `<ceil>` take one.
+fn near_integer(v: f64) -> Option<f64> {
+    let r = v.round();
+    ((r - v).abs() < 1e-15 * v.abs()).then_some(r)
 }
 
 impl SymKind {

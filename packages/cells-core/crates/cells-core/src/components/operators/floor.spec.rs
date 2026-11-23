@@ -31,4 +31,9 @@ spec! {
         request { "mi.value" = 3.7 }
         expect { "n.value" = 3, "f.value" = 3 }
     }
+
+    case "over math: floor(..), a number when it evaluates to one" {
+        doenet r#"<floor name="a">2.1x</floor><floor name="b">log(31)</floor>"#;
+        expect { "a.expr" = "floor(2.1 x)", "a.value" = f64::NAN, "b.expr" = "3", "b.value" = 3 }
+    }
 }

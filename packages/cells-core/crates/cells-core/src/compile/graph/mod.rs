@@ -211,15 +211,7 @@ pub(super) fn math_handle(
                     .parse_constant(&text)
                     .expect("a constant math text parses"),
             };
-            match post {
-                Post::None => h,
-                Post::Simplify => engine.simplify(h),
-                Post::Expand => engine.expand(h),
-                Post::SimplifyExpand => {
-                    let h = engine.simplify(h);
-                    engine.expand(h)
-                }
-            }
+            post.apply(engine, h)
         }
     }
 }
@@ -1226,6 +1218,14 @@ impl<'c> Stamp<'c> {
                     }
                 }
                 Flow::SymExpr(id, post) => self.sym_source(*id, *post, t),
+                Flow::ValueOf(expr, numeric) => {
+                    if self.port_type(t, e, expr.index()) == PortType::Math {
+                        let expr = self.g.port(t, e, expr.index());
+                        Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Evaluate)), vec![expr])
+                    } else {
+                        Def::Alias(self.g.port(t, e, numeric.index()))
+                    }
+                }
                 Flow::Aggregate(_) => unreachable!("an aggregate is wired from the tree"),
             },
         }

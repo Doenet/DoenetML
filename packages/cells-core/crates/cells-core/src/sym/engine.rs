@@ -41,7 +41,7 @@ impl Clone for Engine {
             leaves: self.leaves.clone(),
             index: self.index.clone(),
             hasher: self.hasher.clone(),
-            parser: TextToAst::new(TextToAstOptions::default()),
+            parser: parser(),
             eq: self.eq.clone(),
         }
     }
@@ -61,7 +61,7 @@ impl Engine {
             leaves: HashMap::new(),
             index: HashMap::new(),
             hasher: RandomState::new(),
-            parser: TextToAst::new(TextToAstOptions::default()),
+            parser: parser(),
             eq: EqOptions::default(),
         }
     }
@@ -217,6 +217,50 @@ impl Engine {
         self.push(wrapped)
     }
 
+    /// `f` of `h`'s value when it evaluates to a real number, else the
+    /// function `name` applied to `h`: a one-input operator over math
+    /// (`<abs>`, `<sign>`, `<floor>`, `<ceil>`), as the current core's
+    /// computes one.
+    pub fn apply_numeric(&mut self, h: Handle, name: &str, f: fn(f64) -> f64) -> Handle {
+        match real(me::evaluate_to_constant(&self.exprs[h.index()])) {
+            v if v.is_finite() => self.num(f(v)),
+            _ => {
+                let e = apply(name, self.exprs[h.index()].clone());
+                self.push(e)
+            }
+        }
+    }
+
+    /// `h` with every number in it rounded to `decimals` decimal places,
+    /// after its numbers, constants and functions of numbers are made
+    /// floats (`<round>`): `1/3` rounds, and `sin(2.1 x)` keeps its `x`.
+    pub fn round_decimals(&mut self, h: Handle, decimals: i32) -> Handle {
+        let e = self.floated(h);
+        self.push(me::round_numbers_to_decimals(&e, decimals))
+    }
+
+    /// `h` with every number in it rounded to `digits` significant digits,
+    /// after floating them as [`Engine::round_decimals`] does.
+    pub fn round_digits(&mut self, h: Handle, digits: i32) -> Handle {
+        let e = self.floated(h);
+        self.push(me::round_numbers_to_precision(&e, digits))
+    }
+
+    /// `h`'s numbers, constants and functions of numbers as floats.
+    fn floated(&self, h: Handle) -> Expr {
+        me::evaluate_numbers_evaluate_functions_with_digits(
+            &self.exprs[h.index()],
+            me::MaxDigits::Unlimited,
+        )
+    }
+
+    /// `h` with its numbers folded, in the order written, and each one of
+    /// magnitude below `threshold` made 0 (`<setSmallToZero>`).
+    pub fn small_to_zero(&mut self, h: Handle, threshold: f64) -> Handle {
+        let e = me::evaluate_numbers_preserve_order(&self.exprs[h.index()]);
+        self.push(me::set_small_zero(&e, threshold))
+    }
+
     /// Evaluate to a real number with `var` bound; any other free symbol
     /// gives NaN.
     pub fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
@@ -281,6 +325,37 @@ impl Engine {
     }
 }
 
+/// Functions DoenetML applies in math text beyond the engine's own
+/// (`appliedFunctionSymbolsDefault` in the current core's `utils/math.ts`),
+/// and `gcd` and `lcm`, which an operator over math spells (ADR 0043):
+/// `min(x, 3)` is the function, not `m i n (x, 3)`.
+const DOENET_APPLIED: &[&str] = &[
+    "min", "max", "mean", "median", "sum", "prod", "variance", "std", "count", "gcd", "lcm",
+];
+
+/// The math text parser: the engine's, with DoenetML's applied functions.
+fn parser() -> TextToAst {
+    let mut opts = TextToAstOptions::default();
+    for f in DOENET_APPLIED {
+        if !opts.applied_function_symbols.iter().any(|g| g == f) {
+            opts.applied_function_symbols.push(f.to_string());
+        }
+    }
+    TextToAst::new(opts)
+}
+
+/// A number as math text the engine parses back to it: `-3`, `0.5`,
+/// `0.00000000000001`; the infinities as `infinity`, and NaN as the blank.
+pub(crate) fn number_text(v: f64) -> String {
+    if v.is_nan() {
+        BLANK.to_string()
+    } else if v.is_infinite() {
+        if v > 0.0 { "infinity" } else { "-infinity" }.to_string()
+    } else {
+        format!("{v}")
+    }
+}
+
 /// The symbol a cell leaf becomes: `cellN<i>` for a numeric cell, `cellM<i>`
 /// for a math cell.
 pub(crate) fn leaf_name(cell: u32, math: bool) -> String {
@@ -311,6 +386,10 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
         Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
         Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
         Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+        Tree::Call(f, xs) => Expr::Apply(
+            Box::new(Expr::sym(f)),
+            xs.iter().map(|x| convert(x, leaves)).collect(),
+        ),
     }
 }
 
@@ -409,6 +488,10 @@ fn to_tree<L: Leaf>(e: &Expr) -> Option<Tree<L>> {
         Expr::Neg(a) => Tree::Neg(one(a)?),
         Expr::Apply(head, args) if args.len() == 1 => match &**head {
             Expr::Sym(f) => Tree::Apply(f.name(), one(&args[0])?),
+            _ => return None,
+        },
+        Expr::Apply(head, args) => match &**head {
+            Expr::Sym(f) => Tree::Call(f.name(), all(args)?),
             _ => return None,
         },
         _ => return None,

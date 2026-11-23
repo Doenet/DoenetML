@@ -200,7 +200,8 @@ impl<'a> Planning<'a> {
                 inlining.pop();
                 inlined
             }
-            Expr::Num(_) | Expr::Sym(_) => id,
+            // An operator's text is its own: nothing inlines into it.
+            Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) => id,
             Expr::Neg(a) => {
                 let a = self.inline_maths(t, a, inlining);
                 self.ar.arena.push(Expr::Neg(a))
