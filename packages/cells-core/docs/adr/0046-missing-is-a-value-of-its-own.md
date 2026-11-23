@@ -86,8 +86,10 @@ chose the principles:
    written, while it is missing (`<math>1 + $l[5]</math>` shows `1 + ＿`).
    The engine runs only then; otherwise the instruction is one check. Its
    cell keeps its port's type, a number, since only the display reads the
-   handle. A math with a numeric-only function (`round`, `min`, ...) or
-   text the engine does not parse keeps a NaN expression and shows `＿`.
+   handle. `round`, `floor`, `min` and `max`, which the engine reads and
+   prints, show the blank in place (`round(＿) + 1`, `min(＿, 3)`); a
+   `clamp`, which it does not, and text it does not parse keep a NaN
+   expression and show `＿`.
 
 ## Consequences
 

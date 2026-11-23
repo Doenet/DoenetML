@@ -300,12 +300,22 @@ fn val_5_a_lowered_math_shows_the_blank_in_its_expression() {
         r#"<numberList name="l">1 2</numberList><numberInput name="k" value="7"/>
            <p name="a"><math>$l[5]+1</math></p>
            <p name="b"><math>1 + $l[5]</math></p>
-           <p name="c"><math>2 $l[$k] - 3</math></p>"#,
+           <p name="c"><math>2 $l[$k] - 3</math></p>
+           <p name="calls"><math>round($l[5]) + 1</math>; <math>floor($l[5] + 1)</math>;
+             <math>min($l[5], 3)</math>; <math>max(1, $l[5], 4)</math></p>"#,
     )
     .unwrap();
     assert_eq!(text(&doc, "a"), "＿ + 1");
     assert_eq!(text(&doc, "b"), "1 + ＿");
     assert_eq!(text(&doc, "c"), "2 ＿ - 3");
+    // The functions numeric math calls show the blank too.
+    assert_eq!(
+        text(&doc, "calls")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" "),
+        "round(＿) + 1; floor(＿ + 1); min(＿, 3); max(1, ＿, 4)"
+    );
     set(&mut doc, "k", "value", 2.0);
     assert_eq!(text(&doc, "c"), "1");
 }
