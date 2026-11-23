@@ -16,6 +16,8 @@ component! {
     default_prop: value,
     props {
         value: children { text, rendered },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     children: Value,
     planner: Plan(plan),
@@ -36,7 +38,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ChildValue::Text { id: None, .. } | ChildValue::Math => return Err(mixed()),
     };
     let mut wiring = ElemWiring::of(ComponentType::Text);
-    wiring.set_public(Props { value });
+    wiring.set_public(Props {
+        value,
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
+    });
     Ok(wiring)
 }
 
@@ -64,7 +71,12 @@ fn of_reference(ctx: &mut PlanCtx<'_, '_>, p: crate::compile::api::RefId) -> Ele
             _ => Source::reference(p).into(),
         },
     };
-    wiring.set_public(Props { value });
+    wiring.set_public(Props {
+        value,
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
+    });
     wiring
 }
 

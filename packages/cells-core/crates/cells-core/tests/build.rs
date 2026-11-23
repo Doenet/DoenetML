@@ -121,9 +121,12 @@ fn number_children_literal_reference_and_bare_text_reference() {
         })
         .find(|&c| doc.name(c).is_none() && doc.component_type(c) == ComponentType::Number)
         .expect("anonymous number");
-    assert_eq!(doc.comp_cells(anon), &[doc.cell("p1", "y").unwrap()]);
-    // p1.x, p1.y, p1's hide, a, c and the document's two credit cells
-    assert_eq!(doc.cells.len(), 7);
+    // Its value aliases p1.y; its anchor, which nothing gives it, is the
+    // missing value (it is in no graph).
+    assert_eq!(doc.comp_cells(anon)[0], doc.cell("p1", "y").unwrap());
+    // p1.x, p1.y, p1's hide, a, c, the document's two credit cells, and
+    // the value the numbers' anchors share outside a graph
+    assert_eq!(doc.cells.len(), 8);
 }
 
 #[test]
@@ -140,9 +143,10 @@ fn operators_compute_and_propagate() {
     );
     // The two inputs; the point's `hide` is a constant (ADR 0018), as are the
     // literals 10, 0, 50 and 1, one pooled cell per value, so the `hide`
-    // and the 0 share one (ADR 0028).
+    // and the 0 share one (ADR 0028); and the missing value the numbers'
+    // anchors share, outside a graph.
     assert_eq!(doc.n_essential, 2);
-    assert_eq!(doc.cells.len(), 16);
+    assert_eq!(doc.cells.len(), 17);
     assert_eq!(doc.value("s", "value"), Some(7.0));
     assert_eq!(doc.value("t", "value"), Some(70.0));
     assert_eq!(doc.value("u", "value"), Some(50.0));
@@ -243,7 +247,8 @@ fn load_reports_stages() {
         r#"<numberInput name="a" value="2"/><number>-$a</number>"#,
     );
     let (doc, t) = Document::load(json.as_bytes(), Default::default()).unwrap();
-    assert_eq!(doc.cells.len(), 4);
+    // With the missing value the number's anchor is, outside a graph.
+    assert_eq!(doc.cells.len(), 5);
     assert!(t.deserialize.as_nanos() > 0);
 }
 

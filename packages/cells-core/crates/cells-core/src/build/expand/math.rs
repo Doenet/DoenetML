@@ -345,6 +345,11 @@ impl<'c> Builder<'c> {
                     .map(|a| self.instantiate_expr(a, scope))
                     .collect::<Result<_>>()?,
             ),
+            Expr::Shape(xs) => Expr::Shape(
+                xs.into_iter()
+                    .map(|a| self.instantiate_expr(a, scope))
+                    .collect::<Result<_>>()?,
+            ),
         };
         let done = self.arena.push(out);
         if let Some(key) = class {
@@ -367,7 +372,9 @@ impl<'c> Builder<'c> {
         match e {
             Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
-            Expr::Sym(_) | Expr::Operator(_) => unreachable!("lowering a symbolic expression"),
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+                unreachable!("lowering a symbolic expression")
+            }
             Expr::Neg(a) => {
                 let a = self.lower_shared(a, scope);
                 self.math_op(OpSpec::Negate, &[a], scope)

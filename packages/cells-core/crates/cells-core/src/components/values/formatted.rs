@@ -30,6 +30,8 @@ mod integer {
         props {
             valuePreRound: children,
             value: computed(OpSpec::Round, [valuePreRound]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -50,6 +52,8 @@ mod int_comma {
         default_prop: value,
         props {
             value: children { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

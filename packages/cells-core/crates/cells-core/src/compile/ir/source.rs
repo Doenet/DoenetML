@@ -327,3 +327,19 @@ mod tests {
         assert!(!Source::aggregate(credit).gives_document_constant());
     }
 }
+
+/// An interval as an attribute writes one (`domain="[-4, $b)"`), read the
+/// way the JavaScript core parses it into endpoints and closedness
+/// (ADR 0049): no interval value, only its parts. An endpoint written as
+/// infinity (`Infinity`, `-inf`, `∞`) is that number.
+#[derive(Debug, Clone)]
+pub(crate) struct IntervalAttr {
+    /// The lower endpoint.
+    pub(crate) lo: Source,
+    /// The upper endpoint.
+    pub(crate) hi: Source,
+    /// Whether the lower end is closed (`[`).
+    pub(crate) lo_closed: bool,
+    /// Whether the upper end is closed (`]`).
+    pub(crate) hi_closed: bool,
+}

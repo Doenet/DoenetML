@@ -1,4 +1,4 @@
 rounded up, and math over references: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
 a value within roundoff of an integer is that integer: cells 5 · essential 0 · constant 5 · instrs 0 · components 2
 a request writes the asked value rounded up: cells 5 · essential 1 · constant 3 · instrs 1 · components 5
-over math: ceil(..), a number when it evaluates to one: cells 6 · essential 0 · constant 6 · instrs 0 · components 3
+over math: ceil(..), a number when it evaluates to one: cells 7 · essential 0 · constant 7 · instrs 0 · components 3

@@ -20,9 +20,11 @@ pub(crate) mod boolean_list;
 pub mod curve;
 pub(crate) mod formatted;
 pub(crate) mod function_operators;
+pub(crate) mod interval;
 pub mod math;
 pub(crate) mod math_list;
 pub(crate) mod number_list;
+pub(crate) mod piecewise_function;
 pub(crate) mod pluralize;
 pub mod text;
 pub(crate) mod text_list;
@@ -150,6 +152,8 @@ pub mod number {
         default_prop: value,
         props {
             value: children { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -182,19 +186,89 @@ pub(crate) mod math_value {
 
 pub(crate) mod evaluate {
     use super::*;
+    use crate::components::{ConstrainTarget, FUNCTION_PROPS};
+    use crate::error::Result;
 
     component! {
         /// `<evaluate function="$m" input="$a"/>`: the math's expression with
-        /// its free symbol set to the input.
+        /// its free symbol set to the input; a function's (ADR 0049) in its
+        /// variable, missing outside its domain.
         tags: ["evaluate"],
         flags: [copyable],
         default_prop: value,
         props {
-            function: attr(NO_VALUE) { ref_prop: expr },
-            input: attr(NO_VALUE),
-            value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]) { rendered },
+            function: by_planner,
+            input: by_planner,
+            value: by_planner { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
-        planner: Props,
+        attributes {
+            function: Ref,
+            input: Scalar,
+        }
+        planner: Plan(plan),
+    }
+
+    /// `x` bound to the input in the math's expression, or the function
+    /// of one variable (`EvalFunction`) at the input.
+    fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let attrs = Attrs::of(ctx.record());
+        let at = Props::PORTS;
+        let mut wiring = ElemWiring::of(ctx.component_type());
+        let input = match attrs.input {
+            Some(source) => Wire::scalar(source, GivenId::Attr(attr::input, 0)),
+            None => Wire::absent(),
+        };
+        let Some(p) = attrs.function else {
+            wiring.set_public(Props {
+                function: Wire::absent(),
+                input,
+                value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+                // Planned after this, from the element's `anchor` (`plan_anchor`).
+                anchorX: Wire::absent(),
+                anchorY: Wire::absent(),
+            });
+            return Ok(wiring);
+        };
+        let target = ctx
+            .reference_type(p)?
+            .and_then(|ty| ty.def().constrain_target);
+        let (function, value) = match target {
+            Some(ConstrainTarget::Graph {
+                expr,
+                function: true,
+            }) => {
+                let mut f = Vec::new();
+                for name in FUNCTION_PROPS {
+                    f.push(wiring.hidden(Source::reference(ctx.with_prop(p, name)?)));
+                }
+                let mut eval = vec![at.input];
+                eval.extend(curve::one_piece(
+                    &mut wiring,
+                    at.function,
+                    f[0],
+                    [f[1], f[2], f[3], f[4]],
+                ));
+                (
+                    Wire::from(Source::reference(ctx.with_prop(p, expr)?)),
+                    Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),
+                )
+            }
+            _ => (
+                Wire::from(Source::reference(ctx.with_prop(p, "expr")?)),
+                Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+            ),
+        };
+        wiring.set_public(Props {
+            function,
+            input,
+            value,
+            // Planned after this, from the element's `anchor` (`plan_anchor`).
+            anchorX: Wire::absent(),
+            anchorY: Wire::absent(),
+        });
+        Ok(wiring)
     }
 }
 
@@ -255,6 +329,8 @@ pub(crate) mod clamp_number {
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

@@ -10,6 +10,7 @@ import path from "node:path";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { initCellsCore, loadCellsDocument } from "./loadCellsCore";
 import { CellsBridge, type ElementUpdate } from "./bridge";
+import { lineEquationLatex } from "./contracts";
 
 const CELLS_CORE = path.resolve(__dirname, "../../../cells-core");
 
@@ -54,6 +55,20 @@ describe("flat DAST", () => {
         expect(
             byName(root, "math").map((e) => (e.data as any).props.latex),
         ).toEqual(["y + 1"]);
+    });
+
+    it("draws a math holding a value with entries, and an interval, as a math (ADR 0041)", async () => {
+        const bridge = await load(`<math>{1, x}</math>
+<math>[1, 2)</math>
+<interval>(1, 2)</interval>`);
+        const root = bridge.flatDast();
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual([
+            "\\left\\{ 1, x \\right\\}",
+            "\\left[ 1, 2 \\right)",
+            "\\left( 1, 2 \\right)",
+        ]);
     });
 
     it("gives each component its renderer's props", async () => {
@@ -570,13 +585,19 @@ describe("step 3 components", () => {
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
     });
 
-    // The prototype has no fraction input: it stands as the two math inputs
-    // it owns (ADR 0045), typed into as any math input.
-    it("draws a fraction input as its numerator and denominator inputs", async () => {
+    // A fraction input has its label, and as its children the two math
+    // inputs it owns (ADR 0045), typed into as any math input.
+    it("draws a fraction input over its numerator and denominator inputs", async () => {
         const { all, props, send, changed } = await open(`
-<answer><fractionInput prefillNumerator="1"/><award><math>2/3</math></award></answer>`);
-        expect(all("fractionInput")).toEqual([]);
-        expect(all("mathInput")).toHaveLength(2);
+<answer><fractionInput prefillNumerator="1"><label>Ratio</label></fractionInput><award><math>2/3</math></award></answer>`);
+        const [fraction] = all("fractionInput");
+        expect((fraction.data as any).props).toMatchObject({ label: "Ratio" });
+        const boxes = all("mathInput");
+        expect(boxes).toHaveLength(2);
+        // Its children are the two boxes, its label no text among them.
+        expect(fraction.type === "element" && fraction.children).toEqual(
+            boxes.map((b) => ({ id: b.data.id, annotation: "original" })),
+        );
         expect(props("mathInput", 0).text).toBe("1");
         expect(props("mathInput", 1).text).toBe("");
         let payload = send("mathInput", "updateValue", { text: "2" }, 0);
@@ -1387,6 +1408,40 @@ describe("derived geometry", () => {
         expect(vertices[199]).toEqual([2, 2]);
     });
 
+    it("draws a function on its domain, a piecewise function and the curves (ADR 0049)", async () => {
+        const { all, send } = await open(`<graph xmin="-2" xmax="2">
+<function domain="[0, 5]">x^2</function>
+<piecewiseFunction><function domain="(0, Infinity)">1</function><function>0</function></piecewiseFunction>
+<curve parMin="0" parMax="1" variable="t">(2t, t)</curve>
+<curve through="(1,2) (3,4)"/>
+<equilibriumCurve stable="false" through="(0,0) (1,1)" switchable/>
+</graph>`);
+        const [f, pw, par, spline, eq] = all("polyline");
+        // Cut to the domain: from 0 to the graph's 2.
+        expect(props(f).numericalVertices[0]).toEqual([0, 0]);
+        expect(props(f).numericalVertices[199]).toEqual([2, 4]);
+        expect(props(pw).numericalVertices[0]).toEqual([-2, 0]);
+        expect(props(pw).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(par).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(spline).numericalVertices[0]).toEqual([1, 2]);
+        expect(props(spline).numericalThroughPoints).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(props(eq)).toMatchObject({ dashed: true, switchable: true });
+        let payload = send(spline.data.id, "polyline", "moveThroughPoint", {
+            throughPointInd: 0,
+            throughPoint: [0, 0],
+        });
+        expect(
+            payload[spline.data.id]?.changedState?.numericalVertices[0],
+        ).toEqual([0, 0]);
+        payload = send(eq.data.id, "polyline", "switchCurve", {});
+        expect(payload[eq.data.id]?.changedState).toMatchObject({
+            dashed: false,
+        });
+    });
+
     it("draws equilibrium points and lines and endpoints with their flags, and switches them", async () => {
         const { all, send } = await open(`<graph>
 <equilibriumPoint switchable>(4,0)</equilibriumPoint>
@@ -1429,5 +1484,45 @@ describe("derived geometry", () => {
             x: { math_object: "3" },
             y: { math_object: "1" },
         });
+    });
+});
+
+describe("a line in text", () => {
+    it("is its equation, as the current core writes it from two points", () => {
+        const cases: [[number, number], [number, number], string][] = [
+            [[1, 2], [3, 5], "0 = -3 x + 2 y - 1"],
+            [[0, 0], [1, 1], "0 = -x + y"],
+            [[0, 1], [1, 0], "0 = x + y - 1"],
+            [[2, 0], [2, 5], "0 = -5 x + 10"],
+            [[0, 3], [4, 3], "0 = 4 y - 12"],
+            [[1.5, 2], [3, 5.25], "0 = -3.25 x + 1.5 y + 1.875"],
+        ];
+        for (const [p1, p2, latex] of cases) {
+            expect(lineEquationLatex(p1, p2, null)).toBe(latex);
+        }
+        expect(lineEquationLatex([0, 0], [1, 1], "(s, t)")).toBe("0 = -s + t");
+        expect(lineEquationLatex([1, 1], [1, 1], null)).toBe("＿");
+    });
+
+    it("sends its equation, which follows its points", async () => {
+        const bridge = await load(
+            `<point name="P">(1,2)</point><p><line name="l" through="$P (3,5)"/> <bestFitLine data="(0,0) (1,1)"/></p>`,
+        );
+        const root = bridge.flatDast();
+        const lines = byName(root, "line");
+        expect(lines.map((e) => (e.data as any).props.latex)).toEqual([
+            "0 = -3 x + 2 y - 1",
+            // Written from the fitted line's own two points.
+            "0 = -0.5 x + 0.5 y",
+        ]);
+        const p = bridge._idByComponent.get(bridge.core.resolve_path("P"))!;
+        const updates = bridge.dispatch({
+            component: "point",
+            actionName: "move",
+            componentIdx: p,
+            args: { x: 0, y: 0 },
+        }).payload as Record<number, ElementUpdate>;
+        const l = lines[0].data.id;
+        expect((updates[l].changedState as any).latex).toBe("0 = -5 x + 3 y");
     });
 });

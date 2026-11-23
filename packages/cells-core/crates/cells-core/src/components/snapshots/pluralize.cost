@@ -1,4 +1,4 @@
-one word, and a number and a word, load: cells 5 · essential 0 · constant 5 · instrs 0 · components 5
-basedOnNumber, literal or referred to: cells 15 · essential 1 · constant 11 · instrs 3 · components 5
+one word, and a number and a word, load: cells 6 · essential 0 · constant 6 · instrs 0 · components 5
+basedOnNumber, literal or referred to: cells 16 · essential 1 · constant 12 · instrs 3 · components 5
 text whose nouns only a part-of-speech model finds is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
-text that is not literal is refused: cells 3 · essential 0 · constant 3 · instrs 0 · components 3
+text that is not literal is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3

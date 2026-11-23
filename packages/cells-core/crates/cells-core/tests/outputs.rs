@@ -97,8 +97,8 @@ fn what_a_renderer_reads_is_an_output() {
 }
 
 /// What no renderer reads, and what is not rendered: a prop no renderer
-/// draws, a shape or a function outside a graph, a `<setup>`'s content, an
-/// award.
+/// draws, a shape or a function outside a graph (a line there is drawn as
+/// its equation, from its points), a `<setup>`'s content, an award.
 #[test]
 fn what_nothing_reads_is_not_an_output() {
     let doc = load(
@@ -117,7 +117,6 @@ fn what_nothing_reads_is_not_an_output() {
     for (name, prop) in [
         ("c", "area"),
         ("c", "diameter"),
-        ("outside", "x1"),
         ("outside", "slope"),
         ("hidden", "value"),
         ("sl", "index"),
@@ -130,7 +129,7 @@ fn what_nothing_reads_is_not_an_output() {
     let rendered = doc.rendered_components();
     for (name, is) in [
         ("c", true),
-        ("outside", false),
+        ("outside", true),
         ("hidden", false),
         ("sl", true),
         ("a", true),

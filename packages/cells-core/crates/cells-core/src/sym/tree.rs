@@ -62,6 +62,39 @@ pub enum Tree<L> {
     Apply(String, Box<Tree<L>>),
     /// A named function applied to several arguments: `min(x, y)`.
     Call(String, Vec<Tree<L>>),
+    /// A value with entries (ADR 0041, decision 8): a list, tuple, vector,
+    /// interval, set or matrix, its entries in order (a matrix's by row).
+    Shape(Shape, Vec<Tree<L>>),
+}
+
+/// The head of a [`Tree::Shape`]: what kind of value its entries make.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Shape {
+    /// `a, b, c`: entries written one after another.
+    List,
+    /// `(a, b)`.
+    Tuple,
+    /// A vector (`createVectors`, or a `<vector>`'s value).
+    Vector,
+    /// `⟨a, b⟩`.
+    AltVector,
+    /// `[a, b]`.
+    Array,
+    /// `{a, b}`: unordered.
+    Set,
+    /// An interval of two entries, its ends' closedness (left, right).
+    Interval([bool; 2]),
+    /// A matrix of `rows` by `cols` entries, by row.
+    Matrix {
+        /// How many rows.
+        rows: u32,
+        /// How many columns.
+        cols: u32,
+    },
+    /// A union of sets.
+    Union,
+    /// An intersection of sets.
+    Intersect,
 }
 
 impl<L: Copy> Tree<L> {
@@ -100,6 +133,12 @@ impl<L: Copy> Tree<L> {
                     .map(|t| t.try_map_leaves(f))
                     .collect::<Result<_, _>>()?,
             ),
+            Tree::Shape(head, ts) => Tree::Shape(
+                *head,
+                ts.iter()
+                    .map(|t| t.try_map_leaves(f))
+                    .collect::<Result<_, _>>()?,
+            ),
         })
     }
 
@@ -117,7 +156,7 @@ impl<L: Copy> Tree<L> {
         match self {
             Tree::Num(_) | Tree::Sym(_) => {}
             Tree::Cell { cell, math } => f(*cell, *math),
-            Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) => {
+            Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
                 ts.iter().for_each(|t| t.for_each_leaf(f))
             }
             Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => {

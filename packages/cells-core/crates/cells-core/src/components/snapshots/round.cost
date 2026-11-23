@@ -3,4 +3,4 @@ to decimal places, through the shortest decimal spelling: cells 14 · essential 
 to significant digits: cells 11 · essential 0 · constant 11 · instrs 0 · components 4
 places from a reference, and a copy: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
 a request writes the asked value rounded: cells 6 · essential 1 · constant 4 · instrs 1 · components 5
-over math: every number in it rounded, constants floated: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+over math: every number in it rounded, constants floated: cells 11 · essential 0 · constant 11 · instrs 0 · components 5

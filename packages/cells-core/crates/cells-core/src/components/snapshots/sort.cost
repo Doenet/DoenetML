@@ -1,5 +1,5 @@
 numbers in increasing order: cells 32 · essential 0 · constant 32 · instrs 0 · components 2
-an operand from an input moves in the order: cells 19 · essential 1 · constant 9 · instrs 6 · components 5
+an operand from an input moves in the order: cells 20 · essential 1 · constant 10 · instrs 6 · components 5
 a write to a sorted entry is dropped: it would move the entry: cells 15 · essential 0 · constant 15 · instrs 0 · components 4
 a write to a shuffled entry lands on the operand it shows: cells 25 · essential 3 · constant 10 · instrs 10 · components 5
 a shuffle holds every operand once, in the order the seed drew: cells 33 · essential 0 · constant 33 · instrs 0 · components 3

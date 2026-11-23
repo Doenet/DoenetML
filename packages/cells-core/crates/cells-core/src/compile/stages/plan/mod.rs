@@ -2,6 +2,7 @@
 //! settled and parsing made, never from another element's plan. This
 //! directory holds the machinery each type's planner builds on.
 
+mod anchor;
 mod answer;
 mod attrs;
 mod choice;
@@ -179,6 +180,7 @@ impl<'a> Planning<'a> {
         let planned_as = self.rd.outlined(t).elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
+            self.plan_anchor(t, e)?;
             self.plan_links(t, e)?;
             let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
             self.tables[t.index()].plans[e.index()].hold = hold;

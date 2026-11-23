@@ -85,7 +85,7 @@ impl<'c> Stamp<'c> {
         match (at, prop) {
             (At::Missing, _) => {
                 let ty = Role::Value.ty();
-                self.place_as(m, ty, 1);
+                self.place_value(m, ty);
                 let s = self.slot(Comp::Made(m), ty.scalar_prop().expect("a value"));
                 let missing = self.missing();
                 self.set(s, Def::Alias(missing));
@@ -100,7 +100,7 @@ impl<'c> Stamp<'c> {
                     None if held == Some(PortType::Math) => Role::MathValue.ty(),
                     None => Role::Value.ty(),
                 };
-                self.place_as(m, component_type, 1);
+                self.place_value(m, component_type);
                 let s = self.slot(
                     Comp::Made(m),
                     component_type.scalar_prop().expect("a value"),
@@ -161,6 +161,19 @@ impl<'c> Stamp<'c> {
 
     /// Made component `m`, placed: of `component_type`, with `n` new
     /// ports.
+    /// Place a `$ref` child shown as a value of `component_type`: every
+    /// prop of its table, each the missing value until its value prop is
+    /// set (an anchor, which nothing gives it).
+    fn place_value(&mut self, m: u32, component_type: ComponentType) {
+        let n = component_type.prop_defs().len();
+        self.place_as(m, component_type, n);
+        let missing = self.missing();
+        for pi in 0..n {
+            let s = self.slot(Comp::Made(m), pi);
+            self.set(s, Def::Alias(missing));
+        }
+    }
+
     fn place_as(&mut self, m: u32, component_type: ComponentType, n: usize) {
         let t = self.g.made[m as usize].template;
         let base = GraphNode::from_index(self.g.nodes.len());

@@ -31,7 +31,10 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
     // Mul then Add: two instructions, reading the literals' constants;
     // and the expression shown while the value is missing (ADR 0046).
     assert_eq!(doc.program.len(), 3);
-    assert_eq!(doc.n_const, 4, "the document's two credit cells, 3 and 2");
+    assert_eq!(
+        doc.n_const, 5,
+        "the document's two credit cells, 3 and 2, and the anchor a math has outside a graph"
+    );
     let expr = doc.cell("m", "expr").unwrap();
     assert!(
         doc.cells[expr.index()].is_nan(),

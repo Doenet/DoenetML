@@ -483,9 +483,25 @@ impl Core {
         raw_cells(self.doc.counter_reads(CompIdx::new(idx)))
     }
 
+    /// The function component `idx` is, at `x` (ADR 0049): missing outside
+    /// its domain, a piecewise function's piece there; none when it is no
+    /// function of one variable.
+    pub fn function_value(&mut self, idx: u32, x: f64) -> Option<f64> {
+        if (idx as usize) >= self.doc.n_components() {
+            return None;
+        }
+        self.doc.function_value(CompIdx::new(idx), x)
+    }
+
     /// Text of the expression a math cell holds, for display.
     pub fn expr_text(&self, cell: u32) -> String {
         self.doc.math_text(CellIdx::new(cell))
+    }
+
+    /// The expression a math cell holds as the JavaScript math tree, in
+    /// JSON; empty for a NaN handle.
+    pub fn expr_ast(&self, cell: u32) -> String {
+        self.doc.math_ast(CellIdx::new(cell))
     }
 
     /// LaTeX of the expression a math cell holds, for a renderer that draws

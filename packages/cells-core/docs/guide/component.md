@@ -280,6 +280,7 @@ candidate for a hook, or for removal.
 | is a shape | `renders: InGraph`, `flags: [located]`, `list { .. }` or `combined_props`, `sticky:`, `constrain_target` |
 | is a container | `flags: [container]`, `structure:` when looked through, `scored: Skip` when scores skip it, `encloses: Graph(..)` for a graph's like |
 | takes attributes a renderer reads | `presentation { .. }` |
+| is a value a graph draws as a label | `anchorX: anchor(0), anchorY: anchor(1)` (ADR 0047), planned for it; `Wire::absent()` for each in a planner's `Props` |
 | accepts the current core's spellings | `alternate_names { .. }` |
 
 **Beyond a typical component** (one type's behavior, or the machinery's):

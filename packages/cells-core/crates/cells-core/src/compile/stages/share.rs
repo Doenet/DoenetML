@@ -700,7 +700,8 @@ fn expr_classes<'c>(
                 .collect::<Option<Vec<u32>>>()
                 .map(|xs| K::Call(*f as u8, xs)),
             // Its text says what it is: its own class.
-            Expr::Operator(_) => None,
+            // A shape's head is in its text, not here: its own class.
+            Expr::Operator(_) | Expr::Shape(_) => None,
         };
         let class = match key {
             Some(k) => *seen.entry(k).or_insert(id),

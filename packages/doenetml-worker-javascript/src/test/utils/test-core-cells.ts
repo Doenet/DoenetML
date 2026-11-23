@@ -101,11 +101,15 @@ const valueReaders: Record<string, Reader> = {
 /** The blank expression the current core shows for an empty input. */
 const BLANK = "\uff3f";
 
+/** The expression a math cell holds, read as the core's math tree (which
+ * text cannot tell from a tuple, an open interval; ADR 0041, decision 8). */
+function heldExpr(cells: Cells, cell: number) {
+    return me.fromAst(JSON.parse(cells.core.expr_ast(cell)));
+}
+
 /** The expression a math cell holds; blank when the handle is NaN. */
 const exprOf = (cells: Cells, cell: number) =>
-    Number.isNaN(cells.value(cell))
-        ? me.fromAst(BLANK)
-        : me.fromText(cells.core.expr_text(cell));
+    Number.isNaN(cells.value(cell)) ? me.fromAst(BLANK) : heldExpr(cells, cell);
 
 /** A math's value: its expression when it is a math cell (plan 5), else
  * the number its lowered chain computes. An unbound mathInput's blank
@@ -114,7 +118,7 @@ const mathValue: Reader = (g, x) => {
     const e = x.cell("expr");
     if (e !== undefined) {
         if (!Number.isNaN(x.cells.value(e))) {
-            return me.fromText(x.cells.core.expr_text(e));
+            return heldExpr(x.cells, e);
         }
         if (x.cells.core.cell_class(e) === "essential")
             return me.fromAst(BLANK);
@@ -434,6 +438,68 @@ function counterNameReaders(
     };
 }
 
+/** A function's domain (ADR 0049) as the current core's `domain`: one
+ * interval, its endpoints and whether each is closed. */
+const functionDomain: Reader = (g) => [
+    me.fromAst([
+        "interval",
+        ["tuple", g("domainMin"), g("domainMax")],
+        ["tuple", g("domainMinClosed") === 1, g("domainMaxClosed") === 1],
+    ]),
+];
+
+/** A function of one variable at `x`, as the cells core's own engine
+ * evaluates it (`function_value`); a gap for one it does not evaluate. */
+function numericalFunction(x: Ctx): (v: number) => number {
+    return (v: number) => {
+        const y = x.cells.core.function_value(x.idx, v);
+        if (y === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.numericalfs: not a function of one variable`,
+            );
+        }
+        return y;
+    };
+}
+
+const functionReaders: Record<string, Reader> = {
+    domain: functionDomain,
+    numericalfs: (_g, x) => [numericalFunction(x)],
+    numericalf: (_g, x) => numericalFunction(x),
+    formula: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    variables: (_g, x) => [exprOf(x.cells, x.cell("variable")!)],
+};
+
+/** A curve's type, as the current core names it (ADR 0049). */
+const CURVE_TYPES = ["function", "parameterization", "bezier"];
+
+const curveReaders: Record<string, Reader> = {
+    curveType: (g) => CURVE_TYPES[g("curveType")],
+    parMin: (g) => g("parMin"),
+    parMax: (g) => g("parMax"),
+    numThroughPoints: (_g, x) =>
+        x.cells.propCells(x.idx, "throughPoints").length / 2,
+    numericalThroughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: number[][] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([x.cells.value(cells[i]), x.cells.value(cells[i + 1])]);
+        }
+        return out;
+    },
+    throughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: unknown[] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([
+                M(x.cells.value(cells[i])),
+                M(x.cells.value(cells[i + 1])),
+            ]);
+        }
+        return out;
+    },
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -707,6 +773,20 @@ const STATE: Record<string, Record<string, Reader>> = {
     textList: valueListReaders("texts", (x, c) => x.cells.text(c)),
     booleanList: valueListReaders("booleans", (x, c) => x.cells.value(c) === 1),
     mathList: valueListReaders("maths", (x, c) => heldMath(x.cells, c)),
+    // Function machinery (ADR 0049).
+    function: functionReaders,
+    derivative: functionReaders,
+    piecewiseFunction: {
+        domain: functionDomain,
+        numericalfs: (_g, x) => [numericalFunction(x)],
+    },
+    curve: curveReaders,
+    equilibriumCurve: {
+        ...curveReaders,
+        stable: (g) => g("stable") !== 0,
+    },
+    // Values with entries inside a math (ADR 0041, decision 8).
+    interval: mathReaders,
 };
 
 /** The component fields the harness answers for some types: a fraction
@@ -748,6 +828,8 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     rectangle: ["movePolygon"],
     regularPolygon: ["movePolygon"],
     solution: ["revealSolution", "closeSolution"],
+    curve: ["moveThroughPoint"],
+    equilibriumCurve: ["moveThroughPoint", "switchCurve"],
 };
 
 function stripPositions(o: any): any {

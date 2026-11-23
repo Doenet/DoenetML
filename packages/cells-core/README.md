@@ -69,7 +69,11 @@ redraws components). A `callAction`, `updateValue` or `triggerSet` may be
 pressed by the document instead of a student: `triggerWhen`, `triggerWith`
 and `triggerWhenObjectsClicked` or `...Focused` on a point, each press a
 follow-up tick (ADR 0042). The input `fractionInput` (its numerator and denominator boxes, a
-prefill each; no bound value). A `<math>` tuple of three or more entries is a tuple
+prefill each; no bound value). A function's `domain` (one interval) and
+`variables` (one), `piecewiseFunction` (of `function` children), `curve`
+(a function's graph, a parametric curve, or a spline through points with
+`bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
+A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

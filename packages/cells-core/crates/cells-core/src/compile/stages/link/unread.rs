@@ -62,10 +62,16 @@ impl Linking<'_, '_> {
 /// element the normalizer made (a tag starting with `_`) are accepted.
 fn unread_attributes(dast: &Dast, boxed: &HashSet<NodeId>) -> Vec<(NodeId, Error)> {
     let presentation = |tag: &str, name: &str| {
-        let of_type = ComponentType::from_tag(tag).map_or(&[][..], |k| k.def().presentation);
+        let ty = ComponentType::from_tag(tag);
+        let of_type = ty.map_or(&[][..], |k| k.def().presentation);
+        let of_anchor = match ty.and_then(|k| k.anchor_props()) {
+            Some(_) => crate::components::ANCHOR_PRESENTATION_ATTRS,
+            None => &[],
+        };
         crate::components::PRESENTATION_ATTRS
             .iter()
             .chain(of_type)
+            .chain(of_anchor)
             .any(|p| p.eq_ignore_ascii_case(name))
     };
     let mut out = Vec::new();
