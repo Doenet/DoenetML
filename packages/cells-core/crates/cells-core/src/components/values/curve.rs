@@ -6,7 +6,7 @@ use crate::components::define::*;
 use crate::components::prop::graph;
 use crate::components::{ComponentDef, ComponentType, ConstrainTarget};
 use crate::error::Result;
-use crate::program::{Post, SymKind};
+use crate::program::{Post, SymKind, VecOp};
 
 component! {
     /// `<function>`: a math cell `expr` in its variable (`x`, or the one
@@ -113,13 +113,11 @@ pub(crate) fn whole_line() -> [Wire; 4] {
 }
 
 /// The domain an element's `domain` attribute writes (ADR 0046), as four
-/// wires: the endpoints (an endpoint that is no number is no bound, as in
-/// the current core) and closedness; the whole line without one, and with
+/// wires: the endpoints (one that is no number is NaN) and closedness; the whole line without one, and with
 /// a warning when it is not one interval. The second is whether one was
 /// given.
 pub(crate) fn plan_domain(
     ctx: &mut PlanCtx<'_, '_>,
-    wiring: &mut ElemWiring,
     nodes: Option<&[crate::dast::NodeId]>,
 ) -> Result<([Wire; 4], bool)> {
     let Some(nodes) = nodes else {
@@ -133,17 +131,16 @@ pub(crate) fn plan_domain(
         );
         return Ok((whole_line(), false));
     };
-    let mut end = |source: Source, k: u32, unbounded: f64| -> Wire {
+    // An endpoint that is no number stays one: no bound for the function
+    // itself, a piece left out of a piecewise function.
+    let end = |source: Source, k: u32| -> Wire {
         match source {
             Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) if !v.is_nan() => Wire::constant(v),
-            source => {
-                let raw = wiring.hidden_wire(Wire::scalar(source, GivenId::Attr(attr::domain, k)));
-                Source::computed_k(OpSpec::NanTo, raw, unbounded).into()
-            }
+            source => Wire::scalar(source, GivenId::Attr(attr::domain, k)),
         }
     };
-    let lo = end(iv.lo, 0, f64::NEG_INFINITY);
-    let hi = end(iv.hi, 1, f64::INFINITY);
+    let lo = end(iv.lo, 0);
+    let hi = end(iv.hi, 1);
     let flag = |closed: bool| Wire::constant(if closed { 1.0 } else { 0.0 });
     Ok(([lo, hi, flag(iv.lo_closed), flag(iv.hi_closed)], true))
 }
@@ -223,15 +220,31 @@ pub(crate) fn function_curve(
     }
     let gxmin = wiring.hidden_wire(gxmin);
     let gxmax = wiring.hidden_wire(gxmax);
+    let range = wiring.hidden_vector(VecOp::DomainRange, vec![gxmin, gxmax, domain[0], domain[1]]);
     let mut inputs = vec![xmin, xmax];
-    inputs.extend(domain);
-    inputs.extend([expr, variable]);
-    inputs.extend(domain);
+    inputs.extend(one_piece(wiring, expr, variable, domain));
     [
-        Wire::computed(OpSpec::Max, vec![gxmin, domain[0]]),
-        Wire::computed(OpSpec::Min, vec![gxmax, domain[1]]),
+        Wire::own(range[0]),
+        Wire::own(range[1]),
         Wire::computed(OpSpec::Sym(SymKind::SampleFunction), inputs),
     ]
+}
+
+/// A function of one variable as [`SymKind::EvalFunction`] reads one
+/// (ADR 0046): its domain, then one piece, its expression in its variable
+/// on the whole line.
+pub(crate) fn one_piece(
+    wiring: &mut ElemWiring,
+    expr: Port,
+    variable: Port,
+    domain: [Port; 4],
+) -> Vec<Port> {
+    let mut f = domain.to_vec();
+    f.extend([expr, variable]);
+    for w in whole_line() {
+        f.push(wiring.hidden_wire(w));
+    }
+    f
 }
 
 /// A math cell `expr` and, as a curve, its samples over the x-range of
@@ -266,7 +279,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let (expr, parts) = if is_function {
         let id = ctx.sym_math(&nodes, &mt)?;
         let var = function_variables(attrs.variables).remove(0);
-        let (domain, has_domain) = plan_domain(ctx, &mut wiring, attrs.domain.as_deref())?;
+        let (domain, has_domain) = plan_domain(ctx, attrs.domain.as_deref())?;
         let parts = FunctionParts {
             plain: var == "x" && !has_domain,
             variable: ctx.symbol(&var).into(),

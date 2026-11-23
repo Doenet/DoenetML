@@ -55,12 +55,17 @@
 //! |                          | them (or (a, b, c) → the same)        | vertex), a when asked (or a, b, c themselves)                        | b, c)             |
 //! | `IntoDomain`             | (x, domain) → x held in the domain,   | projection: the requested value held in the domain, written to x     | x                 |
 //! |                          | a step inside an open end             |                                                                      |                   |
+//! | `DomainRange`            | (xmin, xmax, lo, hi) → the range cut  | none: a curve's range is not set by a request                        | none              |
+//! |                          | to the domain                         |                                                                      |                   |
+//! | `DomainHull{n}`          | n domains → the least interval        | none: a piecewise function's domain is not set by a request          | none              |
+//! |                          | holding them                          |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
 
 use crate::index::CellIdx;
 use crate::program::Range;
+use crate::program::scalar::{nan_max, nan_min};
 use crate::tick::invert::PointRequest;
 use std::f64::consts::{PI, TAU};
 
@@ -368,6 +373,19 @@ pub enum VecOp {
     /// it; NaN only when input 0 is. A point constrained to a function
     /// with a domain (ADR 0046). A request writes input 0 held.
     IntoDomain,
+    /// Inputs (xmin, xmax, lo, hi); outputs (xmin, xmax) cut to the
+    /// interval from `lo` to `hi`, an endpoint that is no number no bound:
+    /// the range a function's curve is sampled over (ADR 0046). No inverse.
+    DomainRange,
+    /// Inputs `n` domains of four cells each (lower, upper, lower closed,
+    /// upper closed); outputs the least interval holding them, as four
+    /// cells, a domain with an endpoint that is no number left out, the
+    /// whole line when every one is: a `<piecewiseFunction>`'s domain from
+    /// its pieces' (ADR 0046). No inverse.
+    DomainHull {
+        /// How many domains.
+        n: u8,
+    },
 }
 
 /// What a [`VecOp::Scan`] computes over the prefixes of its inputs, as the
@@ -1074,6 +1092,32 @@ pub use crate::limits::MAX_VEC_IN;
 
 /// `x` held between `lo` and `hi`; NaN if any is NaN (unlike `f64::clamp`,
 /// which panics on bounds out of order).
+/// The least interval holding the domains `ds` (four cells each), leaving
+/// out a domain with an endpoint that is no number; the whole line, open at
+/// both ends, when none is left. An end shared by several is closed when
+/// any of them closes it, as the current core's `<piecewiseFunction>`
+/// finds its domain.
+fn domain_hull(ds: &[f64]) -> [f64; 4] {
+    let mut hull: Option<[f64; 4]> = None;
+    for d in ds.chunks_exact(4) {
+        if d[0].is_nan() || d[1].is_nan() {
+            continue;
+        }
+        let h = hull.get_or_insert([d[0], d[1], d[2], d[3]]);
+        if d[0] < h[0] {
+            (h[0], h[2]) = (d[0], d[2]);
+        } else if d[0] == h[0] && d[2] != 0.0 {
+            h[2] = 1.0;
+        }
+        if d[1] > h[1] {
+            (h[1], h[3]) = (d[1], d[3]);
+        } else if d[1] == h[1] && d[3] != 0.0 {
+            h[3] = 1.0;
+        }
+    }
+    hull.unwrap_or([f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0])
+}
+
 /// How far inside an open end of a domain [`VecOp::IntoDomain`] holds a
 /// value: a millionth of the end's size, at least a millionth, and no more
 /// than half the domain's width.
@@ -1164,6 +1208,8 @@ impl VecOp {
             } => 3,
             VecOp::Parabola { through, vertex } => 1 + 2 * vertex as usize + 2 * through as usize,
             VecOp::IntoDomain => 5,
+            VecOp::DomainRange => 4,
+            VecOp::DomainHull { n } => 4 * n as usize,
         }
     }
 
@@ -1195,6 +1241,7 @@ impl VecOp {
             VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 0,
             VecOp::Parabola { .. } => first(self.n_in()),
             VecOp::IntoDomain => 1,
+            VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
         }
     }
 
@@ -1290,6 +1337,8 @@ impl VecOp {
             VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 3,
             VecOp::Parabola { .. } => 5,
             VecOp::IntoDomain => 1,
+            VecOp::DomainRange => 2,
+            VecOp::DomainHull { .. } => 4,
         }
     }
 
@@ -1444,6 +1493,20 @@ impl VecOp {
                 out.copy_from_slice(&[a, b, c, vx, vy]);
             }
             VecOp::IntoDomain => out[0] = into_domain(inp[0], &inp[1..5]),
+            VecOp::DomainRange => {
+                let (lo, hi) = (inp[2], inp[3]);
+                out[0] = if lo.is_nan() {
+                    inp[0]
+                } else {
+                    nan_max(inp[0], lo)
+                };
+                out[1] = if hi.is_nan() {
+                    inp[1]
+                } else {
+                    nan_min(inp[1], hi)
+                };
+            }
+            VecOp::DomainHull { n } => out.copy_from_slice(&domain_hull(&inp[..4 * n as usize])),
         }
     }
 
@@ -1577,7 +1640,9 @@ impl VecOp {
             | VecOp::Shuffle { .. }
             | VecOp::Draws { .. }
             | VecOp::BestFitLine { .. }
-            | VecOp::IntersectLines { .. } => false,
+            | VecOp::IntersectLines { .. }
+            | VecOp::DomainRange
+            | VecOp::DomainHull { .. } => false,
             VecOp::Parabola { through, vertex } => {
                 // A vertex asked for keeps `a`.
                 let abc = if desired[3].is_some() || desired[4].is_some() {
@@ -2433,6 +2498,8 @@ mod writes {
                 vertex: true,
             },
             VecOp::IntoDomain,
+            VecOp::DomainRange,
+            VecOp::DomainHull { n: 2 },
         ]
     }
 
@@ -2556,6 +2623,9 @@ mod writes {
             | VecOp::IntersectLines { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
             VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],
             VecOp::IntoDomain => vec![vec![0]],
+            VecOp::DomainRange | VecOp::DomainHull { .. } => {
+                (0..op.n_out()).map(|k| vec![k]).collect()
+            }
         }
     }
 

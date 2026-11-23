@@ -111,11 +111,15 @@ impl ComponentTable {
             let ty = self.component_type[c.index()];
             match ty.renders() {
                 Renders::Never => continue,
-                Renders::InGraph if !in_graph => continue,
+                Renders::InGraph | Renders::InGraphAlone if !in_graph => continue,
                 _ => {}
             }
             rendered[c.index()] = true;
             in_sticky[c.index()] = sticky;
+            // Its children are parts it draws.
+            if ty.renders() == Renders::InGraphAlone {
+                continue;
+            }
             let in_graph = in_graph || ty.graph_bounds().is_some();
             let sticky = sticky || ty.is_sticky_group();
             let start = self.child_start[c.index()] as usize;

@@ -298,8 +298,14 @@ pub enum Role {
     /// One option of an input whose response is an index (a
     /// `<choiceInput>`'s `<choice>`).
     Choice,
-    /// What a function's iterates iterate (a `<function>`).
+    /// What a function's iterates iterate (a `<function>`), and a piece
+    /// of a piecewise function.
     Function,
+    /// A function of one variable made of the functions among its
+    /// children, each on its own domain (a `<piecewiseFunction>`,
+    /// ADR 0046): its value at `x` is its first piece's whose domain holds
+    /// `x`.
+    PiecewiseFunction,
 }
 
 impl Role {
@@ -321,6 +327,7 @@ impl Role {
         Role::When,
         Role::Choice,
         Role::Function,
+        Role::PiecewiseFunction,
     ];
 }
 
@@ -649,6 +656,10 @@ pub enum Renders {
     Never,
     /// Only with a `<graph>` above it: a line, a circle.
     InGraph,
+    /// Only with a `<graph>` above it, as one drawing: its children are
+    /// parts it draws, none drawn on its own (a `<piecewiseFunction>`'s
+    /// functions, ADR 0046).
+    InGraphAlone,
 }
 
 /// Where a list's points are.

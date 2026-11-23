@@ -209,8 +209,8 @@ fn census() {
     // `fixed.doenet`'s copies share 11 of the 189. A derivative of a
     // function takes the function's domain (ADR 0046), which its planner
     // cannot see is the whole line, so it samples over the graph's range
-    // cut to the domain: `symbolic.doenet`'s two more, both live.
-    assert!(golden[0] <= 136 && golden[1] == 180, "{golden:?}");
+    // cut to the domain: `symbolic.doenet`'s one more, live.
+    assert!(golden[0] <= 135 && golden[1] == 179, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

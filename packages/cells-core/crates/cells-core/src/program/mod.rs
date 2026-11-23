@@ -640,7 +640,7 @@ pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]
     out.fill(f64::NAN);
     let (domain, pieces) = f.split_at(DOMAIN_CELLS);
     let mut todo: Vec<usize> = (0..xs.len())
-        .filter(|&i| in_domain(xs[i], domain))
+        .filter(|&i| in_domain(xs[i], domain, false))
         .collect();
     for piece in pieces.chunks_exact(PIECE_CELLS) {
         if todo.is_empty() {
@@ -648,7 +648,7 @@ pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]
         }
         let (taken, rest): (Vec<usize>, Vec<usize>) = todo
             .into_iter()
-            .partition(|&i| in_domain(xs[i], &piece[2..]));
+            .partition(|&i| in_domain(xs[i], &piece[2..], true));
         todo = rest;
         let (Some(h), Some(var)) = (
             handle(piece[0]),

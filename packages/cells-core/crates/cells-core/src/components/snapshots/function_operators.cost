@@ -2,7 +2,7 @@ clamp: between 0 and 1 by default: cells 15 · essential 0 · constant 15 · ins
 clamp: given bounds, and bounds that follow an input: cells 16 · essential 1 · constant 11 · instrs 4 · components 7
 clamp: of math in x, not a function: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
 clamp: its derivative, where the clamp lets the function through: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
-clamp: a point constrained to it rides its graph: cells 418 · essential 5 · constant 9 · instrs 6 · components 5
+clamp: a point constrained to it rides its graph: cells 418 · essential 5 · constant 9 · instrs 5 · components 5
 wrap: into [0, 1) by default: cells 13 · essential 0 · constant 13 · instrs 0 · components 5
 wrap: into given bounds, in either order: cells 18 · essential 0 · constant 18 · instrs 0 · components 8
 wrap: equal bounds hold every value there: cells 10 · essential 0 · constant 10 · instrs 0 · components 3

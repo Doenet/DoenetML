@@ -20,6 +20,7 @@ pub(crate) mod formatted;
 pub(crate) mod function_operators;
 pub mod math;
 pub(crate) mod number_list;
+pub(crate) mod piecewise_function;
 pub(crate) mod pluralize;
 pub mod text;
 pub(crate) mod text_list;
@@ -140,11 +141,13 @@ pub(crate) mod evaluate {
                 for name in FUNCTION_PROPS {
                     f.push(wiring.hidden(Source::reference(ctx.with_prop(p, name)?)));
                 }
-                let (var, domain) = (f[0], &f[1..5]);
                 let mut eval = vec![at.input];
-                eval.extend_from_slice(domain);
-                eval.extend([at.function, var]);
-                eval.extend_from_slice(domain);
+                eval.extend(curve::one_piece(
+                    &mut wiring,
+                    at.function,
+                    f[0],
+                    [f[1], f[2], f[3], f[4]],
+                ));
                 (
                     Wire::from(Source::reference(ctx.with_prop(p, expr)?)),
                     Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),

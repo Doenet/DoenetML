@@ -33,7 +33,7 @@ fn bit(b: bool) -> f64 {
 }
 
 #[inline(always)]
-fn nan_min(a: f64, b: f64) -> f64 {
+pub(crate) fn nan_min(a: f64, b: f64) -> f64 {
     if a.is_nan() || b.is_nan() {
         f64::NAN
     } else {
@@ -42,7 +42,7 @@ fn nan_min(a: f64, b: f64) -> f64 {
 }
 
 #[inline(always)]
-fn nan_max(a: f64, b: f64) -> f64 {
+pub(crate) fn nan_max(a: f64, b: f64) -> f64 {
     if a.is_nan() || b.is_nan() {
         f64::NAN
     } else {

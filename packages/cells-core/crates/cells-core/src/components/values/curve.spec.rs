@@ -34,6 +34,13 @@ spec! {
         expect { "f.domainMin" = f64::NEG_INFINITY, "a.value" = -999, "b.value" = f64::NAN }
     }
 
+    case "an endpoint that is no number is no bound" {
+        doenet r#"<function name="f" domain="[a, 3]">x</function>
+                  <evaluate name="a" function="$f" input="-100"/>
+                  <evaluate name="b" function="$f" input="4"/>"#;
+        expect { "a.value" = -100, "b.value" = f64::NAN }
+    }
+
     case "an endpoint that follows an input" {
         doenet r#"<numberInput name="n" value="1"/>
                   <function name="f" domain="[0, $n]">x</function>

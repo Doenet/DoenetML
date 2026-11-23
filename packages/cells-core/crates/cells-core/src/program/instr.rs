@@ -63,11 +63,13 @@ pub enum SymKind {
     // Functions of one variable with domains (ADR 0046). A function is
     // given as its domain and its pieces: `D` is four cells, an
     // interval's lower and upper endpoints and whether each is closed
-    // (1) or open (0), a NaN endpoint standing for no bound; a piece is
-    // six, its expression, the variable it is in (a math cell holding a
-    // symbol) and its own domain. Its value at `x` is NaN outside `D`,
-    // else the first piece whose domain holds `x`, evaluated there, else
-    // NaN. A `<function>` is one piece whose domain is the function's.
+    // (1) or open (0); a piece is six, its expression, the variable it is
+    // in (a math cell holding a symbol) and its own domain. Its value at
+    // `x` is NaN outside `D`, else the first piece whose domain holds `x`,
+    // evaluated there, else NaN ([`in_domain`]). An endpoint of `D` that
+    // is no number is no bound; a piece with one is left out, as the
+    // current core's `<function>` and `<piecewiseFunction>` read them. A
+    // `<function>` is one piece on the whole line, its domain `D`.
     /// Input 1.. a function (`D`, then pieces) at input 0.
     EvalFunction,
     /// Inputs 2.. a function (`D`, then pieces) at `SAMPLES` evenly spaced
@@ -86,9 +88,14 @@ pub const PIECE_CELLS: usize = 6;
 /// Whether `x` lies in the domain `d` (lower, upper, lower closed, upper
 /// closed), as the JavaScript core's `find_effective_domain` reads one: an
 /// endpoint that is no number is no bound, and an infinite end holds
-/// every number on its side.
-pub fn in_domain(x: f64, d: &[f64]) -> bool {
+/// every number on its side. A `piece`'s domain with an endpoint that is
+/// no number holds nothing, as the current core leaves such a piece out
+/// of a `<piecewiseFunction>`.
+pub fn in_domain(x: f64, d: &[f64], piece: bool) -> bool {
     let (lo, hi, lo_closed, hi_closed) = (d[0], d[1], d[2], d[3]);
+    if piece && (lo.is_nan() || hi.is_nan()) {
+        return false;
+    }
     let above = lo.is_nan() || x > lo || (x == lo && (lo_closed != 0.0 || lo == f64::NEG_INFINITY));
     let below = hi.is_nan() || x < hi || (x == hi && (hi_closed != 0.0 || hi == f64::INFINITY));
     !x.is_nan() && above && below
@@ -406,6 +413,8 @@ mod arity {
             OpSpec::Sym(SymKind::SampleFunction),
             OpSpec::Sym(SymKind::DerivativeBy),
             OpSpec::Vec(VecOp::IntoDomain),
+            OpSpec::Vec(VecOp::DomainRange),
+            OpSpec::Vec(VecOp::DomainHull { n: 2 }),
         ]);
         ops
     }
@@ -443,6 +452,8 @@ mod arity {
                 VecOp::IntersectLines { .. } => 26,
                 VecOp::Parabola { .. } => 27,
                 VecOp::IntoDomain => 42,
+                VecOp::DomainRange => 43,
+                VecOp::DomainHull { .. } => 44,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -465,7 +476,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 43;
+    const N_TAGS: usize = 45;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

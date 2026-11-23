@@ -215,13 +215,13 @@ fn constrain(
                     let mut props = vec![expr];
                     props.extend(crate::components::FUNCTION_PROPS);
                     let f = refs(wiring, &props)?;
-                    let (var, domain) = (f[1], &f[2..6]);
+                    let domain = [f[2], f[3], f[4], f[5]];
                     let mut held = vec![raw_x];
-                    held.extend_from_slice(domain);
+                    held.extend(domain);
                     let mut eval = vec![at.x];
-                    eval.extend_from_slice(domain);
-                    eval.extend([f[0], var]);
-                    eval.extend_from_slice(domain);
+                    eval.extend(crate::components::values::curve::one_piece(
+                        wiring, f[0], f[1], domain,
+                    ));
                     Ok([
                         Source::vector(crate::program::VecOp::IntoDomain, held).into(),
                         Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),

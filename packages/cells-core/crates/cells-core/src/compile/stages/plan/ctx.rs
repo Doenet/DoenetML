@@ -326,6 +326,18 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
+    /// The element's children whose type plays `role`, in order: the
+    /// pieces of a piecewise function (ADR 0046), whose ports it reads.
+    pub(crate) fn children_playing(&self, role: crate::components::Role) -> Vec<Inner> {
+        self.p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .filter(|&x| self.p.rd.elem(self.t, x).component_type.plays(role))
+            .map(Inner)
+            .collect()
+    }
+
     // The inputs the element owns (ADR 0045).
 
     /// The `k`-th input the element owns, as its type declares them
@@ -389,7 +401,9 @@ impl<'a> PlanCtx<'_, 'a> {
     // Machinery several components build on.
 }
 
-/// An input an element owns (ADR 0045), as [`PlanCtx::inner`] finds it.
+/// A child element whose ports its parent's planner reads: an input it
+/// owns (ADR 0045), as [`PlanCtx::inner`] finds it, or a piece of a
+/// piecewise function (ADR 0046, [`PlanCtx::children_playing`]).
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Inner(ElemId);
 
