@@ -356,11 +356,14 @@ export default class ValueRef extends BaseComponent {
         // referent: `<math>$n+1</math>` uses the value of a hidden `n`. One
         // that is drawn is hidden, when it stands for a copy of its referent
         // (`copiesReferent`), with the referent's `hide`, which that copy
-        // shadowed (`$t` of `<text hide>`; not `$t.value`). One that has
-        // nothing to read (`valueMissing`) is not hidden but drawn as a blank
-        // (D37); `hidden` reads it so that a change to it updates the
-        // children its parent renders (`markStale`), which then draws it as
-        // a blank or as its type (`RendererInstructionBuilder`).
+        // shadowed (`$t` of `<text hide>`; not `$t.value`), and when it
+        // reads the value of a graphical component in place of a copy of it
+        // (`hiddenWithReferent`: `$P` in a `<label>`, `valueInPlaceOfCopy`
+        // in `Copy.js`). One that has nothing to read (`valueMissing`) is
+        // not hidden but drawn as a blank (D37); `hidden` reads it so that a
+        // change to it updates the children its parent renders
+        // (`markStale`), which then draws it as a blank or as its type
+        // (`RendererInstructionBuilder`).
         stateVariableDefinitions.hidden = {
             stateVariablesDeterminingDependencies: ["referentInfo"],
             returnDependencies({ stateValues = {} }) {
@@ -384,7 +387,11 @@ export default class ValueRef extends BaseComponent {
                 };
                 const referentInfo =
                     component.fixedReferent ?? stateValues.referentInfo;
-                if (component.doenetAttributes.copiesReferent && referentInfo) {
+                if (
+                    (component.doenetAttributes.copiesReferent ||
+                        component.doenetAttributes.hiddenWithReferent) &&
+                    referentInfo
+                ) {
                     dependencies.referentHide = {
                         dependencyType: "stateVariable",
                         componentIdx: referentInfo.componentIdx,
@@ -855,6 +862,7 @@ const VALUE_REFERENCE_DOENET_ATTRIBUTES = [
     "adapterVariable",
     "fixedReferent",
     "copiesReferent",
+    "hiddenWithReferent",
     "listEntryAdapterProperty",
     "readsReferentAdapter",
 ];

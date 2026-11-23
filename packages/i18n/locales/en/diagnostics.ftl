@@ -657,8 +657,10 @@ reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $na
 # hold several, and $withElse is `true` when the `<else>` does too.
 # $container is the container's name when $hasName is `true`, else its tag
 # name. $suggestion (when $hasSuggestion is `true`) is the reference with
-# `.P` after the container and its first index. Tags, names and references
-# stay as written.
+# `.P` after the container and its first index; when $hasSuggestion is
+# `named`, it is the reference with the index replaced by the name the
+# component it would select has in every option or case (`$s[1].q` for
+# `$s[1][1]`). Tags, names and references stay as written.
 
 reference-branches-hold-several = `{ $reference }`: { $what ->
         [index] an index
@@ -686,6 +688,7 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
             }
         }
     } several. { $hasSuggestion ->
+        [named] The component it would select has the same name in each: write `{ $suggestion }`.
         [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
        *[other] Give the component you mean a name in each, and write that name after a `.`.
     }

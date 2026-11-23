@@ -2573,6 +2573,88 @@ export default class Copy extends CompositeComponent {
         // Therefore, we copy the primary state variable
         // and copy the essential state of the source.
 
+        /**
+         * The value of the source in place of a copy of it, where the copy
+         * is in a context that reads a value (a `<label>`, a `<text>`, an
+         * `<m>`, a `<math>`, …, `getSelfReferentialFallbackPropName`) and
+         * the source has a math or text `value`; `undefined` otherwise.
+         */
+        async function valueInPlaceOfCopy() {
+            const fallbackPropName = getSelfReferentialFallbackPropName({
+                componentAncestors: component.ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType:
+                    replacementSourceComponent.componentType,
+            });
+            if (!fallbackPropName) {
+                return undefined;
+            }
+            const fallbackResults = await replacementFromProp({
+                component,
+                components,
+                nComponents,
+                stateIdInfo,
+                replacementSource: replacementSourceComponent,
+                propName: fallbackPropName,
+                allDoenetMLs,
+                compositeAttributesObj,
+                componentInfoObjects,
+                numComponentsForSource,
+                publicAliasSubstitutions,
+            });
+            diagnostics.push(...fallbackResults.diagnostics);
+            nComponents = fallbackResults.nComponents;
+            return {
+                serializedReplacements: fallbackResults.serializedReplacements,
+                propVariablesCopiedByReplacement:
+                    fallbackResults.propVariablesCopiedByReplacement,
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // A `$` reference to a graphical component (a `<point>`, …) where a
+        // value is read (`<label>$P</label>`, `<text>$P</text>`) reads its
+        // value, as it does in a `<math>` (VAL-10). A copy of the component
+        // would hold its label too, which, for a label holding a reference to
+        // an extend of the component, holds the copy again, without end
+        // (Doenet/DoenetML#2643 item 1). A reference written as content (in a
+        // `<p>`) is still a copy of the component, label and all.
+        if (
+            link &&
+            !heldCase &&
+            sourceToSerialize === replacementSourceComponent &&
+            component.componentType === "_copy" &&
+            component.attributes._createComponentOfType === undefined &&
+            // an answer records the component itself as a response
+            !component.attributes.isResponse &&
+            !component.attributes.isPotentialResponse &&
+            // an attribute takes what it can hold of a component, not its
+            // value (`grid="$P"`)
+            !writtenInAnAttribute(component, components) &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType:
+                    replacementSourceComponent.componentType,
+                baseComponentType: "_graphical",
+            })
+        ) {
+            const asValue = await valueInPlaceOfCopy();
+            if (asValue) {
+                // Drawn, as in a `<label>`, it is hidden with the component, as
+                // a copy of it is and as a reference to a hidden `<math>` is;
+                // where a value is read (a `<text>`, an `<m>`), `hide` is
+                // ignored (`hiddenWithReferent` in `ValueRef.js`)
+                for (const repl of asValue.serializedReplacements) {
+                    if (repl?.componentType === "_ref") {
+                        repl.doenetAttributes.hiddenWithReferent = true;
+                    }
+                }
+                // made again only when the source is another component, as
+                // for a copy inside its source (`sourceContainsCopy`)
+                return { ...asValue, sourceContainsCopy: true };
+            }
+        }
+
         let serializedReplacements;
         // Where the copy was made from, when that is a component named in a
         // case of a `<conditionalContent>` (`sourceCaseOf`)
@@ -2658,43 +2740,14 @@ export default class Copy extends CompositeComponent {
                 // unchanged. Any other component (e.g. <point>, <math>) establishes its own
                 // context, so we stop there. For example, `$a` inside
                 // `<label><math>$a</math></label>` uses math's context rather than label's.
-                const fallbackPropName = getSelfReferentialFallbackPropName({
-                    componentAncestors: component.ancestors,
-                    componentInfoObjects,
-                    replacementSourceComponentType:
-                        replacementSourceComponent.componentType,
-                });
-
-                if (fallbackPropName) {
-                    try {
-                        let fallbackResults = await replacementFromProp({
-                            component,
-                            components,
-                            nComponents,
-                            stateIdInfo,
-                            replacementSource: replacementSourceComponent,
-                            propName: fallbackPropName,
-                            allDoenetMLs,
-                            compositeAttributesObj,
-                            componentInfoObjects,
-                            numComponentsForSource,
-                            publicAliasSubstitutions,
-                        });
-                        diagnostics.push(...fallbackResults.diagnostics);
-                        nComponents = fallbackResults.nComponents;
-                        return {
-                            serializedReplacements:
-                                fallbackResults.serializedReplacements,
-                            propVariablesCopiedByReplacement:
-                                fallbackResults.propVariablesCopiedByReplacement,
-                            diagnostics,
-                            nComponents,
-                            sourceContainsCopy: true,
-                        };
-                    } catch (innerError) {
-                        // Fall through to the circular dependency handler below
-                        // so this still reports as the original self-reference.
+                try {
+                    const fallback = await valueInPlaceOfCopy();
+                    if (fallback) {
+                        return { ...fallback, sourceContainsCopy: true };
                     }
+                } catch (innerError) {
+                    // Fall through to the circular dependency handler below
+                    // so this still reports as the original self-reference.
                 }
             }
 
@@ -3686,6 +3739,8 @@ export default class Copy extends CompositeComponent {
             // in a copy `S2` of `S`, which names `S2`) is replaced by the
             // circular-dependency error, or by the source's value
             // (`replacementForSource`), neither of which shadows the source.
+            // So is a reference to a graphical component where a value is
+            // read (`<label>$P</label>`, `valueInPlaceOfCopy`).
             // The copy stays inside the source while the source is the same
             // component, so it would be made the same way again. Remaking it
             // would change the source's descendants, which would mark the
@@ -7975,6 +8030,30 @@ async function isBareReferenceToOneThing(
 }
 
 /**
+ * Whether `component` is written in an attribute of one of its ancestors
+ * (`grid="$P"` of a `<graph>`), rather than among their children.
+ */
+function writtenInAnAttribute(component, components) {
+    let child = component;
+    for (const ancestor of component.ancestors ?? []) {
+        const parent = components[ancestor.componentIdx];
+        if (!parent) {
+            return false;
+        }
+        if (
+            Object.values(parent.attributes ?? {}).some(
+                (attribute) =>
+                    attribute?.component?.componentIdx === child.componentIdx,
+            )
+        ) {
+            return true;
+        }
+        child = parent;
+    }
+    return false;
+}
+
+/**
  * Make the changes `result` that leave the bare reference to one thing
  * `component` (`isBareReferenceToOneThing`) showing no component leave it
  * showing a blank instead (D37), whatever path decided them: an index that
@@ -8061,6 +8140,34 @@ async function blankInPlaceOfNothing({
     if (shown.some(Boolean) || !oneThing) {
         return;
     }
+    /** What the workspace records for a copy showing only the blank. */
+    function setBlankWorkspace() {
+        workspace.numReplacementsBySource = [1];
+        workspace.numNonStringReplacementsBySource = [1];
+        workspace.sourceIndices = [];
+        workspace.propVariablesCopiedBySource = [];
+        workspace.sourceContainsCopyBySource = [];
+    }
+    if (
+        (component.replacementsToWithhold ?? 0) === 0 &&
+        component.replacements.length === 1 &&
+        component.replacements[0].componentType === "_missing"
+    ) {
+        // It shows the blank already: keep it, rather than replace it with
+        // a new one, which queues the copy, and what shows it, to be updated
+        // again, without end (`$ls[$i]` with `i` past the end, shown by a
+        // group's copy, Doenet/DoenetML#2643 item 2).
+        result.replacementChanges = (result.replacementChanges ?? []).filter(
+            (change) =>
+                !(
+                    change.changeTopLevelReplacements &&
+                    (change.changeType === "add" ||
+                        change.changeType === "delete")
+                ) && change.changeType !== "changeReplacementsToWithhold",
+        );
+        setBlankWorkspace();
+        return;
+    }
     const stateIdInfo = {
         prefix: `${component.stateId}|`,
         num: workspace.replacementsCreated,
@@ -8088,11 +8195,7 @@ async function blankInPlaceOfNothing({
             serializedReplacements: [missing],
         },
     ];
-    workspace.numReplacementsBySource = [1];
-    workspace.numNonStringReplacementsBySource = [1];
-    workspace.sourceIndices = [];
-    workspace.propVariablesCopiedBySource = [];
-    workspace.sourceContainsCopyBySource = [];
+    setBlankWorkspace();
 }
 
 /**

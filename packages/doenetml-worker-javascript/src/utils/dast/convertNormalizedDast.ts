@@ -1115,7 +1115,13 @@ export async function normalizedDastToSerializedComponents(
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
     // is.
-    for (const { copy, code, args, kind } of collectionItemWarnings) {
+    for (const {
+        copy,
+        code,
+        args,
+        kind,
+        childName,
+    } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
             : undefined;
@@ -1125,14 +1131,32 @@ export async function normalizedDastToSerializedComponents(
         );
         const extra: Record<string, string> = {};
         if (code === "doenet-w0191") {
-            const suggestion = referenceNamingTheItem(
-                ref,
-                kind,
-                reference,
-                normalized_root.sources,
-            );
+            // the component the index would select, when it has the same
+            // name in each (`$s[1].q` for `$s[1][1]`), else a name to give it
+            const naming =
+                childName !== undefined
+                    ? referenceNamingTheChild(
+                          ref,
+                          childName,
+                          reference,
+                          normalized_root.sources,
+                      )
+                    : undefined;
+            const suggestion =
+                naming ??
+                referenceNamingTheItem(
+                    ref,
+                    kind,
+                    reference,
+                    normalized_root.sources,
+                );
             extra.suggestion = suggestion ?? "";
-            extra.hasSuggestion = suggestion === undefined ? "false" : "true";
+            extra.hasSuggestion =
+                naming !== undefined
+                    ? "named"
+                    : suggestion === undefined
+                      ? "false"
+                      : "true";
         }
         diagnostics.push(
             codedDiagnostic({
@@ -2445,13 +2469,29 @@ function createInitialComponentFromAttribute({
 }
 
 /**
+ * `children` with each run of adjacent strings joined into one.
+ */
+function joinAdjacentText<T>(children: (T | string)[]): (T | string)[] {
+    const joined: (T | string)[] = [];
+    for (const child of children) {
+        const last = joined[joined.length - 1];
+        if (typeof child === "string" && typeof last === "string") {
+            joined[joined.length - 1] = last + child;
+        } else {
+            joined.push(child);
+        }
+    }
+    return joined;
+}
+
+/**
  * Given that `attrDef` calls for creating a `PrimitiveAttribute` from `attribute`,
  * create the `PrimitiveAttributeValue` from the attribute's children,
  * based on the type of primitive called for by `attrDef`.
  */
 function createPrimitiveFromAttribute({
     attrDef,
-    attribute,
+    attribute: givenAttribute,
 }: {
     attrDef: AttributeDefinition<any>;
     attribute: UnflattenedAttribute;
@@ -2461,6 +2501,13 @@ function createPrimitiveFromAttribute({
             "Cannot call initialPrimitiveFromAttribute unless have createPrimitiveOfType",
         );
     }
+    // A `$` written as a reference (`&#36;`, `&dollar;`) is handed over as a
+    // piece of text of its own, beside the text around it: the pieces are
+    // one value (`staticName="a&#36;1"` is `a$1`, Doenet/DoenetML#2643 item 7).
+    const attribute = {
+        ...givenAttribute,
+        children: joinAdjacentText(givenAttribute.children),
+    };
 
     if (attribute.children.length === 0) {
         // if attribute is a boolean or has a `valueForTrue`,
@@ -2961,6 +3008,30 @@ function getComponentType(element: FlatElement) {
 }
 
 /**
+ * The reference `reference` (as written, `$s[1][1]`) of the copy whose
+ * resolution is `ref`, with its second index replaced by `.name`
+ * (`$s[1].q`): the component that index would have selected, named in every
+ * option or case (`doenet-w0191`). `undefined` when where it is written is
+ * not known from the positions in the DoenetML.
+ */
+function referenceNamingTheChild(
+    ref: any,
+    name: string,
+    reference: string,
+    sources: readonly string[],
+) {
+    const source = sources[ref?.originalPath?.[0]?.sourceDoc ?? 0];
+    // the index, brackets and all
+    const index = ref?.unresolvedPath?.[0]?.index?.[1]?.position;
+    const from = index?.start?.offset;
+    const to = index?.end?.offset;
+    if (source?.[from] !== "[" || source?.[to - 1] !== "]") {
+        return undefined;
+    }
+    return replaceInReference(ref, reference, sources, from, to, `.${name}`);
+}
+
+/**
  * The reference `reference` (as written, `$s.x`, `$s[1][2]`, `$s[1].x`) of
  * the copy whose resolution is `ref`, with `.P` written after the
  * `<select>` or `<conditionalContent>` it reaches and its first index, if
@@ -2979,11 +3050,6 @@ function referenceNamingTheItem(
     name = "P",
 ) {
     const path: any[] = ref?.unresolvedPath ?? [];
-    const original: any[] = ref?.originalPath ?? [];
-    const start = original[0]?.position?.start?.offset;
-    const end = original[original.length - 1]?.position?.end?.offset;
-    const sourceDoc = original[0]?.sourceDoc ?? 0;
-    const source = sources[sourceDoc];
     let at: number | undefined;
     if (path[0]?.name !== "") {
         // before the `.` of the property
@@ -2995,23 +3061,44 @@ function referenceNamingTheItem(
         // at the `[` of the second index
         at = path[0]?.index?.[1]?.position?.start?.offset;
     }
+    return replaceInReference(ref, reference, sources, at, at, `.${name}`);
+}
+
+/**
+ * The reference `reference` (as written) of the copy whose resolution is
+ * `ref`, with what is written from the offset `from` to `to` in the
+ * DoenetML replaced by `text`, keeping what is written before the path
+ * (`$`, `$$`). `undefined` when that span is not within the path.
+ */
+function replaceInReference(
+    ref: any,
+    reference: string,
+    sources: readonly string[],
+    from: number | undefined,
+    to: number | undefined,
+    text: string,
+) {
+    const original: any[] = ref?.originalPath ?? [];
+    const start = original[0]?.position?.start?.offset;
+    const end = original[original.length - 1]?.position?.end?.offset;
+    const source = sources[original[0]?.sourceDoc ?? 0];
     if (
         source === undefined ||
         typeof start !== "number" ||
         typeof end !== "number" ||
-        typeof at !== "number" ||
-        Number.isNaN(at) ||
-        at <= start ||
-        at > end
+        typeof from !== "number" ||
+        typeof to !== "number" ||
+        Number.isNaN(from) ||
+        Number.isNaN(to) ||
+        from <= start ||
+        to > end
     ) {
         return undefined;
     }
-    // what is written before the path (`$`, `$$`)
     const written = source.substring(start, end);
     const at0 = reference.indexOf(written);
     if (at0 < 0) {
         return undefined;
     }
-    const dollars = reference.slice(0, at0);
-    return `${dollars}${source.substring(start, at)}.${name}${source.substring(at, end)}`;
+    return `${reference.slice(0, at0)}${source.substring(start, from)}${text}${source.substring(to, end)}`;
 }
