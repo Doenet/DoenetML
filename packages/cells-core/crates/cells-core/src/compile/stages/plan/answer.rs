@@ -255,10 +255,7 @@ impl<'a> Planning<'a> {
             .record_ref(t, ci)
             .is_some_and(|r| choice_input::Attrs::of(r).shuffleOrder);
         let submitted = if shuffled {
-            let first = self.rd.outlined(t).elems[ci.index()]
-                .component_type
-                .prop_defs()
-                .len();
+            let first = self.rd.owned_row(t, e, ci).component_type.prop_defs().len();
             let mut order = vec![Arg::Own(ports.submitted)];
             order.extend((0..choices.len()).map(|k| Arg::Elem(ci, Port::table(first + k))));
             Arg::Own(wiring.hidden(Source::op(

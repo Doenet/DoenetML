@@ -393,7 +393,9 @@ impl<'a> PlanCtx<'_, 'a> {
             }
         }
         let t = self.p.rd.template_up(self.t, r.hops);
-        Some(self.p.rd.outlined(t).elems[last?.index()].component_type)
+        // Unrecorded (ADR 0050): every caller puts the reference in a
+        // source of the plan (`ref_prop`, `ref_of_elem`).
+        Some(self.p.rd.referent_row(t, last?).component_type)
     }
 
     /// Reference `p`, which names an element by a path of names alone
