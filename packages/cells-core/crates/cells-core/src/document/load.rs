@@ -361,7 +361,7 @@ fn settle(
         {
             let _s = crate::trace::span("compute");
             crate::trace::count("cells", built.cells.len());
-            built.recompute(&mut math.engine);
+            built.recompute(&mut math.engine, &mut returned.runtime_strings);
         }
         if built.structure_settled() {
             return Ok((built, returned, pass as u32 + 1));

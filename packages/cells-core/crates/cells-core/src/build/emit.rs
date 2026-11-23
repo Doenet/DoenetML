@@ -387,6 +387,14 @@ impl Emit<'_> {
                 if kind.makes_math() {
                     value_types[slot_to_cell[s].index()] = ValueType::Math;
                 }
+                if kind.makes_text() {
+                    value_types[slot_to_cell[s].index()] = ValueType::Text;
+                }
+                // A text-reading operator is told what each input holds
+                // (ADR 0053), which its cell's value does not say.
+                if kind.reads_text() {
+                    spec = OpSpec::Sym(kind.typed(bound.iter().map(|c| value_types[c.index()])));
+                }
                 let input = self.x.op_inputs[start.index()];
                 // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
@@ -462,6 +470,9 @@ impl Emit<'_> {
                 instrs.push(instr);
             }
         }
+        // The strings every later build appends to its own table, which a
+        // folded join adds to (ADR 0053), so a string it makes keeps its id.
+        let mut runtime_strings = self.x.session.runtime_strings.clone();
         // Run the folded instructions once, in an order of their own: each
         // reads only constants and the folds before it, so their outputs
         // are constants from here on (ADR 0028).
@@ -477,10 +488,29 @@ impl Emit<'_> {
                 })?;
             once.tapes = tapes.clone();
             let mut state = crate::program::SymState::new(&once);
+            // The table the document will have: the build's own strings,
+            // then those added since load.
+            let mut strings = self.x.compiled.dast.strings.clone();
+            for s in self
+                .x
+                .compiled
+                .plans
+                .extra_strings
+                .iter()
+                .chain(&runtime_strings)
+            {
+                strings.push(s);
+            }
+            let mut interned = None;
             once.run_all(
                 &mut crate::program::SymRun {
                     state: &mut state,
                     engine: self.x.engine,
+                    texts: Some(crate::program::Texts {
+                        strings: &mut strings,
+                        interned: &mut interned,
+                        added: &mut runtime_strings,
+                    }),
                 },
                 &mut cells,
             );
@@ -565,7 +595,7 @@ impl Emit<'_> {
             counts: self.x.session.counts.clone(),
             parked,
             touched,
-            runtime_strings: self.x.session.runtime_strings.clone(),
+            runtime_strings,
             pool,
             last_build: (self.x.components.component_type.len(), self.x.sources.len()),
         };
@@ -849,7 +879,7 @@ fn rebind(t: &Tree<SlotId>, slot_to_cell: &[CellIdx]) -> Tree<CellIdx> {
 fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
-        Tree::Num(_) | Tree::Sym(_) => false,
+        Tree::Num(_) | Tree::Sym(_) | Tree::Written(_) => false,
         Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
             ts.iter().any(has_math_leaf)
         }

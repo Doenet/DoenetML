@@ -60,7 +60,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         exclude: attrs.exclude,
     };
     let mut wiring = plan_random(ctx, n, params)?;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
     });
     Ok(wiring)

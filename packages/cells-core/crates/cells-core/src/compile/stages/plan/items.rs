@@ -93,7 +93,7 @@ impl Planning<'_> {
                     };
                     let wires = wire(&mut ctx);
                     let mut wiring = ctx.wiring;
-                    wiring.set_public(wires);
+                    wiring.set_planned(wires);
                     wiring.finish().0
                 }
                 _ if ty.plays(Role::Index) => prop::number::Props {

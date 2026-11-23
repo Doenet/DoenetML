@@ -80,7 +80,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let quotient = ctx.inner_quotient((num, at.expr), (den, at.expr));
     let ports = Props::PORTS;
     let mut wiring = ElemWiring::of(ComponentType::FractionInput);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![ports.expr]).into(),
         expr: quotient.into(),
         numerator: num.port(at.expr).into(),

@@ -56,6 +56,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     };
     let mut wiring = ElemWiring::of(ComponentType::TextInput);
-    wiring.set_public(Props { value });
+    wiring.set_planned(Planned { value });
     Ok(wiring)
 }

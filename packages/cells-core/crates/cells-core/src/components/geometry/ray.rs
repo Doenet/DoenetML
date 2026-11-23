@@ -95,7 +95,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through.",
         ),
     );
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         endpointX: ex,
         endpointY: ey,
         throughX: tx,

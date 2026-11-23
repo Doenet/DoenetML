@@ -59,16 +59,14 @@ pub(crate) mod repeat_for_sequence {
 
     /// The value of iteration `k`, the item `valueName` names: a `<number>`
     /// holding `from + (k - 1) * step`, `from` and `step` the repeat's.
-    fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Props<Wire> {
+    fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Planned {
         let at = Props::PORTS;
         let k = ctx.index_from_zero();
         let step = ctx.owner(at.step);
         let scaled = ctx.computed(OpSpec::Mul, vec![k, step]);
         let from = ctx.owner(at.from);
-        prop::number::Props {
+        prop::number::Planned {
             value: Wire::computed(OpSpec::Add, vec![scaled, from]),
-            anchorX: Wire::absent(),
-            anchorY: Wire::absent(),
         }
     }
 }

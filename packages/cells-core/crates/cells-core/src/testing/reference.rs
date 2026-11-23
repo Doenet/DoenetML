@@ -23,6 +23,9 @@ pub struct ReferenceEvaluator<'a> {
     /// document's does, and an equal expression made again finds it, so
     /// its handles compare with the document's cells.
     engine: std::cell::RefCell<crate::sym::Engine>,
+    /// A copy of the document's strings, which a join interns into: an
+    /// equal string finds the id the document gave it (ADR 0053).
+    strings: std::cell::RefCell<crate::dast::StringTable>,
 }
 
 impl<'a> ReferenceEvaluator<'a> {
@@ -41,6 +44,7 @@ impl<'a> ReferenceEvaluator<'a> {
             memo: Default::default(),
             sym: std::cell::RefCell::new(doc.sym.clone()),
             engine: std::cell::RefCell::new(doc.math.engine.clone()),
+            strings: std::cell::RefCell::new(doc.strings.clone()),
         }
     }
 
@@ -63,9 +67,16 @@ impl<'a> ReferenceEvaluator<'a> {
         let mut out = vec![0.0; ins.op.n_out()];
         let mut engine = self.engine.borrow_mut();
         let mut state = self.sym.borrow_mut();
+        let mut strings = self.strings.borrow_mut();
+        let (mut interned, mut added) = (None, Vec::new());
         let mut sym = SymRun {
             state: &mut state,
             engine: &mut engine,
+            texts: Some(crate::program::Texts {
+                strings: &mut strings,
+                interned: &mut interned,
+                added: &mut added,
+            }),
         };
         self.doc
             .program

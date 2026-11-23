@@ -70,6 +70,19 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws an interval list's entries as maths (ADR 0041)", async () => {
+        const bridge = await load(
+            `<p><intervalList>(1, 2) [3, 4]</intervalList></p>`,
+        );
+        expect(paragraphs(bridge.flatDast())).toEqual([
+            [
+                "<math>\\left( 1, 2 \\right)",
+                ", ",
+                "<math>\\left[ 3, 4 \\right]",
+            ],
+        ]);
+    });
+
     it("draws a point list's entries as points, in a graph one by one (ADR 0041)", async () => {
         const bridge = await load(`<point name="P">(9,10)</point>
 <graph><pointList name="pl"><point name="A">(1,2)</point> (3,4) $P</pointList></graph>
@@ -295,7 +308,7 @@ describe("missing values", () => {
 <booleanList name="bl">true</booleanList></setup>
 <p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
 <p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
-<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
+<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math> <math>floor($l[5] + 1)</math></p>
 <p><numberList>$l[5] 2</numberList></p>`);
         const root = bridge.flatDast();
         const props = (name: string) =>
@@ -314,7 +327,11 @@ describe("missing values", () => {
         // is false, since a blank never equals anything (D37, D40).
         expect(props("boolean").map((p) => p.value)).toEqual(["＿", false]);
         // A lowered math (ADR 0005) shows the blank in its expression.
-        expect(props("math").map((p) => p.latex)).toEqual(["x + ＿", "1 + ＿"]);
+        expect(props("math").map((p) => p.latex)).toEqual([
+            "x + ＿",
+            "1 + ＿",
+            "\\left\\lfloor ＿ + 1 \\right\\rfloor",
+        ]);
         expect(props("point")).toEqual([
             { coordsLatex: "\\left( ＿, 1 \\right)" },
         ]);
@@ -666,6 +683,29 @@ describe("step 3 components", () => {
         payload = send("slider", "changeValue", { value: 5 });
         // The core snaps to the slider's steps.
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
+    });
+
+    // A math input bound to a cell holding an expression writes an
+    // expression there, a number included (ADR 0041).
+    it("types an expression into an input bound to a math list's entry or a subset", async () => {
+        const { props, send, changed } = await open(`
+<mathList name="ml">x y</mathList>
+<mathInput name="mi" bindValueTo="$ml[1]"/>
+<mathInput name="m0" prefill="(0, 1) union [1, 2]"/>
+<subsetOfReals name="s">$m0</subsetOfReals>
+<mathInput name="ms" bindValueTo="$s"/>`);
+        expect(props("mathInput", 0).text).toBe("x");
+        expect(props("mathInput", 2).text).toBe("(0, 2]");
+        let payload = send("mathInput", "updateValue", { text: "5" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("5");
+        // Written to what the subset reads, as the subset writes it.
+        payload = send("mathInput", "updateValue", { text: "x > 3" }, 2);
+        expect(changed(payload, "mathInput", 2)?.text).toBe("(3, ∞)");
+        expect(changed(payload, "mathInput", 1)?.text).toBe("(3, ∞)");
+        // Drawn as a math, after the list's two entries.
+        expect(changed(payload, "math", 2)?.latex).toBe(
+            "\\left( 3, \\infty \\right)",
+        );
     });
 
     // A fraction input has its label, and as its children the two math
@@ -1329,6 +1369,22 @@ describe("random selections, sequences, reordering and list operators", () => {
         }
         expect(first[3].split(", ").map(Number).sort()).toEqual([1, 2, 3, 4]);
         expect((await open(source)).texts()).toEqual(first);
+    });
+
+    it("draws a sort of texts and of maths as the text of its entries, and a joined text", async () => {
+        const { texts } = await open(`
+<p><sort>pear apple fig</sort></p>
+<p><sort type="math">z b a</sort></p>
+<p><sort asList="false" type="math">z b a</sort></p>
+<p><textList name="tl">kiwi plum</textList></p>
+<p><text>$tl</text></p>`);
+        expect(texts()).toEqual([
+            "apple, fig, pear",
+            "a, b, z",
+            "abz",
+            "kiwi, plum",
+            "kiwi, plum",
+        ]);
     });
 });
 

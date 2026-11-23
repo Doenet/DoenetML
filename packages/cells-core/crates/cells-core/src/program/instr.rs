@@ -74,6 +74,34 @@ pub enum SymKind {
     /// input 3 to input 4: a `<parabola>`'s curve. Numeric, but a run of
     /// `SAMPLES` outputs, more than a vector instruction holds.
     SampleQuadratic,
+    /// The text of each of `n` inputs, joined with `, `, interned (ADR
+    /// 0053): a text reading a sequence (`<text>$tl</text>`, ADR 0041
+    /// decision 5) or a value's text (`n` 1). An input reads as its kind
+    /// in `kinds` (two bits each, `program::texts`): a string as it is, a
+    /// number as it is shown (`true` or `false` when `booleans`), an
+    /// expression as the engine prints it, the missing value as `＿`. No
+    /// input is the missing value. A string id; it makes the one string a
+    /// tick may make.
+    Join {
+        /// How many inputs.
+        n: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+        /// Whether the numbers are booleans.
+        booleans: bool,
+    },
+    /// The order of `n` inputs, as the current core's `<sort>` compares
+    /// them (ADR 0041 decision 7): output `k` the 1-based position of the
+    /// input that comes `k`-th. By value when every input is a number or
+    /// an expression that evaluates to one, a NaN last; else by text (a
+    /// number as JavaScript writes it, an expression as the engine prints
+    /// it). Equal inputs keep their order. `kinds` as for `Join`.
+    Order {
+        /// How many inputs, and outputs.
+        n: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+    },
     // Functions of one variable with domains (ADR 0049). A function is
     // given as its domain and its pieces: `D` is four cells, an
     // interval's lower and upper endpoints and whether each is closed
@@ -104,6 +132,25 @@ pub enum SymKind {
         coord: u8,
         /// The uniform spline instead of the centripetal one.
         uniform: bool,
+    },
+    /// Part `part` of the subset of the reals input 0 names, in the
+    /// variable input 1 holds (`x` when it holds none), written as
+    /// intervals or as inequalities (`<subsetOfReals>`). The inverse of
+    /// its `Value` writes the desired subset to input 0, as it would be
+    /// written.
+    Subset {
+        /// Which part.
+        part: crate::sym::SubsetPart,
+        /// As inequalities in the variable.
+        inequalities: bool,
+    },
+    /// How equal inputs 0 and 1 are, from 0 to 1, as `opts` compares them
+    /// (an answer's `matchPartial`, `unorderedCompare`,
+    /// `matchByExactPositions`; ADR 0041, decision 7): 1 when equal, a
+    /// fraction only with `partial`.
+    Compare {
+        /// How they compare.
+        opts: crate::sym::CompareOpts,
     },
 }
 
@@ -161,6 +208,11 @@ pub enum Post {
     /// Every number in it of magnitude below the threshold, these bits of
     /// an `f64`, made 0 (`<setSmallToZero>`).
     SmallToZero(u64),
+    /// How equal the two entries of the pair it is are, as the engine
+    /// compares them with these options, as a number from 0 to 1: a
+    /// comparison of two references the type pass found may be math
+    /// (`$a = $b` in a condition; ADR 0041, decision 7).
+    ComparePair(crate::sym::CompareOpts),
     /// Its tuples made vectors (`createVectors`), then its tuples and
     /// arrays of two made intervals (`createIntervals`; ADR 0041, decision
     /// 8), then simplified, then expanded, as the flags say: a `<math>`'s
@@ -197,6 +249,7 @@ impl Post {
             Post::RoundDecimals(n) => engine.round_decimals(h, n),
             Post::RoundDigits(n) => engine.round_digits(h, n),
             Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+            Post::ComparePair(opts) => engine.compare_pair(h, opts),
             Post::Shapes {
                 vectors,
                 intervals,
@@ -258,6 +311,7 @@ impl SymKind {
             | SymKind::SampleQuadratic
             | SymKind::SampleFunction
             | SymKind::SampleBezier { .. } => SAMPLES,
+            SymKind::Order { n, .. } => n as usize,
             _ => 1,
         }
     }
@@ -267,7 +321,38 @@ impl SymKind {
     pub fn writes(self) -> u64 {
         match self {
             SymKind::Evaluate => 1,
+            SymKind::Subset {
+                part: crate::sym::SubsetPart::Value,
+                ..
+            } => 1,
             _ => 0,
+        }
+    }
+
+    /// Whether the output is a string id (a text cell): a join's.
+    pub fn makes_text(self) -> bool {
+        matches!(self, SymKind::Join { .. })
+    }
+
+    /// Whether it reads text inputs: a join, an order.
+    pub fn reads_text(self) -> bool {
+        matches!(self, SymKind::Join { .. } | SymKind::Order { .. })
+    }
+
+    /// This kind told what its inputs hold (`types`, in order), when it
+    /// reads text ([`SymKind::reads_text`]); else itself.
+    pub fn typed(self, types: impl Iterator<Item = crate::program::ValueType>) -> SymKind {
+        match self {
+            SymKind::Join { n, booleans, .. } => SymKind::Join {
+                n,
+                kinds: crate::program::texts::kinds_of(types),
+                booleans,
+            },
+            SymKind::Order { n, .. } => SymKind::Order {
+                n,
+                kinds: crate::program::texts::kinds_of(types),
+            },
+            k => k,
         }
     }
 
@@ -280,6 +365,7 @@ impl SymKind {
                 | SymKind::ClampFunction
                 | SymKind::WrapFunctionPeriodic
                 | SymKind::DerivativeBy
+                | SymKind::Subset { .. }
         )
     }
 }
@@ -400,10 +486,13 @@ impl OpSpec {
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
             OpSpec::Sym(SymKind::SampleQuadratic) => 5,
+            OpSpec::Sym(SymKind::Join { n, .. } | SymKind::Order { n, .. }) => *n as usize,
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
-            OpSpec::Sym(SymKind::DerivativeBy) => 2,
+            OpSpec::Sym(
+                SymKind::DerivativeBy | SymKind::Subset { .. } | SymKind::Compare { .. },
+            ) => 2,
             _ => unreachable!(),
         }
     }
@@ -561,6 +650,12 @@ mod arity {
             OpSpec::Sym(SymKind::ClampFunction),
             OpSpec::Sym(SymKind::WrapFunctionPeriodic),
             OpSpec::Sym(SymKind::SampleQuadratic),
+            OpSpec::Sym(SymKind::Join {
+                n: 3,
+                kinds: 0,
+                booleans: false,
+            }),
+            OpSpec::Sym(SymKind::Order { n: 3, kinds: 0 }),
             OpSpec::Sym(SymKind::EvalFunction),
             OpSpec::Sym(SymKind::SampleFunction),
             OpSpec::Sym(SymKind::DerivativeBy),
@@ -571,6 +666,13 @@ mod arity {
             OpSpec::Vec(VecOp::IntoDomain),
             OpSpec::Vec(VecOp::DomainRange),
             OpSpec::Vec(VecOp::DomainHull { n: 2 }),
+            OpSpec::Sym(SymKind::Subset {
+                part: crate::sym::SubsetPart::Value,
+                inequalities: false,
+            }),
+            OpSpec::Sym(SymKind::Compare {
+                opts: crate::sym::CompareOpts::default(),
+            }),
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
@@ -613,9 +715,10 @@ mod arity {
                 VecOp::IntoDomain => 44,
                 VecOp::DomainRange => 45,
                 VecOp::DomainHull { .. } => 46,
-                VecOp::SequenceParams { .. } => 47,
-                VecOp::SequenceCount { .. } => 48,
-                VecOp::SequenceEntry { .. } => 49,
+                // After the symbolic operators 47 to 50.
+                VecOp::SequenceParams { .. } => 51,
+                VecOp::SequenceCount { .. } => 52,
+                VecOp::SequenceEntry { .. } => 53,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -635,12 +738,17 @@ mod arity {
                     SymKind::SampleFunction => 13,
                     SymKind::DerivativeBy => 14,
                     SymKind::SampleBezier { .. } => 15,
+                    // After the vector operators 44 to 46.
+                    SymKind::Join { .. } => 19,
+                    SymKind::Order { .. } => 20,
+                    SymKind::Subset { .. } => 21,
+                    SymKind::Compare { .. } => 22,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 50;
+    const N_TAGS: usize = 54;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

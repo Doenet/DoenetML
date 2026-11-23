@@ -375,6 +375,17 @@ function heldMath(cells: Cells, cell: number): unknown {
         ? exprOf(cells, cell)
         : M(cells.value(cell));
 }
+/** A part of a subset of the reals (`points`, `intervals`, ..): a math
+ * cell holding a list of its entries, one entry alone, none empty. */
+function subsetPart(prop: string): Reader {
+    return (_g, x) => {
+        const tree = JSON.parse(x.cells.core.expr_ast(x.cell(prop)!));
+        const entries =
+            Array.isArray(tree) && tree[0] === "list" ? tree.slice(1) : [tree];
+        return entries.map((e: unknown) => me.fromAst(e));
+    };
+}
+
 /** A value list (ADR 0041): its entries `entries`, each as `read` reads
  * its cell, and how many there are. */
 function valueListReaders(
@@ -834,6 +845,33 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     // Values with entries inside a math (ADR 0041, decision 8).
     interval: mathReaders,
+    // A sort's and a shuffle's order (ADR 0053): the 1-based operand at
+    // each position, the list's companion sequence.
+    ...Object.fromEntries(
+        ["sort", "shuffle"].map((t) => [
+            t,
+            {
+                componentOrder: (_g: Get, x: Ctx) =>
+                    Array.from(x.cells.propCells(x.idx, "componentOrder")).map(
+                        (c) => x.cells.value(c),
+                    ),
+                numComponents: (g: Get) => g("numComponents"),
+                text: textOf,
+            } as Record<string, Reader>,
+        ]),
+    ),
+    intervalList: valueListReaders("intervals", (x, c) => heldMath(x.cells, c)),
+    subsetOfReals: {
+        ...mathReaders,
+        variable: (_g, x) => exprOf(x.cells, x.cell("variable")!),
+        points: subsetPart("points"),
+        pointsClosed: (g, x) =>
+            (subsetPart("pointsClosed")(g, x) as any[]).map(
+                (b) => b.tree === true,
+            ),
+        intervals: subsetPart("intervals"),
+        isolatedPoints: subsetPart("isolatedPoints"),
+    },
 };
 
 /** What `idx` holds among its children as the current core's
@@ -1438,24 +1476,39 @@ export async function createTestCoreCells({
                         return;
                     }
                     const latex = rawValues.get(componentIdx) ?? "";
-                    // An unbound mathInput holds an expression (plan 5):
-                    // what was typed goes to its essential `expr` cell.
-                    // A number keeps the numeric path (the value cell's
-                    // inverse writes a constant expression).
+                    // A mathInput holds an expression (plan 5), its own
+                    // or, bound, the one it is bound to (an entry of a
+                    // math list, a symbolic math): what was typed goes to
+                    // its `expr` cell. On an unbound input a number keeps
+                    // the numeric path (the value cell's inverse writes a
+                    // constant expression); one bound to a number has a
+                    // constant `expr` and stays numeric.
                     const expr = propCells(componentIdx, "expr")[0];
-                    if (
+                    const value = propCells(componentIdx, "value")[0];
+                    const holdsMath =
                         expr !== undefined &&
-                        core.cell_class(expr) === "essential" &&
-                        Number.isNaN(latexToNumber(latex)) &&
-                        latex.trim() !== ""
+                        core.cell_holds(expr) === "math" &&
+                        core.cell_class(expr) !== "constant";
+                    const numeric =
+                        !Number.isNaN(latexToNumber(latex)) ||
+                        latex.trim() === "";
+                    if (
+                        holdsMath &&
+                        !(
+                            numeric &&
+                            core.cell_class(expr) === "essential" &&
+                            core.cell_holds(value) !== "math"
+                        )
                     ) {
                         let handle = NaN;
-                        try {
-                            handle = core.parse_math(
-                                me.fromLatex(latex).toString(),
-                            );
-                        } catch {
-                            handle = NaN;
+                        if (latex.trim() !== "") {
+                            try {
+                                handle = core.parse_math(
+                                    me.fromLatex(latex).toString(),
+                                );
+                            } catch {
+                                handle = NaN;
+                            }
                         }
                         request([[expr, handle]]);
                         return;

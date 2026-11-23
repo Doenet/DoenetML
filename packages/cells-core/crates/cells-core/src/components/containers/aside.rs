@@ -47,8 +47,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     };
     let mut wiring = ElemWiring::of(ComponentType::Aside);
-    wiring.set_public(Props {
-        number: Wire::from_table(ComponentType::Aside, Props::PORTS.number),
+    wiring.set_planned(Planned {
         includeParentNumber: Wire::constant(include),
         label: Wire::constant(0.0),
     });

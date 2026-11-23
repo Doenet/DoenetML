@@ -15,6 +15,7 @@ component! {
     default_prop: texts,
     props {
         numComponents: by_planner { rendered },
+        text: by_planner { text },
     }
     list {
         names: [texts, values],
@@ -38,8 +39,9 @@ component! {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let (mut wiring, n) = super::plan_list(ctx, attrs.children, attrs.maxNumber?)?;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
+        text: super::joined_entries(&wiring, n, false).into(),
     });
     Ok(wiring)
 }

@@ -21,6 +21,7 @@ use crate::compile::*;
 pub(crate) use ctx::PlanCtx;
 pub(crate) use items::ItemCtx;
 pub(crate) use lists::ListEntry;
+use lists::Splice;
 pub(crate) use planner::Planner;
 
 /// Planning's view (ADR 0031, "The planner context"): what outlining

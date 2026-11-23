@@ -34,17 +34,40 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ if children.element.is_some() => return Err(mixed()),
         ChildValue::Blank => Wire::given_text(GivenId::Children(0), ctx.intern("")),
         ChildValue::Text { id: Some(id), .. } => Wire::given_text(GivenId::Children(0), id),
-        ChildValue::Reference(p) => Source::reference(p).into(),
+        ChildValue::Reference(p) => return Ok(of_reference(ctx, p)),
         ChildValue::Text { id: None, .. } | ChildValue::Math => return Err(mixed()),
     };
     let mut wiring = ElemWiring::of(ComponentType::Text);
-    wiring.set_public(Props {
-        value,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
-    });
+    wiring.set_planned(Planned { value });
     Ok(wiring)
+}
+
+/// A text of one reference (ADR 0041 decision 5, ADR 0053): a static
+/// sequence's entries joined with commas (one text entry aliased, as a
+/// text), a value the records say is no text its text, made in the tick;
+/// anything else an alias, as before.
+fn of_reference(ctx: &mut PlanCtx<'_, '_>, p: crate::compile::api::RefId) -> ElemWiring {
+    let mut wiring = ElemWiring::of(ComponentType::Text);
+    let one = ListEntry::Ref(p);
+    let value = match ctx.reference_entries(p) {
+        Some(entries) => {
+            let kind = entries.first().and_then(|e| ctx.entry_kind(e));
+            match &entries[..] {
+                [ListEntry::Ref(q)] if kind == Some(ValueKind::Text) => {
+                    Source::reference(*q).into()
+                }
+                _ => super::joined(&mut wiring, entries, kind == Some(ValueKind::Boolean)).into(),
+            }
+        }
+        None => match ctx.entry_kind(&one) {
+            Some(k @ (ValueKind::Number | ValueKind::Math | ValueKind::Boolean)) => {
+                super::joined(&mut wiring, vec![one], k == ValueKind::Boolean).into()
+            }
+            _ => Source::reference(p).into(),
+        },
+    };
+    wiring.set_planned(Planned { value });
+    wiring
 }
 
 fn mixed() -> Error {

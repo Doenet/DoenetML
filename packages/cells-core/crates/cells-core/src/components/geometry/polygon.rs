@@ -215,7 +215,7 @@ pub(super) fn plan_vertices(
         )
     };
     // A triangle's table is laid out as this one (`triangle.rs`).
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numVertices: Wire::constant(n as f64),
         cx,
         cy,

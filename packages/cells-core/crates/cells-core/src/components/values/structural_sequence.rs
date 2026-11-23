@@ -153,7 +153,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     ] = std::array::from_fn(|_| exclude.next().unwrap_or_else(Wire::absent));
     let mut counted = vec![at.from, at.step, at.length];
     counted.extend(excludes());
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         from,
         step,
         length,
@@ -180,7 +180,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 
 /// Entry `k`: a `<number>` holding the `k`-th value left
 /// (`VecOp::SequenceEntry`), from the sequence's parameters and excludes.
-fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Props<Wire> {
+fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Planned {
     let at = Props::PORTS;
     let mut args = vec![
         ctx.index(),
@@ -191,15 +191,13 @@ fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Props<Wire> {
     for x in excludes() {
         args.push(ctx.owner(x));
     }
-    prop::number::Props {
+    prop::number::Planned {
         value: Wire::computed(
             OpSpec::Vec(VecOp::SequenceEntry {
                 n_exclude: MAX_EXCLUDE as u8,
             }),
             args,
         ),
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     }
 }
 

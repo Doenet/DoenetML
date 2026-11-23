@@ -137,14 +137,26 @@ impl Reader<'_> {
         mt: &MathText,
     ) -> Result<ExprId> {
         let (toks, plans) = self.resolve_math(ar, t, scope, mt)?;
-        let id = self.parse_tokens(ar, &toks, mt.src())?;
-        ar.sym_text.insert(
-            id,
-            SymText::Nodes {
-                nodes: mt.nodes.clone(),
-                plans: plans.into(),
-            },
-        );
+        let text = SymText::Nodes {
+            nodes: mt.nodes.clone(),
+            plans: plans.into(),
+        };
+        let id = match self.parse_tokens(ar, &toks, mt.src()) {
+            Ok(id) => id,
+            // Text this parser does not read but the symbolic engine does,
+            // with no reference in it (a relation: `4 < x <= 5`, `x = 2`,
+            // `x in (0, 1)`): a value with no entries of its own, the
+            // engine's text alone, a constant (ADR 0041, decision 8).
+            Err(e) => {
+                let constant = !toks.iter().any(|tok| matches!(tok, Token::Cell(_)))
+                    && crate::sym::Engine::new().is_written(&text.spell(self.dast));
+                if !constant {
+                    return Err(e);
+                }
+                ar.arena.push(expr::Expr::Shape(Vec::new()))
+            }
+        };
+        ar.sym_text.insert(id, text);
         Ok(id)
     }
 

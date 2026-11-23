@@ -29,6 +29,7 @@ fn the_walk_matches_the_queue() {
                     &mut SymRun {
                         state: &mut doc.built.sym,
                         engine: &mut doc.math.engine,
+                        texts: None,
                     },
                     &doc.built.cells,
                     essentials.clone(),
@@ -40,6 +41,7 @@ fn the_walk_matches_the_queue() {
                     &mut SymRun {
                         state: &mut doc.built.sym,
                         engine: &mut doc.math.engine,
+                        texts: None,
                     },
                     &doc.built.cells,
                     essentials.clone(),

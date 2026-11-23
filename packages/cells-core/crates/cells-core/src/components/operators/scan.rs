@@ -6,8 +6,8 @@
 
 use super::{PieceKind, operands};
 use crate::compile::api::*;
+use crate::components::ComponentDef;
 use crate::components::define::*;
-use crate::components::{ComponentDef, ComponentType};
 use crate::error::Result;
 use crate::limits::byte;
 use crate::program::{Scan, VecOp};
@@ -18,6 +18,7 @@ component! {
     /// (`numbers`, `number1`, ...) as long as its operands. A request
     /// cannot change an entry, as in the current core.
     tags: ["cumulativeSum"],
+    variant: Scan::Sum,
     flags: [copyable],
     default_prop: numbers,
     props {
@@ -39,36 +40,26 @@ component! {
 }
 
 /// `<cumulativeProduct>`: the running products of its operands.
-pub(crate) const CUMULATIVE_PRODUCT: ComponentDef = DEFINITION.with_tags(&["cumulativeProduct"]);
+pub(crate) const CUMULATIVE_PRODUCT: ComponentDef =
+    DEFINITION.variant(&["cumulativeProduct"], &Scan::Product);
 /// `<cumulativeMin>`: the running minima of its operands.
-pub(crate) const CUMULATIVE_MIN: ComponentDef = DEFINITION.with_tags(&["cumulativeMin"]);
+pub(crate) const CUMULATIVE_MIN: ComponentDef = DEFINITION.variant(&["cumulativeMin"], &Scan::Min);
 /// `<cumulativeMax>`: the running maxima of its operands.
-pub(crate) const CUMULATIVE_MAX: ComponentDef = DEFINITION.with_tags(&["cumulativeMax"]);
+pub(crate) const CUMULATIVE_MAX: ComponentDef = DEFINITION.variant(&["cumulativeMax"], &Scan::Max);
 /// `<differences>`: each operand less the one before it, one fewer than
 /// its operands.
-pub(crate) const DIFFERENCES: ComponentDef =
-    DEFINITION.with_tags(&["differences"]).with_entries_less(1);
+pub(crate) const DIFFERENCES: ComponentDef = DEFINITION
+    .variant(&["differences"], &Scan::Differences)
+    .with_entries_less(1);
 
-/// What a type of this table computes over its operands' prefixes.
-fn scan(ty: ComponentType) -> Scan {
-    match ty {
-        ComponentType::CumulativeSum => Scan::Sum,
-        ComponentType::CumulativeProduct => Scan::Product,
-        ComponentType::CumulativeMin => Scan::Min,
-        ComponentType::CumulativeMax => Scan::Max,
-        ComponentType::Differences => Scan::Differences,
-        _ => unreachable!("<{}> is not planned by this table", ty.tag()),
-    }
-}
-
-/// Its entries: the outputs of one instruction over a hidden port per
-/// operand ([`operands`]). With no operand (or, for `<differences>`, one)
+/// Its entries: the outputs of one instruction, the type's variant's scan,
+/// over a hidden port per operand ([`operands`]). With no operand (or, for `<differences>`, one)
 /// it has no entries.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     let pieces = ctx.list_entries(Attrs::of(ctx.record()).children, f64::INFINITY)?;
     let op = VecOp::Scan {
-        op: scan(ty),
+        op: *ty.variant::<Scan>(),
         n: byte(pieces.len().min(u8::MAX as usize)),
     };
     let n = if pieces.is_empty() { 0 } else { op.n_out() };
@@ -78,7 +69,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let head = wiring.entry(0);
         wiring.set_entries(ElemWiring::vector_from(head, op, args, &[]));
     }
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
     });
     Ok(wiring)
