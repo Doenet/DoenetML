@@ -3904,17 +3904,13 @@ export function checkTypeChangesAtLoad({
         if (typeof item === "string") {
             return { kind: "one", type: "text" };
         }
-        if (
-            item.componentType === "_copy" &&
-            canonicalType(
-                literalText(item.attributes?._createComponentOfType),
-            ) === "group"
-        ) {
-            // A `<group>` written with `extend` or `copy` holds what its
-            // source holds, and what is written in it, read through the
-            // source (Doenet/DoenetML#2654 item 6), as a `<group>` written
-            // here is read through. Not a bare `$g`, which is decided when
-            // the document runs (`doenet-w0188`).
+        if (item.componentType === "_copy" && declaredType(item) === "group") {
+            // A `<group>` written with `extend` or `copy`, or a bare `$g` of
+            // a group, holds what its source holds (and, written as a tag,
+            // what is written in it), read through the source, as a
+            // `<group>` written here is read through, so it is decided from
+            // the DoenetML in every variant (DIAG-7, Doenet/DoenetML#2654
+            // item 6).
             const holding = itemHolding(item, new Set());
             const count = holding.skip ? undefined : countOf(holding);
             if (count === 0) {

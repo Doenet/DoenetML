@@ -324,8 +324,9 @@ describe("An index after options or cases that hold several, decided at load (Do
     it("options of different shapes: the warning at load in every variant, the pick of several an info", async () => {
         // the option holding several written as a group was counted as one
         // component, so only the variants picking it were told, at run time;
-        // so was a group written with `extend` or `copy`, read through what
-        // it extends (Doenet/DoenetML#2654 item 6)
+        // so was a group written with `extend` or `copy`, or a bare `$g2`,
+        // read through the group it names (Doenet/DoenetML#2654 item 6)
+
         // `g1` extends `g2`, so an extend of `g1` reads through both
         const groups = `<setup><group name="g2"><math>3</math><math>4</math></group><group name="g1" extend="$g2"/></setup>`;
         for (const second of [
@@ -335,6 +336,7 @@ describe("An index after options or cases that hold several, decided at load (Do
             `<group copy="$g2"/>`,
             `<group><group extend="$g2"/></group>`,
             `<group extend="$g1"/>`,
+            `$g2`,
         ]) {
             const doenetML = `${second.includes("$g") ? groups : ""}<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
 <p name="p">[$s[1][2]]</p>`;

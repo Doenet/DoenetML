@@ -261,18 +261,12 @@ const CONTENT_FROM_CHILDREN = [
     // point that `b` extends): the copies ran away without throwing, so
     // nothing reported them (Doenet/DoenetML#2654 item 1). A `<solution>`
     // can't be held in a label, but a reference to one in it holds itself
-    // the same way. Not a `<graph>`, which was left out when listing it
-    // gave a false `doenet-e0005` to `<point name="b" extend="$a"/>` in a
-    // graph whose `a` has a label holding an award reading `$b`: this list
-    // also says where a reference is written as content
-    // (`writtenAsContent`), which then decided whether the `extend` itself
-    // holds its target's label. Now only what holds it does
-    // (`copiesTargetsLabel`, `heldNode`), and that document loads with
-    // `graph` listed, but no cycle through a graph was found that needs
-    // it: a reference in a graph is already a copy, label and all, where
-    // it is not read as a value, and a reference to a graph in a label in
-    // it (`<graph name="g"><point><label>$g</label></point></graph>`) is
-    // already `doenet-e0005` at load.
+    // the same way. So is a `<graph>`, whose copy copies what is in it;
+    // cycles through one were caught only when the document ran. It was
+    // first left out because this list also said where an `extend` holds
+    // its target's label (`writtenAsContent`), which gave a false
+    // `doenet-e0005` to an `extend` of a point in a graph; now only what
+    // holds the `extend` does (`copiesTargetsLabel`, `heldNode`).
     "caption",
     "figure",
     "table",
@@ -283,6 +277,7 @@ const CONTENT_FROM_CHILDREN = [
     "cellBlock",
     "spreadsheet",
     "chart",
+    "graph",
     "sideBySide",
     "sbsGroup",
     "stack",

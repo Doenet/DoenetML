@@ -275,21 +275,23 @@ describe("An index selects instances, not children @group4", async () => {
             ).eqls([["doenet-w0100", "$s[1][1]"]]);
         }
 
-        // and a reference to a group holding two names nothing after it,
-        // whose children have the names of what it copies, not of a child of
-        // the pick
+        // and a reference to a group holding two names nothing after it.
+        // The option is read through the group it names, so that is decided
+        // from the DoenetML when the document loads, the same in every
+        // variant (`doenet-w0191`, DIAG-7), as for a `<group>` written in
+        // the option; it was `doenet-w0188` when the document ran
+        // (Doenet/DoenetML#2654 item 6).
         const two = await shownAndReported(
             `<setup><group name="g"><math>y</math><math>z</math></group></setup><select name="s"><option>$g</option></select><p name="p">[$s[1][1]]</p>`,
         );
         expect(two.text).eq("[＿]");
-        expect(
-            two.warnings.map((w) => [
-                w.code,
-                w.args.container,
-                w.args.child,
-                w.args.count,
-            ]),
-        ).eqls([["doenet-w0188", "pick", "unnamed", 2]]);
+        expect(two.infos).eqls([]);
+        expect(two.warnings.map((w) => [w.code, w.message])).eqls([
+            [
+                "doenet-w0191",
+                '`$s[1][1]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[1]`.',
+            ],
+        ]);
     });
 
     it("passes an index through a group or a case holding only a reference to a list or a repeat", async () => {

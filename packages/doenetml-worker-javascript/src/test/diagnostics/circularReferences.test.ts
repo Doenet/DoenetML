@@ -1748,7 +1748,8 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
 
     // A reference to a container written in it holds itself. It was an
     // error at load before these containers were listed, but in a
-    // `<solution>` or a `<givenAnswer>`, where nothing was reported.
+    // `<solution>` or a `<givenAnswer>`, where nothing was reported, and in
+    // a `<graph>`, where it was found only when the document ran.
     for (const [tag, doenetML] of [
         ["hint", '<hint name="h"><p>$h</p></hint>'],
         ["solution", '<solution name="h"><p>$h</p></solution>'],
@@ -1769,6 +1770,7 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
         ],
         ["asList", '<asList name="h"><text>a</text>$h</asList>'],
         ["ref", '<ref name="h" to="https://doenet.org">a $h</ref>'],
+        ["graph", '<graph name="h"><text>$h</text></graph>'],
     ]) {
         it(`a reference to a ${tag} written in it is an error at load`, async () => {
             const backstopWas = setLoadCycleBackstop(false);
