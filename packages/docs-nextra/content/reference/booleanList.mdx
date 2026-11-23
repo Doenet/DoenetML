@@ -98,7 +98,7 @@ Check two of the boxes, in any order:
       <booleanList unordered="true">
         $b1 $b2 $b3 $b4
       </booleanList> = 
-      <booleanList>1 1 0 0</booleanList>
+      <booleanList>true true false false</booleanList>
     </when>
   </award>
 </answer>  
@@ -121,7 +121,7 @@ The `<booleanList>{:dn}` component is ordered by default.
     <mathInput name="n"><shortDescription>max number for the boolean list</shortDescription></mathInput></p>
   <p>List = 
   <booleanList name="list" maxNumber="$n">
-   0 1 0 1 1 1 0 0 1 1 0 0
+   false true false true true true false false true true false false
   </booleanList>
   </p>
 ```
@@ -137,7 +137,7 @@ rendered by the `<booleanList>{:dn}`.
 
 
 ```doenet-example
-  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <booleanList name="bList">false true false true true true false false true</booleanList>
   <p><c>numComponents</c> = $bList.numComponents</p>
 ```
 
@@ -153,7 +153,7 @@ The `numComponents` property renders the number of boolean values stored in the 
 
 
 ```doenet-example
-  <booleanList name="bList">0 1 0 1 1 1 0 0 1</booleanList>
+  <booleanList name="bList">false true false true true true false false true</booleanList>
   <p><c>numValues</c> = $bList.numValues</p>
 ```
 

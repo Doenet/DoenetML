@@ -494,11 +494,18 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
             `<boolean name="b">true</boolean><boolean name="c">$b</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$c">u</select>`,
         );
         expect(chain.errors).eqls([]);
-        // a `<number>` not 0 is true
+        // a `<number>` is not true or false: a type mix, a blank, so false
+        // (D47 decision 4, #2582); a comparison decides it
         const number = await load(
             `<number name="n">2</number><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$n">u</select>`,
         );
-        expect(number.errors).eqls([]);
+        expect(number.errors).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, it has 1 option to select 2 from.",
+        ]);
+        const compared = await load(
+            `<number name="n">2</number><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$n != 0">u</select>`,
+        );
+        expect(compared.errors).eqls([]);
         const isFalse = await load(
             `<boolean name="b">false</boolean><boolean name="c">$b</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$c">u</select>`,
         );
@@ -512,13 +519,18 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         expect(module.errors).eqls([]);
     });
 
-    it("a boolean parameter reading a choice in error is that error", async () => {
-        // `x` has no value when `a` is 1; `withReplacement` reads it
+    it("a boolean parameter reading a number is a blank, not the number's error", async () => {
+        // `x` has no value when `a` is 1. A number is not true or false (D47
+        // decision 4, #2582): `withReplacement="$x"` is a blank, with
+        // `doenet-w0203`, so it doesn't read `x`. A blank boolean parameter
+        // isn't decided at load, as for `$nothing`, so the select fails as
+        // it runs (`doenet-e0035`).
         const { errors } = await load(
             `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence name="x" from="0" to="$a" exclude="0 1"/><select numToSelect="3" withReplacement="$x">u v</select>`,
         );
         expect(errors).eqls([
             "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 0 values to select 1 from.",
+            "doenet-e0035: Cannot select 3 components from only 2.",
         ]);
     });
 
@@ -1744,7 +1756,7 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
         // known, so the select can't be shown to always select, rather
         // than taken as true or false
         const { errors } = await load(
-            `<select name="o"><option><group><number>1</number></group></option></select><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$o">u</select>`,
+            `<select name="o"><option><group><boolean>true</boolean></group></option></select><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$o">u</select>`,
         );
         expect(errors).toHaveLength(1);
         expect(errors[0]).toMatch(/^doenet-e0073: DoenetML can't show/);
@@ -1889,9 +1901,11 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
     it("the error names a component in the part as written", async () => {
         const choices = `<selectFromSequence name="a" to="2"/><selectFromSequence name="k" to="2"/>`;
         for (const [parameters, part] of [
+            // a boolean in a number is a type mix, a blank with a warning
+            // (D47 decision 3), and is named alone
             [
                 `<number name="m">$a+<boolean>true</boolean></number><selectFromSequence to="$m"/>`,
-                "$a+<boolean>true</boolean>",
+                "<boolean>true</boolean>",
             ],
             [
                 `<number name="m"><number>$a</number>^2</number><selectFromSequence to="$m"/>`,

@@ -300,6 +300,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0200": "reference-name-after-collection",
     "doenet-w0201": "attribute-written-twice",
     "doenet-w0202": "content-unused-attributes-give-value",
+    "doenet-w0203": "boolean-number-mix",
+    "doenet-w0204": "text-ordered-against-number",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

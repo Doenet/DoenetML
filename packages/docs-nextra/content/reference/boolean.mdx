@@ -10,6 +10,12 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<boolean>{:dn}` is a [Logic](../concepts/essentialConcepts#component-types) 
 component that renders the boolean value of `true` or `false` of the enclosed expression.
 
+A number is not true or false. A number where a boolean is wanted, such as
+`<boolean>$n</boolean>{:dn}`, `<boolean>1</boolean>{:dn}` or `hide="$n"`, is a
+blank, with a warning. Write `true` or `false`, or a comparison such as
+`<boolean>$n != 0</boolean>{:dn}`. Nor is a boolean a number: to count one as
+1 or 0, write [`<number convertBoolean>$b</number>{:dn}`](number.mdx).
+
 <AttrPropDisplay name='boolean'/>
 
 

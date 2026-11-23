@@ -200,9 +200,13 @@ nothing.
 When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
 only between related types:
 
-* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another, by value.
-  A boolean is `1` or `0` as a `<number>` or a `<math>`, and a text is a
-  `<boolean>` while it is the word `true` or `false`;
+* `<math>`, `<number>` and `<text>`, from one another, by value, and
+  `<boolean>` and `<text>`: a text is a `<boolean>` while it is the word
+  `true` or `false`. A boolean is not a number, nor a number a boolean:
+  `<number extend="$b"/>{:dn}` of a `<boolean>` is an error, which suggests
+  `<number convertBoolean>$b</number>{:dn}`, the one way to count a boolean
+  as `1` or `0`, and `<boolean extend="$n"/>{:dn}` of a number suggests a
+  comparison, such as `<boolean>$n != 0</boolean>{:dn}`;
 * `<point>`, `<vector>` and `<coords>`, from one another;
 * a `<math>` from a point, vector or coords, as the tuple of its coordinates,
   and a point, vector or coords from a math whose value is a tuple;
@@ -216,8 +220,8 @@ A `<group>` can be made from anything, and holds it.
 
 Made by value, the tag follows the value, and writing to the tag writes it
 back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`
-edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
-`b` to false.
+edits `mi`, and a `<text extend="$b"/>{:dn}` of a `<boolean>` set to `false`
+sets `b` to false.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
@@ -226,7 +230,7 @@ edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
 
 <p>As a math: <math extend="$P"/></p>
 <p>As a math: <math extend="$g"/></p>
-<p>As a number: <number extend="$bi"/></p>
+<p>As a text: <text extend="$bi"/></p>
 ```
 
 #### Made from a composite

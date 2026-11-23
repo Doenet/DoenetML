@@ -55,6 +55,7 @@ import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
+import { checkBooleanNumberMixAtLoad } from "./booleanNumberMixAtLoad";
 import {
     markPropertyTypesAtLoad,
     referencesToUndecidedTypes,
@@ -1234,6 +1235,21 @@ export async function normalizedDastToSerializedComponents(
             componentInfoObjects,
         }),
     );
+
+    // A boolean where a number or a math is wanted, or a number where a
+    // boolean is, is a type mix: a warning at load and a blank in its place
+    // (D47 decisions 3 and 4). So is a text ordered against a number, which
+    // is only warned of (D58). After sugar, which wraps a `<number>`'s
+    // several children in a `<math>`, and before the list forms and value
+    // references, while each reference is still a `_copy`.
+    const booleanNumberMix = checkBooleanNumberMixAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+        nComponents,
+    });
+    diagnostics.push(...booleanNumberMix.diagnostics);
+    nComponents = booleanNumberMix.nComponents;
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a

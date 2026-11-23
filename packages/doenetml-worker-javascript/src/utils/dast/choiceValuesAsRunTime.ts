@@ -14,14 +14,13 @@
  * - `<number>`: `Number.js` (`numberFromString` for one string, the
  *   `number` of one `<text>`; content of more than one piece is made a
  *   `<math>` first, by `Number.js`'s sugar, and read as that `<math>`'s
- *   number), with `valueOnNaN` `NaN` and `convertBoolean` false; a
- *   `<boolean>` alone in it is `1` or `0` (REF-5);
+ *   number), with `valueOnNaN` `NaN` and `convertBoolean` false;
  * - `<integer>`: that, rounded (`Integer.js`);
  * - `<math>`: `Math.js` (`mathExpressionWithCodes`, `mathValueFromCodes`,
  *   then `normalizeMathExpression` with `simplify="none"`); a `<number>` in
  *   it is its math, a `<text>` the text parsed as math (`textToMath`, as
- *   `Text.js`'s adapter has it), and a `<boolean>` `1` or `0` (REF-5, as
- *   `Boolean.js`'s adapter has it);
+ *   `Text.js`'s adapter has it), and a `<boolean>` is no part of it (it
+ *   isn't a child a `<math>` takes);
  * - `<boolean>`: `Boolean.js` (`buildParsedExpression`,
  *   `booleanValueFromCodes`, the compare settings at their defaults);
  * - `<text>`: `Text.js` (`textFromChildren`); its `number` is the text
@@ -188,14 +187,6 @@ function numberValue(
             componentInfoObjects,
         );
     }
-    if (
-        content.length === 1 &&
-        typeof content[0] !== "string" &&
-        content[0].componentType === "boolean"
-    ) {
-        // a boolean is `1` or `0` (REF-5)
-        return content[0].value ? 1 : 0;
-    }
     const strings = content.filter((c): c is string => typeof c === "string");
     const children = content.filter(
         (c): c is RunTimeChild => typeof c !== "string",
@@ -259,8 +250,7 @@ function numberValue(
         } else if (child.componentType === "text") {
             numberValuesByCode[code] = textNumber(child.value);
         } else {
-            // a boolean, which is alone (more than one child is a `<math>`),
-            // so is read above
+            // a boolean: `Number.js` reads it only with `convertBoolean`
             return NaN;
         }
         subnum++;
@@ -282,6 +272,10 @@ function asNumber(value: any): number {
 
 /** `<math>`'s `value` (`Math.js`), with its attributes at their defaults. */
 function mathValue(content: (string | RunTimeChild)[]): any {
+    // a `<boolean>` isn't a child a `<math>` takes: it is no part of it
+    content = content.filter(
+        (c) => typeof c === "string" || c.componentType !== "boolean",
+    );
     const strings = content.filter((c): c is string => typeof c === "string");
     const children = content.filter(
         (c): c is RunTimeChild => typeof c !== "string",
@@ -295,10 +289,6 @@ function mathValue(content: (string | RunTimeChild)[]): any {
         }
         if (child.componentType === "number") {
             return numberToMathExpression(child.value);
-        }
-        if (child.componentType === "boolean") {
-            // a boolean is `1` or `0` (REF-5, `Boolean.js`'s `math`)
-            return me.fromAst(child.value ? 1 : 0);
         }
         return textToMath({ value: String(child.value), isLatex: false });
     });
