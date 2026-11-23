@@ -787,9 +787,20 @@ export class RefResolutionDependency extends Dependency {
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
+        // A name written inside the collection a `<group>` or a reference
+        // stands for (`$g.P` of `<group name="g">$pl</group>`), decided at
+        // load (`standInAsWritten` in `namesAfterCollectionsAtLoad.ts`): the
+        // rest of the path is resolved from that collection, as for `$pl.P`.
+        const standIn = this.refResolutionOf(composite).standIn as
+            { origin: number; from: number } | undefined;
+        const pathToResolve = standIn
+            ? resolveComponentResult.path.slice(standIn.from)
+            : resolveComponentResult.path;
+
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat
-        const skip_parent_search = resolveComponentResult.path[0].name === "";
+        const skip_parent_search =
+            standIn !== undefined || pathToResolve[0].name === "";
 
         // console.log(
         //     "resolve path",
@@ -813,11 +824,13 @@ export class RefResolutionDependency extends Dependency {
         let firstResolutionError:
             "NonUniqueReferent" | "NoReferent" | undefined;
 
-        for (const origin of this.originsToResolveFrom(composite)) {
+        for (const origin of standIn
+            ? [standIn.origin]
+            : this.originsToResolveFrom(composite)) {
             try {
                 const candidateResolution = this.dependencyHandler.core
                     .resolvePath!(
-                    { path: resolveComponentResult.path },
+                    { path: pathToResolve },
                     origin,
                     skip_parent_search,
                 );
@@ -844,6 +857,12 @@ export class RefResolutionDependency extends Dependency {
         refResolution ??= selfReferentialResolution;
 
         if (refResolution === undefined) {
+            // A component in error is reported where it is, and a reference
+            // into it reports nothing more (DIAG-5): `$r[1].hidden` of a
+            // `<repeat>` in `doenet-e0005`.
+            const inError =
+                this.dependencyHandler._components[nodeIdx]?.componentType ===
+                "_error";
             // A reference written as a tag whose index is not a positive
             // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
             // 0) names nothing, and says so itself, as an info that lasts
@@ -863,7 +882,9 @@ export class RefResolutionDependency extends Dependency {
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
             // we could make sure that `ref_resolve` formats the messages in this case, too.
-            if (
+            if (inError) {
+                // nothing more
+            } else if (
                 !reportedByCopy &&
                 firstResolutionError === "NoReferent" &&
                 this.indexFromValue(composite)

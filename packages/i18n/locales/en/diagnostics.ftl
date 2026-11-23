@@ -665,13 +665,13 @@ reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $na
 reference-branches-hold-several = `{ $reference }`: { $what ->
         [index] an index
        *[property] a property
-    } after { $hasName ->
+    } after { $branch ->
+        [option] a pick of
+       *[case] the case shown by
+    } { $hasName ->
         [true] `{ $container }`
        *[other] the `<{ $container }>`
-    } passes into what { $branch ->
-        [option] each pick
-       *[case] the case shown
-    } holds only when it holds one component, and { $branch ->
+    } passes into it only when it holds one component, and { $branch ->
         [option] { $ordinalsCount ->
             [one] option { $ordinals } holds
            *[other] options { $ordinals } hold
@@ -700,9 +700,8 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
 # name when $hasName is `true`, else its tag name. $branch is `option` or
-# `case`. (`item`, for the items of a `<repeat>`, is no longer given: a
-# property after a repeat names nothing, `doenet-w0200`, D59.) A name in only some options
-# or cases names nothing from outside
+# `case` (a property after a repeat names nothing, `doenet-w0200`, D59). A
+# name in only some options or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
 reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
@@ -710,7 +709,6 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
        *[other] the `<{ $container }>`
     } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
         [option] option
-        [item] item
        *[case] case
     } a component that has `{ $property }`.
 
@@ -752,14 +750,21 @@ reference-property-after-several =
 # (D59), so `$pl.x` and `$r.P` name nothing. $reference is the reference as
 # the author wrote it, with its `$`. $name is the name or property after the
 # collection, and $component the collection's tag, both as written. $kind is
-# `name` when $name is the name of a component written in the collection's
-# items (anywhere in the document, for a `<collect>`), else `property`.
-# $suggestion is the reference with an index put after the
-# collection (`$pl[1].x`).
+# `item` when $name is the name of one of the collection's items itself (a
+# point a `<collect>` collects, or one a `<repeat>` or a `<select>` of several
+# in a `<sort>`, a `<shuffle>` or a list makes each time), `name` when it is the name of a component written in the
+# collection's items (anywhere in the document, for a `<collect>`), else
+# `property`. $suggestion is the reference with an index put after the
+# collection (`$pl[1].x`), or, for `item`, an index in place of the name
+# (`$c.A` → `$c[1]`).
 reference-name-after-collection = `{ $reference }` names nothing: { $kind ->
+        [item] `{ $name }` is an item of the `<{ $component }>`, and a name after it does not reach into its items.
         [name] a name after a `<{ $component }>` does not reach into its items.
        *[property] a `<{ $component }>` has no property `{ $name }` of its own, and a property after it does not reach into its items.
-    } To read it from one item, give its index, such as `{ $suggestion }`.
+    } { $kind ->
+        [item] To read an item, give its index, such as `{ $suggestion }`.
+       *[other] To read it from one item, give its index, such as `{ $suggestion }`.
+    }
 
 ## `<callAction>`
 
