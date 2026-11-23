@@ -4447,7 +4447,7 @@ Enter any letter:
         // none of them is a type mix
         expect(
             core.core!.diagnostics.filter((d: any) =>
-                ["doenet-w0202", "doenet-e0065"].includes(d.code),
+                ["doenet-w0203", "doenet-e0065"].includes(d.code),
             ),
         ).eqls([]);
     });

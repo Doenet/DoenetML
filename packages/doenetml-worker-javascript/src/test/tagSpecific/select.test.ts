@@ -2969,33 +2969,18 @@ describe("Select tag tests @group2", async () => {
             stateVariables[replacements[5].componentIdx].stateValues.text,
         ).eq(`r2 = ＿`);
 
+        // Every option of `s` holds several, so it is decided at load
+        // (`doenet-w0191`, Doenet/DoenetML#2643 item 4). The named child is
+        // named in the form to write instead; the other is to be given a
+        // name.
         const warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.map((w) => w.code)).eqls([
-            "doenet-w0188",
-            "doenet-w0188",
-        ]);
-        // The named child is named in the form to write instead; the other
-        // is to be given a name
-        expect(warnings.map((w) => w.args)).toEqual(
+        expect(warnings.map((w) => [w.code, w.args.suggestion])).toEqual(
             expect.arrayContaining([
-                {
-                    reference: "$s[1][1]",
-                    suggestion: "$s[1].q",
-                    child: "named",
-                    container: "pick",
-                    component: "select",
-                    count: 2,
-                },
-                {
-                    reference: "$s[1][2]",
-                    suggestion: "$s[1].x",
-                    child: "unnamed",
-                    container: "pick",
-                    component: "select",
-                    count: 2,
-                },
+                ["doenet-w0191", "$s[1].q"],
+                ["doenet-w0191", "$s[1].P[2]"],
             ]),
         );
+        expect(warnings.length).eq(2);
     });
 
     it("display error when miss a name in selectForVariants, inside text", async () => {

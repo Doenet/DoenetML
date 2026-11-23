@@ -1766,7 +1766,7 @@ export function checkChoiceFeasibilityAtLoad({
         if (!target) {
             if (node.doenetAttributes?.typeMixAtLoad && type !== "boolean") {
                 // A boolean where a number is wanted, a blank with
-                // `doenet-w0202` (D47 decision 3): it is no number, so not
+                // `doenet-w0203` (D47 decision 3): it is no number, so not
                 // analysable (SEL-6). `<number convertBoolean>` is the one
                 // way to ask for `1` or `0`. A number where a boolean is
                 // wanted (`withReplacement="$n"`, decision 4) is a blank

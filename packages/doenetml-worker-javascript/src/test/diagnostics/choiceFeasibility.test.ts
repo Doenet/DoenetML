@@ -522,7 +522,7 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
     it("a boolean parameter reading a number is a blank, not the number's error", async () => {
         // `x` has no value when `a` is 1. A number is not true or false (D47
         // decision 4, #2582): `withReplacement="$x"` is a blank, with
-        // `doenet-w0202`, so it doesn't read `x`. A blank boolean parameter
+        // `doenet-w0203`, so it doesn't read `x`. A blank boolean parameter
         // isn't decided at load, as for `$nothing`, so the select fails as
         // it runs (`doenet-e0035`).
         const { errors } = await load(

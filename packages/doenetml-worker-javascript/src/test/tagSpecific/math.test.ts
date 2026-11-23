@@ -13835,7 +13835,7 @@ describe("Math tag tests @group3", async () => {
 
         expect(
             core
-                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0202")
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
                 .map((d: any) => d.position.start.line),
         ).eqls([5, 6, 6, 7, 8, 9, 10, 10, 11, 11, 12, 13]);
         expect(

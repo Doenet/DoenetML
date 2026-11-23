@@ -3,7 +3,7 @@
  * 3 and 4, #2582), and a text is not ordered against a number (D58). Each is
  * a type mix, decided at load from what is written (DIAG-2), wherever it is:
  *
- * - **A boolean where a number or a math is wanted** (`doenet-w0202`,
+ * - **A boolean where a number or a math is wanted** (`doenet-w0203`,
  *   `booleanAsNumber`): a boolean child of a `<math>`, of a `<number>`
  *   without `convertBoolean`, of a list of numbers or maths, of a math
  *   operator, or of a math attribute (`<point x="$b">`). It is a blank in
@@ -22,7 +22,7 @@
  *   `booleanInputBoundToNumber`): `<mathInput bindValueTo="$b">`, whose
  *   warning suggests a `<booleanInput>`, and the reverse. It is bound to a
  *   blank.
- * - **A text ordered against a number** (`doenet-w0203`): `<`, `>`, `<=` or
+ * - **A text ordered against a number** (`doenet-w0204`): `<`, `>`, `<=` or
  *   `>=` between them is never true (`$s.sectionNumber > 2`). Nothing is
  *   converted, and `=` is unchanged. For a `sectionNumber`, the warning
  *   suggests `ownNumber` (D56).
@@ -63,7 +63,7 @@ import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { buildParsedExpression } from "../booleanLogic";
 import me from "math-expressions";
 
-/** Why a value is a type mix (`doenet-w0202`'s `reason`). */
+/** Why a value is a type mix (`doenet-w0203`'s `reason`). */
 type MixReason =
     | "booleanAsNumber"
     | "numberAsBoolean"
@@ -584,7 +584,7 @@ export function checkBooleanNumberMixAtLoad({
         diagnostics.push(
             codedDiagnostic({
                 type: "warning",
-                code: "doenet-w0202",
+                code: "doenet-w0203",
                 args: {
                     reason,
                     source,
@@ -840,7 +840,7 @@ export function checkBooleanNumberMixAtLoad({
             diagnostics.push(
                 codedDiagnostic({
                     type: "warning",
-                    code: "doenet-w0203",
+                    code: "doenet-w0204",
                     args: {
                         source,
                         operator,

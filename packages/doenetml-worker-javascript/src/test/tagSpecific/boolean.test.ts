@@ -133,7 +133,7 @@ describe("Boolean tag tests @group1", async () => {
             ).eq(mixes[`f${i}`] ?? false);
         }
         expect(
-            core.core!.diagnostics.filter((d: any) => d.code === "doenet-w0202")
+            core.core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
                 .length,
         ).eq(Object.keys(mixes).length);
     });
@@ -168,7 +168,7 @@ describe("Boolean tag tests @group1", async () => {
         await check(false);
         expect(
             core
-                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0202")
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
                 .map((d: any) => [d.position.start.line, d.message]),
         ).eqls([
             [

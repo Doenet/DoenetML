@@ -52,10 +52,19 @@
  *   these is an edge, but for a reference written as a tag that names the
  *   tag itself, whatever its path (`<group name="g" extend="$g.x"/>`);
  * - a whole reference to a graphical component (a `<point>`, a `<line>`, …)
- *   written as content (in a `<p>`, a `<span>`, an `<em>`), which copies the
- *   component, label and all, to its `<label>`, and those of what it extends
- *   (`$P` in a `<p>` in the label of `P` holds itself; as the label's value,
- *   `<label>$P</label>`, it does not, #1384);
+ *   that copies the component, label and all, to its `<label>`, and those of
+ *   what it extends: one written as content (in a `<p>`, a `<span>`, an
+ *   `<em>`), so that `$b` in a `<p>` in the label of `a` holds itself when
+ *   `b` extends or copies `a`, and a `$` reference anywhere else the
+ *   value-reference pass leaves it a copy. Where a value is read (a
+ *   `<label>`, a `<text>`, an `<m>`, a `<math>`, through a `<group>`), one
+ *   with a math or text value is read as that value, not copied (VAL-10,
+ *   Doenet/DoenetML#2643 item 1), so `<label>$b</label>` in `a` reads b's
+ *   value, as `<label>$P</label>` in `P` reads P's (#1384);
+ * - a reference to the `hidden` of a component (`$n.hidden`), to the
+ *   components in its `hide` and in the `hide` of each component it is
+ *   written in, as whether it is hidden reads whether they are
+ *   (Doenet/DoenetML#2643 item 10);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
@@ -159,6 +168,12 @@ import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
+import { getSelfReferentialFallbackPropName } from "../copy";
+import {
+    planReferentAdapterReference,
+    planValueReference,
+    staticValueReferenceTarget,
+} from "../valueReference";
 import {
     compositesExpandedIn,
     compositesNumberingWaitsFor,
@@ -1319,6 +1334,112 @@ export function breakReferenceCycles({
     }
 
     /**
+     * Whether `copy`, a whole reference to the component `target`, makes a
+     * copy of it, label and all, rather than reading its value. It does when
+     * it is written as content (`writtenAsContent`: in a `<p>`, an `<em>`),
+     * and wherever else the value-reference pass leaves it a copy, but not
+     * where a value is read (a `<label>`, a `<text>`, an `<m>`, a `<math>`,
+     * through a `<group>`: `getSelfReferentialFallbackPropName`) of a
+     * graphical component with a math or text value, which is read as that
+     * value (`valueInPlaceOfCopy` in `Copy.js`, VAL-10), and not inside what
+     * it names: `<label>$P</label>` in the label of `P` reads P's value
+     * (#1384).
+     */
+    function copiesTargetsLabel(
+        copy: SerializedComponent,
+        target: SerializedComponent,
+    ) {
+        if (writtenAsContent(copy)) {
+            return true;
+        }
+        if (!copy.extending || !("Ref" in copy.extending)) {
+            // a tag written with `extend` or `copy` is the component, and
+            // holds its label as the component does
+            return false;
+        }
+        for (
+            let ancestor = parentOf.get(copy.componentIdx);
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            if (ancestor === target) {
+                return false;
+            }
+        }
+        const parent = parentOf.get(copy.componentIdx);
+        const targetType = typeOf(target);
+        if (!parent || targetType === undefined) {
+            return false;
+        }
+        const ancestors: { componentClass: any }[] = [];
+        for (
+            let ancestor: SerializedComponent | undefined = parent;
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            const ancestorClass =
+                componentInfoObjects.allComponentClasses[
+                    ancestor.componentType
+                ];
+            if (!ancestorClass) {
+                break;
+            }
+            ancestors.push({ componentClass: ancestorClass });
+        }
+        const unlinkedCopy =
+            target.componentType === "_copy" &&
+            target.extending !== undefined &&
+            ("CopyAttribute" in target.extending ||
+                "CopyWithStateAttribute" in target.extending);
+        if (
+            !unlinkedCopy &&
+            inherits(targetType, "_graphical") &&
+            getSelfReferentialFallbackPropName({
+                componentAncestors: ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType: targetType,
+            }) !== undefined
+        ) {
+            // where a value is read, a graphical component with a math or a
+            // text value is read as its value, not copied (`Copy.js`,
+            // `valueInPlaceOfCopy`). Not one made with `copy`, which pastes
+            // the DoenetML of what it copies, the reference to itself in its
+            // label included, which stops the document when it is made
+            // (Doenet/DoenetML#2645, found, not fixed)
+            return false;
+        }
+        const parentClass =
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent?.(parent) ??
+            componentInfoObjects.allComponentClasses[parent.componentType];
+        if (!parentClass) {
+            return false;
+        }
+        const value = staticValueReferenceTarget({
+            targetComponentType: targetType,
+            unresolvedPath: null,
+            componentInfoObjects,
+        });
+        const readsValue = value
+            ? planValueReference({
+                  parentClass,
+                  targetComponentType: value.referentComponentType,
+                  valueComponentType: value.valueComponentType,
+                  fromImplicitProp: value.fromImplicitProp,
+                  hasAttributes: false,
+                  allowDrawn: true,
+                  componentInfoObjects,
+              })
+            : planReferentAdapterReference({
+                  parentClass,
+                  targetComponentType: targetType,
+                  componentInfoObjects,
+              });
+        return readsValue === undefined;
+    }
+
+    /**
      * Whether `copy` is written in what holds it as content, in a `<p>`, a
      * `<span>` or an `<em>`, where a reference to a component is a copy of
      * it, label and all, not its value, as in a `<text>`, a `<math>` or a
@@ -1702,6 +1823,49 @@ export function breakReferenceCycles({
                 componentInfoObjects,
             }).map((composite) => expansionNode(composite.componentIdx));
         }
+        if (property === "hidden" && !forExpansion) {
+            // whether it is hidden: its own `hide`, and whether what it is
+            // written in is hidden, so the `hide` of each component it is
+            // in (`hidden` in `BaseComponent.js`). `<group name="g"
+            // hide="$g.hidden">` and `<number name="n" hide="$n.hidden">` in
+            // it are each a cycle (Doenet/DoenetML#2643 item 10).
+            const edges: number[] = [];
+            for (
+                let hiding: SerializedComponent | undefined = target;
+                hiding;
+                hiding = parentOf.get(hiding.componentIdx)
+            ) {
+                const hidingType = typeOf(hiding);
+                if (
+                    hidingType !== undefined &&
+                    !isComposite(hidingType) &&
+                    componentInfoObjects.publicStateVariableInfo[hidingType]
+                        ?.stateVariableDescriptions &&
+                    !(
+                        "hidden" in
+                        componentInfoObjects.publicStateVariableInfo[hidingType]
+                            .stateVariableDescriptions
+                    )
+                ) {
+                    // one whose `hidden` is its own, reading neither its
+                    // `hide` nor what it is in (a `<controlVectors>`, always
+                    // hidden): what is in it reads no further
+                    break;
+                }
+                for (const [name, attribute] of Object.entries(
+                    hiding.attributes ?? {},
+                )) {
+                    if (name.toLowerCase() === "hide") {
+                        edges.push(
+                            ...componentsOfAttribute(attribute).map(
+                                (component) => component.componentIdx,
+                            ),
+                        );
+                    }
+                }
+            }
+            return edges;
+        }
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||
             entryFor(ATTRIBUTES_READ, targetType)?.properties.includes(
@@ -1778,13 +1942,13 @@ export function breakReferenceCycles({
                     !reference!.unresolvedPath?.length &&
                     targetType !== undefined &&
                     inherits(targetType, "_graphical") &&
-                    writtenAsContent(component)
+                    copiesTargetsLabel(component, target)
                 ) {
-                    // A copy of the component, its label too, as content:
-                    // `$P` in a `<p>` in the `<label>` of `P` holds itself,
-                    // though as the value of the label it does not (#1384).
-                    // An extend of a component holds its label too
-                    // (`<point name="b" extend="$a"/>`, `$b` in a's label).
+                    // A copy of the component, its label too: `$P` in a
+                    // `<p>` in the `<label>` of `P` holds itself, though as
+                    // the value of the label it does not (#1384). An extend
+                    // of a component holds its label too (`<point name="b"
+                    // extend="$a"/>`, `$b` in a `<p>` in a's label).
                     const seen = new Set<SerializedComponent>();
                     let labelled: SerializedComponent | undefined = target;
                     while (labelled && !seen.has(labelled)) {

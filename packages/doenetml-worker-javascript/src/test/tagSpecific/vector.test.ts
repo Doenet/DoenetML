@@ -3989,7 +3989,9 @@ describe("Vector Tag Tests @group4", function () {
         await check_items();
     });
 
-    it("point inside vector overrides displacement", async () => {
+    // A written `displacement` comes before the content (D49), with a
+    // warning that the content isn't used.
+    it("displacement overrides a point inside vector", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
@@ -4009,10 +4011,21 @@ describe("Vector Tag Tests @group4", function () {
   `,
         });
 
-        await common_test_process({ core, resolvePathToNodeIdx });
+        expect(getDiagnosticsByType(core).warnings.map((d) => d.code)).eqls([
+            "doenet-w0202",
+        ]);
+
+        await common_test_process({
+            core,
+            resolvePathToNodeIdx,
+            initialHeadX: 9,
+            initialHeadY: 10,
+        });
     });
 
-    it("vector inside vector overrides displacement", async () => {
+    // A written `displacement` comes before the content (D49), with a
+    // warning that the content isn't used.
+    it("displacement overrides a vector inside vector", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph>
@@ -4031,7 +4044,16 @@ describe("Vector Tag Tests @group4", function () {
   `,
         });
 
-        await common_test_process({ core, resolvePathToNodeIdx });
+        expect(getDiagnosticsByType(core).warnings.map((d) => d.code)).eqls([
+            "doenet-w0202",
+        ]);
+
+        await common_test_process({
+            core,
+            resolvePathToNodeIdx,
+            initialHeadX: 9,
+            initialHeadY: 10,
+        });
     });
 
     it("point inside vector overrides xs", async () => {

@@ -16,6 +16,7 @@ import {
     CONTEXT_ATTRIBUTES,
     contextAttributeDefinition,
 } from "../../utils/contextAttribute";
+import { entriesMissingDefinition } from "../../utils/missing";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { copiedReferentVariableName } from "../../utils/valueReference";
 
@@ -1307,23 +1308,7 @@ export default class AuthoredValueList extends ValueListComponent {
         // reference to it is missing.
         // An array, read entry by entry, so that a reference to one entry
         // (`$l[1]` inside `l`'s second child) reads only that entry's child.
-        stateVariableDefinitions.entriesMissing = {
-            isArray: true,
-            entryPrefixes: ["entryMissing"],
-            // A reference to the whole list reads the list's.
-            shadowVariable: true,
-            // an entry is drawn as a blank while it is missing
-            // (`RendererInstructionBuilder.childrenToRenderOf`)
-            markStale: () => ({ updateParentRenderedChildren: true }),
-            returnArraySizeDependencies: () => ({
-                numEntries: {
-                    dependencyType: "stateVariable",
-                    variableName: "numEntries",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numEntries];
-            },
+        stateVariableDefinitions.entriesMissing = entriesMissingDefinition({
             stateVariablesDeterminingDependencies: ["entryStructure"],
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 const globalDependencies = {
@@ -1407,7 +1392,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 }
                 return { setValue: { entriesMissing } };
             },
-        };
+        });
 
         addEntryOwnDisplayArrays({
             stateVariableDefinitions,

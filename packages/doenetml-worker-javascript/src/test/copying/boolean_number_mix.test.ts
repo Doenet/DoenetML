@@ -19,35 +19,35 @@ function diagnosticsOf(core: any, codes: string[]) {
         .sort((a: any, b: any) => a[0] - b[0]);
 }
 
-/** `doenet-w0202` for a boolean read as a number (`booleanAsNumber`). */
+/** `doenet-w0203` for a boolean read as a number (`booleanAsNumber`). */
 function booleanAsNumber(source: string) {
     return `\`${source}\` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\`.`;
 }
 
 /**
- * `doenet-w0202` for a boolean read as a number in an attribute, where no
+ * `doenet-w0203` for a boolean read as a number in an attribute, where no
  * tag can be written.
  */
 function booleanAsNumberInAttribute(source: string) {
     return `\`${source}\` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\` outside this attribute, give it a name, and refer to it here.`;
 }
 
-/** `doenet-w0202` for a list of booleans read as numbers. */
+/** `doenet-w0203` for a list of booleans read as numbers. */
 function booleanListAsNumbers(source: string) {
     return `\`${source}\` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a \`<number convertBoolean>\`, such as \`<number convertBoolean>${source}[1]</number>\`.`;
 }
 
-/** `doenet-w0202` for a list of numbers read as booleans. */
+/** `doenet-w0203` for a list of numbers read as booleans. */
 function numberListAsBooleans(source: string) {
     return `\`${source}\` holds numbers, not values that are true or false, so it is a blank here. To test one, write a comparison such as \`${source}[1] != 0\`.`;
 }
 
-/** `doenet-w0202` for a number read as a boolean (`numberAsBoolean`). */
+/** `doenet-w0203` for a number read as a boolean (`numberAsBoolean`). */
 function numberAsBoolean(source: string) {
     return `\`${source}\` is a number, not true or false, so it is a blank here. To test it, write a comparison such as \`${source} != 0\`.`;
 }
 
-/** `doenet-w0202` for a literal number read as a boolean. */
+/** `doenet-w0203` for a literal number read as a boolean. */
 function literalAsBoolean(source: string) {
     return `\`${source}\` is a number, not true or false, so it is a blank here. Write \`true\` or \`false\`, or, to test a number, a comparison such as \`$n != 0\`.`;
 }
@@ -107,7 +107,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("nc")).value).eq(1);
         expect((await sv("nce")).value).eq(1);
 
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [5, booleanAsNumber("$b")],
             [6, booleanAsNumber("$b")],
             [7, booleanAsNumber("$b")],
@@ -166,7 +166,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("c4")).value).eq(true);
         expect((await sv("t3")).hidden).eq(true);
 
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [5, numberAsBoolean("$n")],
             [6, numberAsBoolean("$m")],
             [7, literalAsBoolean("2")],
@@ -201,7 +201,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("c2")).value).eq(true);
         expect((await sv("c3")).value).eq(true);
         expect((await sv("t2")).hidden).eq(true);
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [
                 3,
                 "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>`.",
@@ -256,7 +256,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("e1")).value).eq(1);
         expect((await sv("e2")).value).eq(1);
         expect((await sv("e3")).value).eq(1);
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [5, numberAsBoolean("$n")],
             [6, literalAsBoolean("1")],
             [
@@ -279,7 +279,7 @@ describe("Booleans and numbers kept apart @group2", () => {
     `,
         });
 
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [
                 4,
                 'A `<mathInput>` can\'t edit `$b`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="$b"/>`.',
@@ -379,7 +379,7 @@ describe("Booleans and numbers kept apart @group2", () => {
     </conditionalContent>
     `,
         });
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [5, booleanAsNumber("$b")],
             [5, numberAsBoolean("$n")],
         ]);
@@ -404,7 +404,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         // what each suggests works
         expect(await value("n1")).eq(1);
         expect(await value("b2")).eq(true);
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [4, booleanListAsNumbers("$bl")],
             [5, numberListAsBooleans("$ml")],
         ]);
@@ -438,7 +438,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         for (const name of ["c1f", "d1f", "d2f"]) {
             expect((await sv(name)).value, name).eq(true);
         }
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [
                 3,
                 "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
@@ -472,7 +472,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
         expect((await sv("b")).value).eq(false);
         expect((await sv("m")).value.tree).eqls(["+", "x", 1]);
-        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [depth + 3, numberAsBoolean("$g0")],
         ]);
     }, 15000);
@@ -501,7 +501,7 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(await value("c3")).eq(true);
         expect(await value("c5")).eq(true);
 
-        expect(diagnosticsOf(core, ["doenet-w0203", "doenet-w0202"])).eqls([
+        expect(diagnosticsOf(core, ["doenet-w0204", "doenet-w0203"])).eqls([
             [
                 4,
                 "`$s.sectionNumber` is a text, so ordering it against a number with `>` is never true. To compare the section's own position as a number, write `$s.ownNumber`.",

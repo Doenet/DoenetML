@@ -141,6 +141,10 @@ access or render the list information, use index notation.
 
 Use the `displacement` property to specify the displacement of the vector in each direction from its tail position.
 
+A vector's content is its displacement too. Where `displacement` is written,
+it is used and the content isn't, with a warning:
+`<vector displacement="(3,4)">(5,6)</vector>{:dn}` is `(3, 4)`.
+
 
 
 ---

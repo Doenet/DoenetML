@@ -2309,7 +2309,7 @@ describe("Number tag tests @group3", async () => {
         }
         expect(
             core
-                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0202")
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
                 .map((d: any) => [d.position.start.line, d.message]),
         ).eqls(
             [
