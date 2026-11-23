@@ -33,13 +33,13 @@ spec! {
                   <number name="byName">$l.numbers[3]</number>
                   <number name="byK">$l[$k]</number>"#;
         expect {
-            "two.value" = 2.5, "past.value" = f64::NAN, "half.value" = f64::NAN,
+            "two.value" = 2.5, "past.value" = crate::program::MISSING, "half.value" = crate::program::MISSING,
             "byName.value" = 3, "byK.value" = 2.5,
         }
         request { "k.value" = 3 }
         expect { "byK.value" = 3 }
         request { "k.value" = 0 }
-        expect { "byK.value" = f64::NAN }
+        expect { "byK.value" = crate::program::MISSING }
     }
 
     case "a write through an entry lands on the list's own text piece" {

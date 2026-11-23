@@ -714,7 +714,10 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Const(f64::NAN), ScopeId::DOCUMENT);
+        let s = self.anon_slot(
+            BuiltSource::Const(crate::program::MISSING),
+            ScopeId::DOCUMENT,
+        );
         self.missing = Some(s);
         s
     }

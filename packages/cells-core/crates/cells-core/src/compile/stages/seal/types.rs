@@ -630,6 +630,14 @@ impl<'s, 'a> Types<'s, 'a> {
         let mut lands = true;
         for step in &plan.steps {
             cur = match step {
+                // Names nothing: the missing value, one cell anywhere it
+                // is read (ADR 0046).
+                Step::Nothing => {
+                    return Target {
+                        at: Walk::Missing,
+                        lands: false,
+                    };
+                }
                 Step::Elem(e) => {
                     let cands: Vec<(TemplateId, ElemId)> = match cur {
                         Walk::Scope(ts) => ts.into_iter().map(|t| (t, *e)).collect(),

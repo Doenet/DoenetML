@@ -139,7 +139,11 @@ impl Engine {
         let mut subs = HashMap::with_capacity(leaves.len());
         for &(cell, math) in leaves.iter() {
             let v = cells[cell as usize];
-            let e = if math && !v.is_nan() {
+            // A missing value, and a math leaf with no expression (a blank
+            // input), take part as the blank (D40, ADR 0046).
+            let e = if crate::program::is_missing(v) || (math && v.is_nan()) {
+                Expr::Blank
+            } else if math {
                 self.exprs[Handle::from_value(v).index()].clone()
             } else {
                 number(v)
@@ -221,6 +225,11 @@ impl Engine {
     /// gives NaN.
     pub fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
         let e = &self.exprs[h.index()];
+        // A number cannot hold a blank: one computed from it is missing
+        // (D40, ADR 0046).
+        if has_blank(e) || var.is_some_and(|(_, x)| crate::program::is_missing(x)) {
+            return crate::program::MISSING;
+        }
         match var {
             Some((name, x)) => {
                 let mut b = HashMap::with_capacity(1);
@@ -370,6 +379,11 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
         Some(z) if z.im.abs() <= 1e-12 * z.re.abs().max(1.0) => z.re,
         _ => f64::NAN,
     }
+}
+
+/// Whether `e` holds the blank expression anywhere.
+fn has_blank(e: &Expr) -> bool {
+    matches!(e, Expr::Blank) || e.children().into_iter().any(has_blank)
 }
 
 fn count_nodes(e: &Expr) -> usize {

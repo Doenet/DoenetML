@@ -22,6 +22,20 @@ pub fn js_round(x: f64) -> f64 {
 /// Relative tolerance of `Eq`, so `0.1 + 0.2 = 0.3` holds in a condition.
 pub const EQ_TOL: f64 = 1e-12;
 
+/// The missing value (ADR 0046): what a reference that names nothing
+/// holds, and what a value computed from one is. A NaN with a payload of
+/// its own, so it is not a number, never equals anything, and is told
+/// apart from the NaN of a computation that has no value by its bits
+/// ([`is_missing`]). Moving a cell keeps the bits; arithmetic need not, so
+/// every operator says what a missing input gives.
+pub const MISSING: f64 = f64::from_bits(0x7ff8_0000_0000_0d37);
+
+/// Whether `x` is the missing value, by its bits.
+#[inline(always)]
+pub fn is_missing(x: f64) -> bool {
+    x.to_bits() == MISSING.to_bits()
+}
+
 #[inline(always)]
 fn holds(x: f64) -> bool {
     x != 0.0 && !x.is_nan()
@@ -239,6 +253,7 @@ scalar_ops! {
     /// index, 0 meaning none is chosen. A request outside that set
     /// (NaN, a fraction, out of range) chooses none.
     ChoiceIndex(a, n) {
+        missing: reads,
         eval: choice_index(a, n),
         projection |d| Some((A, choice_index(d, n))),
         range: choice_index_range(a, n),
@@ -246,6 +261,7 @@ scalar_ops! {
     /// `a` unless it is NaN, then `b`: `valueOnNaN`. A NaN ask has no
     /// inverse: it would be asking for the fallback.
     NanTo(a, b) {
+        missing: reads,
         eval: if a.is_nan() { b } else { a },
         exact |d| (!d.is_nan()).then_some((A, d)),
         range: a.hull(b),
@@ -265,6 +281,7 @@ scalar_ops! {
     /// `a`: a held element's own cell for a value it reads from another
     /// element's, so the hold is on its cell and not on the other's.
     Copy(a) {
+        missing: reads,
         eval: a,
         exact |d| Some((A, d)),
         range: a,
@@ -272,18 +289,21 @@ scalar_ops! {
     /// `a < b`, for conditions: 1 or 0, and 0 when either side is NaN. A
     /// request cannot change a condition.
     Lt(a, b) {
+        missing: reads,
         eval: bit(a < b),
         drops,
         range: Range::UNIT,
     }
     /// `a <= b`, as [`Op::Lt`].
     Le(a, b) {
+        missing: reads,
         eval: bit(a <= b),
         drops,
         range: Range::UNIT,
     }
     /// Equal within a relative error of `EQ_TOL`.
     Eq(a, b) {
+        missing: reads,
         eval: bit(a == b || (a - b).abs() <= EQ_TOL * a.abs().max(b.abs())),
         drops,
         range: Range::UNIT,
@@ -350,12 +370,14 @@ scalar_ops! {
     /// 1 when `a` is a finite integer, within a relative 1e-15 (the current
     /// core's `<isInteger>`), else 0.
     IsInteger(a) {
+        missing: reads,
         eval: bit(a.is_finite() && (js_round(a) - a).abs() <= 1e-15 * a.abs()),
         drops,
         range: Range::UNIT,
     }
     /// 1 when `a` is a finite number, else 0.
     IsFinite(a) {
+        missing: reads,
         eval: bit(a.is_finite()),
         drops,
         range: Range::UNIT,

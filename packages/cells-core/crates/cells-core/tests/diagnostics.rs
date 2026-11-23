@@ -32,11 +32,11 @@ fn keys(list: &[Diagnostic]) -> BTreeSet<(DiagnosticKind, &'static str, Option<N
 #[test]
 fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
     let doc =
-        load(r#"<p name="p"><point name="q" x="$nope"/></p><number name="n">3</number>"#).unwrap();
+        load(r#"<p name="p"><point name="q" x="1+"/></p><number name="n">3</number>"#).unwrap();
     assert_eq!(doc.value("n", "value"), Some(3.0));
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
-    assert_eq!(errs[0].code, "doenet-w0104");
+    assert_eq!(errs[0].code, "cells-bad-math");
     // The box stands where the point was, carrying its diagnostic's index.
     let boxes: Vec<_> = CompIdx::below(doc.n_components())
         .filter(|&c| doc.component_type(c) == ComponentType::Error)
@@ -58,12 +58,12 @@ fn an_element_that_fails_becomes_an_error_component_and_the_rest_loads() {
 /// diagnostic of its own.
 #[test]
 fn a_reference_to_a_boxed_element_reads_undefined() {
-    let doc = load(r#"<number name="a">$nope</number><number name="b">$a + 1</number><number name="c">2</number>"#).unwrap();
+    let doc = load(r#"<number name="a">1+</number><number name="b">$a + 1</number><number name="c">2</number>"#).unwrap();
     assert_eq!(doc.value("c", "value"), Some(2.0));
     assert!(doc.value("b", "value").unwrap().is_nan());
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 1, "{errs:?}");
-    assert!(errs[0].message.contains("nope"), "{}", errs[0].message);
+    assert!(errs[0].message.contains("1+"), "{}", errs[0].message);
 }
 
 /// One wrong element is one error: what names it, through a prop or
@@ -258,7 +258,7 @@ fn lint_records_no_read() {
 fn a_rebuild_keeps_the_boxes_and_adds_nothing() {
     let mut doc = load(
         r#"<numberInput name="n" value="1"/>
-           <point name="q" x="$nope"/>
+           <point name="q" x="1+"/>
            <repeatForSequence name="r" length="$n"><number name="x">1</number></repeatForSequence>"#,
     )
     .unwrap();
@@ -378,8 +378,8 @@ fn stem(p: &Path) -> String {
 fn independent_errors_plan_once() {
     let dast = cells_core::dast::load(
         dast_json(
-            r#"<point name="a" x="$nope1"/><number name="b">$nope2</number>
-               <bogusTag name="c"/><p>$nope3 and $b</p><number name="d">4</number>"#,
+            r#"<point name="a" x="1+"/><number name="b">2+</number>
+               <bogusTag name="c"/><p><otherBogusTag/> and $b</p><number name="d">4</number>"#,
         )
         .as_bytes(),
     )
@@ -399,15 +399,15 @@ fn independent_errors_plan_once() {
 /// reference to them reads as undefined.
 #[test]
 fn what_is_under_a_box_is_not_built() {
-    let src = r#"<graph name="g" xmin="$nope"><point name="A" x="$nope2"/></graph>
-        <repeatForSequence name="r" length="$nope3"><number name="x">$nope4</number></repeatForSequence>
+    let src = r#"<graph name="g" xmin="1+"><point name="A" x="2+"/></graph>
+        <repeatForSequence name="r" length="3+"><number name="x">4+</number></repeatForSequence>
         <number name="n">$A.x</number><number name="m">$r[1].x</number><number name="k">5</number>"#;
     let doc = load(src).unwrap();
     let errs = errors(doc.diagnostics());
     assert_eq!(errs.len(), 2, "{errs:?}");
     assert!(
         errs.iter()
-            .all(|e| e.message.contains("$nope'") || e.message.contains("$nope3'")),
+            .all(|e| e.message.contains("1+") || e.message.contains("3+")),
         "{errs:?}"
     );
     assert!(doc.value("n", "value").unwrap().is_nan());
@@ -452,7 +452,7 @@ fn a_maths_type_is_settled_from_its_text() {
 /// with the referent as its cause, whichever is written first.
 #[test]
 fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
-    let p = r#"<point name="P" x="$nope" y="1"/>"#;
+    let p = r#"<point name="P" x="1+" y="1"/>"#;
     let q = r#"<point name="Q" extend="$P" x="2"/>"#;
     let r = r#"<point name="R" extend="$Q"/>"#;
     for src in [
@@ -465,9 +465,9 @@ fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
         assert_eq!(
             codes,
             [
+                "cells-bad-math",
                 "cells-boxed-referent",
                 "cells-boxed-referent",
-                "doenet-w0104"
             ],
             "{src}"
         );
@@ -480,17 +480,19 @@ fn an_extend_of_an_element_boxed_while_planning_is_boxed_in_any_order() {
 /// the document compiles once.
 #[test]
 fn a_failure_under_a_cloned_subtree_compiles_once() {
-    for (src, plans_wanted) in [
+    for (src, plans_wanted, cause) in [
         // Fails while planning.
         (
-            r#"<graph name="C" extend="$X"/><graph name="A" xmin="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="k">$nope2</number>"#,
+            r#"<graph name="C" extend="$X"/><graph name="A" xmin="1+"><graph name="X"><point name="p" x="1"/></graph></graph><number name="k">2+</number>"#,
             1,
+            "1+",
         ),
         // Fails while outlining, as a container copy; the unread attribute
         // is boxed in place, and takes no plan of its own (ADR 0030).
         (
-            r#"<graph name="C" extend="$X"/><graph name="A" extend="$nope"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">$nope2</number>"#,
+            r#"<point name="p"/><graph name="C" extend="$X"/><graph name="A" extend="$p"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">2+</number>"#,
             1,
+            "cannot copy",
         ),
     ] {
         let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
@@ -502,11 +504,8 @@ fn a_failure_under_a_cloned_subtree_compiles_once() {
             .count();
         let messages: Vec<_> = errors(&list).iter().map(|d| d.message.clone()).collect();
         assert!(messages[0].contains("'$X'"), "{messages:?}");
-        assert!(messages[1].contains("'$nope'"), "{messages:?}");
-        assert!(
-            messages.last().unwrap().contains("'$nope2'"),
-            "{messages:?}"
-        );
+        assert!(messages[1].contains(cause), "{messages:?}");
+        assert!(messages.last().unwrap().contains("2+"), "{messages:?}");
         assert_eq!(plans, plans_wanted, "{src}");
         let doc = load(src).unwrap();
         assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()), "{src}");
@@ -519,7 +518,7 @@ fn a_failure_under_a_cloned_subtree_compiles_once() {
 /// reads as undefined.
 #[test]
 fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
-    let src = r#"<graph name="X"><point name="p" x="$nope"/><point name="q" x="2"/></graph>
+    let src = r#"<graph name="X"><point name="p" x="1+"/><point name="q" x="2"/></graph>
         <graph name="C" extend="$X"/><number name="n">$C.p.x</number><number name="m">$C.q.x</number>"#;
     let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
     cells_core::trace::start();
@@ -531,7 +530,7 @@ fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
     assert_eq!(plans, 1);
     let errs = errors(&list);
     assert_eq!(errs.len(), 1, "{list:?}");
-    assert!(errs[0].message.contains("'$nope'"), "{errs:?}");
+    assert!(errs[0].message.contains("1+"), "{errs:?}");
     let doc = load(src).unwrap();
     assert!(doc.value("n", "value").unwrap().is_nan());
     assert_eq!(doc.value("m", "value"), Some(2.0));
@@ -548,7 +547,7 @@ fn a_clone_of_an_element_boxed_later_is_boxed_silently() {
 /// is boxed with it as the cause.
 #[test]
 fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
-    let src = r#"<graph name="g" bogus="1"><point name="A" x="$nope"/></graph>
+    let src = r#"<graph name="g" bogus="1"><point name="A" x="1+"/></graph>
         <number name="n">$A.x</number><point name="Q" extend="$A"/>
         <number name="k">5</number>"#;
     let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
@@ -576,7 +575,7 @@ fn an_unread_attribute_is_boxed_in_place_and_plans_once() {
 /// what is under it, plan the same whichever is planned first.
 #[test]
 fn what_reads_a_box_made_while_planning_does_not_depend_on_order() {
-    let g = r#"<graph name="g" xmin="$nope"><point name="A" x="1"/></graph>"#;
+    let g = r#"<graph name="g" xmin="1+"><point name="A" x="1"/></graph>"#;
     let n = r#"<number name="n">$g.A.x</number>"#;
     let q = r#"<point name="Q" extend="$g.A"/>"#;
     let k = r#"<number name="k">5</number>"#;
@@ -587,7 +586,11 @@ fn what_reads_a_box_made_while_planning_does_not_depend_on_order() {
         assert_eq!(doc.value("k", "value"), Some(5.0), "{src}");
         let mut codes: Vec<_> = errors(doc.diagnostics()).iter().map(|d| d.code).collect();
         codes.sort();
-        assert_eq!(codes, ["cells-boxed-referent", "doenet-w0104"], "{src}");
+        assert_eq!(
+            codes,
+            ["cells-bad-attribute-value", "cells-boxed-referent"],
+            "{src}"
+        );
         assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()), "{src}");
         let count = errors(doc.diagnostics()).len();
         assert_eq!(*seen.get_or_insert(count), count);

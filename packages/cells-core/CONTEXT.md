@@ -138,7 +138,13 @@ reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared
 type (`$mi` is a `<math>`, ADR 0025); a prop-level reference (`$p1.x`)
 aliases that one prop. A bare `$name` where a value is read resolves to
-the referent's default prop (`value` for numbers and inputs).
+the referent's default prop (`value` for numbers and inputs). A reference
+that names nothing is a warning and the missing value (ADR 0046).
+
+**Missing** — The value of a reference that names nothing (no referent, an
+ambiguous name, an index past the end) and of what is computed from one:
+`program::MISSING`, a NaN told apart from a computation's NaN by its bits,
+shown as `＿` (ADR 0046). A comparison with it is false.
 
 **Copy** — The component produced by a component-level reference. A copy may
 override individual props with attributes (`<point extend="$p1" y="3"/>`);

@@ -677,7 +677,10 @@ impl<'c> Stamp<'c> {
         if let Some(n) = self.missing {
             return n;
         }
-        let n = self.value(TemplateId::new(0), Def::Const(Some(f64::NAN)));
+        let n = self.value(
+            TemplateId::new(0),
+            Def::Const(Some(crate::program::MISSING)),
+        );
         self.missing = Some(n);
         n
     }

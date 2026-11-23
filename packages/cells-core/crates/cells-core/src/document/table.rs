@@ -230,7 +230,9 @@ impl Built {
     /// The string a `<text>` value cell holds (its string id), or "".
     pub fn text_value(&self, cell: CellIdx) -> String {
         let v = self.cells[cell.index()];
-        if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
+        if crate::program::is_missing(v) {
+            BLANK.into()
+        } else if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
             String::new()
         } else {
             self.strings.get(StrId::from_value(v)).to_string()
@@ -310,7 +312,7 @@ impl Document {
                 match kind {
                     EntryKind::Number => out.push_str(&format_number(v)),
                     EntryKind::Text => out.push_str(&self.text_value(*cell)),
-                    EntryKind::Boolean => out.push_str(if v == 1.0 { "true" } else { "false" }),
+                    EntryKind::Boolean => out.push_str(boolean_text(v)),
                     EntryKind::Point => unreachable!("filtered above"),
                 }
             }
@@ -324,11 +326,7 @@ impl Document {
             Some(TextKind::Grouped(pi)) => {
                 out.push_str(&group_digits(&format_number(value(pi).unwrap_or(f64::NAN))))
             }
-            Some(TextKind::Boolean(pi)) => out.push_str(if value(pi) == Some(1.0) {
-                "true"
-            } else {
-                "false"
-            }),
+            Some(TextKind::Boolean(pi)) => out.push_str(boolean_text(value(pi).unwrap_or(0.0))),
             Some(TextKind::Math(expr, pi)) => match cells.get(expr) {
                 Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                 _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
@@ -421,7 +419,27 @@ fn group_digits(number: &str) -> String {
 
 /// A number as text the way the current core shows one: integers without a
 /// decimal point, otherwise up to ten significant digits.
+/// How the missing value shows (ADR 0046): `＿`, as DoenetML prints a
+/// blank.
+pub(crate) const BLANK: &str = "\u{ff3f}";
+
+/// A boolean as text: `true`, `false`, or the blank for a missing one.
+fn boolean_text(v: f64) -> &'static str {
+    if crate::program::is_missing(v) {
+        BLANK
+    } else if v == 1.0 {
+        "true"
+    } else {
+        "false"
+    }
+}
+
+/// A number as text, as the current core formats one; the missing value is
+/// the blank and the NaN of a computation with no value `NaN`.
 fn format_number(v: f64) -> String {
+    if crate::program::is_missing(v) {
+        return BLANK.into();
+    }
     if v.is_nan() {
         return "NaN".into();
     }
