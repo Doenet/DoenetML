@@ -406,6 +406,26 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         ]);
     });
 
+    it("a typed component with other content is read as the answer's type, not warned of", async () => {
+        // the award's sugar wraps content of more than one child in the
+        // answer's type, so it can earn credit: no type-mix warning
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><mathInput name="in"/><award><text>x</text>y</award></answer>`,
+            kind: "math",
+            value: "xy",
+        });
+        expect(credit).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+
+        const { credit: credit2, core: core2 } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/><math>x</math> y</answer>`,
+            kind: "text",
+            value: "x y",
+        });
+        expect(credit2).eq(1);
+        expect(coded(core2, "warnings")).eqls([]);
+    });
+
     it("an award with content and no when, in an answer with more than one input, is a warning", async () => {
         const { credit, core } = await creditFor({
             doenetML: `<answer name="a"><textInput name="in"/><mathInput/><award>hello</award></answer>`,

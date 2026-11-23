@@ -14,6 +14,6 @@ An `<answer>`'s type comes from its input (D55), so `type` is needed only when n
 - **`type` is read without case, as its keywords are:** `type="Text"` is a text answer. Before, it was warned of as an invalid type and the answer read its content as a math. A `type` that names no type is still warned of, and an input written inside still decides.
 - **A `type` that disagrees with the input written inside is an error at load,** a new `doenet-e0092`, at the attribute. The input's type is used. A `type` that agrees is allowed, and `type="videoWatched"` is unchanged.
 - **New warnings at load** for an award's content that can never earn credit:
-  - content of another type than the input it is compared with (`<textInput/>` beside `<math>2</math>`), `doenet-w0202`;
+  - content of another type than the input it is compared with (`<textInput/>` beside `<math>2</math>`), `doenet-w0202`. Only an award's one component is warned of: content of more than one child is wrapped in the answer's type (`<award><text>x</text>y</award>` is a math in a math answer);
   - an award with content and no `<when>` in an answer with more than one input, which is compared with none of them, `doenet-w0203`;
   - an award with content and no `<when>` in an answer whose input is written outside it with `forAnswer`, which is compared with an input the answer adds, `doenet-w0204`.

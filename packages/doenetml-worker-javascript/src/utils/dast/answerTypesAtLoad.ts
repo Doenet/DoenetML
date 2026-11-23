@@ -29,7 +29,8 @@
  *
  * - content of another type than the input it is compared with (written,
  *   or the one the sugar adds), which can never earn credit
- *   (`doenet-w0202`);
+ *   (`doenet-w0202`); only an award's one component, since content of more
+ *   than one child is wrapped in the answer's type and read as it;
  * - in an answer with more than one input, where it is compared with
  *   nothing (`doenet-w0203`);
  * - in an answer with no input inside but a `forAnswer` input, where it is
@@ -422,9 +423,15 @@ export function decideAnswerTypesAtLoad({
         }
 
         // D55 decision 5: content of another type than the input can never
-        // earn credit.
+        // earn credit. Only content that is one component is compared as it
+        // is: an award's sugar wraps content of more than one child in the
+        // answer's type (`<award><text>x</text>y</award>` is a math "xy" in
+        // a math answer), so its typed components are read as that type.
         if (comparedWith !== undefined) {
             for (const { content } of comparedContents) {
+                if (content.length !== 1) {
+                    continue;
+                }
                 for (const { type, tag, component } of typedContent(content)) {
                     if (type !== comparedWith.type) {
                         diagnostics.push({
