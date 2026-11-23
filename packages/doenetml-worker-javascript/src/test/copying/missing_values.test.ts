@@ -3007,4 +3007,34 @@ describe("Missing values, round 4 (#2596) @group2", () => {
             expect(await value(P, "xs"), P).eqls(["3", "6"]);
         }
     });
+
+    it("makes a boolean holding a reference that names nothing in a repeat missing, and not written to, as outside it", async () => {
+        // A copy made as a shadow in a `<boolean>` makes what it makes
+        // outside one (#2596).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence name="r" from="1" to="1">
+        <boolean name="b">$nothing</boolean><booleanInput name="bi" bindValueTo="$b"/>
+        <boolean name="b2">$nothing or true</boolean>
+    </repeatForSequence>
+    <boolean name="b">$nothing</boolean><booleanInput name="bi" bindValueTo="$b"/>
+    <boolean name="b2">$nothing or true</boolean>
+    `,
+        });
+        const stateValues = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ].stateValues;
+        for (const prefix of ["r[1].", ""]) {
+            expect((await stateValues(prefix + "b2")).valueMissing).eq(true);
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx(prefix + "bi"),
+                core,
+            });
+            const b = await stateValues(prefix + "b");
+            expect(b.value, prefix).eq(false);
+            expect(b.valueMissing, prefix).eq(true);
+        }
+    });
 });
