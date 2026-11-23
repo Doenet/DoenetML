@@ -317,6 +317,7 @@ pub(super) const fn definition(
         triggers: None,
         numbered: None,
         counted: None,
+        numbering: None,
         inner: &[],
         submit: None,
         roles: &[],
@@ -432,6 +433,18 @@ impl ComponentDef {
     /// How its full number and title read ([`super::Numbered`]).
     pub(super) const fn numbered(mut self, numbered: super::Numbered) -> Self {
         self.numbered = Some(numbered);
+        self
+    }
+    /// The divisions' sequence passes through it ([`super::Numbering`]):
+    /// a flag, `flags: [container, passes_divisions]`.
+    pub(super) const fn passes_divisions(mut self) -> Self {
+        self.numbering = Some(super::Numbering::PassesDivisions);
+        self
+    }
+    /// A sectioning component with no number ([`super::Numbering`]): a
+    /// flag, `flags: [container, unnumbered_division]`.
+    pub(super) const fn unnumbered_division(mut self) -> Self {
+        self.numbering = Some(super::Numbering::Unnumbered);
         self
     }
     /// The inputs it owns ([`super::InnerInput`], ADR 0045).
@@ -733,7 +746,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// rise of the 0/1 prop `p` presses it ([`super::Triggers`], ADR 0042),
 /// and `numbered:
 /// Titled(include, label, f)` how a number and title read
-/// ([`super::Numbered`]); `counted: Figures(number)` or `counted:
+/// ([`super::Numbered`]), `Titled(include, label, f, item, asList)` with
+/// the props saying it is a list item and its children are (ADR 0054); `counted: Figures(number)` or `counted:
 /// Footnotes` the document-wide counter it takes a number from, and the
 /// prop saying whether it does ([`super::Counted`], ADR 0044). `submit: Copies(response, submitted)` says
 /// what an answer's response is, for what reads one ([`super::Submit`]).
@@ -1164,6 +1178,17 @@ macro_rules! component {
             include_parent: $crate::components::define::at(PROPS, stringify!($include)),
             label: $crate::components::define::at(PROPS, stringify!($label)),
             title: $title,
+            list_item: None,
+            as_list: None,
+        }
+    };
+    (@numbered Titled($include:ident, $label:ident, $title:path, $item:ident, $aslist:ident)) => {
+        $crate::components::Numbered {
+            include_parent: $crate::components::define::at(PROPS, stringify!($include)),
+            label: $crate::components::define::at(PROPS, stringify!($label)),
+            title: $title,
+            list_item: Some($crate::components::define::at(PROPS, stringify!($item))),
+            as_list: Some($crate::components::define::at(PROPS, stringify!($aslist))),
         }
     };
     // What `extend="$x.prop"` makes of the value.
