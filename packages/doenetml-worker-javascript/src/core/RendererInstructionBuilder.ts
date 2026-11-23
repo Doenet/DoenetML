@@ -113,6 +113,12 @@ export class RendererInstructionBuilder {
     /** Whether an idle-lane chunk is waiting for the viewer to draw it. */
     _awaitingRendererAck: boolean;
     /**
+     * The actions whose first (non-deferred) renderer batch has been sent,
+     * until `Core.requestAction` reports it in the action's reply
+     * (`rendererUpdateSent`) and forgets it.
+     */
+    actionsWithRendererUpdate: Set<string>;
+    /**
      * The renderer index of each entry of each list component drawn or
      * named so far, by the list's index and then the entry's (see
      * `rendererIdxForListEntry`). A map, not an array, as an entry named far
@@ -154,6 +160,7 @@ export class RendererInstructionBuilder {
         this._idleRendererChunkSize = 16;
         this._lastDeferredRendererAck = undefined;
         this._awaitingRendererAck = false;
+        this.actionsWithRendererUpdate = new Set();
         this.listEntryRendererIndices = new Map();
         this.listEntryOfRendererIdx = new Map();
         this.listEntryNodesInResolver = new Set();
@@ -197,6 +204,8 @@ export class RendererInstructionBuilder {
         });
         if (args.deferred) {
             this._lastDeferredRendererAck = result;
+        } else if (args.actionId !== undefined && !init) {
+            this.actionsWithRendererUpdate.add(args.actionId);
         }
     }
 

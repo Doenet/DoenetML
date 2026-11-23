@@ -1223,8 +1223,39 @@ export default class Core {
 
     // → processQueue
 
-    requestAction(args: any): any {
-        return this.processQueue.requestAction(args);
+    /**
+     * Run an action, and say in the reply whether a renderer batch was sent
+     * for it (`rendererUpdateSent`). The reply and the batch reach the viewer
+     * on different message channels, so the reply can arrive first; the
+     * viewer then keeps the value an input showed ahead of core until the
+     * batch arrives, and when no batch was sent it lets go of the value at
+     * once instead of waiting for one that is not coming.
+     */
+    async requestAction(args: any): Promise<any> {
+        const actionId: string | undefined = args?.args?.actionId;
+        try {
+            const result = await this.processQueue.requestAction(args);
+            if (
+                actionId !== undefined &&
+                result !== null &&
+                typeof result === "object"
+            ) {
+                return {
+                    ...result,
+                    rendererUpdateSent:
+                        this.rendererInstructionBuilder.actionsWithRendererUpdate.has(
+                            actionId,
+                        ),
+                };
+            }
+            return result;
+        } finally {
+            if (actionId !== undefined) {
+                this.rendererInstructionBuilder.actionsWithRendererUpdate.delete(
+                    actionId,
+                );
+            }
+        }
     }
 
     async requestUpdate(args: any): Promise<any> {
