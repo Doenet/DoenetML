@@ -349,6 +349,25 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     },
 };
 
+/** A value's drag in a graph, as the current core's `moveText`, `moveMath`
+ * and `moveNumber`: its anchor, a point (`anchorX`, `anchorY`), for every
+ * type that has one. */
+const ANCHOR_MOVES = new Set(["moveText", "moveMath", "moveNumber"]);
+
+function moveAnchor(
+    t: CellsTable,
+    c: number,
+    { x, y }: Record<string, any>,
+): Effect {
+    return {
+        kind: "points",
+        pairs: [
+            [cellOf(t, c, "anchorX"), x],
+            [cellOf(t, c, "anchorY"), y],
+        ],
+    };
+}
+
 /** What a renderer action does to the cells core, or null when the table
  * has no entry for it. */
 export function resolveRendererAction(
@@ -358,6 +377,10 @@ export function resolveRendererAction(
     args: Record<string, any>,
 ): Effect | null {
     const resolver =
-        RENDERER_ACTIONS[table.componentType(component)]?.[actionName];
+        RENDERER_ACTIONS[table.componentType(component)]?.[actionName] ??
+        (ANCHOR_MOVES.has(actionName) &&
+        table.cell(component, "anchorX") !== undefined
+            ? moveAnchor
+            : undefined);
     return resolver ? resolver(table, component, args) : null;
 }

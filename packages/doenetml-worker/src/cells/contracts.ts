@@ -560,10 +560,84 @@ function lineProps(r: Reads, c: number) {
     };
 }
 
-/** A point drawn with a 0/1 flag the renderer may draw (an equilibrium
- * point's `stable`, an endpoint's `open`) as `open`, the current core's
- * renderer prop, and whether a click switches it. The prototype's point
- * renderer draws neither yet. */
+/** A line's equation, as the current core writes it from the line's two
+ * points: `0 = a x + b y + c`, with `a = y1 - y2`, `b = x2 - x1` and
+ * `c = x1 y2 - y1 x2`, a term of coefficient 0 left out and one of 1 or -1
+ * written without it. The variables are `variables`' two names, else `x`
+ * and `y`. */
+export function lineEquationLatex(
+    [x1, y1]: [number, number],
+    [x2, y2]: [number, number],
+    variables: string | null,
+): string {
+    const names = (variables ?? "").split(/[^A-Za-z0-9]+/).filter(Boolean);
+    const [vx, vy] = names.length === 2 ? names : ["x", "y"];
+    if (![x1, y1, x2, y2].every(Number.isFinite) || (x1 === x2 && y1 === y2)) {
+        return BLANK;
+    }
+    const terms: [number, string][] = [
+        [y1 - y2, vx],
+        [x2 - x1, vy],
+        [x1 * y2 - y1 * x2, ""],
+    ];
+    let rhs = "";
+    for (const [k, v] of terms) {
+        if (k === 0) continue;
+        const sign = k < 0 ? "-" : rhs ? "+" : "";
+        const size = Math.abs(k);
+        const coefficient = v && size === 1 ? "" : mathNumber(size);
+        const term = v
+            ? coefficient
+                ? `${coefficient} ${v}`
+                : v
+            : coefficient;
+        rhs += rhs ? ` ${sign} ${term}` : `${sign}${term}`;
+    }
+    return `0 = ${rhs || "0"}`;
+}
+
+/** A line, a best-fit line or an equilibrium line: in a graph its two
+ * points, with `extra`; in text its equation, from the two points. */
+function lineContract(
+    extra: (r: Reads, c: number) => Record<string, unknown> = () => ({}),
+): Contract {
+    return {
+        name: () => "line",
+        props: (r, c, inGraph) => {
+            if (inGraph) return { ...lineProps(r, c), ...extra(r, c) };
+            const [p1, p2] = lineProps(r, c).numericalPoints as [
+                [number, number],
+                [number, number],
+            ];
+            return {
+                latex: lineEquationLatex(
+                    p1,
+                    p2,
+                    r.table.attrThrough(c, "variables"),
+                ),
+                renderMode: "inline",
+            };
+        },
+    };
+}
+
+/** Where a value is drawn in a graph: its anchor, as a point, where it
+ * sits against it (`positionFromAnchor`, the current core's values), and
+ * whether a drag moves it. Only a type with an anchor has these, and only
+ * in a graph reads them (the core gives no anchor elsewhere). */
+export function anchorProps(r: Reads, c: number): Record<string, unknown> {
+    if (r.table.cell(c, "anchorX") === undefined) return {};
+    const position = r.table.attrThrough(c, "positionFromAnchor");
+    return {
+        numericalAnchor: [r.num(c, "anchorX"), r.num(c, "anchorY")],
+        positionFromAnchor: position?.trim().toLowerCase() || "center",
+        draggable: flagOr(r.table, c, "draggable", true),
+    };
+}
+
+/** A point drawn with a 0/1 flag (an equilibrium point's `stable`, an
+ * endpoint's `open`) as `open`, the current core's renderer prop, drawn
+ * hollow, and whether a click switches it. */
 function flaggedPoint(open: (r: Reads, c: number) => boolean): Contract {
     return {
         name: () => "point",
@@ -677,7 +751,7 @@ export const CONTRACTS: Record<string, Contract> = {
             yMax: r.num(c, "ymax"),
         }),
     },
-    line: inGraphOnly({ props: lineProps }),
+    line: lineContract(),
     lineSegment: inGraphOnly({
         props: (r, c) => ({
             numericalEndpoints: [
@@ -1108,8 +1182,19 @@ export const CONTRACTS: Record<string, Contract> = {
                 : {},
     },
     // Its measure, in radians or, with `inDegrees`, in degrees.
+    // In a graph an arc at its vertex, from the ray through its first
+    // point, turning counterclockwise by its measure; in text its measure.
     angle: {
-        props: (r, c) => {
+        props: (r, c, inGraph) => {
+            if (inGraph) {
+                const radius = Number(r.table.attrThrough(c, "radius"));
+                return {
+                    numericalFirstPoint: [r.num(c, "x1"), r.num(c, "y1")],
+                    numericalVertex: [r.num(c, "x2"), r.num(c, "y2")],
+                    radians: r.num(c, "radians"),
+                    radius: Number.isFinite(radius) && radius > 0 ? radius : 1,
+                };
+            }
             const decimals = r.table.attrThrough(c, "displayDecimals");
             const latex = flag(r.table, c, "inDegrees")
                 ? `${r.numText(c, "degrees", decimals)}^\\circ`
@@ -1212,21 +1297,24 @@ export const CONTRACTS: Record<string, Contract> = {
     // best-fit line as a line; an intersection as a point, left out while
     // it is hidden (no crossing); a parabola as a function's curve. An
     // equilibrium point or line and an endpoint also send their flag as
-    // the current core's renderers read it (`open`, `dashed`), which the
-    // prototype's renderers do not draw yet.
-    bestFitLine: inGraphOnly({ name: () => "line", props: lineProps }),
+    // the current core's renderers read it (`open`, `dashed`).
+    bestFitLine: lineContract(),
     intersection: { name: () => "point", props: pointProps },
     parabola: CURVE,
     equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
     endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
-    equilibriumLine: inGraphOnly({
-        name: () => "line",
-        props: (r, c) => ({
-            ...lineProps(r, c),
-            dashed: !r.bool(c, "stable"),
-            switchable: flagOr(r.table, c, "switchable", false),
-        }),
-    }),
+    equilibriumLine: lineContract((r, c) => ({
+        dashed: !r.bool(c, "stable"),
+        switchable: flagOr(r.table, c, "switchable", false),
+    })),
+    // A fraction input (ADR 0045): its label, and as its children the two
+    // math inputs it owns, its numerator's and its denominator's, which
+    // the renderer draws one over the other.
+    fractionInput: {
+        props: (r, c) => inputPresentation(r.table, c),
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) !== "_fractionInputComponent",
+    },
     // A fraction input's box (ADR 0045): a math input, drawn as one.
     _fractionInputComponent: {
         name: () => "mathInput",
@@ -1293,9 +1381,6 @@ export const TRANSPARENT = new Set([
     "case",
     "_postponeRenderContainer",
     "asList",
-    // The prototype has no fraction input: it stands as the two math
-    // inputs it owns (ADR 0045), its numerator's and its denominator's.
-    "fractionInput",
 ]);
 
 /** Component types that show what they produce as a list, items

@@ -59,6 +59,9 @@ import {
     Solution,
     Stack,
     inGraphControl,
+    AngleInGraph,
+    ValueInGraph,
+    FractionInput,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -174,8 +177,7 @@ const Section: ComponentWithPassthroughChildren = {
 
 /**
  * A shape drawn only in a graph. Outside one it is nothing but its anchor,
- * as in production (a `<line>` there shows its equation, which no core
- * sends yet).
+ * as in production.
  */
 const GraphOnly: Component = renderAs(null, { wrapInSpanWithId: true });
 
@@ -237,6 +239,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     figure: { component: Figure, passthroughChildren: true },
     floor: { component: M },
     footnote: { component: Footnote },
+    fractionInput: { component: FractionInput, passthroughChildren: true },
     function: { component: M },
     gcd: { component: M },
     graph: { component: Graph },
@@ -259,7 +262,8 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     lcm: { component: M },
     legend: GraphOnly,
     li: { component: Li, passthroughChildren: true },
-    line: GraphOnly,
+    // Outside a graph a line is its equation.
+    line: { component: M },
     lineSegment: GraphOnly,
     lq: renderAs("“"),
     lsq: renderAs("‘"),
@@ -358,27 +362,24 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
  * The elements a core sends for a value, which a graph would draw as a label
  * (an operator's number, a boolean, a formatted text, math notation).
  */
-const VALUES_LABELED_IN_A_GRAPH = [
+/**
+ * The elements a core sends for a value it draws in a graph as a label at
+ * its anchor, which a drag moves (an operator's number, a formatted text,
+ * math notation).
+ */
+const VALUES_AT_AN_ANCHOR = [
     "abs",
-    "and",
-    "angle",
     "argMax",
     "argMin",
-    "boolean",
     "ceil",
     "clampNumber",
     "count",
     "evaluate",
     "floor",
     "gcd",
-    "iff",
-    "implies",
     "indexOf",
     "intComma",
     "integer",
-    "isBetween",
-    "isInteger",
-    "isNumber",
     "latex",
     "lcm",
     "m",
@@ -389,9 +390,7 @@ const VALUES_LABELED_IN_A_GRAPH = [
     "median",
     "min",
     "mod",
-    "not",
     "number",
-    "or",
     "pluralize",
     "product",
     "round",
@@ -401,9 +400,25 @@ const VALUES_LABELED_IN_A_GRAPH = [
     "standardDeviation",
     "sum",
     "text",
-    "tuple",
     "variance",
     "wrapNumberPeriodic",
+];
+
+/**
+ * The values a graph does not draw, as in production: a boolean and the
+ * boolean operators, and a tuple.
+ */
+const VALUES_NOT_IN_A_GRAPH = [
+    "and",
+    "boolean",
+    "iff",
+    "implies",
+    "isBetween",
+    "isInteger",
+    "isNumber",
+    "not",
+    "or",
+    "tuple",
     "xor",
 ];
 
@@ -431,10 +446,13 @@ export const GRAPH_MODE_COMPONENTS: RendererObject = {
     regularPolygon: { component: PolygonInGraph },
     triangle: { component: PolygonInGraph },
     vector: { component: VectorInGraph },
-    // A value placed in a graph is drawn as a label at its anchor, which no
-    // core sends yet: until one does, it is not drawn. An angle is drawn as
-    // an arc between its points, which no core sends either.
+    angle: { component: AngleInGraph },
+    // A value placed in a graph is a label at its anchor. One whose core
+    // sends no anchor is not drawn (`ValueInGraph`).
     ...Object.fromEntries(
-        VALUES_LABELED_IN_A_GRAPH.map((name) => [name, OmitElementConverter]),
+        VALUES_AT_AN_ANCHOR.map((name) => [name, { component: ValueInGraph }]),
+    ),
+    ...Object.fromEntries(
+        VALUES_NOT_IN_A_GRAPH.map((name) => [name, OmitElementConverter]),
     ),
 };

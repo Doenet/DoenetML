@@ -47,6 +47,20 @@ export const look = {
         hasInnerPoints: true,
     }),
 
+    /** An angle: its arc and the sector inside it, tinted, unlabeled. */
+    angle: () => ({
+        name: "",
+        withLabel: false,
+        ...stroke(LINE_COLOR),
+        strokeWidth: 1,
+        layer: LAYER_OFFSETS.line,
+        fillColor: LINE_COLOR,
+        fillOpacity: 0.2,
+        highlightFillColor: LINE_COLOR,
+        highlightFillOpacity: 0.2,
+        fixed: true,
+    }),
+
     /** A point that defines a shape, drawn as a small handle. */
     vertex: () => ({
         name: "",
