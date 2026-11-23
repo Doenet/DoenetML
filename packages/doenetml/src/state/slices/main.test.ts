@@ -3,11 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
     actionIdentifier,
     clearPendingValuesForAction,
-    dropAnsweredPendingValuesBefore,
-    hasPendingValuesBefore,
+    HeldRendererUpdates,
     mainSlice,
     mainThunks,
-    markPendingValuesAnswered,
+    takeHeldUpdatesNoLongerInFlight,
     UpdatesToIgnore,
 } from "./main";
 
@@ -19,21 +18,18 @@ function setup() {
     const store = configureStore({ reducer: { main: mainSlice.reducer } });
     const updatesToIgnore: UpdatesToIgnore = new Map();
     const updatesToIgnoreRef = { current: updatesToIgnore };
-    let lastSequence = 0;
+    const heldUpdates: HeldRendererUpdates = new Map();
+    const heldUpdatesRef = { current: heldUpdates };
 
     /**
      * Stand in for the renderer showing `value` before core has answered, the
-     * way `callAction` does when it is given a `baseVariableValue`. Returns the
-     * action's place in the order actions are sent to core.
+     * way `callAction` does when it is given a `baseVariableValue`.
      */
     function eagerlyShow(actionId: string, value: any, componentIdx: number) {
-        const sequence = ++lastSequence;
         updatesToIgnore.set(actionIdentifier(actionId, componentIdx), {
             componentIdx,
             value,
-            sequence,
         });
-        return sequence;
     }
 
     /**
@@ -58,16 +54,73 @@ function setup() {
                 baseStateVariable: "value",
                 actionId,
                 updatesToIgnoreRef,
+                heldUpdatesRef,
                 prefixForIds: "",
             }) as any,
         );
 
-        return mainSlice.selectors.componentInfo(store.getState() as any)[
-            CORE_ID + componentIdx
-        ].ignoreUpdate;
+        return componentInfo(componentIdx).ignoreUpdate;
     }
 
-    return { updatesToIgnore, eagerlyShow, updateFromCore };
+    function componentInfo(componentIdx = COMPONENT_IDX) {
+        return mainSlice.selectors.componentInfo(store.getState() as any)[
+            CORE_ID + componentIdx
+        ];
+    }
+
+    /**
+     * What the renderer shows for its base state variable: core's value,
+     * unless the last update said to leave the renderer's own value alone.
+     */
+    function shown(componentIdx = COMPONENT_IDX) {
+        const info = componentInfo(componentIdx);
+        return info.ignoreUpdate ? "renderer's own" : info.stateValues.value;
+    }
+
+    /**
+     * Stand in for the viewer settling an action, the way `resolveAction`
+     * does: on core's reply (with whether core sent the action a renderer
+     * update), when the action's own update has been processed
+     * (`rendererUpdateFollows` false), or when the action fails. Keeps the
+     * values when the update is still to come; otherwise drops them and puts
+     * on screen the updates held for components no longer in flight.
+     */
+    async function settle(actionId: string, rendererUpdateFollows = false) {
+        if (rendererUpdateFollows) {
+            return;
+        }
+        clearPendingValuesForAction(updatesToIgnore, actionId);
+        for (const held of takeHeldUpdatesNoLongerInFlight(
+            updatesToIgnore,
+            heldUpdates,
+            CORE_ID,
+        )) {
+            await store.dispatch(
+                mainThunks.updateRendererSVs({
+                    ...held,
+                    updatesToIgnoreRef,
+                    heldUpdatesRef,
+                }) as any,
+            );
+        }
+    }
+
+    /** Core's renderer update for `actionId`, followed by its settling. */
+    async function actionUpdate(actionId: string, value: any) {
+        const ignored = await updateFromCore({ actionId, value });
+        await settle(actionId);
+        return ignored;
+    }
+
+    return {
+        updatesToIgnore,
+        heldUpdates,
+        eagerlyShow,
+        updateFromCore,
+        shown,
+        settle,
+        actionUpdate,
+    };
 }
 
 describe("ignoring core updates that the renderer is already ahead of", () => {
@@ -138,12 +191,10 @@ describe("clearPendingValuesForAction", () => {
         updatesToIgnore.set(actionIdentifier("act1", COMPONENT_IDX), {
             componentIdx: COMPONENT_IDX,
             value: true,
-            sequence: 1,
         });
         updatesToIgnore.set(actionIdentifier("act2", OTHER_COMPONENT_IDX), {
             componentIdx: OTHER_COMPONENT_IDX,
             value: "hello",
-            sequence: 2,
         });
 
         clearPendingValuesForAction(updatesToIgnore, "act1");
@@ -165,248 +216,156 @@ describe("clearPendingValuesForAction", () => {
     });
 });
 
-describe("core's reply arriving before the renderer update for the same action", () => {
-    // Core sends an action's renderer update and then replies to the action,
-    // but the two reach the viewer over different message channels, so the
-    // reply can come first. `DocViewer` then calls `markPendingValuesAnswered`
-    // where it used to call `clearPendingValuesForAction`.
-
+describe("core's reply arriving before the renderer update it sent", () => {
     it("still recognizes the update for each key typed when the replies came first", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        eagerlyShow("key1", "9", COMPONENT_IDX);
-        eagerlyShow("key2", "90", COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "key1");
-        markPendingValuesAnswered(updatesToIgnore, "key2");
+        const { updatesToIgnore, eagerlyShow, settle, actionUpdate, shown } =
+            setup();
+        // The reader types "9" and "0"; core replies to both, saying it sent
+        // each a renderer update, before either update arrives.
+        eagerlyShow("key9", "9", COMPONENT_IDX);
+        eagerlyShow("key0", "90", COMPONENT_IDX);
+        await settle("key9", true);
+        await settle("key0", true);
 
-        // Taking either of these would put "9" or "90" back in the box, and the
-        // update for "908" would then be ignored because a newer key is in
-        // flight by the time it arrives. The first arrives while no key is
-        // waiting on core's reply, so only the answered values can hold it
-        // back.
-        expect(await updateFromCore({ actionId: "key1", value: "9" })).toBe(
-            true,
-        );
+        // The update for "9" must not put "9" back on screen over "90".
+        expect(await actionUpdate("key9", "9")).toBe(true);
+        expect(shown()).toBe("renderer's own");
+        expect(await actionUpdate("key0", "90")).toBe(true);
+        expect(updatesToIgnore.size).toBe(0);
+    });
 
-        // The reader types another key before the other updates arrive.
-        eagerlyShow("key3", "908", COMPONENT_IDX);
-
-        expect(await updateFromCore({ actionId: "key2", value: "90" })).toBe(
-            true,
-        );
-        expect(await updateFromCore({ actionId: "key3", value: "908" })).toBe(
-            true,
-        );
+    it("lets the first key's update arrive before the next key is typed", async () => {
+        const { updatesToIgnore, eagerlyShow, settle, actionUpdate } = setup();
+        eagerlyShow("key9", "9", COMPONENT_IDX);
+        await settle("key9", true);
+        expect(await actionUpdate("key9", "9")).toBe(true);
         expect(updatesToIgnore.size).toBe(0);
     });
 
     it("takes core's answer when it disagrees, even after the reply came first", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        eagerlyShow("act1", true, COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "act1");
+        const { eagerlyShow, settle, actionUpdate, shown } = setup();
+        eagerlyShow("key9", "9", COMPONENT_IDX);
+        await settle("key9", true);
 
-        expect(await updateFromCore({ actionId: "act1", value: false })).toBe(
+        // The document refused the value.
+        expect(await actionUpdate("key9", "")).toBe(false);
+        expect(shown()).toBe("");
+    });
+
+    it("stops waiting at once when core sent no update for the action", async () => {
+        const { updatesToIgnore, eagerlyShow, settle, updateFromCore } =
+            setup();
+        // A bare Enter in an input whose value is already committed.
+        eagerlyShow("enter", "90", COMPONENT_IDX);
+        await settle("enter", false);
+        expect(updatesToIgnore.size).toBe(0);
+
+        expect(await updateFromCore({ actionId: "later", value: "5" })).toBe(
             false,
         );
     });
+});
 
-    it("ignores an earlier action's update while an answered action's update is still to come", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        eagerlyShow("key1", "9", COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "key1");
-
-        // `focusChanged` from clicking into the box was sent before the key,
-        // so its update carries the value from before the key.
-        expect(await updateFromCore({ actionId: "focus", value: "" })).toBe(
+describe("updates held while the component's own action is in flight", () => {
+    it("puts a held update on screen when the action changed nothing", async () => {
+        const { heldUpdates, eagerlyShow, updateFromCore, settle, shown } =
+            setup();
+        // The reader presses Enter in a box showing "90", while another
+        // action changes the input to "5"; core handles that one first.
+        eagerlyShow("enter", "90", COMPONENT_IDX);
+        expect(await updateFromCore({ actionId: "other", value: "5" })).toBe(
             true,
         );
+        expect(heldUpdates.has(COMPONENT_IDX)).toBe(true);
+
+        // The Enter changed nothing, so core sent it no update.
+        await settle("enter", false);
+
+        expect(shown()).toBe("5");
+        expect(heldUpdates.size).toBe(0);
     });
 
-    it("stops waiting once an update for a later action shows the update is not coming", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        // Leaving a box whose value is already committed, or pressing Enter
-        // again with nothing changed: core changes nothing and sends no
-        // renderer update for it.
-        const blur = eagerlyShow("blur", "9", COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "blur");
-
-        // The update for an action sent after it (the blur's `focusChanged`)
-        // arrives.
-        dropAnsweredPendingValuesBefore(updatesToIgnore, blur + 1);
-
-        expect(updatesToIgnore.size).toBe(0);
-        expect(await updateFromCore({ actionId: "later", value: "x" })).toBe(
-            false,
-        );
-    });
-
-    it("stops waiting at once when the reply comes after an update for a later action", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        // Leaving a box whose value is already committed: core changes nothing
-        // and sends no renderer update for it.
-        const blur = eagerlyShow("blur", "9", COMPONENT_IDX);
-        // The update for an action sent after it (a button that changes the
-        // box's value while the box is offscreen) arrives before core's reply
-        // to the blur, so it cannot drop the blur's value yet.
-        const button = blur + 1;
-        dropAnsweredPendingValuesBefore(updatesToIgnore, button);
-        expect(updatesToIgnore.size).toBe(1);
-
-        // The reply comes now. That later update has already been processed,
-        // so the blur's update has been too, or is not coming.
-        markPendingValuesAnswered(updatesToIgnore, "blur", button);
-        expect(updatesToIgnore.size).toBe(0);
-
-        // The box's new value, sent offscreen in a deferred batch that carries
-        // the button's `actionId`, is taken.
-        expect(await updateFromCore({ actionId: "button", value: "5" })).toBe(
-            false,
-        );
-    });
-
-    it("keeps values of actions sent later, and of actions core has not answered", () => {
-        const { updatesToIgnore, eagerlyShow } = setup();
-        const first = eagerlyShow("unanswered", "9", COMPONENT_IDX);
-        eagerlyShow("later", "90", COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "later");
-
-        dropAnsweredPendingValuesBefore(updatesToIgnore, first + 1);
-
-        expect([...updatesToIgnore.keys()]).toEqual([
-            actionIdentifier("unanswered", COMPONENT_IDX),
-            actionIdentifier("later", COMPONENT_IDX),
-        ]);
-    });
-
-    it("takes an update core sent on its own once the component's actions are answered", async () => {
-        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        eagerlyShow("blur", "9", COMPONENT_IDX);
-        eagerlyShow("other", "x", OTHER_COMPONENT_IDX);
-        markPendingValuesAnswered(updatesToIgnore, "blur");
-        markPendingValuesAnswered(updatesToIgnore, "other");
-
-        // A timer in the document changes the value.
-        expect(await updateFromCore({ value: "10" })).toBe(false);
-        expect([...updatesToIgnore.keys()]).toEqual([
-            actionIdentifier("other", OTHER_COMPONENT_IDX),
-        ]);
-    });
-
-    it("still ignores an update core sent on its own while an action is unanswered", async () => {
-        const { eagerlyShow, updateFromCore } = setup();
-        eagerlyShow("key1", "9", COMPONENT_IDX);
-
+    it("puts a held update on screen in a read-only document", async () => {
+        const { eagerlyShow, updateFromCore, settle, shown } = setup();
+        // Core redraws the input with its old value, under no action, and
+        // sends the action itself no update.
+        eagerlyShow("key9", "9", COMPONENT_IDX);
         expect(await updateFromCore({ value: "" })).toBe(true);
-    });
-});
+        await settle("key9", false);
 
-describe("markPendingValuesAnswered", () => {
-    it("marks only the entries belonging to the answered action", () => {
-        const updatesToIgnore: UpdatesToIgnore = new Map();
-        updatesToIgnore.set(actionIdentifier("act1", COMPONENT_IDX), {
-            componentIdx: COMPONENT_IDX,
-            value: true,
-            sequence: 1,
-        });
-        updatesToIgnore.set(actionIdentifier("act10", OTHER_COMPONENT_IDX), {
+        expect(shown()).toBe("");
+    });
+
+    it("drops a held update once the action's own update has arrived", async () => {
+        const {
+            heldUpdates,
+            eagerlyShow,
+            updateFromCore,
+            actionUpdate,
+            shown,
+        } = setup();
+        // `focusChanged` from a click, built before core handled the click.
+        eagerlyShow("click", true, COMPONENT_IDX);
+        expect(await updateFromCore({ actionId: "focus", value: false })).toBe(
+            true,
+        );
+
+        expect(await actionUpdate("click", true)).toBe(true);
+        expect(heldUpdates.size).toBe(0);
+        expect(shown()).toBe("renderer's own");
+    });
+
+    it("keeps holding while another of the component's actions is in flight", async () => {
+        const {
+            heldUpdates,
+            eagerlyShow,
+            updateFromCore,
+            settle,
+            actionUpdate,
+        } = setup();
+        eagerlyShow("enter", "9", COMPONENT_IDX);
+        eagerlyShow("key0", "90", COMPONENT_IDX);
+        await updateFromCore({ actionId: "other", value: "" });
+
+        await settle("enter", false);
+        expect(heldUpdates.has(COMPONENT_IDX)).toBe(true);
+
+        expect(await actionUpdate("key0", "90")).toBe(true);
+        expect(heldUpdates.size).toBe(0);
+    });
+
+    it("drops every held update when core's answer disagrees", async () => {
+        const { heldUpdates, eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("a", "x", COMPONENT_IDX);
+        eagerlyShow("b", "y", OTHER_COMPONENT_IDX);
+        await updateFromCore({
+            actionId: "other",
+            value: "old",
             componentIdx: OTHER_COMPONENT_IDX,
-            value: "hello",
-            sequence: 2,
         });
+        expect(heldUpdates.has(OTHER_COMPONENT_IDX)).toBe(true);
 
-        markPendingValuesAnswered(updatesToIgnore, "act1");
+        expect(await updateFromCore({ actionId: "a", value: "z" })).toBe(false);
+        expect(heldUpdates.size).toBe(0);
+    });
+
+    it("drops held updates from a core that has been replaced", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        const heldUpdates: HeldRendererUpdates = new Map();
+        heldUpdates.set(COMPONENT_IDX, {
+            coreId: "old core",
+            componentIdx: COMPONENT_IDX,
+            stateValues: { value: 1 },
+            prefixForIds: "",
+        });
 
         expect(
-            updatesToIgnore.get(actionIdentifier("act1", COMPONENT_IDX))
-                ?.answered,
-        ).toBe(true);
-        expect(
-            updatesToIgnore.get(actionIdentifier("act10", OTHER_COMPONENT_IDX))
-                ?.answered,
-        ).toBeUndefined();
-    });
-});
-
-describe("markPendingValuesAnswered with the latest action updated", () => {
-    it("keeps the values when no later action's update has been processed", () => {
-        const updatesToIgnore: UpdatesToIgnore = new Map();
-        updatesToIgnore.set(actionIdentifier("act3", COMPONENT_IDX), {
-            componentIdx: COMPONENT_IDX,
-            value: "9",
-            sequence: 3,
-        });
-
-        // The latest update processed is this action's own, or an earlier one.
-        markPendingValuesAnswered(updatesToIgnore, "act3", 3);
-
-        expect(
-            updatesToIgnore.get(actionIdentifier("act3", COMPONENT_IDX))
-                ?.answered,
-        ).toBe(true);
-    });
-
-    it("drops only this action's values when a later action's update has been processed", () => {
-        const updatesToIgnore: UpdatesToIgnore = new Map();
-        updatesToIgnore.set(actionIdentifier("act3", COMPONENT_IDX), {
-            componentIdx: COMPONENT_IDX,
-            value: "9",
-            sequence: 3,
-        });
-        updatesToIgnore.set(actionIdentifier("act2", OTHER_COMPONENT_IDX), {
-            componentIdx: OTHER_COMPONENT_IDX,
-            value: "x",
-            sequence: 2,
-        });
-
-        markPendingValuesAnswered(updatesToIgnore, "act3", 4);
-
-        expect([...updatesToIgnore.keys()]).toEqual([
-            actionIdentifier("act2", OTHER_COMPONENT_IDX),
-        ]);
-        expect(
-            updatesToIgnore.get(actionIdentifier("act2", OTHER_COMPONENT_IDX))
-                ?.answered,
-        ).toBeUndefined();
-    });
-});
-
-describe("hasPendingValuesBefore", () => {
-    // After core replies to an action, `DocViewer` forgets the action's number
-    // unless its update could still drop something: a value an earlier action
-    // left pending. Actions that get no update (`recordVisibilityChange` as
-    // the reader scrolls) would otherwise pile up.
-
-    it("is false when nothing is pending", () => {
-        expect(hasPendingValuesBefore(new Map(), 5)).toBe(false);
-    });
-
-    it("counts only values left by actions sent earlier", () => {
-        const updatesToIgnore: UpdatesToIgnore = new Map();
-        updatesToIgnore.set(actionIdentifier("own", COMPONENT_IDX), {
-            componentIdx: COMPONENT_IDX,
-            value: "9",
-            sequence: 3,
-            answered: true,
-        });
-        updatesToIgnore.set(actionIdentifier("later", OTHER_COMPONENT_IDX), {
-            componentIdx: OTHER_COMPONENT_IDX,
-            value: "x",
-            sequence: 4,
-        });
-
-        expect(hasPendingValuesBefore(updatesToIgnore, 3)).toBe(false);
-        expect(hasPendingValuesBefore(updatesToIgnore, 4)).toBe(true);
-    });
-
-    it("counts earlier values whether or not core has answered them", () => {
-        const updatesToIgnore: UpdatesToIgnore = new Map();
-        updatesToIgnore.set(actionIdentifier("blur", COMPONENT_IDX), {
-            componentIdx: COMPONENT_IDX,
-            value: "9",
-            sequence: 1,
-        });
-        expect(hasPendingValuesBefore(updatesToIgnore, 2)).toBe(true);
-
-        markPendingValuesAnswered(updatesToIgnore, "blur");
-        expect(hasPendingValuesBefore(updatesToIgnore, 2)).toBe(true);
+            takeHeldUpdatesNoLongerInFlight(
+                updatesToIgnore,
+                heldUpdates,
+                CORE_ID,
+            ),
+        ).toEqual([]);
+        expect(heldUpdates.size).toBe(0);
     });
 });

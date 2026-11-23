@@ -40,29 +40,13 @@ export function actionIdentifier(
 export type PendingRendererValue = {
     componentIdx: number;
     value: any;
-    /**
-     * Where the action that set the value comes among the actions sent to
-     * core, counting up from 1. Core works through actions in that order and
-     * sends their renderer updates in that order, which is what lets an update
-     * for a later action show that this one's update is not coming.
-     */
-    sequence: number;
-    /**
-     * Core has replied to the action, but its renderer update has not been
-     * processed yet. The reply and the update reach the viewer over different
-     * channels, so the reply can arrive first; the update that follows still
-     * carries the value from this action, and the entry has to be there to
-     * recognize it. See `markPendingValuesAnswered`.
-     */
-    answered?: boolean;
 };
 
 export type UpdatesToIgnore = Map<UniqueActionIdentifier, PendingRendererValue>;
 
 /**
- * Whether `updatesToIgnore` is still waiting on an action that `componentIdx`
- * started: on core's reply, or on the renderer update that goes with a reply
- * that has already arrived.
+ * Whether `updatesToIgnore` is still waiting on core's answer to an action that
+ * `componentIdx` started.
  */
 function actionInFlightFor(
     updatesToIgnore: UpdatesToIgnore,
@@ -94,81 +78,59 @@ export function clearPendingValuesForAction(
 }
 
 /**
- * Core has replied to `actionId`, but the renderer update it sent for that
- * action may still be on its way: the reply and the update travel on different
- * message channels, so either can arrive first. Keep what the action left
- * pending, marked as answered, until the update has been processed (the viewer
- * then resolves the action again and `clearPendingValuesForAction` drops it)
- * or until the first renderer update for a later action shows that none is
- * coming (see `dropAnsweredPendingValuesBefore`).
- *
- * Dropping the values on the reply instead lets the late update through. It
- * carries the value from that action, which is older than what the reader has
- * typed since, so the input redraws with keys missing, and the updates for the
- * newer keys are then ignored because a new action is in flight.
- *
- * `updatedThrough` is the number of the latest action whose first renderer
- * update has already been processed. If that action was sent after this one,
- * this action's update has been processed too or is not coming, so its values
- * are dropped now: no later update would drop them, and while they stayed they
- * would hold back a deferred batch that brings the component a new value.
+ * An update for a component that `updateRendererSVs` left off the screen
+ * because one of that component's own actions was still in flight, kept so it
+ * can be put on screen if that action turns out to change nothing.
  */
-export function markPendingValuesAnswered(
-    updatesToIgnore: UpdatesToIgnore,
-    actionId: string,
-    updatedThrough = 0,
-) {
-    const prefix = `${actionId}|`;
-    for (let [identifier, pending] of updatesToIgnore) {
-        if (identifier.startsWith(prefix)) {
-            if (pending.sequence < updatedThrough) {
-                updatesToIgnore.delete(identifier);
-            } else {
-                pending.answered = true;
-            }
-        }
-    }
-}
+export type HeldRendererUpdate = {
+    coreId: string;
+    componentIdx: number;
+    stateValues: Record<string, any>;
+    childrenInstructions?: Record<string, any>[];
+    sourceOfUpdate?: Record<string, any>;
+    baseStateVariable?: string;
+    prefixForIds: string;
+};
 
 /**
- * Drop the answered values of every action sent to core before the action
- * numbered `sequence`, once that action's first (non-deferred) renderer update
- * has arrived. Core handles actions one at a time, in the order they were
- * sent, and sends each one's first renderer update while handling it, all on
- * one channel; so by the time a later action's update arrives, an earlier
- * action's update has either been processed already or was never sent. Core
- * sends none when an action changes nothing, such as leaving an input whose
- * value is already committed. Values not yet answered are kept: their reply
- * drops them (`markPendingValuesAnswered` with `updatedThrough`).
+ * The latest held update of each component, by component index. An entry is
+ * dropped as soon as a later update for the same component is processed:
+ * updates reach the viewer in the order core sent them, so the held one is
+ * core's latest word on the component only while nothing has followed it.
  */
-export function dropAnsweredPendingValuesBefore(
-    updatesToIgnore: UpdatesToIgnore,
-    sequence: number,
-) {
-    for (let [identifier, pending] of updatesToIgnore) {
-        if (pending.answered && pending.sequence < sequence) {
-            updatesToIgnore.delete(identifier);
-        }
-    }
-}
+export type HeldRendererUpdates = Map<number, HeldRendererUpdate>;
 
 /**
- * Whether anything in `updatesToIgnore` was left pending by an action sent
- * before the action numbered `sequence`. Those are the only values the
- * renderer update for that action could drop (see
- * `dropAnsweredPendingValuesBefore`), so when there are none once core has
- * replied, the viewer has no further use for the action's number.
+ * Take out the held updates of components with no action of their own still
+ * in flight, to be put on screen.
+ *
+ * An update is held when it arrives while the component's own action is in
+ * flight: core built it before handling that action, so its base value can be
+ * older than what the renderer shows (a `focusChanged` answered before the
+ * click it came with). Usually the action's own update follows and replaces
+ * it. But an action that changes nothing, such as a bare Enter in an input
+ * whose value is already committed, gets no update. The held one is then
+ * core's latest, and it can carry a value the renderer does not show: another
+ * action changed the input meanwhile, or core refused the change (a read-only
+ * document). The viewer calls this once the pending values of an action are
+ * dropped.
  */
-export function hasPendingValuesBefore(
+export function takeHeldUpdatesNoLongerInFlight(
     updatesToIgnore: UpdatesToIgnore,
-    sequence: number,
-) {
-    for (let pending of updatesToIgnore.values()) {
-        if (pending.sequence < sequence) {
-            return true;
+    heldUpdates: HeldRendererUpdates,
+    coreId: string,
+): HeldRendererUpdate[] {
+    const ready: HeldRendererUpdate[] = [];
+    for (let [componentIdx, held] of heldUpdates) {
+        if (held.coreId !== coreId) {
+            // from a core that has since been replaced
+            heldUpdates.delete(componentIdx);
+        } else if (!actionInFlightFor(updatesToIgnore, componentIdx)) {
+            heldUpdates.delete(componentIdx);
+            ready.push(held);
         }
     }
-    return false;
+    return ready;
 }
 
 function sameBaseValue(valueFromRenderer: any, valueFromCore: any) {
@@ -233,6 +195,7 @@ export const mainThunks = {
                 baseStateVariable,
                 actionId,
                 updatesToIgnoreRef,
+                heldUpdatesRef,
                 prefixForIds = "",
             }: {
                 coreId: string;
@@ -243,6 +206,13 @@ export const mainThunks = {
                 baseStateVariable?: string;
                 actionId?: string;
                 updatesToIgnoreRef: React.RefObject<UpdatesToIgnore>;
+                /**
+                 * Where an update left off the screen while the component's
+                 * own action is in flight is kept, so the viewer can put it on
+                 * screen if that action changes nothing (see
+                 * `takeHeldUpdatesNoLongerInFlight`).
+                 */
+                heldUpdatesRef?: React.RefObject<HeldRendererUpdates>;
                 prefixForIds: string;
             },
             { dispatch, getState },
@@ -253,23 +223,10 @@ export const mainThunks = {
 
             if (baseStateVariable) {
                 const updatesToIgnore = updatesToIgnoreRef.current;
-
-                if (updatesToIgnore.size > 0 && actionId === undefined) {
-                    // An update core sent on its own, not for an action (a
-                    // timer, an animation), has no place in the order of the
-                    // actions, so it cannot show whether an answered action's
-                    // update is still coming. Treat it as before answered
-                    // values were kept: this component's answered values no
-                    // longer hold it back (unanswered ones still do).
-                    for (let [identifier, pending] of updatesToIgnore) {
-                        if (
-                            pending.answered &&
-                            pending.componentIdx === componentIdx
-                        ) {
-                            updatesToIgnore.delete(identifier);
-                        }
-                    }
-                }
+                const heldUpdates = heldUpdatesRef?.current;
+                // This update is newer than any held for the component. It
+                // replaces that one below if it is held too.
+                heldUpdates?.delete(componentIdx);
 
                 if (updatesToIgnore.size > 0) {
                     const identifier = actionIdentifier(
@@ -292,6 +249,10 @@ export const mainThunks = {
                             // don't ignore the remaining pending changes in updatesToIgnore
                             // as we changed the state used to determine they could be ignored
                             updatesToIgnore.clear();
+                            // Nothing is in flight any more, so no update is
+                            // held off the screen either: the components'
+                            // own updates are taken as they come.
+                            heldUpdates?.clear();
                         }
                     } else if (
                         actionInFlightFor(updatesToIgnore, componentIdx)
@@ -304,6 +265,15 @@ export const mainThunks = {
                         // Letting it through would take the eager value back off the
                         // screen until core answers, which the reader sees as a flash.
                         ignoreUpdate = true;
+                        heldUpdates?.set(componentIdx, {
+                            coreId,
+                            componentIdx,
+                            stateValues,
+                            childrenInstructions,
+                            sourceOfUpdate,
+                            baseStateVariable,
+                            prefixForIds,
+                        });
                     }
                 }
             }
