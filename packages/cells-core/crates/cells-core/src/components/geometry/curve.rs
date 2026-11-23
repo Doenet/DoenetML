@@ -165,6 +165,10 @@ fn coordinates(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Vec<Coordinat
     Ok(out)
 }
 
+/// Control vectors as written: the point they are for (when named), their
+/// direction (when given) and the vectors.
+type Written = (Option<usize>, Option<String>, Vec<[Source; 2]>);
+
 /// The control vectors `<bezierControls>` gives each of `n` through points,
 /// as [`SymKind::SampleBezier`] reads them: the one toward the previous
 /// point, the one toward the next, and how they are given.
@@ -189,7 +193,7 @@ fn given_controls(
     };
     let controls_attrs = bezier_controls_tag::Attrs::of(&controls.record);
     // Written as vectors: each symmetric.
-    let mut written: Vec<(Option<usize>, Option<String>, Vec<[Source; 2]>)> = Vec::new();
+    let mut written: Vec<Written> = Vec::new();
     if let Some(nodes) = controls_attrs.children.as_deref() {
         let (toks, _) = ctx.math_tokens(nodes)?;
         for v in vectors_in(&toks) {

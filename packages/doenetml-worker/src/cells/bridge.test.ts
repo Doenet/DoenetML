@@ -1391,7 +1391,7 @@ describe("derived geometry", () => {
         const { all, send } = await open(`<graph xmin="-2" xmax="2">
 <function domain="[0, 5]">x^2</function>
 <piecewiseFunction><function domain="(0, Infinity)">1</function><function>0</function></piecewiseFunction>
-<curve parMin="0" parMax="1">(2t, t)</curve>
+<curve parMin="0" parMax="1" variable="t">(2t, t)</curve>
 <curve through="(1,2) (3,4)"/>
 <equilibriumCurve stable="false" through="(0,0) (1,1)" switchable/>
 </graph>`);

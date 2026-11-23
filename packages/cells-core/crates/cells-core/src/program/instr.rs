@@ -369,12 +369,14 @@ impl OpSpec {
             ) => true,
             // A domain and at least one piece, after the input or range.
             OpSpec::Sym(SymKind::EvalFunction) => {
-                n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS) % PIECE_CELLS == 0
+                n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
             OpSpec::Sym(SymKind::SampleFunction) => {
-                n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS) % PIECE_CELLS == 0
+                n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
-            OpSpec::Sym(SymKind::SampleBezier { .. }) => n > 1 && (n - 1) % BEZIER_POINT_CELLS == 0,
+            OpSpec::Sym(SymKind::SampleBezier { .. }) => {
+                n > 1 && (n - 1).is_multiple_of(BEZIER_POINT_CELLS)
+            }
             _ => self.arity() == n,
         }
     }
