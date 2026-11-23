@@ -188,6 +188,8 @@
         <curve><function>x^2</function></curve>
         <equilibriumCurve through="(1,2) (3,4) (2,6)" />
         <interval>(1, 2)</interval>
+        <subsetOfReals>(1, 2) union [3, 4]</subsetOfReals>
+        <intervalList>(1, 2) [3, 4)</intervalList>
     </p>
 </section>
 
