@@ -3567,6 +3567,9 @@ adapters a class declares (#2659).
    a warning naming the property, as for a type mix (D47).
 3. **An `<angle>` is the one non-value treated as a value type:** its measure, a math, so it follows
    math's pairs (`<number extend="$a"/>`), and a math can be made into an angle (D66 decision 17).
+   **An input is its value** (REF-1a, D46; #2484), so it is a value type here too and follows its
+   value's pairs: `<number extend="$mi"/>` and `<point extend="$mi"/>` of a `<mathInput>` holding
+   `(1,2)` stay allowed, and `<boolean extend="$ti"/>` of a `<textInput>` is `e0065` (D68).
 4. **A tag is made from a value only by REF-5's pairs:** a math doesn't stand in as a label, so
    `<label extend="$m"/>` is `e0065`, suggesting `<label>$m</label>`.
 5. With D68, a text is never read as a boolean, so a label is never a boolean either.
