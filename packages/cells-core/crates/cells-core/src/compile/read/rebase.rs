@@ -206,6 +206,11 @@ impl<'a> Reader<'a> {
                     .map(|a| self.rebase_expr(ar, path, down, a))
                     .collect(),
             ),
+            Expr::Operator(args) => Expr::Operator(
+                args.into_iter()
+                    .map(|a| self.rebase_expr(ar, path, down, a))
+                    .collect(),
+            ),
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)

@@ -278,10 +278,13 @@ impl Document {
         id.to_value()
     }
 
-    /// The expression a math cell holds, as text; empty when blank.
+    /// The expression a math cell holds, as text; empty when blank, `＿` when
+    /// missing.
     pub fn math_text(&self, cell: CellIdx) -> String {
         let h = self.cells[cell.index()];
-        if h.is_nan() {
+        if crate::program::is_missing(h) {
+            crate::document::table::BLANK.into()
+        } else if h.is_nan() {
             String::new()
         } else {
             self.math.engine.text(Handle::from_value(h))

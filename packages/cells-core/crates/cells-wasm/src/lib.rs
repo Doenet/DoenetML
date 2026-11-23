@@ -547,7 +547,8 @@ mod tests {
         assert_eq!(a11y["args"]["component"], "graph");
         assert!(a11y["node"].is_number());
         let err = &list[1];
-        assert_eq!(err["kind"], "error");
+        // A reference that names nothing is a warning (ADR 0046).
+        assert_eq!(err["kind"], "warning");
         assert_eq!(err["code"], "doenet-w0104");
         assert!(err["message"].as_str().unwrap().contains("nope"));
         assert!(err.get("level").is_none() && err.get("args").is_none());

@@ -60,6 +60,8 @@ pub enum Tree<L> {
     Pow(Box<Tree<L>>, Box<Tree<L>>),
     /// A named function applied to one argument: `sin(x)`.
     Apply(String, Box<Tree<L>>),
+    /// A named function applied to several arguments: `min(x, y)`.
+    Call(String, Vec<Tree<L>>),
     /// A value with entries (ADR 0041, decision 8): a list, tuple, vector,
     /// interval, set or matrix, its entries in order (a matrix's by row).
     Shape(Shape, Vec<Tree<L>>),
@@ -125,6 +127,12 @@ impl<L: Copy> Tree<L> {
             Tree::Pow(a, b) => Tree::Pow(one(a, f)?, one(b, f)?),
             Tree::Neg(a) => Tree::Neg(one(a, f)?),
             Tree::Apply(name, a) => Tree::Apply(name.clone(), one(a, f)?),
+            Tree::Call(name, ts) => Tree::Call(
+                name.clone(),
+                ts.iter()
+                    .map(|t| t.try_map_leaves(f))
+                    .collect::<Result<_, _>>()?,
+            ),
             Tree::Shape(head, ts) => Tree::Shape(
                 *head,
                 ts.iter()
@@ -148,7 +156,7 @@ impl<L: Copy> Tree<L> {
         match self {
             Tree::Num(_) | Tree::Sym(_) => {}
             Tree::Cell { cell, math } => f(*cell, *math),
-            Tree::Add(ts) | Tree::Mul(ts) | Tree::Shape(_, ts) => {
+            Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
                 ts.iter().for_each(|t| t.for_each_leaf(f))
             }
             Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => {

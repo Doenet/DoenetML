@@ -16,7 +16,7 @@ pub use instr::{
     TapeIdx, VecIdx,
 };
 pub use range::Range;
-pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
+pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use vector::{
     Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
     RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
@@ -237,7 +237,7 @@ impl Holds {
 
 #[inline(always)]
 fn differs(new: f64, old: f64) -> bool {
-    new != old && !(new.is_nan() && old.is_nan())
+    new != old && !(new.is_nan() && old.is_nan() && is_missing(new) == is_missing(old))
 }
 
 impl Program {
@@ -528,18 +528,24 @@ fn handle(v: f64) -> Option<Handle> {
     (!v.is_nan()).then_some(Handle::from_value(v))
 }
 
-/// One symbolic operation. A NaN handle is a blank expression: evaluating it
-/// gives NaN, comparing it gives 0.
+/// One symbolic operation. A NaN handle, missing or a blank input's, is a
+/// blank expression: evaluating it gives the missing value, comparing it
+/// gives 0 (ADR 0046).
 fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx], out: &mut [f64]) {
     let v = |k: usize| cells[inputs[k].index()];
     match kind {
-        SymKind::Instantiate { template, post } => {
+        // Only while the value is missing; NaN, the numeric math's
+        // expression, otherwise (ADR 0046).
+        SymKind::InstantiateBlank { .. } if !is_missing(v(0)) => out[0] = f64::NAN,
+        SymKind::Instantiate { template, post } | SymKind::InstantiateBlank { template, post } => {
             let h = engine.instantiate(template, cells);
-            out[0] = engine.post(h, post).to_value();
+            out[0] = post.apply(engine, h).to_value();
         }
-        SymKind::Evaluate => out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.evaluate(h, None)),
+        // A missing or blank expression evaluates to the missing value: a
+        // number cannot hold a blank (D40, ADR 0046).
+        SymKind::Evaluate => out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, None)),
         SymKind::EvalAt => {
-            out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.evaluate(h, Some(("x", v(1)))))
+            out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, Some(("x", v(1)))))
         }
         SymKind::Derivative => {
             out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.derivative(h, "x").to_value())

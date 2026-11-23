@@ -206,8 +206,10 @@ fn census() {
     // constants is folded into a constant (ADR 0028): 90 of the 279. Two
     // instructions that apply one operator to the same cells are one
     // (ADR 0033): `choices.doenet`'s, `circles.doenet`'s and
-    // `fixed.doenet`'s copies share 11 of the 189.
-    assert!(golden[0] <= 134 && golden[1] == 178, "{golden:?}");
+    // `fixed.doenet`'s copies share 11 of the 189. A lowered math that is
+    // drawn has one more, its expression while its value is missing (ADR
+    // 0046): one in the golden set.
+    assert!(golden[0] <= 135 && golden[1] == 179, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

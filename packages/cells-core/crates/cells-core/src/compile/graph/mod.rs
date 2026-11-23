@@ -183,6 +183,9 @@ pub(crate) struct TemplateOp {
     pub(crate) expr: ExprId,
     pub(crate) post: Post,
     pub(crate) math: Vec<bool>,
+    /// A lowered math's expression, made only while its value, the
+    /// operator's first input before the leaves, is missing (ADR 0046).
+    pub(crate) blank: bool,
 }
 
 /// Where a math value a node holds comes from, which the compile has no
@@ -211,7 +214,7 @@ pub(super) fn math_handle(
                     .parse_constant(&text)
                     .expect("a constant math text parses"),
             };
-            engine.post(h, *post)
+            post.apply(engine, h)
         }
     }
 }
@@ -669,7 +672,10 @@ impl<'c> Stamp<'c> {
         if let Some(n) = self.missing {
             return n;
         }
-        let n = self.value(TemplateId::new(0), Def::Const(Some(f64::NAN)));
+        let n = self.value(
+            TemplateId::new(0),
+            Def::Const(Some(crate::program::MISSING)),
+        );
         self.missing = Some(n);
         n
     }
@@ -1193,8 +1199,13 @@ impl<'c> Stamp<'c> {
                 Flow::MathHandle(id, post) => {
                     if self.port_type(t, e, pi) == PortType::Math {
                         self.sym_source(*id, *post, t)
+                    } else if let Some(vp) = self.lowered_value(t, e, pi, *id) {
+                        // A numeric math is not a math cell (ADR 0005),
+                        // but shows its expression while its value is
+                        // missing (ADR 0046).
+                        let value = self.g.port(t, e, vp);
+                        self.blank_source(*id, *post, t, value)
                     } else {
-                        // A numeric math is not a math cell (ADR 0005).
                         Def::Const(Some(f64::NAN))
                     }
                 }
@@ -1218,6 +1229,14 @@ impl<'c> Stamp<'c> {
                     }
                 }
                 Flow::SymExpr(id, post) => self.sym_source(*id, *post, t),
+                Flow::ValueOf(expr, numeric) => {
+                    if self.port_type(t, e, expr.index()) == PortType::Math {
+                        let expr = self.g.port(t, e, expr.index());
+                        Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Evaluate)), vec![expr])
+                    } else {
+                        Def::Alias(self.g.port(t, e, numeric.index()))
+                    }
+                }
                 Flow::Aggregate(_) => unreachable!("an aggregate is wired from the tree"),
             },
         }

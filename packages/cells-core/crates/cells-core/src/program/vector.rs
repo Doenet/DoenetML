@@ -215,7 +215,7 @@ pub enum VecOp {
     /// An interface name of a choice whose branches are all built, or an
     /// entry by a cell index (`$r[$k]`, `$P[$k]`): inputs are the choice
     /// cell and the name's cell in each of the `n` branches; the output is
-    /// the active branch's cell, NaN when none is active: a choice that is
+    /// the active branch's cell, missing when none is active: a choice that is
     /// not an integer from 1 to `n` (ADR 0041). The inverse writes the
     /// active branch only.
     Choose {
@@ -1244,9 +1244,41 @@ impl VecOp {
         }
     }
 
+    /// Whether a missing input makes every output missing (ADR 0046): a
+    /// shape, a projection, a fit or a numeric or boolean reduction made
+    /// from a missing value is missing. A choice, a selection, a reorder
+    /// and a comparison read a missing input as the NaN it is, so it
+    /// passes through as a value (a sort puts it last) or compares false.
+    pub fn strict_in_missing(&self) -> bool {
+        match *self {
+            VecOp::Shape { .. }
+            | VecOp::First { .. }
+            | VecOp::Choose { .. }
+            | VecOp::WeightedMean { .. }
+            | VecOp::SequencePick { .. }
+            | VecOp::Sort { .. }
+            | VecOp::Shuffle { .. }
+            | VecOp::Draws { .. } => false,
+            VecOp::Reduce { op, .. } => !matches!(
+                op,
+                Reduction::Between
+                    | Reduction::ArgMin
+                    | Reduction::ArgMax
+                    | Reduction::IndexOf
+                    | Reduction::SearchSorted { .. }
+            ),
+            _ => true,
+        }
+    }
+
     /// Forward evaluation. `inp` holds the input values, `out` receives
-    /// `n_out()` values.
+    /// `n_out()` values; every output is missing when an input is and the
+    /// operator is strict in it ([`VecOp::strict_in_missing`]).
     pub fn eval(&self, inp: &[f64], out: &mut [f64]) {
+        if self.strict_in_missing() && inp.iter().any(|&x| crate::program::is_missing(x)) {
+            out.fill(crate::program::MISSING);
+            return;
+        }
         match *self {
             VecOp::Shape { n, .. } => out.copy_from_slice(&inp[..2 * n as usize]),
             VecOp::CircleCenterPoint => {
@@ -1309,7 +1341,7 @@ impl VecOp {
                     .map_or(0.0, |k| (k + 1) as f64);
             }
             VecOp::Choose { n } => {
-                out[0] = active_branch(inp[0], n).map_or(f64::NAN, |k| inp[k]);
+                out[0] = active_branch(inp[0], n).map_or(crate::program::MISSING, |k| inp[k]);
             }
             VecOp::WeightedMean { n } => {
                 let (w, c) = inp[..2 * n as usize].split_at(n as usize);

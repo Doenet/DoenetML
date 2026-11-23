@@ -131,6 +131,8 @@ impl Tape {
                 self.emit(a, var, depth)?;
                 self.push(TapeOp::Apply(func), depth, 1)
             }
+            // A function of several arguments has no tape step.
+            Tree::Call(..) => return None,
         }
         Some(())
     }

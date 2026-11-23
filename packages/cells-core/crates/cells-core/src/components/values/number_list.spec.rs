@@ -33,13 +33,13 @@ spec! {
                   <number name="byName">$l.numbers[3]</number>
                   <number name="byK">$l[$k]</number>"#;
         expect {
-            "two.value" = 2.5, "past.value" = f64::NAN, "half.value" = f64::NAN,
+            "two.value" = 2.5, "past.value" = crate::program::MISSING, "half.value" = crate::program::MISSING,
             "byName.value" = 3, "byK.value" = 2.5,
         }
         request { "k.value" = 3 }
         expect { "byK.value" = 3 }
         request { "k.value" = 0 }
-        expect { "byK.value" = f64::NAN }
+        expect { "byK.value" = crate::program::MISSING }
     }
 
     case "a write through an entry lands on the list's own text piece" {
@@ -101,10 +101,11 @@ spec! {
         }
     }
 
-    case "an entry past the end of a list adds none" {
+    // In a list a missing entry is a blank entry (VAL-5, D40; ADR 0046).
+    case "an entry past the end of a list is a blank entry" {
         doenet r#"<numberList name="a">7 8</numberList>
                   <numberList name="l">$a[1] $a[5] 9</numberList>"#;
-        expect { "l.numbers" = [7, 9] }
+        expect { "l.numbers" = [7.0, crate::program::MISSING, 9.0] }
     }
 
     case "a reference inside brackets is part of its piece's math" {

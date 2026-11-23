@@ -30,6 +30,20 @@ pub enum SymKind {
         /// What to do to the result.
         post: Post,
     },
+    /// A lowered math's expression, shown while its value is missing (ADR
+    /// 0046): with input 0, the value, missing, the template instantiated
+    /// as [`SymKind::Instantiate`] does (its leaves are inputs 1 on), so a
+    /// missing operand shows as the blank in it (`＿ + 1`); otherwise NaN,
+    /// the numeric math's expression (ADR 0005), at the cost of one check.
+    /// Its cell keeps its port's type, a number: the handle is for the
+    /// math's display alone, which reads it only while the value is
+    /// missing.
+    InstantiateBlank {
+        /// The engine expression whose leaves are inputs 1 on.
+        template: Handle,
+        /// What to do to the result.
+        post: Post,
+    },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -62,75 +76,122 @@ pub enum SymKind {
     SampleQuadratic,
 }
 
-/// What a `<math>` does to its expression after instantiating it: in
-/// order, its tuples made vectors (`createVectors`), its tuples and arrays
-/// of two made intervals (`createIntervals`; ADR 0041, decision 8), then
-/// simplified, then expanded. A set of flags; the names below are its
-/// common values, usable as patterns.
+/// What a `<math>`, or an operator over math (ADR 0043), does to its
+/// expression after instantiating it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Post {
-    bits: u8,
-}
-
-#[allow(non_upper_case_globals)]
-impl Post {
-    const SIMPLIFY: u8 = 1;
-    const EXPAND: u8 = 2;
-    const VECTORS: u8 = 4;
-    const INTERVALS: u8 = 8;
-
+pub enum Post {
     /// Nothing: the expression as instantiated.
-    pub const None: Post = Post { bits: 0 };
+    None,
     /// The engine's simplify.
-    pub const Simplify: Post = Post {
-        bits: Post::SIMPLIFY,
-    };
+    Simplify,
     /// The engine's expand.
-    pub const Expand: Post = Post { bits: Post::EXPAND };
+    Expand,
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
-    pub const SimplifyExpand: Post = Post {
-        bits: Post::SIMPLIFY | Post::EXPAND,
-    };
+    SimplifyExpand,
+    /// Its absolute value: a number when it evaluates to one, else
+    /// `abs(..)` (`<abs>`).
+    Abs,
+    /// Its sign, likewise (`<sign>`).
+    Sign,
+    /// Rounded down, likewise, a value within roundoff of an integer
+    /// taken as it (`<floor>`).
+    Floor,
+    /// Rounded up, likewise (`<ceil>`).
+    Ceil,
+    /// Every number in it rounded to this many decimal places (`<round>`).
+    RoundDecimals(i32),
+    /// Every number in it rounded to this many significant digits.
+    RoundDigits(i32),
+    /// Every number in it of magnitude below the threshold, these bits of
+    /// an `f64`, made 0 (`<setSmallToZero>`).
+    SmallToZero(u64),
+    /// Its tuples made vectors (`createVectors`), then its tuples and
+    /// arrays of two made intervals (`createIntervals`; ADR 0041, decision
+    /// 8), then simplified, then expanded, as the flags say: a `<math>`'s
+    /// post when it creates vectors or intervals.
+    Shapes {
+        /// Tuples made vectors.
+        vectors: bool,
+        /// Tuples and arrays of two made intervals.
+        intervals: bool,
+        /// Simplified after.
+        simplify: bool,
+        /// Expanded after.
+        expand: bool,
+    },
+}
 
-    /// The same, with tuples made vectors and pairs made intervals as
-    /// asked (`createVectors`, `createIntervals`).
+impl Post {
+    /// `h` with this applied, by `engine`.
+    pub fn apply(self, engine: &mut crate::sym::Engine, h: Handle) -> Handle {
+        match self {
+            Post::None => h,
+            Post::Simplify => engine.simplify(h),
+            Post::Expand => engine.expand(h),
+            Post::SimplifyExpand => {
+                let h = engine.simplify(h);
+                engine.expand(h)
+            }
+            Post::Abs => engine.apply_numeric(h, "abs", f64::abs),
+            Post::Sign => engine.apply_numeric(h, "sign", sign),
+            Post::Floor => {
+                engine.apply_numeric(h, "floor", |v| near_integer(v).unwrap_or(v.floor()))
+            }
+            Post::Ceil => engine.apply_numeric(h, "ceil", |v| near_integer(v).unwrap_or(v.ceil())),
+            Post::RoundDecimals(n) => engine.round_decimals(h, n),
+            Post::RoundDigits(n) => engine.round_digits(h, n),
+            Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+            Post::Shapes {
+                vectors,
+                intervals,
+                simplify,
+                expand,
+            } => {
+                let mut h = engine.normalize_shapes(h, vectors, intervals);
+                if simplify {
+                    h = engine.simplify(h);
+                }
+                if expand {
+                    h = engine.expand(h);
+                }
+                h
+            }
+        }
+    }
+
+    /// A math's post with its tuples made vectors and its pairs made
+    /// intervals first, as asked (`createVectors`, `createIntervals`); the
+    /// same when neither is.
     pub fn with_shapes(self, vectors: bool, intervals: bool) -> Post {
-        let mut bits = self.bits;
-        if vectors {
-            bits |= Post::VECTORS;
+        if !vectors && !intervals {
+            return self;
         }
-        if intervals {
-            bits |= Post::INTERVALS;
+        let (simplify, expand) = match self {
+            Post::Simplify => (true, false),
+            Post::Expand => (false, true),
+            Post::SimplifyExpand => (true, true),
+            _ => (false, false),
+        };
+        Post::Shapes {
+            vectors,
+            intervals,
+            simplify,
+            expand,
         }
-        Post { bits }
     }
+}
 
-    /// Its flags as one number, the same for the same post: 0 to 3 for
-    /// the four named ones without shapes.
-    pub fn bits(self) -> u8 {
-        self.bits
-    }
+/// -1, 0 or 1 by the sign of `v`, as JavaScript's `Math.sign`.
+fn sign(v: f64) -> f64 {
+    if v == 0.0 { 0.0 } else { v.signum() }
+}
 
-    /// Whether it simplifies.
-    pub fn simplifies(self) -> bool {
-        self.bits & Post::SIMPLIFY != 0
-    }
-
-    /// Whether it expands.
-    pub fn expands(self) -> bool {
-        self.bits & Post::EXPAND != 0
-    }
-
-    /// Whether it makes tuples vectors.
-    pub fn creates_vectors(self) -> bool {
-        self.bits & Post::VECTORS != 0
-    }
-
-    /// Whether it makes tuples and arrays of two intervals.
-    pub fn creates_intervals(self) -> bool {
-        self.bits & Post::INTERVALS != 0
-    }
+/// The integer `v` is within roundoff of (relative 1e-15), as the current
+/// core's `<floor>` and `<ceil>` take one.
+fn near_integer(v: f64) -> Option<f64> {
+    let r = v.round();
+    ((r - v).abs() < 1e-15 * v.abs()).then_some(r)
 }
 
 impl SymKind {
@@ -268,7 +329,11 @@ impl OpSpec {
         }
         match self {
             OpSpec::Vec(v) => v.n_in(),
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => usize::MAX,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => usize::MAX,
             OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
@@ -283,7 +348,11 @@ impl OpSpec {
     /// for a template's leaves.
     pub const fn accepts(&self, n: usize) -> bool {
         match self {
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => true,
             _ => self.arity() == n,
         }
     }
@@ -402,6 +471,10 @@ mod arity {
                 template: Handle::new(0),
                 post: Post::None,
             }),
+            OpSpec::Sym(SymKind::InstantiateBlank {
+                template: Handle::new(0),
+                post: Post::None,
+            }),
             OpSpec::Sym(SymKind::Evaluate),
             OpSpec::Sym(SymKind::EvalAt),
             OpSpec::Sym(SymKind::Derivative),
@@ -464,12 +537,13 @@ mod arity {
                     SymKind::ClampFunction => 8,
                     SymKind::WrapFunctionPeriodic => 9,
                     SymKind::SampleQuadratic => 10,
+                    SymKind::InstantiateBlank { .. } => 11,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 39;
+    const N_TAGS: usize = 40;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

@@ -29,9 +29,15 @@ pub(crate) enum Expr<L> {
     /// `round(x)`, `min(a, b)`: a function the lowering knows. A clamp's
     /// bounds are always numbers.
     Call(Func, Vec<ExprId>),
+    /// An operator over math that only the symbolic engine computes (ADR
+    /// 0043), over these operands: a `<sum>`'s or an `<abs>`'s. Its text
+    /// (`SymText`) says what it does with them; here it stands for their
+    /// symbols and leaves, which decide whether it is symbolic, and is
+    /// never numeric.
+    Operator(Vec<ExprId>),
     /// A value with entries (ADR 0041, decision 8): `a, b`, `(a, b)`,
-    /// `[a, b)`, `{a, b}`, `⟨a, b⟩`, its entries in order. Never numeric:
-    /// the symbolic engine reads its head from the text.
+    /// `[a, b)`, `{a, b}`, `⟨a, b⟩`, its entries in order. Always
+    /// symbolic: the symbolic engine reads its head from the text.
     Shape(Vec<ExprId>),
 }
 
@@ -157,7 +163,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.is_numeric(*a) && self.is_numeric(*b),
             Expr::Neg(a) => self.is_numeric(*a),
             Expr::Call(_, args) => args.iter().all(|&a| self.is_numeric(a)),
-            Expr::Shape(_) => false,
+            Expr::Operator(_) | Expr::Shape(_) => false,
         }
     }
 
@@ -179,7 +185,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.symbols(*b, out);
             }
             Expr::Neg(a) => self.symbols(*a, out),
-            Expr::Call(_, args) | Expr::Shape(args) => {
+            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
                 args.iter().for_each(|&a| self.symbols(a, out))
             }
         }
@@ -203,10 +209,31 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.cell_leaves(*b, out);
             }
             Expr::Neg(a) => self.cell_leaves(*a, out),
-            Expr::Call(_, args) | Expr::Shape(args) => {
+            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
                 args.iter().for_each(|&a| self.cell_leaves(a, out))
             }
         }
+    }
+
+    /// Whether the expression holds a value with entries anywhere (ADR
+    /// 0041, decision 8), which makes it symbolic.
+    pub(crate) fn has_shape(&self, id: ExprId) -> bool {
+        // A loop, not a recursion: a math of many terms is a deep tree.
+        let mut todo = vec![id];
+        while let Some(id) = todo.pop() {
+            match self.get(id) {
+                Expr::Num(_) | Expr::Sym(_) | Expr::Cell(_) => {}
+                Expr::Add(a, b)
+                | Expr::Sub(a, b)
+                | Expr::Mul(a, b)
+                | Expr::Div(a, b)
+                | Expr::Pow(a, b) => todo.extend([*a, *b]),
+                Expr::Neg(a) => todo.push(*a),
+                Expr::Shape(_) => return true,
+                Expr::Call(_, args) | Expr::Operator(args) => todo.extend(args),
+            }
+        }
+        false
     }
 
     /// Whether the expression calls a function anywhere.
@@ -220,7 +247,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.has_call(*a) || self.has_call(*b),
             Expr::Neg(a) => self.has_call(*a),
             Expr::Call(..) => true,
-            Expr::Shape(xs) => xs.iter().any(|&x| self.has_call(x)),
+            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.has_call(a)),
         }
     }
 }
@@ -660,7 +687,6 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 };
                 [div(a, l[0]), div(a, l[1]), div(a, l[2])]
             }
-            Expr::Shape(_) => return None,
             // A call is linear only when it is constant in both symbols.
             Expr::Call(_, args) => {
                 for arg in args {
@@ -671,6 +697,8 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 }
                 [zero, zero, id]
             }
+            // Never numeric, so no coefficient.
+            Expr::Operator(_) | Expr::Shape(_) => return None,
             Expr::Pow(x, y) => {
                 let l = go(a, x, vx, vy)?;
                 let r = go(a, y, vx, vy)?;

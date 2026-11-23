@@ -256,11 +256,23 @@ const rayReaders: Record<string, Reader> = {
     numDimensions: () => 2,
 };
 
+/** A prop that is a number and, when it is one, an expression in
+ * `exprProp` (ADR 0043): the expression, else the number. */
+function exprOr(exprProp: string, prop: string): Reader {
+    return (g, x) => {
+        const e = x.cell(exprProp);
+        if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
+            return me.fromText(x.cells.core.expr_text(e));
+        }
+        return M(g(prop));
+    };
+}
+
 const angleReaders: Record<string, Reader> = {
-    radians: (g) => M(g("radians")),
-    value: (g) => M(g("radians")),
-    angle: (g) => M(g("radians")),
-    degrees: (g) => M(g("degrees")),
+    radians: exprOr("radiansExpr", "radians"),
+    value: exprOr("radiansExpr", "radians"),
+    angle: exprOr("radiansExpr", "radians"),
+    degrees: exprOr("degreesExpr", "degrees"),
 };
 
 /** A rectangle's and a regular polygon's sizes are numbers in the current
@@ -284,10 +296,24 @@ const regularPolygonReaders: Record<string, Reader> = {
     numSides: (g) => g("numVertices"),
 };
 
-/** A numeric operator's value is a math in the current core: the number
- * the cells core computes, as an expression. */
+/** Whether an operator over math is numeric (ADR 0043): its `expr` holds
+ * no expression. */
+const isNumericOperator: Reader = (_g, x) => {
+    const e = x.cell("expr");
+    return e === undefined || Number.isNaN(x.cells.value(e));
+};
+/** An operator's value is a math in the current core: the expression a
+ * symbolic one holds, else the number the cells core computes, as an
+ * expression. */
 const mathOperatorReaders: Record<string, Reader> = {
-    value: (g) => M(g("value")),
+    value: exprOr("expr", "value"),
+    isNumericOperator,
+    // Whether the value is a number: a numeric one's, or the expression's
+    // tree.
+    isNumber: (g, x) =>
+        isNumericOperator(g, x)
+            ? Number.isFinite(g("value"))
+            : typeof (exprOr("expr", "value")(g, x) as any).tree === "number",
     text: textOf,
 };
 const booleanOperatorReaders: Record<string, Reader> = {

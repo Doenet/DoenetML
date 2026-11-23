@@ -314,6 +314,13 @@ A document reaches an operator through a component's prop table or planner,
 or through math lowering (`build/expand/math.rs`). Operators over several
 cells are `VecOp`s in `program/vector.rs`.
 
+A component type that is an operator over operands that may be
+expressions (`<abs>`, `<sum>`) is numeric or symbolic by its operands'
+types (ADR 0043): its planner wires an `expr` and a `value` through
+`components/operators/over_math.rs`, the operator over numbers for the one
+and the engine's operator, spelled as text over the operands
+(`PlanCtx::operator_expr`) and finished by a `Post`, for the other.
+
 ## Change how a request inverts
 
 Scalar inverse rules are [`Op::invert`](crate::program::Op::invert), vector rules [`VecOp::invert`](crate::program::VecOp::invert). The

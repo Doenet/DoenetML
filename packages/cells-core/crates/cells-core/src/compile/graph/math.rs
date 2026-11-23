@@ -46,6 +46,9 @@ impl<'c> Stamp<'c> {
             Expr::Shape(xs) => {
                 Expr::Shape(xs.into_iter().map(|a| self.instantiate(a, t)).collect())
             }
+            Expr::Operator(args) => {
+                Expr::Operator(args.into_iter().map(|a| self.instantiate(a, t)).collect())
+            }
         };
         let done = self.x.push(out);
         if let Some(key) = class {
@@ -99,7 +102,9 @@ impl<'c> Stamp<'c> {
         match e {
             Expr::Num(v) => self.constant(v),
             Expr::Cell(n) => n,
-            Expr::Sym(_) | Expr::Shape(_) => unreachable!("lowering a symbolic expression"),
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+                unreachable!("lowering a symbolic expression")
+            }
             Expr::Neg(a) => {
                 let a = self.lower_shared(a, t);
                 self.math_op(OpSpec::Negate, vec![a], t)
@@ -217,9 +222,93 @@ impl<'c> Stamp<'c> {
             expr: id,
             post,
             math,
+            blank: false,
         });
         Def::Op(GraphOp::Template(template), leaves)
     }
+
+    /// The value prop of element `e` that stands for its expression prop
+    /// `pi`, when it is a lowered `<math>`'s value of math text `id`: the
+    /// numeric math whose expression shows while its value is missing.
+    pub(super) fn lowered_value(
+        &self,
+        t: TemplateId,
+        e: ElemId,
+        pi: usize,
+        id: ExprId,
+    ) -> Option<usize> {
+        let vp = self.component_type(Comp::Elem(t, e)).value_of_expr(pi)?;
+        let plan = self.c.plans.templates[t.index()].plan(e);
+        matches!(plan.props.get(vp), Some(Source::Flow(Flow::MathValue(x))) if *x == id)
+            .then_some(vp)
+    }
+
+    /// A lowered math's expression (ADR 0046): math text `id` with `post`,
+    /// made from its leaves only while `value` is missing, as a build makes
+    /// it. Text no build makes an expression of (a numeric-only function,
+    /// text that does not parse, no leaf) is NaN, the numeric math's
+    /// expression, and no failure: the value was lowered all the same.
+    pub(super) fn blank_source(
+        &mut self,
+        id: ExprId,
+        post: Post,
+        t: TemplateId,
+        value: GraphNode,
+    ) -> Def {
+        if !self.makes_blank(id) {
+            return Def::Const(Some(f64::NAN));
+        }
+        let mut plans = Vec::new();
+        occurrences(&self.c.plans.arena, id, &mut plans);
+        if plans.is_empty() {
+            return Def::Const(Some(f64::NAN));
+        }
+        let mut leaves = vec![value];
+        let mut math = Vec::with_capacity(plans.len());
+        for &p in &plans {
+            let (target, label) = self.math_ref(p, t);
+            let (target, is_math) = match self.math_target(target) {
+                Some(m) => (m, true),
+                None => (target, false),
+            };
+            math.push(is_math);
+            leaves.push(self.leaf(target, t, &label));
+        }
+        let template = self.g.templates.len() as u32;
+        self.g.templates.push(TemplateOp {
+            expr: id,
+            post,
+            math,
+            blank: true,
+        });
+        Def::Op(GraphOp::Template(template), leaves)
+    }
+
+    /// Whether a build makes a lowered math's expression of math text
+    /// `id`: recorded, with no numeric-only function, and parsed.
+    fn makes_blank(&mut self, id: ExprId) -> bool {
+        let c = self.c;
+        let Some(sym) = c.plans.sym_text.get(&id) else {
+            return false;
+        };
+        if c.plans.arena.has_call(id) || id_has_leafless_text(c, id) {
+            return false;
+        }
+        let text = sym.spell(c.dast);
+        let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
+        match c.plans.sym_trees.get(&id) {
+            Some(cached) => cached.get_or_init(|| engine.parse_tree(&text)).is_ok(),
+            None => engine.parse_tree::<RefId>(&text).is_ok(),
+        }
+    }
+}
+
+/// Whether math text `id` has no reference leaf: nothing a value of it can
+/// be missing by.
+fn id_has_leafless_text(c: CompiledRef<'_>, id: ExprId) -> bool {
+    let mut plans = Vec::new();
+    occurrences(&c.plans.arena, id, &mut plans);
+    plans.is_empty()
 }
 
 /// Stamping, math text: a symbolic math's text spelled and checked.
@@ -279,7 +368,7 @@ fn occurrences(arena: &Arena<RefId>, id: ExprId, out: &mut Vec<RefId>) {
             occurrences(arena, *b, out);
         }
         Expr::Neg(a) => occurrences(arena, *a, out),
-        Expr::Call(_, args) | Expr::Shape(args) => {
+        Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
             for &a in args {
                 occurrences(arena, a, out);
             }
