@@ -437,9 +437,9 @@ of plain text and can earn 0 silently; a false `w0206`/`w0207` for an indexed re
 composite holding a `<when>`; content of another type inside a composite gets no `w0205`. Decided
 (D67 decisions 2–5): an answer's `type` is matched exactly, `videoWatched` included; `w0205` alone
 where it and `w0203` would both fire; a warning names a reference's value; `w0078` at the
-attribute. **A boolean answer credits "false"** for
-plain text whose operand the boolean–number rule blanks (`<award>$b = 1</award>`): a `<boolean>`
-holding a blank is `false`, not missing (VAL-5; #2656).
+attribute. **Fixed by #2658** (D70): a boolean answer no longer credits "false" for plain text
+whose operand the boolean–number rule blanks (`<award>$b = 1</award>`) or that names nothing: the
+logic is missing, and a missing value equals nothing.
 
 ### ANS-3: `maxNumAttempts` and `disableAfterCorrect` stop submission (Tier 1)
 See CTX-12. Code: `effectiveMaxNumAttempts`, `invertMaxNumAttempts`, and the `maxNumAttempts` and

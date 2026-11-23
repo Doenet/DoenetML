@@ -3006,11 +3006,14 @@ Alternatives: `<collection>`, `<items>`.
 
    **Decisions 3 and 4 done by #2651** (closing #2582; `W/utils/dast/booleanNumberMixAtLoad.ts`):
    the adapter is removed; each mix is a blank with **`doenet-w0203`**, also on an `extend` or a
-   `copy`; type changes are `e0065` with the suggestion; `credit` keeps taking a boolean. Left
-   (#2656): a `<boolean>` with a blanked operand is `false` rather than missing, so a boolean
-   answer can credit "false"; `<number convertBoolean>$b + 1</number>` is `NaN` (decided, D67
-   decision 1: `convertBoolean` counts every boolean in its expression); `$n = true`,
-   `<boolean>$b + 1 = 2</boolean>` and a named boolean inside a `<math>` (blanked everywhere).
+   `copy`; type changes are `e0065` with the suggestion; `credit` keeps taking a boolean.
+   **Leftovers done by #2658** (closing #2656): logic holding a mix is missing, not `false`, so a
+   boolean answer no longer credits "false"; `convertBoolean` counts every boolean (D67 decision
+   1), with **`doenet-w0208`** for a comparison of a boolean with a number there (`$b = 1`, which
+   works but reads better as `$b`); `$n = true` and `$b + 1 = 2` in a `<boolean>` are mixes; a
+   named boolean in a `<math>` keeps its value. Left (#2669): `true` split into letters in a
+   `<boolean>`'s logic (`(1 < 2) = true` is `false`), a group reached by reference not judged at
+   load, booleans side by side, `in` under `convertBoolean`, and wording.
 
    A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
 
@@ -3590,5 +3593,9 @@ rule should cover both.
 `＿ < 2`, `not (＿ = 1)`, `＿ = ＿` are all `＿`. VAL-5's "a missing value never equals anything"
 still holds: a missing boolean equals nothing, so it never earns credit, and where a boolean decides
 something (an award's `<when>`, a case's `condition`, `credit`) a missing one doesn't hold.
-Implemented with PR 63 (#2658).
+**Done by #2658** (PR 63). One shared rule (`valueFalseWhileMissing`): a missing boolean is shown
+`＿` and equals nothing, and whatever reads it as a condition (`hide`, a case's `condition`, an
+award) reads `false`, so `hide="$nothing != 1"` no longer hides. An input left blank is a value,
+not missing: `$mi != x` is true while `mi` is empty. `<isNumber>`, `<isBetween>`, `<matchesPattern>`
+and the like are missing with a missing operand. `credit="$nothing"` gives no credit.
 

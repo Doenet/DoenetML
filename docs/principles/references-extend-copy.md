@@ -219,9 +219,12 @@ Known violations (from #2520):
 - **fixed by #2645:** an index after a select or conditional whose every branch holds several is
   `w0191` at load, a `<group>` written as the one component counted by what it holds, so a
   `<select>` with options of different shapes is warned in every variant (DIAG-7);
-- **left** (#2654): `$e2[2]` of `<math name="e2" extend="$r[1]"/>`, an iteration holding `$cc.x`,
-  is `＿` after switching back to the `<else>` while `$e2` is right (DIAG-6); an option written as
-  `<group extend="$g2"/>` beside one holding several gets no load-time `w0191`.
+- **fixed by #2660:** `$e2[2]` of `<math name="e2" extend="$r[1]"/>`, an iteration holding
+  `$cc.x`, follows the case after each switch (DIAG-6); an option that is a group read through a
+  reference (`<group extend="$g2"/>`, `copy`, `$g2`) beside one holding several gets `w0191` at load;
+- **left** (#2669): an empty group as an option gives `w0188`, and a group of only text `w0100`,
+  only in the variants that pick it; `w0191`'s advice doesn't work through a group read by
+  reference.
 
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0188`:** an index after a group or instance that doesn't hold one component (#2518;
@@ -499,9 +502,15 @@ Known violations:
   showing the coordinates. `<group name="s">$ls[$i]</group>` shown by `$s` is `＿` only while `i`
   is past the end of `ls`. Two components each reading their own `hidden` in `hide` are both
   `e0005` at load;
-- **left** (#2654): a cycle through a `<caption>` hangs the worker (a caption's content has no
-  edges in the load check); two components each reading their own `fixed` report only one cycle;
-  a point made with `copy` of a point whose label reads the copy is `e0005` where it should load;
+- **fixed by #2660:** a cycle through a `<caption>`, and through each container whose content is
+  its children (`<figure>`, `<table>`, a row or cell, `<hint>`, `<feedback>`, `<graph>`, …), hung
+  the worker; it is `e0005` at load. Cycles through `fixed` and `fixLocation` are both found. A
+  point made with `copy` in its own label loads;
+- **left** (#2669): two false `e0005`s (a group extended with children of its own in an option,
+  and a point extended in a `<p>` read in a `<text>` in a label); a composite between the
+  container and the tag, and a point's own label in a container, found only after load;
+  `disabled` and `styleNumber` cycles report one of two; a `<p>` in a `<panel>` throws when its
+  state is read (DIAG-5);
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
@@ -895,7 +904,7 @@ them; an `<angle>` is a math. It also allows today, beyond that (**known violati
   `<ion>`, `<math extend="$line"/>` (its equation), and silently `<number extend="$line"/>`
   (`NaN`), `<boolean extend="$ion"/>` (`false`) and `<boolean extend="$me"/>`;
 - an angle as a math, and a label as a text, and from there any value type (`<boolean
-  extend="$l"/>` of a `<label>` was `false`; it is `e0065` in #2658);
+  extend="$l"/>` of a `<label>` was `false`; it is `e0065` since #2658);
 - a `<label>` made from a value (`<label extend="$m"/>`).
 
 Some of these sources give a blank with a misleading `w0107` instead (`<text extend="$line"/>`,
@@ -1097,6 +1106,10 @@ the document renders.
   the list above, and for an attribute a module does not declare, such as `displayDigits` on a
   `<module extend>`, which is ignored. Under the Tier 1 rule an appearance attribute should take
   effect there instead.
+- **Known violation** (#2668): children written inside an extend of a value tag are appended,
+  silently changing its value: `<number extend="$n">5</number>` of `2` is `25`,
+  `<math extend="$m">+1</math>` is `x + 1`, `<point extend="$P">(3,4)</point>` is `(3, 4)`. The
+  Tier 1 rule above allows children only on a `<group>` or `<module>` extend.
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
 - **Through a composite** (done by #2642): an extend of a `<conditionalContent>` holding the
