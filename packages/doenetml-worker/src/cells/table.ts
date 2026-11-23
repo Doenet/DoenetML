@@ -16,7 +16,7 @@ export const TEXT_BIT = 0x80000000;
 export type Child = { component: number } | { text: string };
 
 type Columns = {
-    componentType: Uint8Array;
+    componentType: Uint16Array;
     name: Uint32Array;
     parent: Uint32Array;
     propBase: Uint32Array;
@@ -62,7 +62,7 @@ export class CellsTable {
         const u32 = (ptr: number, len: number) =>
             new Uint32Array(memory.buffer, ptr, len);
         return {
-            componentType: new Uint8Array(
+            componentType: new Uint16Array(
                 memory.buffer,
                 core.comp_type_ptr(),
                 n,

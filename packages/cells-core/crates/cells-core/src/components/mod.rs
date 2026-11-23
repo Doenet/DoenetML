@@ -51,10 +51,11 @@ macro_rules! component_types {
             $($(#[$tdoc:meta])* $tvariant:ident => $tdef:expr,)*
         }
     ) => {
-        /// `repr(u8)` so the renderer can read the type column as a byte
-        /// array; the discriminants follow the list in `component_types!`.
+        /// `repr(u16)` so the renderer can read the type column as a
+        /// 16-bit array; the discriminants follow the list in
+        /// `component_types!`.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        #[repr(u8)]
+        #[repr(u16)]
         pub enum ComponentType {
             $(
                 $(#[$doc])*

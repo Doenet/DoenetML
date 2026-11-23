@@ -180,10 +180,10 @@ impl Core {
         self.doc.n_components()
     }
 
-    /// `u8` per component: the `ComponentType` discriminant, in the order of
-    /// `type_tags()`.
-    pub fn comp_type_ptr(&self) -> *const u8 {
-        self.doc.components.component_type.as_ptr() as *const u8
+    /// `u16` per component: the `ComponentType` discriminant, in the order
+    /// of `type_tags()`.
+    pub fn comp_type_ptr(&self) -> *const u16 {
+        self.doc.components.component_type.as_ptr() as *const u16
     }
 
     /// Tag names indexed by type discriminant, JSON array.
