@@ -86,9 +86,40 @@ spec! {
         expect { "c.value" = 1.5, "n.value" = 1.5 }
     }
 
-    case "a piece that is no number is refused" {
-        doenet r#"<sum name="s">x 1</sum>"#;
-        diagnostics["cells-unsupported"]
+    case "over math, the engine's operator over the operands (ADR 0043)" {
+        doenet r#"<sum name="s">x 2x</sum>
+                  <sum name="simp" simplify>x 2x y</sum>
+                  <mean name="m">x y</mean>
+                  <max name="hi">x y 3</max>
+                  <mod name="md">x 3</mod>
+                  <mod name="three">x 3 4</mod>
+                  <median name="med">x 3</median>"#;
+        expect {
+            "s.expr" = "x + 2 x", "s.value" = f64::NAN, "simp.expr" = "3 x + y",
+            "m.expr" = "(x + y)/2", "hi.expr" = "max(x, y, 3)", "md.expr" = "mod(x, 3)",
+            "three.expr" = "", "three.value" = f64::NAN, "med.expr" = "", "med.value" = f64::NAN,
+        }
+    }
+
+    case "an operand that is an expression makes it symbolic, and it follows" {
+        doenet r#"<mathInput name="mi" prefill="x"><label>m</label></mathInput>
+                  <number name="n">2</number>
+                  <sum name="s" simplify>$mi $mi $n</sum>
+                  <product name="p">$n 3</product>"#;
+        expect { "s.expr" = "2 x + 2", "p.expr" = "", "p.value" = 6 }
+        request { "mi.value" = 4 }
+        expect { "s.expr" = "10", "s.value" = 10 }
+    }
+
+    case "forced: symbolic over numbers, numeric over math; math text as written" {
+        doenet r#"<sum name="sym" forceSymbolic>3 17 1</sum>
+                  <sum name="simp" forceSymbolic simplify>3 17 1</sum>
+                  <sum name="num" forceNumeric>x 1</sum>
+                  <sum name="math">6/2 17 1</sum>"#;
+        expect {
+            "sym.expr" = "3 + 17 + 1", "sym.value" = 21, "simp.expr" = "21",
+            "num.expr" = "", "num.value" = f64::NAN, "math.expr" = "6/2 + 17 + 1", "math.value" = 21,
+        }
     }
 
     case "one operand per entry of a list, and per element child" {
@@ -103,6 +134,17 @@ spec! {
             // A number made from a missing operand is missing, whatever
             // the others are (D40; ADR 0046).
             "past.value" = crate::program::MISSING,
+        }
+    }
+
+    case "an element child or a list's entry that is math makes it symbolic (ADR 0043)" {
+        doenet r#"<mathList name="ml">x y</mathList>
+                  <sum name="s"><math>x</math><number>3</number> 2x</sum>
+                  <sum name="simp" simplify><math>x</math> $ml 2</sum>
+                  <sum name="num"><math>3</math><number>17</number></sum>"#;
+        expect {
+            "s.expr" = "x + 3 + 2 x", "simp.expr" = "2 x + y + 2",
+            "num.expr" = "", "num.value" = 20,
         }
     }
 }

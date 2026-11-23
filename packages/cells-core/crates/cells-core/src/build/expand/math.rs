@@ -154,22 +154,9 @@ impl<'c> Builder<'c> {
     /// Constant expression `constant` as imported (`h`), its post applied
     /// and kept for every later instance and build.
     fn math_constant(&mut self, constant: (ExprId, Post), h: crate::sym::Handle) -> BuiltSource {
-        let h = self.post(h, constant.1);
+        let h = constant.1.apply(self.engine, h);
         self.math_constants.insert(constant, h);
         BuiltSource::Const(h.to_value())
-    }
-
-    /// `post` applied to a constant expression at build time.
-    fn post(&mut self, h: crate::sym::Handle, post: Post) -> crate::sym::Handle {
-        match post {
-            Post::None => h,
-            Post::Simplify => self.engine.simplify(h),
-            Post::Expand => self.engine.expand(h),
-            Post::SimplifyExpand => {
-                let h = self.engine.simplify(h);
-                self.engine.expand(h)
-            }
-        }
     }
 
     /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf
@@ -353,6 +340,11 @@ impl<'c> Builder<'c> {
                     .map(|a| self.instantiate_expr(a, scope))
                     .collect::<Result<_>>()?,
             ),
+            Expr::Operator(args) => Expr::Operator(
+                args.into_iter()
+                    .map(|a| self.instantiate_expr(a, scope))
+                    .collect::<Result<_>>()?,
+            ),
         };
         let done = self.arena.push(out);
         if let Some(key) = class {
@@ -375,7 +367,7 @@ impl<'c> Builder<'c> {
         match e {
             Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
-            Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
+            Expr::Sym(_) | Expr::Operator(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower_shared(a, scope);
                 self.math_op(OpSpec::Negate, &[a], scope)

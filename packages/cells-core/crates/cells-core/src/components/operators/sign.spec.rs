@@ -24,4 +24,9 @@ spec! {
         dropped(1)
         expect { "s.value" = 1, "n.value" = 4 }
     }
+
+    case "over math: sign(..), a number when it evaluates to one" {
+        doenet r#"<sign name="a">-2y</sign><sign name="b">-log(3)</sign>"#;
+        expect { "a.expr" = "sign(-2 y)", "a.value" = f64::NAN, "b.expr" = "-1", "b.value" = -1 }
+    }
 }

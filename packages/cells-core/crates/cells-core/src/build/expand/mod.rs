@@ -1630,6 +1630,20 @@ impl<'c> Builder<'c> {
                     }
                 }
                 Flow::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
+                // Symbolic when the compile typed the operator's `expr` math
+                // (ADR 0043).
+                Flow::ValueOf(expr, numeric) => {
+                    if self.compiled.plans.port_type(
+                        inst.template.index(),
+                        slot_off_of(self, inst).offset(expr.index()),
+                    ) == PortType::Math
+                    {
+                        let expr = self.slot(comp, expr.index());
+                        self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
+                    } else {
+                        BuiltSource::Alias(self.slot(comp, numeric.index()))
+                    }
+                }
                 // Left unset: materialized from the tree (`fill_aggregate`).
                 Flow::Aggregate(_) => BuiltSource::Unset,
             },

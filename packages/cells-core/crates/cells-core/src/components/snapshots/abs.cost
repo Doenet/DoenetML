@@ -1,5 +1,6 @@
 a literal, a reference and math over one: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
-nothing, or math the lowering cannot evaluate: no value: cells 5 · essential 0 · constant 5 · instrs 0 · components 3
+nothing: no value; over math, its absolute value (ADR 0043): cells 8 · essential 0 · constant 8 · instrs 0 · components 4
+over a math input: an expression, a number when it is one: cells 7 · essential 1 · constant 3 · instrs 3 · components 4
 a request writes the asked value, and 0 for a negative one: cells 5 · essential 1 · constant 3 · instrs 1 · components 4
 a request through a reference writes its source: cells 5 · essential 1 · constant 3 · instrs 1 · components 5
 a copy shares its value: cells 5 · essential 0 · constant 5 · instrs 0 · components 4

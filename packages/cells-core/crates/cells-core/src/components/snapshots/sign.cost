@@ -1,3 +1,4 @@
 negative, positive and zero: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
 of a reference, and of nothing: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
 a request cannot change it: cells 5 · essential 0 · constant 5 · instrs 0 · components 5
+over math: sign(..), a number when it evaluates to one: cells 7 · essential 0 · constant 7 · instrs 0 · components 3

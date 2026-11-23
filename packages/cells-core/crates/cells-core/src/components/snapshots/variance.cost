@@ -2,3 +2,4 @@ a sample's, by default: cells 10 · essential 0 · constant 10 · instrs 0 · co
 a population's: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
 of references, a population's while a box is checked: cells 7 · essential 1 · constant 5 · instrs 1 · components 5
 one operand: a sample's has no value; none: no value: cells 8 · essential 0 · constant 8 · instrs 0 · components 4
+over math: its expression, when population is written: cells 9 · essential 0 · constant 9 · instrs 0 · components 4

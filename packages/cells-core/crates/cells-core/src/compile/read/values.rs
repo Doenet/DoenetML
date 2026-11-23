@@ -129,7 +129,8 @@ impl<'a> Reader<'a> {
     }
 
     /// Math text and `$ref` children to an expression template whose cell
-    /// leaves are plan ids.
+    /// leaves are plan ids, its text kept for the symbolic engine: an
+    /// operator over math reads it as math (ADR 0043).
     pub(in crate::compile) fn plan_math(
         &self,
         ar: &mut Arenas,
@@ -138,8 +139,7 @@ impl<'a> Reader<'a> {
         nodes: &[NodeId],
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("plan math");
-        let (toks, src) = self.math_tokens(ar, t, scope, nodes)?;
-        self.parse_tokens(ar, &toks, src)
+        self.plan_sym_math(ar, t, scope, nodes)
     }
 
     /// Math text and `$ref` children to an expression template, recording

@@ -24,7 +24,9 @@
 //!
 //! - `expect { "name.prop" = value, .. }`: values now, a number or a
 //!   tuple for a prop of several cells (`"p.coords" = (1, 2)`), or an
-//!   array for a list's cells (`"t.vertices" = [1, 2, 3, 5]`).
+//!   array for a list's cells (`"t.vertices" = [1, 2, 3, 5]`), or text
+//!   for the expression a math cell holds as the engine prints it
+//!   (`"s.expr" = "x + 2 x"`; `""` for no expression).
 //! - `request { "name.prop" = value, .. }`: one tick. Numbers are scalar
 //!   requests; tuples are points dragged together.
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
@@ -49,14 +51,22 @@ use crate::{Document, PointRequest, Request};
 use std::fmt::Write as _;
 use std::path::Path;
 
-/// A value a spec expects or requests: one number, or one per cell of a
-/// prop of several cells.
+/// A value a spec expects or requests: one number, one per cell of a
+/// prop of several cells, or an expression's text.
 #[derive(Debug, Clone)]
 pub enum Value {
     /// One number.
     Num(f64),
     /// One number per cell, in order.
     Tuple(Vec<f64>),
+    /// The text of the expression a math cell holds; empty for none.
+    Expr(&'static str),
+}
+
+impl From<&'static str> for Value {
+    fn from(text: &'static str) -> Self {
+        Value::Expr(text)
+    }
 }
 
 impl From<f64> for Value {
@@ -249,6 +259,13 @@ fn run_case(case: &Case) -> Result<String, String> {
         match op {
             Op::Expect(values) => {
                 for (path, want) in values {
+                    if let Value::Expr(text) = want {
+                        let got = read_expr(&doc, path).map_err(|e| format!("{at}: {e}"))?;
+                        if got != *text {
+                            return Err(format!("{at}: {path} is {got:?}, expected {text:?}"));
+                        }
+                        continue;
+                    }
                     let got = read(&doc, path).map_err(|e| format!("{at}: {e}"))?;
                     if !matches(&got, want) {
                         return Err(format!("{at}: {path} is {got:?}, expected {want:?}"));
@@ -365,6 +382,14 @@ fn read(doc: &Document, path: &str) -> Result<Value, String> {
         [v] => Value::Num(*v),
         _ => Value::Tuple(vs),
     })
+}
+
+/// The text of the expression the one cell of `path` holds; empty for none.
+fn read_expr(doc: &Document, path: &str) -> Result<String, String> {
+    match cells(doc, path)?.as_slice() {
+        [cell] => Ok(doc.math_text(*cell)),
+        cs => Err(format!("{path}: {} cells, not one expression", cs.len())),
+    }
 }
 
 /// Equal within roundoff; a NaN matches a NaN of its kind, so a spec

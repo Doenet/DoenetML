@@ -312,6 +312,54 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.ar.warn(node, code, message)
     }
 
+    // Operators over math (ADR 0043).
+
+    /// An operand planned from the record (a literal, a reference, math
+    /// text, as [`PlanCtx::value_of`] plans one) as an expression the
+    /// symbolic engine reads: the number, the reference's leaf, or the math
+    /// text. `None` for a source that is none of these.
+    pub(crate) fn operand_expr(&mut self, source: &Source) -> Option<ExprId> {
+        let ar = &mut self.p.ar;
+        Some(match source {
+            Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => ar.arena.push(Expr::Num(*v)),
+            Source::Flow(Flow::Math(id)) => *id,
+            Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) => {
+                let id = ar.arena.push(Expr::Cell(*p));
+                ar.sym_text.insert(id, SymText::Leaf(*p));
+                id
+            }
+            _ => return None,
+        })
+    }
+
+    /// An operator over math `args` that only the symbolic engine computes
+    /// (`Expr::Operator`): its text is `spell` of the operands' texts, each
+    /// in parentheses, as the engine reads them (a number as written, a
+    /// reference as its leaf).
+    pub(crate) fn operator_expr(
+        &mut self,
+        args: &[ExprId],
+        spell: impl FnOnce(&[String]) -> String,
+    ) -> ExprId {
+        let dast = self.p.rd.dast;
+        let ar = &mut self.p.ar;
+        let texts: Vec<String> = args
+            .iter()
+            .map(|id| {
+                let text = match (ar.sym_text.get(id), ar.arena.get(*id)) {
+                    (Some(sym), _) => sym.spell(dast),
+                    (None, Expr::Num(v)) => crate::sym::engine::number_text(*v),
+                    (None, other) => unreachable!("an operand with no text: {other:?}"),
+                };
+                format!("({text})")
+            })
+            .collect();
+        let text = spell(&texts);
+        let id = ar.arena.push(Expr::Operator(args.to_vec()));
+        ar.sym_text.insert(id, SymText::Spelled(text));
+        id
+    }
+
     // The element's wiring.
 
     /// The element's `<math>` text as it was parsed, or the

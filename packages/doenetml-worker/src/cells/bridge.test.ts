@@ -683,6 +683,30 @@ describe("step 3 components", () => {
         expect(changed(payload, "max")).toEqual({ latex: "6" });
     });
 
+    it("draws an operator over math as its expression, which follows its operands", async () => {
+        const { all, props, send, changed } = await open(`
+<mathInput name="mi" prefill="x"/>
+<abs>$mi</abs> <sum name="s" simplify>$mi 2x</sum> <sum forceSymbolic>1 2</sum>
+<angle radians="alpha" inDegrees/> <angle>pi/2</angle>
+<m>k = $s</m>`);
+        expect(props("abs")).toEqual({
+            latex: "\\left|x\\right|",
+            renderMode: "inline",
+        });
+        expect(props("sum").latex).toBe("3 x");
+        expect((all("sum")[1].data as any).props.latex).toBe("1 + 2");
+        expect(all("angle").map((e) => (e.data as any).props.latex)).toEqual([
+            "\\frac{180 \\alpha}{\\pi}^\\circ",
+            "\\frac{\\pi}{2}",
+        ]);
+        // Math notation refers to an operator by its expression.
+        expect(props("m").latex).toBe("k = 3 x");
+
+        const payload = send("mathInput", "updateValue", { text: "-2" });
+        expect(changed(payload, "abs")).toEqual({ latex: "2" });
+        expect(changed(payload, "sum")).toEqual({ latex: "2 x - 2" });
+    });
+
     it("writes math notation with the values it refers to", async () => {
         const { all, props } = await open(`<number name="n">3</number>
 <m>x^{$n}</m><md><mrow>a</mrow><mrow>b</mrow></md>

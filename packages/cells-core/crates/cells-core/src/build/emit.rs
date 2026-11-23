@@ -781,7 +781,7 @@ fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
         Tree::Num(_) | Tree::Sym(_) => false,
-        Tree::Add(ts) | Tree::Mul(ts) => ts.iter().any(has_math_leaf),
+        Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) => ts.iter().any(has_math_leaf),
         Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => has_math_leaf(a) || has_math_leaf(b),
         Tree::Neg(a) | Tree::Apply(_, a) => has_math_leaf(a),
     }

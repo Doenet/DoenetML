@@ -143,6 +143,18 @@ export class Reads {
         }
         return this.exprLatex(c, "expr");
     }
+
+    /** LaTeX of a value that is a number or, when the core made it one, an
+     * expression in `exprProp` (an operator over math, an angle's measure;
+     * ADR 0043): the expression when its cell holds one, else the number
+     * `prop`. */
+    exprOrNumberLatex(c: number, exprProp: string, prop: string): string {
+        const cell = this.table.cell(c, exprProp);
+        if (cell !== undefined && !Number.isNaN(this.cell(cell))) {
+            return this.table.core.expr_latex(cell);
+        }
+        return numberLatex(this.num(c, prop));
+    }
 }
 
 export type Role =
@@ -380,6 +392,11 @@ function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
     if (type === "math" || type === "mathInput") return r.mathLatex(c);
     if (NUMBER_TYPES.has(type)) {
+        // An operator over math holds an expression (ADR 0043).
+        const expr = r.table.cell(c, "expr");
+        if (expr !== undefined && !Number.isNaN(r.cell(expr))) {
+            return r.table.core.expr_latex(expr);
+        }
         return r.missing(c, "value") ? BLANK : mathNumber(r.num(c, "value"));
     }
     if (type === "intComma") {
@@ -487,9 +504,16 @@ const MATH_VALUE: Contract = {
     props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
 };
 
-/** A numeric operator: its value as math notation. Its children are its
- * operands, never drawn. */
-const OPERATOR_VALUE: Contract = { ...MATH_VALUE, noChildren: true };
+/** An operator: its value as math notation, the expression an operator over
+ * math holds (ADR 0043), else its number. Its children are its operands,
+ * never drawn. */
+const OPERATOR_VALUE: Contract = {
+    props: (r, c) => ({
+        latex: r.exprOrNumberLatex(c, "expr", "value"),
+        renderMode: "inline",
+    }),
+    noChildren: true,
+};
 
 /** A boolean operator: its value. Its children are its operands, never
  * drawn. */
@@ -1181,9 +1205,10 @@ export const CONTRACTS: Record<string, Contract> = {
                 ? { numericalVertices: pairs(r, r.table.listCells(c)) }
                 : {},
     },
-    // Its measure, in radians or, with `inDegrees`, in degrees.
     // In a graph an arc at its vertex, from the ray through its first
-    // point, turning counterclockwise by its measure; in text its measure.
+    // point, turning counterclockwise by its measure. In text its measure,
+    // in radians or, with `inDegrees`, in degrees: the expression when the
+    // measure is one (ADR 0043), else the number.
     angle: {
         props: (r, c, inGraph) => {
             if (inGraph) {
@@ -1196,10 +1221,14 @@ export const CONTRACTS: Record<string, Contract> = {
                 };
             }
             const decimals = r.table.attrThrough(c, "displayDecimals");
-            const latex = flag(r.table, c, "inDegrees")
-                ? `${r.numText(c, "degrees", decimals)}^\\circ`
-                : r.numText(c, "radians", decimals);
-            return { latex };
+            const inDegrees = flag(r.table, c, "inDegrees");
+            const exprProp = inDegrees ? "degreesExpr" : "radiansExpr";
+            const expr = r.table.cell(c, exprProp);
+            const measure =
+                expr !== undefined && !Number.isNaN(r.cell(expr))
+                    ? r.exprLatex(c, exprProp)
+                    : r.numText(c, inDegrees ? "degrees" : "radians", decimals);
+            return { latex: inDegrees ? `${measure}^\\circ` : measure };
         },
         noChildren: true,
     },

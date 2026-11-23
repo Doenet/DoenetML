@@ -183,8 +183,11 @@ pub fn inputs(
         let Some(key) = key_of.get(&node) else {
             continue;
         };
+        // An anchor with no graph above it is a constant, no state (ADR 0047).
+        let anchors = ty.anchor_props().unwrap_or_default();
         let names: Vec<(String, crate::CellIdx)> = (0..cells.len())
             .filter(|&pi| ty.is_input_prop(cells.len(), pi))
+            .filter(|&pi| !anchors.contains(&pi) || doc.is_essential(cells[pi]))
             .filter_map(|pi| Some((ty.prop_name(cells.len(), pi)?.into_owned(), cells[pi])))
             .collect();
         if names.is_empty() {

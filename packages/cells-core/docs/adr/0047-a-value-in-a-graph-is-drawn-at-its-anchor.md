@@ -49,7 +49,10 @@ both planner kinds: some are planned from their table (`<number>`,
    such anchor shares: one cell per document, no essential cell, no
    instruction (ADR 0019). Whether a graph is above the element is read
    from its template, the element's ancestors and those of the repeat or
-   choice the template belongs to.
+   choice the template belongs to. Nor is such an anchor an input of the
+   input signature (ADR 0017): an edit that drops a value outside a graph
+   loses no student's work. Inside a graph it is one, as a point's
+   coordinates are.
 
 4. **A `$ref` child shown as a value** (`$p1.y` in text) has every prop
    of its type, its anchor the missing value: the builder and the

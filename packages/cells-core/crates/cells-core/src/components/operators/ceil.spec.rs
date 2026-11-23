@@ -26,4 +26,9 @@ spec! {
         request { "mi.value" = 3.2 }
         expect { "n.value" = 4, "c.value" = 4 }
     }
+
+    case "over math: ceil(..), a number when it evaluates to one" {
+        doenet r#"<ceil name="a">-3.2y</ceil><ceil name="b">log(31)</ceil>"#;
+        expect { "a.expr" = "ceil(-3.2 y)", "a.value" = f64::NAN, "b.expr" = "4", "b.value" = 4 }
+    }
 }

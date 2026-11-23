@@ -539,16 +539,7 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
         SymKind::InstantiateBlank { .. } if !is_missing(v(0)) => out[0] = f64::NAN,
         SymKind::Instantiate { template, post } | SymKind::InstantiateBlank { template, post } => {
             let h = engine.instantiate(template, cells);
-            let h = match post {
-                crate::program::Post::None => h,
-                crate::program::Post::Simplify => engine.simplify(h),
-                crate::program::Post::Expand => engine.expand(h),
-                crate::program::Post::SimplifyExpand => {
-                    let h = engine.simplify(h);
-                    engine.expand(h)
-                }
-            };
-            out[0] = h.to_value();
+            out[0] = post.apply(engine, h).to_value();
         }
         // A missing or blank expression evaluates to the missing value: a
         // number cannot hold a blank (D40, ADR 0046).
