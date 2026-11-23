@@ -111,8 +111,8 @@ pub(crate) struct CompileOutput {
 
 /// Compile `dast`: plan it, check it (`check`), and box
 /// every element that fails until every element builds. The compile holds
-/// the source's diagnostics. Only a cycle, which has no element to box,
-/// fails it.
+/// the source's diagnostics. A cycle boxes the component it names; only
+/// one through no component the author wrote fails it.
 ///
 /// For tests, `check_cycles` off skips the cycle and count checks, and
 /// with them the structural depth, and `classify` off makes every port
@@ -190,7 +190,7 @@ pub(crate) fn signature_renamed(
     let (_, signature) = plan_and_check(dast, &mut Vec::new(), true, |dast, plans| {
         let compiled = CompiledRef { dast, plans };
         let mut g = graph::template_graph_with_parents(compiled)?;
-        graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?;
+        graph::check_cycles(&g, compiled)?;
         let defined = graph::define(&mut g, compiled)?;
         let mut constants = graph::Constants::new(&g, &defined, compiled);
         let picks = graph::check_choices(&g, &mut constants, compiled)?;
@@ -215,8 +215,9 @@ pub(crate) fn constant_ranges(
 /// it fails; then run `check` on the plan. An element `check` fails on, or
 /// a failure no element could carry, is boxed and the plan made again.
 /// Each box is an error in `errors`, and the planners' warnings of the
-/// plan that checked join them. Only a failure with no element to box, a
-/// cycle, fails it, after its error joins `errors` too. `share` runs the
+/// plan that checked join them. A cycle boxes the component it names.
+/// Only a failure with no element to box (a cycle through no component
+/// the author wrote) fails it, after its error joins `errors` too. `share` runs the
 /// sharing stage. Every stage and `check` borrow `dast`; the
 /// loop returns the plans that checked, made from it.
 fn plan_and_check<T>(

@@ -97,6 +97,18 @@ fn ref_3_an_attribute_on_a_math_extend_keeps_the_referents_expression() {
     assert_eq!(text(&doc, "T.p"), "x + 1");
 }
 
+/// REF-10: settings that control how content is read apply to an
+/// extend's reading of the referent's text.
+#[test]
+fn ref_10_a_math_extend_reads_the_referents_text_with_its_own_settings() {
+    let doc = load(
+        r#"<math name="m" simplify>x+x</math><math name="e" extend="$m" simplify="none"/>
+           <p name="p">$m; $e</p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "2 x; x + x");
+}
+
 /// CTX-1, CTX-7: a fixed extend of a math follows its referent and takes
 /// no write.
 #[test]
@@ -187,4 +199,23 @@ fn diag_5_an_unread_attribute_on_the_document_is_a_warning() {
         .find(|d| d.code == "cells-unsupported-attribute")
         .expect("a diagnostic for foo");
     assert_eq!(d.kind, DiagnosticKind::Warning);
+}
+
+/// DIAG-5, NAME-7 (D14): a cycle is an error on a component it runs
+/// through, which is boxed; the rest of the document renders.
+#[test]
+fn diag_5_a_cycle_boxes_its_component_and_the_rest_renders() {
+    let doc = load(
+        r#"<number name="a">$b</number><number name="b">$a</number>
+           <p name="p">still here</p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "still here");
+    let cycle = doc
+        .diagnostics()
+        .iter()
+        .find(|d| d.code == "doenet-e0005")
+        .expect("the cycle is reported");
+    assert_eq!(cycle.kind, DiagnosticKind::Error);
+    assert!(cycle.node.is_some(), "located where the author wrote it");
 }

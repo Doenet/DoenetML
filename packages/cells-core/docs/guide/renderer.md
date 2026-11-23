@@ -14,8 +14,9 @@ JSON or in the binary wire format (ADR 0002), and
 loads with the defaults. A load does not fail on an author's mistake: an
 element that cannot be built is an `_error` component where it stands,
 and [`Document::diagnostics`](crate::Document::diagnostics) lists every
-error, warning and lint finding by node (ADR 0013). Only a dependency
-cycle, which no element can carry, fails the load with an
+error, warning and lint finding by node (ADR 0013). A dependency cycle
+boxes the component it names. Only a failure no element can carry, a
+cycle through no component the author wrote, fails the load with an
 [`Error`](crate::Error).
 
 ## Reading

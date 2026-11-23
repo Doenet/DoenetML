@@ -187,13 +187,16 @@ fn presentation_attributes_and_the_normalizers_elements_are_not_refused() {
 }
 
 #[test]
-fn a_cycle_has_no_element_and_is_reported_on_the_document() {
-    let src = r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#;
-    assert!(load(src).is_err());
+fn a_cycle_is_reported_on_the_component_it_names_and_the_rest_renders() {
+    let src = r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/><number name="ok">3</number>"#;
+    let doc = load(src).expect("a cycle boxes, not fails");
+    assert_eq!(doc.value("ok", "value"), Some(3.0));
     let list = diagnose_src(src);
-    assert_eq!(list.len(), 1, "{list:?}");
-    assert_eq!(list[0].code, "doenet-e0005");
-    assert_eq!(list[0].node, None);
+    let cycle = list
+        .iter()
+        .find(|d| d.code == "doenet-e0005")
+        .unwrap_or_else(|| panic!("{list:?}"));
+    assert!(cycle.node.is_some(), "{cycle:?}");
 }
 
 #[test]

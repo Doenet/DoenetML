@@ -136,6 +136,23 @@ pub fn load_error(source: &str) -> (&'static str, String) {
         .unwrap_or_else(|| panic!("{source}: loaded without an error"))
 }
 
+/// The cycle a loaded document reports: the message of its
+/// `doenet-e0005`, if it has one. A cycle boxes the component it names,
+/// so the rest of the document loads (DIAG-5).
+pub fn cycle_of(doc: &crate::Document) -> Option<String> {
+    doc.diagnostics()
+        .iter()
+        .find(|d| d.code == "doenet-e0005")
+        .map(|d| d.message.clone())
+}
+
+/// The cycle `source` reports, by `cycle_of`. Panics when the document
+/// does not load or loads without one.
+pub fn load_cycle(source: &str) -> String {
+    let doc = load(source).unwrap_or_else(|e| panic!("{source}: did not load: {e}"));
+    cycle_of(&doc).unwrap_or_else(|| panic!("{source}: loaded without a cycle"))
+}
+
 /// Parse to DAST JSON, convert to the binary wire format in Rust, and load
 /// from that; lets tests check both loaders agree.
 pub fn load_via_binary(source: &str) -> crate::Result<crate::Document> {
