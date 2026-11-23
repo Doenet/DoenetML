@@ -2188,10 +2188,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ];
                 expect(censusOfCore(core).copies).eq(0);
 
-                // `=` is false for every missing value, and `!=` true between
-                // two of them, except that `matchBlanks` matches a blank to a
-                // blank input. A blank math and a text are not comparable, so
-                // `!=` with a text is false too.
+                // A comparison with a missing value is missing (D70), and a
+                // missing boolean is false wherever it is read: `=`, `!=`,
+                // `not`, `matchBlanks` against a blank input, all false.
                 expect(
                     await values(core, resolvePathToNodeIdx, [
                         ...comparisons,
@@ -2201,20 +2200,20 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     ]),
                 ).eqls({
                     numEq: false,
-                    numNe: true,
+                    numNe: false,
                     numNaN: false,
-                    numBlank: true,
+                    numBlank: false,
                     textEq: false,
-                    textNe: true,
+                    textNe: false,
                     textNeText: false,
                     textEmpty: false,
                     textInput: false,
                     boolEq: false,
-                    boolNotEq: true,
+                    boolNotEq: false,
                     boolFalse: false,
                     boolInput: false,
                     choiceEq: false,
-                    choiceNe: true,
+                    choiceNe: false,
                     // a number and a boolean hold the empty value of their
                     // type, and a text reads a missing value as a blank (D37)
                     num: NaN,
@@ -2534,8 +2533,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
                 // A boolean can't hold a blank, so an operator with a missing
                 // operand is missing, whatever its other operands (D40,
-                // #2460). The value it holds meanwhile takes the operand as
-                // not true.
+                // #2460), and a missing boolean is false (D70).
                 const names = ["and", "andOnly", "andNone", "iff", "implies"];
                 expect(censusOfCore(core).copies).eq(0);
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
@@ -2543,7 +2541,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     andOnly: false,
                     andNone: false,
                     iff: false,
-                    implies: true,
+                    implies: false,
                 });
                 const stateVariables = await core.returnAllStateVariables(
                     false,
@@ -2595,7 +2593,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // false. Inside a composite the copy made nothing, which
                 // made it true there and false at document level. A missing
                 // number makes a sum of numbers missing (D40).
-                const expected = [false, true, false, false, "＿", false];
+                // A comparison with a missing value is missing, so false
+                // (D70).
+                const expected = [false, false, false, false, "＿", false];
                 for (const name of [
                     (n: string) => "d" + n,
                     (n: string) => "r[1]." + n,
@@ -2727,7 +2727,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // a missing number among numbers makes the sum missing (D40)
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
                     eq: false,
-                    ne: true,
+                    ne: false,
                     sum: "＿",
                     count: 2,
                     num: NaN,

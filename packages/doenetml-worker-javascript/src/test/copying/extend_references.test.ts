@@ -1307,8 +1307,13 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["+", "＿", "＿"]);
+        // a comparison with a missing value is missing, and so false (D70)
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues
+                .valueMissing,
         ).eq(true);
     });
 

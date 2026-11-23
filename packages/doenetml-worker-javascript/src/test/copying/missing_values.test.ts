@@ -1779,7 +1779,8 @@ describe("A value computed from a missing input (D40) @group2", () => {
         );
         // a comparison with a missing operand is missing too (VAL-5, #2656)
         expect(texts.p).eq("[＿][＿][＿][＿][＿][false][＿]");
-        expect(texts.p2).eq("[＿][＿][＿][＿][false][true]");
+        // a test of a missing value is missing too (D70)
+        expect(texts.p2).eq("[＿][＿][＿][＿][＿][true]");
         for (const [name, missing] of [
             ["b1", true],
             ["b3", true],
