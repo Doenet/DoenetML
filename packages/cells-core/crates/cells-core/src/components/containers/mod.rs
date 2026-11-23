@@ -5,14 +5,17 @@ use super::define::*;
 
 /// Containers that are only that, as a list: each entry a type in a module
 /// of its own, `name: ["tag", ..];`, a rendered container planned from its
-/// table, with what else its block says between braces (`{ structure:
+/// table, with its other flags after `with` (`with [passes_divisions]`)
+/// and what else its block says between braces (`{ structure:
 /// Transparent, presentation { widths } }`, the sections of
 /// [`component!`](crate::components::define::component) that come after
 /// `flags`, in its order). The entry's doc comment is its definition's.
 macro_rules! containers {
     ($(
         $(#[$doc:meta])*
-        $module:ident: [$($tag:literal),+ $(,)?] $({ $($more:tt)* })?;
+        $module:ident: [$($tag:literal),+ $(,)?]
+            $(with [$($flag:ident),+ $(,)?])?
+            $({ $($more:tt)* })?;
     )*) => {$(
         pub(crate) mod $module {
             use $crate::components::define::*;
@@ -20,7 +23,7 @@ macro_rules! containers {
             component! {
                 $(#[$doc])*
                 tags: [$($tag),+],
-                flags: [container],
+                flags: [container $($(, $flag)+)?],
                 $($($more)*)?
                 planner: Props,
             }

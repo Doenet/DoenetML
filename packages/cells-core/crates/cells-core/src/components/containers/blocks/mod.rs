@@ -6,8 +6,8 @@
 //! Each is a container with few or no props of its own: how it looks is the
 //! renderer's. What the core cares about is whether the sections inside it
 //! are numbered among the sections around it: through an introduction, a
-//! conclusion or a statement they are (each is structure, as a `<div>` is in
-//! the current core); a proof, a solution or a figure numbers its own
+//! conclusion or a statement they are (each passes the divisions' sequence
+//! through, as a `<div>` does; ADR 0054); a proof, a solution or a figure numbers its own
 //! sections from 1 and takes no number among its siblings.
 //!
 //! A figure's number ("Figure 2", shared with the tables) and a footnote's
@@ -55,8 +55,9 @@ mod postpone_render_container_spec;
 containers! {
     /// `<proof>`: a division with a heading, collapsed until opened
     /// (`startOpen`), that takes no number: the sections inside it are
-    /// numbered among themselves.
-    proof: ["proof"] {
+    /// numbered among themselves. It takes a place among its parent's
+    /// list items, as every sectioning component does (ADR 0054).
+    proof: ["proof"] with [unnumbered_division] {
         presentation { startOpen, boxed, postponeRendering }
     };
 
@@ -68,24 +69,18 @@ containers! {
         }
     };
 
-    /// `<introduction>`: the opening block of a division, looked
-    /// through: a section inside it is numbered among the sections
-    /// around it.
-    introduction: ["introduction"] {
-        structure: Transparent,
-    };
+    /// `<introduction>`: the opening block of a division, a `<div>`
+    /// to the numbering: a section inside it is numbered among the
+    /// sections around it (ADR 0054).
+    introduction: ["introduction"] with [passes_divisions];
 
-    /// `<conclusion>`: the closing block of a division, looked through
-    /// as an `<introduction>` is.
-    conclusion: ["conclusion"] {
-        structure: Transparent,
-    };
-
-    /// `<statement>`: the statement of a problem or a theorem, looked
+    /// `<conclusion>`: the closing block of a division, numbered
     /// through as an `<introduction>` is.
-    statement: ["statement"] {
-        structure: Transparent,
-    };
+    conclusion: ["conclusion"] with [passes_divisions];
+
+    /// `<statement>`: the statement of a problem or a theorem,
+    /// numbered through as an `<introduction>` is.
+    statement: ["statement"] with [passes_divisions];
 
     /// `<figure>`: its content, then its `<caption>` under its name,
     /// "Figure 2", its number shared with the tables (ADR 0044) unless

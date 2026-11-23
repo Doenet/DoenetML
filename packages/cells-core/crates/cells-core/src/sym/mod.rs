@@ -5,12 +5,16 @@
 //! tape samples a constant-shape expression without the engine.
 
 pub(crate) mod compare;
+pub(crate) mod display;
 pub(crate) mod engine;
+pub(crate) mod subset;
 pub(crate) mod tape;
 pub(crate) mod tree;
 
 pub use compare::CompareOpts;
+pub use display::Display;
 pub use engine::Engine;
+pub use subset::SubsetPart;
 pub use tree::{Leaf, Shape, Tree};
 
 crate::index::index_type! {

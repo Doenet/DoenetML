@@ -116,7 +116,7 @@ impl Tape {
                 self.push(TapeOp::Neg, depth, 1)
             }
             // A value with entries is no number to sample.
-            Tree::Shape(..) => return None,
+            Tree::Shape(..) | Tree::Written(_) => return None,
             Tree::Apply(f, a) => {
                 let func = match f.as_str() {
                     "sin" => Func::Sin,

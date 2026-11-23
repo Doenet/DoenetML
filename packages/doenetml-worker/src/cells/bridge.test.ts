@@ -70,6 +70,19 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws an interval list's entries as maths (ADR 0041)", async () => {
+        const bridge = await load(
+            `<p><intervalList>(1, 2) [3, 4]</intervalList></p>`,
+        );
+        expect(paragraphs(bridge.flatDast())).toEqual([
+            [
+                "<math>\\left( 1, 2 \\right)",
+                ", ",
+                "<math>\\left[ 3, 4 \\right]",
+            ],
+        ]);
+    });
+
     it("draws a point list's entries as points, in a graph one by one (ADR 0041)", async () => {
         const bridge = await load(`<point name="P">(9,10)</point>
 <graph><pointList name="pl"><point name="A">(1,2)</point> (3,4) $P</pointList></graph>
@@ -672,6 +685,29 @@ describe("step 3 components", () => {
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
     });
 
+    // A math input bound to a cell holding an expression writes an
+    // expression there, a number included (ADR 0041).
+    it("types an expression into an input bound to a math list's entry or a subset", async () => {
+        const { props, send, changed } = await open(`
+<mathList name="ml">x y</mathList>
+<mathInput name="mi" bindValueTo="$ml[1]"/>
+<mathInput name="m0" prefill="(0, 1) union [1, 2]"/>
+<subsetOfReals name="s">$m0</subsetOfReals>
+<mathInput name="ms" bindValueTo="$s"/>`);
+        expect(props("mathInput", 0).text).toBe("x");
+        expect(props("mathInput", 2).text).toBe("(0, 2]");
+        let payload = send("mathInput", "updateValue", { text: "5" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("5");
+        // Written to what the subset reads, as the subset writes it.
+        payload = send("mathInput", "updateValue", { text: "x > 3" }, 2);
+        expect(changed(payload, "mathInput", 2)?.text).toBe("(3, ∞)");
+        expect(changed(payload, "mathInput", 1)?.text).toBe("(3, ∞)");
+        // Drawn as a math, after the list's two entries.
+        expect(changed(payload, "math", 2)?.latex).toBe(
+            "\\left( 3, \\infty \\right)",
+        );
+    });
+
     // A fraction input has its label, and as its children the two math
     // inputs it owns (ADR 0045), typed into as any math input.
     it("draws a fraction input over its numerator and denominator inputs", async () => {
@@ -812,10 +848,12 @@ describe("step 3 components", () => {
         const { all, props } = await open(`<number name="n">3</number>
 <m>x^{$n}</m><md><mrow>a</mrow><mrow>b</mrow></md>
 <math>(1, 2, 3)</math>`);
-        expect(props("m").latex).toBe("x^{3}");
+        // Its pieces joined by spaces, each row of a display after
+        // `\\notag`, as the current core writes them.
+        expect(props("m").latex).toBe("x^{ 3 }");
         expect(all("m")[0].children).toEqual([]);
         expect(props("md")).toEqual({
-            latex: "a\\\\b",
+            latex: "\\notag a\\\\\\notag b",
             renderMode: "align",
         });
         expect(props("tuple").latex).toBe("\\left( 1, 2, 3 \\right)");
@@ -1013,6 +1051,16 @@ describe("sectioning and document-structure blocks", () => {
         // A statement and an introduction are elements of their own.
         expect(all("statement")).toHaveLength(1);
         expect(all("introduction")).toHaveLength(1);
+    });
+
+    it("numbers the divisions through a div, and the parts among the list items (ADR 0054)", async () => {
+        const { all } =
+            await open(`<section><subsection/><div><subsection/></div>
+<problem><part><p>a</p></part><proof><p>Clear.</p></proof><part includeParentNumber><p>b</p></part></problem>
+</section><div><section/></div>`);
+        expect(
+            all("division").map((e) => (e.data as any).props.codeNumber),
+        ).toEqual(["1", "1.1", "1.2", "3", "1", "3", "2"]);
     });
 
     it("draws a proof as an unnumbered division that starts closed", async () => {
