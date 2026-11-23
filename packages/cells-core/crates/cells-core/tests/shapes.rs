@@ -215,3 +215,24 @@ fn an_interval_is_a_math_of_intervals() {
     assert_eq!(text(&doc, "m"), "(-1, 3]");
     assert_eq!(reference::check(&doc), None);
 }
+
+/// `<intervalList>` (ADR 0041, step 2): a math list whose pairs are
+/// intervals, written in text, by reference or as children.
+#[test]
+fn an_interval_list_holds_intervals() {
+    let doc = loads(
+        r#"<interval name="i">[0, 1)</interval>
+           <p name="p"><intervalList name="l">(1, 2) [3, 4] $i <interval>(5, 6]</interval></intervalList></p>"#,
+    );
+    assert_eq!(text(&doc, "p"), "(1, 2), [3, 4], [0, 1), (5, 6]");
+    assert_eq!(doc.value("l", "numComponents"), Some(4.0));
+    let entry = |k: usize| doc.math_ast(doc.comp_cells(doc.resolve_path("l").unwrap())[k]);
+    assert_eq!(
+        entry(1),
+        r#"["interval",["tuple",1,2],["tuple",false,false]]"#
+    );
+    assert_eq!(
+        entry(2),
+        r#"["interval",["tuple",3,4],["tuple",true,true]]"#
+    );
+}

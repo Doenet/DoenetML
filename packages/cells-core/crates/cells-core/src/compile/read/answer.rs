@@ -52,8 +52,6 @@ impl Reader<'_> {
             "includeErrorInNumberExponents",
             "nSignErrorsMatched",
             "nPeriodicSetMatchesRequired",
-            "unorderedCompare",
-            "matchByExactPositions",
             "caseInsensitiveMatch",
             "matchBlanks",
             "splitSymbols",

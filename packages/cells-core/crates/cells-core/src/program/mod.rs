@@ -548,6 +548,13 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
         // A missing or blank expression evaluates to the missing value: a
         // number cannot hold a blank (D40, ADR 0046).
         SymKind::Evaluate => out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, None)),
+        SymKind::Subset { part, inequalities } => {
+            out[0] = handle(v(0)).map_or(f64::NAN, |h| {
+                engine
+                    .subset(h, handle(v(1)), part, inequalities)
+                    .to_value()
+            })
+        }
         SymKind::EvalAt => {
             out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, Some(("x", v(1)))))
         }
@@ -564,6 +571,12 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                     };
                     if eq { 1.0 } else { 0.0 }
                 }
+                _ => 0.0,
+            }
+        }
+        SymKind::Compare { opts } => {
+            out[0] = match (handle(v(0)), handle(v(1))) {
+                (Some(a), Some(b)) => engine.compare(a, b, opts),
                 _ => 0.0,
             }
         }

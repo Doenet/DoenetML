@@ -89,7 +89,7 @@ impl Engine {
     /// can fill.
     pub fn import<L: Leaf>(&mut self, tree: &Tree<L>) -> Handle {
         let mut leaves = Vec::new();
-        let e = convert(tree, &mut leaves);
+        let e = convert(tree, &mut leaves, &mut self.parser);
         let h = self.push(e);
         if !leaves.is_empty() {
             self.leaves.insert(h, leaves);
@@ -123,6 +123,27 @@ impl Engine {
                 "'{text}' is not supported in a math cell (a relation or multi-argument function)"
             )
         })
+    }
+
+    /// Parse constant math text into a builder tree, as
+    /// [`Engine::parse_tree`] does, or, for constant text a tree cannot say
+    /// (a relation, `x > 1`), the text as written ([`Tree::Written`]).
+    pub fn parse_given<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
+        let tree = self.parse_tree(text);
+        if tree.is_err() && self.is_written(text) {
+            return Ok(Tree::Written(text.to_string()));
+        }
+        tree
+    }
+
+    /// Whether `text` is constant math only the engine reads, as written:
+    /// it parses whole (no blank filled in for a missing operand), with no
+    /// cell leaf, to what no builder tree says (a relation, `x > 1`).
+    pub fn is_written(&mut self, text: &str) -> bool {
+        match self.convert_text(text) {
+            Ok(e) => !has_blank(&e) && cell_leaves(&e).is_empty() && to_tree::<u32>(&e).is_none(),
+            Err(_) => false,
+        }
     }
 
     /// Store the number `v`.
@@ -183,6 +204,28 @@ impl Engine {
             h = self.push(e);
         }
         h
+    }
+
+    /// Part `part` of the subset of the reals `h` names, in variable `var`
+    /// (`x` for none), its pairs read as intervals; written as intervals
+    /// and points, or as inequalities (`<subsetOfReals>`, `sym::subset`).
+    pub fn subset(
+        &mut self,
+        h: Handle,
+        var: Option<Handle>,
+        part: super::SubsetPart,
+        inequalities: bool,
+    ) -> Handle {
+        let var = match var {
+            Some(v) if !matches!(self.exprs[v.index()], Expr::Blank) => {
+                self.exprs[v.index()].clone()
+            }
+            _ => Expr::sym("x"),
+        };
+        let e = me::to_intervals(&self.exprs[h.index()]);
+        let s = super::subset::Subset::read(&e, &var);
+        let out = s.part(part, &var, inequalities);
+        self.push(out)
     }
 
     /// `h` simplified.
@@ -337,6 +380,18 @@ impl Engine {
         )
     }
 
+    /// How equal the two entries of the pair `h` is are (`Post::ComparePair`),
+    /// as a stored number from 0 to 1; 0 for anything but a pair.
+    pub fn compare_pair(&mut self, h: Handle, opts: CompareOpts) -> Handle {
+        let v = match &self.exprs[h.index()] {
+            Expr::Seq(me::expr::SeqKind::Tuple, xs) if xs.len() == 2 => {
+                super::compare::check_equality(&xs[0], &xs[1], opts, &self.eq)
+            }
+            _ => 0.0,
+        };
+        self.num(v)
+    }
+
     /// The expression as a builder tree, cell leaves included as the `L`
     /// the caller knows them to be. `None` when it uses something a tree
     /// cannot say (sets, relations, a function of several arguments).
@@ -424,11 +479,13 @@ pub(crate) fn leaf_name(cell: u32, math: bool) -> String {
 
 /// A builder tree as an expression, its cell leaves (cell, is math)
 /// appended to `leaves` in first-seen order.
-fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
+fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>, parser: &mut TextToAst) -> Expr {
     match t {
         Tree::Num(v) => number(*v),
         Tree::Sym(s) if s == BLANK => Expr::Blank,
         Tree::Sym(s) => Expr::sym(s),
+        // Checked to parse when it was written (`parse_tree`).
+        Tree::Written(text) => parser.convert(text).unwrap_or(Expr::Blank),
         Tree::Cell { cell, math } => {
             let cell = cell.raw();
             if !leaves.contains(&(cell, *math)) {
@@ -436,21 +493,30 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
             }
             Expr::sym(&leaf_name(cell, *math))
         }
-        Tree::Add(ts) => Expr::Add(ts.iter().map(|t| convert(t, leaves)).collect()),
-        Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Add(ts) => Expr::Add(ts.iter().map(|t| convert(t, leaves, parser)).collect()),
+        Tree::Mul(ts) => Expr::Mul(ts.iter().map(|t| convert(t, leaves, parser)).collect()),
         Tree::Sub(a, b) => Expr::Add(vec![
-            convert(a, leaves),
-            Expr::Neg(Box::new(convert(b, leaves))),
+            convert(a, leaves, parser),
+            Expr::Neg(Box::new(convert(b, leaves, parser))),
         ]),
-        Tree::Div(a, b) => Expr::Div(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
-        Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
-        Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
-        Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+        Tree::Div(a, b) => Expr::Div(
+            Box::new(convert(a, leaves, parser)),
+            Box::new(convert(b, leaves, parser)),
+        ),
+        Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves, parser))),
+        Tree::Pow(a, b) => Expr::Pow(
+            Box::new(convert(a, leaves, parser)),
+            Box::new(convert(b, leaves, parser)),
+        ),
+        Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves, parser)]),
         Tree::Call(f, xs) => Expr::Apply(
             Box::new(Expr::sym(f)),
-            xs.iter().map(|x| convert(x, leaves)).collect(),
+            xs.iter().map(|x| convert(x, leaves, parser)).collect(),
         ),
-        Tree::Shape(head, ts) => shape_expr(*head, ts.iter().map(|t| convert(t, leaves)).collect()),
+        Tree::Shape(head, ts) => shape_expr(
+            *head,
+            ts.iter().map(|t| convert(t, leaves, parser)).collect(),
+        ),
     }
 }
 
@@ -485,7 +551,10 @@ pub(crate) fn shape_expr(head: Shape, xs: Vec<Expr>) -> Expr {
 /// function of the tree alone, held by no engine. A cell leaf prints by
 /// its number (`cellN3`).
 pub(crate) fn template_text<L: Leaf>(tree: &Tree<L>) -> String {
-    me::to_text(&convert(tree, &mut Vec::new()), &TextOpts::default())
+    me::to_text(
+        &convert(tree, &mut Vec::new(), &mut parser()),
+        &TextOpts::default(),
+    )
 }
 
 /// The cell leaf a symbol names, if it is one.

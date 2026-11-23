@@ -279,6 +279,8 @@ component_types! {
     ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
     EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
     Interval => values::interval::DEFINITION,
+    SubsetOfReals => values::subset_of_reals::DEFINITION,
+    IntervalList => values::interval_list::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

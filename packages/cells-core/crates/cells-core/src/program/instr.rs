@@ -105,6 +105,25 @@ pub enum SymKind {
         /// The uniform spline instead of the centripetal one.
         uniform: bool,
     },
+    /// Part `part` of the subset of the reals input 0 names, in the
+    /// variable input 1 holds (`x` when it holds none), written as
+    /// intervals or as inequalities (`<subsetOfReals>`). The inverse of
+    /// its `Value` writes the desired subset to input 0, as it would be
+    /// written.
+    Subset {
+        /// Which part.
+        part: crate::sym::SubsetPart,
+        /// As inequalities in the variable.
+        inequalities: bool,
+    },
+    /// How equal inputs 0 and 1 are, from 0 to 1, as `opts` compares them
+    /// (an answer's `matchPartial`, `unorderedCompare`,
+    /// `matchByExactPositions`; ADR 0041, decision 7): 1 when equal, a
+    /// fraction only with `partial`.
+    Compare {
+        /// How they compare.
+        opts: crate::sym::CompareOpts,
+    },
 }
 
 /// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
@@ -161,6 +180,11 @@ pub enum Post {
     /// Every number in it of magnitude below the threshold, these bits of
     /// an `f64`, made 0 (`<setSmallToZero>`).
     SmallToZero(u64),
+    /// How equal the two entries of the pair it is are, as the engine
+    /// compares them with these options, as a number from 0 to 1: a
+    /// comparison of two references the type pass found may be math
+    /// (`$a = $b` in a condition; ADR 0041, decision 7).
+    ComparePair(crate::sym::CompareOpts),
     /// Its tuples made vectors (`createVectors`), then its tuples and
     /// arrays of two made intervals (`createIntervals`; ADR 0041, decision
     /// 8), then simplified, then expanded, as the flags say: a `<math>`'s
@@ -197,6 +221,7 @@ impl Post {
             Post::RoundDecimals(n) => engine.round_decimals(h, n),
             Post::RoundDigits(n) => engine.round_digits(h, n),
             Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+            Post::ComparePair(opts) => engine.compare_pair(h, opts),
             Post::Shapes {
                 vectors,
                 intervals,
@@ -267,6 +292,10 @@ impl SymKind {
     pub fn writes(self) -> u64 {
         match self {
             SymKind::Evaluate => 1,
+            SymKind::Subset {
+                part: crate::sym::SubsetPart::Value,
+                ..
+            } => 1,
             _ => 0,
         }
     }
@@ -280,6 +309,7 @@ impl SymKind {
                 | SymKind::ClampFunction
                 | SymKind::WrapFunctionPeriodic
                 | SymKind::DerivativeBy
+                | SymKind::Subset { .. }
         )
     }
 }
@@ -403,7 +433,9 @@ impl OpSpec {
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
-            OpSpec::Sym(SymKind::DerivativeBy) => 2,
+            OpSpec::Sym(
+                SymKind::DerivativeBy | SymKind::Subset { .. } | SymKind::Compare { .. },
+            ) => 2,
             _ => unreachable!(),
         }
     }
@@ -571,6 +603,13 @@ mod arity {
             OpSpec::Vec(VecOp::IntoDomain),
             OpSpec::Vec(VecOp::DomainRange),
             OpSpec::Vec(VecOp::DomainHull { n: 2 }),
+            OpSpec::Sym(SymKind::Subset {
+                part: crate::sym::SubsetPart::Value,
+                inequalities: false,
+            }),
+            OpSpec::Sym(SymKind::Compare {
+                opts: crate::sym::CompareOpts::default(),
+            }),
         ]);
         ops
     }
@@ -629,12 +668,15 @@ mod arity {
                     SymKind::SampleFunction => 13,
                     SymKind::DerivativeBy => 14,
                     SymKind::SampleBezier { .. } => 15,
+                    // After the vector operators numbered from 44.
+                    SymKind::Subset { .. } => 19,
+                    SymKind::Compare { .. } => 20,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 47;
+    const N_TAGS: usize = 49;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
