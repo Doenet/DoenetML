@@ -20,6 +20,7 @@ use crate::compile::*;
 // part of planning, which `api` re-exports to the components.
 pub(crate) use ctx::PlanCtx;
 pub(crate) use lists::ListEntry;
+use lists::Splice;
 pub(crate) use planner::Planner;
 use rows::Rows;
 

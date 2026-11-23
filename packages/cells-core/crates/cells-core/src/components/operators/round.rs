@@ -16,17 +16,14 @@ component! {
     /// children (the current core writes it unrounded).
     tags: ["round"],
     flags: [copyable],
-    text: Math(expr, value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Math(expr),
     props {
         operand: by_planner,
         expr: by_planner { rendered, expr_of: expr },
         numDecimals: by_planner,
         numDigits: by_planner,
         value: by_planner { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         numDecimals: Scalar,
@@ -58,14 +55,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             },
         ),
     };
-    let num_decimals = match attrs.numDecimals {
-        Some(s) => Wire::scalar(s, GivenId::Attr(attr::numDecimals, 0)),
-        None => Wire::constant(0.0),
-    };
-    let num_digits = match attrs.numDigits {
-        Some(s) => Wire::scalar(s, GivenId::Attr(attr::numDigits, 0)),
-        None => Wire::absent(),
-    };
+    let num_decimals =
+        Wire::attr(attr::numDecimals, attrs.numDecimals).unwrap_or(Wire::constant(0.0));
+    let num_digits = Wire::attr(attr::numDigits, attrs.numDigits).unwrap_or(Wire::absent());
     over_math::plan_one_input(
         ctx,
         &attrs.children,
@@ -73,15 +65,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         |x| Wire::computed(op, vec![x, by]),
         post,
         |w, [operand, expr, value]| {
-            w.set_public(Props {
+            w.set_planned(Planned {
                 operand,
                 expr,
                 numDecimals: num_decimals,
                 numDigits: num_digits,
                 value,
-                // Planned after this, from the `anchor` (`plan_anchor`).
-                anchorX: Wire::absent(),
-                anchorY: Wire::absent(),
             })
         },
     )

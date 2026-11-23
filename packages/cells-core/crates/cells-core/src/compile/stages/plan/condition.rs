@@ -10,11 +10,19 @@ use super::Planning;
 use crate::compile::*;
 
 /// How `=` compares two expressions that are not both numeric: as written
-/// (`symbolicEquality`) or by value, after `post` on both sides.
+/// (`symbolicEquality`) or by value, after `post` on both sides, and how
+/// values with entries match (`matchPartial`, `unorderedCompare`,
+/// `matchByExactPositions`; ADR 0041, decision 7).
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Compare {
     pub(super) syntactic: bool,
     pub(super) post: Post,
+    /// Some entries matching gives a fraction (`matchPartial`).
+    pub(super) partial: bool,
+    /// Entries match in any order (`unorderedCompare`).
+    pub(super) unordered: bool,
+    /// Entries match only where they stand (`matchByExactPositions`).
+    pub(super) exact_positions: bool,
 }
 
 impl Default for Compare {
@@ -22,14 +30,37 @@ impl Default for Compare {
         Compare {
             syntactic: false,
             post: Post::None,
+            partial: false,
+            unordered: false,
+            exact_positions: false,
         }
     }
 }
 
 impl Compare {
-    /// The equality in the engine: as written, or by value.
+    /// As the engine's options.
+    pub(super) fn opts(&self) -> crate::sym::CompareOpts {
+        crate::sym::CompareOpts {
+            unordered: self.unordered,
+            partial: self.partial,
+            exact_positions: self.exact_positions,
+            syntactic: self.syntactic,
+        }
+    }
+
+    /// The equality in the engine: as written, or by value, and how
+    /// entries match when that is asked.
     pub(super) fn equals(&self) -> SymKind {
-        if self.syntactic {
+        if self.partial || self.unordered || self.exact_positions {
+            SymKind::Compare {
+                opts: crate::sym::CompareOpts {
+                    unordered: self.unordered,
+                    partial: self.partial,
+                    exact_positions: self.exact_positions,
+                    syntactic: self.syntactic,
+                },
+            }
+        } else if self.syntactic {
             SymKind::EqualsSyntax
         } else {
             SymKind::Equals
@@ -142,6 +173,7 @@ impl<'a> Planning<'a> {
             dast: self.rd.dast,
             src,
             compare,
+            unordered: Vec::new(),
         };
         let port = p.or(self, wiring)?;
         if p.pos != toks.len() {
@@ -166,7 +198,22 @@ impl<'a> Planning<'a> {
             return Ok(port);
         }
         match self.rd.math_tokens(&mut self.ar, t, scope, nodes) {
-            Ok((toks, src)) => self.plan_condition_tokens(wiring, &toks, src, compare),
+            Ok((toks, src)) => {
+                let unordered = self.unordered_refs(t, &toks);
+                let mut p = CondParser {
+                    toks: &toks,
+                    pos: 0,
+                    dast: self.rd.dast,
+                    src,
+                    compare,
+                    unordered,
+                };
+                let port = p.or(self, wiring)?;
+                if p.pos != toks.len() {
+                    return Err(p.err(format!("unexpected {:?}", toks[p.pos])));
+                }
+                Ok(port)
+            }
             Err(Error::BadMath { text, reason }) => {
                 let sym = self.sym_spelling(t, scope, nodes)?;
                 let Some((lhs, rhs, negate)) = split_equality(&sym) else {
@@ -197,6 +244,9 @@ impl<'a> Planning<'a> {
         let syntactic = on("symbolicEquality");
         Compare {
             syntactic,
+            partial: on("matchPartial"),
+            unordered: on("unorderedCompare"),
+            exact_positions: on("matchByExactPositions"),
             post: match (syntactic, on("simplifyOnCompare"), on("expandOnCompare")) {
                 (false, ..) | (true, false, false) => Post::None,
                 (true, true, false) => Post::Simplify,
@@ -204,6 +254,27 @@ impl<'a> Planning<'a> {
                 (true, true, true) => Post::SimplifyExpand,
             },
         }
+    }
+
+    /// The references among `toks` that name a math written `unordered`:
+    /// a comparison with one of them alone on a side matches entries in
+    /// any order (ADR 0041, decision 7: the flag is the comparison's, read
+    /// from the source, never the value's).
+    fn unordered_refs(&self, t: TemplateId, toks: &[Token]) -> Vec<RefId> {
+        toks.iter()
+            .filter_map(|tok| match tok {
+                Token::Cell(p) => Some(*p),
+                _ => None,
+            })
+            .filter(|&p| {
+                self.rd
+                    .static_target(&self.ar, t, p)
+                    .is_some_and(|(tt, e)| {
+                        let node = self.rd.referent_row(tt, e).node;
+                        node != NodeId::NONE && self.rd.attr_on(node, "unordered")
+                    })
+            })
+            .collect()
     }
 
     /// The content as the engine spells it: text as written, each `$ref`
@@ -246,6 +317,8 @@ struct CondParser<'t> {
     dast: &'t Dast,
     src: MathSrc<'t>,
     compare: Compare,
+    /// References to a math written `unordered` (`Planning::unordered_refs`).
+    unordered: Vec<RefId>,
 }
 
 /// One side of a comparison: the tokens it spans, and its source when it
@@ -351,6 +424,20 @@ impl CondParser<'_> {
         };
         self.pos += width;
         let b = self.operand(cp)?;
+        // A side that is one reference to a math written `unordered` makes
+        // the comparison unordered.
+        let alone_unordered = |o: &Operand| matches!(&self.toks[o.span.clone()], [Token::Cell(p)] if self.unordered.contains(p));
+        let unordered = alone_unordered(&a) || alone_unordered(&b);
+        let (a_op, b_op) = (
+            Operand {
+                span: a.span.clone(),
+                numeric: a.numeric.clone(),
+            },
+            Operand {
+                span: b.span.clone(),
+                numeric: b.numeric.clone(),
+            },
+        );
         let equality = matches!(rel, "=" | "!=");
         // `=` between expressions compares them in the engine; every other
         // comparison is numeric, with an expression evaluated first.
@@ -364,8 +451,26 @@ impl CondParser<'_> {
         } else {
             (self.number(cp, wiring, &a), self.number(cp, wiring, &b))
         };
+        let mut compare = self.compare;
+        compare.unordered |= unordered;
+        // Two numeric operands with a reference among them, `$a = $b`, may
+        // stand for expressions, which the type pass tells: compared in
+        // the engine if one does, else as numbers (`Flow::ValueOf`).
+        if equality
+            && !in_engine
+            && let Some(pair) = self.pair_expr(cp, &a_op, &b_op)
+        {
+            let by_engine =
+                wiring.hidden(Source::math_handle(pair, Post::ComparePair(compare.opts())));
+            let by_number = wiring.hidden(Source::computed(OpSpec::Eq, vec![a, b]));
+            let eq = wiring.hidden(Source::value_of(by_engine, by_number));
+            return Ok(match rel {
+                "=" => eq,
+                _ => wiring.hidden(Source::computed(OpSpec::Not, vec![eq])),
+            });
+        }
         let eq = if in_engine {
-            OpSpec::Sym(self.compare.equals())
+            OpSpec::Sym(compare.equals())
         } else {
             OpSpec::Eq
         };
@@ -380,6 +485,30 @@ impl CondParser<'_> {
                 wiring.hidden(Source::computed(OpSpec::Not, vec![eq]))
             }
         })
+    }
+
+    /// Two numeric operands as one pair of math text for the engine, `((a),
+    /// (b))`, over their expressions: `None` unless a reference is among
+    /// them.
+    fn pair_expr(&self, cp: &mut Planning, a: &Operand, b: &Operand) -> Option<ExprId> {
+        let ar = &mut cp.ar;
+        let mut id = |s: &Option<Source>| match s {
+            Some(Source::Flow(Flow::Math(id))) => Some(*id),
+            Some(Source::Leaf(Leaf::Const(v))) => Some(ar.arena.push(Expr::Num(*v))),
+            _ => None,
+        };
+        let (ia, ib) = (id(&a.numeric)?, id(&b.numeric)?);
+        let mut leaves = Vec::new();
+        ar.arena.cell_leaves(ia, &mut leaves);
+        ar.arena.cell_leaves(ib, &mut leaves);
+        if leaves.is_empty() {
+            return None;
+        }
+        let spell = |o: &Operand| render_tokens(&self.toks[o.span.clone()]);
+        let text = format!("(({}), ({}))", spell(a), spell(b));
+        let pair = ar.arena.push(Expr::Operator(vec![ia, ib]));
+        ar.sym_text.insert(pair, SymText::Spelled(text));
+        Some(pair)
     }
 
     /// Math up to the next comparison or connective outside parentheses.

@@ -22,14 +22,16 @@ component! {
         // Both of a math's props are set by the builder from its children.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         expand: On,
         simplify: On,
         createVectors: On,
         createIntervals: On,
+        // Read where it is compared (ADR 0041, decision 7): a comparison
+        // with this math alone on a side matches entries in any order.
+        unordered: On,
     }
     // Parsed as the type outlining settled (`compile/stages/parse.rs`), not here.
     children: Math,
@@ -61,12 +63,9 @@ fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
 /// math's: an `<interval>`'s.
 pub(crate) fn wiring_of_type(ty: ComponentType, id: ExprId, post: Post) -> ElemWiring {
     let mut wiring = ElemWiring::of(ty);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr: Source::Flow(Flow::MathHandle(id, post)).into(),
         value: Source::Flow(Flow::MathValue(id)).into(),
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     wiring
 }

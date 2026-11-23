@@ -129,19 +129,24 @@ export class Reads {
     }
 
     /** LaTeX of a math component's value: the number its lowered chain
-     * computes, or the expression its math cell holds (ADR 0005). */
+     * computes, or the expression its math cell holds (ADR 0005), rounded
+     * and written by its number-display settings, as the current core
+     * writes a math's `latex`. */
     mathLatex(c: number): string {
-        if (
-            this.missing(c, "value") &&
-            this.table.cell(c, "expr") === undefined
-        ) {
-            return BLANK;
-        }
+        const display = displaySettings(this.table, c);
+        const missing = this.missing(c, "value");
         const value = this.num(c, "value");
-        if (!Number.isNaN(value) || this.table.cell(c, "expr") === undefined) {
-            return numberLatex(value);
+        // The expression as written when its cell holds one (`6/2`, ADR
+        // 0043), as the current core shows it.
+        const exprCell = this.table.cell(c, "expr");
+        if (exprCell !== undefined && !Number.isNaN(this.cell(exprCell))) {
+            return this.table.core.display_latex(exprCell, display);
         }
-        return this.exprLatex(c, "expr");
+        if (missing) return BLANK;
+        if (Number.isNaN(value) && exprCell !== undefined) return BLANK;
+        return Number.isFinite(value)
+            ? this.table.core.number_display_latex(value, display)
+            : numberLatex(value);
     }
 
     /** LaTeX of a value that is a number or, when the core made it one, an
@@ -205,6 +210,76 @@ export function numberLatex(v: number): string {
     return String(v);
 }
 
+/** An attribute of `c` or the nearest of its referents giving it, as a
+ * number; `fallback` when none does or it is no number. A flag reads as 1
+ * when present and not `false`, as 0 when `false`. */
+function numberAttrThrough(
+    table: CellsTable,
+    c: number,
+    name: string,
+    fallback: number,
+    ifTrue = 1,
+): number {
+    const text = table.attrThrough(c, name);
+    if (text === null) return fallback;
+    const t = text.trim().toLowerCase();
+    if (t === "" || t === "true") return ifTrue;
+    if (t === "false") return 0;
+    const v = Number(t);
+    return Number.isNaN(v) ? fallback : v;
+}
+
+/** The number-display settings of `c`, as the six numbers the core's
+ * `display_latex` takes: `displayDigits`, `displayDecimals`,
+ * `displaySmallAsZero`, `padZeros`, `avoidScientificNotation` and
+ * `displayBlanks`, resolved as the current core resolves them
+ * (`utils/numberDisplay.js`). Digits and decimals come from the nearest of
+ * `c` and its referents that gives either: there, the one it does not give
+ * is off (digits 0, decimals none), so `<math extend="$m"
+ * displayDigits="5"/>` rounds by digits alone; with neither anywhere, 3
+ * digits and at least 2 decimals. */
+export function displaySettings(table: CellsTable, c: number): Float64Array {
+    let digits = 3;
+    let decimals = 2;
+    for (let k: number | null = c; k !== null; k = table.referent(k)) {
+        const ownDigits = table.attr(k, "displayDigits");
+        const ownDecimals = table.attr(k, "displayDecimals");
+        if (ownDigits !== null || ownDecimals !== null) {
+            digits = ownDigits === null ? 0 : Number(ownDigits);
+            decimals = ownDecimals === null ? -Infinity : Number(ownDecimals);
+            if (Number.isNaN(digits)) digits = 0;
+            if (Number.isNaN(decimals)) decimals = -Infinity;
+            break;
+        }
+    }
+    return Float64Array.from([
+        digits,
+        decimals,
+        numberAttrThrough(table, c, "displaySmallAsZero", 1e-14, 1e-14),
+        numberAttrThrough(table, c, "padZeros", 0),
+        numberAttrThrough(table, c, "avoidScientificNotation", 0),
+        numberAttrThrough(table, c, "displayBlanks", 1),
+    ]);
+}
+
+/** LaTeX of a point's coordinates, rounded and written by its
+ * number-display settings as the current core writes a point's `latex`;
+ * a missing coordinate is the blank. */
+export function pointLatex(r: Reads, c: number): string {
+    const cells = ["x", "y"].map((name) => r.table.cell(c, name));
+    if (cells.some((cell) => cell === undefined)) return BLANK;
+    if (cells.some((cell) => r.missingCell(cell!))) {
+        const entry = (cell: number) =>
+            r.table.isMissing(cell) ? BLANK : numberLatex(r.cell(cell));
+        return `\\left( ${cells.map((cell) => entry(cell!)).join(", ")} \\right)`;
+    }
+    for (const cell of cells) r.cell(cell!);
+    return r.table.core.coords_latex(
+        Uint32Array.from(cells as number[]),
+        displaySettings(r.table, c),
+    );
+}
+
 /** The `<label>` children of `c`: the core makes each a group. */
 function labelChildren(table: CellsTable, c: number): number[] {
     return childrenOfType(table, c, "group");
@@ -238,9 +313,14 @@ function inputPresentation(table: CellsTable, c: number) {
 }
 
 /** LaTeX of what a cell of a math list's entry holds: its expression (the
- * blank one for none), or the number an entry aliasing one holds. */
+ * blank one for none), or the number an entry aliasing one holds; a
+ * sort's text entry (ADR 0053) as text. */
 function heldLatex(r: Reads, cell: number): string {
     const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) === "text") {
+        if (r.missingCell(cell)) return BLANK;
+        return `\\text{${Number.isNaN(v) ? "" : r.table.string(v)}}`;
+    }
     if (r.table.core.cell_holds(cell) !== "math") return numberLatex(v);
     return Number.isNaN(v) ? BLANK : r.table.core.expr_latex(cell);
 }
@@ -252,7 +332,7 @@ function flag(table: CellsTable, c: number, name: string): boolean {
 
 /** A section's tag and the word its title shows, by its `label` cell: the
  * core's `SECTION_TAGS`, in order. */
-const SECTION_KINDS: [tag: string, word: string][] = [
+export const SECTION_KINDS: [tag: string, word: string][] = [
     ["section", "Section"],
     ["subsection", "Section"],
     ["subsubsection", "Section"],
@@ -279,18 +359,17 @@ const BOXED_BY_DEFAULT = new Set(["objectives"]);
  * that declare `numbered`. */
 const NUMBERED_TYPES = new Set(["section", "aside"]);
 
-/** A section's full number ("2.1"): its own, after its nearest section
- * ancestor's when it includes it. */
+/** A section's full number ("2.1"), as the core composes it: its own,
+ * after its nearest section ancestor's when it includes it and is no list
+ * item (ADR 0054). The `number` cells of it and its numbered ancestors are
+ * read, so a count that changes recomputes it. */
 function sectionNumber(r: Reads, c: number): string {
-    const own = r.num(c, "number");
-    if (r.num(c, "includeParentNumber") !== 0) {
-        for (let p = r.table.parent(c); p !== null; p = r.table.parent(p)) {
-            if (NUMBERED_TYPES.has(r.table.componentType(p))) {
-                return `${sectionNumber(r, p)}.${own}`;
-            }
+    for (let p: number | null = c; p !== null; p = r.table.parent(p)) {
+        if (NUMBERED_TYPES.has(r.table.componentType(p))) {
+            r.num(p, "number");
         }
     }
-    return String(own);
+    return r.table.core.section_number(c) ?? String(r.num(c, "number"));
 }
 
 function sectionDepth(table: CellsTable, c: number): number {
@@ -365,7 +444,12 @@ const NUMBER_TYPES = new Set([
 /** A component's value as LaTeX, where math notation refers to it. */
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
-    if (type === "math" || type === "mathInput" || type === "interval") {
+    if (
+        type === "math" ||
+        type === "mathInput" ||
+        type === "interval" ||
+        type === "subsetOfReals"
+    ) {
         return r.mathLatex(c);
     }
     if (NUMBER_TYPES.has(type)) {
@@ -387,14 +471,29 @@ function valueLatex(r: Reads, c: number): string {
 }
 
 /** The LaTeX of math notation's children (`<m>`, `<mrow>`): text as written,
- * and a component it refers to as its value. */
-function childrenLatex(r: Reads, c: number): string {
+ * and a component it refers to as its value, each trimmed and the
+ * nonblank ones joined by spaces, as the current core joins them
+ * (`createInputStringFromChildren` with `createDisplayedMathString`). */
+export function childrenLatex(r: Reads, c: number): string {
     return r.table
         .children(c)
         .map((child) =>
-            "text" in child ? child.text : valueLatex(r, child.component),
+            ("text" in child
+                ? child.text
+                : valueLatex(r, child.component)
+            ).trim(),
         )
-        .join("");
+        .filter((piece) => piece !== "")
+        .join(" ");
+}
+
+/** The LaTeX of an `<md>`: each row's, after `\\notag `, joined by `\\\\`,
+ * as the current core composes the rows of an unnumbered display. One
+ * with no `<mrow>` (an `<me>`) is its children's, as an `<m>`'s. */
+export function mdLatex(r: Reads, c: number): string {
+    const rows = childrenOfType(r.table, c, "mrow");
+    if (rows.length === 0) return childrenLatex(r, c);
+    return rows.map((row) => `\\notag ${childrenLatex(r, row)}`).join("\\\\");
 }
 
 /** The child components of `c` with this type, in order. */
@@ -565,13 +664,9 @@ function pointProps(r: Reads, c: number, inGraph: boolean) {
     const y = r.num(c, "y");
     // A missing coordinate is NaN in a graph, which the renderer does not
     // draw, and the blank in text (VAL-5, ADR 0046).
-    const latex = (name: string, v: number) =>
-        r.missing(c, name) ? BLANK : numberLatex(v);
     return inGraph
         ? { x: mathObject(x), y: mathObject(y) }
-        : {
-              coordsLatex: `\\left( ${latex("x", x)}, ${latex("y", y)} \\right)`,
-          };
+        : { coordsLatex: pointLatex(r, c) };
 }
 
 /** A line's props: two points it passes through. */
@@ -711,9 +806,7 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => {
             const rows = childrenOfType(r.table, c, "mrow");
             return {
-                latex: rows.length
-                    ? rows.map((row) => childrenLatex(r, row)).join("\\\\")
-                    : childrenLatex(r, c),
+                latex: mdLatex(r, c),
                 renderMode: rows.length > 1 ? "align" : "display",
             };
         },
@@ -1364,10 +1457,25 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
+    // A sort's or a shuffle's row holds what its operands do (ADR 0053):
+    // a text one is drawn as a text.
     mathValue: {
-        name: () => "math",
+        name: (table, c) => {
+            const cell = table.cell(c, "value");
+            return cell !== undefined && table.core.cell_holds(cell) === "text"
+                ? "text"
+                : "math";
+        },
         props: (r, c) => {
             const cell = r.table.cell(c, "value");
+            if (
+                cell !== undefined &&
+                r.table.core.cell_holds(cell) === "text"
+            ) {
+                return {
+                    value: r.missingCell(cell) ? BLANK : r.text(c, "value"),
+                };
+            }
             return {
                 latex: cell === undefined ? BLANK : heldLatex(r, cell),
                 renderMode: "inline",
@@ -1377,6 +1485,11 @@ export const CONTRACTS: Record<string, Contract> = {
     // Values with entries inside a math (ADR 0041, decision 8): an
     // interval is a math, drawn as one.
     interval: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+    },
+    // A subset of the reals is a math, drawn as one.
+    subsetOfReals: {
         name: () => "math",
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
     },
@@ -1425,6 +1538,7 @@ export const TRANSPARENT = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1455,6 +1569,7 @@ export const LIST_LIKE = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** List-like types whose items are the children of one scope (an

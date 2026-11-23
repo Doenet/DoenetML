@@ -16,9 +16,7 @@ component! {
     tags: ["boolean"],
     flags: [copyable],
     roles: [BooleanValue],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         value: children { rendered },
     }
@@ -53,6 +51,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // A condition: comparisons and connectives.
         (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
-    wiring.set_public(Props { value });
+    wiring.set_planned(Planned { value });
     Ok(wiring)
 }

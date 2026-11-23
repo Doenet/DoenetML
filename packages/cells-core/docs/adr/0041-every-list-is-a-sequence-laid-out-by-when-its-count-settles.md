@@ -1,8 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done,
-step 2's first two pieces, and step 3, with their departures recorded
-there. Drafted as 0038, and renumbered as `cells`
+step 2's first three pieces, step 3, and step 6 in part, with their
+departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
@@ -440,15 +440,86 @@ otherwise.
      id, and a join of entries a write can change makes a string during
      a tick, which no operator does. It needs either a text whose value
      is a sequence of strings, shown joined, or strings made in a tick.
+     *Done 2026-11-23* by strings made in a tick (ADR 0053): a `<text>` of
+     one reference to a static sequence joins its entries, and every value
+     list has a `text` prop, its entries joined.
    - A `<mathInput>` bound to a math entry is numeric, as every bound one
      is, so a number typed into it is written into a math cell as a
      handle; an input bound to a cell that holds math needs to write an
-     expression.
+     expression. (Done in piece 3.)
    - `<intervalList>` (intervals), `<pointList>` of its own points and
      `<vectorList>` (drawn and dragged entries are step 3, and a
      point's coordinates a capped sequence step 5), `unordered` (a flag
      on a comparison of two sequences, decision 7) and display settings,
      which no value of this core rounds yet.
+   *Piece 3, done 2026-11-23*, on decision 8's values with entries in a
+   math cell:
+
+   - `<intervalList>` (`components/values/interval_list.rs`): a
+     `<mathList>` whose pieces of text and math text have their pairs
+     made intervals (`Tree::intervals`, `Post::Shapes`); a reference or an
+     `<interval>` child is an entry as it is.
+   - A `<mathInput>` bound to one reference (`bindValueTo`, a reference
+     child) has as its `expr` the expression the reference stands for, a
+     math leaf alone (`Flow::MathHandle`), so the type pass makes it the
+     referent's math cell itself when it holds one (a symbolic math's, an
+     input's, a math list's entry, a subset's) and no value when it holds
+     a number. It shows that expression, and typing writes an expression
+     there, never a number into a math cell as a handle; the bridge and
+     the parity adapter request on `expr` whenever it holds math and is no
+     constant.
+   - `<subsetOfReals>` (`components/values/subset_of_reals.rs`,
+     `sym/subset.rs`): the JavaScript core's `subset-of-reals` utilities,
+     a subset held normalized as sorted pieces, read from intervals,
+     points, `R`, `emptyset`, unions and intersections (`or`, `and`, a set,
+     a list), complements (`^c`), inequalities, equations and memberships
+     in its `variable` and set-builder notation; written back merged, as
+     intervals or as inequalities (`SymKind::Subset`). A write to it
+     writes the subset as it is written to what it reads (its inverse),
+     so a copy, an extend and a bound input all reach the input it reads.
+     Its `points`, `pointsClosed`, `intervals` and `isolatedPoints` are
+     each a math cell holding a list (one entry alone, none empty): their
+     counts follow the value, and they have no cap (decision 2's "stays
+     inside the math handle"); `$S.points[2]` is not planned.
+   - Constant math text the compile's parser does not read and the
+     engine reads whole, a relation (`4 < x <= 5`, `x = 2`, `x in (0, 1)`),
+     is a constant math (`Expr::Shape` with no entries), and a
+     `<mathInput>`'s prefill likewise (`Tree::Written`); with a reference
+     in it, it is still refused.
+   - Decision 7's flags on the comparison: an award's or answer's
+     `matchPartial`, `unorderedCompare` and `matchByExactPositions` choose
+     the engine's comparison (`SymKind::Compare`, `sym/compare.rs`), and a
+     side of `=` that is one reference to a `<math>` written `unordered`
+     makes that comparison unordered, read from the referent's source at
+     the comparison, never carried by the value. `$a = $b`, two
+     references the planner cannot tell apart from numbers, is compared
+     in the engine when the type pass finds one stands for an expression
+     (`Post::ComparePair` under `Flow::ValueOf`), else as numbers.
+
+   Tested by the specs, `tests/subsets.rs`, `tests/bound_math_input.rs`,
+   `tests/match_partial.rs` and `tests/shapes.rs`. Departures:
+
+   - `displayMode` of a `<subsetOfReals>` is literal (a bound one warns
+     and shows intervals): the operator reads no string. `format="latex"`
+     math text and `<subsetOfRealsInput>` are not done.
+   - `unordered` on a `<math>` counts only where it is alone on a side of
+     `=`, written literally; `<math unordered="$b">` and an unordered math
+     inside a list are not read.
+   - A `<math>` written `(1, 2, 3)` is still a tuple component, one cell
+     per entry, so `$t = $u` over two of them, and `matchPartial` over
+     them, wait for step 5's merge; a list (`1, 2, 3`) works.
+   - `<matrix>` is not done: see the open question below.
+
+   Open question (`<matrix>`): its rows and columns are written
+   `<row>` and `<column>`, and `<row>` is already the tabular's row. The
+   current core sugars them into `<matrixRow>`/`<matrixColumn>` by their
+   parent. This core settles a tag's type from the tag alone
+   (`ComponentType::from_tag`, outlining), so a matrix needs either a
+   type settled by its parent (a declaration on `<matrix>`: "a `<row>`
+   child is a `<matrixRow>`", read by outlining), or rows written as
+   `<matrixRow>` only, or rows as math text (`<matrix>[[a, b], [c, d]]`).
+   The parity file needs `<matrixInput>` (the inner-inputs work) as
+   well.
 3. **Entries as rows.** Rows per entry, renderer address `list:k`, targets.
    Test: `listentrytargets.test.ts`, `listcomponentvaluelistgraphs.test.ts`.
 
@@ -509,5 +580,30 @@ otherwise.
    math"), `functionTag.test.ts` (extrema).
 6. **Order.** `<sort>` as a permutation aggregate with an order port;
    `<shuffle>` seeded. Test: `sort.test.ts`, `shuffle.test.ts`.
+
+   *Done in part 2026-11-23*, with ADR 0053 (text in the tick). A
+   `<sort>` or `<shuffle>` holds its operands as one kind, decided from the
+   records: numbers, else maths, else texts (`components/operators/
+   sort.rs`); its order is a hidden port per position (`SymKind::Order`
+   comparing as the current core's `compareExtractedValues`, or a
+   `Shuffle` of the positions by a draw), and each entry a `Choose` over
+   the operands by it. Its entry kind is `EntryKind::Any`, read as each
+   cell holds it. `type` (`number`, `math`, `text`), an invalid `type`
+   warned and dropped, bare text read as numbers when every piece is one,
+   and `asList`. Tested by the spec and `tests/text_in_tick.rs`.
+   Departures:
+
+   - A write through a sorted entry is dropped (its branch is `Shown`): the
+     operand it shows decides the order, so the write would move it and no
+     round trip is stable. A shuffled entry writes its operand.
+   - Points and vectors (`sortByComponent`, `sortVectorsBy`, `sortByProp`)
+     are refused: a point entry is two cells and a type's entries have one
+     width, while a sort's entry type follows its operands. They wait on
+     entries as rows (step 3) or a point held as one value (decision 8).
+     Booleans are refused likewise.
+   - The order is public as a second named sequence over the element's
+     own ports (decision 1), the list's `companion`: `componentOrder`, one
+     cell per entry after the entries (`PropAt::Companion`). Its entries
+     are rows (step 3), `mathValue` rows of `EntryKind::Any`.
 7. **Glossary.** `CONTEXT.md` gains *sequence*, *entry*, *capped list* and
    *live length*, and *point list* and *tuple* are rewritten as sequences.

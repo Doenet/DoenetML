@@ -171,6 +171,14 @@ impl Wire {
             other => other.into(),
         }
     }
+    /// What the attribute `attr` gives when it was written, `source` as
+    /// the record holds it ([`Wire::scalar`], its first leaf); none when
+    /// it was not, for the planner to say what stands in its place
+    /// (`.unwrap_or(Wire::absent())`, `.unwrap_or_else(||
+    /// Wire::given_by(attr, 1.0))`).
+    pub(crate) fn attr(attr: Attr, source: Option<Source>) -> Option<Self> {
+        source.map(|s| Wire::scalar(s, GivenId::Attr(attr, 0)))
+    }
     /// A given point as `point` plans it, else the default with its
     /// parameters.
     pub(crate) fn point_or_default(
@@ -286,7 +294,7 @@ impl ElemWiring {
     /// How many of the ports are public: the table's props and the list's
     /// points.
     fn n_public(&self) -> usize {
-        self.component_type.prop_defs().len() + self.component_type.list_width() * self.n_points
+        self.component_type.prop_defs().len() + self.component_type.list_props(self.n_points)
     }
 
     /// The port holding entry `k` (0-based) of a value list (ADR 0041).
@@ -308,6 +316,20 @@ impl ElemWiring {
             self.props[port.index()] = Some(e.source);
             if let Some(id) = e.given {
                 self.given.insert(id, port);
+            }
+        }
+    }
+
+    /// The list's companion sequence (ADR 0053), one wire per entry,
+    /// which fill the public ports after the entries.
+    pub(crate) fn set_companion(&mut self, wires: Vec<Wire>) {
+        assert_eq!(wires.len(), self.n_points, "one per entry");
+        let start = self.component_type.prop_defs().len()
+            + self.component_type.list_width() * self.n_points;
+        for (k, w) in wires.into_iter().enumerate() {
+            self.props[start + k] = Some(w.source);
+            if let Some(id) = w.given {
+                self.given.insert(id, Port::table(start + k));
             }
         }
     }
@@ -374,6 +396,35 @@ impl ElemWiring {
             if let Some(id) = p.given {
                 self.given.insert(id, Port::table(i));
             }
+        }
+    }
+    /// The table's props from what the type's planner plans of them (its
+    /// `Planned`), each wire with its port and its given leaf. A prop the
+    /// table gives itself and the planner left alone is wired here: a
+    /// computed or an aggregate one as the table says
+    /// ([`Wire::from_table`]), an anchor's coordinate absent, until the
+    /// element's `anchor` is planned, and a list's length as many as the
+    /// wiring holds.
+    pub(crate) fn set_planned(&mut self, planned: impl IntoIterator<Item = (Port, Wire)>) {
+        for (port, p) in planned {
+            self.props[port.index()] = Some(p.source);
+            if let Some(id) = p.given {
+                self.given.insert(id, port);
+            }
+        }
+        let ty = self.component_type;
+        for (i, def) in ty.prop_defs().iter().enumerate() {
+            if self.props[i].is_some() {
+                continue;
+            }
+            self.props[i] = match def.from {
+                PropFrom::Computed { .. } | PropFrom::Aggregate(_) => {
+                    Some(Wire::from_table(ty, Port::table(i)).source)
+                }
+                PropFrom::Anchor { .. } => Some(Source::absent()),
+                PropFrom::ListLen => Some(Source::constant(self.n_points as f64)),
+                _ => None,
+            };
         }
     }
     /// `set_public` for a typed plan of sources that hold no shared state.

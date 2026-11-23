@@ -28,14 +28,11 @@ component! {
     /// when the author gave none.
     tags: ["pluralize"],
     flags: [copyable],
-    text: Text(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Text,
     props {
         value: by_planner { text, rendered },
         basedOnNumber: by_planner,
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         pluralForm: Text,
@@ -85,12 +82,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             )
         }
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         value,
         basedOnNumber: based_on_number,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     Ok(wiring)
 }

@@ -73,7 +73,7 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     if n == 0 {
         let [xmin, xmax] = graph_range(ctx);
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             domainMin: d0,
             domainMax: d1,
             domainMinClosed: d2,
@@ -101,7 +101,7 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         at.domainMaxClosed,
     ];
     inputs.extend(pieces);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         domainMin: d0,
         domainMax: d1,
         domainMinClosed: d2,

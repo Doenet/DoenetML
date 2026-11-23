@@ -104,7 +104,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     }
     let crossing = wiring.hidden_vector(VecOp::IntersectLines { segment1, segment2 }, args);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         x: Wire::own(crossing[0]),
         y: Wire::own(crossing[1]),
         hide: Wire::computed(OpSpec::Max, vec![author_hide, crossing[2]]),

@@ -17,7 +17,7 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        numVertices: by_planner { rendered },
+        numVertices: list_len { rendered },
         // The mean of the vertices; the renderer's center handle requests
         // it, and it translates every vertex. The vertices follow, as the
         // list.
@@ -215,11 +215,7 @@ pub(super) fn plan_vertices(
         )
     };
     // A triangle's table is laid out as this one (`triangle.rs`).
-    wiring.set_public(Props {
-        numVertices: Wire::constant(n as f64),
-        cx,
-        cy,
-    });
+    wiring.set_planned(Planned { cx, cy });
     wiring.set_list(points);
     Ok(wiring)
 }

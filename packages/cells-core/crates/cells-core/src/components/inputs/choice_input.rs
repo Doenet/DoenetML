@@ -45,7 +45,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     }
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ComponentType::ChoiceInput);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         preliminaryIndex: attrs.selectedIndex.unwrap_or(Source::given(0.0)).into(),
         selectedIndex: Source::computed_k(
             OpSpec::ChoiceIndex,

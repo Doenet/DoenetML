@@ -18,7 +18,7 @@ component! {
     flags: [copyable],
     default_prop: numbers,
     props {
-        numComponents: by_planner { rendered },
+        numComponents: list_len { rendered },
     }
     list {
         names: [numbers, values],
@@ -144,9 +144,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             })
             .collect(),
     );
-    wiring.set_public(Props {
-        numComponents: Wire::constant(n as f64),
-    });
+    wiring.set_planned(Planned {});
     Ok(wiring)
 }
 

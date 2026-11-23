@@ -184,6 +184,10 @@
         <clampFunction>$f</clampFunction>
         <wrapFunctionPeriodic>$f</wrapFunctionPeriodic>
         <derivative>$f</derivative>
+        <piecewiseFunction><function>x</function></piecewiseFunction>
+        <curve><function>x^2</function></curve>
+        <equilibriumCurve through="(1,2) (3,4) (2,6)" />
+        <interval>(1, 2)</interval>
     </p>
 </section>
 
@@ -223,6 +227,15 @@
     <equilibriumLine through="(1,2) (3,4)" />
     <endpoint open>(7,0)</endpoint>
     <legend><label>f</label></legend>
+    <piecewiseFunction>
+        <function domain="(0, Infinity)">1</function>
+        <function>0</function>
+    </piecewiseFunction>
+    <curve><function domain="[-1, 5]">x^2</function></curve>
+    <curve through="(-9,0) (-7,3) (-5,0)">
+        <bezierControls>(-8,1) <controlVectors direction="both">(0,0) (2,0)</controlVectors></bezierControls>
+    </curve>
+    <equilibriumCurve through="(1,2) (3,4) (2,6)" stable="false" switchable />
     <collect from="$g" componentType="point" />
     $n $t $b <math>x</math> <m>x</m> <abs>-3</abs> <and>true</and>
     <math anchor="(2,3)" positionFromAnchor="upperRight" draggable="false">x^2</math>

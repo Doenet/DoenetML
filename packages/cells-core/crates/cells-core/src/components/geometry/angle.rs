@@ -166,7 +166,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             other_expr,
         )
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         radians,
         degrees,
         radiansExpr: radians_expr,

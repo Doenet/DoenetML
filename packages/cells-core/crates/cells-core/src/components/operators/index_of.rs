@@ -7,8 +7,8 @@
 
 use super::{PieceKind, operands};
 use crate::compile::api::*;
+use crate::components::ComponentDef;
 use crate::components::define::*;
-use crate::components::{ComponentDef, ComponentType};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{Reduction, VecOp};
@@ -17,14 +17,12 @@ component! {
     /// `<argMin>3 1 2</argMin>`: the position (from 1) of its least
     /// operand, the first of equal ones; 0 with none.
     tags: ["argMin"],
+    variant: Find::Least,
     flags: [copyable],
-    text: Number(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Number,
     props {
         value: by_planner { rendered },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         target: Scalar,
@@ -36,14 +34,27 @@ component! {
 }
 
 /// `<argMax>`: the position of its greatest operand.
-pub(crate) const ARG_MAX: ComponentDef = DEFINITION.with_tags(&["argMax"]);
+pub(crate) const ARG_MAX: ComponentDef = DEFINITION.variant(&["argMax"], &Find::Greatest);
 /// `<indexOf target>`: the position of the first operand equal to its
 /// target, 0 when none is.
-pub(crate) const INDEX_OF: ComponentDef = DEFINITION.with_tags(&["indexOf"]);
+pub(crate) const INDEX_OF: ComponentDef = DEFINITION.variant(&["indexOf"], &Find::Equal);
 /// `<searchSorted target side allowUnsorted>`: the position at which its
 /// target would go among its operands, which must be in increasing order
 /// unless `allowUnsorted`; 0 when they are not, or there are none.
-pub(crate) const SEARCH_SORTED: ComponentDef = DEFINITION.with_tags(&["searchSorted"]);
+pub(crate) const SEARCH_SORTED: ComponentDef = DEFINITION.variant(&["searchSorted"], &Find::Place);
+
+/// What a type of this table looks for among its operands.
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum Find {
+    /// The least: an `<argMin>`'s.
+    Least,
+    /// The greatest: an `<argMax>`'s.
+    Greatest,
+    /// The first equal to its target: an `<indexOf>`'s.
+    Equal,
+    /// Where its target would go: a `<searchSorted>`'s.
+    Place,
+}
 
 /// A diagnostic for an `<indexOf>` or `<searchSorted>` with no `target`,
 /// which no document can answer.
@@ -53,6 +64,7 @@ const NO_TARGET: &str = "cells-index-no-target";
 /// one, and a hidden port per operand ([`operands`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
+    let find = *ty.variant::<Find>();
     let attrs = Attrs::of(ctx.record());
     let refuse = |attr: &str| {
         Err(Error::Unsupported(format!(
@@ -60,11 +72,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ty.tag()
         )))
     };
-    let takes_target = matches!(ty, ComponentType::IndexOf | ComponentType::SearchSorted);
+    let takes_target = matches!(find, Find::Equal | Find::Place);
     if !takes_target && attrs.target.is_some() {
         return refuse("target");
     }
-    if ty != ComponentType::SearchSorted {
+    if find != Find::Place {
         if attrs.side.is_some() {
             return refuse("side");
         }
@@ -92,12 +104,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ));
         }
     };
-    let op = match ty {
-        ComponentType::ArgMin => Reduction::ArgMin,
-        ComponentType::ArgMax => Reduction::ArgMax,
-        ComponentType::IndexOf => Reduction::IndexOf,
-        ComponentType::SearchSorted => Reduction::SearchSorted { right, unsorted },
-        _ => unreachable!("<{}> is not planned by this table", ty.tag()),
+    let op = match find {
+        Find::Least => Reduction::ArgMin,
+        Find::Greatest => Reduction::ArgMax,
+        Find::Equal => Reduction::IndexOf,
+        Find::Place => Reduction::SearchSorted { right, unsorted },
     };
     let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let mut wiring = ElemWiring::of(ty);
@@ -133,12 +144,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .into()
         }
     };
-    wiring.set_public(Props {
-        value,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
-    });
+    wiring.set_planned(Planned { value });
     Ok(wiring)
 }
 

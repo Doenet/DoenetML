@@ -251,10 +251,12 @@ after step 2, and from 0.96 to 1.05 after step 4; the 1.05, `poly` at
      (`when_ref`, `answer_response`).
 
    What fit none of the three accessors, the findings:
-   - **Nine reads of a referent's row for more than its type.**
+   - **Ten reads of a referent's row for more than its type.**
      `copies.rs` (whether an `extend` referent is one the author wrote,
      twice), `ctx.rs` (the referent's node and scope, for a copy with
-     overrides), `iterates.rs` (a `<functionIterates>`'s function: that
+     overrides), `condition.rs` (whether a math a comparison names is
+     written `unordered`; it arrived by a merge after the step and did
+     not compile until it said its relation), `iterates.rs` (a `<functionIterates>`'s function: that
      it is one, and its node; a `<repeat for>`'s target: that it is a
      `<functionIterates>`), `lists.rs` (whether a piece names a value
      list, what a copy of a list extends, the type an entry is taken

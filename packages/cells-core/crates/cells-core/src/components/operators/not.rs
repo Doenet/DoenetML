@@ -11,9 +11,7 @@ component! {
     /// A request cannot change it, as in the current core.
     tags: ["not"],
     flags: [copyable],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         operand: by_planner,
         value: by_planner { rendered },
@@ -44,7 +42,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         (None, ChildValue::Reference(p)) => Source::reference(p).into(),
         (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         operand,
         value: Wire::computed(OpSpec::Not, vec![Props::PORTS.operand]),
     });

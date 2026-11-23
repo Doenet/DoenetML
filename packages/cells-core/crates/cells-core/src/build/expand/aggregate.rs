@@ -15,7 +15,10 @@
 //! **Numbers**: a section's `number` is 1 plus the gates of the sections
 //! before it among its siblings, counted through the containers expanded
 //! in place, whatever its type says is structure ([`StructureKind`]:
-//! choices, cases, groups, repeats, collects).
+//! choices, cases, groups, repeats, collects), and through the containers
+//! the divisions' sequence passes through (a `<div>`). A list item (a
+//! `<part>`, a `<problems>`'s problem) is numbered among its parent's
+//! sectioning children instead, through the structure only (ADR 0054).
 //!
 //! **Gathered**: a collect's children are copies of the components of its
 //! type under what it gathers from, and its count is how many.
@@ -29,7 +32,7 @@ use super::*;
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 
-use crate::components::{AggOp, Collection, Scored};
+use crate::components::{AggOp, Collection, Numbering, Scored};
 
 /// Expand, aggregates: a collect's gathered children and count, credit and
 /// section numbers, materialized from the tree the build stamped.
@@ -58,8 +61,8 @@ impl<'c> Builder<'c> {
                 }
             }
         }
-        let mut counter = Counter::default();
-        self.number_sections(root, None, &mut counter);
+        let mut seq = self.fresh_seq(root);
+        self.number_sections(root, None, &mut seq);
     }
 
     /// The slots of `c`'s credit and its percentage: the props its type
@@ -202,75 +205,193 @@ impl<'c> Builder<'c> {
     }
 
     /// Number the sections inside repeat (or collect from repeats) `r`,
-    /// among the children counted by `counter`. A section counted inside
+    /// among the children counted by `seq`. A section counted inside
     /// makes the numbers after `r` follow its count; one whose number
     /// follows a count inside `r` makes every number inside `r` follow.
-    fn number_through_repeat(&mut self, r: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
-        let (known, before, follows) = (counter.known, counter.before, counter.follows);
-        let start = counter.numbered.len();
-        self.number_sections(r, gate, counter);
-        if counter.follows && !follows {
-            for i in start..counter.numbered.len() {
+    fn number_through_repeat(&mut self, r: CompIdx, gate: Option<SlotId>, seq: &mut Seq) {
+        let div = Mark::of(&seq.div);
+        let items = seq.items.as_ref().map(|i| Mark::of(&i.counter));
+        self.number_sections(r, gate, seq);
+        self.settle(&mut seq.div, div);
+        if let (Some(i), Some(mark)) = (seq.items.as_mut(), items) {
+            self.settle(&mut i.counter, mark);
+        }
+    }
+
+    /// After a repeat counted from `mark`: the numbers inside it follow
+    /// the counts when one of them does, and the numbers after it when it
+    /// counted anything.
+    fn settle(&mut self, counter: &mut Counter, mark: Mark) {
+        if counter.follows && !mark.follows {
+            for i in mark.start..counter.numbered.len() {
                 let s = counter.numbered[i];
                 self.is_counted(s);
             }
         }
-        if counter.known != known || counter.before != before {
+        if counter.known != mark.known || counter.before != mark.before {
             counter.follows = true;
         }
     }
 
+    /// The sequences `c` numbers its children in, from 1: the divisions',
+    /// and its list items' when one of its children is one (ADR 0054).
+    fn fresh_seq(&self, c: CompIdx) -> Seq {
+        let as_list = self.numbered_flag(c, |n| n.as_list);
+        Seq {
+            div: Counter::default(),
+            items: (as_list || self.has_list_item(c)).then(Items::default),
+            as_list,
+        }
+    }
+
+    /// Whether `c`'s type declares the constant 0/1 prop `prop` of its
+    /// [`Numbered`](crate::components::Numbered), and it is on.
+    fn numbered_flag(
+        &self,
+        c: CompIdx,
+        prop: fn(&crate::components::Numbered) -> Option<usize>,
+    ) -> bool {
+        let Some(n) = self.components.component_type[c.index()].def().numbered else {
+            return false;
+        };
+        prop(&n).is_some_and(
+            |p| matches!(self.sources[self.slot(c, p).index()], BuiltSource::Const(v) if v != 0.0),
+        )
+    }
+
+    /// Whether a child of `c`, looked through the structure, is always a
+    /// list item (a `<part>`).
+    fn has_list_item(&self, c: CompIdx) -> bool {
+        self.component_children(c).into_iter().any(|k| {
+            if self.components.component_type[k.index()]
+                .structure_kind()
+                .is_some()
+            {
+                self.has_list_item(k)
+            } else {
+                self.numbered_flag(k, |n| n.list_item)
+            }
+        })
+    }
+
     /// Number the sections among the children of `c`, counting through the
-    /// containers expanded in place; `gate` is the product
-    /// of the cases between `c` and the component whose children are being
-    /// counted.
-    fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
+    /// containers expanded in place and, for the divisions, through those
+    /// that pass their sequence through (ADR 0054); `gate` is the product
+    /// of the cases between `c` and the component whose children the
+    /// divisions are counted among.
+    fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, seq: &mut Seq) {
         for k in self.component_children(c) {
             let ty = self.components.component_type[k.index()];
             match ty.structure_kind() {
                 Some(StructureKind::Gate { .. }) => {
                     let g = self.gate_through(gate, k);
-                    self.number_sections(k, g, counter);
+                    let items_gate = seq.items.as_ref().map(|i| i.gate);
+                    if let Some(i) = seq.items.as_mut() {
+                        i.gate = if i.gate == gate {
+                            g
+                        } else {
+                            self.gate_through(i.gate, k)
+                        };
+                    }
+                    self.number_sections(k, g, seq);
+                    if let (Some(i), Some(ig)) = (seq.items.as_mut(), items_gate) {
+                        i.gate = ig;
+                    }
                 }
-                Some(StructureKind::Repeat { .. }) => self.number_through_repeat(k, gate, counter),
+                Some(StructureKind::Repeat { .. }) => self.number_through_repeat(k, gate, seq),
                 // A collect that follows the counts of the repeats it
                 // gathers from.
                 Some(StructureKind::Transparent { .. }) if self.follows_counts.contains(&k) => {
-                    self.number_through_repeat(k, gate, counter)
+                    self.number_through_repeat(k, gate, seq)
                 }
-                Some(StructureKind::Transparent { .. }) => self.number_sections(k, gate, counter),
+                Some(StructureKind::Transparent { .. }) => self.number_sections(k, gate, seq),
+                None if ty.numbering() == Some(Numbering::PassesDivisions) => {
+                    // The divisions inside continue the sequence; the list
+                    // items inside are counted among themselves.
+                    let inner = self.fresh_seq(k);
+                    let items = std::mem::replace(&mut seq.items, inner.items);
+                    let as_list = std::mem::replace(&mut seq.as_list, false);
+                    self.number_sections(k, gate, seq);
+                    seq.items = items;
+                    seq.as_list = as_list;
+                }
+                None if ty.numbering() == Some(Numbering::Unnumbered) => {
+                    // A proof: a list item with no number, which bounds both.
+                    let scope = self.components.scope[k.index()];
+                    if let Some(i) = seq.items.as_mut() {
+                        let gate = i.gate;
+                        self.advance(&mut i.counter, gate, scope);
+                    }
+                    let mut inner = self.fresh_seq(k);
+                    self.number_sections(k, None, &mut inner);
+                }
                 None if ty
                     .aggregate_prop(AggOp::Count, Collection::SectionsThrough)
                     .is_some() =>
                 {
                     let number = ty.aggregate_prop(AggOp::Count, Collection::SectionsThrough);
                     let s = self.slot(k, number.expect("a numbered section"));
-                    let number = match counter.before {
-                        None => self.counted(s, counter.known + 1.0),
-                        Some(b) => {
-                            self.is_counted(s);
-                            let k = self.const_slot(counter.known + 1.0);
-                            self.op_source(OpSpec::Add, &[b, k])
+                    let scope = self.components.scope[k.index()];
+                    let list_item = seq.as_list || self.numbered_flag(k, |n| n.list_item);
+                    // A list item is numbered among the list items, and
+                    // takes its place among the divisions all the same, as
+                    // in the current core.
+                    match seq.items.as_mut() {
+                        Some(i) if list_item => {
+                            let item_gate = i.gate;
+                            self.take_number(&mut i.counter, s, item_gate, scope);
+                            self.advance(&mut seq.div, gate, scope);
                         }
-                    };
-                    counter.numbered.push(s);
-                    self.fill_aggregate(s, AggOp::Count, number);
-                    match gate {
-                        None => counter.known += 1.0,
-                        Some(g) => {
-                            counter.before = Some(match counter.before {
-                                None => g,
-                                Some(b) => self.op_slot(
-                                    OpSpec::Add,
-                                    &[b, g],
-                                    self.components.scope[k.index()],
-                                ),
-                            })
+                        _ => {
+                            self.take_number(&mut seq.div, s, gate, scope);
+                            if let Some(i) = seq.items.as_mut() {
+                                let item_gate = i.gate;
+                                self.advance(&mut i.counter, item_gate, scope);
+                            }
                         }
                     }
-                    self.number_sections(k, None, &mut Counter::default());
+                    let mut inner = self.fresh_seq(k);
+                    self.number_sections(k, None, &mut inner);
                 }
-                _ => self.number_sections(k, None, &mut Counter::default()),
+                _ => {
+                    let mut inner = self.fresh_seq(k);
+                    self.number_sections(k, None, &mut inner);
+                }
+            }
+        }
+    }
+
+    /// Wire `s`, a section's `number`, as the next number `counter` gives,
+    /// and count it, behind `gate`.
+    fn take_number(
+        &mut self,
+        counter: &mut Counter,
+        s: SlotId,
+        gate: Option<SlotId>,
+        scope: ScopeId,
+    ) {
+        let number = match counter.before {
+            None => self.counted(s, counter.known + 1.0),
+            Some(b) => {
+                self.is_counted(s);
+                let k = self.const_slot(counter.known + 1.0);
+                self.op_source(OpSpec::Add, &[b, k])
+            }
+        };
+        counter.numbered.push(s);
+        self.fill_aggregate(s, AggOp::Count, number);
+        self.advance(counter, gate, scope);
+    }
+
+    /// Count one more item in `counter`, behind `gate`.
+    fn advance(&mut self, counter: &mut Counter, gate: Option<SlotId>, scope: ScopeId) {
+        match gate {
+            None => counter.known += 1.0,
+            Some(g) => {
+                counter.before = Some(match counter.before {
+                    None => g,
+                    Some(b) => self.op_slot(OpSpec::Add, &[b, g], scope),
+                })
             }
         }
     }
@@ -379,4 +500,43 @@ struct Counter {
     follows: bool,
     /// The number slots counted so far.
     numbered: Vec<SlotId>,
+}
+
+/// Where a [`Counter`] stood before a repeat.
+#[derive(Clone, Copy)]
+struct Mark {
+    known: f64,
+    before: Option<SlotId>,
+    follows: bool,
+    start: usize,
+}
+
+impl Mark {
+    fn of(c: &Counter) -> Mark {
+        Mark {
+            known: c.known,
+            before: c.before,
+            follows: c.follows,
+            start: c.numbered.len(),
+        }
+    }
+}
+
+/// The list items counted so far among one component's children, and the
+/// product of the cases between it and the child being counted: a
+/// container the divisions pass through bounds the list items, so the two
+/// sequences can sit behind different cases.
+#[derive(Default)]
+struct Items {
+    counter: Counter,
+    gate: Option<SlotId>,
+}
+
+/// The two sequences one component numbers its children in (ADR 0054):
+/// the divisions', and its list items' when it has any.
+struct Seq {
+    div: Counter,
+    items: Option<Items>,
+    /// Its sectioning children are its list's items.
+    as_list: bool,
 }

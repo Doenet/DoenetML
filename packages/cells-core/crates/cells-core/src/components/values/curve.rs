@@ -262,7 +262,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // variables, or one returning a tuple, is only iterated
         // (`plan_function_iterates` reads its text).
         let [d0, d1, d2, d3] = whole_line();
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             expr: Wire::absent(),
             variable: Wire::absent(),
             domainMin: d0,
@@ -324,7 +324,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         [at.xmin, at.xmax],
     );
     let [d0, d1, d2, d3] = parts.domain;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr,
         variable: parts.variable,
         domainMin: d0,

@@ -6,8 +6,8 @@
 //! Each is a container with few or no props of its own: how it looks is the
 //! renderer's. What the core cares about is whether the sections inside it
 //! are numbered among the sections around it: through an introduction, a
-//! conclusion or a statement they are (each is structure, as a `<div>` is in
-//! the current core); a proof, a solution or a figure numbers its own
+//! conclusion or a statement they are (each passes the divisions' sequence
+//! through, as a `<div>` does; ADR 0054); a proof, a solution or a figure numbers its own
 //! sections from 1 and takes no number among its siblings.
 //!
 //! A figure's number ("Figure 2", shared with the tables) and a footnote's
@@ -15,8 +15,6 @@
 //! each declares the counter it advances
 //! ([`Counted`](crate::components::Counted)), and the document counts
 //! when it is asked (ADR 0044).
-
-use super::super::define::*;
 
 #[cfg(all(test, feature = "testing"))]
 #[path = "proof.spec.rs"]
@@ -54,130 +52,63 @@ mod footnote_spec;
 #[path = "postpone_render_container.spec.rs"]
 mod postpone_render_container_spec;
 
-pub(crate) mod proof {
-    use super::*;
-
-    component! {
-        /// `<proof>`: a division with a heading, collapsed until opened
-        /// (`startOpen`), that takes no number: the sections inside it are
-        /// numbered among themselves.
-        tags: ["proof"],
-        flags: [container],
+containers! {
+    /// `<proof>`: a division with a heading, collapsed until opened
+    /// (`startOpen`), that takes no number: the sections inside it are
+    /// numbered among themselves. It takes a place among its parent's
+    /// list items, as every sectioning component does (ADR 0054).
+    proof: ["proof"] with [unnumbered_division] {
         presentation { startOpen, boxed, postponeRendering }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod solution {
-    use super::*;
-
-    component! {
-        /// `<solution>`: a block the reader reveals; `open` is its own state
-        /// (0 or 1). The sections inside it are numbered among themselves.
-        tags: ["solution"],
-        flags: [container],
+    /// `<solution>`: a block the reader reveals; `open` is its own state
+    /// (0 or 1). The sections inside it are numbered among themselves.
+    solution: ["solution"] {
         props {
             open: attr(0.0) { interactive, rendered },
         }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod introduction {
-    use super::*;
+    /// `<introduction>`: the opening block of a division, a `<div>`
+    /// to the numbering: a section inside it is numbered among the
+    /// sections around it (ADR 0054).
+    introduction: ["introduction"] with [passes_divisions];
 
-    component! {
-        /// `<introduction>`: the opening block of a division, looked
-        /// through: a section inside it is numbered among the sections
-        /// around it.
-        tags: ["introduction"],
-        flags: [container],
-        structure: Transparent,
-        planner: Props,
-    }
-}
+    /// `<conclusion>`: the closing block of a division, numbered
+    /// through as an `<introduction>` is.
+    conclusion: ["conclusion"] with [passes_divisions];
 
-pub(crate) mod conclusion {
-    use super::*;
+    /// `<statement>`: the statement of a problem or a theorem,
+    /// numbered through as an `<introduction>` is.
+    statement: ["statement"] with [passes_divisions];
 
-    component! {
-        /// `<conclusion>`: the closing block of a division, looked through
-        /// as an `<introduction>` is.
-        tags: ["conclusion"],
-        flags: [container],
-        structure: Transparent,
-        planner: Props,
-    }
-}
-
-pub(crate) mod statement {
-    use super::*;
-
-    component! {
-        /// `<statement>`: the statement of a problem or a theorem, looked
-        /// through as an `<introduction>` is.
-        tags: ["statement"],
-        flags: [container],
-        structure: Transparent,
-        planner: Props,
-    }
-}
-
-pub(crate) mod figure {
-    use super::*;
-
-    component! {
-        /// `<figure>`: its content, then its `<caption>` under its name,
-        /// "Figure 2", its number shared with the tables (ADR 0044) unless
-        /// `number="false"`.
-        tags: ["figure"],
-        flags: [container],
+    /// `<figure>`: its content, then its `<caption>` under its name,
+    /// "Figure 2", its number shared with the tables (ADR 0044) unless
+    /// `number="false"`.
+    figure: ["figure"] {
         counted: Figures(number),
         props {
             number: attr(1.0) { rendered },
         }
         presentation { suppressFigureNameInCaption }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod caption {
-    use super::*;
+    /// `<caption>`: the caption of the figure it sits in.
+    caption: ["caption"];
 
-    component! {
-        /// `<caption>`: the caption of the figure it sits in.
-        tags: ["caption"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod postpone_render_container {
-    use super::*;
-
-    component! {
-        /// `_postponeRenderContainer`: what the parser wraps a solution's
-        /// content in (a proof's or an aside's with `postponeRendering`), so
-        /// the current core makes it only once opened. Here it is built
-        /// with the rest and looked through; drawing it only when open is
-        /// the renderer's.
-        tags: ["_postponeRenderContainer"],
-        flags: [container],
+    /// `_postponeRenderContainer`: what the parser wraps a solution's
+    /// content in (a proof's or an aside's with `postponeRendering`), so
+    /// the current core makes it only once opened. Here it is built
+    /// with the rest and looked through; drawing it only when open is
+    /// the renderer's.
+    postpone_render_container: ["_postponeRenderContainer"] {
         structure: Transparent,
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod footnote {
-    use super::*;
-
-    component! {
-        /// `<footnote>`: a marker in the text, its number among the
-        /// document's footnotes (ADR 0044), whose content is shown on
-        /// demand.
-        tags: ["footnote"],
-        flags: [container],
+    /// `<footnote>`: a marker in the text, its number among the
+    /// document's footnotes (ADR 0044), whose content is shown on
+    /// demand.
+    footnote: ["footnote"] {
         counted: Footnotes,
-        planner: Props,
-    }
+    };
 }

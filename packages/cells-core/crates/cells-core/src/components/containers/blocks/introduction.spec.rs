@@ -1,4 +1,4 @@
-//! `<introduction>`: looked through, so a section inside it is numbered
+//! `<introduction>`: a `<div>` to the numbering, so a section inside it is numbered
 //! among the sections around it (`sectioning.test.ts`, "<introduction> and
 //! <conclusion> are containers like <div>").
 

@@ -12,9 +12,7 @@ component! {
     /// `strict` holds; false without both limits.
     tags: ["isBetween"],
     flags: [copyable],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         operand: by_planner,
         strict: by_planner,
@@ -52,7 +50,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         op: Reduction::Between,
         n: 4,
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         operand,
         strict: Wire::scalar(attrs.strict, GivenId::Attr(attr::strict, 0)),
         value: Source::vector(op, vec![at.operand, lim1, lim2, at.strict]).into(),

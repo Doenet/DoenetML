@@ -36,7 +36,7 @@ component! {
     ],
     flags: [container],
     scored: Aggregates(weight, aggregateScores),
-    numbered: Titled(includeParentNumber, label, title_word),
+    numbered: Titled(includeParentNumber, label, title_word, listItem, asList),
     props {
         // `creditAchieved`, `percentCreditAchieved` and `number` are
         // aggregates over the tree; the flags are literals the builder
@@ -48,13 +48,28 @@ component! {
         number: aggregate(Count, SectionsThrough) { rendered },
         includeParentNumber: by_planner { rendered },
         label: by_planner { rendered },
+        // Whether it is an item of its parent's list, always (a part), and
+        // whether its sectioning children are the items of its list (ADR
+        // 0054): literals, since they decide how it is numbered.
+        listItem: by_planner { rendered },
+        asList: by_planner { rendered },
     }
-    presentation { boxed }
+    // How its heading reads: the renderer's, from its number and title.
+    presentation {
+        boxed,
+        includeAutoName,
+        includeAutoNumber,
+        includeAutoNameIfNoTitle,
+        includeAutoNumberIfNoTitle,
+        noAutoTitle,
+    }
     attributes {
         weight: Value,
         r#type: Text,
         aggregateScores: LiteralFlag,
         includeParentNumber: LiteralFlag,
+        asList: LiteralFlag,
+        renameTo: Text,
     }
     planner: Plan(plan),
 }
@@ -76,6 +91,12 @@ pub struct SectionTag {
     /// Whether its number includes its parent section's ("2.1"), unless
     /// `includeParentNumber` says otherwise.
     pub includes_parent_number: bool,
+    /// Whether it is always an item of its parent's list, numbered among
+    /// the list items (ADR 0054).
+    pub list_item: bool,
+    /// Whether its sectioning children are the items of its list, unless
+    /// `asList` says otherwise; such a tag also takes `renameTo`.
+    pub as_list: bool,
 }
 
 /// The tags that make a `Section`, in the order of its `label` cell, which
@@ -88,105 +109,138 @@ pub const SECTION_TAGS: [SectionTag; 17] = [
         title: "Section",
         aggregates_scores: false,
         includes_parent_number: true,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "subsection",
         title: "Section",
         aggregates_scores: false,
         includes_parent_number: true,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "subsubsection",
         title: "Section",
         aggregates_scores: false,
         includes_parent_number: true,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "problem",
         title: "Problem",
         aggregates_scores: true,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "exercise",
         title: "Exercise",
         aggregates_scores: true,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "example",
         title: "Example",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "question",
         title: "Question",
         aggregates_scores: true,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "activity",
         title: "Activity",
         aggregates_scores: true,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "definition",
         title: "Definition",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "note",
         title: "Note",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "theorem",
         title: "Theorem",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "paragraphs",
         title: "Paragraphs",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
     SectionTag {
         tag: "objectives",
         title: "Objectives",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: false,
     },
-    // The current core numbers a part or a task among its parent's list
-    // items, apart from the divisions; here it is counted among its sibling
-    // sections, the same number while its siblings are parts.
+    // A part or a task is numbered among its parent's list items, apart
+    // from the divisions, as the current core numbers it (ADR 0054).
     SectionTag {
         tag: "part",
         title: "Part",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: true,
+        as_list: false,
     },
     SectionTag {
         tag: "task",
         title: "Task",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: true,
+        as_list: false,
     },
     SectionTag {
         tag: "problems",
         title: "Problems",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: true,
     },
     SectionTag {
         tag: "exercises",
         title: "Exercises",
         aggregates_scores: false,
         includes_parent_number: false,
+        list_item: false,
+        as_list: true,
     },
 ];
 
@@ -205,6 +259,10 @@ pub const NUMBER: usize = Props::AT.number;
 pub const INCLUDE_PARENT_NUMBER: usize = Props::AT.includeParentNumber;
 /// The position of `label`: its tag's index in [`SECTION_TAGS`], which names its title.
 pub const LABEL: usize = Props::AT.label;
+/// The position of `listItem`: 1 when it is always an item of its parent's list.
+pub const LIST_ITEM: usize = Props::AT.listItem;
+/// The position of `asList`: 1 when its sectioning children are its list's items.
+pub const AS_LIST: usize = Props::AT.asList;
 
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
 /// literals, defaulted by tag.
@@ -243,17 +301,22 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         attrs.includeParentNumber,
         section_tag.includes_parent_number,
     )?;
+    let as_list = flag("asList", attrs.asList, section_tag.as_list)?;
+    // Only a tag that groups divisions names itself by a word the author
+    // may replace, as in the current core.
+    if attrs.renameTo.is_some() && !section_tag.as_list {
+        return Err(Error::Unsupported(format!(
+            "'renameTo' on a <{tag}>: only a <problems> or an <exercises> takes it"
+        )));
+    }
     let mut wiring = ElemWiring::of(ComponentType::Section);
-    let table = |port: Port| Wire::from_table(ComponentType::Section, port);
-    let at = Props::PORTS;
-    wiring.set_public(Props {
-        creditAchieved: table(at.creditAchieved),
-        percentCreditAchieved: table(at.percentCreditAchieved),
+    wiring.set_planned(Planned {
         weight: attrs.weight.unwrap_or(Source::given(1.0)).into(),
         aggregateScores: Wire::constant(aggregate),
-        number: table(at.number),
         includeParentNumber: Wire::constant(include),
         label: Wire::constant(label as f64),
+        listItem: Wire::constant(f64::from(section_tag.list_item)),
+        asList: Wire::constant(as_list),
     });
     Ok(wiring)
 }

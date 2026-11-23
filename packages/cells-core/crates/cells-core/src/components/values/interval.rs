@@ -20,8 +20,7 @@ component! {
         // Set by the builder from its children, as a math's are.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         expand: On,

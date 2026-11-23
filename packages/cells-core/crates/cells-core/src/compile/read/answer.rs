@@ -52,8 +52,6 @@ impl SourceReader<'_> {
             "includeErrorInNumberExponents",
             "nSignErrorsMatched",
             "nPeriodicSetMatchesRequired",
-            "unorderedCompare",
-            "matchByExactPositions",
             "caseInsensitiveMatch",
             "matchBlanks",
             "splitSymbols",

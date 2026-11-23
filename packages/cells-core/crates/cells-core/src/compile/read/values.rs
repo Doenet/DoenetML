@@ -4,6 +4,7 @@
 //! text.
 
 use crate::compile::*;
+use crate::components::{EntryKind, TextKind};
 
 /// Reading the source, a value from its text: a literal or a reference, a math,
 /// a tuple, a point. Run by parsing for every record, and by a planner for what
@@ -46,6 +47,59 @@ impl<'a> SourceReader<'a> {
                 rp.sel_on(component_type),
                 Some(PropSel::At(PropAt::Position(i))) if component_type.prop_defs()[i].text
             ),
+        }
+    }
+
+    /// What planned ref `p`, planned from template `t`, reads, as its
+    /// referent's type declares it, when the path names an element of a
+    /// template (and at most one entry of its list): None when the
+    /// templates do not tell (an iteration, a pick).
+    pub(in crate::compile) fn ref_value_kind(
+        &self,
+        ar: &Arenas,
+        t: TemplateId,
+        p: RefId,
+    ) -> Option<ValueKind> {
+        let r = &ar.refs[p.index()];
+        let mut last = None;
+        for step in &r.steps {
+            match step {
+                Step::Elem(e) => last = Some(*e),
+                Step::Iter(_) | Step::Item(..) | Step::Iface(..) | Step::Nothing => return None,
+            }
+        }
+        let e = last?;
+        let ty = self.outlined(self.template_up(t, r.hops)).elems[e.index()].component_type;
+        let sel = match r.prop {
+            None => ty.default_sel(),
+            Some(rp) => rp.sel_on(ty),
+        }?;
+        let entry = |ty: ComponentType| match ty.list_entry() {
+            Some(EntryKind::Number) => Some(ValueKind::Number),
+            Some(EntryKind::Text) => Some(ValueKind::Text),
+            Some(EntryKind::Boolean) => Some(ValueKind::Boolean),
+            Some(EntryKind::Math) => Some(ValueKind::Math),
+            Some(EntryKind::Point) => Some(ValueKind::Point),
+            // What its operands hold, which the records do not tell.
+            Some(EntryKind::Any) | None => None,
+        };
+        match (sel, r.entries.len()) {
+            (PropSel::At(PropAt::List), 0) => entry(ty).map(|_| ValueKind::List),
+            (PropSel::At(PropAt::List), 1) | (PropSel::At(PropAt::Item(_)), 0) => entry(ty),
+            (PropSel::At(PropAt::Position(i)), 0) => {
+                let def = &ty.prop_defs()[i];
+                Some(if def.text {
+                    ValueKind::Text
+                } else if ty.expr_of(i).is_some() {
+                    ValueKind::Math
+                } else if matches!(ty.text_kind(), Some(TextKind::Boolean(b)) if b == i) {
+                    ValueKind::Boolean
+                } else {
+                    ValueKind::Number
+                })
+            }
+            (PropSel::Parts { .. }, 0) => Some(ValueKind::Point),
+            _ => None,
         }
     }
 
@@ -301,6 +355,24 @@ impl<'a> SourceReader<'a> {
             )?)),
         }
     }
+}
+
+/// What a reference reads, as its referent's type declares it
+/// ([`SourceReader::ref_value_kind`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ValueKind {
+    /// A number.
+    Number,
+    /// A string id.
+    Text,
+    /// A boolean, 1 or 0.
+    Boolean,
+    /// An expression, or a number where it is one (a `<math>`'s value).
+    Math,
+    /// A point's coordinates.
+    Point,
+    /// A whole list (several cells).
+    List,
 }
 
 /// A literal value: `true`, `false` (in any case, as every keyword in an
