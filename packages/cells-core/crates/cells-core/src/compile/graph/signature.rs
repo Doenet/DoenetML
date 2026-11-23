@@ -97,7 +97,8 @@ impl<'a, 'c> Signer<'a, 'c> {
         signer.seed();
         for s in GraphNode::below(n) {
             let makes_math = match g.defs[s.index()] {
-                Def::Op(GraphOp::Template(_), _) => true,
+                // A lowered math's expression keeps its port's type.
+                Def::Op(GraphOp::Template(i), _) => !g.templates[i as usize].blank,
                 Def::Op(GraphOp::Spec(OpSpec::Sym(kind)), _) => kind.makes_math(),
                 _ => false,
             };
@@ -481,7 +482,14 @@ impl<'a, 'c> Signer<'a, 'c> {
         };
         match *planned {
             GraphOp::Template(i) => {
-                let TemplateOp { expr, post, math } = &self.g.templates[i as usize];
+                let TemplateOp {
+                    expr,
+                    post,
+                    math,
+                    blank,
+                } = &self.g.templates[i as usize];
+                // A lowered math's value comes first, before the leaves.
+                let inputs = if *blank { &inputs[1..] } else { inputs };
                 let text = self.c.plans.sym_text[expr].spell(self.c.dast);
                 let tree = self
                     .engine
@@ -502,7 +510,11 @@ impl<'a, 'c> Signer<'a, 'c> {
                     })
                     .unwrap_or_else(|never| match never {});
                 hash_of((
-                    "instantiate",
+                    if *blank {
+                        "instantiate blank"
+                    } else {
+                        "instantiate"
+                    },
                     canonical_leaves(&template_text(&tree)),
                     *post,
                 ))

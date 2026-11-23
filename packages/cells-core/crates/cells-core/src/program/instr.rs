@@ -30,6 +30,20 @@ pub enum SymKind {
         /// What to do to the result.
         post: Post,
     },
+    /// A lowered math's expression, shown while its value is missing (ADR
+    /// 0046): with input 0, the value, missing, the template instantiated
+    /// as [`SymKind::Instantiate`] does (its leaves are inputs 1 on), so a
+    /// missing operand shows as the blank in it (`＿ + 1`); otherwise NaN,
+    /// the numeric math's expression (ADR 0005), at the cost of one check.
+    /// Its cell keeps its port's type, a number: the handle is for the
+    /// math's display alone, which reads it only while the value is
+    /// missing.
+    InstantiateBlank {
+        /// The engine expression whose leaves are inputs 1 on.
+        template: Handle,
+        /// What to do to the result.
+        post: Post,
+    },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -265,7 +279,11 @@ impl OpSpec {
         }
         match self {
             OpSpec::Vec(v) => v.n_in(),
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => usize::MAX,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => usize::MAX,
             OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
@@ -280,7 +298,11 @@ impl OpSpec {
     /// for a template's leaves.
     pub const fn accepts(&self, n: usize) -> bool {
         match self {
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => true,
             _ => self.arity() == n,
         }
     }
@@ -399,6 +421,10 @@ mod arity {
                 template: Handle::new(0),
                 post: Post::None,
             }),
+            OpSpec::Sym(SymKind::InstantiateBlank {
+                template: Handle::new(0),
+                post: Post::None,
+            }),
             OpSpec::Sym(SymKind::Evaluate),
             OpSpec::Sym(SymKind::EvalAt),
             OpSpec::Sym(SymKind::Derivative),
@@ -461,12 +487,13 @@ mod arity {
                     SymKind::ClampFunction => 8,
                     SymKind::WrapFunctionPeriodic => 9,
                     SymKind::SampleQuadratic => 10,
+                    SymKind::InstantiateBlank { .. } => 11,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 39;
+    const N_TAGS: usize = 40;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

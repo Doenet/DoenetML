@@ -299,7 +299,7 @@ fn subtree(templates: &[Outlined], t: TemplateId, e: ElemId) -> Vec<(TemplateId,
 #[cfg(test)]
 mod tests {
     use crate::compile::*;
-    use crate::testing::dast::{document, el, mac};
+    use crate::testing::dast::{document, el};
 
     /// Template and element of the element named `name`.
     fn find(compiled: &Compiled, name: &str) -> (TemplateId, ElemId) {
@@ -320,7 +320,7 @@ mod tests {
     fn a_box_keeps_what_outlining_made_of_it() {
         let dast = document([el("graph")
             .name("g")
-            .attr("xmin", mac("nope"))
+            .attr("xmin", "1+")
             .child(el("point").name("a").attr("x", "1"))]);
         let compiled = crate::testing::compile(&dast).unwrap();
         let (t, g) = find(&compiled, "g");
@@ -337,10 +337,15 @@ mod tests {
 
     /// A `$ref` child that cannot be planned is boxed in planning's table
     /// of `$ref` children: no element is made for it, and the child list
-    /// outlining made is left as it made it.
+    /// outlining made is left as it made it. (One that names nothing is
+    /// planned, as the missing value: ADR 0046.)
     #[test]
     fn a_ref_child_that_cannot_be_planned_is_boxed_in_planning_table() {
-        let dast = document([el("p").name("p").child(mac("nope"))]);
+        let json = crate::testing::test_utils::dast_json(
+            r#"<repeatForSequence name="r" length="2"><number name="x">1</number></repeatForSequence>
+               <numberInput name="k"/><p name="p">$r[$k+1].x</p>"#,
+        );
+        let dast = crate::dast::load(json.as_bytes()).unwrap();
         let compiled = crate::testing::compile(&dast).unwrap();
         let (t, p) = find(&compiled, "p");
         let tpl = &compiled.plans.templates[t.index()];
@@ -357,7 +362,7 @@ mod tests {
             compiled
                 .diagnostics
                 .iter()
-                .any(|d| d.code == "doenet-w0104")
+                .any(|d| d.code == "cells-dynamic-index")
         );
     }
 }

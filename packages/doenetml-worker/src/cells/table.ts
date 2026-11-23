@@ -30,7 +30,15 @@ type Columns = {
     stringOffsets: Uint32Array;
     stringBytes: Uint8Array;
     cells: Float64Array;
+    /** The cells' bits, two words per cell (little-endian: low, high). */
+    cellBits: Uint32Array;
 };
+
+/** The missing value's bits (ADR 0046), as the core's `MISSING`: a NaN
+ * with a payload of its own. A JavaScript number cannot be relied on to
+ * keep a NaN's payload, so it is read from the cell's bits. */
+const MISSING_LOW = 0x0000_0d37;
+const MISSING_HIGH = 0x7ff8_0000;
 
 export class CellsTable {
     core: Core;
@@ -87,6 +95,11 @@ export class CellsTable {
                 memory.buffer,
                 core.cells_ptr(),
                 core.cells_len(),
+            ),
+            cellBits: new Uint32Array(
+                memory.buffer,
+                core.cells_ptr(),
+                2 * core.cells_len(),
             ),
         };
     }
@@ -193,6 +206,17 @@ export class CellsTable {
 
     value(cell: number): number {
         return this.cols.cells[cell];
+    }
+
+    /** Whether `cell` holds the missing value: a reference that names
+     * nothing, or a value made from one (ADR 0046). Not every NaN is: a
+     * computation with no value is NaN and shows as such. */
+    isMissing(cell: number): boolean {
+        const bits = this.cols.cellBits;
+        return (
+            bits[2 * cell] === MISSING_LOW &&
+            bits[2 * cell + 1] === MISSING_HIGH
+        );
     }
 
     children(c: number): Child[] {

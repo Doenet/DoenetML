@@ -152,13 +152,11 @@ impl<'a> Planning<'a> {
         v: &ValueChildren,
     ) -> Result<Source> {
         Ok(match &v.value {
-            // A list of no entries, or an entry past a list's end, is
-            // the missing value where one value is read (ADR 0041,
-            // decision 5).
+            // A list of no entries is the missing value where one value is
+            // read (ADR 0041, decision 5; ADR 0046); an entry past a list's
+            // end reads it through the reference.
             ChildValue::Reference(p) => match self.splice(t, e, *p) {
-                super::lists::Splice::Entries(0) | super::lists::Splice::Nothing => {
-                    Source::absent()
-                }
+                super::lists::Splice::Entries(0) => Source::constant(crate::program::MISSING),
                 _ => Source::reference(*p),
             },
             ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {

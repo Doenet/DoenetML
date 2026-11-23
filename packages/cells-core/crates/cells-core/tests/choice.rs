@@ -139,14 +139,23 @@ fn a_name_missing_from_a_branch_or_without_an_else_is_not_in_the_interface() {
         e.0 == "cells-not-in-interface" && e.1.contains("no <else>"),
         "{e:?}"
     );
-    // A bare name inside a branch is private.
-    let e = load_err(
+    // A bare name inside a branch is private: a reference to it names
+    // nothing, a warning and the missing value (ADR 0046).
+    let doc = load(
         r#"
 <numberInput name="n"/>
 <conditionalContent name="cc"><case condition="$n > 0"><number name="x">1</number></case><else><number name="x">2</number></else></conditionalContent>
-<number>$x</number>"#,
+<number name="m">$x</number>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics().iter().any(|d| d.code == "doenet-w0104"),
+        "{:?}",
+        doc.diagnostics()
     );
-    assert_eq!(e.0, "doenet-w0104", "{}", e.1);
+    assert!(cells_core::program::is_missing(
+        doc.value("m", "value").unwrap()
+    ));
 }
 
 #[test]

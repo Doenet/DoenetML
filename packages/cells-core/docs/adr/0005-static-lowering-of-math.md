@@ -1,6 +1,8 @@
 # `<math>` lowers to operators when its leaves are numeric
 
 Revised by ADR 0008: symbolic rewriting now runs inside a tick. Lowering is unchanged.
+Amended by ADR 0046: a lowered math's expression is made from its text while its
+value is missing, so it shows the blank (`＿ + 1`); otherwise it is NaN, as here.
 
 A `<math>` whose leaves are all number literals or references to numeric
 cells is turned into ordinary operators at build time (`3$a + 2` becomes

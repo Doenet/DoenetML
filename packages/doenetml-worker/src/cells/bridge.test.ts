@@ -238,6 +238,33 @@ describe("values and lists", () => {
     });
 });
 
+describe("missing values", () => {
+    it("shows a reference that names nothing, and what is made from it, as a blank, and keeps NaN for a computation", async () => {
+        const bridge = await load(`<numberList name="l">1 2</numberList>
+<p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
+<booleanList name="bl">true</booleanList>
+<p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
+<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
+<p><numberList>$l[5] 2</numberList></p>`);
+        const root = bridge.flatDast();
+        const props = (name: string) =>
+            byName(root, name).map((e) => (e.data as any).props);
+        // VAL-5, D40: missing is the blank; NaN stays for 0/0 (ADR 0046).
+        expect(props("number").map((p) => p.text)).toEqual(["＿", "＿", "NaN"]);
+        expect(props("text").map((p) => p.value)).toContain("＿");
+        // A missing boolean is the blank; a comparison with a missing side
+        // is false, since a blank never equals anything (D37, D40).
+        expect(props("boolean").map((p) => p.value)).toEqual(["＿", false]);
+        // A lowered math (ADR 0005) shows the blank in its expression.
+        expect(props("math").map((p) => p.latex)).toEqual(["x + ＿", "1 + ＿"]);
+        expect(props("point")).toEqual([
+            { coordsLatex: "\\left( ＿, 1 \\right)" },
+        ]);
+        // The element that names nothing still builds: a warning, no box.
+        expect(byName(root, "_error")).toEqual([]);
+    });
+});
+
 describe("renderer actions", () => {
     it("moves a point and sends only what changed", async () => {
         const bridge = await load(

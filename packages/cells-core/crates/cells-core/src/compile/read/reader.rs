@@ -162,8 +162,16 @@ impl Arenas {
         code: &'static str,
         message: &str,
     ) -> Warned {
-        self.warnings
-            .push(Diagnostic::warning(code, Some(node), message.into()));
+        // A node planned twice (an extend's attribute, read again by its
+        // planner) warns once.
+        let d = Diagnostic::warning(code, Some(node), message.into());
+        if !self
+            .warnings
+            .iter()
+            .any(|w| w.node == d.node && w.code == d.code && w.message == d.message)
+        {
+            self.warnings.push(d);
+        }
         Warned::raised()
     }
 }

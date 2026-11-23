@@ -43,7 +43,14 @@ crate::index::index_type! {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(in crate::build) enum PlannedOp {
     Spec(OpSpec),
-    Template { template: SymTemplateId, post: Post },
+    /// A symbolic template over its leaves; with `blank`, a lowered math's
+    /// expression, made only while its value (the first input, before the
+    /// leaves) is missing (ADR 0046).
+    Template {
+        template: SymTemplateId,
+        post: Post,
+        blank: bool,
+    },
 }
 
 impl PlannedOp {
@@ -715,7 +722,10 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Const(f64::NAN), ScopeId::DOCUMENT);
+        let s = self.anon_slot(
+            BuiltSource::Const(crate::program::MISSING),
+            ScopeId::DOCUMENT,
+        );
         self.missing = Some(s);
         s
     }
@@ -1575,8 +1585,13 @@ impl<'c> Builder<'c> {
                         == PortType::Math
                     {
                         self.sym_source(*expr, *post, inst.scope)?
+                    } else if let Some(vp) = self.lowered_value(inst, component_type, pi, *expr) {
+                        // A numeric math is not a math cell (ADR 0005),
+                        // but shows its expression while its value is
+                        // missing (ADR 0046).
+                        let value = self.slot(comp, vp);
+                        self.blank_source(*expr, *post, inst.scope, value)?
                     } else {
-                        // A numeric math is not a math cell (ADR 0005).
                         BuiltSource::Const(f64::NAN)
                     }
                 }

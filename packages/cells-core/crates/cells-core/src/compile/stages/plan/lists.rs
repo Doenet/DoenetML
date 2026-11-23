@@ -2,8 +2,9 @@
 //! operator's children contributes, told from the records alone (ADR 0041,
 //! decisions 2, 5 and 9). A reference to a static sequence (a value list
 //! whose count is a fact of the source) contributes its entries, spliced;
-//! a reference to one entry past such a list's end, none; anything else,
-//! one value, as a reference always did.
+//! a reference to one entry past such a list's end, one missing entry (ADR
+//! 0046: a blank in a list, the missing value to an operator); anything
+//! else, one value, as a reference always did.
 
 use super::Planning;
 use crate::compile::ir::record::{ListPiece, PieceFrag};
@@ -14,8 +15,8 @@ use crate::compile::*;
 pub(crate) enum Splice {
     /// One value: the reference itself, as many cells as it names.
     Value,
-    /// No entry: a literal index past the end of a static sequence
-    /// (`$l[9]` of three).
+    /// A literal index past the end of a static sequence (`$l[9]` of
+    /// three): one entry, the missing value the reference reads (ADR 0046).
     Nothing,
     /// The `n` entries of a static sequence, each read as `$p[k]`.
     Entries(usize),
@@ -56,7 +57,10 @@ impl<'a> Planning<'a> {
         for step in &plan.steps {
             match step {
                 Step::Elem(x) => last = Some(*x),
-                Step::Iter(_) | Step::Item(..) | Step::Iface(..) => return Splice::Value,
+                // A reference that names nothing is one missing entry.
+                Step::Iter(_) | Step::Item(..) | Step::Iface(..) | Step::Nothing => {
+                    return Splice::Value;
+                }
             }
         }
         let Some(x) = last else {
@@ -121,8 +125,7 @@ impl<'a> Planning<'a> {
                         ListPiece::Text(_) | ListPiece::Math(_) => 1,
                         ListPiece::Reference(q) | ListPiece::Element(q) => {
                             match self.splice_within(t, *q, visiting) {
-                                Splice::Value => 1,
-                                Splice::Nothing => 0,
+                                Splice::Value | Splice::Nothing => 1,
                                 Splice::Entries(k) => k,
                             }
                         }
@@ -159,8 +162,9 @@ impl<'a> Planning<'a> {
                 ListPiece::Text(text) => entries.push(ListEntry::Text(k as u32, text)),
                 ListPiece::Math(frags) => entries.push(ListEntry::Math(self.piece_math(&frags)?)),
                 ListPiece::Reference(p) | ListPiece::Element(p) => match self.splice(t, e, p) {
-                    Splice::Value => entries.push(ListEntry::Ref(p)),
-                    Splice::Nothing => {}
+                    // Past the end, the reference reads the missing value:
+                    // a blank entry (ADR 0046).
+                    Splice::Value | Splice::Nothing => entries.push(ListEntry::Ref(p)),
                     Splice::Entries(n) => {
                         for k in 1..=n {
                             entries.push(ListEntry::Ref(self.entry_ref(t, p, k)));

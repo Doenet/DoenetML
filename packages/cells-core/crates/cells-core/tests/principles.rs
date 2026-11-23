@@ -219,3 +219,93 @@ fn diag_5_a_cycle_boxes_its_component_and_the_rest_renders() {
     assert_eq!(cycle.kind, DiagnosticKind::Error);
     assert!(cycle.node.is_some(), "located where the author wrote it");
 }
+
+/// VAL-5, NAME-1 (D37): a reference that names nothing (an unknown name,
+/// an ambiguous one, a property the type does not have) is a warning, and
+/// the element it is in still builds, holding the missing value.
+#[test]
+fn val_5_a_reference_that_names_nothing_is_a_warning_and_a_blank() {
+    let doc = load(
+        r#"<section><number name="n">1</number></section><section><number name="n">2</number></section>
+           <graph><point name="P" x="$typo" y="2"/></graph>
+           <p name="unknown">[$typo]</p><p name="ambiguous">[$n]</p><p name="prop">[$P.nothere]</p>"#,
+    )
+    .unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .all(|d| d.kind != DiagnosticKind::Error),
+        "{:?}",
+        doc.diagnostics()
+    );
+    for (code, n) in [("doenet-w0104", 2), ("doenet-w0105", 1)] {
+        assert_eq!(
+            doc.diagnostics().iter().filter(|d| d.code == code).count(),
+            n,
+            "{code}"
+        );
+    }
+    for name in ["unknown", "ambiguous", "prop"] {
+        assert_eq!(text(&doc, name), "[＿]", "{name}");
+    }
+    // The point is there, its x missing and its y its own.
+    assert!(cells_core::program::is_missing(v(&doc, "P", "x")));
+    assert_eq!(v(&doc, "P", "y"), 2.0);
+}
+
+/// VAL-5, D40: missing is not NaN. A number or a boolean made from a
+/// missing value is missing; a math holds the blank; a comparison with one
+/// is false; NaN stays for a computation that has no value.
+#[test]
+fn val_5_missing_propagates_and_is_not_nan() {
+    use cells_core::program::is_missing;
+    let doc = load(
+        r#"<numberList name="l">1 2</numberList><booleanList name="bl">true</booleanList>
+           <number name="sum">$l[5] + 3</number>
+           <number name="nan">0/0</number>
+           <boolean name="and">$bl[3] and true</boolean>
+           <boolean name="eq">$l[5] = $l[5]</boolean>
+           <p name="math"><math>x + $l[5]</math></p>
+           <p name="texts"><number>$l[5]</number> <number>0/0</number></p>"#,
+    )
+    .unwrap();
+    assert!(is_missing(v(&doc, "sum", "value")));
+    let nan = v(&doc, "nan", "value");
+    assert!(nan.is_nan() && !is_missing(nan));
+    assert!(is_missing(v(&doc, "and", "value")));
+    assert_eq!(v(&doc, "eq", "value"), 0.0);
+    assert_eq!(text(&doc, "math"), "x + ＿");
+    assert_eq!(text(&doc, "texts"), "＿ NaN");
+}
+
+/// VAL-5: a missing value never equals anything, so an award comparing
+/// one earns no credit.
+#[test]
+fn val_5_a_missing_value_earns_no_credit() {
+    let mut doc = load(
+        r#"<numberList name="l">1</numberList>
+           <answer name="a"><award><when>$l[5] = $l[5]</when></award></answer>"#,
+    )
+    .unwrap();
+    doc.submit(doc.resolve_path("a").unwrap());
+    assert_eq!(v(&doc, "a", "creditAchieved"), 0.0);
+}
+
+/// VAL-5, D40: a math holds the blank, a lowered one too (ADR 0005): its
+/// expression is made, in the order written, while its value is missing,
+/// and goes when the value comes back.
+#[test]
+fn val_5_a_lowered_math_shows_the_blank_in_its_expression() {
+    let mut doc = load(
+        r#"<numberList name="l">1 2</numberList><numberInput name="k" value="7"/>
+           <p name="a"><math>$l[5]+1</math></p>
+           <p name="b"><math>1 + $l[5]</math></p>
+           <p name="c"><math>2 $l[$k] - 3</math></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "a"), "＿ + 1");
+    assert_eq!(text(&doc, "b"), "1 + ＿");
+    assert_eq!(text(&doc, "c"), "2 ＿ - 3");
+    set(&mut doc, "k", "value", 2.0);
+    assert_eq!(text(&doc, "c"), "1");
+}

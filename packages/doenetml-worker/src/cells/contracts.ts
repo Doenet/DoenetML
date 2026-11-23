@@ -61,14 +61,50 @@ export class Reads {
         return cell === undefined ? NaN : this.cell(cell);
     }
 
+    /** Whether `cell` holds the missing value (ADR 0046), recorded. */
+    missingCell(cell: number): boolean {
+        this.cell(cell);
+        return this.table.isMissing(cell);
+    }
+
+    /** Whether the prop `name` of `c` is missing. */
+    missing(c: number, name: string): boolean {
+        const cell = this.table.cell(c, name);
+        return cell !== undefined && this.missingCell(cell);
+    }
+
     bool(c: number, name: string): boolean {
         return this.num(c, name) === 1;
     }
 
-    /** The text prop `name` of `c` (a string id in its cell). */
+    /** A boolean prop as a boolean element's value: the blank when it is
+     * missing, which the renderer prints as it prints the value. */
+    boolValue(c: number, name: string): boolean | string {
+        return this.missing(c, name) ? BLANK : this.bool(c, name);
+    }
+
+    /** The text prop `name` of `c` (a string id in its cell); the blank
+     * when it is missing. */
     text(c: number, name: string): string {
+        if (this.missing(c, name)) return BLANK;
         const id = this.num(c, name);
         return Number.isNaN(id) ? "" : this.table.string(id);
+    }
+
+    /** The number in `cell` as text, `decimals` as `formatNumber` takes
+     * it; the blank when it is missing. */
+    cellText(cell: number, decimals: string | null): string {
+        return this.missingCell(cell)
+            ? BLANK
+            : formatNumber(this.cell(cell), decimals);
+    }
+
+    /** The number prop `name` of `c` as text, as `cellText`. */
+    numText(c: number, name: string, decimals: string | null): string {
+        const cell = this.table.cell(c, name);
+        return cell === undefined
+            ? formatNumber(NaN, decimals)
+            : this.cellText(cell, decimals);
     }
 
     /** LaTeX of the expression a math cell holds, from the core's own
@@ -95,6 +131,12 @@ export class Reads {
     /** LaTeX of a math component's value: the number its lowered chain
      * computes, or the expression its math cell holds (ADR 0005). */
     mathLatex(c: number): string {
+        if (
+            this.missing(c, "value") &&
+            this.table.cell(c, "expr") === undefined
+        ) {
+            return BLANK;
+        }
         const value = this.num(c, "value");
         if (!Number.isNaN(value) || this.table.cell(c, "expr") === undefined) {
             return numberLatex(value);
@@ -226,7 +268,7 @@ function heldLatex(r: Reads, cell: number): string {
 }
 
 /** A list of numbers, drawn as the text of its entries. */
-const NUMBER_LIST = valueList((r, cell) => formatNumber(r.cell(cell), null));
+const NUMBER_LIST = valueList((r, cell) => r.cellText(cell, null));
 
 function flag(table: CellsTable, c: number, name: string): boolean {
     const text = table.attr(c, name);
@@ -355,10 +397,10 @@ function valueLatex(r: Reads, c: number): string {
         if (expr !== undefined && !Number.isNaN(r.cell(expr))) {
             return r.table.core.expr_latex(expr);
         }
-        return mathNumber(r.num(c, "value"));
+        return r.missing(c, "value") ? BLANK : mathNumber(r.num(c, "value"));
     }
     if (type === "intComma") {
-        return groupDigits(formatNumber(r.num(c, "value"), null));
+        return groupDigits(r.numText(c, "value", null));
     }
     if (type === "pluralize") return `\\text{${r.text(c, "value")}}`;
     if (type === "text" || type === "textInput") {
@@ -476,7 +518,7 @@ const OPERATOR_VALUE: Contract = {
 /** A boolean operator: its value. Its children are its operands, never
  * drawn. */
 const BOOLEAN_OPERATOR: Contract = {
-    props: (r, c) => ({ value: r.bool(c, "value") }),
+    props: (r, c) => ({ value: r.boolValue(c, "value") }),
     noChildren: true,
 };
 
@@ -521,10 +563,14 @@ function inGraphOnly(contract: Contract): Contract {
 function pointProps(r: Reads, c: number, inGraph: boolean) {
     const x = r.num(c, "x");
     const y = r.num(c, "y");
+    // A missing coordinate is NaN in a graph, which the renderer does not
+    // draw, and the blank in text (VAL-5, ADR 0046).
+    const latex = (name: string, v: number) =>
+        r.missing(c, name) ? BLANK : numberLatex(v);
     return inGraph
         ? { x: mathObject(x), y: mathObject(y) }
         : {
-              coordsLatex: `\\left( ${numberLatex(x)}, ${numberLatex(y)} \\right)`,
+              coordsLatex: `\\left( ${latex("x", x)}, ${latex("y", y)} \\right)`,
           };
 }
 
@@ -565,14 +611,15 @@ export const CONTRACTS: Record<string, Contract> = {
     },
     number: {
         props: (r, c) => ({
-            text: formatNumber(
-                r.num(c, "value"),
+            text: r.numText(
+                c,
+                "value",
                 r.table.attrThrough(c, "displayDecimals"),
             ),
         }),
     },
     boolean: {
-        props: (r, c) => ({ value: r.bool(c, "value") }),
+        props: (r, c) => ({ value: r.boolValue(c, "value") }),
     },
     math: {
         props: (r, c) => ({
@@ -605,8 +652,9 @@ export const CONTRACTS: Record<string, Contract> = {
     sequenceValue: {
         name: () => "number",
         props: (r, c) => ({
-            text: formatNumber(
-                r.num(c, "value"),
+            text: r.numText(
+                c,
+                "value",
                 r.table.attrThrough(c, "displayDecimals"),
             ),
         }),
@@ -616,11 +664,12 @@ export const CONTRACTS: Record<string, Contract> = {
     // its kind reads.
     numberList: NUMBER_LIST,
     textList: valueList((r, cell) => {
+        if (r.missingCell(cell)) return BLANK;
         const id = r.cell(cell);
         return Number.isNaN(id) ? "" : r.table.string(id);
     }),
     booleanList: valueList((r, cell) =>
-        r.cell(cell) === 1 ? "true" : "false",
+        r.missingCell(cell) ? BLANK : r.cell(cell) === 1 ? "true" : "false",
     ),
     tuple: {
         props: (r, c) => {
@@ -631,7 +680,10 @@ export const CONTRACTS: Record<string, Contract> = {
                         ? Math.max(0, Math.min(n, 8))
                         : 0,
                 },
-                (_, i) => mathNumber(r.num(c, `x${i + 1}`)),
+                (_, i) =>
+                    r.missing(c, `x${i + 1}`)
+                        ? BLANK
+                        : mathNumber(r.num(c, `x${i + 1}`)),
             );
             return {
                 latex: `\\left( ${entries.join(", ")} \\right)`,
@@ -1090,10 +1142,7 @@ export const CONTRACTS: Record<string, Contract> = {
             const measure =
                 expr !== undefined && !Number.isNaN(r.cell(expr))
                     ? r.exprLatex(c, exprProp)
-                    : formatNumber(
-                          r.num(c, inDegrees ? "degrees" : "radians"),
-                          decimals,
-                      );
+                    : r.numText(c, inDegrees ? "degrees" : "radians", decimals);
             return { latex: inDegrees ? `${measure}^\\circ` : measure };
         },
         noChildren: true,
@@ -1102,15 +1151,16 @@ export const CONTRACTS: Record<string, Contract> = {
     // `pluralize.rs` in the core), each drawn as its text.
     integer: {
         props: (r, c) => ({
-            text: formatNumber(
-                r.num(c, "value"),
+            text: r.numText(
+                c,
+                "value",
                 r.table.attrThrough(c, "displayDecimals"),
             ),
         }),
     },
     intComma: {
         props: (r, c) => ({
-            text: groupDigits(formatNumber(r.num(c, "value"), null)),
+            text: groupDigits(r.numText(c, "value", null)),
         }),
     },
     pluralize: {

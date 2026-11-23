@@ -131,7 +131,9 @@ spec! {
                   <max name="past">$l[9] 5</max>"#;
         expect {
             "s.value" = 10.5, "m.value" = 6.5 / 3.0, "c.value" = 6, "e.value" = 21,
-            "past.value" = 5,
+            // A number made from a missing operand is missing, whatever
+            // the others are (D40; ADR 0046).
+            "past.value" = crate::program::MISSING,
         }
     }
 

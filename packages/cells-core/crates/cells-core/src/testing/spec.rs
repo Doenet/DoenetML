@@ -392,8 +392,13 @@ fn read_expr(doc: &Document, path: &str) -> Result<String, String> {
     }
 }
 
+/// Equal within roundoff; a NaN matches a NaN of its kind, so a spec
+/// tells the missing value from the NaN of a computation (ADR 0046).
 fn close(a: f64, b: f64) -> bool {
-    (a.is_nan() && b.is_nan()) || a == b || (a - b).abs() <= 1e-9 * b.abs().max(1.0)
+    use crate::program::is_missing;
+    (a.is_nan() && b.is_nan() && is_missing(a) == is_missing(b))
+        || a == b
+        || (a - b).abs() <= 1e-9 * b.abs().max(1.0)
 }
 
 fn matches(got: &Value, want: &Value) -> bool {

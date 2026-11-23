@@ -10,7 +10,7 @@ spec! {
                   <number name="past">$p.x4</number>"#;
         expect {
             "p.numVertices" = 3, "p.vertex2" = (3, 5), "p.x3" = -5, "p.y1" = 2,
-            "p.vertices" = [1, 2, 3, 5, -5, 2], "past.value" = f64::NAN,
+            "p.vertices" = [1, 2, 3, 5, -5, 2], "past.value" = crate::program::MISSING,
         }
         request { "p.x2" = 4, "p.y2" = 6 }
         expect { "p.vertex2" = (4, 6), "p.vertex1" = (1, 2) }

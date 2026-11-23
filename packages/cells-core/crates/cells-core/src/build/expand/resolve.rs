@@ -94,6 +94,7 @@ impl<'c> Builder<'c> {
         }
         let display = |b: &Self| b.compiled.display_of(w.plan);
         Ok(match step {
+            Step::Nothing => Resolved::Missing,
             Step::Elem(e) => {
                 let next = match cur {
                     Resolved::Iter(_, s) => Resolved::Comp(self.scope_comps[s.index()][e.index()]),

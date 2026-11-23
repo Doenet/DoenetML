@@ -61,7 +61,10 @@ run each document with the conversion on and off and demand identical
 results, so they state the language independently of the mechanism. Read
 together they pin:
 
-- **Indexing.** Entries are numbered from 1. Past the end is not an error:
+- **Indexing.** (Superseded in part by ADR 0046: past the end is the
+  missing value, shown as `＿`, which an operator propagates and a
+  comparison reads as false; it is not the empty value of the type, and
+  it is not dropped as an operand.) Entries are numbered from 1. Past the end is not an error:
   the reference reads the empty value of its type (`NaN`, `""`, `false`,
   `＿`), draws nothing in a paragraph, adds no entry to a list, is dropped
   as an operand (`<sum>$l[9] 5</sum>` is 5), equals nothing in a

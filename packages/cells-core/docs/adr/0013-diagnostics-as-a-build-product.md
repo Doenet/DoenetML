@@ -1,6 +1,8 @@
 # Diagnostics are a product of one exhaustive build, never of a tick
 
 Status: accepted 2026-10-16.
+Amended by ADR 0046: a reference that names nothing is a warning and the
+missing value, not an error on its element.
 Amended 2026-11-23: a cycle boxes the component it names, and the
 document loads (see the amendment at the end).
 
