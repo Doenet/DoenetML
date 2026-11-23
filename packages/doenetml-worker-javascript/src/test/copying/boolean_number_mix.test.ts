@@ -231,6 +231,12 @@ describe("Booleans and numbers kept apart @group2", () => {
     <boolean name="c"/>
     <boolean name="c1" extend="$c">$n</boolean>
     <boolean name="c2" extend="$c">$n > 1</boolean>
+    <number name="ne"/>
+    <number name="nce" convertBoolean/>
+    <number name="e1" extend="$nce">$b</number>
+    <number name="e2" copy="$nce">$b</number>
+    <number name="e3" extend="$ne" convertBoolean>$b</number>
+    <number name="e4" extend="$nce" convertBoolean="false">$b</number>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -246,6 +252,10 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("Rx")).value.tree).eq(3);
         expect((await sv("c1")).value).eq(false);
         expect((await sv("c2")).value).eq(true);
+        // `convertBoolean` taken from what is copied, or written on it
+        expect((await sv("e1")).value).eq(1);
+        expect((await sv("e2")).value).eq(1);
+        expect((await sv("e3")).value).eq(1);
         expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
             [5, numberAsBoolean("$n")],
             [6, literalAsBoolean("1")],
@@ -255,6 +265,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             ],
             [9, booleanAsNumberInAttribute("$b")],
             [15, numberAsBoolean("$n")],
+            [22, booleanAsNumber("$b")],
         ]);
     });
 

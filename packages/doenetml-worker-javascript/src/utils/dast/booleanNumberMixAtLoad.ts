@@ -372,8 +372,9 @@ export function checkBooleanNumberMixAtLoad({
                 String(attr.primitive.value).trim().toLowerCase() === "true"
             );
         }
-        if (attr.type === "component") {
-            const component = attr.component;
+        if (attr.type === "component" || attr.type === "unresolved") {
+            // an attribute of a reference is kept as written (unresolved)
+            const component = attr.type === "component" ? attr.component : attr;
             if (typeof component.state?.value === "boolean") {
                 return component.state.value;
             }
@@ -384,6 +385,42 @@ export function checkBooleanNumberMixAtLoad({
             return true;
         }
         return true;
+    }
+
+    /**
+     * Whether the number `component` may convert booleans: `convertBoolean`
+     * written on it, or, when it is an `extend` or a `copy` that doesn't
+     * write it, on the component it copies, whose attributes it takes
+     * (`<number extend="$nc">$b</number>` of a `<number convertBoolean>`).
+     * When that component isn't known, it may.
+     */
+    function mayConvertBoolean(
+        component: SerializedComponent,
+        seen = new Set<SerializedComponent>(),
+    ): boolean {
+        const written = component.attributes?.convertBoolean;
+        if (written !== undefined || component.componentType !== "_copy") {
+            return mayBeTrue(written);
+        }
+        if (seen.has(component)) {
+            return true;
+        }
+        seen.add(component);
+        const ref: any = component.extending
+            ? unwrapSource(component.extending as any)
+            : undefined;
+        if (!ref || ref.nodeIdx < 0) {
+            return false;
+        }
+        if ((ref.unresolvedPath ?? []).length > 0) {
+            return true;
+        }
+        const node =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        return node === undefined || node === component
+            ? true
+            : mayConvertBoolean(node, seen);
     }
 
     /** `child` as the author wrote it, for the message. */
@@ -897,7 +934,7 @@ export function checkBooleanNumberMixAtLoad({
                 const takesBoolean = takes(componentClass, "boolean");
                 if (
                     isNumber
-                        ? !mayBeTrue(component.attributes?.convertBoolean)
+                        ? !mayConvertBoolean(component)
                         : takesMath !== takesBoolean
                 ) {
                     for (const child of component.children ?? []) {
