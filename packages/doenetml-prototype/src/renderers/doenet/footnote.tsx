@@ -9,12 +9,13 @@ type FootnoteData = {
     };
 };
 
-/** Footnote: its number, with its text as the tooltip. */
+/** Footnote: its number, with its text as the tooltip; a star when the
+ * core sends no number. */
 export const Footnote: BasicComponent<FootnoteData> = ({ node, htmlId }) => {
     const { footnoteTag, text } = node.data.props;
     return (
         <sup className="footnote" id={htmlId} title={text}>
-            [{footnoteTag}]
+            [{footnoteTag || "*"}]
         </sup>
     );
 };

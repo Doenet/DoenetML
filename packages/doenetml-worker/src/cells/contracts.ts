@@ -442,6 +442,18 @@ const CURVE: Contract = {
     noChildren: true,
 };
 
+/** A contract whose element is drawn only in a graph: outside one it
+ * sends no props and reads no cells, since the core counts the component
+ * rendered only in a graph (ADR 0019). */
+function inGraphOnly(contract: Contract): Contract {
+    const props = contract.props;
+    return {
+        ...contract,
+        props:
+            props && ((r, c, inGraph) => (inGraph ? props(r, c, inGraph) : {})),
+    };
+}
+
 /** A point's props: in a graph its coordinates, which the renderer
  * parses, else their LaTeX. */
 function pointProps(r: Reads, c: number, inGraph: boolean) {
@@ -575,28 +587,28 @@ export const CONTRACTS: Record<string, Contract> = {
             yMax: r.num(c, "ymax"),
         }),
     },
-    line: { props: lineProps },
-    lineSegment: {
+    line: inGraphOnly({ props: lineProps }),
+    lineSegment: inGraphOnly({
         props: (r, c) => ({
             numericalEndpoints: [
                 [r.num(c, "x1"), r.num(c, "y1")],
                 [r.num(c, "x2"), r.num(c, "y2")],
             ],
         }),
-    },
-    circle: {
+    }),
+    circle: inGraphOnly({
         props: (r, c) => ({
             numericalCenter: [r.num(c, "cx"), r.num(c, "cy")],
             numericalRadius: r.num(c, "radius"),
         }),
-    },
-    polygon: {
+    }),
+    polygon: inGraphOnly({
         props: (r, c) => ({
             numericalVertices: pairs(r, r.table.listCells(c)),
         }),
-    },
+    }),
     // Its vertices are the points it gathered, which it draws itself.
-    polyline: {
+    polyline: inGraphOnly({
         props: (r, c) => ({
             numericalVertices: pointsUnder(r.table, c).map((p) => [
                 r.num(p, "x"),
@@ -604,7 +616,7 @@ export const CONTRACTS: Record<string, Contract> = {
             ]),
         }),
         noChildren: true,
-    },
+    }),
     // Its labels, in order, beside the graph's curves in order. Their
     // colors are the renderer's: Doenet's styles are not ported.
     legend: {
@@ -1106,19 +1118,19 @@ export const CONTRACTS: Record<string, Contract> = {
     // equilibrium point or line and an endpoint also send their flag as
     // the current core's renderers read it (`open`, `dashed`), which the
     // prototype's renderers do not draw yet.
-    bestFitLine: { name: () => "line", props: lineProps },
+    bestFitLine: inGraphOnly({ name: () => "line", props: lineProps }),
     intersection: { name: () => "point", props: pointProps },
     parabola: CURVE,
     equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
     endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
-    equilibriumLine: {
+    equilibriumLine: inGraphOnly({
         name: () => "line",
         props: (r, c) => ({
             ...lineProps(r, c),
             dashed: !r.bool(c, "stable"),
             switchable: flagOr(r.table, c, "switchable", false),
         }),
-    },
+    }),
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */

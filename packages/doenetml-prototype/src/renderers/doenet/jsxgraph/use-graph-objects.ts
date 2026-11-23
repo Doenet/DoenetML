@@ -111,3 +111,20 @@ export function setVisible(o: JSG.GeometryElement, visible: boolean) {
         o.setAttribute({ visible });
     }
 }
+
+/** Call `handler` when `o` is clicked: pressed and let go without being
+ * dragged in between. */
+export function onClick(o: JSG.GeometryElement, handler: () => void) {
+    let dragged = false;
+    o.on("down", () => {
+        dragged = false;
+    });
+    o.on("drag", () => {
+        dragged = true;
+    });
+    o.on("up", () => {
+        if (!dragged) {
+            handler();
+        }
+    });
+}
