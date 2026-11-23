@@ -19,6 +19,11 @@ below marked **[probe]** was checked by loading a document through
 rendered text. §3 lists what this round changed; its cases are in
 `crates/cells-core/tests/principles.rs`, each named by its principle id.
 
+The probes ran at `3583ebf`. The components merged into `cells` after it
+(the operators, `sort`, `shuffle`, `sequence`, the random samplers, the
+shapes and text markup listed in the README) were not reviewed; where a
+row below says a tag is not supported, it means at `3583ebf`.
+
 ## 1. The short version
 
 The core's data model is the principles' author model, often more
@@ -141,7 +146,8 @@ not supported, and using it is a diagnostic.
 | COMP-11 | 1 | **Departs**: a branch's names are not visible bare, and a name some branch lacks boxes the whole choice instead of its reader |
 | COMP-12, COMP-14 | 1 | **Partial**: `$g` of a group is refused; a `<setup>` inside math is refused |
 | COLL-1 to COLL-3 | 1, 2 | **Partial**: no `numItems`; a group or iteration of one component does not stand for it |
-| COLL-4, COLL-5, COMP-13, COMP-15 | 2, 1 | N/A |
+| COLL-4 | 2 | Not reviewed: `sort` and `shuffle` (of numbers) were added after the probes |
+| COLL-5, COMP-13, COMP-15 | 2, 1 | N/A |
 
 ## 3. Fixed in this round
 
