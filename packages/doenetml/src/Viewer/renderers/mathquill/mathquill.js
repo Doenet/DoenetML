@@ -3099,6 +3099,12 @@ var saneKeyboardEvents = (function () {
             // before checkTextarea), then never again ('cos it's been munged)
             everyTick.trigger();
             everyTick.clearListener();
+            // DOENET (#2557): rewriting the textarea would cut short a
+            // composition the field follows; it is emptied when that ends.
+            if (composition) {
+                shouldBeSelected = false;
+                return;
+            }
             if (textarea instanceof HTMLTextAreaElement) textarea.value = text;
             if (text) guardedTextareaSelect();
             shouldBeSelected = !!text;
@@ -3157,6 +3163,73 @@ var saneKeyboardEvents = (function () {
                 input.data === textarea.value
             );
         }
+        // An Android keyboard's composition that is being typed into the
+        // field as it changes: { shown } holds the text already typed for
+        // it. Samsung Keyboard composes every letter, even with
+        // autocorrect and spellcheck off, and finishes the composition only
+        // at the next symbol, space or Enter.
+        var composition = null;
+        // Set when such a composition ends, until the next keyup or input:
+        // Samsung Keyboard may follow it with a bare 229 keydown and keyup
+        // that is not a backspace (see `onKeyup`).
+        var compositionJustEnded = false;
+        function typeCharacter(ch) {
+            if (controller.options && controller.options.overrideTypedText) {
+                controller.options.overrideTypedText(ch);
+            } else {
+                controller.typedText(ch);
+            }
+        }
+        function pressBackspace(e) {
+            if (controller.options && controller.options.overrideKeystroke) {
+                controller.options.overrideKeystroke("Backspace", e);
+            } else {
+                controller.keystroke("Backspace", e);
+            }
+        }
+        // Make the field follow the composition: delete what it no longer
+        // has, then type what it added.
+        function followComposition(text, e) {
+            var shown = composition.shown;
+            var common = 0;
+            while (
+                common < shown.length &&
+                common < text.length &&
+                shown[common] === text[common]
+            )
+                common++;
+            for (var k = shown.length; k > common; k--) pressBackspace(e);
+            for (var j = common; j < text.length; j++) typeCharacter(text[j]);
+            composition.shown = text;
+        }
+        function onCompositionStart() {
+            // Only a composition an Android on-screen keyboard starts, on a
+            // textarea that holds nothing else for it to take back. A
+            // desktop input method names its keydown "Process" and is still
+            // ignored.
+            composition = null;
+            if (
+                keydown &&
+                keydown.key === "Unidentified" &&
+                keydown.keyCode === 229 &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                textarea instanceof HTMLTextAreaElement &&
+                (textarea.value === "" ||
+                    (textarea.selectionStart === 0 &&
+                        textarea.selectionEnd === textarea.value.length))
+            ) {
+                composition = { shown: "" };
+            }
+        }
+        function onCompositionEnd(e) {
+            if (!composition) return;
+            followComposition(e.data || "", e);
+            composition = null;
+            compositionJustEnded = true;
+            if (textarea instanceof HTMLTextAreaElement) textarea.value = "";
+        }
         // -*- helper subroutines -*- //
         // Determine whether there's a selection in the textarea.
         // This will always return false in IE < 9, which don't support
@@ -3205,6 +3278,8 @@ var saneKeyboardEvents = (function () {
                         everyTick.listen(typedText);
                         return;
                     }
+                    // Nor select the text of a composition the field follows.
+                    if (composition) return;
                     if (!(e && e.type === "focusout")) {
                         // re-select textarea in case it's an unrecognized key that clears
                         // the selection, then never again, 'cos next thing might be blur
@@ -3264,6 +3339,7 @@ var saneKeyboardEvents = (function () {
                 !keydown.metaKey &&
                 !keypress &&
                 !lastInput &&
+                !compositionJustEnded &&
                 textarea instanceof HTMLTextAreaElement &&
                 textarea.value === ""
             ) {
@@ -3278,6 +3354,7 @@ var saneKeyboardEvents = (function () {
                 };
                 return;
             }
+            compositionJustEnded = false;
             // Handle case of no keypress event being sent
             if (!!keydown && !keypress) {
                 // only check for typed text if this key can type text. Otherwise
@@ -3371,6 +3448,8 @@ var saneKeyboardEvents = (function () {
             keydown = null;
             keypress = null;
             lastInput = null;
+            composition = null;
+            compositionJustEnded = false;
             everyTick.clearListener();
             if (textarea instanceof HTMLTextAreaElement) textarea.value = "";
         }
@@ -3403,6 +3482,9 @@ var saneKeyboardEvents = (function () {
         function onInput(e) {
             // Recorded before the tick runs: `typedText` may read it.
             lastInput = e;
+            compositionJustEnded = false;
+            if (composition && e.inputType === "insertCompositionText")
+                followComposition(e.data || "", e);
             everyTick.trigger(e);
         }
         if (controller.KIND_OF_MQ === "StaticMath") {
@@ -3436,6 +3518,9 @@ var saneKeyboardEvents = (function () {
                     e.preventDefault();
                 },
                 input: onInput,
+                // DOENET (#2557)
+                compositionstart: onCompositionStart,
+                compositionend: onCompositionEnd,
             });
         } else {
             controller.addTextareaEventListeners({
@@ -3455,6 +3540,9 @@ var saneKeyboardEvents = (function () {
                 },
                 paste: onPaste,
                 input: onInput,
+                // DOENET (#2557)
+                compositionstart: onCompositionStart,
+                compositionend: onCompositionEnd,
             });
         }
         // -*- export public methods -*- //

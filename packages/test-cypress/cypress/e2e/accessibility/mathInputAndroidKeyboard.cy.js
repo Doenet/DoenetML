@@ -93,6 +93,39 @@ function androidEnter(ta) {
     enterKey(ta);
 }
 
+function composition(ta, type, data) {
+    const win = ta.ownerDocument.defaultView;
+    ta.dispatchEvent(new win.CompositionEvent(type, { data, bubbles: true }));
+}
+
+/**
+ * One key of Samsung Keyboard, which composes every letter: `text` is the
+ * whole composition after the key. Recorded on a Galaxy A32 (Android 13,
+ * Chrome 157) with Samsung Keyboard 5.6:
+ *
+ *   x:  keydown Unidentified/229, compositionstart, compositionupdate "x",
+ *       input insertCompositionText "x" (composing), keyup Unidentified/229
+ *   si: the same with compositionupdate "si", no compositionstart
+ *   +:  compositionend "x" on its own, then keydown, input insertText "+",
+ *       keyup
+ */
+function samsungCompose(ta, text, { start = false, keydownInit = K229 } = {}) {
+    down(ta, keydownInit);
+    if (start) composition(ta, "compositionstart", "");
+    composition(ta, "compositionupdate", text);
+    ta.value = text;
+    ta.setSelectionRange(text.length, text.length);
+    input(ta, text === "" ? null : text, {
+        inputType: "insertCompositionText",
+    });
+    up(ta, keydownInit);
+}
+
+/** Samsung Keyboard finishing a composition, before its next key. */
+function samsungEndComposition(ta, text) {
+    composition(ta, "compositionend", text);
+}
+
 function typeAll(ta, chars) {
     for (const ch of chars) {
         androidKey(ta, ch);
@@ -366,14 +399,104 @@ describe(
             fieldShould("mi", "xy");
         });
 
-        it("still ignores text the keyboard is composing", () => {
+        it("types Samsung Keyboard's composed letters as they are composed", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "x", { start: true });
+            });
+            // Shown before the composition ends.
+            fieldShould("mi", "x");
+            cy.get("#mi textarea").then(($ta) => {
+                samsungEndComposition($ta[0], "x");
+                typeAll($ta[0], ["^", "2"]);
+            });
+            cy.get("#mi textarea").type("{rightarrow}", { force: true });
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["+", "1"]);
+                // Samsung Keyboard's Enter: the key alone.
+                enterKey($ta[0]);
+            });
+            fieldShould("mi", "x2+1");
+            cy.get("#c").should("have.text", "1");
+        });
+
+        it("follows a composition as it grows and shrinks", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "a", { start: true });
+                samsungCompose($ta[0], "ab");
+                samsungCompose($ta[0], "abc");
+            });
+            fieldShould("mi", "abc");
+            // Backspace inside a composition shortens it.
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "ab");
+            });
+            fieldShould("mi", "ab");
+            // A composition that changes a letter: delete it, type the new.
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "ad");
+            });
+            fieldShould("mi", "ad");
+            // Emptied by backspace, the composition ends with nothing.
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "a");
+                samsungCompose($ta[0], "");
+                samsungEndComposition($ta[0], "");
+            });
+            fieldShould("mi", "");
+            // Composed again, then the next key: the textarea was emptied
+            // when the composition ended, so that key is typed too.
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "y", { start: true });
+                samsungEndComposition($ta[0], "y");
+                androidKey($ta[0], "+");
+            });
+            fieldShould("mi", "y+");
+            // With nothing composing, Samsung Keyboard's backspace is the
+            // Backspace key itself.
+            cy.get("#mi textarea").type("{backspace}", { force: true });
+            fieldShould("mi", "y");
+        });
+
+        it("does not delete for the bare pair after a composition ends", () => {
+            // Samsung Keyboard can send a bare 229 keydown and keyup just
+            // after a composition ends, before its next key.
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "x", { start: true });
+                samsungEndComposition($ta[0], "x");
+                androidBackspace($ta[0]);
+                androidKey($ta[0], "+");
+            });
+            cy.wait(300);
+            fieldShould("mi", "x+");
+        });
+
+        it("does not follow a desktop input method's composition", () => {
+            // A desktop input method names its keydown "Process". MathQuill
+            // reads the one character in the textarea at keyup, as before;
+            // following the composition as well would type it twice.
+            const PROCESS = { ...K229, key: "Process" };
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                samsungCompose($ta[0], "x", {
+                    start: true,
+                    keydownInit: PROCESS,
+                });
+                samsungEndComposition($ta[0], "x");
+            });
+            cy.wait(200);
+            fieldShould("mi", "x");
+        });
+
+        it("ignores composed text when it saw no composition start", () => {
             cy.get("#mi textarea").focus();
             cy.get("#mi textarea").then(($ta) => {
                 androidKey($ta[0], "x", { inputType: "insertCompositionText" });
                 $ta[0].value = "";
                 androidKey($ta[0], "y", { isComposing: true });
             });
-            // Nothing reaches the field from a composition, as before.
             cy.wait(200);
             fieldShould("mi", "");
         });
