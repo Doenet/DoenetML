@@ -235,6 +235,9 @@ impl<'a> Planning<'a> {
             } else if ty.plays(Role::Index) {
                 prop::number::Props {
                     value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
+                    // An iteration's index is never drawn in a graph.
+                    anchorX: Source::constant(0.0),
+                    anchorY: Source::constant(0.0),
                 }
                 .into_vec()
             } else {

@@ -40,6 +40,7 @@ enum DeclaredSource {
     AttributeOr(&'static str),
     ByPlanner,
     Aggregate(Aggregate),
+    Anchor(u8),
 }
 
 /// A prop with nothing set: what every prop starts from.
@@ -105,6 +106,17 @@ pub(super) const fn computed(name: &'static str, op: OpSpec, args: &'static [Dec
 /// by one attribute, the children or an operator.
 pub(super) const fn by_planner(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, DeclaredSource::ByPlanner)
+}
+
+/// Coordinate `coord` of where a value is drawn in a graph, its `anchor`
+/// ([`PropFrom::Anchor`]): an input a drag writes and an output a graph
+/// draws, so `interactive` and `rendered`; 0 without the attribute.
+pub(super) const fn anchor(name: &'static str, coord: u8) -> Prop {
+    assert!(coord < 2, "an anchor has two coordinates");
+    let mut p = prop_from(name, 0.0, DeclaredSource::Anchor(coord));
+    p.def.interactive = true;
+    p.def.rendered = true;
+    p
 }
 
 /// `op` over the collection `over`, wired by the build. Credit is over
@@ -225,6 +237,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::Children => PropFrom::Children,
             DeclaredSource::ByPlanner => PropFrom::ByPlanner,
             DeclaredSource::Aggregate(a) => PropFrom::Aggregate(a),
+            DeclaredSource::Anchor(coord) => PropFrom::Anchor { coord },
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
             },
@@ -1363,6 +1376,9 @@ macro_rules! component {
     (@prop attr $name:ident ($default:expr)) => {
         $crate::components::define::attr(stringify!($name), $default)
     };
+    (@prop anchor $name:ident ($coord:expr)) => {
+        $crate::components::define::anchor(stringify!($name), $coord)
+    };
     (@prop attr_or $name:ident ($or:ident)) => {
         $crate::components::define::attr_or(stringify!($name), stringify!($or))
     };
@@ -1396,7 +1412,7 @@ macro_rules! component {
     (@prop $other:ident $name:ident $($rest:tt)*) => {
         compile_error!(concat!(
             "component!: prop `", stringify!($name), "` has source `", stringify!($other),
-            "`; a source is by_planner, children, attr(default), attr_or(other), computed(op, [args]) or aggregate(op, collection)"
+            "`; a source is by_planner, children, attr(default), attr_or(other), computed(op, [args]), aggregate(op, collection) or anchor(coord)"
         ))
     };
 }

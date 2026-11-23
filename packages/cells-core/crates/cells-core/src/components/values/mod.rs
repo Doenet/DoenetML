@@ -111,6 +111,8 @@ pub mod number {
         default_prop: value,
         props {
             value: children { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -157,6 +159,8 @@ pub(crate) mod evaluate {
             function: by_planner,
             input: by_planner,
             value: by_planner { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         attributes {
             function: Ref,
@@ -180,6 +184,9 @@ pub(crate) mod evaluate {
                 function: Wire::absent(),
                 input,
                 value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+                // Planned after this, from the element's `anchor` (`plan_anchor`).
+                anchorX: Wire::absent(),
+                anchorY: Wire::absent(),
             });
             return Ok(wiring);
         };
@@ -216,6 +223,9 @@ pub(crate) mod evaluate {
             function,
             input,
             value,
+            // Planned after this, from the element's `anchor` (`plan_anchor`).
+            anchorX: Wire::absent(),
+            anchorY: Wire::absent(),
         });
         Ok(wiring)
     }
@@ -278,6 +288,8 @@ pub(crate) mod clamp_number {
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

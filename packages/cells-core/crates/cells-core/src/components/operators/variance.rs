@@ -27,6 +27,8 @@ component! {
         expr: by_planner { rendered, expr_of: expr },
         population: by_planner,
         value: by_planner { rendered, expr_of: expr },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     attributes {
         population: Flag(false),
@@ -107,6 +109,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         expr,
         population: Wire::scalar(attrs.population, GivenId::Attr(attr::population, 0)),
         value,
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
     });
     Ok(wiring)
 }

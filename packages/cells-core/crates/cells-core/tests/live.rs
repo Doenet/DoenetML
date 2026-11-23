@@ -211,8 +211,11 @@ fn census() {
     // 0046): one in the golden set. A derivative of a function takes the
     // function's domain (ADR 0049), which its planner cannot see is the
     // whole line, so it samples over the graph's range cut to the domain:
-    // `symbolic.doenet`'s one more, live.
-    assert!(golden[0] <= 136 && golden[1] == 180, "{golden:?}");
+    // `symbolic.doenet`'s one more, live. A value's anchor, where a graph
+    // draws it, is an input wherever it is: the choices' interface number
+    // and text (`$cc.x`, `$ct.t`) choose their anchors among the cases', 4
+    // instructions of no state (ADR 0047).
+    assert!(golden[0] <= 140 && golden[1] == 184, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

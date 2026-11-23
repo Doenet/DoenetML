@@ -1,4 +1,4 @@
-running sums, by every name and by index: cells 11 · essential 0 · constant 11 · instrs 0 · components 3
+running sums, by every name and by index: cells 12 · essential 0 · constant 12 · instrs 0 · components 3
 running products: cells 12 · essential 0 · constant 12 · instrs 0 · components 2
 running minima and maxima: cells 26 · essential 0 · constant 26 · instrs 0 · components 3
 differences are one fewer than the operands: cells 10 · essential 0 · constant 10 · instrs 0 · components 2

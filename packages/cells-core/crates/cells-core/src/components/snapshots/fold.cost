@@ -1,5 +1,5 @@
 text pieces: cells 18 · essential 0 · constant 18 · instrs 0 · components 9
-references, written apart or together, follow their sources: cells 12 · essential 1 · constant 4 · instrs 7 · components 8
+references, written apart or together, follow their sources: cells 13 · essential 1 · constant 5 · instrs 7 · components 8
 mod, gcd and lcm: cells 22 · essential 0 · constant 22 · instrs 0 · components 9
 no operands: no value, and a count of none: cells 3 · essential 0 · constant 3 · instrs 0 · components 4
 a count counts any piece: cells 4 · essential 0 · constant 4 · instrs 0 · components 2

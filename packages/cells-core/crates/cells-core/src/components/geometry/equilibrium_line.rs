@@ -13,7 +13,6 @@ component! {
     /// requests.
     tags: ["equilibriumLine"],
     flags: [copyable, located],
-    renders: InGraph,
     props {
         // A line's props (`line.rs`), then `stable`.
         x1: by_planner { rendered },

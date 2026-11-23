@@ -21,6 +21,7 @@ import type {
 import {
     BLOCKS,
     CONTRACTS,
+    anchorProps,
     LIST_LIKE,
     OMITTED,
     PER_SCOPE,
@@ -442,6 +443,8 @@ export class CellsBridge {
         } else {
             const contract = CONTRACTS[type];
             const props = contract?.props?.(reads, c, inGraph) ?? {};
+            // A value in a graph is drawn at its anchor, whatever its type.
+            if (inGraph) Object.assign(props, anchorProps(reads, c));
             const children: FlatDastElementContent[] = [];
             this._children(reads, c, children, c);
             element = {

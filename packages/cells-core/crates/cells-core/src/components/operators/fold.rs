@@ -29,6 +29,8 @@ component! {
     props {
         expr: by_planner { rendered, expr_of: expr },
         value: by_planner { rendered, expr_of: expr },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     attributes {
         forceSymbolic: On,
@@ -138,7 +140,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     };
     let value = over_math::value(&mut wiring, at.expr, numeric);
-    wiring.set_public(Props { expr, value });
+    wiring.set_public(Props {
+        expr,
+        value,
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
+    });
     Ok(wiring)
 }
 

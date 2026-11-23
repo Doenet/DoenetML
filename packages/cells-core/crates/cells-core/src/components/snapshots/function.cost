@@ -1,12 +1,12 @@
-a closed domain: missing outside it, given at its ends: cells 16 · essential 0 · constant 16 · instrs 0 · components 6
-an open domain: missing at its ends: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
-an infinite end, written as a word: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
+a closed domain: missing outside it, given at its ends: cells 17 · essential 0 · constant 17 · instrs 0 · components 6
+an open domain: missing at its ends: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
+an infinite end, written as a word: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
 an endpoint that is no number is no bound: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
-an endpoint that follows an input: cells 10 · essential 1 · constant 8 · instrs 1 · components 4
-no domain: the whole line, open at its infinite ends: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
-a domain that is not one interval is warned about and ignored: cells 8 · essential 0 · constant 8 · instrs 0 · components 3
-a variable of its own: cells 11 · essential 0 · constant 11 · instrs 0 · components 5
-a derivative keeps its function's domain: cells 13 · essential 0 · constant 13 · instrs 0 · components 5
+an endpoint that follows an input: cells 11 · essential 1 · constant 9 · instrs 1 · components 4
+no domain: the whole line, open at its infinite ends: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
+a domain that is not one interval is warned about and ignored: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
+a variable of its own: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
+a derivative keeps its function's domain: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
 the curve is cut to the domain: cells 419 · essential 4 · constant 11 · instrs 4 · components 4
 a point constrained to it is held in a closed domain: cells 219 · essential 5 · constant 10 · instrs 4 · components 4
 a point constrained to it stays a step inside an open domain: cells 218 · essential 5 · constant 9 · instrs 4 · components 4
