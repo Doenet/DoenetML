@@ -3039,6 +3039,10 @@ Alternatives: `<collection>`, `<items>`.
    used (as REF-4a warns of an unused second child). The same applies to a vector whose
    attributes give its whole value.
 
+**Done by #2650** (closing #2596), for a point; the warning is `doenet-w0202`. For a vector, only
+a written `displacement` overrides its content. Left for a decision (#2655): a vector's `x`/`y`/`z`
+come after its content and `displacement`, the reverse of a point's.
+
 ## D50. Decisions from the review of #2597 (November 2026)
 
 1. **An input that isn't focused never shows an edit that wasn't entered** (#2598 item 5; SAVE-1;

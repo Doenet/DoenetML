@@ -215,12 +215,13 @@ reports (Tier 3).
 - `<option>$g</option>` and `<option>$m</option>` give the same level;
 - `w0188`'s suggestion skips a `<setup>`; a `ReplaceRange` past the end panics in tests.
 
-Known violations (#2643, from #2520):
-- an extend of an iteration holding `$cc.x` follows the case for a `<group>` extend, but a `<math>`
-  extend (`<math name="e2" extend="$r[1]"/>`) is `＿` from the second switch on;
-- an index after a select or conditional whose every branch holds several is the run-time
-  `w0188`, not decided at load; a `<select>` with options of different shapes gives `w0188` only
-  in the variants that pick a group of several (DIAG-7).
+Known violations (from #2520):
+- **fixed by #2645:** an index after a select or conditional whose every branch holds several is
+  `w0191` at load, a `<group>` written as the one component counted by what it holds, so a
+  `<select>` with options of different shapes is warned in every variant (DIAG-7);
+- **left** (#2654): `$e2[2]` of `<math name="e2" extend="$r[1]"/>`, an iteration holding `$cc.x`,
+  is `＿` after switching back to the `<else>` while `$e2` is right (DIAG-6); an option written as
+  `<group extend="$g2"/>` beside one holding several gets no load-time `w0191`.
 
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0188`:** an index after a group or instance that doesn't hold one component (#2518;
@@ -493,10 +494,14 @@ Known violations:
   constrained to a line through it), `$n.hide` in `n`, and a non-literal index into a composite in
   its own content (`$r[$n]`). Left for the cells core: a composite-form `<collect>` in its own
   source, an error only after load when it is in a case shown later;
-- `<point name="a"><label>$b</label></point><point name="b" extend="$a"/>` hangs the worker
-  (#2643);
-- `<group name="s">$ls[$i]</group>` shown by `$s` reports `e0005` after load once `i` passes the end
-  of `ls`, and stays `＿` when it comes back, though no cycle is written (#2643);
+- **fixed by #2645:** `<point name="a"><label>$b</label></point><point name="b" extend="$a"/>`
+  hung the worker; `$b` in the label now reads `b`'s value (VAL-10), so it loads, both labels
+  showing the coordinates. `<group name="s">$ls[$i]</group>` shown by `$s` is `＿` only while `i`
+  is past the end of `ls`. Two components each reading their own `hidden` in `hide` are both
+  `e0005` at load;
+- **left** (#2654): a cycle through a `<caption>` hangs the worker (a caption's content has no
+  edges in the load check); two components each reading their own `fixed` report only one cycle;
+  a point made with `copy` of a point whose label reads the copy is `e0005` where it should load;
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,

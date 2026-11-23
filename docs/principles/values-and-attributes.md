@@ -341,14 +341,14 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   **Known violations:**
   - **fixed by #2595** (closing #2544): an entry of a repeat's list form of numbers is missing
     where the composite is (`<repeatForSequence …><number>$l[$i] + 1</number></repeatForSequence>`
-    shows `11, 21, ＿` in both forms; it was `NaN` as a list). **Left** (#2596): a numeric
-    `<evaluate>` in a repeat's list form of maths is `NaN` where the composite is `＿`, and
-    `<number>$i + $nothing</number>` in a repeat is `NaN`;
+    shows `11, 21, ＿` in both forms; it was `NaN` as a list). **Fixed by #2650** (closing
+    #2596): a numeric `<evaluate>` in a repeat's list form of maths is `＿` where the composite
+    is, and `<number>$i + $nothing</number>` in a repeat is `＿`, as outside one;
   - **fixed by #2565** (closing #2525): a `<sort>` keeps a child reference that names nothing,
     placed last (`<sort>$l[5] 3 1</sort>` is `1, 3, ＿`), and a `<ray>`, a `<circle>`'s,
     `<regularPolygon>`'s or `<rectangle>`'s center and a `<parabola>`'s vertex that is a reference
-    naming nothing make the shape missing. Left (#2569): `<ray through="(1,2) $nothing"/>`, two
-    things in one point, isn't missing;
+    naming nothing make the shape missing. **Fixed by #2650:** `<ray through="(1,2) $nothing"/>` is
+    missing, and a circle centered at a property of a missing circle is missing;
   - **fixed by #2595:** a point or vector whose content is only a reference that names nothing,
     or a blank entry of a `<pointList>`, is missing and not drawn (`<point>$pl[$i]</point>` past
     the end, `<point>$nothing</point>`, `<vector displacement="$pl[2]"/>`). It reads whether the
@@ -360,13 +360,15 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     (**[probe]**: `<point x="3" y="4">(5,6)</point>` is `(3, 4)`, `<point x="3">(5,6)</point>`
     is `(3, 6)`). So `<point x="3" y="4">$nothing</point>` is the point `(3, 4)`, and
     `<point x="3">$nothing</point>` is missing, its `y` coming from the content. Content the
-    attributes override entirely is unused, with a warning that says so. **Known violation**
-    (#2596): #2595 makes the point missing whenever its content names nothing, so
-    `<point x="3" y="4">$nothing</point>` is missing though its value is `(3, 4)`, and overridden
-    content is dropped silently. **Left** (#2596): a
-    point holding a value reference to a math or number list entry past the end or blank, or to a
-    missing point (`<point>$ml[3]</point>`, `<point>$Q</point>`), is drawn with `＿` coordinates;
-    a vector's `tail` or `head` given a reference past the end isn't missing.
+    attributes override entirely is unused, with a warning that says so. **Done by #2650:**
+    `<point x="3" y="4">$nothing</point>` is `(3, 4)`; content the attributes override entirely
+    is **`doenet-w0202`** at load, and a written `coords` or `displacement` now comes before the
+    content whatever form it takes; a point holding a value reference to a list entry past the end
+    or blank, or to a missing point (`<point>$ml[3]</point>`, `<point>$Q</point>`), is missing;
+    a vector whose `head` or `tail` names nothing is missing while it uses it. **Left** (#2655):
+    a vector's `x`/`y`/`z` come after its content (for a decision: recommended the point's
+    order), a written `xs` after the content, a whole reference to a vector missing by its
+    endpoints doesn't make a point missing, and `<latex>` of a missing child is `""`.
 - **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
   `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
   value is missing (`＿`); #2483's opt-in for `maxNumber` becomes the rule for every such
@@ -480,6 +482,12 @@ These are hidden with their referent:
 - `$t` in a `<p>`;
 - `<number extend="$n"/>`;
 - named extends.
+
+A reference to a graphical component whose value is a math or a text, in a value position
+(a `<label>`, `<text>`, `<m>`, `<math>`, `<number>`, a value list), reads that value, not a copy
+of the component with its label (done by #2645): `<text>$P</text>` shows the coordinates, and a
+point in its own label through an extend loads. In a `<label>`, which leaves out what is hidden,
+it is hidden with the point.
 
 Every value position ignores `hide`. This covers a reference used *inside* `<math>`, `<text>`
 or an operator, and a hidden child written there directly: hiding part of an expression is
