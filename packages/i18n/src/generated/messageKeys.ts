@@ -503,6 +503,8 @@ export type MessageKey =
     | "copy-attribute-invalid-for-component"
     | "attribute-name-case"
     | "attribute-written-twice"
+    | "boolean-number-mix"
+    | "text-ordered-against-number"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -1227,6 +1229,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-attribute-invalid-for-component",
     "attribute-name-case",
     "attribute-written-twice",
+    "boolean-number-mix",
+    "text-ordered-against-number",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
