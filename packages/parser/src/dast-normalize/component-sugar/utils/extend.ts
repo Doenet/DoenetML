@@ -11,9 +11,9 @@ import { DastElement } from "../../../types";
  * is reported, and a bare extend has nothing to report.
  */
 export function isWrittenWithExtend(node: DastElement) {
-    return Object.keys(node.attributes).some(
-        (attrName) => attrName.toLowerCase() === "extend",
-    );
+    // Matched exactly, as every attribute name is (D51): `Extend` is not
+    // `extend`.
+    return Object.hasOwn(node.attributes, "extend");
 }
 
 /**
@@ -28,11 +28,22 @@ export function isWrittenWithExtend(node: DastElement) {
  */
 export function isChildlessCopy(node: DastElement) {
     return (
-        Object.keys(node.attributes).some((attrName) =>
-            ["copy", "copywithstate"].includes(attrName.toLowerCase()),
-        ) &&
+        (Object.hasOwn(node.attributes, "copy") ||
+            Object.hasOwn(node.attributes, "copyWithState")) &&
         node.children.every(
             (child) => child.type === "text" && child.value.trim() === "",
         )
+    );
+}
+
+/**
+ * Whether `node` is written with `extend`, `copy` or `copyWithState`,
+ * whatever is written inside it. Such a component has its source's children,
+ * so a sugar that adds the children every such component has (a
+ * `<fractionInput>`'s two boxes) is skipped for it: they come from the source.
+ */
+export function isMadeFromSource(node: DastElement) {
+    return ["extend", "copy", "copyWithState"].some((attrName) =>
+        Object.hasOwn(node.attributes, attrName),
     );
 }

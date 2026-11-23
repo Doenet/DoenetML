@@ -70,7 +70,7 @@ but the engine is a different implementation and some results differ:
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its
   last digits can move.
-- **`<line>`'s coefficients follow the equation as written.** `coeffvar1`, `coeffvar2` and `coeff0`
+- **`<line>`'s coefficients follow the equation as written.** `coeffVar1`, `coeffVar2` and `coeff0`
   are now the coefficients of *left-hand side minus right-hand side* for every spelling; they
   previously came out negated for whichever spellings the simplifier did not reorder. A line's
   direction is also canonicalized, so `5x-2y=3` and `2y-5x=-3` now point the same way and

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -98,7 +99,7 @@ describe("Point and vector lists as list components @group4", async () => {
     <pointList name="pl2">$pl (7,8)</pointList>
     <p name="ppl2">$pl2</p>
     <p name="pentry">$pl[2] $pl[2].x $pl[3].y</p>
-    <p name="pprops">$pl.x; $pl.xs; $pl.numPoints; $pl2.numPoints</p>
+    <p name="pprops">$pl.x; <repeat for="$pl" valueName="ev">$ev.xs</repeat>; $pl.numPoints; $pl2.numPoints</p>
     <p name="pcoords">$pl[1].coords</p>
     <pointList name="same">(1,2) (3,4) (5,6)</pointList>
     <pointList name="shorter">(1,2) (3,4)</pointList>
@@ -131,7 +132,9 @@ describe("Point and vector lists as list components @group4", async () => {
             mpl: "(1, 2), (3, 4), (5, 6)",
             ppl2: "(1, 2), (3, 4), (5, 6), (7, 8)",
             pentry: "(3, 4) 3 6",
-            pprops: "1, 3, 5; 1, 2, 3, 4, 5, 6; 3; 4",
+            // `$pl.x` was each entry's x (D41); a property after a list is
+            // its own (D59), so it names nothing (`doenet-w0200`)
+            pprops: "＿; 1, 2, 3, 4, 5, 6; 3; 4",
             pcoords: "(1, 2)",
             pmax: "(1, 2), (3, 4)",
             pdims: "2",
@@ -345,7 +348,7 @@ describe("Point and vector lists as list components @group4", async () => {
       <polygon name="poly" vertices="$pl" />
     </graph>
     <p name="ppl">$pl</p>
-    <p name="pvl">$vl; $vl.tail</p>
+    <p name="pvl">$vl; <repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
     `,
         });
 
@@ -449,7 +452,7 @@ describe("Point and vector lists as list components @group4", async () => {
     <pointList name="pl">(1,2,3) (4,5,6)</pointList>
     <pointList name="mixed">(1,2) (3,4,5)</pointList>
     <p name="ppl">$pl</p>
-    <p name="pz">$pl[2].z $pl.z</p>
+    <p name="pz">$pl[2].z <repeat for="$pl" valueName="ev">$ev.z</repeat></p>
     <p name="pdims">$pl.numDimensions</p>
     <p name="pmixed2">$mixed[2]</p>
     `,
@@ -527,8 +530,8 @@ describe("Point and vector lists as list components @group4", async () => {
     </graph>
     <graph name="g2">$vl</graph>
     <p name="pvl">$vl</p>
-    <p name="pheads">$vl.head</p>
-    <p name="ptails">$vl.tail</p>
+    <p name="pheads"><repeat for="$vl" valueName="ev">$ev.head</repeat></p>
+    <p name="ptails"><repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
     <p name="pentry">$vl[2] $vl[2].x $vl[1].head</p>
     `,
         });
@@ -643,7 +646,7 @@ describe("Point and vector lists as list components @group4", async () => {
     <point name="P">(7,8)</point>
     <pointList name="pl">(1,2) (3,4,5) $P</pointList>
     <p name="ppl">$pl</p>
-    <p name="pz">$pl.z</p>
+    <p name="pz"><repeat for="$pl" valueName="ev">$ev.z</repeat></p>
     <p name="pdims">$pl.numDimensions</p>
     <p name="p1">$pl[1]</p>
     `,
@@ -1160,7 +1163,7 @@ describe("Point and vector lists as list components @group4", async () => {
     <graph name="g">
       <vectorList name="vl">(1,2,3) (4,5,6)</vectorList>
     </graph>
-    <p name="pvl">$vl; $vl.tail; $vl.head</p>
+    <p name="pvl">$vl; <repeat for="$vl" valueName="ev">$ev.tail</repeat>; <repeat for="$vl" valueName="ev">$ev.head</repeat></p>
     `,
         });
 
@@ -1207,7 +1210,7 @@ describe("Point and vector lists as list components @group4", async () => {
       <vectorList name="vl">(1,2) <vector name="v" tail="(1,1)" head="(4,5)" /></vectorList>
     </graph>
     <p name="pvl">$vl</p>
-    <p name="ptails">$vl.tail</p>
+    <p name="ptails"><repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
     <p name="pv">$v.tail $v.head</p>
     `,
         });
@@ -1259,7 +1262,7 @@ describe("Point and vector lists as list components @group4", async () => {
       <vectorList name="vl">(1,2) (3,4)</vectorList>
     </graph>
     <p name="pvl">$vl</p>
-    <p name="ptails">$vl.tail</p>
+    <p name="ptails"><repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
     `;
         const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
             { doenetML },
@@ -1303,8 +1306,8 @@ describe("Point and vector lists as list components @group4", async () => {
       <vector name="w2" extend="$vl[2]" />
       $vl[3]
     </graph>
-    <p name="ptails">$vl.tail</p>
-    <p name="pheads">$vl.head</p>
+    <p name="ptails"><repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
+    <p name="pheads"><repeat for="$vl" valueName="ev">$ev.head</repeat></p>
     <p name="pv">$v.tail $v.head</p>
     `,
         });
@@ -1444,7 +1447,9 @@ describe("Point and vector lists as list components @group4", async () => {
             byX: "(1, 2), (2, 0), (3, 1)",
             byY: "(2, 0), (3, 1), (1, 2)",
             byProp: "(2, 0), (3, 1), (1, 2)",
-            mixed: "(1, 2), (2, 0), (2.5, 1), (3, 1)",
+            // the text beside the points is read as a point (COLL-4); it
+            // used to be left out
+            mixed: "(0, 5), (1, 2), (2, 0), (2.5, 1), (3, 1)",
             indices: "2, 3, 1",
             vByDisplacement: "(0, 5), (1, -1), (2, 3)",
             vByTail: "(1, -1), (0, 5), (2, 3)",
@@ -1459,10 +1464,10 @@ describe("Point and vector lists as list components @group4", async () => {
             doenetML: `
     <vectorList name="vl">(3,4) <vector tail="(1,1)" head="(4,5)"/> (a,b)</vectorList>
     <p name="displacement">$vl[2].displacement</p>
-    <p name="displacements">$vl.displacement</p>
-    <p name="magnitudes">$vl.magnitude</p>
-    <p name="heads">$vl[2].headX1 $vl[2].head[2] $vl.headX1</p>
-    <p name="tails">$vl[2].tailX1 $vl[2].tail[2] $vl.tailX2</p>
+    <p name="displacements"><repeat for="$vl" valueName="ev">$ev.displacement</repeat></p>
+    <p name="magnitudes"><repeat for="$vl" valueName="ev">$ev.magnitude</repeat></p>
+    <p name="heads">$vl[2].headX1 $vl[2].head[2] <repeat for="$vl" valueName="ev">$ev.headX1</repeat></p>
+    <p name="tails">$vl[2].tailX1 $vl[2].tail[2] <repeat for="$vl" valueName="ev">$ev.tailX2</repeat></p>
     <p name="past">$vl[2].headX3</p>
     <mathInput name="mi" bindValueTo="$vl[1].displacement"/>
     <p name="list">$vl</p>
@@ -1562,8 +1567,8 @@ describe("Point and vector lists as list components @group4", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `${doenetML}
     <mathInput name="mi" bindValueTo="${bindValueTo}"/>
-    <p name="p">$vl; $vl.tail; $vl.head</p>
-    <p name="q">$w; $w.tail; $w.head</p>
+    <p name="p">$vl; <repeat for="$vl" valueName="ev">$ev.tail</repeat>; <repeat for="$vl" valueName="ev">$ev.head</repeat></p>
+    <p name="q">$w; <repeat for="$w" valueName="ev">$ev.tail</repeat>; <repeat for="$w" valueName="ev">$ev.head</repeat></p>
     `,
             });
             await updateMathInputValue({
@@ -1625,9 +1630,9 @@ describe("Point and vector lists as list components @group4", async () => {
         <pointList name="pc">(1.2,2.7) (8,4)<constrainToGrid/></pointList>
         <vectorList name="vl" styleNumber="2">(1,2) <vector styleNumber="3" head="(3,4)"/></vectorList>
     </graph>
-    <p name="pStyle">$pl.styleDescription; $pl[2].styleDescriptionWithNoun; $pl[2].textColor</p>
-    <p name="vStyle">$vl.styleDescription; $vl[1].styleDescriptionWithNoun</p>
-    <p name="constraints">$pl.constraintUsed; $pc.constraintUsed</p>
+    <p name="pStyle"><repeat for="$pl" valueName="ev">$ev.styleDescription</repeat>; $pl[2].styleDescriptionWithNoun; $pl[2].textColor</p>
+    <p name="vStyle"><repeat for="$vl" valueName="ev">$ev.styleDescription</repeat>; $vl[1].styleDescriptionWithNoun</p>
+    <p name="constraints">$pl[1].constraintUsed, $pl[2].constraintUsed, $pl[3].constraintUsed; $pc[1].constraintUsed, $pc[2].constraintUsed</p>
     <p name="coords">$pl[2].coords[1]; $pl.coords[1]</p>
     `,
         });
@@ -1646,8 +1651,8 @@ describe("Point and vector lists as list components @group4", async () => {
             constraints: "false, false, true; true, true",
             // An index into the coordinates of an entry, which are not an
             // array, names nothing, as `$P.coords[1]` does (#2413), so it is
-            // missing (D37). Of every entry (`$pl.coords[1]`), it is the
-            // same (#2438).
+            // missing (D37). After the list (`$pl.coords[1]`) it names
+            // nothing too: a property after a list is its own (D59).
             coords: "＿; ＿",
         });
 
@@ -1805,11 +1810,10 @@ describe("Point and vector lists as list components @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sv = async (name: string) =>
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
-        expect((await sv("a")).submittedResponsesComponentType).eqls([
-            "point",
-            "point",
-            "vector",
-        ]);
+        // as many of each as its list holds, decided at load
+        expect(await responseTypes(core, await resolvePathToNodeIdx("a"))).eqls(
+            ["point", "point", "vector"],
+        );
         expect((await sv("pr")).text).eq("(1, 2), (3, 4), (5, 6)");
         expect(
             core.core.rendererInstructionBuilder.rendererState[
@@ -1961,7 +1965,7 @@ describe("Point and vector lists as list components @group4", async () => {
     <graph name="g"><vectorList>${vector}</vectorList></graph>
     <graph name="g2">${vector.replace(`name="v"`, `name="w"`)}</graph>
     <p name="pv">$v.tail $v.head</p>
-    <p name="pw">$w.tail $w.head</p>
+    <p name="pw"><repeat for="$w" valueName="ev">$ev.tail</repeat> <repeat for="$w" valueName="ev">$ev.head</repeat></p>
     `,
                 });
                 for (const graph of ["g", "g2"]) {

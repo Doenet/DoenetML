@@ -3,6 +3,8 @@ import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils
 
 export default class Column extends BaseComponent {
     static componentType = "column";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     // `<column>` is also accepted inside `<matrix>`, where it sugars into
     // `<matrixColumn>`. Both entries appear in the docs index disambiguated

@@ -14,16 +14,16 @@
   <text name="c_frame">#4A5568</text>
 
   <!-- Style definitions for sub regions (Intersections) -->
-  <styleDefinition styleNumber="4" fillopacity="0.4" fillColor="$c_ac_wcag" lineColor="$c_ac_wcag" linewidth="0" />
-  <styleDefinition styleNumber="6" fillopacity="0.4" fillColor="$c_bc_wcag" lineColor="$c_bc_wcag" linewidth="0" />
-  <styleDefinition styleNumber="5" fillopacity="0.4" fillColor="$c_ab_wcag" lineColor="$c_bc_wcag" linewidth="0" />
-  <styleDefinition styleNumber="7" fillopacity="0.4" fillColor="$c_abc_wcag" lineColor="$c_abc_wcag" linewidth="0" />
+  <styleDefinition styleNumber="4" fillOpacity="0.4" fillColor="$c_ac_wcag" lineColor="$c_ac_wcag" lineWidth="0" />
+  <styleDefinition styleNumber="6" fillOpacity="0.4" fillColor="$c_bc_wcag" lineColor="$c_bc_wcag" lineWidth="0" />
+  <styleDefinition styleNumber="5" fillOpacity="0.4" fillColor="$c_ab_wcag" lineColor="$c_bc_wcag" lineWidth="0" />
+  <styleDefinition styleNumber="7" fillOpacity="0.4" fillColor="$c_abc_wcag" lineColor="$c_abc_wcag" lineWidth="0" />
 
   <!-- Region 8 Outside Shading (Borderless Internal Background) -->
-  <styleDefinition styleNumber="8" fillopacity="0.4" fillColor="$c_frame" lineColor="$c_frame" linewidth="0" />
+  <styleDefinition styleNumber="8" fillOpacity="0.4" fillColor="$c_frame" lineColor="$c_frame" lineWidth="0" />
 
   <!-- Style for Universal Set Frame & Macro Circle Outlines -->
-  <styleDefinition styleNumber="12" fillopacity="0.25" fillColor="$c_frame" lineColor="$c_frame" linewidth="4" lineStyle="solid" markerColor="black"/>
+  <styleDefinition styleNumber="12" fillOpacity="0.25" fillColor="$c_frame" lineColor="$c_frame" lineWidth="4" lineStyle="solid" markerColor="black"/>
 
   <!--Defining which regions are in the sets-->
   <numberList name="A_elmnt">1 4 6 7</numberList>
@@ -231,7 +231,7 @@ Shade the sets given below. Shade exactly the given set with no additional shadi
 <subsection noAutoTitle>
   <title>Venn Diagram</title>
 
-<graph name="graph1" displayXAxis="false" displayYAxis="false" ymin="-12" identicalAxisScales fixAxes>
+<graph name="graph1" displayXAxis="false" displayYAxis="false" yMin="-12" identicalAxisScales fixAxes>
   <shortDescription>A graph that shows three overlapping circles representing the sets A, B, and C.</shortDescription>
 
   <!-- Universal Set Background Layer (Style 12) -->

@@ -9,6 +9,8 @@ import me from "math-expressions";
 
 export default class SubsetOfReals extends MathComponent {
     static componentType = "subsetOfReals";
+    // An object, not a value, though built on `<math>` (D46).
+    static isValue = false;
 
     static componentDocs = {
         summary:

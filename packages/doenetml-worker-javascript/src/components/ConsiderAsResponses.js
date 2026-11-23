@@ -52,7 +52,8 @@ export default class ConsiderAsResponses extends BaseComponent {
                         // one in an award (`currentResponses` in `Answer.js`)
                         "valueAsResponse",
                         "componentTypeAsResponse",
-                        // a missing component (D37), recorded as a blank math
+                        // a missing component (D37), recorded as missing of
+                        // its type (D52 decision 1)
                         "valueMissing",
                         // a subset of the reals, recorded as its subset
                         "subsetValue",

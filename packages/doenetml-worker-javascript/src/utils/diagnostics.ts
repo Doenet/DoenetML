@@ -4,6 +4,7 @@ import {
     type DiagnosticArgs,
     type DiagnosticCode,
 } from "@doenet/i18n";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Re-exported from `@doenet/utils`, where it now lives beside the
@@ -46,13 +47,20 @@ export { codedDiagnostic } from "@doenet/utils";
 export class DiagnosticError extends Error {
     readonly code: DiagnosticCode;
     readonly args?: DiagnosticArgs;
+    /**
+     * Where the author wrote the cause, when that is more exact than the
+     * component the error replaces (an attribute of it, DIAG-4).
+     */
+    readonly position?: DiagnosticRecord["position"];
 
     constructor({
         code,
         args,
+        position,
     }: {
         code: DiagnosticCode;
         args?: DiagnosticArgs;
+        position?: DiagnosticRecord["position"];
     }) {
         super(formatEnglishDiagnostic(code, args));
         // A subclass inherits `Error.prototype.name`, so without this it
@@ -63,6 +71,9 @@ export class DiagnosticError extends Error {
         this.code = code;
         if (args !== undefined) {
             this.args = args;
+        }
+        if (position !== undefined) {
+            this.position = position;
         }
     }
 }

@@ -47,6 +47,31 @@ export default class SampleRandomNumbers extends ValueListComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    // The distribution sampled from, computed from what is written (the
+    // expected `mean` of a uniform distribution), documented as properties
+    // (`sampleRandomNumbers.mdx`).
+    static attributePropertiesKept = [
+        "type",
+        "from",
+        "to",
+        "step",
+        "mean",
+        "variance",
+        "standardDeviation",
+        "logMean",
+        "logVariance",
+        "logStandardDeviation",
+        "means",
+        "variances",
+        "standardDeviations",
+        "weights",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+    ];
+
     static listEntryComponentType = "number";
 
     static listEntryValuesVariable = "sampledValues";
@@ -503,9 +528,35 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     }
                     if (dependencyValues.type === "uniform") {
                         to = from + 1;
+                    } else if (!(
+                        Number.isFinite(from) &&
+                        Number.isFinite(step) &&
+                        step !== 0
+                    )) {
+                        // Stepping past an excluded value would never end
+                        // (a step of 0, or a `from` or step that isn't a
+                        // finite number, which an excluded `NaN` or
+                        // `Infinity` matches): the two values are `from` and
+                        // `from + step`, and none when either is excluded.
+                        to = from + step;
+                        if (exclude.includes(from) || exclude.includes(to)) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     } else {
                         // make sure from isn't excluded
+                        // (stopping when a step no longer changes it, as
+                        // from a `from` too large for the step to change,
+                        // or past the largest number: stepping on would
+                        // never end, and the range has no values)
+                        let stuck = false;
                         while (exclude.includes(from)) {
+                            if (from + step === from) {
+                                stuck = true;
+                                break;
+                            }
                             from += step;
                         }
 
@@ -513,14 +564,24 @@ export default class SampleRandomNumbers extends ValueListComponent {
 
                         // make sure to isn't excluded, so that have exactly two values
                         let i = 1;
-                        while (exclude.includes(to)) {
+                        while (!stuck && exclude.includes(to)) {
+                            if (!Number.isFinite(to)) {
+                                // past the largest number, and excluded
+                                stuck = true;
+                                break;
+                            }
                             // Note: make sure calculate to using exact same sequence of operations as actual values
                             // so don't have differences due to floating point rounding
                             i++;
                             to = from + i * step;
                         }
 
-                        numDiscreteValues = 2;
+                        if (stuck) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     }
                 } else {
                     if (from === null) {
@@ -531,7 +592,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - targetFrom) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                                 from = null;
                             } else {
@@ -554,7 +620,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - from) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                             } else {
                                 to = from + (numDiscreteValues - 1) * step;

@@ -17,6 +17,8 @@ import {
 
 export default class Cell extends BaseComponent {
     static componentType = "cell";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A single cell within a tabular layout or spreadsheet",
@@ -52,7 +54,7 @@ export default class Cell extends BaseComponent {
             forRenderer: true,
             description: "Number of columns this cell spans.",
         };
-        attributes.halign = {
+        attributes.hAlign = {
             createComponentOfType: "text",
             toLowerCase: true,
             validValues: returnHalignValidValues(),
@@ -137,7 +139,7 @@ export default class Cell extends BaseComponent {
             },
         };
 
-        stateVariableDefinitions.halign = {
+        stateVariableDefinitions.hAlign = {
             description:
                 "Horizontal alignment of the cell's content (start, center, end, or justify).",
             public: true,
@@ -149,13 +151,13 @@ export default class Cell extends BaseComponent {
             defaultValue: "start",
             // PreTeXt resolves a cell's alignment in the order cell, row,
             // col, tabular, and so does this chain. The row contributes
-            // `authoredHalign` rather than `halign`, because `halign` has
+            // `authoredHalign` rather than `hAlign`, because `hAlign` has
             // already inherited the tabular's value and would otherwise hide
-            // the `<col>` behind a `<tabular halign>` the author set.
+            // the `<col>` behind a `<tabular hAlign>` the author set.
             returnDependencies: () => ({
                 halignAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "halign",
+                    attributeName: "hAlign",
                     variableNames: ["value"],
                 },
                 parentAuthoredHalign: {
@@ -175,23 +177,23 @@ export default class Cell extends BaseComponent {
                 tabularHalign: {
                     dependencyType: "ancestor",
                     componentType: "tabular",
-                    variableNames: ["halign"],
+                    variableNames: ["hAlign"],
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.halignAttr !== null) {
-                    const halign = readVocabularyValue(
+                    const hAlign = readVocabularyValue(
                         dependencyValues.halignAttr.stateValues.value,
                         HALIGN_VALUES,
                         "start",
                     );
-                    return { setValue: { halign } };
+                    return { setValue: { hAlign } };
                 }
 
                 if (dependencyValues.parentAuthoredHalign) {
                     return {
                         setValue: {
-                            halign: dependencyValues.parentAuthoredHalign,
+                            hAlign: dependencyValues.parentAuthoredHalign,
                         },
                     };
                 }
@@ -200,11 +202,11 @@ export default class Cell extends BaseComponent {
                 // first column it covers, the one its content starts in.
                 const columnHalign = columnSettingForCell({
                     dependencyValues,
-                    setting: "halign",
+                    setting: "hAlign",
                     columnIndex: dependencyValues.columnIndex,
                 });
                 if (columnHalign) {
-                    return { setValue: { halign: columnHalign } };
+                    return { setValue: { hAlign: columnHalign } };
                 }
 
                 if (
@@ -213,13 +215,13 @@ export default class Cell extends BaseComponent {
                 ) {
                     return {
                         setValue: {
-                            halign: dependencyValues.tabularHalign.stateValues
-                                .halign,
+                            hAlign: dependencyValues.tabularHalign.stateValues
+                                .hAlign,
                         },
                     };
                 }
 
-                return { useEssentialOrDefaultValue: { halign: true } };
+                return { useEssentialOrDefaultValue: { hAlign: true } };
             },
         };
 

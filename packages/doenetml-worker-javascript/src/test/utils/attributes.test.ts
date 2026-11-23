@@ -145,7 +145,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["top", "bottom", "middle"],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top", "bottom", "middle"]);
         expect(result.diagnostics).toEqual([]);
@@ -155,14 +155,14 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["top", "sideways", "bottom", "diagonal"],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top", "bottom"]);
         expect(result.diagnostics).toHaveLength(1);
         expect(result.diagnostics[0].type).toBe("info");
         expect(result.diagnostics[0].message).toContain("`sideways`");
         expect(result.diagnostics[0].message).toContain("`diagonal`");
-        expect(result.diagnostics[0].message).toContain("valigns");
+        expect(result.diagnostics[0].message).toContain("vAligns");
         // The runtime diagnostic does not enumerate the allowed values (that
         // would show the lower-cased copy when toLowerCase is set); the
         // canonical-cased list lives in the schema-driven editor surfaces.
@@ -173,7 +173,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["top", "sideways"],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top"]);
         expect(result.diagnostics[0].message).toContain("Invalid value `");
@@ -185,7 +185,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
             items: ["  TOP ", "Middle"],
             validValues,
             toLowerCase: true,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top", "middle"]);
         expect(result.diagnostics).toEqual([]);
@@ -195,7 +195,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["TOP", "top"],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top"]);
         expect(result.diagnostics).toHaveLength(1);
@@ -206,7 +206,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["  top  ", "bottom"],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top", "bottom"]);
         expect(result.diagnostics).toEqual([]);
@@ -216,7 +216,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: ["top", 5, null],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual(["top"]);
         expect(result.diagnostics).toHaveLength(1);
@@ -228,7 +228,7 @@ describe("validateListItemsAgainstValidValues @group4", () => {
         const result = validateListItemsAgainstValidValues({
             items: [],
             validValues,
-            attribute: "valigns",
+            attribute: "vAligns",
         });
         expect(result.value).toEqual([]);
         expect(result.diagnostics).toEqual([]);

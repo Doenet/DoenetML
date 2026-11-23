@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
@@ -5,6 +9,11 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import { listEntryReplacement } from "./Sort";
+import {
+    authoredComponentTypes,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "../utils/dast/nameCase";
 
 /**
  * What names a collected item (`collectedComponents`): its component, or,
@@ -18,6 +27,9 @@ function collectedKey(collected) {
 
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary:
@@ -62,6 +74,10 @@ export default class Collect extends CompositeComponent {
         attributes.componentType = {
             createComponentOfType: "text",
             description: "Component type of descendants to collect.",
+            // A tag name, matched exactly (NAME-0, D62); one written in
+            // another case is corrected at load, with `doenet-w0197`, for
+            // now (`correctAttributeNameCase` in `convertNormalizedDast.ts`).
+            valueNamesComponentType: true,
         };
 
         attributes.asList = {
@@ -77,6 +93,20 @@ export default class Collect extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2). The `hide`, `fixed`
+        // and `disabled` written on a `<collect>` go to what it collects, so
+        // its own are those it takes from where it is, and its own `hide`
+        // (`$c.hide`, which a list form has) is not set.
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+        stateVariableDefinitions.hide = {
+            public: true,
+            description:
+                "Whether the collect itself is hidden; a `hide` written on it hides what it collects.",
+            shadowingInstructions: { createComponentOfType: "boolean" },
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { hide: false } }),
+        };
 
         stateVariableDefinitions.link = {
             returnDependencies: () => ({}),
@@ -283,14 +313,14 @@ export default class Collect extends CompositeComponent {
                 if (dependencyValues.componentTypeAttr !== null) {
                     const cType =
                         dependencyValues.componentTypeAttr.stateValues.value;
-                    let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            cType.toLowerCase()
-                        ];
-                    let cClass =
-                        componentInfoObjects.allComponentClasses[componentType];
+                    // Matched exactly, as a tag is (NAME-0, D62). One written
+                    // in another case was corrected at load, with a warning;
+                    // one that comes from a value that can change is not, and
+                    // gets the suggestion.
+                    const componentType =
+                        componentInfoObjects.componentTypeAsWritten(cType);
 
-                    if (cClass) {
+                    if (componentType !== undefined) {
                         componentTypeToCollect = componentType;
                     } else {
                         const position =
@@ -301,7 +331,17 @@ export default class Collect extends CompositeComponent {
                                     dependencyValues.componentTypeDecidedByDoenetML,
                                 ),
                                 code: "doenet-w0073",
-                                args: { component: cType },
+                                args: {
+                                    component: cType,
+                                    ...suggestionArgs(
+                                        nameDifferingOnlyInCase(
+                                            cType,
+                                            authoredComponentTypes(
+                                                componentInfoObjects,
+                                            ),
+                                        ),
+                                    ),
+                                },
                                 ...(position ? { position } : {}),
                             }),
                         );
@@ -456,6 +496,11 @@ export default class Collect extends CompositeComponent {
             },
         };
 
+        // The number of items, what it collects (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "collectedComponents",
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -465,7 +510,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
@@ -518,7 +563,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     nComponents,
                     stateIdInfo,
                 });
@@ -553,7 +598,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         stateIdInfo,
         nComponents,
     }) {
@@ -676,7 +721,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         // console.log("Calculating replacement changes for " + component.componentIdx);
         // console.log((await component.stateValues.collectedComponents).map(x => x.componentIdx))
@@ -831,7 +876,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
@@ -907,7 +952,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
         stateIdInfo,
     }) {
@@ -921,7 +966,7 @@ export default class Collect extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             numComponentsForSource,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
             nComponents,
             stateIdInfo,
         });

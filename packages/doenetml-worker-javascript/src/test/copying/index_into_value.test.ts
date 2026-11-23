@@ -716,18 +716,8 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$r[2]", "(2, 20)"],
                 ["$r[2][1]", "2"],
                 ["$r[2][2]", "20"],
-                // a property of every entry with an index into it
-                ["$pl.xs[1]", "3, 1"],
-                // an index into the list's value is an index into the list,
-                // as `$m.value[2]` is `$m[2]`, also with more after it
-                ["$l.value[2]", "2"],
-                ["$pl.value[2]", "(1, 2)"],
-                ["$tl.value[2][1]", "3"],
-                ["$pl.value[2].x", "1"],
-                ["$tl.value[2].value[1]", "3"],
-                // past the end, as `$l[4]` is
-                ["$l.value[4]", "＿"],
-                ["$pl.value[3].x", "＿"],
+                // (`$l.value[2]`, an index into the list's value, names
+                // nothing since D59: a list's value is not its own; below)
                 // further indices index on in the entry's value, as in a
                 // `<math>` (#2438), also after `.value`
                 ["$tl2[1].value[2][1]", "3"],
@@ -753,7 +743,7 @@ describe("An index into an entry of a list @group4", async () => {
 <mathInput name="wrow1" bindValueTo="$lm[1][1]"><label>wrow1</label></mathInput>
 <mathInput name="wentry" bindValueTo="$lm[1][1][2]"><label>wentry</label></mathInput>
 <mathInput name="wpast" bindValueTo="$tl[1][3]"><label>wpast</label></mathInput>
-<mathInput name="wvalue" bindValueTo="$tl.value[2][1]"><label>wvalue</label></mathInput>
+<mathInput name="wvalue" bindValueTo="$tl[2].value[1]"><label>wvalue</label></mathInput>
 <mathInput name="wvalue2" bindValueTo="$tl2[1].value[2][1]"><label>wvalue2</label></mathInput>
 <p name="ptl">$tl</p><p name="pml">$ml</p><p name="plm">$lm</p><p name="ptl2">$tl2</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -823,7 +813,8 @@ describe("An index into an entry of a list @group4", async () => {
         });
         expect(await textOf("plm")).eq("[[1, 0], [5, 6]], 5");
 
-        // and through an index into the list's value, as through `$tl[2][1]`
+        // and through an index into an entry's value, as through `$tl[2][1]`
+        // (was `$tl.value[2][1]`, which names nothing since D59)
         await updateMathInputValue({
             latex: "8",
             componentIdx: await resolvePathToNodeIdx("wvalue"),
@@ -885,15 +876,9 @@ describe("An index into an entry of a list @group4", async () => {
             ["$tl[1][2][1]", "doenet-w0100"],
             // past the dimensions of a coordinate, as `$P[1][1]`
             ["$pl[1][1][1]", "doenet-w0100"],
-            // an index into a property of every entry that is not an array,
-            // as `$P.coords[1]`, rather than the property with the index
-            // dropped
-            ["$pl.coords[1]", "doenet-w0100"],
             // the same after `.value`, as with the bare index
             ["$pl[2].value[1][1]", "doenet-w0100"],
-            ["$pl.value[2][1][1]", "doenet-w0100"],
             ["$tl2[1].value[2][0]", "doenet-w0104"],
-            ["$pl.value[0].x", "doenet-w0104"],
         ]) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 reference,
@@ -908,6 +893,34 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
             ).eqls([code]);
             expect(warnings[0].args, reference).eqls({ reference });
+        }
+    });
+
+    it("an index into a property after the list names nothing, as the property does (D59)", async () => {
+        // `$pl.coords[1]` was `w0100`, an index into each entry's coords,
+        // and `$pl.xs[1]` the first of each entry's xs (D41). A property
+        // after a list is the list's own, so neither names anything.
+        // So is the list's value (`$l.value[2]` was `$l[2]`): a list's value
+        // is not a property of its own.
+        for (const [reference, suggestion] of [
+            ["$pl.coords[1]", "$pl[1].coords[1]"],
+            ["$pl.xs[1]", "$pl[1].xs[1]"],
+            ["$l.value[2]", "$l[1].value[2]"],
+            ["$pl.value[2].x", "$pl[1].value[2].x"],
+            ["$tl.value[2][1]", "$tl[1].value[2][1]"],
+            ["$pl.value[2][1][1]", "$pl[1].value[2][1][1]"],
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                reference,
+                lists,
+            );
+            expect(text, reference).eq("[＿]");
+            expect([...errors, ...infos], reference).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                reference,
+            ).eqls(["doenet-w0200"]);
+            expect(warnings[0].args.suggestion, reference).eq(suggestion);
         }
     });
 

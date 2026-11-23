@@ -130,6 +130,8 @@ export default class Pretzel extends BlockScoredComponent {
     }
 
     static componentType = "pretzel";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary:
@@ -572,17 +574,6 @@ export default class Pretzel extends BlockScoredComponent {
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let componentType = [];
-
-                if (globalDependencyValues.submittedResponsesComponentType) {
-                    componentType.push(
-                        ...globalDependencyValues.submittedResponsesComponentType.slice(
-                            0,
-                            globalDependencyValues.numSubmittedResponses,
-                        ),
-                    );
-                }
-
                 let essentialSubmittedResponses = {};
 
                 for (

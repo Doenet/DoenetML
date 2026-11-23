@@ -1365,6 +1365,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -11927,6 +11930,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -14504,6 +14510,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -15120,6 +15129,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -15751,6 +15763,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -16469,6 +16484,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -17413,6 +17431,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -18351,6 +18372,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -19293,6 +19317,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -20233,6 +20260,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -21167,6 +21197,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -22081,6 +22114,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -22987,6 +23023,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -23903,6 +23942,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -24817,6 +24859,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -25729,6 +25774,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -26657,6 +26705,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -27599,6 +27650,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -28548,6 +28602,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -29506,6 +29563,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -30455,6 +30515,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -31395,6 +31458,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -32339,6 +32405,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -33279,6 +33348,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -34223,6 +34295,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -35163,6 +35238,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -36115,6 +36193,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -36938,6 +37019,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -37004,20 +37088,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -37076,6 +37146,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -37471,6 +37547,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -37537,20 +37616,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -37609,6 +37674,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -38004,6 +38075,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -38070,20 +38144,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -38142,6 +38202,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -38537,6 +38603,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -38603,20 +38672,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -38675,6 +38730,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -39070,6 +39131,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -39136,20 +39200,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -39208,6 +39258,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -42858,6 +42914,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -43766,20 +43828,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "allowUnsorted",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "side",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Which end of a run of equal values the target is placed at.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -43838,6 +43886,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -44792,6 +44846,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "categories",
                     "isArray": true,
                     "description": "The categories the counts are counts of, in the same order.",
@@ -45694,13 +45754,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "closed",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Which end of each bin includes its cut point.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -45759,6 +45812,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "binEdges",
@@ -46221,6 +46280,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "sortIndices"
@@ -46910,6 +46972,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "sortIndices"
                 },
                 {
@@ -47228,13 +47293,13 @@
                         "false"
                     ]
                 },
-                "xscale": {
+                "xScale": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yscale": {
+                "yScale": {
                     "optional": true,
                     "type": [
                         "string"
@@ -47675,6 +47740,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -47756,14 +47824,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -48287,13 +48355,13 @@
                         "false"
                     ]
                 },
-                "xscale": {
+                "xScale": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yscale": {
+                "yScale": {
                     "optional": true,
                     "type": [
                         "string"
@@ -48734,6 +48802,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -48815,14 +48886,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -49346,13 +49417,13 @@
                         "false"
                     ]
                 },
-                "xscale": {
+                "xScale": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yscale": {
+                "yScale": {
                     "optional": true,
                     "type": [
                         "string"
@@ -49793,6 +49864,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -49874,14 +49948,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -50700,6 +50774,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -60523,6 +60600,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -61752,6 +61835,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -62985,6 +63074,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -64214,6 +64309,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -65454,6 +65555,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -66683,6 +66790,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -67923,6 +68036,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -69159,6 +69278,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -70399,6 +70524,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -71637,6 +71768,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -72866,6 +73003,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -74099,6 +74242,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -75328,6 +75477,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -76561,6 +76716,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -77790,6 +77951,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -79023,6 +79190,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -80251,6 +80424,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section (always null for unnumbered sections)."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -81490,6 +81669,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -82725,6 +82910,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -84822,13 +85013,13 @@
                     "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
-                    "name": "righthandside",
+                    "name": "rightHandSide",
                     "type": "math",
                     "isArray": false,
                     "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
-                    "name": "righthandsides",
+                    "name": "rightHandSides",
                     "type": "math",
                     "isArray": true,
                     "description": "The right-hand-side expressions of each ODE in the system.",
@@ -85961,6 +86152,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -86294,12 +86488,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -86903,6 +87091,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -87164,19 +87355,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -87185,13 +87376,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -87779,6 +87970,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -89569,6 +89763,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -90344,6 +90541,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -91335,7 +91535,7 @@
                         "string"
                     ]
                 },
-                "valign": {
+                "vAlign": {
                     "optional": true,
                     "type": [
                         "top",
@@ -91343,7 +91543,7 @@
                         "bottom"
                     ]
                 },
-                "valigns": {
+                "vAligns": {
                     "optional": true,
                     "type": [
                         "top",
@@ -91646,7 +91846,7 @@
                     ]
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "type": "text",
                     "isArray": true,
                     "description": "Vertical alignment of each child.",
@@ -91748,7 +91948,7 @@
                         "string"
                     ]
                 },
-                "valign": {
+                "vAlign": {
                     "optional": true,
                     "type": [
                         "top",
@@ -91756,7 +91956,7 @@
                         "bottom"
                     ]
                 },
-                "valigns": {
+                "vAligns": {
                     "optional": true,
                     "type": [
                         "top",
@@ -91894,7 +92094,7 @@
                     ]
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "type": "text",
                     "isArray": true,
                     "description": "Vertical alignment of each child.",
@@ -98609,6 +98809,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -101737,6 +101940,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -102377,6 +102583,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -102475,6 +102684,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -103683,6 +103898,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -104153,6 +104371,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -104669,6 +104893,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -105512,6 +105739,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -105585,27 +105815,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -105664,6 +105873,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -106115,6 +106330,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -106188,27 +106406,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -106267,6 +106464,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -106616,6 +106819,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -106818,6 +107024,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -106902,17 +107114,46 @@
             "textChildrenAllowed": false,
             "properties": [
                 {
-                    "name": "maxNumber",
-                    "type": "number",
+                    "name": "hidden",
+                    "type": "boolean",
                     "isArray": false,
-                    "description": "Maximum number of descendants to collect.",
-                    "fromAttribute": true
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
                 },
                 {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the collect itself is hidden; a `hide` written on it hides what it collects."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -108242,6 +108483,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -108561,12 +108805,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -109162,6 +109400,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -110070,6 +110311,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -110317,19 +110561,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -110338,13 +110582,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -114029,7 +114273,7 @@
                         "string"
                     ]
                 },
-                "circumradius": {
+                "circumRadius": {
                     "optional": true,
                     "type": [
                         "string"
@@ -114041,7 +114285,7 @@
                         "string"
                     ]
                 },
-                "inradius": {
+                "inRadius": {
                     "optional": true,
                     "type": [
                         "string"
@@ -114399,13 +114643,13 @@
                     "description": "The area enclosed by the polygon."
                 },
                 {
-                    "name": "circumradius",
+                    "name": "circumRadius",
                     "type": "number",
                     "isArray": false,
                     "description": "The radius of the circumscribed circle."
                 },
                 {
-                    "name": "inradius",
+                    "name": "inRadius",
                     "type": "number",
                     "isArray": false,
                     "description": "The radius of the inscribed circle."
@@ -114426,13 +114670,13 @@
                     "name": "radius",
                     "type": "number",
                     "isArray": false,
-                    "description": "Distance from center to a vertex (alias for circumradius)."
+                    "description": "Distance from center to a vertex (alias for circumRadius)."
                 },
                 {
                     "name": "apothem",
                     "type": "number",
                     "isArray": false,
-                    "description": "Distance from center to the midpoint of a side (alias for inradius)."
+                    "description": "Distance from center to the midpoint of a side (alias for inRadius)."
                 }
             ]
         },
@@ -115021,6 +115265,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -115901,6 +116148,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -116764,6 +117014,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -117579,6 +117832,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -117955,6 +118211,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -118217,6 +118476,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -118676,6 +118941,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -119545,6 +119813,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "sortIndices"
@@ -120477,6 +120748,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -121457,6 +121731,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -122207,6 +122484,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -123014,6 +123294,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -123870,6 +124153,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "sortIndices"
                 },
                 {
@@ -124592,6 +124878,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -126498,6 +126787,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -127174,6 +127466,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -128054,6 +128349,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -128590,11 +128888,6 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Scale used along the y axis (yMax − yMin)."
-                },
-                {
-                    "name": "grid",
-                    "isArray": false,
-                    "description": "Grid line spacing on the graph."
                 }
             ]
         },
@@ -129066,13 +129359,13 @@
                         "false"
                     ]
                 },
-                "xscale": {
+                "xScale": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yscale": {
+                "yScale": {
                     "optional": true,
                     "type": [
                         "string"
@@ -129501,6 +129794,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -129582,14 +129878,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -130099,13 +130395,13 @@
                         "false"
                     ]
                 },
-                "xscale": {
+                "xScale": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yscale": {
+                "yScale": {
                     "optional": true,
                     "type": [
                         "string"
@@ -130315,14 +130611,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -131218,6 +131514,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -132760,6 +133059,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -133149,6 +133454,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -133410,7 +133718,7 @@
                 {
                     "name": "items",
                     "isArray": false,
-                    "description": "The values the slider can take."
+                    "description": "The values the slider can take, as a list, when given by its children. Empty for a slider given by `from`, `to` and `step`."
                 },
                 {
                     "name": "numItems",
@@ -133986,7 +134294,7 @@
                         "string"
                     ]
                 },
-                "halign": {
+                "hAlign": {
                     "optional": true,
                     "type": [
                         "start",
@@ -134287,6 +134595,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -134694,9 +135005,6 @@
                     "ref": "triggerSet"
                 },
                 {
-                    "ref": "functionIterates"
-                },
-                {
                     "ref": "moduleAttributes"
                 },
                 {
@@ -134845,7 +135153,7 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Horizontal alignment of the cell's content (start, center, end, or justify)."
@@ -134970,7 +135278,7 @@
                         "false"
                     ]
                 },
-                "halign": {
+                "hAlign": {
                     "optional": true,
                     "type": [
                         "start",
@@ -134979,7 +135287,7 @@
                         "justify"
                     ]
                 },
-                "valign": {
+                "vAlign": {
                     "optional": true,
                     "type": [
                         "top",
@@ -135135,13 +135443,13 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default horizontal alignment for cells in this row."
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default vertical alignment for cells in this row."
@@ -135447,7 +135755,7 @@
                         "string"
                     ]
                 },
-                "halign": {
+                "hAlign": {
                     "optional": true,
                     "type": [
                         "start",
@@ -135507,7 +135815,7 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Horizontal alignment for cells in this column.",
@@ -135835,7 +136143,7 @@
                         "string"
                     ]
                 },
-                "halign": {
+                "hAlign": {
                     "optional": true,
                     "type": [
                         "start",
@@ -135844,7 +136152,7 @@
                         "justify"
                     ]
                 },
-                "valign": {
+                "vAlign": {
                     "optional": true,
                     "type": [
                         "top",
@@ -135965,14 +136273,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default horizontal alignment for cells.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default vertical alignment for cells.",
@@ -138572,10 +138880,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -139531,10 +139869,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -139625,13 +139993,13 @@
                         "string"
                     ]
                 },
-                "xoffset": {
+                "xOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yoffset": {
+                "yOffset": {
                     "optional": true,
                     "type": [
                         "string"
@@ -139684,14 +140052,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the peg grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the peg grid origin.",
@@ -139816,19 +140184,19 @@
                         "string"
                     ]
                 },
-                "xoffset": {
+                "xOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yoffset": {
+                "yOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "zoffset": {
+                "zOffset": {
                     "optional": true,
                     "type": [
                         "string"
@@ -139881,21 +140249,21 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise offset of the grid origin.",
@@ -140159,37 +140527,37 @@
                         "string"
                     ]
                 },
-                "xoffset": {
+                "xOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yoffset": {
+                "yOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "zoffset": {
+                "zOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "xthreshold": {
+                "xThreshold": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "ythreshold": {
+                "yThreshold": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "zthreshold": {
+                "zThreshold": {
                     "optional": true,
                     "type": [
                         "string"
@@ -140249,42 +140617,42 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "xthreshold",
+                    "name": "xThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal distance within which the position attracts to a grid line.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "ythreshold",
+                    "name": "yThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical distance within which the position attracts to a grid line.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zthreshold",
+                    "name": "zThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise distance within which the position attracts to a grid line.",
@@ -140622,6 +140990,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -141039,6 +141410,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -141831,6 +142205,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -143032,10 +143409,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -144026,27 +144433,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the same value can be selected more than once.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sort",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Whether and how to sort the selected values.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "coprime",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Require the selected numbers to be pairwise coprime (numbers only).",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -144107,10 +144493,10 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
-                    "name": "numToSelect",
+                    "name": "numItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -144269,11 +144655,28 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "withReplacement",
+                    "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the same child can be selected more than once.",
-                    "fromAttribute": true
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
                 },
                 {
                     "name": "doenetML",
@@ -144282,10 +144685,10 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "numToSelect",
+                    "name": "numItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -146442,6 +146845,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "step",
                     "type": "number",
                     "isArray": false,
@@ -146548,12 +146957,6 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Standard deviation of the sampling distribution."
-                },
-                {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ]
         },
@@ -146831,24 +147234,10 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numSamples",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of samples to draw.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "type",
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
                     "fromAttribute": true
                 },
                 {
@@ -146910,6 +147299,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "step",
@@ -147201,13 +147596,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -147266,6 +147654,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "numCategories",
@@ -147490,41 +147884,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "from",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Lower bound (inclusive) of the prime range to select from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "to",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Upper bound (inclusive) of the prime range to select from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "exclude",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "Primes to exclude from the selection.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the same prime can be selected more than once.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sort",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Sort order applied to the selected primes.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -147585,10 +147944,10 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
-                    "name": "numToSelect",
+                    "name": "numItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -147757,41 +148116,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numSamples",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of prime samples to draw.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "from",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Lower bound (inclusive) of the prime range to sample from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "to",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Upper bound (inclusive) of the prime range to sample from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "exclude",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "Primes to exclude from the sample.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -147850,6 +148174,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -151566,6 +151896,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -152236,6 +152569,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -156952,38 +157288,6 @@
                         "string"
                     ]
                 },
-                "numIterates": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "forceSymbolic": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "forceNumeric": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "initialValue": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "function": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -157015,6 +157319,45 @@
                         "true",
                         "false"
                     ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "numIterates": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "forceSymbolic": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceNumeric": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "initialValue": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "function": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
                 }
             },
             "children": [],
@@ -157039,27 +157382,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numIterates",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of iterations to compute.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force symbolic evaluation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force numeric evaluation.",
                     "fromAttribute": true
                 },
                 {
@@ -157121,6 +157443,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "numDimensions",
@@ -161636,6 +161964,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -161969,12 +162300,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -163020,24 +163345,40 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "sortVectorsBy",
-                    "type": "text",
+                    "name": "hidden",
+                    "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true
+                    "description": "Whether this component is hidden from the rendered output."
                 },
                 {
-                    "name": "sortByComponent",
-                    "type": "integer",
+                    "name": "disabled",
+                    "type": "boolean",
                     "isArray": false,
-                    "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
                 },
                 {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -163945,20 +164286,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "sortVectorsBy",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sortByComponent",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -164017,6 +164344,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -164939,10 +165272,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -165307,6 +165670,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -166195,6 +166561,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -167974,19 +168343,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -167995,13 +168364,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -168738,13 +169107,13 @@
                         "string"
                     ]
                 },
-                "xoffset": {
+                "xOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yoffset": {
+                "yOffset": {
                     "optional": true,
                     "type": [
                         "string"
@@ -169044,6 +169413,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -169119,14 +169491,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the lattice origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the lattice origin.",
@@ -169297,13 +169669,13 @@
                         "string"
                     ]
                 },
-                "xoffset": {
+                "xOffset": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "yoffset": {
+                "yOffset": {
                     "optional": true,
                     "type": [
                         "string"
@@ -169610,6 +169982,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -169685,14 +170060,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the lattice origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the lattice origin.",
@@ -171521,6 +171896,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -172034,6 +172412,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -173791,6 +174172,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -175076,6 +175460,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -175617,6 +176004,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -178072,6 +178462,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -178214,12 +178607,6 @@
                     "type": "label",
                     "isArray": false,
                     "description": "The label rendered with this component."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "threshold",
@@ -181326,6 +181713,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -181595,6 +181985,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -182034,6 +182430,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -182150,6 +182549,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -182445,6 +182850,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -182699,6 +183107,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",

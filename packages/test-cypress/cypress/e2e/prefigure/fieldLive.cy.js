@@ -42,7 +42,7 @@ liveDescribe(
 <graph name="g" renderer="prefigure">
   <shortDescription>Slope and vector fields</shortDescription>
   <slopeField>y - x</slopeField>
-  <slopeField dx="2" dy="0.5" xoffset="1" yoffset="0.25">y</slopeField>
+  <slopeField dx="2" dy="0.5" xOffset="1" yOffset="0.25">y</slopeField>
   <vectorField normalize>(y, -x)</vectorField>
 </graph>
 `,

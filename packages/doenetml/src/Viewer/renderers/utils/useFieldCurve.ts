@@ -41,8 +41,8 @@ export interface FieldSVs extends UnlabeledGraphicalSVs {
     fDefinitions: any[];
     dx: number;
     dy: number;
-    xoffset: number;
-    yoffset: number;
+    xOffset: number;
+    yOffset: number;
     markLength: number;
     maxMarks: number;
 }
@@ -116,8 +116,8 @@ export function useFieldCurve({
             grid: {
                 dx: svs.dx,
                 dy: svs.dy,
-                xoffset: svs.xoffset,
-                yoffset: svs.yoffset,
+                xOffset: svs.xOffset,
+                yOffset: svs.yOffset,
             },
             scale: { unitX: b.unitX, unitY: b.unitY },
             markLength: svs.markLength,

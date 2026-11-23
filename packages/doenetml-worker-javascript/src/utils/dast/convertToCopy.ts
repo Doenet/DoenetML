@@ -11,9 +11,16 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { addSource, isCopySource, unwrapSource } from "./convertNormalizedDast";
+import {
+    addSource,
+    isCopySource,
+    primitiveAttributeErrorOfCopy,
+    unwrapSource,
+    variantControlMadeFrom,
+} from "./convertNormalizedDast";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { codedDiagnostic } from "../diagnostics";
+import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 
 /**
  * The settings of the `_copy` an unlinked copy is made into: `_link` false,
@@ -68,25 +75,21 @@ export function warnOfAttributesTheTagDoesNotHave({
     componentInfoObjects: ComponentInfoObjects;
     diagnostics: DiagnosticRecord[];
 }) {
-    const componentType =
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            component.componentType.toLowerCase()
-        ];
+    const componentType = component.componentType;
     const componentClass =
         componentInfoObjects.allComponentClasses[componentType];
     if (!componentClass || componentClass.acceptAnyAttribute) {
         return;
     }
-    const known = new Set(
-        [
-            ...Object.keys(componentClass.createAttributesObject()),
-            ...Object.keys(
-                componentInfoObjects.allComponentClasses._copy.createAttributesObject(),
-            ),
-        ].map((name) => name.toLowerCase()),
-    );
+    // Matched exactly (D51), as everywhere.
+    const known = new Set([
+        ...Object.keys(componentClass.createAttributesObject()),
+        ...Object.keys(
+            componentInfoObjects.allComponentClasses._copy.createAttributesObject(),
+        ),
+    ]);
     for (const attrName of Object.keys(attributes)) {
-        if (known.has(attrName.toLowerCase()) || attrName.includes(":")) {
+        if (known.has(attrName) || attrName.includes(":")) {
             continue;
         }
         const attribute = attributes[attrName];
@@ -94,7 +97,11 @@ export function warnOfAttributesTheTagDoesNotHave({
             codedDiagnostic({
                 type: "warning",
                 code: "doenet-w0187",
-                args: { attribute: attrName, componentType },
+                args: {
+                    attribute: attrName,
+                    componentType,
+                    ...suggestionArgs(nameDifferingOnlyInCase(attrName, known)),
+                },
                 position: attribute.position ?? component.position,
                 sourceDoc: attribute.sourceDoc ?? component.sourceDoc,
             }),
@@ -163,12 +170,36 @@ export function convertRefsToCopies({
 
         newComponent.attributes = newAttributes;
 
-        if (!newComponent.extending) {
+        if (
+            !newComponent.extending ||
+            // left as written, to be an error (`doenet-e0088`)
+            variantControlMadeFrom(newComponent)
+        ) {
             newComponents.push(newComponent);
             continue;
         }
 
         const extending = newComponent.extending;
+
+        // A tag written with `extend`, `copy` or `copyWithState` is matched
+        // exactly, as the tag written alone is (D51): one that is not a
+        // component type as written is the same error (`doenet-e0002`), so
+        // that `<Award copy="$aw"/>` in an `<answer>` is not read as an award
+        // by its sugar, nor `<MATH extend="$m"/>` as a math. What it is made
+        // from is dropped, so that it is exactly the tag written alone. (A
+        // bare reference, `$a`, is a `Ref` source with its referent's tag,
+        // which is left to copy the referent, an error or not.)
+        if (
+            ("ExtendAttribute" in extending || isCopySource(extending)) &&
+            !Object.hasOwn(
+                componentInfoObjects.allComponentClasses,
+                newComponent.componentType,
+            )
+        ) {
+            delete newComponent.extending;
+            newComponents.push(newComponent);
+            continue;
+        }
 
         const refResolution = unwrapSource(extending);
 
@@ -209,6 +240,27 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 diagnostics,
             });
+            if (
+                primitiveAttributeErrorOfCopy({
+                    componentType: newComponent.componentType,
+                    attributes: outerAttributes,
+                    componentInfoObjects,
+                })
+            ) {
+                // An attribute the tag reads as a primitive (text, a
+                // number, a boolean) that it cannot read, as one written
+                // with a reference (`<sort extend="$s" sortByProp="$t"/>`,
+                // `doenet-e0090`, at the attribute) or with no value
+                // (`doenet-e0072`), is the error it is on the tag written
+                // alone: left as written, without what it is made from, it
+                // becomes an `_error` there. Made into a copy,
+                // the error was thrown when the copy made its replacement,
+                // and stopped the whole document (DIAG-5).
+                newComponent.attributes = outerAttributes;
+                delete newComponent.extending;
+                newComponents.push(newComponent);
+                continue;
+            }
             if (
                 newComponent.componentType.endsWith("List") &&
                 !["asList", "convertSetToList"].includes(
@@ -287,16 +339,11 @@ export function convertRefsToCopies({
                     }
                 }
 
-                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component,
-                // in whatever case the author wrote it
-                for (const attrName of Object.keys(
-                    wrappingComponent.attributes,
-                )) {
-                    if (attrName.toLowerCase() === "removeemptyarrayentries") {
-                        newComponent.attributes[attrName] =
-                            wrappingComponent.attributes[attrName];
-                        delete wrappingComponent.attributes[attrName];
-                    }
+                // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component
+                if (wrappingComponent.attributes.removeEmptyArrayEntries) {
+                    newComponent.attributes.removeEmptyArrayEntries =
+                        wrappingComponent.attributes.removeEmptyArrayEntries;
+                    delete wrappingComponent.attributes.removeEmptyArrayEntries;
                 }
 
                 delete wrappingComponent.extending;

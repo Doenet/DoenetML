@@ -11,7 +11,7 @@ import { tabularColumnEdgeProperties } from "./utils/tabularCellPadding";
 interface ColumnSpec {
     /** A `componentSize`: `{ size, isAbsolute }`, or `null` if unset. */
     width: any;
-    halign: string | null;
+    hAlign: string | null;
     topBorder: string | null;
     endBorder: string | null;
 }
@@ -100,7 +100,7 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
     // rendered children, because HTML wants them in a `<colgroup>` ahead of
     // the rows and the worker has already padded them out to one entry per
     // column. Only `width` and `topBorder` are drawn here. A column's
-    // `halign` cannot be: `text-align` is not one of the few properties a
+    // `hAlign` cannot be: `text-align` is not one of the few properties a
     // `<col>` passes on to its cells. Its `endBorder` could be — a border on
     // a `<col>` is drawn, and in the collapsing border model it even beats a
     // cell that asks for no border at all — but that is exactly why it is

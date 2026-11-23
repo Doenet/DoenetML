@@ -170,7 +170,7 @@ function sampleGrid(expr, varString, xs) {
 
 export function find_local_global_minima({
     domain,
-    xscale,
+    xScale,
     isInterpolatedFunction,
     xs,
     coeffs,
@@ -710,11 +710,11 @@ export function find_local_global_minima({
         let f = (x) => numericalf(x, true);
 
         // if domain isn't specified or is infinite,
-        // will truncate to an interval of length 200*xscale
+        // will truncate to an interval of length 200*xScale
         let { minx, maxx, openMin, openMax } = find_effective_domain({
             domain: domain,
             truncateToFiniteDomain: true,
-            xscale: xscale,
+            xscale: xScale,
         });
 
         let dx = (maxx - minx) / numIntervals;
@@ -975,7 +975,7 @@ export function find_local_global_minima({
 
                             let recursionResult = find_local_global_minima({
                                 domain: [subDomain1],
-                                xscale,
+                                xScale,
                                 isInterpolatedFunction,
                                 xs,
                                 coeffs,
@@ -1119,7 +1119,7 @@ export function find_local_global_minima({
 
 export function find_local_global_maxima({
     domain,
-    xscale,
+    xScale,
     isInterpolatedFunction,
     xs,
     coeffs,
@@ -1177,7 +1177,7 @@ export function find_local_global_maxima({
     let { localMinima, globalMinimum, globalInfimum } =
         find_local_global_minima({
             domain,
-            xscale,
+            xScale,
             isInterpolatedFunction,
             xs,
             coeffs: coeffsFlip,

@@ -31,10 +31,27 @@
  * reader writes to (`buildReaderWritableIndex`: what an input's
  * `bindValueTo` names, what a reader drags, an action's target), and
  * anything that reads one of these through a reference, a child or an
- * attribute. DIAG-2's state a reader sets
- * by an action (a hint, a solution or a section opened, a video played) is
- * not checked: a reference to such a component may read what no action
- * changes (`$sec.sectionNumber`), and the pass doesn't tell properties apart.
+ * attribute. DIAG-2's state a reader sets by an action (a hint, a solution
+ * or a section opened, a video played) is not checked.
+ *
+ * A reference to a property reads the component it names whole, as a
+ * reference to the component does, except for the properties a reader
+ * can't change whatever the component holds ({@link reachProperty}):
+ * - a section's `sectionNumber` (and `ownNumber`) is decided by where the
+ *   section is, not by what it holds: by its `includeParentNumber`, by what before it in
+ *   the sequence it is numbered in can change how many sections there are
+ *   (a `<conditionalContent>` or a repeat holding a section), and, when it
+ *   includes its parent's number, by the same of the section holding it;
+ * - a graph's properties are decided by its attributes and those of what
+ *   it extends, not by what is in it, and its axes (`xMin`, `xMax`,
+ *   `yMin`, `yMax`, `xScale`, `yScale`, and an `aspectRatio` from
+ *   `identicalAxisScales`) by a reader who pans or zooms it or a graph
+ *   linked to it by an extend, unless they are fixed on each (`fixAxes`,
+ *   or a `fixed` written on the graph or one holding it, or, when it
+ *   writes neither, on what it extends);
+ * - a component a reader drags in a graph only to place it (a `<number>`,
+ *   a `<math>`, `buildReaderWritableIndex`'s `placed`) has its `anchor`
+ *   changed by the drag, and nothing else.
  *
  * It errs toward allowing, since a false error is worse here than a missed
  * one: a component's label and the attributes that only display or style it
@@ -53,7 +70,14 @@
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
-import { buildReaderWritableIndex } from "../readerWritable";
+import {
+    buildReaderWritableIndex,
+    isPlacementLocation,
+    isUnlinkedCopy,
+    namedUnder,
+    placementAttribute,
+    writtenAsTrue,
+} from "../readerWritable";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
@@ -132,31 +156,29 @@ const OPTION_PARAMETERS = ["selectWeight"];
  * style it, or decide whether a reader may change it (which the writable
  * index reads), not its value.
  */
-const ATTRIBUTES_NOT_READ = new Set(
-    [
-        "name",
-        "hide",
-        "disabled",
-        "fixed",
-        "fixLocation",
-        "draggable",
-        "styleNumber",
-        "labelIsName",
-        "labelPosition",
-        "label",
-        "shortDescription",
-        "description",
-        "displayDigits",
-        "displayDecimals",
-        "displaySmallAsZero",
-        "padZeros",
-        "renderMode",
-        "layer",
-        "applyStyleToLabel",
-        "isResponse",
-        "isPotentialResponse",
-    ].map((name) => name.toLowerCase()),
-);
+const ATTRIBUTES_NOT_READ = new Set([
+    "name",
+    "hide",
+    "disabled",
+    "fixed",
+    "fixLocation",
+    "draggable",
+    "styleNumber",
+    "labelIsName",
+    "labelPosition",
+    "label",
+    "shortDescription",
+    "description",
+    "displayDigits",
+    "displayDecimals",
+    "displaySmallAsZero",
+    "padZeros",
+    "renderMode",
+    "layer",
+    "applyStyleToLabel",
+    "isResponse",
+    "isPotentialResponse",
+]);
 
 /**
  * The composites that create variants without choosing anything
@@ -194,6 +216,32 @@ const READER_ENTERED_TYPES = new Set([
     "codeEditor",
     "orbitalDiagramInput",
 ]);
+
+/**
+ * The properties of a `<graph>` a reader changes by panning or zooming it,
+ * unless its axes are fixed, written in lowercase.
+ */
+const GRAPH_AXIS_PROPERTIES = new Set([
+    "xMin",
+    "xMax",
+    "yMin",
+    "yMax",
+    "xScale",
+    "yScale",
+]);
+
+/**
+ * The components the sequences that number sections pass through
+ * (`sequenceNumbering.js`): a section is numbered among the sections
+ * beside it, through these.
+ */
+const SECTION_PASS_THROUGH_TYPES = [
+    "div",
+    "cascade",
+    "page",
+    "externalContent",
+    "standinForFutureLayoutTag",
+];
 
 /** The attributes of a repeat that decide only how many iterations it has. */
 const COUNT_ONLY_ATTRIBUTES = new Set(["to", "length"]);
@@ -287,7 +335,14 @@ export function checkChoiceParametersAtLoad({
         return [];
     }
 
-    const writable = buildReaderWritableIndex(document, componentInfoObjects);
+    // what a reader drags in a graph only to place it, which changes its
+    // `anchor` alone
+    const placed = new Set<number>();
+    const writable = buildReaderWritableIndex(
+        document,
+        componentInfoObjects,
+        placed,
+    );
 
     // what each component reaches, once found; `null` for nothing, and
     // while it is being found, for a cycle of references
@@ -390,7 +445,7 @@ export function checkChoiceParametersAtLoad({
             )) {
                 if (
                     name.startsWith("_") ||
-                    ATTRIBUTES_NOT_READ.has(name.toLowerCase()) ||
+                    ATTRIBUTES_NOT_READ.has(name) ||
                     (iteration.repeat.componentType !== "repeat" &&
                         COUNT_ONLY_ATTRIBUTES.has(name))
                 ) {
@@ -420,7 +475,28 @@ export function checkChoiceParametersAtLoad({
             }
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
-                const found = named && reach(named, ref, true);
+                const placedEntry =
+                    named && readsEntryAnchor(named, ref)
+                        ? placedEntryOf(named, new Set())
+                        : undefined;
+                if (placedEntry !== undefined) {
+                    // where a reader drags the entry (`$ml[1].anchor`): the
+                    // component the entry is placed as
+                    return { reference: ref, changeable: placedEntry };
+                }
+                const placedInComposite =
+                    named && placedAnchorInComposite(named, ref);
+                if (placedInComposite !== undefined) {
+                    // where a reader drags a component of a composite's
+                    // DoenetML (`$r[1].n.anchor`)
+                    return { reference: ref, changeable: placedInComposite };
+                }
+                const property = named && propertyNamedBy(named, ref);
+                const found =
+                    named &&
+                    (property
+                        ? reachProperty(named, property, ref)
+                        : reach(named, ref, true));
                 if (found) {
                     return found;
                 }
@@ -440,10 +516,7 @@ export function checkChoiceParametersAtLoad({
             }
         }
         for (const [name, attribute] of Object.entries(node.attributes ?? {})) {
-            if (
-                name.startsWith("_") ||
-                ATTRIBUTES_NOT_READ.has(name.toLowerCase())
-            ) {
+            if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
                 continue;
             }
             const found = reachAttribute(attribute, undefined, viaReference);
@@ -452,6 +525,536 @@ export function checkChoiceParametersAtLoad({
             }
         }
         return null;
+    }
+
+    /**
+     * The property of `named` that the reference `ref` to it reads
+     * (`sectionNumber` of `$sec.sectionNumber`), if what follows the name
+     * is one, and not a name inside it.
+     */
+    function propertyNamedBy(named: any, ref: any): string | undefined {
+        const name = ref.unresolvedPath?.[0]?.name;
+        if (typeof name !== "string") {
+            return undefined;
+        }
+        const info = (componentInfoObjects as any).publicStateVariableInfo?.[
+            typeMadeBy(named)
+        ];
+        if (!info) {
+            return undefined;
+        }
+        // matched exactly, as a property is (NAME-0, D51)
+        return [
+            ...Object.keys(info.stateVariableDescriptions ?? {}),
+            ...Object.keys(info.aliases ?? {}),
+        ].includes(name)
+            ? name
+            : undefined;
+    }
+
+    /**
+     * What a reader can change that the property `property` of `node`,
+     * named by the reference `reference`, reaches. A property a reader
+     * can't change whatever the component holds reads only what decides
+     * it; any other reads the component whole, as a reference to it does.
+     */
+    function reachProperty(
+        node: any,
+        property: string,
+        reference: any,
+    ): Reached | null {
+        const type = typeMadeBy(node);
+        if (
+            isPlacementLocation(property) &&
+            anchorIsPlaced(node, property, new Set())
+        ) {
+            // where a reader drags it
+            return { reference, changeable: node };
+        }
+        if (
+            isA(type, "_sectioningComponent") &&
+            (property === "sectionNumber" || property === "ownNumber")
+        ) {
+            // decided by where the section is, not by what it holds
+            return reachSectionNumber(node, reference, new Set());
+        }
+        if (isA(type, "graph")) {
+            if (
+                (GRAPH_AXIS_PROPERTIES.has(property) ||
+                    (property === "aspectRatio" &&
+                        aspectRatioFromAxisScales(node))) &&
+                !axesFixed(node)
+            ) {
+                // a reader pans or zooms it
+                return { reference, changeable: node };
+            }
+            // decided by its attributes, not by what is in it
+            return reachOwnAttributes(node, reference, new Set());
+        }
+        return reach(node, reference, true);
+    }
+
+    /**
+     * What a reader can change that the attributes written on `node`
+     * reach, and those of what it extends, other than those that only
+     * display or style it.
+     */
+    function reachOwnAttributes(
+        node: any,
+        reference: any,
+        seen: Set<any>,
+    ): Reached | null {
+        if (seen.has(node)) {
+            return null;
+        }
+        seen.add(node);
+        if (
+            writable.has(node.componentIdx) ||
+            (createdIdxOf(node) !== undefined &&
+                writable.has(createdIdxOf(node)!))
+        ) {
+            return { reference, changeable: node };
+        }
+        for (const [name, attribute] of Object.entries(node.attributes ?? {})) {
+            if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
+                continue;
+            }
+            const found = reachAttribute(attribute, reference, true);
+            if (found) {
+                return found;
+            }
+        }
+        // an extend's properties are its source's too
+        for (const ref of referencesOf(node)) {
+            const source =
+                typeof ref.nodeIdx === "number"
+                    ? nodeByIdx.get(ref.nodeIdx)
+                    : undefined;
+            const found =
+                source && (ref.unresolvedPath ?? []).length === 0
+                    ? reachOwnAttributes(source, reference, seen)
+                    : reach(node, reference, true);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * What a reader can change that the `sectionNumber` of the section
+     * `node`, named by `reference`, reaches: its `includeParentNumber`,
+     * what before it among the sections it is numbered with can change
+     * how many there are (a `<conditionalContent>` or a repeat holding a
+     * section, `sequenceNumbering.js`), and, when it includes its parent's
+     * number, the same of the section holding it.
+     */
+    function reachSectionNumber(
+        node: any,
+        reference: any,
+        seen: Set<any>,
+    ): Reached | null {
+        if (seen.has(node)) {
+            return null;
+        }
+        seen.add(node);
+        if (
+            writable.has(node.componentIdx) ||
+            (createdIdxOf(node) !== undefined &&
+                writable.has(createdIdxOf(node)!))
+        ) {
+            return { reference, changeable: node };
+        }
+        if (Object.keys(node.extending ?? {}).length > 0) {
+            // an extend's properties are its source's too
+            return reach(node, reference, true);
+        }
+        const includeParentNumber = attributeNamed(node, "includeParentNumber");
+        if (includeParentNumber) {
+            const found = reachAttribute(
+                includeParentNumber.attribute,
+                reference,
+                true,
+            );
+            if (found) {
+                return found;
+            }
+        }
+        // what comes before it in the sequence it is numbered in, which
+        // runs through the containers that show no number of their own
+        // and through composites
+        let current = node;
+        for (
+            let parent = parentOf.get(current);
+            parent;
+            current = parent, parent = parentOf.get(current)
+        ) {
+            for (const sibling of parent.children ?? []) {
+                if (sibling === current) {
+                    break;
+                }
+                const found = reachSectionCount(sibling, reference);
+                if (found) {
+                    return found;
+                }
+            }
+            const parentType = typeMadeBy(parent);
+            if (
+                !isSectionPassThrough(parentType) &&
+                !isA(parentType, "_composite") &&
+                parentType !== "case" &&
+                parentType !== "else"
+            ) {
+                break;
+            }
+        }
+        if (includeParentNumber) {
+            // the number of the section holding it, past those that show
+            // no number of their own
+            for (
+                let holder = parentOf.get(node);
+                holder;
+                holder = parentOf.get(holder)
+            ) {
+                const holderType = typeMadeBy(holder);
+                if (
+                    isA(holderType, "_sectioningComponent") &&
+                    !isSectionPassThrough(holderType)
+                ) {
+                    return reachSectionNumber(holder, reference, seen);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a sequence of section numbers passes through a component of
+     * type `type` (`DIVISION_SEQUENCE` and `LIST_ITEM_SEQUENCE` in
+     * `sequenceNumbering.js`).
+     */
+    function isSectionPassThrough(type: string) {
+        return SECTION_PASS_THROUGH_TYPES.some((base) => isA(type, base));
+    }
+
+    /**
+     * What a reader can change that decides how many sections `node`,
+     * written before a section in the sequence it is numbered in, holds:
+     * the attributes of a composite holding a section (a
+     * `<conditionalContent>`'s `condition`, a repeat's `for`), and of its
+     * `<case>`s.
+     */
+    function reachSectionCount(node: any, reference: any): Reached | null {
+        if (typeof node !== "object" || node === null) {
+            return null;
+        }
+        const type = typeMadeBy(node);
+        const isComposite = isA(type, "_composite");
+        if (
+            !isComposite &&
+            !isSectionPassThrough(type) &&
+            type !== "case" &&
+            type !== "else"
+        ) {
+            // a section, which is one, or what bounds a sequence of its own
+            return null;
+        }
+        if (!holdsSection(node)) {
+            return null;
+        }
+        if (isComposite || type === "case") {
+            for (const [name, attribute] of Object.entries(
+                node.attributes ?? {},
+            )) {
+                if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
+                    continue;
+                }
+                const found = reachAttribute(attribute, reference, true);
+                if (found) {
+                    return found;
+                }
+            }
+        }
+        for (const child of node.children ?? []) {
+            const found = reachSectionCount(child, reference);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /** Whether a section is written under `node`. */
+    function holdsSection(node: any): boolean {
+        return componentsUnder(node).some(
+            (under) =>
+                isA(typeMadeBy(under), "_sectioningComponent") ||
+                holdsSection(under),
+        );
+    }
+
+    /**
+     * Whether the `aspectRatio` of the graph `node` is its axes' scales,
+     * which a reader changes by panning or zooming: `identicalAxisScales`
+     * written on it, and no `aspectRatio`.
+     */
+    function aspectRatioFromAxisScales(node: any): boolean {
+        return (
+            attributeNamed(node, "identicalAxisScales") !== undefined &&
+            attributeNamed(node, "aspectRatio") === undefined
+        );
+    }
+
+    /**
+     * Whether a reader can't pan or zoom the graph `node`, nor any graph
+     * sharing its axes: what it extends, and what extends it, unless an
+     * unlinked copy.
+     */
+    function axesFixed(node: any): boolean {
+        return graphsSharingAxes(node).every((graph) => axesFixedOn(graph));
+    }
+
+    /**
+     * Whether a reader can't pan or zoom the graph `node` itself:
+     * `fixAxes` written as true on it, or `fixed` written as true on it
+     * or, when it doesn't write its own, on the nearest component holding
+     * it that does; when it writes neither, as what it extends.
+     */
+    function axesFixedOn(node: any, seen = new Set<any>()): boolean {
+        if (seen.has(node)) {
+            return false;
+        }
+        seen.add(node);
+        const fixAxes = attributeNamed(node, "fixAxes");
+        if (writtenAsTrue(fixAxes?.attribute)) {
+            return true;
+        }
+        let fixed: { attribute: any } | undefined;
+        for (
+            let holder = node;
+            holder && !fixed;
+            holder = parentOf.get(holder)
+        ) {
+            fixed = attributeNamed(holder, "fixed");
+        }
+        if (fixed) {
+            return writtenAsTrue(fixed.attribute);
+        }
+        if (fixAxes) {
+            return false;
+        }
+        const sources = linkedSourcesOf(node);
+        return (
+            sources.length > 0 &&
+            sources.every((source) => axesFixedOn(source, seen))
+        );
+    }
+
+    /** The graphs whose axes are those of the graph `node`, it among them. */
+    function graphsSharingAxes(node: any): any[] {
+        const found = new Set<any>();
+        const toVisit = [node];
+        while (toVisit.length > 0) {
+            const graph = toVisit.pop();
+            if (found.has(graph)) {
+                continue;
+            }
+            found.add(graph);
+            toVisit.push(...linkedSourcesOf(graph));
+            toVisit.push(...(linkedExtendsOf().get(graph) ?? []));
+        }
+        return [...found];
+    }
+
+    /** What the component `node` extends, when linked to it, by name. */
+    function linkedSourcesOf(node: any): any[] {
+        if (isUnlinkedCopy(node)) {
+            return [];
+        }
+        const sources: any[] = [];
+        for (const ref of referencesOf(node)) {
+            const source =
+                typeof ref.nodeIdx === "number" &&
+                (ref.unresolvedPath ?? []).length === 0
+                    ? nodeByIdx.get(ref.nodeIdx)
+                    : undefined;
+            if (source && source !== node) {
+                sources.push(source);
+            }
+        }
+        return sources;
+    }
+
+    // what extends each component, linked to it, once found
+    let linkedExtends: Map<any, any[]> | undefined;
+    function linkedExtendsOf(): Map<any, any[]> {
+        if (!linkedExtends) {
+            linkedExtends = new Map();
+            for (const node of nodes) {
+                for (const source of linkedSourcesOf(node)) {
+                    if (!linkedExtends.has(source)) {
+                        linkedExtends.set(source, []);
+                    }
+                    linkedExtends.get(source)!.push(node);
+                }
+            }
+        }
+        return linkedExtends;
+    }
+
+    /** Whether a reader drags `node` in a graph only to place it. */
+    function isPlaced(node: any): boolean {
+        const created = createdIdxOf(node);
+        return (
+            placed.has(node.componentIdx) ||
+            (created !== undefined && placed.has(created))
+        );
+    }
+
+    /**
+     * Whether a reader drags where `node` is placed (its `anchor`, the
+     * placement location `location`): it is placed in a graph, or it
+     * extends, linked, one whose `anchor` is (`<number extend="$n"/>` of a
+     * `<number>` in a graph) and writes no `anchor` of its own, as such an
+     * extend shares its source's `anchor`.
+     */
+    function anchorIsPlaced(
+        node: any,
+        location: string,
+        seen: Set<any>,
+    ): boolean {
+        return placedAnchorOf(node, location, seen) !== undefined;
+    }
+
+    /**
+     * The component a reader drags whose `anchor` is where `node` is placed
+     * (see {@link anchorIsPlaced}): `node` itself, or what it extends, in
+     * turn; `undefined` when there is none.
+     */
+    function placedAnchorOf(node: any, location: string, seen: Set<any>): any {
+        if (seen.has(node)) {
+            return undefined;
+        }
+        seen.add(node);
+        if (isPlaced(node)) {
+            return node;
+        }
+        if (placementAttribute(node, location)) {
+            return undefined;
+        }
+        for (const source of linkedSourcesOf(node)) {
+            const found = placedAnchorOf(source, location, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Whether the reference `ref` to `named` reads the `anchor` of an entry
+     * of it: its path is indices, then a placement location
+     * (`$ml[1].anchor`), or, for a list with no such property of its own,
+     * the location alone, of every entry (`$ml.anchor`).
+     */
+    function readsEntryAnchor(named: any, ref: any): boolean {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        if (
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0
+        ) {
+            return false;
+        }
+        if (path.length === 1) {
+            // the entries' `anchor`; an `entryAnchor` is the list's own
+            return (
+                last.name === "anchor" &&
+                (componentInfoObjects.allComponentClasses as any)[
+                    typeMadeBy(named)
+                ]?.listEntryComponentType !== undefined &&
+                propertyNamedBy(named, ref) === undefined
+            );
+        }
+        return path
+            .slice(0, -1)
+            .every((part) => !part?.name && part?.index?.length > 0);
+    }
+
+    /**
+     * The component a reader drags whose `anchor` the reference `ref` reads
+     * through what the composite `named` makes (`$r[1].n.anchor`, `$g.n.anchor`
+     * of a placed `n`), if any: the component of its DoenetML that the
+     * names of the path find, each once, as `sourceOf` in
+     * `readerWritable.ts` finds what an extend copies.
+     */
+    function placedAnchorInComposite(named: any, ref: any): any {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        if (
+            path.length < 2 ||
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0 ||
+            !path.slice(0, -1).some((part) => part?.name)
+        ) {
+            return undefined;
+        }
+        let node = named;
+        for (const part of path.slice(0, -1)) {
+            if (part?.name) {
+                const found = namedUnder(node, part.name);
+                if (found.length !== 1) {
+                    return undefined;
+                }
+                node = found[0];
+            }
+            if (
+                part?.index?.length > 0 &&
+                !componentInfoObjects.isCompositeComponent({
+                    componentType: typeMadeBy(node),
+                    includeNonStandard: true,
+                })
+            ) {
+                return undefined;
+            }
+        }
+        return placedAnchorOf(node, last.name, new Set());
+    }
+
+    /**
+     * The component whose `anchor` a reader drags where an entry of the list
+     * `list` is placed, if any: the list, when it is placed in a graph, or
+     * a component an entry comes from whose `anchor` is (`$a` in
+     * `<mathList>`, of a `<math>` in a graph, `graphSourceOf` in
+     * `AuthoredValueList.js`), or one found so for a list it extends,
+     * linked. Any entry counts, erring toward changeable.
+     */
+    function placedEntryOf(list: any, seen: Set<any>): any {
+        if (seen.has(list)) {
+            return undefined;
+        }
+        seen.add(list);
+        const placedList = placedAnchorOf(list, "entryAnchor", new Set());
+        if (placedList !== undefined) {
+            return placedList;
+        }
+        for (const child of [
+            ...(list.children ?? []),
+            ...linkedSourcesOf(list),
+        ]) {
+            if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            const found =
+                placedAnchorOf(child, "anchor", new Set()) ??
+                placedEntryOf(child, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
     }
 
     /** What a reader can change that the attribute `attribute` reaches. */
@@ -580,10 +1183,29 @@ export function checkChoiceParametersAtLoad({
         diagnostics.push(diagnostic);
     }
 
-    // A choice that extends or copies a choice in error
-    // (`<selectFromSequence extend="$s"/>`) takes its parameters from it, so
-    // it is the same error, reported once: it becomes an `_error` too, as
-    // there would be nothing left for it to take them from.
+    makeChoicesErrors({ errorByChoice, nodes, nodeByIdx });
+    return diagnostics;
+}
+
+/**
+ * Make each choice in `errorByChoice` an `_error` in place of the choice,
+ * reported where its diagnostic is, so it chooses nothing, and the error is
+ * the same one, kept once, when the `_error` is made.
+ *
+ * A choice that extends or copies a choice in error
+ * (`<selectFromSequence extend="$s"/>`) takes its parameters from it, so it
+ * is the same error, reported once: it becomes an `_error` too, as there
+ * would be nothing left for it to take them from.
+ */
+export function makeChoicesErrors({
+    errorByChoice,
+    nodes,
+    nodeByIdx,
+}: {
+    errorByChoice: Map<any, ReturnType<typeof codedDiagnostic>>;
+    nodes: any[];
+    nodeByIdx: Map<number, any>;
+}) {
     let added = errorByChoice.size > 0;
     while (added) {
         added = false;
@@ -621,23 +1243,18 @@ export function checkChoiceParametersAtLoad({
         delete choice.extending;
         delete choice.variants;
     }
-    return diagnostics;
 }
 
 /**
- * The attribute of `component` named `name`, matched without regard to case,
- * and the name it has.
+ * The attribute of `component` named `name`, matched exactly (NAME-0, D51):
+ * one written in another case was given the component's spelling before the
+ * document loads (`doenet-w0197`). With the name it has, which is `name`.
  */
-function attributeNamed(component: any, name: string) {
-    const lower = name.toLowerCase();
-    for (const [attributeName, attribute] of Object.entries(
-        component.attributes ?? {},
-    )) {
-        if (attributeName.toLowerCase() === lower) {
-            return { name: attributeName, attribute: attribute as any };
-        }
-    }
-    return undefined;
+export function attributeNamed(component: any, name: string) {
+    const attributes = component.attributes ?? {};
+    return Object.hasOwn(attributes, name)
+        ? { name, attribute: attributes[name] as any }
+        : undefined;
 }
 
 /** Whether the attribute `attribute` holds a component or a reference. */
@@ -671,7 +1288,7 @@ function componentsOfAttribute(attribute: any): any[] {
  * The serialized components directly under `node`: its children and the
  * components of its attributes.
  */
-function componentsUnder(node: any): any[] {
+export function componentsUnder(node: any): any[] {
     const under: any[] = [];
     for (const child of node.children ?? []) {
         if (typeof child === "object" && child !== null) {
@@ -705,13 +1322,13 @@ function referencesOf(node: any): any[] {
  * The index of the component a `_copy` is made with, which a reference to
  * it by name names, if it has one.
  */
-function createdIdxOf(node: any): number | undefined {
+export function createdIdxOf(node: any): number | undefined {
     const value = node.attributes?._createComponentIdx?.primitive?.value;
     return typeof value === "number" ? value : undefined;
 }
 
 /** The type of the component `node` makes: what a `_copy` creates. */
-function typeMadeBy(node: any): string {
+export function typeMadeBy(node: any): string {
     return (
         node.attributes?._createComponentOfType?.primitive?.value ??
         node.componentType

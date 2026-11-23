@@ -13,12 +13,20 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                // The `HeadlessCore` implementation for
+                // `@doenet/doenetml-headless`, kept out of the main entry so
+                // none of it reaches the browser worker bundle.
+                headless: "./src/headless/index.ts",
             },
             formats: ["es"],
         },
         rollupOptions: {
             // `math-expressions` is also pulled in by `doenetml-worker`; we don't need two copies.
-            external: ["math-expressions"],
+            // `lib-doenetml-worker` (the Rust resolver's wasm-bindgen glue) is
+            // imported only by the headless entry; the package that ships it
+            // bundles the glue beside the WASM it loads, so it is left to that
+            // build rather than compiled into this one.
+            external: ["math-expressions", "lib-doenetml-worker"],
         },
     },
     test: {

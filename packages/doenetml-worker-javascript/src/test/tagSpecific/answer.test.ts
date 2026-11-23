@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import { cleanLatex } from "../utils/math";
 import {
     focusChanged,
@@ -2419,8 +2420,8 @@ describe("Answer tag tests @group4", async () => {
 Enter values that sum to <m>3x</m>:
 <mathInput name="mi1" /> <mathInput name="mi2"/>
 <answer name="answer1">
-    <award extend="$aw1" />
-    <award extend="$aw2" />
+    <award copy="$aw1" />
+    <award copy="$aw2" />
 </answer>
   `;
 
@@ -3947,24 +3948,29 @@ Enter any letter:
         });
     });
 
-    // An award made by `extend` or `copy` records the references its
+    // An award made by `copy`, or reached through an `extend` of the answer
+    // or section holding it, records the references its
     // `referencesAreResponses` names as the same award written out in full
     // does, from load and after an update, whatever kind of reference each
     // is in the source award: a value reference, a copy made at build time
     // or at run time, a reference to a whole component read through its
     // adapter (`$P` in a comparison), or a number read inside a `<math>`.
-    describe("referencesAreResponses of an award made by extend or copy", () => {
+    // An award can't itself be extended (D42).
+    describe("referencesAreResponses of an award made by copy or reached through an extend", () => {
         async function recordedResponses({
             doenetML,
             update,
+            answer = "a2",
         }: {
             doenetML: string;
             update?: { name: string; latex: string };
+            answer?: string;
         }) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
             });
-            const a2 = await resolvePathToNodeIdx("a2");
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            const a2 = await resolvePathToNodeIdx(answer);
 
             async function submitAndRead() {
                 await submitAnswer({ componentIdx: a2, core });
@@ -3977,7 +3983,8 @@ Enter any letter:
                     submitted: stateValues.submittedResponses.map((x: any) =>
                         x instanceof me.class ? x.tree : x,
                     ),
-                    types: stateValues.submittedResponsesComponentType,
+                    // decided at load (TYPE-2)
+                    types: await responseTypes(core, a2),
                 };
             }
 
@@ -4001,7 +4008,8 @@ Enter any letter:
         }
 
         /**
-         * Check that `<award extend="$aw">` and `<award copy="$aw">` record
+         * Check that `<award copy="$aw">`, and an award reached through an
+         * `extend` of its `<answer>` or of a `<section>` holding it, record
          * what `<award><when>{when}</when></award>`, written out in an answer
          * of its own, records (`expected`), with `refs` as their
          * `referencesAreResponses`.
@@ -4031,13 +4039,25 @@ Enter any letter:
                 update,
             });
             expect(writtenOut).eqls(expected);
-            for (const how of ["extend", "copy"]) {
-                const made = await recordedResponses({
-                    doenetML: `${setup}${a1}<answer name="a2"><award ${how}="$aw" referencesAreResponses="${refs}" /></answer>`,
-                    update,
-                });
-                expect(made, how).eqls(expected);
-            }
+            const copied = await recordedResponses({
+                doenetML: `${setup}${a1}<answer name="a2"><award copy="$aw" referencesAreResponses="${refs}" /></answer>`,
+                update,
+            });
+            expect(copied, "copy").eqls(expected);
+
+            // The award in an extend of what holds it is a shadow of the
+            // award written out.
+            const answerExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><answer name="a2s"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></setup><answer name="a2" extend="$a2s" />`,
+                update,
+            });
+            expect(answerExtended, "answer extend").eqls(expected);
+            const sectionExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><section name="sec"><answer name="a2"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></section></setup><section name="sec2" extend="$sec" />`,
+                update,
+                answer: "sec2.a2",
+            });
+            expect(sectionExtended, "section extend").eqls(expected);
         }
 
         const definitions = `
@@ -4131,6 +4151,9 @@ Enter any letter:
         });
 
         it("copies made at run time, before and after one is remade", async () => {
+            // What each reference names is known only as the document runs,
+            // so the response's type isn't decided (TYPE-3): a reference to
+            // the answer's responses would be an error at load.
             const runTimeDefinitions = `
             <mathInput name="i" prefill="1" />
             <repeatForSequence name="r" length="3" valueName="v"><point name="q">($v,2)</point></repeatForSequence>
@@ -4145,7 +4168,7 @@ Enter any letter:
                             credit: 1,
                             numResponses: 1,
                             submitted: [1],
-                            types: ["math"],
+                            types: undefined,
                         },
                     },
                 });
@@ -4160,16 +4183,68 @@ Enter any letter:
                         credit: 1,
                         numResponses: 1,
                         submitted: [1],
-                        types: ["math"],
+                        types: undefined,
                     },
                     afterUpdate: {
                         credit: 0,
                         numResponses: 1,
                         submitted: [2],
-                        types: ["math"],
+                        types: undefined,
                     },
                 },
             });
+        });
+
+        // #2538 item 1: a path through a `<group>`, and the math a `<select>`
+        // holds, are marked as the reference names them, in an award written
+        // out, in one made by `copy`, and in one reached through an `extend`
+        // of the answer or section holding it, whether or not the source
+        // award's references are potential responses. `$n` is in
+        // each comparison and not named, so it is not recorded.
+        it("a path through a group, and the math of a select", async () => {
+            const setup = `
+            <number name="n">3</number>
+            <group name="g"><text>a</text><point name="gp">(1,2)</point></group>
+            <group name="g2" extend="$g" />
+            <select name="s"><option><math>x</math></option></select>`;
+            // A path the document resolves when it loads (`$g.gp.x`) is
+            // typed then; one through an extend (`$g2.gp.x`), or the math a
+            // `<select>` picks, is known only as the document runs, so the
+            // response's type isn't decided (TYPE-3).
+            const math = (submitted: any, decided: boolean) => ({
+                atLoad: {
+                    credit: 1,
+                    numResponses: 1,
+                    submitted: [submitted],
+                    types: decided ? ["math"] : undefined,
+                },
+            });
+            for (const a1HasInput of [true, false]) {
+                for (const [when, refs, expected] of [
+                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1, true)],
+                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1, false)],
+                    [
+                        "<math>$g.gp.x + 1</math> = 2 and $n = 3",
+                        "$g.gp.x",
+                        math(1, true),
+                    ],
+                    ["$s = x and $n = 3", "$s", math("x", false)],
+                    ["<math>$s</math> = x and $n = 3", "$s", math("x", false)],
+                    [
+                        "<math>$s + 1</math> = x + 1 and $n = 3",
+                        "$s",
+                        math("x", false),
+                    ],
+                ] as const) {
+                    await checkAgainstWrittenOut({
+                        a1HasInput,
+                        setup,
+                        when,
+                        refs,
+                        expected,
+                    });
+                }
+            }
         });
 
         it("only the named reference, when the source award's references are potential responses", async () => {
@@ -4304,6 +4379,77 @@ Enter any letter:
                 }
             }
         }
+    });
+
+    // `credit` on an award or a choice takes a boolean, as in 0.7: true is
+    // full credit and false none. It is made as a `<number convertBoolean>`,
+    // the author asking for 1 or 0, so it is no type mix (D47 decision 3,
+    // #2582).
+    it("credit takes a boolean, a boolean expression, true, or a booleanInput", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="t">true</boolean>
+    <boolean name="f">false</boolean>
+    <number name="n">3</number>
+    <booleanInput name="bi" prefill="true"><label>bi</label></booleanInput>
+    <answer name="a1"><award credit="$t"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$f"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$n > 2"><when>true</when></award></answer>
+    <answer name="a4"><award credit="$t and not $f"><when>true</when></award></answer>
+    <answer name="a5"><award credit="true"><when>true</when></award></answer>
+    <answer name="a6"><award credit="$bi"><when>true</when></award></answer>
+    <answer name="a7">
+        <choiceInput name="ci"><label>ci</label>
+            <choice credit="$t">yes</choice>
+            <choice credit="$f">no</choice>
+        </choiceInput>
+    </answer>
+    `,
+        });
+
+        async function creditOf(name: string) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[answerIdx].stateValues.creditAchieved;
+        }
+
+        expect(await creditOf("a1")).eq(1);
+        expect(await creditOf("a2")).eq(0);
+        expect(await creditOf("a3")).eq(1);
+        expect(await creditOf("a4")).eq(1);
+        expect(await creditOf("a5")).eq(1);
+        expect(await creditOf("a6")).eq(1);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await creditOf("a6")).eq(0);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [1],
+            core,
+        });
+        expect(await creditOf("a7")).eq(1);
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core,
+        });
+        expect(await creditOf("a7")).eq(0);
+
+        // none of them is a type mix
+        expect(
+            core.core!.diagnostics.filter((d: any) =>
+                ["doenet-w0203", "doenet-e0065"].includes(d.code),
+            ),
+        ).eqls([]);
     });
 
     it("award credit from boolean", async () => {
@@ -5899,7 +6045,7 @@ Enter any letter:
         const doenetML = `
 <answer name="an">
     <award name="aw">1.1</award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
@@ -5920,7 +6066,7 @@ Enter any letter:
 <answer name="an">
     <mathInput name="mi" />
     <award name="aw"><when>$mi=1.1</when></award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
@@ -7858,7 +8004,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <math extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <math extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <math extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -7867,7 +8013,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <math extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <math extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <math extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 
@@ -7942,7 +8088,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <number extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <number extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <number extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -7951,7 +8097,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <number extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <number extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <number extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 
@@ -10730,6 +10876,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             core,
         });
         const before = await core.returnAllStateVariables(false, true);
+        const coreBefore = core;
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -10737,7 +10884,19 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             initialState: scoreState.state,
         }));
         const after = await core.returnAllStateVariables(false, true);
-        return { before, after, resolvePathToNodeIdx };
+        const coreAfter = core;
+        /**
+         * The types of the submitted responses of `name`, before the reload
+         * and after it: those the DoenetML decides (TYPE-2, TYPE-4).
+         */
+        async function typesOf(name: string) {
+            const idx = await resolvePathToNodeIdx(name);
+            return [
+                await responseTypes(coreBefore, idx),
+                await responseTypes(coreAfter, idx),
+            ];
+        }
+        return { before, after, resolvePathToNodeIdx, typesOf };
     }
 
     it("a math response is read as a math by expressions outside the answer", async () => {
@@ -10788,38 +10947,34 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await updateMathInputValue({
-                    latex: "3",
-                    componentIdx: await resolvePathToNodeIdx("mi"),
-                    core,
-                });
-                await updateTextInputValue({
-                    text: "hello",
-                    componentIdx: await resolvePathToNodeIdx("ti"),
-                    core,
-                });
-                await updateBooleanInputValue({
-                    boolean: true,
-                    componentIdx: await resolvePathToNodeIdx("bi"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    await updateTextInputValue({
+                        text: "hello",
+                        componentIdx: await resolvePathToNodeIdx("ti"),
+                        core,
+                    });
+                    await updateBooleanInputValue({
+                        boolean: true,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["math", "text", "boolean", "number", "point"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "math",
-                "text",
-                "boolean",
-                "number",
-                "point",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0].tree).eq(3);
             expect(submittedResponses[1]).eq("hello");
             expect(submittedResponses[2]).eq(true);
@@ -10840,27 +10995,24 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await core.requestAction({
-                    componentIdx: await resolvePathToNodeIdx("S"),
-                    actionName: "setToR",
-                    args: {},
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await core.requestAction({
+                        componentIdx: await resolvePathToNodeIdx("S"),
+                        actionName: "setToR",
+                        args: {},
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["label", "subsetOfReals", "matrix", "angle"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "label",
-                "subsetOfReals",
-                "matrix",
-                "angle",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).eq("hello");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[1].toString()).eq("ℝ");
@@ -10891,26 +11043,27 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await submitAnswer({
-                    componentIdx: await resolvePathToNodeIdx("ans2"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await submitAnswer({
+                        componentIdx: await resolvePathToNodeIdx("ans2"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
         const ans2Idx = await resolvePathToNodeIdx("ans2");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["subsetOfReals", "subsetOfReals", "math"]);
+        }
+        for (const types of await typesOf("ans2")) {
+            expect(types).eqls(["subsetOfReals"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "subsetOfReals",
-                "subsetOfReals",
-                "math",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[0].toString()).eq("(2,3) U {2}");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
@@ -10922,9 +11075,6 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             ]);
 
             expect(sv[ans2Idx].stateValues.creditAchieved).eq(1);
-            expect(
-                sv[ans2Idx].stateValues.submittedResponsesComponentType,
-            ).eqls(["subsetOfReals"]);
             expect(
                 sv[ans2Idx].stateValues.submittedResponses[0],
             ).not.toBeInstanceOf(me.class);

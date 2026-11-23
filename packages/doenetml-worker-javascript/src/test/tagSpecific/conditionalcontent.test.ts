@@ -664,8 +664,8 @@ describe("Conditional content tag tests @group2", async () => {
         expect(warnings.map((w) => w.message)).eqls([
             "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            '`$cc.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
-            '`$cc2.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
+            '`$cc.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
+            '`$cc2.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
             "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
         ]);
         expect(errors.map((e) => e.message)).eqls([]);
@@ -1418,26 +1418,22 @@ describe("Conditional content tag tests @group2", async () => {
         await check_items("elephant", "trumpets");
 
         // An index never selects a child of what the conditionalContent
-        // shows (D27): each of these names nothing, and says so. The pieces
-        // that are strings are nothing to select. Which case is shown
-        // follows `n`, so what the index comes after is decided by a value:
-        // an info (DIAG-2, #2506).
+        // shows (D27): each of these names nothing. The case and the
+        // `<else>` each hold several pieces, as written, so that is decided
+        // when the document loads, a warning whichever case is shown, and
+        // nothing more is reported as it changes (DIAG-7, Doenet/DoenetML#2643
+        // item 4).
         const { warnings, infos } = getDiagnosticsByType(core);
-        expect(warnings).eqls([]);
+        expect(infos.filter((w) => w.code === "doenet-w0188")).eqls([]);
         expect(
-            infos
-                .map((w) => [
-                    w.code,
-                    w.args?.reference,
-                    w.args?.child,
-                    w.args?.container,
-                ])
+            warnings
+                .map((w) => [w.code, w.args?.reference])
                 .sort((a, b) => String(a[1]).localeCompare(String(b[1]))),
         ).eqls([
-            ["doenet-w0188", "$cc[1][1]", "none", "case"],
-            ["doenet-w0188", "$cc[1][2]", "unnamed", "case"],
-            ["doenet-w0188", "$cc[1][3]", "unnamed", "case"],
-            ["doenet-w0188", "$cc[1][4]", "none", "case"],
+            ["doenet-w0191", "$cc[1][1]"],
+            ["doenet-w0191", "$cc[1][2]"],
+            ["doenet-w0191", "$cc[1][3]"],
+            ["doenet-w0191", "$cc[1][4]"],
         ]);
     });
 

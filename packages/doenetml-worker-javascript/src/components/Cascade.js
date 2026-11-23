@@ -41,6 +41,8 @@ export default class Cascade extends BlockComponent {
     }
 
     static componentType = "cascade";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary:

@@ -102,6 +102,73 @@ using the `<sort>{:dn}` component.
 
 
 
+---
+
+### Example: Items of one type, and lists sorted together
+
+
+```doenet-editor-horiz
+<numberList name="a">7 2 9</numberList>
+<numberList name="b">4 1</numberList>
+<number name="c">5</number>
+
+<p><sort>$a $b $c</sort></p>
+```
+
+
+A `<sort>{:dn}` sorts items of one type. A list among its children, such as a
+`<numberList>{:dn}`, gives its entries as items, so several lists are sorted together
+with any other numbers. What a type is depends on the kind of item:
+
+- **A value** (a `<math>{:dn}`, `<number>{:dn}`, `<text>{:dn}` or `<boolean>{:dn}`) is of
+  its value's type, and is sorted by value. A `<number>{:dn}` and a `<math>{:dn}` are one
+  type. An input stands for what it holds: a `<mathInput>{:dn}` is sorted with maths by
+  the math typed in it, and a `<textInput>{:dn}` with texts. A `<slider>{:dn}` is of its
+  `type` (a number unless `type="text"`), and a `<choiceInput>{:dn}` is a math when every
+  choice holds one math, and a text otherwise.
+- **An object** (a `<point>{:dn}`, `<line>{:dn}`, `<atom>{:dn}`, `<matrix>{:dn}`, …) is of
+  its tag, with the tags built on it: a `<triangle>{:dn}` and a `<rectangle>{:dn}` are
+  both polygons. Points and vectors are sorted by a coordinate. Other objects have no
+  value to sort by, so write `sortByProp` to name the property to compare, as
+  `<sort sortByProp="atomicNumber">{:dn}` does for atoms.
+- **Content** (a `<p>{:dn}`, `<span>{:dn}`, `<feedback>{:dn}`, `<m>{:dn}`, `<label>{:dn}`, …)
+  is all one type. It has no value to sort by either, so a `<sort>{:dn}` of it needs
+  `sortByProp`, as `sortByProp="text"`.
+
+Items of two types, such as a `<number>{:dn}` beside a `<text>{:dn}`, or a `<point>{:dn}`
+beside a `<vector>{:dn}`, are an error, shown in place of the sorted list: give each type
+a `<sort>{:dn}` of its own. So is a `<sort>{:dn}` of objects or content without
+`sortByProp`. An `<m>{:dn}` shows LaTeX and isn't a math, so to sort it with maths, write
+`<math><m>…</m></math>{:dn}`, which reads its LaTeX as math; likewise
+`<text><label>…</label></text>{:dn}` sorts a `<label>{:dn}` with texts.
+
+A `<group>{:dn}` holding one component is sorted as that component. A `<group>{:dn}`
+holding several components has nothing to be compared by, so a `<sort>{:dn}` of one is
+an error. To sort its components, sort a `<collect>{:dn}` of them
+(`<sort><collect componentType="number" from="$g"/></sort>{:dn}` for a group named `g`
+holding numbers). A [`<sortIndices>{:dn}`](sortIndices) takes items of one type in the
+same way.
+To keep components together while reordering them, use a [`<shuffle>{:dn}`](shuffle).
+
+
+
+---
+
+### Example: Blanks go last
+
+
+```doenet-editor-horiz
+<numberList name="scores">8 $missing 3</numberList>
+
+<p><sort>$scores 5</sort></p>
+```
+
+
+A reference that names nothing, like `$missing` here, is a blank (`＿`). A
+`<sort>{:dn}` keeps it and puts it after every value, whatever the type. So does a number that has no value (`NaN`).
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: type
@@ -156,6 +223,14 @@ order as they were typed, where without `type` the same four arrive as `0.5, 2, 
 There is no case for writing `type="number"`: a piece that names a number is already read
 as one, and one that does not becomes `NaN`. `type` applies only to bare strings — a
 referenced component carries a type of its own and keeps it.
+
+Bare strings beside components of one type written as tags are read as that type without
+`type`: in `<sort><math>d</math> a b</sort>{:dn}` the `a` and `b` are maths, so all three
+are sorted together. That is so when the text reads as that type: beside `<point>{:dn}`s or
+`<vector>{:dn}`s, only text with coordinates, such as `(3, 4)`, does, and beside
+`<boolean>{:dn}`s only `true` and `false`. Other text, such as the `3` of
+`<sort><vector>(1,2)</vector> 3</sort>{:dn}`, is read as what it looks like, so the sort
+is an error of two types.
 
 
 
@@ -227,6 +302,8 @@ Drag the points!
 
 
 Components with numerical properties can be sorted based on an individual property. In this example, the points are sorted in ascending order based on their $x$-coordinates, and then by their $y$-coordinates.
+
+Write the property's name as text, in its own case, as after a `.` in a reference: `sortByProp="x"`, not `sortByProp="X"` or `sortByProp="$prop"`.
 
 
 

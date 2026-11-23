@@ -117,7 +117,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
     <number name="zeroFixed" fixed>0</number>
     <number name="initialInitialX" copy="$initialInitialValue" />
     <point x="$initialInitialX" y="$zeroFixed" name="initialPoint" hide>
-        <constrainToGrid dx="$initialValueDx" xoffset="$initialValueOffset" />
+        <constrainToGrid dx="$initialValueDx" xOffset="$initialValueOffset" />
     </point>
 
     <boolean name="initialCorrect">$initialPoint = ($x0,0)</boolean>
@@ -131,7 +131,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
     <label>Delete line</label>
   </updateValue>
 
-  <graph width="$width" aspectRatio="$aspectRatio" xmin="$xmin" xmax="$xmax" ymin="$ymin" ymax="$ymax" showNavigation="$showNavigation" identicalAxisScales grid="$grid">
+  <graph width="$width" aspectRatio="$aspectRatio" xMin="$xmin" xMax="$xmax" yMin="$ymin" yMax="$ymax" showNavigation="$showNavigation" identicalAxisScales grid="$grid">
     <xLabel>$(variable)_$timeVariable</xLabel>
     <yLabel>$(variable)_{$timeVariable+1}</yLabel>
     <cobwebPolyline function="$function" numPoints="$numPoints" name="cobwebPolyline" initialPoint="$initialPoint" numIterationsRequired="$numIterationsRequired" attractThreshold="$attractThreshold" variable="$variable" defaultPoint="$defaultPoint" />
@@ -617,64 +617,64 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
     <boolean name="previewShortcut">false</boolean>
 
     <triggerSet triggerWhen="$P1Placed">
-      <updateValue target="$stepCompleted" newvalue="1" />
-      <updateValue target="$P1StyleNum" newvalue="2" />
+      <updateValue target="$stepCompleted" newValue="1" />
+      <updateValue target="$P1StyleNum" newValue="2" />
     </triggerSet>
 
     <triggerSet triggerWhen="not $P1Placed">
-      <updateValue target="$stepCompleted" newvalue="0" />
-      <updateValue target="$P1StyleNum" newvalue="1" />
+      <updateValue target="$stepCompleted" newValue="0" />
+      <updateValue target="$P1StyleNum" newValue="1" />
     </triggerSet>
 
     <triggerSet triggerWhen="$v1Placed">
-      <updateValue target="$stepCompleted" newvalue="2" />
-      <updateValue target="$v1StyleNum" newvalue="2" />
+      <updateValue target="$stepCompleted" newValue="2" />
+      <updateValue target="$v1StyleNum" newValue="2" />
     </triggerSet>
     <triggerSet triggerWhen="not $v1Placed">
-      <updateValue target="$stepCompleted" newvalue="1" />
-      <updateValue target="$v1StyleNum" newvalue="1" />
+      <updateValue target="$stepCompleted" newValue="1" />
+      <updateValue target="$v1StyleNum" newValue="1" />
     </triggerSet>
 
-    <updateValue triggerWhen="$h1Placed" target="$h1StyleNum" newvalue="2" />
-    <updateValue triggerWhen="not $h1Placed" target="$h1StyleNum" newvalue="1" />
+    <updateValue triggerWhen="$h1Placed" target="$h1StyleNum" newValue="2" />
+    <updateValue triggerWhen="not $h1Placed" target="$h1StyleNum" newValue="1" />
 
     <triggerSet triggerWhen="$P2Placed">
-      <updateValue target="$stepCompleted" newvalue="3" />
-      <updateValue target="$P2StyleNum" newvalue="2" />
+      <updateValue target="$stepCompleted" newValue="3" />
+      <updateValue target="$P2StyleNum" newValue="2" />
     </triggerSet>
     <triggerSet triggerWhen="not $P2Placed">
-      <updateValue target="$stepCompleted" newvalue="2" />
-      <updateValue target="$P2StyleNum" newvalue="1" />
+      <updateValue target="$stepCompleted" newValue="2" />
+      <updateValue target="$P2StyleNum" newValue="1" />
     </triggerSet>
 
     <triggerSet triggerWhen="$P3Placed">
-      <updateValue target="$stepCompleted" newvalue="4" />
-      <updateValue target="$P3StyleNum" newvalue="2" />
+      <updateValue target="$stepCompleted" newValue="4" />
+      <updateValue target="$P3StyleNum" newValue="2" />
     </triggerSet>
     <triggerSet triggerWhen="not $P3Placed">
-      <updateValue target="$stepCompleted" newvalue="3" />
-      <updateValue target="$P3StyleNum" newvalue="1" />
+      <updateValue target="$stepCompleted" newValue="3" />
+      <updateValue target="$P3StyleNum" newValue="1" />
     </triggerSet>
 
     <triggerSet triggerWhen="$v2Placed">
-      <updateValue target="$stepCompleted" newvalue="5" />
-      <updateValue target="$v2StyleNum" newvalue="2" />
+      <updateValue target="$stepCompleted" newValue="5" />
+      <updateValue target="$v2StyleNum" newValue="2" />
     </triggerSet>
     <triggerSet triggerWhen="not $v2Placed">
-      <updateValue target="$stepCompleted" newvalue="4" />
-      <updateValue target="$v2StyleNum" newvalue="1" />
+      <updateValue target="$stepCompleted" newValue="4" />
+      <updateValue target="$v2StyleNum" newValue="1" />
     </triggerSet>
 
-    <updateValue triggerWhen="$h2Placed" target="$h2StyleNum" newvalue="2" />
-    <updateValue triggerWhen="not $h2Placed" target="$h2StyleNum" newvalue="1" />
+    <updateValue triggerWhen="$h2Placed" target="$h2StyleNum" newValue="2" />
+    <updateValue triggerWhen="not $h2Placed" target="$h2StyleNum" newValue="1" />
 
     <triggerSet triggerWhen="$P4Placed">
-      <updateValue target="$P4StyleNum" newvalue="2" />
-      <updateValue target="$stepCompleted" newvalue="6" />
+      <updateValue target="$P4StyleNum" newValue="2" />
+      <updateValue target="$stepCompleted" newValue="6" />
     </triggerSet>
     <triggerSet triggerWhen="not $P4Placed">
-      <updateValue target="$P4StyleNum" newvalue="1" />
-      <updateValue target="$stepCompleted" newvalue="5" />
+      <updateValue target="$P4StyleNum" newValue="1" />
+      <updateValue target="$stepCompleted" newValue="5" />
     </triggerSet>
 
 
@@ -727,7 +727,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
 
   <sideBySide widths="75% 25%">
 
-  <graph width="$width" xmin="$xmin" xmax="$xmax" ymin="$ymin" ymax="$ymax" showNavigation="$showNavigation" identicalAxisScales >
+  <graph width="$width" xMin="$xmin" xMax="$xmax" yMin="$ymin" yMax="$ymax" showNavigation="$showNavigation" identicalAxisScales >
     <xLabel>$(variable)_n</xLabel>
     <yLabel>$(variable)_{n+1}</yLabel>
 

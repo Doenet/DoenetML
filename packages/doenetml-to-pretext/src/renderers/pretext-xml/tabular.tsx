@@ -19,7 +19,7 @@ import { printedColumnWidths } from "./column-widths";
  *    PreTeXt names them physically (`top`, `bottom`, `left`, `right`). The
  *    weights (`none`/`minor`/`medium`/`major`) are shared, having been
  *    borrowed from PreTeXt in the first place.
- *  - **Alignment.** `halign="start"`/`"end"` become `"left"`/`"right"`.
+ *  - **Alignment.** `hAlign="start"`/`"end"` become `"left"`/`"right"`.
  *    PreTeXt has no writing-direction-relative alignment, so this assumes a
  *    left-to-right document — the same assumption the rest of the PreTeXt
  *    export already makes.
@@ -31,7 +31,7 @@ import { printedColumnWidths } from "./column-widths";
  *    applies them (see `Tabular` and `Cell`).
  *
  * `TableSettingsContext` exists because the props are *resolved* values: a
- * `<tabular halign="center">` leaves every cell reporting `"center"`, so
+ * `<tabular hAlign="center">` leaves every cell reporting `"center"`, so
  * writing each prop out unconditionally would bury one authored attribute
  * under dozens of redundant ones. Each level instead emits a setting only
  * where it differs from what it inherits, which stays close to the author's
@@ -73,7 +73,7 @@ const HALIGN_TO_PRETEXT: Record<string, string> = {
 
 export type ColumnSpec = {
     width: { size: number; isAbsolute: boolean } | null;
-    halign: string | null;
+    hAlign: string | null;
     topBorder: string | null;
     endBorder: string | null;
 };
@@ -151,8 +151,8 @@ function halignIfChanged(
 type TabularData = {
     props: {
         width?: { size: number; isAbsolute: boolean } | null;
-        halign?: string;
-        valign?: string;
+        hAlign?: string;
+        vAlign?: string;
         topBorder?: string;
         startBorder?: string;
         bottomBorder?: string;
@@ -190,8 +190,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
         : percents;
 
     const settings: TableSettings = {
-        halign: props.halign ?? DEFAULT_TABLE_SETTINGS.halign,
-        valign: props.valign ?? DEFAULT_TABLE_SETTINGS.valign,
+        halign: props.hAlign ?? DEFAULT_TABLE_SETTINGS.halign,
+        valign: props.vAlign ?? DEFAULT_TABLE_SETTINGS.valign,
         bottomBorder: props.bottomBorder ?? DEFAULT_TABLE_SETTINGS.bottomBorder,
         startBorder: props.startBorder ?? DEFAULT_TABLE_SETTINGS.startBorder,
         endBorder: props.endBorder ?? DEFAULT_TABLE_SETTINGS.endBorder,
@@ -229,9 +229,9 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
                         ? `${printedWidths[index]}%`
                         : undefined,
                     halign:
-                        spec.halign == null
+                        spec.hAlign == null
                             ? undefined
-                            : HALIGN_TO_PRETEXT[spec.halign],
+                            : HALIGN_TO_PRETEXT[spec.hAlign],
                     top: spec.topBorder ?? undefined,
                     right: spec.endBorder ?? undefined,
                 }),
@@ -246,8 +246,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
 type RowData = {
     props: {
         header?: boolean;
-        halign?: string;
-        valign?: string;
+        hAlign?: string;
+        vAlign?: string;
         startBorder?: string;
         bottomBorder?: string;
     };
@@ -260,11 +260,11 @@ export const Row: BasicComponentWithPassthroughChildren<RowData> = ({
     const props = node.data.props;
     const inherited = React.useContext(TableSettingsContext);
 
-    const halign = halignIfChanged(props.halign, inherited.halign);
+    const halign = halignIfChanged(props.hAlign, inherited.halign);
     const settings: TableSettings = {
         ...inherited,
-        halign: props.halign ?? inherited.halign,
-        valign: props.valign ?? inherited.valign,
+        halign: props.hAlign ?? inherited.halign,
+        valign: props.vAlign ?? inherited.valign,
         startBorder: props.startBorder ?? inherited.startBorder,
         bottomBorder: props.bottomBorder ?? inherited.bottomBorder,
         rowOverridesColumnHalign: halign !== undefined,
@@ -289,7 +289,7 @@ type CellData = {
     props: {
         colSpan?: number;
         columnIndex?: number | null;
-        halign?: string;
+        hAlign?: string;
         bottomBorder?: string;
         endBorder?: string;
         text?: string;
@@ -324,7 +324,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             ? undefined
             : inherited.columnSpecs[lastColumnIndex];
     const inheritedHalign =
-        (inherited.rowOverridesColumnHalign ? null : halignColumn?.halign) ??
+        (inherited.rowOverridesColumnHalign ? null : halignColumn?.hAlign) ??
         inherited.halign;
     const inheritedEndBorder =
         endBorderColumn?.endBorder ?? inherited.endBorder;
@@ -387,7 +387,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
                     ? String(effectiveColSpan(props.colSpan))
                     : undefined
             }
-            halign={halignIfChanged(props.halign, inheritedHalign)}
+            halign={halignIfChanged(props.hAlign, inheritedHalign)}
             bottom={ifChanged(props.bottomBorder, inherited.bottomBorder)}
             right={ifChanged(props.endBorder, inheritedEndBorder)}
         >

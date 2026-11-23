@@ -44,11 +44,33 @@ import {
 } from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
-import { breakReferenceCycles } from "./referenceCycles";
+import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
+import { namesAfterCollectionsDiagnostics } from "./namesAfterCollectionsAtLoad";
+import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
+import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
+import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
+import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
+import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
+import { checkBooleanNumberMixAtLoad } from "./booleanNumberMixAtLoad";
+import {
+    markPropertyTypesAtLoad,
+    referencesToUndecidedTypes,
+} from "./propertyTypesAtLoad";
+import { markReferencesToVariantControls } from "./variantControlReferences";
+import {
+    authoredComponentTypes,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "./nameCase";
+import {
+    ATTRIBUTES_OF_A_COPY,
+    ATTRIBUTES_OF_EVERY_TAG,
+    attributeNameCaseCorrections,
+} from "@doenet/parser/attribute-name-case";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -180,6 +202,17 @@ export async function normalizedDastToSerializedComponents(
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void,
+    {
+        loadCycles,
+    }: {
+        /**
+         * What each load that stopped on a circular dependency blamed, when
+         * the document is rebuilt (D57, D61 decision 2, `blameLoadCycle`):
+         * each made `doenet-e0005` by the cycle check
+         * (`breakReferenceCycles`).
+         */
+        loadCycles?: LoadCycle[];
+    } = {},
 ): Promise<{
     document: SerializedComponent;
     nComponents: number;
@@ -203,6 +236,200 @@ export async function normalizedDastToSerializedComponents(
     const missingInPlaceOfTag = new Set<UnflattenedComponent>();
 
     /**
+     * Whether any element is a `<variantControl>`, noted as each is
+     * unflattened, so that the check of references to one
+     * (`markReferencesToVariantControls`) walks the document only when one
+     * is written, which few documents do.
+     */
+    let variantControlWritten = false;
+
+    /**
+     * Give an attribute of `node` written in another case than its
+     * component's (`<subsetOfRealsInput xmin>` for `xMin`) the component's
+     * spelling, with the warning the parser gives (`doenet-w0197`), for this
+     * release (D51's migration). The parser (`attribute-name-case.ts`) has
+     * renamed those the schema lists, before anything read them; this is the
+     * backstop for those it does not know of, an attribute the schema hides
+     * and every attribute of a tag it hides (`<panel>`), so that every
+     * attribute applied before names were case-sensitive still is, for now.
+     * Those it renamed are matched here as written, so are not warned of
+     * twice. It runs before anything in the core reads an attribute: the
+     * sugar and the checks at load read the unflattened components. Not
+     * `name`, `extend`, `copy` or `copyWithState`, which every class
+     * declares: the reference resolver has read them already, as written,
+     * so the parser corrects those on every tag, listed or not; one still
+     * in another case here was written beside its spelling
+     * (`copy="$a" Copy="$b"`), and is an attribute the tag doesn't have
+     * (`doenet-w0187`, which suggests the spelling). On a class that
+     * accepts any attribute, only when it names the tag it passes them to
+     * (`attributesOfNamedType`, `<collect componentType>`); so not on a
+     * `<module>`. A value naming a tag is corrected first
+     * (`correctValueNameCase`).
+     */
+    const correctedNodes = new Set<number>();
+    function correctAttributeNameCase(
+        node: FlatElement,
+        nodeIdx: number,
+        diagnostics: DiagnosticRecord[],
+    ) {
+        if (correctedNodes.has(nodeIdx)) {
+            return;
+        }
+        correctedNodes.add(nodeIdx);
+        const componentType = componentInfoObjects.componentTypeAsWritten(
+            getComponentType(node),
+        );
+        const componentClass =
+            componentType === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[componentType];
+        if (!componentClass) {
+            return;
+        }
+        const attributesObject = componentClass.createAttributesObject();
+        // First, so that the type a value names is known below.
+        correctValueNameCase(
+            node,
+            componentType!,
+            attributesObject,
+            diagnostics,
+        );
+        const known = componentClass.acceptAnyAttribute
+            ? attributesOfNamedType(node, attributesObject)
+            : [
+                  ...Object.keys(attributesObject),
+                  ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
+              ];
+        const corrections =
+            known === undefined
+                ? []
+                : attributeNameCaseCorrections({
+                      written: node.attributes.map(
+                          (attribute) => attribute.name,
+                      ),
+                      known,
+                      exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
+                  });
+        for (const { written, corrected } of corrections) {
+            const i = node.attributes.findIndex(
+                (attribute) => attribute.name === written,
+            );
+            const attribute = node.attributes[i];
+            node.attributes[i] = { ...attribute, name: corrected };
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        attribute: written,
+                        suggestion: corrected,
+                        componentType,
+                    },
+                    position: attribute.position ?? node.position,
+                    sourceDoc: attribute.sourceDoc ?? node.sourceDoc,
+                }),
+            );
+        }
+    }
+
+    /**
+     * On a class that accepts any attribute, the attributes that apply: when
+     * one of its attributes names a tag, written as text
+     * (`<collect componentType="math">`), its own and those of the tag it
+     * names, to which it passes the rest (`<collect DisplayDigits="2">` is
+     * corrected to `displayDigits`). Otherwise `undefined`, and none is
+     * corrected: on a `<module>`, an attribute its definition declares is not
+     * the module's own (the parser corrects those), nor is a `_copy`'s.
+     */
+    function attributesOfNamedType(
+        node: FlatElement,
+        attributesObject: Record<string, any>,
+    ): string[] | undefined {
+        for (const attribute of node.attributes) {
+            if (
+                !attributesObject[attribute.name]?.valueNamesComponentType ||
+                !attribute.children.every(
+                    (child: UntaggedContent) => typeof child === "string",
+                )
+            ) {
+                continue;
+            }
+            const named = componentInfoObjects.componentTypeAsWritten(
+                (attribute.children as string[]).join("").trim(),
+            );
+            const namedClass =
+                named === undefined
+                    ? undefined
+                    : componentInfoObjects.allComponentClasses[named];
+            if (namedClass) {
+                return [
+                    ...Object.keys(attributesObject),
+                    ...Object.keys(namedClass.createAttributesObject()),
+                ];
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Give the value of each attribute of `node` that names a tag
+     * (`valueNamesComponentType`, `<collect componentType>`), written as text
+     * in another case than the tag's (`componentType="Point"`), the tag's
+     * spelling, with `doenet-w0197`, for this release. A value that names a
+     * tag is a name, matched exactly (NAME-0, D62), but the fallback for an
+     * attribute in another case (D51) applies to it too. Run before anything
+     * reads the value, so every reader can match it exactly. A value that
+     * matches no tag, or two that differ only in case, or that is not
+     * written as text (a reference), is left as written.
+     */
+    function correctValueNameCase(
+        node: FlatElement,
+        componentType: string,
+        attributesObject: Record<string, any>,
+        diagnostics: DiagnosticRecord[],
+    ) {
+        for (const [i, attribute] of node.attributes.entries()) {
+            if (!attributesObject[attribute.name]?.valueNamesComponentType) {
+                continue;
+            }
+            if (
+                !attribute.children.every(
+                    (child: UntaggedContent) => typeof child === "string",
+                )
+            ) {
+                continue;
+            }
+            const value = (attribute.children as string[]).join("").trim();
+            if (componentInfoObjects.componentTypeAsWritten(value)) {
+                continue;
+            }
+            const corrected = nameDifferingOnlyInCase(
+                value,
+                authoredComponentTypes(componentInfoObjects),
+            );
+            if (corrected === undefined) {
+                continue;
+            }
+            node.attributes[i] = { ...attribute, children: [corrected] };
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        kind: "value",
+                        attribute: attribute.name,
+                        value,
+                        suggestion: corrected,
+                        componentType,
+                    },
+                    position: attribute.position ?? node.position,
+                    sourceDoc: attribute.sourceDoc ?? node.sourceDoc,
+                }),
+            );
+        }
+    }
+
+    /**
      * The missing tag (`BaseComponent.isMissing`) for the element `node`,
      * whose `extend` or `copy` names nothing, under its own index: a
      * component of its type with its own attributes, but not its children,
@@ -217,9 +444,7 @@ export async function normalizedDastToSerializedComponents(
     ): UnflattenedComponent {
         const componentType = getComponentType(node);
         const mapped =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                componentType.toLowerCase()
-            ];
+            componentInfoObjects.componentTypeAsWritten(componentType);
         // A list is drawn as its entries, and a missing one has none, so it
         // is a `_missing` too, to be drawn and read as one blank.
         const isComposite =
@@ -306,6 +531,29 @@ export async function normalizedDastToSerializedComponents(
         };
     }
 
+    /**
+     * The component type of the element an attribute written twice is on,
+     * for the parser's `doenet-w0201` warning `node`, which it named
+     * `componentType` from the tag as written. A `<division>` is the tag its
+     * `type` names (`getComponentType`), which the parser did not yet know
+     * there, so it is read off the element the warning is in (the parser
+     * puts it among the element's children): `<division type="foo">`, or a
+     * `<division>` with no `type`, is no component type (`doenet-e0002`).
+     * (A `doenet-w0197` already names a `<division>`'s `type`.)
+     */
+    function repeatedOnComponentType(
+        node: { parent?: number },
+        componentType: string,
+    ): string {
+        if (componentType !== "division" || node.parent === undefined) {
+            return componentType;
+        }
+        const parent = normalized_root.nodes[node.parent];
+        return parent?.type === "element"
+            ? getComponentType(parent)
+            : componentType;
+    }
+
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
         diagnostics: DiagnosticRecord[],
@@ -319,6 +567,10 @@ export async function normalizedDastToSerializedComponents(
             } else {
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
+                    correctAttributeNameCase(node, idxOrString, diagnostics);
+                    if (getComponentType(node) === "variantControl") {
+                        variantControlWritten = true;
+                    }
                     const children = unflattenDastNodes(
                         node.children,
                         diagnostics,
@@ -328,6 +580,26 @@ export async function normalizedDastToSerializedComponents(
                             typeof child === "object" &&
                             missingInPlaceOfTag.has(child),
                     );
+                    if (
+                        inPlaceOfTag &&
+                        getComponentType(node) === "variantControl"
+                    ) {
+                        // Made with `extend` or `copy`, which is an error
+                        // however the reference resolves (`doenet-e0088`):
+                        // left as written for the error to replace it.
+                        unflattenedNodes.push({
+                            type: "unflattened",
+                            componentType: "variantControl",
+                            componentIdx: idxOrString,
+                            attributes: {},
+                            doenetAttributes: { madeFromAnother: true },
+                            position: node.position,
+                            sourceDoc: node.sourceDoc,
+                            state: {},
+                            children: [],
+                        });
+                        continue;
+                    }
                     if (inPlaceOfTag) {
                         // The tag, with what its `extend` or `copy` names
                         // unresolved, is missing (D37), under its own index
@@ -398,7 +670,29 @@ export async function normalizedDastToSerializedComponents(
                         const isUnresolvedReference =
                             codeAndArgs.code === "doenet-w0104" ||
                             codeAndArgs.code === "doenet-w0105";
-                        if (!isUnresolvedReference) {
+                        if (
+                            (codeAndArgs.code === "doenet-w0197" ||
+                                codeAndArgs.code === "doenet-w0201") &&
+                            typeof codeAndArgs.args?.componentType ===
+                                "string" &&
+                            componentInfoObjects.componentTypeAsWritten(
+                                codeAndArgs.code === "doenet-w0201"
+                                    ? repeatedOnComponentType(
+                                          node,
+                                          codeAndArgs.args.componentType,
+                                      )
+                                    : codeAndArgs.args.componentType,
+                            ) === undefined
+                        ) {
+                            // The parser corrected `name`, `extend`, `copy`
+                            // or `copyWithState` on a tag the schema doesn't
+                            // list, not knowing if it is a component type, or
+                            // kept the first of an attribute written twice on
+                            // any tag (`doenet-w0201`). One that is not a
+                            // component type is an error (`doenet-e0002`),
+                            // so nothing is applied, and the warning that
+                            // it is would be false.
+                        } else if (!isUnresolvedReference) {
                             diagnostics.push({
                                 type: node.errorType,
                                 message: node.message,
@@ -643,6 +937,14 @@ export async function normalizedDastToSerializedComponents(
     //     nComponents,
     // );
 
+    // An `<answer>`'s sugar decides from its awards' children whether it
+    // needs an input, so an `<award copy>` is first given the children it
+    // will hold (CPY-1, #2531), and they are removed once read.
+    markCopiedAwards({
+        serializedComponents: expandedRoot,
+        componentInfoObjects,
+    });
+
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -651,20 +953,92 @@ export async function normalizedDastToSerializedComponents(
     diagnostics.push(...sugarResult.diagnostics);
     nComponents = sugarResult.nComponents;
 
+    removeCopiedAwardMarks(sugarResult.components);
+
     // console.log(
     //     "after apply sugar",
     //     JSON.parse(JSON.stringify(sugarResult.components)),
     //     nComponents,
     // );
 
-    // After sugar, which makes an `<else>` a `<case>`, and before the list
-    // forms and value references, so that what a reference written as a tag
-    // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    const { branchNameWarnings, collectionItemWarnings, branchReads } =
-        checkTypeChangesAtLoad({
+    // The type of each property its component doesn't declare, decided from
+    // what is written (TYPE, D45), marked on the component for the checks
+    // below and the run time. After sugar, which splits a `<tally>`'s text
+    // into the values it counts.
+    // An answer's responses of different types from the cases of a
+    // `<conditionalContent>` are an error, reported now (`doenet-e0082`).
+    diagnostics.push(
+        ...markPropertyTypesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        }),
+    );
+    // A reference that reads a property whose type the DoenetML doesn't
+    // decide needs that type, so it is an error at load, in place of the
+    // reference (TYPE-3, `doenet-e0091`). A type that read what such a
+    // reference holds (a choice holding `$a.currentResponses[2]`) is then
+    // decided again, from the error in its place.
+    // Each round can only decide more, so it ends.
+    for (;;) {
+        const undecided = referencesToUndecidedTypes({
             serializedComponents: sugarResult.components,
             componentInfoObjects,
         });
+        if (undecided.length === 0) {
+            break;
+        }
+        for (const { copy, what } of undecided) {
+            const originalPath = copy.extending
+                ? (unwrapSource(copy.extending as any) as any)?.originalPath
+                : undefined;
+            const diagnostic = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0091",
+                args: {
+                    source: doenetMLReferenceAsWritten(
+                        originalPath,
+                        normalized_root.sources,
+                    ),
+                    what,
+                },
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            });
+            diagnostics.push(diagnostic);
+            const errorComponent = copy as any;
+            errorComponent.componentType = "_error";
+            errorComponent.state = errorComponentState(
+                diagnostic.message,
+                diagnostic,
+            );
+            errorComponent.attributes = {};
+            errorComponent.children = [];
+            errorComponent.doenetAttributes = {};
+            delete errorComponent.extending;
+        }
+        markPropertyTypesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        });
+    }
+
+    // After sugar, which makes an `<else>` a `<case>`, and before the list
+    // forms and value references, so that what a reference written as a tag
+    // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
+    // First among them: a name or a property after a collection is the
+    // collection's own, so anything else after one names nothing (D59,
+    // `doenet-w0200`, `namesAfterCollectionsAtLoad.ts`), with the
+    // every-branch rule for a collection reached through branches.
+    const {
+        branchNameWarnings,
+        collectionItemWarnings,
+        branchReads,
+        nameAfterCollectionDiagnostics,
+    } = checkTypeChangesAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+    });
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
@@ -725,6 +1099,19 @@ export async function normalizedDastToSerializedComponents(
         }
     }
 
+    // A reference to a `<variantControl>` names nothing, with a warning that
+    // says it shows nothing and nothing can be read from it (#2623 item 7).
+    // Only a document with one written needs the walk (#2637 item 6).
+    if (variantControlWritten) {
+        diagnostics.push(
+            ...markReferencesToVariantControls({
+                serializedComponents: sugarResult.components,
+                componentInfoObjects,
+                sources: normalized_root.sources,
+            }),
+        );
+    }
+
     // What a property or an index after a `<select>` or `<conditionalContent>`
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
@@ -734,7 +1121,7 @@ export async function normalizedDastToSerializedComponents(
         code,
         args,
         kind,
-        firstIndex,
+        childName,
     } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
@@ -745,15 +1132,32 @@ export async function normalizedDastToSerializedComponents(
         );
         const extra: Record<string, string> = {};
         if (code === "doenet-w0191") {
-            const suggestion = referenceNamingTheItem(
-                ref,
-                kind,
-                reference,
-                normalized_root.sources,
-                firstIndex,
-            );
+            // the component the index would select, when it has the same
+            // name in each (`$s[1].q` for `$s[1][1]`), else a name to give it
+            const naming =
+                childName !== undefined
+                    ? referenceNamingTheChild(
+                          ref,
+                          childName,
+                          reference,
+                          normalized_root.sources,
+                      )
+                    : undefined;
+            const suggestion =
+                naming ??
+                referenceNamingTheItem(
+                    ref,
+                    kind,
+                    reference,
+                    normalized_root.sources,
+                );
             extra.suggestion = suggestion ?? "";
-            extra.hasSuggestion = suggestion === undefined ? "false" : "true";
+            extra.hasSuggestion =
+                naming !== undefined
+                    ? "named"
+                    : suggestion === undefined
+                      ? "false"
+                      : "true";
         }
         diagnostics.push(
             codedDiagnostic({
@@ -766,6 +1170,15 @@ export async function normalizedDastToSerializedComponents(
         );
     }
 
+    // Which composites the DoenetML shows can make no section, so that a
+    // section's number needn't wait for them to expand (#2614 item 2).
+    // Before the cycle check, which follows a reference to a section's
+    // number to the composites its numbering does wait for.
+    markCompositesMakingNoSectioning({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
+
     // A reference that depends on itself, through what is written in every
     // branch, is a circular dependency, an error at load in place of the
     // reference (D14, DIAG-7). After the type check, whose own circular
@@ -777,7 +1190,16 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             branchReads,
+            loadCycles,
         }),
+    );
+
+    // A name after a collection (`doenet-w0200`), reported once the cycles
+    // are found: nothing more for a reference into a component in error
+    // (DIAG-5), such as `$o[1].x` of `<repeat name="o"><repeat
+    // copy="$o"/></repeat>`.
+    diagnostics.push(
+        ...namesAfterCollectionsDiagnostics(nameAfterCollectionDiagnostics),
     );
 
     // What was decided of each reference written as a tag is reported now,
@@ -790,6 +1212,44 @@ export async function normalizedDastToSerializedComponents(
             sources: normalized_root.sources,
         }),
     );
+
+    // An `<updateValue>` whose target is a container of several things,
+    // which has no one value (COLL-3), is a warning at load (DIAG-1), not
+    // only once it acts. After sugar, which makes a `<repeat>`'s template.
+    diagnostics.push(
+        ...checkActionTargetsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
+    // A `<sort>` or `<shuffle>` takes items of one type, decided from what
+    // is written (COLL-4, D41 decision 4): one that does not is an error,
+    // marked on it and reported now, wherever it is (DIAG-7). After sugar,
+    // which splits its text into the items it reads, and before the list
+    // forms, which leave one in error a composite.
+    diagnostics.push(
+        ...checkReorderedItemsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        }),
+    );
+
+    // A boolean where a number or a math is wanted, or a number where a
+    // boolean is, is a type mix: a warning at load and a blank in its place
+    // (D47 decisions 3 and 4). So is a text ordered against a number, which
+    // is only warned of (D58). After sugar, which wraps a `<number>`'s
+    // several children in a `<math>`, and before the list forms and value
+    // references, while each reference is still a `_copy`.
+    const booleanNumberMix = checkBooleanNumberMixAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+        nComponents,
+    });
+    diagnostics.push(...booleanNumberMix.diagnostics);
+    nComponents = booleanNumberMix.nComponents;
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a
@@ -874,6 +1334,20 @@ export async function normalizedDastToSerializedComponents(
             sources: normalized_root.sources,
         }),
     );
+
+    // Every random choice that can appear can be made as written (D39,
+    // SEL-5 to SEL-7): proven over every value its parameters can take, or
+    // an error in every variant, reported now and made an `_error` in place
+    // of the choice. After SEL-1, whose errors leave the choices reading
+    // them unchecked, and before the variants are counted.
+    const feasibility = checkChoiceFeasibilityAtLoad({
+        document,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+        nComponents,
+    });
+    diagnostics.push(...feasibility.diagnostics);
+    nComponents = feasibility.nComponents;
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added
@@ -1074,6 +1548,25 @@ function authorGivenName(component: SerializedComponent): string | undefined {
 }
 
 /**
+ * Whether `component` is a `<variantControl>` written with `extend`, `copy`
+ * or `copyWithState`, whether or not what it references is found. A document's
+ * variants are decided before anything in it is made, so before what the
+ * attribute references could be read: a `<variantControl>` must be written
+ * out, and one made from another is an error at load (`doenet-e0088`, D47
+ * decision 1).
+ */
+export function variantControlMadeFrom(
+    component: UnflattenedComponent,
+): boolean {
+    return (
+        component.componentType === "variantControl" &&
+        ((component.extending !== undefined &&
+            !("Ref" in component.extending)) ||
+            component.doenetAttributes?.madeFromAnother === true)
+    );
+}
+
+/**
  * Expand the intermediate form `UnflattenedComponent` to `SerializedComponent`,
  * which is the format used in the Javascript Core.
  *
@@ -1121,10 +1614,24 @@ export function expandUnflattenedToSerializedComponents({
 
         try {
             if (componentClass === undefined) {
+                // A tag is matched exactly, with `copy` or `extend` as
+                // without (D51); one in another case suggests the tag.
                 throw new DiagnosticError({
                     code: "doenet-e0002",
-                    args: { componentType: component.componentType },
+                    args: {
+                        componentType: component.componentType,
+                        ...suggestionArgs(
+                            nameDifferingOnlyInCase(
+                                component.componentType,
+                                authoredComponentTypes(componentInfoObjects),
+                            ),
+                        ),
+                    },
                 });
+            }
+
+            if (variantControlMadeFrom(component)) {
+                throw new DiagnosticError({ code: "doenet-e0088" });
             }
 
             const expandResult = expandAllUnflattenedAttributes({
@@ -1194,7 +1701,9 @@ export function expandUnflattenedToSerializedComponents({
                     // code, which `convertToErrorComponent` has already read
                     // off it and put on the `_error` component.
                     ...diagnosticCodeFrom(convertResult),
-                    position: component.position,
+                    // where the `_error` is: at the attribute that caused
+                    // it, when the error names one
+                    position: newComponent.position,
                     sourceDoc: component.sourceDoc,
                 });
             }
@@ -1375,28 +1884,103 @@ export function expandAllUnflattenedAttributes({
 
     const diagnostics: DiagnosticRecord[] = [];
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
-
-    for (let attrName in classAttributes) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
     let attributes: Record<string, SerializedAttribute> = {};
 
+    // The `<document>` is the root, which nothing can replace: an attribute
+    // it doesn't have is reported at the attribute, which
+    // is ignored, and the rest of the document renders (DIAG-5, #2614 item 1). Anywhere else, it
+    // is thrown, and the component becomes an `_error`.
+    const keepComponent = componentClass.componentType === "document";
+    function attributeError(
+        error: DiagnosticError,
+        attribute: UnflattenedAttribute,
+    ) {
+        if (!keepComponent) {
+            throw error;
+        }
+        diagnostics.push(
+            codedDiagnostic({
+                type: "error",
+                code: error.code as any,
+                args: error.args as any,
+                position: attribute.position,
+                sourceDoc: attribute.sourceDoc,
+            }),
+        );
+    }
+
+    // Matched exactly (D51). One written in another case was given the
+    // component's spelling already, with a warning, for now: by the parser
+    // (`attribute-name-case.ts`), or, for one the schema hides, by
+    // `correctAttributeNameCase`.
     for (let attr in unflattenedAttributes) {
-        let attrName = attributeLowerCaseMapping[attr.toLowerCase()];
-        let attrDef = classAttributes[attrName];
+        const attrName = attr;
+        let attrDef = Object.hasOwn(classAttributes, attr)
+            ? classAttributes[attr]
+            : undefined;
         if (attrDef) {
-            if (attrName in attributes) {
-                throw new DiagnosticError({
-                    code: "doenet-e0003",
-                    args: { attribute: attrName },
-                });
+            let attribute = unflattenedAttributes[attr];
+            if (attrDef.readBeforeReferences) {
+                const res = withoutReferences({ attribute, attrName });
+                diagnostics.push(...res.diagnostics);
+                if (!res.attribute) {
+                    continue;
+                }
+                attribute = res.attribute;
+                // A blank number (`<variantControl numVariants="">`) is
+                // ignored, with an error at the attribute, rather than read
+                // as 0 or made an error that replaces the component: these
+                // never stop the document (D47 decision 1).
+                if (
+                    (attrDef.createPrimitiveOfType === "number" ||
+                        attrDef.createPrimitiveOfType === "integer") &&
+                    attribute.children.every(
+                        (child) =>
+                            typeof child === "string" && child.trim() === "",
+                    )
+                ) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "error",
+                            code: "doenet-e0072",
+                            args: { attribute: attrName },
+                            position: attribute.position,
+                            sourceDoc: attribute.sourceDoc,
+                        }),
+                    );
+                    continue;
+                }
+                // So is one that isn't a number (`numVariants="abc"`), which
+                // was read as `NaN` and fell back to the default silently
+                // (#2623 item 5).
+                if (
+                    attrDef.createPrimitiveOfType === "number" ||
+                    attrDef.createPrimitiveOfType === "integer"
+                ) {
+                    const written = attribute.children
+                        .map((child) =>
+                            typeof child === "string" ? child : "",
+                        )
+                        .join("")
+                        .trim();
+                    if (!Number.isFinite(Number(written))) {
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "error",
+                                code: "doenet-e0089",
+                                args: { attribute: attrName, value: written },
+                                position: attribute.position,
+                                sourceDoc: attribute.sourceDoc,
+                            }),
+                        );
+                        continue;
+                    }
+                }
             }
 
             let res = expandAttribute({
                 attrDef,
-                attribute: unflattenedAttributes[attr],
+                attribute,
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
                 nComponents,
@@ -1417,18 +2001,28 @@ export function expandAllUnflattenedAttributes({
             diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
         } else {
-            throw new DiagnosticError({
-                code: "doenet-e0004",
-                args: {
-                    attribute: attr,
-                    // What the author wrote, not what the component was
-                    // retyped to. Naming `<integer>` for a `<number>` written
-                    // between index brackets points at markup that is nowhere
-                    // in their document (#1919).
-                    componentType:
-                        authoredComponentType ?? componentClass.componentType,
-                },
-            });
+            attributeError(
+                new DiagnosticError({
+                    code: "doenet-e0004",
+                    args: {
+                        attribute: attr,
+                        // What the author wrote, not what the component was
+                        // retyped to. Naming `<integer>` for a `<number>`
+                        // written between index brackets points at markup
+                        // that is nowhere in their document (#1919).
+                        componentType:
+                            authoredComponentType ??
+                            componentClass.componentType,
+                        ...suggestionArgs(
+                            nameDifferingOnlyInCase(attr, [
+                                ...Object.keys(classAttributes),
+                                ...ATTRIBUTES_OF_EVERY_TAG,
+                            ]),
+                        ),
+                    },
+                }),
+                unflattenedAttributes[attr],
+            );
         }
     }
     return { attributes, diagnostics, nComponents };
@@ -1488,6 +2082,48 @@ export function addDefaultPrimitiveAttributes({
         }
     }
     return { attributes: newAttributes, diagnostics, nComponents };
+}
+
+/**
+ * The attribute `attribute`, of an attribute read before references can be
+ * (`readBeforeReferences`), with any reference in it removed and the text
+ * around it kept, joined. A reference is reported once for the attribute,
+ * with `doenet-e0085`. When nothing but blank text is left, `attribute` is
+ * `undefined`: the attribute is left out, as if not written.
+ */
+function withoutReferences({
+    attribute,
+    attrName,
+}: {
+    attribute: UnflattenedAttribute;
+    attrName: string;
+}): {
+    attribute: UnflattenedAttribute | undefined;
+    diagnostics: DiagnosticRecord[];
+} {
+    if (attribute.children.every((child) => typeof child === "string")) {
+        return { attribute, diagnostics: [] };
+    }
+
+    const text = attribute.children
+        .filter((child): child is string => typeof child === "string")
+        .join("");
+
+    const diagnostics: DiagnosticRecord[] = [
+        codedDiagnostic({
+            type: "error",
+            code: "doenet-e0085",
+            args: { attribute: attrName },
+            position: attribute.position,
+            sourceDoc: attribute.sourceDoc,
+        }),
+    ];
+
+    if (text.trim() === "") {
+        return { attribute: undefined, diagnostics };
+    }
+
+    return { attribute: { ...attribute, children: [text] }, diagnostics };
 }
 
 /**
@@ -1562,34 +2198,15 @@ export function expandAttribute({
             }
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
-                // Attribute names are matched case-insensitively everywhere
-                // else (see `attributeLowerCaseMapping` in
-                // `expandAllAttributes`), so the author's spelling can be any
-                // casing. Match it the same way here, or `<tally TYPE="...">`
-                // would leave `type` uncopied while every other reading of the
-                // attribute still saw it — and the created component would be
-                // built to one type while the parent reported another.
-                const lowerCaseMapping: Record<string, string> = {};
-                for (const authorSpelling in allUnflattenedAttributes) {
-                    lowerCaseMapping[authorSpelling.toLowerCase()] =
-                        authorSpelling;
-                }
+                // Attribute names are matched exactly (D51): one the author
+                // wrote in another case was given the declared spelling
+                // already (`attribute-name-case.ts`, `correctAttributeNameCase`).
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
-                    const authorSpelling =
-                        lowerCaseMapping[attrName.toLowerCase()];
-                    if (authorSpelling !== undefined) {
+                    if (Object.hasOwn(allUnflattenedAttributes, attrName)) {
                         // XXX: we many need to increment component indices here
-                        unflattenedComponentAttributes[attrName] = {
-                            ...JSON.parse(
-                                JSON.stringify(
-                                    allUnflattenedAttributes[authorSpelling],
-                                ),
-                            ),
-                            // The declared spelling, not the author's, so that
-                            // the copy is indistinguishable from one written
-                            // out on the created component.
-                            name: attrName,
-                        };
+                        unflattenedComponentAttributes[attrName] = JSON.parse(
+                            JSON.stringify(allUnflattenedAttributes[attrName]),
+                        );
                     }
                 }
             }
@@ -1632,6 +2249,7 @@ export function expandAttribute({
                 type: "primitive",
                 name: attribute.name,
                 primitive: primitiveValue,
+                ...(attribute.position ? { position: attribute.position } : {}),
                 sourceDoc: attribute.sourceDoc,
             },
             diagnostics,
@@ -1867,13 +2485,29 @@ function createInitialComponentFromAttribute({
 }
 
 /**
+ * `children` with each run of adjacent strings joined into one.
+ */
+function joinAdjacentText<T>(children: (T | string)[]): (T | string)[] {
+    const joined: (T | string)[] = [];
+    for (const child of children) {
+        const last = joined[joined.length - 1];
+        if (typeof child === "string" && typeof last === "string") {
+            joined[joined.length - 1] = last + child;
+        } else {
+            joined.push(child);
+        }
+    }
+    return joined;
+}
+
+/**
  * Given that `attrDef` calls for creating a `PrimitiveAttribute` from `attribute`,
  * create the `PrimitiveAttributeValue` from the attribute's children,
  * based on the type of primitive called for by `attrDef`.
  */
 function createPrimitiveFromAttribute({
     attrDef,
-    attribute,
+    attribute: givenAttribute,
 }: {
     attrDef: AttributeDefinition<any>;
     attribute: UnflattenedAttribute;
@@ -1883,6 +2517,13 @@ function createPrimitiveFromAttribute({
             "Cannot call initialPrimitiveFromAttribute unless have createPrimitiveOfType",
         );
     }
+    // A `$` written as a reference (`&#36;`, `&dollar;`) is handed over as a
+    // piece of text of its own, beside the text around it: the pieces are
+    // one value (`staticName="a&#36;1"` is `a$1`, Doenet/DoenetML#2643 item 7).
+    const attribute = {
+        ...givenAttribute,
+        children: joinAdjacentText(givenAttribute.children),
+    };
 
     if (attribute.children.length === 0) {
         // if attribute is a boolean or has a `valueForTrue`,
@@ -1939,9 +2580,64 @@ function createPrimitiveFromAttribute({
         }
     }
 
-    throw Error(
-        `Invalid reference in a primitive attribute: ${attribute.name}`,
-    );
+    // A reference (`sortByProp="$t"`), or text beside one, in an attribute
+    // read as text when the document loads, before references are.
+    throw new DiagnosticError({
+        code: "doenet-e0090",
+        args: { attribute: attribute.name },
+        ...(attribute.position ? { position: attribute.position } : {}),
+    });
+}
+
+/**
+ * The error that converting `attributes`, written on a tag `componentType`
+ * with `extend` or `copy`, would throw when its replacement is made
+ * (`convertUnresolvedAttributesForComponentType` in `Copy.js`), if one: an
+ * attribute the tag reads as a primitive, written with a reference
+ * (`doenet-e0090`) or with no value (`doenet-e0072`). The `_copy`'s own
+ * attributes are not the tag's, as there.
+ */
+export function primitiveAttributeErrorOfCopy({
+    componentType,
+    attributes,
+    componentInfoObjects,
+}: {
+    componentType: string;
+    attributes: Record<string, UnflattenedAttribute>;
+    componentInfoObjects: ComponentInfoObjects;
+}): DiagnosticError | undefined {
+    const attributesObj =
+        componentInfoObjects.allComponentClasses[
+            componentType
+        ]?.createAttributesObject();
+    if (!attributesObj) {
+        return undefined;
+    }
+    const copyAttributesObj =
+        componentInfoObjects.allComponentClasses._copy.createAttributesObject();
+    for (const [name, attribute] of Object.entries(attributes)) {
+        if (
+            (Object.hasOwn(copyAttributesObj, name) &&
+                !copyAttributesObj[name].leaveRaw &&
+                name !== "asList") ||
+            !Object.hasOwn(attributesObj, name) ||
+            attributesObj[name].createPrimitiveOfType === undefined
+        ) {
+            continue;
+        }
+        try {
+            createPrimitiveFromAttribute({
+                attrDef: attributesObj[name],
+                attribute,
+            });
+        } catch (e) {
+            if (e instanceof DiagnosticError) {
+                return e;
+            }
+            throw e;
+        }
+    }
+    return undefined;
 }
 
 export function convertUnresolvedAttributesForComponentType({
@@ -1979,18 +2675,14 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    // Without a prototype, so that an attribute an author names
-    // `constructor` or `toString` finds nothing rather than `Object`'s.
-    let attributeLowerCaseMapping: Record<string, string> = Object.create(null);
-
-    for (let attrName in newAttributesObj) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
-    const compositeAttributeLowerCaseMapping: Record<string, string> =
-        Object.create(null);
-    for (const attrName in compositeAttributesObj) {
-        compositeAttributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    // Attribute names are matched exactly (D51), and only as the class's
+    // own, so that an attribute an author names `constructor` or `toString`
+    // finds nothing rather than `Object`'s.
+    function ownAttribute<T>(
+        attributesObj: Record<string, T>,
+        attrName: string,
+    ): string | undefined {
+        return Object.hasOwn(attributesObj, attrName) ? attrName : undefined;
     }
 
     const newAttributes: Record<string, SerializedAttribute> = {};
@@ -2006,8 +2698,11 @@ export function convertUnresolvedAttributesForComponentType({
         }
     }
     function isPrimitiveAttribute(attrNameOrig: string) {
-        const attrName = attributeLowerCaseMapping[attrNameOrig.toLowerCase()];
-        return Boolean(newAttributesObj[attrName]?.createPrimitiveOfType);
+        const attrName = ownAttribute(newAttributesObj, attrNameOrig);
+        return Boolean(
+            attrName !== undefined &&
+            newAttributesObj[attrName].createPrimitiveOfType,
+        );
     }
     const attrNamesInOrder = [
         ...Object.keys(attributes).filter(isPrimitiveAttribute),
@@ -2017,18 +2712,20 @@ export function convertUnresolvedAttributesForComponentType({
     for (const attrNameOrig of attrNamesInOrder) {
         const attribute = attributes[attrNameOrig];
 
-        const attrNameLower = attrNameOrig.toLowerCase();
-        const attrName = attributeLowerCaseMapping[attrNameLower];
+        const attrName = ownAttribute(newAttributesObj, attrNameOrig);
 
-        const attrDef = newAttributesObj[attrName];
+        const attrDef =
+            attrName === undefined ? undefined : newAttributesObj[attrName];
 
         // Look the attribute up by the composite's own name for it, not the
         // new class's: a class that accepts any attribute (`<module>`) does
         // not declare the composite's `_createComponentIdx`, and would
         // otherwise be handed it, along with the rest of a `_copy`'s own
         // attributes (#2227).
-        const compositeAttrName =
-            compositeAttributeLowerCaseMapping[attrNameLower];
+        const compositeAttrName = ownAttribute(
+            compositeAttributesObj,
+            attrNameOrig,
+        );
 
         if (
             compositeAttrName !== undefined &&
@@ -2041,7 +2738,7 @@ export function convertUnresolvedAttributesForComponentType({
             continue;
         }
 
-        if (attrDef) {
+        if (attrDef && attrName !== undefined) {
             if (attribute.type === "unresolved") {
                 let res = expandAttribute({
                     attrDef,
@@ -2187,21 +2884,15 @@ export function convertAttributeValuesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
-
-    for (let attrName in newAttributesObj) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
     const newAttributes: Record<string, SerializedAttribute> = {};
 
-    for (const attrNameOrig in attributeValues) {
-        const attributeVal = attributeValues[attrNameOrig];
+    // Matched exactly (D51).
+    for (const attrName in attributeValues) {
+        const attributeVal = attributeValues[attrName];
 
-        const attrName =
-            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
-
-        const attrDef = newAttributesObj[attrName];
+        const attrDef = Object.hasOwn(newAttributesObj, attrName)
+            ? newAttributesObj[attrName]
+            : undefined;
 
         if (attrDef?.createComponentOfType) {
             newAttributes[attrName] = {
@@ -2333,28 +3024,48 @@ function getComponentType(element: FlatElement) {
 }
 
 /**
+ * The reference `reference` (as written, `$s[1][1]`) of the copy whose
+ * resolution is `ref`, with its second index replaced by `.name`
+ * (`$s[1].q`): the component that index would have selected, named in every
+ * option or case (`doenet-w0191`). `undefined` when where it is written is
+ * not known from the positions in the DoenetML.
+ */
+function referenceNamingTheChild(
+    ref: any,
+    name: string,
+    reference: string,
+    sources: readonly string[],
+) {
+    const source = sources[ref?.originalPath?.[0]?.sourceDoc ?? 0];
+    // the index, brackets and all
+    const index = ref?.unresolvedPath?.[0]?.index?.[1]?.position;
+    const from = index?.start?.offset;
+    const to = index?.end?.offset;
+    if (source?.[from] !== "[" || source?.[to - 1] !== "]") {
+        return undefined;
+    }
+    return replaceInReference(ref, reference, sources, from, to, `.${name}`);
+}
+
+/**
  * The reference `reference` (as written, `$s.x`, `$s[1][2]`, `$s[1].x`) of
  * the copy whose resolution is `ref`, with `.P` written after the
  * `<select>` or `<conditionalContent>` it reaches and its first index, if
  * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
  * component named `P` in each option or case (`doenet-w0191`). `undefined`
  * when where to put it is not known from the positions in the DoenetML.
- * With `firstIndex`, for a `<select>` that can pick several, the first
- * pick's (`$s[1].P.x`), since `$s.P.x` then names `P` in several picks.
+ * After a `<select>` that picks several, only the indexed form reaches here
+ * (`$s[1].P.x`): with no index, a name or a property after it names nothing
+ * (`doenet-w0200`, D59).
  */
 function referenceNamingTheItem(
     ref: any,
     kind: "index" | "property",
     reference: string,
     sources: readonly string[],
-    firstIndex = false,
+    name = "P",
 ) {
     const path: any[] = ref?.unresolvedPath ?? [];
-    const original: any[] = ref?.originalPath ?? [];
-    const start = original[0]?.position?.start?.offset;
-    const end = original[original.length - 1]?.position?.end?.offset;
-    const sourceDoc = original[0]?.sourceDoc ?? 0;
-    const source = sources[sourceDoc];
     let at: number | undefined;
     if (path[0]?.name !== "") {
         // before the `.` of the property
@@ -2366,23 +3077,44 @@ function referenceNamingTheItem(
         // at the `[` of the second index
         at = path[0]?.index?.[1]?.position?.start?.offset;
     }
+    return replaceInReference(ref, reference, sources, at, at, `.${name}`);
+}
+
+/**
+ * The reference `reference` (as written) of the copy whose resolution is
+ * `ref`, with what is written from the offset `from` to `to` in the
+ * DoenetML replaced by `text`, keeping what is written before the path
+ * (`$`, `$$`). `undefined` when that span is not within the path.
+ */
+function replaceInReference(
+    ref: any,
+    reference: string,
+    sources: readonly string[],
+    from: number | undefined,
+    to: number | undefined,
+    text: string,
+) {
+    const original: any[] = ref?.originalPath ?? [];
+    const start = original[0]?.position?.start?.offset;
+    const end = original[original.length - 1]?.position?.end?.offset;
+    const source = sources[original[0]?.sourceDoc ?? 0];
     if (
         source === undefined ||
         typeof start !== "number" ||
         typeof end !== "number" ||
-        typeof at !== "number" ||
-        Number.isNaN(at) ||
-        at <= start ||
-        at > end
+        typeof from !== "number" ||
+        typeof to !== "number" ||
+        Number.isNaN(from) ||
+        Number.isNaN(to) ||
+        from <= start ||
+        to > end
     ) {
         return undefined;
     }
-    // what is written before the path (`$`, `$$`)
     const written = source.substring(start, end);
     const at0 = reference.indexOf(written);
     if (at0 < 0) {
         return undefined;
     }
-    const dollars = reference.slice(0, at0);
-    return `${dollars}${source.substring(start, at)}${firstIndex ? "[1]" : ""}.P${source.substring(at, end)}`;
+    return `${reference.slice(0, at0)}${source.substring(start, from)}${text}${source.substring(to, end)}`;
 }

@@ -732,7 +732,7 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
         const SOURCES = `<repeat name="rs" for="1 2"><sequence from="1" to="3"/></repeat>
 <repeat name="r" for="1 2"><sequence from="1" to="3"/><text>a</text></repeat>
 <sequence name="s" from="1" to="3"/>
-<number name="k">1</number><number name="n">5</number>`;
+<number name="k">1</number><number name="n">5</number><point name="P">(1,2,3)</point>`;
 
         for (const [written, codes, text] of [
             // an iteration holding one sequence, which `to` would change
@@ -743,12 +743,14 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
             [`<sequence extend="$rs[$n]"/>`, ["doenet-w0181"], "＿"],
             // an iteration holding a sequence and a text
             [`<sequence extend="$r[1]" to="5"/>`, ["doenet-e0071"], ""],
-            // a property, a list of numbers
-            [`<sequence extend="$s.value" to="5"/>`, ["doenet-e0071"], ""],
-            [`<sequence copy="$s.value"/>`, ["doenet-e0071"], ""],
+            // a property, a list of numbers (`$P.xs`; was `$s.value`, which
+            // names nothing since D59, as a list's value is not its own)
+            [`<sequence extend="$P.xs" to="5"/>`, ["doenet-e0071"], ""],
+            [`<sequence copy="$P.xs"/>`, ["doenet-e0071"], ""],
+            [`<sequence copy="$s.value"/>`, ["doenet-w0200"], "＿"],
             // an entry of a list or of a property, a number
             [`<sequence extend="$s[1]"/>`, ["doenet-e0071"], ""],
-            [`<sequence copy="$s.value[2]"/>`, ["doenet-e0071"], ""],
+            [`<sequence copy="$P.xs[2]"/>`, ["doenet-e0071"], ""],
             [`<sampleRandomNumbers extend="$rs[$k]"/>`, ["doenet-e0071"], ""],
         ] as const) {
             it(written, async () => {
@@ -768,6 +770,62 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
                 expect(
                     await textsOf(core, resolvePathToNodeIdx, ["p", "after"]),
                 ).eqls([text, "after"]);
+            });
+        }
+    });
+
+    /**
+     * A composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`) is made
+     * only from one of its own kind, and a property, or an entry of one or of
+     * a list, is a value, never one (REF-5). An extend or copy of a property
+     * holding several values showed nothing, with no error; of one
+     * holding one value, or of an entry, it was `doenet-e0065`, naming the
+     * value's type (#2546 item 4).
+     */
+    describe("a composite tag made from a property", () => {
+        const SOURCES = `<sequence name="s" from="1" to="3"/>
+<number name="n">3</number>
+<point name="P">(1,2)</point>
+<numberList name="l">1 2</numberList>`;
+
+        // (`$P.xs` for a property holding several values; `$s.value` names
+        // nothing since D59, a list's value not being its own)
+        for (const written of [
+            `<repeat extend="$P.xs"/>`,
+            `<repeat copy="$P.xs"/>`,
+            `<select extend="$n.value"/>`,
+            `<collect extend="$P.xs"/>`,
+            `<sort extend="$P.xs"/>`,
+            `<conditionalContent extend="$P.coords"/>`,
+            `<repeat extend="$l[2]"/>`,
+            `<select copy="$P.xs[1]"/>`,
+        ]) {
+            it(written, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${SOURCES}
+<p name="p">${written}</p>
+<p name="after">after</p>`,
+                });
+
+                const { errors, warnings } = getDiagnosticsByType(core);
+                const tag = written.match(/^<(\w+)/)![1];
+                const source = written.match(/"(.*)"/)![1];
+                expect(
+                    [...errors, ...warnings].map((d) => [
+                        d.code,
+                        d.message,
+                        d.position?.start.line,
+                    ]),
+                ).eqls([
+                    [
+                        "doenet-e0071",
+                        `A \`<${tag}>\` makes its content itself, so it can be made only from another \`<${tag}>\`, and \`${source}\` is a value. To show it as it is, write \`${source}\`.`,
+                        5,
+                    ],
+                ]);
+                expect(
+                    await textsOf(core, resolvePathToNodeIdx, ["p", "after"]),
+                ).eqls(["", "after"]);
             });
         }
     });

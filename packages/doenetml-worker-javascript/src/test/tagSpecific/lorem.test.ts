@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { componentOrListEntry } from "../utils/list-entries";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -319,5 +320,104 @@ describe("lorem tag tests @group2", async () => {
                 )
             ).stateValues.text,
         ).eq(paragraph2);
+    });
+
+    // A parameter read from the number of a section was a false circular
+    // dependency, wherever the section was (#2623 item 3): the paragraphs
+    // were made again, with new random text, whenever the parameter was
+    // marked stale, and replacing them marked it stale again.
+    describe("a parameter read from a section's number", () => {
+        async function paragraphs(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const { errors, warnings } = getDiagnosticsByType(core);
+            return {
+                errors,
+                warnings,
+                count: stateVariables[await resolvePathToNodeIdx("l")]
+                    .replacements!.length,
+            };
+        }
+
+        for (const property of ["sectionNumber", "ownNumber"]) {
+            it(`$s.${property} after the section`, async () => {
+                const { errors, warnings, count } = await paragraphs(`
+<section/>
+<section name="s"/>
+<lorem name="l" generateParagraphs="$s.${property}"/>
+`);
+                expect(errors).eqls([]);
+                expect(warnings).eqls([]);
+                expect(count).eq(2);
+            });
+
+            it(`$s.${property} before the section`, async () => {
+                const { errors, warnings, count } = await paragraphs(`
+<lorem name="l" generateParagraphs="$s.${property}"/>
+<section/>
+<section/>
+<section name="s"/>
+`);
+                expect(errors).eqls([]);
+                expect(warnings).eqls([]);
+                expect(count).eq(3);
+            });
+        }
+
+        it("words and sentences too, and through a number", async () => {
+            for (const doenetML of [
+                `<section name="s"/><p><lorem name="l" generateWords="$s.sectionNumber"/></p>`,
+                `<section name="s"/><p><lorem name="l" generateSentences="$s.sectionNumber"/></p>`,
+                `<section name="s"/><number name="n">$s.sectionNumber</number><lorem name="l" generateParagraphs="$n"/>`,
+                `<section name="s"/><lorem name="l" generateParagraphs="$s.title"/>`,
+            ]) {
+                const { errors } = await paragraphs(doenetML);
+                expect(errors, doenetML).eqls([]);
+            }
+        });
+    });
+
+    it("the text is kept until a parameter changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="n" prefill="2" />
+<lorem name="l" generateParagraphs="$n"/>
+`,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx("l")
+            ].replacements!.map(
+                (replacement) =>
+                    stateVariables[replacement.componentIdx].activeChildren[0],
+            );
+        }
+        const before = await texts();
+        expect(before.length).eq(2);
+
+        // the same value entered again: the same paragraphs
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await texts()).eqls(before);
+
+        // a new value: new paragraphs
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect((await texts()).length).eq(3);
     });
 });

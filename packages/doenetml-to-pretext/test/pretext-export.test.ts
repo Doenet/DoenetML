@@ -1840,10 +1840,10 @@ describe("Pretext export", async () => {
     // reading of and both unchanged by these renderers: a `<tabular>` with no
     // `<row>`, and a `<row>` with no `<cell>`.
     it("<tabular> keeps its borders and alignment, in PreTeXt's spelling", async () => {
-        source = `<tabular halign="end" topBorder="major" startBorder="minor" bottomBorder="medium" endBorder="minor">
-  <row header valign="top" bottomBorder="major">
+        source = `<tabular hAlign="end" topBorder="major" startBorder="minor" bottomBorder="medium" endBorder="minor">
+  <row header vAlign="top" bottomBorder="major">
     <cell>Name</cell>
-    <cell halign="center" endBorder="medium">Value</cell>
+    <cell hAlign="center" endBorder="medium">Value</cell>
   </row>
   <row startBorder="major">
     <cell colSpan="2">everything</cell>
@@ -1859,7 +1859,7 @@ describe("Pretext export", async () => {
     it("<col> is written back out ahead of the rows", async () => {
         source = `<tabular>
   <col width="25%" topBorder="major" />
-  <col width="15%" halign="end" endBorder="minor" />
+  <col width="15%" hAlign="end" endBorder="minor" />
   <row>
     <cell>Pennsylvania</cell>
     <cell>19</cell>
@@ -1923,8 +1923,8 @@ describe("Pretext export", async () => {
     });
 
     it("a setting a cell only inherited is written once, on the element that set it", async () => {
-        source = `<tabular halign="center">
-  <col halign="end" />
+        source = `<tabular hAlign="center">
+  <col hAlign="end" />
   <row>
     <cell>a</cell>
     <cell>b</cell>
@@ -1942,8 +1942,8 @@ describe("Pretext export", async () => {
 
     it("a spanning cell's trailing border comes from the last column it covers", async () => {
         source = `<tabular>
-  <col halign="center" endBorder="minor" />
-  <col halign="end" endBorder="major" />
+  <col hAlign="center" endBorder="minor" />
+  <col hAlign="end" endBorder="major" />
   <row>
     <cell colSpan="2">A</cell>
   </row>
@@ -1983,7 +1983,7 @@ describe("Pretext export", async () => {
         // describes has 1001 columns; writing `colspan="2000000"` into it
         // would contradict the `<col>` list written alongside.
         source = `<tabular>
-  <col halign="end" />
+  <col hAlign="end" />
   <row>
     <cell colSpan="2000000">a</cell>
     <cell>b</cell>

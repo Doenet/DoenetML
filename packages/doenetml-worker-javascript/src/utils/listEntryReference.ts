@@ -26,7 +26,7 @@
  * components of the type of the entries' property.
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
-import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../StateVariableNameResolver";
 import { VALUE_ENTRY_PREFIX } from "./mathVectorMatrixStateVariables";
 
 type PathPart = { name: string; index: any[]; [key: string]: any };
@@ -99,7 +99,7 @@ function entryPropertyOf(
     if (!entryClass || !name) {
         return undefined;
     }
-    const [property] = publicCaseInsensitiveAliasSubstitutions({
+    const [property] = publicAliasSubstitutions({
         stateVariables: [name],
         componentClass: entryClass,
         componentInfoObjects,
@@ -168,7 +168,7 @@ function indexedEntryProperty(
     if (!entryClass) {
         return undefined;
     }
-    const [arrayName] = publicCaseInsensitiveAliasSubstitutions({
+    const [arrayName] = publicAliasSubstitutions({
         stateVariables: [part.name],
         componentClass: entryClass,
         componentInfoObjects,

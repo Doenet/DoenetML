@@ -439,7 +439,7 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
                     doenetML: `
     <setup>
       <ref to="$countAside" name="refCountAside" />
-      <animateFromSequence target="$n" from="1" to="5" animationinterval="500" animationmode="increase once" name="count" />
+      <animateFromSequence target="$n" from="1" to="5" animationInterval="500" animationMode="increase once" name="count" />
     </setup>
 
     <callAction target="$refCountAside" actionName="navigateToTarget" name="startCount">

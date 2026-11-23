@@ -11,7 +11,7 @@ describe("equilibriumPoint Tag Tests @group2", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
-      <equilibriumPoint name="A" switchAble>(4,0)</equilibriumPoint>
+      <equilibriumPoint name="A" switchable>(4,0)</equilibriumPoint>
       <equilibriumPoint name="B" stable="false">(7,0)</equilibriumPoint>
       <equilibriumPoint name="C" stable="$b1" styleNumber="2">(-9,0)</equilibriumPoint>
       <equilibriumPoint name="D" stable="$b2" styleNumber="2" switchable>(-3,0)</equilibriumPoint>

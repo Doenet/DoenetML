@@ -22,8 +22,8 @@ export interface FieldBounds {
 export interface FieldGrid {
     dx: number;
     dy: number;
-    xoffset: number;
-    yoffset: number;
+    xOffset: number;
+    yOffset: number;
 }
 
 /**
@@ -75,10 +75,10 @@ export function latticeRange(
     bounds: FieldBounds,
     grid: FieldGrid,
 ): { minXind: number; maxXind: number; minYind: number; maxYind: number } {
-    const xIndA = (bounds.xMin - grid.xoffset) / grid.dx;
-    const xIndB = (bounds.xMax - grid.xoffset) / grid.dx;
-    const yIndA = (bounds.yMin - grid.yoffset) / grid.dy;
-    const yIndB = (bounds.yMax - grid.yoffset) / grid.dy;
+    const xIndA = (bounds.xMin - grid.xOffset) / grid.dx;
+    const xIndB = (bounds.xMax - grid.xOffset) / grid.dx;
+    const yIndA = (bounds.yMin - grid.yOffset) / grid.dy;
+    const yIndB = (bounds.yMax - grid.yOffset) / grid.dy;
 
     return {
         minXind: Math.ceil(Math.min(xIndA, xIndB)),
@@ -180,11 +180,11 @@ export function thinnedLatticeLines(
 
     const xs: number[] = [];
     for (let xind = firstXind; xind <= maxXind; xind += stride) {
-        xs.push(xind * grid.dx + grid.xoffset);
+        xs.push(xind * grid.dx + grid.xOffset);
     }
     const ys: number[] = [];
     for (let yind = firstYind; yind <= maxYind; yind += stride) {
-        ys.push(yind * grid.dy + grid.yoffset);
+        ys.push(yind * grid.dy + grid.yOffset);
     }
 
     return { xs, ys, stride };

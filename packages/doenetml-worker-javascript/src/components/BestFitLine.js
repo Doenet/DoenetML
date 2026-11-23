@@ -102,8 +102,8 @@ export default class BestFitLine extends Line {
                     setValue: {
                         equation: blankMath,
                         coeff0: blankMath,
-                        coeffvar1: blankMath,
-                        coeffvar2: blankMath,
+                        coeffVar1: blankMath,
+                        coeffVar2: blankMath,
                     },
                 };
             }
@@ -127,8 +127,8 @@ export default class BestFitLine extends Line {
                     setValue: {
                         equation: blankMath,
                         coeff0: blankMath,
-                        coeffvar1: blankMath,
-                        coeffvar2: blankMath,
+                        coeffVar1: blankMath,
+                        coeffVar2: blankMath,
                     },
                 };
             }
@@ -144,15 +144,15 @@ export default class BestFitLine extends Line {
             let s = lusolve(A, b);
 
             let coeff0 = me.fromAst(subset(s, index(0, 0)));
-            let coeffvar1 = me.fromAst(subset(s, index(1, 0)));
-            let coeffvar2 = me.fromAst(-1);
+            let coeffVar1 = me.fromAst(subset(s, index(1, 0)));
+            let coeffVar2 = me.fromAst(-1);
 
             let variables = dependencyValues.variables;
 
             let rhs = me
                 .fromAst(["+", ["*", "a", "x"], "c"])
                 .substitute({
-                    a: coeffvar1,
+                    a: coeffVar1,
                     c: coeff0,
                     x: variables[0],
                 })
@@ -168,8 +168,8 @@ export default class BestFitLine extends Line {
                 setValue: {
                     equation,
                     coeff0,
-                    coeffvar1,
-                    coeffvar2,
+                    coeffVar1,
+                    coeffVar2,
                 },
             };
         };
@@ -186,13 +186,13 @@ export default class BestFitLine extends Line {
                         dependencyType: "stateVariable",
                         variableName: "coeff0",
                     },
-                    coeffvar1: {
+                    coeffVar1: {
                         dependencyType: "stateVariable",
-                        variableName: "coeffvar1",
+                        variableName: "coeffVar1",
                     },
-                    coeffvar2: {
+                    coeffVar2: {
                         dependencyType: "stateVariable",
-                        variableName: "coeffvar2",
+                        variableName: "coeffVar2",
                     },
                     variables: {
                         dependencyType: "stateVariable",

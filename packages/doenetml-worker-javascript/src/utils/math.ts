@@ -654,7 +654,7 @@ export function numberToMathExpression(
     ) {
         // No number (`null`, `undefined`), or a value a number entry should
         // not hold, is a blank, never a crash or a `null` shown (D40,
-        // #2460): `$P.scales` of a point outside a graph.
+        // #2460).
         mathTree = "\uff3f";
     } else {
         if (number.im === 0) {

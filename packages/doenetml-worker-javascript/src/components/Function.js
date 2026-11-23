@@ -55,8 +55,8 @@ const attributesDefiningFunction = [
     "extrema",
     "through",
     "throughSlopes",
-    "xscale",
-    "yscale",
+    "xScale",
+    "yScale",
     "variables",
     "variable",
     "symbolic",
@@ -241,17 +241,17 @@ export default class Function extends InlineComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.xscale = {
+        attributes.xScale = {
             description: "Scale factor used along the x-axis.",
             createComponentOfType: "number",
-            createStateVariable: "xscale",
+            createStateVariable: "xScale",
             defaultValue: 1,
             public: true,
         };
-        attributes.yscale = {
+        attributes.yScale = {
             description: "Scale factor used along the y-axis.",
             createComponentOfType: "number",
-            createStateVariable: "yscale",
+            createStateVariable: "yScale",
             defaultValue: 1,
             public: true,
         };
@@ -1532,13 +1532,13 @@ export default class Function extends InlineComponent {
 
         stateVariableDefinitions.interpolationPoints = {
             returnDependencies: () => ({
-                xscale: {
+                xScale: {
                     dependencyType: "stateVariable",
-                    variableName: "xscale",
+                    variableName: "xScale",
                 },
-                yscale: {
+                yScale: {
                     dependencyType: "stateVariable",
-                    variableName: "yscale",
+                    variableName: "yScale",
                 },
                 prescribedPoints: {
                     dependencyType: "stateVariable",
@@ -3321,7 +3321,7 @@ export default class Function extends InlineComponent {
                     childGroups: ["functions"],
                     variableNames: [
                         "domain",
-                        "xscale",
+                        "xScale",
                         "isInterpolatedFunction",
                         "xs",
                         "coeffs",
@@ -3391,9 +3391,9 @@ export default class Function extends InlineComponent {
                             dependencyType: "stateVariable",
                             variableName: "variables",
                         },
-                        xscale: {
+                        xScale: {
                             dependencyType: "stateVariable",
-                            variableName: "xscale",
+                            variableName: "xScale",
                         },
                         functionChildrenInfoToCalculateExtrema: {
                             dependencyType: "stateVariable",
@@ -3423,7 +3423,7 @@ export default class Function extends InlineComponent {
                 let { localMinima, globalMinimum, globalInfimum } =
                     find_local_global_minima({
                         domain: dependencyValues.domain,
-                        xscale: dependencyValues.xscale,
+                        xScale: dependencyValues.xScale,
                         isInterpolatedFunction:
                             dependencyValues.isInterpolatedFunction,
                         xs: dependencyValues.xs,
@@ -3900,9 +3900,9 @@ export default class Function extends InlineComponent {
                             dependencyType: "stateVariable",
                             variableName: "variables",
                         },
-                        xscale: {
+                        xScale: {
                             dependencyType: "stateVariable",
-                            variableName: "xscale",
+                            variableName: "xScale",
                         },
                         functionChildrenInfoToCalculateExtrema: {
                             dependencyType: "stateVariable",
@@ -3932,7 +3932,7 @@ export default class Function extends InlineComponent {
                 let { localMaxima, globalMaximum, globalSupremum } =
                     find_local_global_maxima({
                         domain: dependencyValues.domain,
-                        xscale: dependencyValues.xscale,
+                        xScale: dependencyValues.xScale,
                         isInterpolatedFunction:
                             dependencyValues.isInterpolatedFunction,
                         xs: dependencyValues.xs,
@@ -5119,8 +5119,8 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
         xPrev = p.x;
     }
 
-    let xscale = dependencyValues.xscale;
-    let yscale = dependencyValues.yscale;
+    let xscale = dependencyValues.xScale;
+    let yscale = dependencyValues.yScale;
 
     xPrev = undefined;
     let yPrev, typePrev;

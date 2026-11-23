@@ -424,4 +424,43 @@ describe("SolveEquations tag tests @group2", async () => {
 
         await check_solutions(core, resolvePathToNodeIdx, [2]);
     });
+
+    it("is one thing: an index after it names nothing, and the solutions are reached by name (D41)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<solveEquations name="s">x^2 = 1</solveEquations>
+<p name="p1">$s[1]</p>
+<p name="p2">$s.solutions[1] $s.solutions[2]</p>
+<p name="p3">$s.numSolutions</p>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("＿");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("-1 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("2");
+        const diagnostics = (core as any).core.diagnostics.filter(
+            (d: any) => !d.code?.startsWith("doenet-a"),
+        );
+        expect(
+            diagnostics.map((d: any) => [
+                d.type,
+                d.code,
+                d.position?.start.line,
+                d.message,
+            ]),
+        ).eqls([
+            [
+                "warning",
+                "doenet-w0182",
+                3,
+                "`$s[1]`: an index does not select anything in a `<solveEquations>` itself. Write `$s.solutions[1]` to select among its `solutions`.",
+            ],
+        ]);
+    });
 });

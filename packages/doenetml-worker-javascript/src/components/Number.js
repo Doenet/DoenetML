@@ -43,6 +43,8 @@ export default class NumberComponent extends InlineComponent {
         });
     }
     static componentType = "number";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)
@@ -76,7 +78,7 @@ export default class NumberComponent extends InlineComponent {
             createStateVariable: "convertBoolean",
             defaultValue: false,
             description:
-                "Whether to convert boolean inputs to 1/0 instead of NaN.",
+                "Whether to read the content as true or false (a comparison or a boolean), giving 1 or 0. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",

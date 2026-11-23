@@ -9,6 +9,8 @@ import { isNumericConstant } from "../utils/math";
 
 export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
+    // An object, not a value, though built on `<math>` (D46).
+    static isValue = false;
 
     static componentDocs = {
         summary: "A periodic set of real numbers",

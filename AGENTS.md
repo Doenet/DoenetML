@@ -26,6 +26,7 @@ Both use Redux for state management (`packages/doenetml/src/state/`) and share a
 ### Connected Packages
 - **`@doenet/prefigure`** — backend for executing Python/computation-heavy activities
 - **`@doenet/standalone`, `@doenet/doenetml-iframe`** — bundled variants of the main library for different hosting scenarios
+- **`@doenet/doenetml-headless`** — runs a document in plain Node, with no browser: grades a saved state, checks a document, drives its inputs; a CLI too. It depends only on the `HeadlessCore` interface in `@doenet/utils`, which the JavaScript worker implements (`@doenet/doenetml-worker-javascript/headless`). See [`packages/doenetml-headless/README.md`](packages/doenetml-headless/README.md)
 - **`@doenet/codemirror`** — code editor integration
 - **`@doenet/ui-components`** — reusable UI components (used across doenetml, prefigure, etc.)
 - **`@doenet/i18n`** — message catalogs (Fluent `.ftl`) and the translator/locale-negotiation utilities shared by the viewer, the worker, and the LSP. See [`packages/i18n/README.md`](packages/i18n/README.md); run `npm run lint:i18n` after touching a catalog.
@@ -203,7 +204,7 @@ Two things worth knowing before touching anything here: a backport PR is based o
 
 ## Changesets
 
-The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes have crept in that way, always the same shape: listing an internal package (`@doenet/utils`, `@doenet/lsp-tools`, `@doenet/static-assets`, …) instead of the published packages that carry the change to users. Only six packages are ever published; every other `@doenet/*` package is bundled into `@doenet/doenetml`.
+The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes have crept in that way, always the same shape: listing an internal package (`@doenet/utils`, `@doenet/lsp-tools`, `@doenet/static-assets`, …) instead of the published packages that carry the change to users. Only seven packages are ever published; every other `@doenet/*` package is bundled into `@doenet/doenetml` (and the core, into `@doenet/doenetml-headless` too).
 
 ## Key State & Data Flow
 

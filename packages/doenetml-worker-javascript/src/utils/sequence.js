@@ -87,7 +87,7 @@ export function returnStandardSequenceStateVariableDefinitions() {
     // creates definitions for sequence state variables:
     // type, specifiedFrom, specifiedTo, specifiedLength, specifiedStep, specifiedExclude,
     // lowercase, validSequence,
-    // from, step, length, exclude
+    // from, step, length, exclude, last
 
     // uses attributes defined above
     // attributes: type
@@ -470,7 +470,7 @@ export function returnStandardSequenceStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.from = {
-        additionalStateVariablesDefined: ["step", "length", "exclude"],
+        additionalStateVariablesDefined: ["step", "length", "exclude", "last"],
 
         returnDependencies: () => ({
             specifiedFrom: {
@@ -588,15 +588,147 @@ export function returnStandardSequenceStateVariableDefinitions() {
                 length = 0;
             }
 
-            return { setValue: { from, step, length, exclude } };
+            return { setValue: { from, step, length, exclude, last: null } };
         },
     };
 
     return stateVariableDefinitions;
 }
 
+/**
+ * The first attribute of a sequence of numbers or letters, in the order
+ * `from`, `to`, `step`, `length`, that its `validSequence` finds invalid,
+ * with what it isn't (`"letters"` for a letters sequence's `from` or `to`,
+ * else `"number"`), or `null` when there is none. A sequence of maths is not
+ * read. A random selection from such a sequence can't select as written
+ * (`doenet-e0075`), the test the load-time check makes in each value.
+ */
+export function invalidSequenceAttribute({
+    specifiedFrom,
+    specifiedTo,
+    specifiedStep,
+    specifiedLength,
+    type,
+}) {
+    if (type !== "number" && type !== "letters") {
+        return null;
+    }
+    const endpointValid = (value) =>
+        type === "letters"
+            ? lettersToNumber(value) !== undefined
+            : Number.isFinite(findFiniteNumericalValue(value));
+    const endpointKind = type === "letters" ? "letters" : "number";
+    if (specifiedFrom !== null && !endpointValid(specifiedFrom)) {
+        return { attribute: "from", kind: endpointKind };
+    }
+    if (specifiedTo !== null && !endpointValid(specifiedTo)) {
+        return { attribute: "to", kind: endpointKind };
+    }
+    if (
+        specifiedStep !== null &&
+        !Number.isFinite(findFiniteNumericalValue(specifiedStep))
+    ) {
+        return { attribute: "step", kind: "number" };
+    }
+    if (
+        specifiedLength !== null &&
+        (!Number.isInteger(specifiedLength) || specifiedLength < 0)
+    ) {
+        return { attribute: "length", kind: "number" };
+    }
+    return null;
+}
+
+/**
+ * How far below a whole number a sequence's count, `(to - from) / step + 1`
+ * as computed, can be from floating point alone, given the `from`, `to` and
+ * `step` it is computed from (numbers; of a math sequence, their numeric
+ * values, `NaN` when not numbers, which give 0).
+ *
+ * `from` and `to` are each held to within half a unit in their last place
+ * (a decimal such as `1000.3` isn't held exactly), and the arithmetic that
+ * computed them (`$t + 0.3`) rounds by as much again for each operation;
+ * `to - from` doesn't cancel those errors, so the count is off by them over
+ * the step: with `from` 1000 and `to` 1000.3, `(to - from) / 0.1 + 1` is
+ * 3.99999999999954, which an author means as 4. A unit in the last place of
+ * a number `x` is at most `Number.EPSILON · |x|`, so 8 of them, of the larger
+ * of `from` and `to`, over the step, `8 · Number.EPSILON · max(|from|, |to|)
+ * / |step|`, allows for the rounding of holding both and of a few operations
+ * computing each. A `to` off the step's grid by more than that (`0.9999999999`,
+ * `1000.25`) keeps its count. The step's own error, relative to it, changes
+ * the count by a fraction of the count, which `1e-14` of the count allows
+ * for (`sequenceLengthOf`).
+ *
+ * Whole numbers below 2⁵³ are held exactly, so with `from`, `to` and `step`
+ * all such numbers there is no error: 0.
+ */
+export function sequenceCountTolerance({ from, to, step }) {
+    if ([from, to, step].every(Number.isSafeInteger)) {
+        return 0;
+    }
+    return countToleranceOf(Math.max(Math.abs(from), Math.abs(to)), step);
+}
+
+/**
+ * `8 · Number.EPSILON · magnitude / |step|` (see `sequenceCountTolerance`),
+ * 0 when that isn't a finite number.
+ */
+export function countToleranceOf(magnitude, step) {
+    const tolerance = (8 * Number.EPSILON * magnitude) / Math.abs(step);
+    return Number.isFinite(tolerance) ? tolerance : 0;
+}
+
+/**
+ * How many values a sequence has, given `count`, `(to - from) / step + 1`
+ * as computed: `count` rounded down, except that a count at most
+ * `tolerance` below a whole number, after `1e-14` of it is added (as
+ * before), is that whole number. `tolerance` is
+ * `sequenceCountTolerance` of the sequence's `from`, `to` and `step`.
+ *
+ * A count is rounded up by less than a half: when the tolerance is that
+ * large (a step of no more than some 16 units in the last place of `from`
+ * and `to`), floating point doesn't tell the count to within a step, and
+ * the nearer whole number is as near as it can be told; a whole count is
+ * never made larger.
+ */
+export function roundSequenceCount(count, tolerance) {
+    const counted = count * (1 + 1e-14);
+    const length = Math.floor(counted);
+    const shortfall = length + 1 - counted;
+    return shortfall < 0.5 && shortfall <= tolerance ? length + 1 : length;
+}
+
+/**
+ * How many values a sequence from `from` toward `to` by `step` has, given
+ * `count`, `(to - from) / step + 1` as computed (`roundSequenceCount`).
+ */
+export function sequenceLengthOf(count, { from, to, step }) {
+    return roundSequenceCount(
+        count,
+        sequenceCountTolerance({ from, to, step }),
+    );
+}
+
+/** The numeric values of a math sequence's `from`, `to` and `step`. */
+function mathMagnitudes({ from, to, step }) {
+    return {
+        from: numericValue(from),
+        to: numericValue(to),
+        step: numericValue(step),
+    };
+}
+
 export function calculateSequenceParameters({ from, to, step, length, type }) {
     // calculate from, length and step from combinatons of from/to/length/step specified
+
+    // the count `(to - from) / step + 1` as computed, when the length is
+    // that count rounded
+    let count = null;
+    const fromWritten = from !== null;
+    const countedLength = (computed, magnitudes) => {
+        count = computed;
+        return sequenceLengthOf(computed, magnitudes);
+    };
 
     if (from === null) {
         if (to === null) {
@@ -632,13 +764,16 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
             }
             if (length === null) {
                 if (type === "math") {
-                    length = Math.floor(
-                        (to.subtract(1).divide(step).evaluate_to_constant() +
-                            1) *
-                            (1 + 1e-14),
+                    length = countedLength(
+                        to.subtract(1).divide(step).evaluate_to_constant() + 1,
+                        mathMagnitudes({ from: 1, to, step }),
                     );
                 } else {
-                    length = Math.floor(((to - 1) / step + 1) * (1 + 1e-14));
+                    length = countedLength((to - 1) / step + 1, {
+                        from: 1,
+                        to,
+                        step,
+                    });
                 }
             }
 
@@ -646,14 +781,36 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
             // defined step and length even if none
             if (type === "math") {
                 from = to.subtract(step.multiply(length - 1)).simplify();
+                if (count !== null && length >= 2) {
+                    // not before the 1 it counts back to (see below)
+                    const first = numericValue(from);
+                    const s = numericValue(step);
+                    if ((s > 0 && first < 1) || (s < 0 && first > 1)) {
+                        from = me.fromAst(1);
+                    }
+                }
+            } else if (type === "number" && count !== null) {
+                // counted back from `to` toward 1: the first value is not
+                // before 1, which floating point can leave it just before
+                // when the count was rounded up to a whole number (and the
+                // last is `to`, below). One value is `to`.
+                from = to - step * (length - 1);
+                if (
+                    length >= 2 &&
+                    ((step > 0 && from < 1) || (step < 0 && from > 1))
+                ) {
+                    from = 1;
+                }
             } else {
                 from = to - step * (length - 1);
                 if (type === "letters") {
                     if (from < 1) {
                         // adjust length so that have valid letters
-                        length = Math.floor(
-                            ((to - 1) / step + 1) * (1 + 1e-14),
-                        );
+                        length = countedLength((to - 1) / step + 1, {
+                            from: 1,
+                            to,
+                            step,
+                        });
                         from = to - step * (length - 1);
                     }
                 }
@@ -679,13 +836,17 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                 if (length === null) {
                     if (type === "math") {
                         step = me.fromAst(1);
-                        length = Math.floor(
-                            to.subtract(from).add(1).evaluate_to_constant() *
-                                (1 + 1e-14),
+                        length = countedLength(
+                            to.subtract(from).add(1).evaluate_to_constant(),
+                            mathMagnitudes({ from, to, step }),
                         );
                     } else {
                         step = 1;
-                        length = Math.floor((to - from + 1) * (1 + 1e-14));
+                        length = countedLength(to - from + 1, {
+                            from,
+                            to,
+                            step,
+                        });
                     }
                 } else {
                     if (type === "math") {
@@ -702,18 +863,20 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                 if (length === null) {
                     // from, to, and step, no length
                     if (type === "math") {
-                        length = Math.floor(
+                        length = countedLength(
                             to
                                 .subtract(from)
                                 .divide(step)
                                 .add(1)
-                                .evaluate_to_constant() *
-                                (1 + 1e-14),
+                                .evaluate_to_constant(),
+                            mathMagnitudes({ from, to, step }),
                         );
                     } else {
-                        length = Math.floor(
-                            ((to - from) / step + 1) * (1 + 1e-14),
-                        );
+                        length = countedLength((to - from) / step + 1, {
+                            from,
+                            to,
+                            step,
+                        });
                     }
                 } else {
                     // from, to, step, and length defined
@@ -736,28 +899,103 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
         from,
         step,
         length,
+        last: lastValueOf({ from, to, step, length, count, type, fromWritten }),
     };
 }
 
+/** The number a math (or number) is, `NaN` when it isn't one. */
+function numericValue(x) {
+    if (typeof x === "number") {
+        return x;
+    }
+    const v = x?.evaluate_to_constant?.();
+    return typeof v === "number" ? v : NaN;
+}
+
+/**
+ * A sequence's last value when it isn't `from + step (length - 1)` as
+ * computed: `to`, when the length was rounded up to a whole number
+ * (`sequenceLengthOf`) or that computation goes past `to`; otherwise
+ * `null`. So the values never go past `to`: computed, the last value of a
+ * count rounded up is a little past `to` or a little before it (with `from`
+ * 0, `to` 0.3 and step 0.1, `0.30000000000000004`), and it is `to`.
+ *
+ * Except that the values of a `from` and a step that are whole numbers
+ * are whole numbers: with `from` 1 and `to` `(0.1 + 0.7) · 10`, which is
+ * 7.999999999999999, the values are 1 to 8, the last within floating point
+ * past `to` (#2387: what the author means). Computed, such values are
+ * exact, so this is when the count was rounded up.
+ */
+function lastValueOf({ from, to, step, length, count, type, fromWritten }) {
+    if (to === null || !(length >= 2)) {
+        // one value is `from` (when the count was rounded up to 1, `to` is
+        // within floating point of it, before or after)
+        return null;
+    }
+    const roundedUp = count !== null && length > Math.floor(count);
+    let computed;
+    if (type === "math") {
+        computed = numericValue(
+            from
+                .add(step.multiply(me.fromAst(length - 1)))
+                .expand()
+                .simplify(),
+        );
+    } else {
+        computed = from + step * (length - 1);
+    }
+    const s = numericValue(step);
+    const t = numericValue(to);
+    if (
+        fromWritten &&
+        Number.isSafeInteger(numericValue(from)) &&
+        Number.isSafeInteger(s) &&
+        Number.isSafeInteger(computed)
+    ) {
+        return null;
+    }
+    const past = (s > 0 && computed > t) || (s < 0 && computed < t);
+    if (!roundedUp && !past) {
+        return null;
+    }
+    return type === "math" ? to.expand().simplify() : to;
+}
+
+/**
+ * The value at `index` (from 0) of a sequence, before any is excluded:
+ * `from + step · index`, except that the last is `last` when that is given
+ * (`calculateSequenceParameters`).
+ *
+ * @param {{ from: any, step: any, length?: number, last?: any, type?: string }} sequence
+ * @param {number} index
+ */
+export function sequenceValueAt({ from, step, length, last, type }, index) {
+    if (last !== undefined && last !== null && index === length - 1) {
+        return last;
+    }
+    let value = from;
+    if (index > 0) {
+        if (type === "math") {
+            value = value
+                .add(step.multiply(me.fromAst(index)))
+                .expand()
+                .simplify();
+        } else {
+            value += step * index;
+        }
+    }
+    return value;
+}
+
 export function returnSequenceValues(
-    { from, step, length, exclude, type, lowercase, maxNum },
+    { from, step, length, last, exclude, type, lowercase, maxNum },
     includeOriginalIndex = false,
 ) {
     let sequenceValues = [];
     let numValues = 0;
 
     for (let ind = 0; ind < length; ind++) {
-        let value = from;
-        if (ind > 0) {
-            if (type === "math") {
-                value = value
-                    .add(step.multiply(me.fromAst(ind)))
-                    .expand()
-                    .simplify();
-            } else {
-                value += step * ind;
-            }
-        }
+        let value = sequenceValueAt({ from, step, length, last, type }, ind);
 
         if (type === "math") {
             if (exclude.some((x) => x && x.equals(value))) {
@@ -821,6 +1059,7 @@ export function returnSequenceValueForIndex({
     from,
     step,
     length,
+    last,
     exclude,
     type,
     lowercase,
@@ -831,17 +1070,7 @@ export function returnSequenceValueForIndex({
         return null;
     }
 
-    let value = from;
-    if (index > 0) {
-        if (type === "math") {
-            value = value
-                .add(step.multiply(me.fromAst(index)))
-                .expand()
-                .simplify();
-        } else {
-            value += step * index;
-        }
-    }
+    let value = sequenceValueAt({ from, step, length, last, type }, index);
 
     if (type === "math") {
         if (exclude.some((x) => x && x.equals(value))) {

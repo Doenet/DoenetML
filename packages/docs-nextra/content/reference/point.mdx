@@ -85,6 +85,15 @@ The initial coordinates of a `<point>{:dn}` may be specified between opening and
 
 Three different ways to specify the coordinates of a `<point>{:dn}` using its attributes are illustrated.
 
+Each coordinate is taken from `x`, `y` or `z` first, then from `coords`, then
+from the point's content: `<point x="3">(5,6)</point>{:dn}` is `(3, 6)`. Content
+that the attributes override entirely, as in `<point x="3" y="4">(5,6)</point>{:dn}`
+or `<point coords="(3,4)">(5,6)</point>{:dn}`, isn't used, and gives a warning.
+A point is missing only when a coordinate it uses names nothing:
+`<point x="3" y="4">$nothing</point>{:dn}` is `(3, 4)`, while
+`<point x="3">$nothing</point>{:dn}` is missing, since its `y` would come from
+the content.
+
 
 
 ---
@@ -159,7 +168,7 @@ Points with standard styleNumbers one through six are illustrated. If unspecifie
 ```doenet-editor-horiz
 <p><m>A = $A</m> (Constrained to grid)</p>
 <p><m>B = $B</m> (Attracted to grid)</p>
-<graph size="small" grid="1 1" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" grid="1 1" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A graph of two points, one constrained to a grid and one attracted</shortDescription>
   <point name="A" labelIsName>(-2,2)
     <constrainToGrid/>
@@ -207,7 +216,7 @@ Points can take constraints as children. Several different types of constraints 
 ```doenet-editor-horiz
 <p><m>p = $p</m></p>
 <p><number name="t">-4pi</number></p>
-<graph size="small" xmin="-5pi" xmax="5pi" ymin="-2.5" ymax="2.5" xTickScaleFactor="pi">
+<graph size="small" xMin="-5pi" xMax="5pi" yMin="-2.5" yMax="2.5" xTickScaleFactor="pi">
   <shortDescription>A graph of an animated point on a sine curve</shortDescription>
   <point name="p" styleNumber="2">
     ($t, sin($t))

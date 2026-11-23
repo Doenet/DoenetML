@@ -85,7 +85,7 @@ let checkSingleColumnSbs = async function ({
         actualRightMargin += 100 - originalTotal;
     }
 
-    let valign = specifiedValign ? specifiedValign : "top";
+    let vAlign = specifiedValign ? specifiedValign : "top";
 
     let stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -118,7 +118,7 @@ let checkSingleColumnSbs = async function ({
         actualRightMargin,
         1e-5,
     );
-    expect(stateVariables[sbsIdx].stateValues.valigns).eqls([valign]);
+    expect(stateVariables[sbsIdx].stateValues.vAligns).eqls([vAlign]);
 };
 
 let checkTwoColumnSbs = async function ({
@@ -278,7 +278,7 @@ let checkTwoColumnSbs = async function ({
         actualGap = 100 - originalTotal;
     }
 
-    let valigns = [
+    let vAligns = [
         specifiedValigns[0] ? specifiedValigns[0] : "top",
         specifiedValigns[1] ? specifiedValigns[1] : "top",
     ];
@@ -321,7 +321,7 @@ let checkTwoColumnSbs = async function ({
         actualGap,
         1e-5,
     );
-    expect(stateVariables[sbsIdx].stateValues.valigns).eqls(valigns);
+    expect(stateVariables[sbsIdx].stateValues.vAligns).eqls(vAligns);
 };
 
 let checkFourColumnSbs = async function ({
@@ -422,7 +422,7 @@ let checkFourColumnSbs = async function ({
     let actualLeftMargin = actualMargins[0];
     let actualRightMargin = actualMargins[1];
 
-    let valigns = specifiedValigns.map((x) => (x ? x : "top"));
+    let vAligns = specifiedValigns.map((x) => (x ? x : "top"));
 
     let specifiedWidthName = isSbsGroup
         ? "specifiedWidths"
@@ -470,7 +470,7 @@ let checkFourColumnSbs = async function ({
         actualGap,
         1e-5,
     );
-    expect(stateVariables[sbsIdx].stateValues.valigns).eqls(valigns);
+    expect(stateVariables[sbsIdx].stateValues.vAligns).eqls(vAligns);
 };
 
 describe("SideBySide tag tests @group1", async () => {
@@ -491,7 +491,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valign: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
     </p>
     `,
         });
@@ -679,7 +679,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change valign
+        // change vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -694,7 +694,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -727,7 +727,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valign: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
     </p>
     `,
         });
@@ -761,7 +761,7 @@ describe("SideBySide tag tests @group1", async () => {
         ).eqls([0, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("sbs")].stateValues
-                .valigns,
+                .vAligns,
         ).eqls(["top"]);
 
         // change width first, unspecified margins adjusts
@@ -850,7 +850,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with singular relative arguments, one panel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" width="80%" margins="10%" valign="middle">
+    <sideBySide name="sbs" width="80%" margins="10%" vAlign="middle">
     <lorem generateParagraphs="1" />
     </sideBySide>
 
@@ -864,7 +864,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valign: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
     </p>
     `,
         });
@@ -929,7 +929,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change valign
+        // change vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -944,7 +944,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // ignore invalid valign
+        // ignore invalid vAlign
         await updateTextInputValue({
             text: "green",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -963,7 +963,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with plural relative arguments, one panel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" widths="80%" margins="15% 5%" valigns="middle">
+    <sideBySide name="sbs" widths="80%" margins="15% 5%" vAligns="middle">
     <lorem generateParagraphs="1" />
     </sideBySide>
 
@@ -977,7 +977,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valign: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
     </p>
     `,
         });
@@ -1042,7 +1042,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change valign
+        // change vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1057,7 +1057,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // ignore invalid valign
+        // ignore invalid vAlign
         await updateTextInputValue({
             text: "green",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1076,7 +1076,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with singular relative arguments and auto margins, one panel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" width="80%" margins="auto" valign="middle">
+    <sideBySide name="sbs" width="80%" margins="auto" vAlign="middle">
     <lorem generateParagraphs="1" />
     </sideBySide>
 
@@ -1090,7 +1090,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valign: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
     </p>
     `,
         });
@@ -1154,7 +1154,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change valign
+        // change vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1169,7 +1169,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // ignore invalid valign
+        // ignore invalid vAlign
         await updateTextInputValue({
             text: "green",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1204,8 +1204,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -1437,7 +1437,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1452,7 +1452,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -1467,7 +1467,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -1502,8 +1502,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -1615,7 +1615,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with singular relative arguments, two panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" width="20%" margins="10%" valign="middle">
+    <sideBySide name="sbs" width="20%" margins="10%" vAlign="middle">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     </sideBySide>
@@ -1631,8 +1631,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -1727,7 +1727,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1742,7 +1742,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -1757,7 +1757,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1776,7 +1776,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with plural relative arguments, two panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" widths="20% 10%" margins="10% 20%" valigns="middle bottom">
+    <sideBySide name="sbs" widths="20% 10%" margins="10% 20%" vAligns="middle bottom">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     </sideBySide>
@@ -1792,8 +1792,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -1888,7 +1888,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -1903,7 +1903,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -1918,7 +1918,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -1937,7 +1937,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with half-specified plural relative arguments and auto margins", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" widths="20%" margins="auto" valigns="middle">
+    <sideBySide name="sbs" widths="20%" margins="auto" vAligns="middle">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     </sideBySide>
@@ -1953,8 +1953,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -2079,7 +2079,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -2094,7 +2094,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -2109,7 +2109,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -2148,10 +2148,10 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
-    <textInput name="v3" bindValueTo="$(sbs.valign3)" />
-    <textInput name="v4" bindValueTo="$(sbs.valign4)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
+    <textInput name="v3" bindValueTo="$(sbs.vAlign3)" />
+    <textInput name="v4" bindValueTo="$(sbs.vAlign4)" />
     </p>
     `,
         });
@@ -2320,7 +2320,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change fourth valign
+        // change fourth vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v4"),
@@ -2335,7 +2335,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -2350,7 +2350,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -2365,7 +2365,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change third valign
+        // change third vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v3"),
@@ -2380,7 +2380,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid valign ignored
+        // invalid vAlign ignored
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v3"),
@@ -2399,7 +2399,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with singular relative arguments, four panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" width="15%" margins="5%" valign="middle">
+    <sideBySide name="sbs" width="15%" margins="5%" vAlign="middle">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
@@ -2419,10 +2419,10 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
-    <textInput name="v3" bindValueTo="$(sbs.valign3)" />
-    <textInput name="v4" bindValueTo="$(sbs.valign4)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
+    <textInput name="v3" bindValueTo="$(sbs.vAlign3)" />
+    <textInput name="v4" bindValueTo="$(sbs.vAlign4)" />
     </p>
     `,
         });
@@ -2487,7 +2487,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change fourth valign
+        // change fourth vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v4"),
@@ -2506,7 +2506,7 @@ describe("SideBySide tag tests @group1", async () => {
     it("sideBySide with plural relative arguments, four panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" widths="5% 10% 15% 20%" margins="5% 2%" valigns="middle">
+    <sideBySide name="sbs" widths="5% 10% 15% 20%" margins="5% 2%" vAligns="middle">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
@@ -2526,10 +2526,10 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
-    <textInput name="v3" bindValueTo="$(sbs.valign3)" />
-    <textInput name="v4" bindValueTo="$(sbs.valign4)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
+    <textInput name="v3" bindValueTo="$(sbs.vAlign3)" />
+    <textInput name="v4" bindValueTo="$(sbs.vAlign4)" />
     </p>
     `,
         });
@@ -2624,7 +2624,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change valigns
+        // change vAligns
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -2658,13 +2658,13 @@ describe("SideBySide tag tests @group1", async () => {
     it("copy sideBySide and overwrite parameters", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sideBySide name="sbs" widths="5% 10% 15% 20%" margins="5% 2%" valigns="middle">
+    <sideBySide name="sbs" widths="5% 10% 15% 20%" margins="5% 2%" vAligns="middle">
       <lorem generateParagraphs="4" />
     </sideBySide>
 
-    <sideBySide extend="$sbs" widths="30% 10%" margins="1% 3%" valigns="bottom middle top bottom" name="sbs2" />
+    <sideBySide extend="$sbs" widths="30% 10%" margins="1% 3%" vAligns="bottom middle top bottom" name="sbs2" />
 
-    <sideBySide extend="$sbs2" widths="7% 8% 11% 12%" valigns="top bottom" name="sbs3" />
+    <sideBySide extend="$sbs2" widths="7% 8% 11% 12%" vAligns="top bottom" name="sbs3" />
 
     `,
         });
@@ -2762,7 +2762,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valign for sbsg: 
-    <textInput name="v1g" bindValueTo="$(sbsg.valign1)" />
+    <textInput name="v1g" bindValueTo="$(sbsg.vAlign1)" />
     </p>
     
     <p>Width for sbs1: 
@@ -2775,7 +2775,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valign for sbs1: 
-    <textInput name="v11" bindValueTo="$(sbs1.valign1)" />
+    <textInput name="v11" bindValueTo="$(sbs1.vAlign1)" />
     </p>
     
     <p>Width for sbs2: 
@@ -2788,7 +2788,7 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valign for sbs2: 
-    <textInput name="v12" bindValueTo="$(sbs2.valign1)" />
+    <textInput name="v12" bindValueTo="$(sbs2.vAlign1)" />
     </p>
     `,
         });
@@ -3255,7 +3255,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, 25]);
 
-        // change valign of sbs1
+        // change vAlign of sbs1
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v11"),
@@ -3303,7 +3303,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, 25]);
 
-        // change valign of sbsg
+        // change vAlign of sbsg
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v1g"),
@@ -3353,7 +3353,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, 25]);
 
-        // change valign of sbs2
+        // change vAlign of sbs2
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v12"),
@@ -3403,7 +3403,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, 25]);
 
-        // valign of sbsg ignores invalid
+        // vAlign of sbsg ignores invalid
         await updateTextInputValue({
             text: "banana",
             componentIdx: await resolvePathToNodeIdx("v1g"),
@@ -3479,8 +3479,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbsg: 
-    <textInput name="v1g" bindValueTo="$(sbsg.valign1)" />
-    <textInput name="v2g" bindValueTo="$(sbsg.valign2)" />
+    <textInput name="v1g" bindValueTo="$(sbsg.vAlign1)" />
+    <textInput name="v2g" bindValueTo="$(sbsg.vAlign2)" />
     </p>
     
     <p>Widths for sbs1: 
@@ -3494,8 +3494,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs1: 
-    <textInput name="v11" bindValueTo="$(sbs1.valign1)" />
-    <textInput name="v21" bindValueTo="$(sbs1.valign2)" />
+    <textInput name="v11" bindValueTo="$(sbs1.vAlign1)" />
+    <textInput name="v21" bindValueTo="$(sbs1.vAlign2)" />
     </p>
     
     <p>Widths for sbs2: 
@@ -3509,8 +3509,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs2: 
-    <textInput name="v12" bindValueTo="$(sbs2.valign1)" />
-    <textInput name="v22" bindValueTo="$(sbs2.valign2)" />
+    <textInput name="v12" bindValueTo="$(sbs2.vAlign1)" />
+    <textInput name="v22" bindValueTo="$(sbs2.vAlign2)" />
     </p>
     `,
         });
@@ -4021,7 +4021,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change first valign of sbsg
+        // change first vAlign of sbsg
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1g"),
@@ -4071,7 +4071,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change first valign of sbs2
+        // change first vAlign of sbs2
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v12"),
@@ -4121,7 +4121,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change second valign of sbs1
+        // change second vAlign of sbs1
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v21"),
@@ -4171,7 +4171,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change second valign of sbsg
+        // change second vAlign of sbsg
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v2g"),
@@ -4225,12 +4225,12 @@ describe("SideBySide tag tests @group1", async () => {
     it("sbsGroup with singular arguments, sidebysides with plural or no arguments, two panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sbsGroup name="sbsg" width="25%" margins="10%" valign="middle">
-      <sideBySide name="sbs1" widths="40% 20%" valigns="top">
+    <sbsGroup name="sbsg" width="25%" margins="10%" vAlign="middle">
+      <sideBySide name="sbs1" widths="40% 20%" vAligns="top">
         <lorem generateParagraphs="1" />
         <lorem generateParagraphs="1" />
       </sideBySide>
-      <sideBySide name="sbs2" margins="15% 5%" valigns="bottom top">
+      <sideBySide name="sbs2" margins="15% 5%" vAligns="bottom top">
         <lorem generateParagraphs="1" />
         <lorem generateParagraphs="1" />
       </sideBySide>
@@ -4247,8 +4247,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbsg: 
-    <textInput name="v1g" bindValueTo="$(sbsg.valign1)" />
-    <textInput name="v2g" bindValueTo="$(sbsg.valign2)" />
+    <textInput name="v1g" bindValueTo="$(sbsg.vAlign1)" />
+    <textInput name="v2g" bindValueTo="$(sbsg.vAlign2)" />
     </p>
     
     <p>Widths for sbs1: 
@@ -4262,8 +4262,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs1: 
-    <textInput name="v11" bindValueTo="$(sbs1.valign1)" />
-    <textInput name="v21" bindValueTo="$(sbs1.valign2)" />
+    <textInput name="v11" bindValueTo="$(sbs1.vAlign1)" />
+    <textInput name="v21" bindValueTo="$(sbs1.vAlign2)" />
     </p>
     
     <p>Widths for sbs2: 
@@ -4277,8 +4277,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs2: 
-    <textInput name="v12" bindValueTo="$(sbs2.valign1)" />
-    <textInput name="v22" bindValueTo="$(sbs2.valign2)" />
+    <textInput name="v12" bindValueTo="$(sbs2.vAlign1)" />
+    <textInput name="v22" bindValueTo="$(sbs2.vAlign2)" />
     </p>
     `,
         });
@@ -4794,7 +4794,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign1 of sbsg
+        // change vAlign1 of sbsg
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1g"),
@@ -4844,7 +4844,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign2 of sbs1
+        // change vAlign2 of sbs1
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v21"),
@@ -4894,7 +4894,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign2 of sbsg
+        // change vAlign2 of sbsg
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v2g"),
@@ -4944,7 +4944,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign1 of sbs1
+        // change vAlign1 of sbs1
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v11"),
@@ -4994,7 +4994,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valigns of sbs2
+        // change vAligns of sbs2
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v12"),
@@ -5053,8 +5053,8 @@ describe("SideBySide tag tests @group1", async () => {
     it("sbsGroup with plural arguments, sidebysides with singular or no arguments, two panels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sbsGroup name="sbsg" widths="25% 15%" margins="5% 10%" valigns="middle top">
-      <sideBySide name="sbs1" width="20%" valign="top">
+    <sbsGroup name="sbsg" widths="25% 15%" margins="5% 10%" vAligns="middle top">
+      <sideBySide name="sbs1" width="20%" vAlign="top">
         <lorem generateParagraphs="1" />
         <lorem generateParagraphs="1" />
       </sideBySide>
@@ -5075,8 +5075,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbsg: 
-    <textInput name="v1g" bindValueTo="$(sbsg.valign1)" />
-    <textInput name="v2g" bindValueTo="$(sbsg.valign2)" />
+    <textInput name="v1g" bindValueTo="$(sbsg.vAlign1)" />
+    <textInput name="v2g" bindValueTo="$(sbsg.vAlign2)" />
     </p>
     
     <p>Widths for sbs1: 
@@ -5090,8 +5090,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs1: 
-    <textInput name="v11" bindValueTo="$(sbs1.valign1)" />
-    <textInput name="v21" bindValueTo="$(sbs1.valign2)" />
+    <textInput name="v11" bindValueTo="$(sbs1.vAlign1)" />
+    <textInput name="v21" bindValueTo="$(sbs1.vAlign2)" />
     </p>
     
     <p>Widths for sbs2: 
@@ -5105,8 +5105,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
     
     <p>Valigns for sbs2: 
-    <textInput name="v12" bindValueTo="$(sbs2.valign1)" />
-    <textInput name="v22" bindValueTo="$(sbs2.valign2)" />
+    <textInput name="v12" bindValueTo="$(sbs2.vAlign1)" />
+    <textInput name="v22" bindValueTo="$(sbs2.vAlign2)" />
     </p>
     `,
         });
@@ -5767,7 +5767,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign1 of sbsg
+        // change vAlign1 of sbsg
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1g"),
@@ -5817,7 +5817,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign2 of sbs1
+        // change vAlign2 of sbs1
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v21"),
@@ -5867,7 +5867,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign2 of sbsg
+        // change vAlign2 of sbsg
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2g"),
@@ -5917,7 +5917,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valign1 of sbs1
+        // change vAlign1 of sbs1
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v11"),
@@ -5967,7 +5967,7 @@ describe("SideBySide tag tests @group1", async () => {
                 .essentialMargins,
         ).eqls([null, null]);
 
-        // change valigns of sbs2
+        // change vAligns of sbs2
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v12"),
@@ -6026,8 +6026,8 @@ describe("SideBySide tag tests @group1", async () => {
     it("copy sbsGroup and overwrite parameters", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sbsGroup name="sbsg" widths="25% 15%" margins="5% 10%" valigns="middle top">
-      <sideBySide name="sbs1" width="20%" valign="top">
+    <sbsGroup name="sbsg" widths="25% 15%" margins="5% 10%" vAligns="middle top">
+      <sideBySide name="sbs1" width="20%" vAlign="top">
         <lorem generateParagraphs="2" />
       </sideBySide>
       <sideBySide name="sbs2" margins="8%">
@@ -6035,9 +6035,9 @@ describe("SideBySide tag tests @group1", async () => {
       </sideBySide>
     </sbsGroup>
 
-    <sbsGroup extend="$sbsg" widths="30% 10%" margins="1% 3%" valigns="bottom middle" name="sbsg2" />
+    <sbsGroup extend="$sbsg" widths="30% 10%" margins="1% 3%" vAligns="bottom middle" name="sbsg2" />
 
-    <sbsGroup extend="$sbsg2" widths="7%" valigns="top bottom" name="sbsg3" />
+    <sbsGroup extend="$sbsg2" widths="7%" vAligns="top bottom" name="sbsg3" />
 
     `,
         });
@@ -6208,7 +6208,7 @@ describe("SideBySide tag tests @group1", async () => {
     <p>Margin: <mathInput name="m" prefill="10" /></p>
     <p>Valign: <textInput name="v" prefill="middle" /></p>
 
-    <sideBySide name="sbs" width="$(w)%" margins="$(m)%" valign="$v">
+    <sideBySide name="sbs" width="$(w)%" margins="$(m)%" vAlign="$v">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     </sideBySide>
@@ -6224,8 +6224,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -6380,7 +6380,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -6395,7 +6395,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change defining valign
+        // change defining vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -6410,7 +6410,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -6425,7 +6425,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid defining valign becomes top
+        // invalid defining vAlign becomes top
         await updateTextInputValue({
             text: "invalid",
             componentIdx: await resolvePathToNodeIdx("v"),
@@ -6440,7 +6440,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // reset from first valign
+        // reset from first vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -6467,12 +6467,12 @@ describe("SideBySide tag tests @group1", async () => {
     <mathInput name="dm1" prefill="10" />
     <mathInput name="dm2" prefill="20" />
     </p>
-    <p>Defining valigns: 
+    <p>Defining vAligns: 
     <textInput name="dv1" prefill="middle" />
     <textInput name="dv2" prefill="bottom" />
     </p>
 
-    <sideBySide name="sbs" widths="$(dw1)% $(dw2)%" margins="$(dm1)% $(dm2)%" valigns="$dv1 $dv2">
+    <sideBySide name="sbs" widths="$(dw1)% $(dw2)%" margins="$(dm1)% $(dm2)%" vAligns="$dv1 $dv2">
     <lorem generateParagraphs="1" />
     <lorem generateParagraphs="1" />
     </sideBySide>
@@ -6488,8 +6488,8 @@ describe("SideBySide tag tests @group1", async () => {
     </p>
 
     <p>Valigns: 
-    <textInput name="v1" bindValueTo="$(sbs.valign1)" />
-    <textInput name="v2" bindValueTo="$(sbs.valign2)" />
+    <textInput name="v1" bindValueTo="$(sbs.vAlign1)" />
+    <textInput name="v2" bindValueTo="$(sbs.vAlign2)" />
     </p>
     `,
         });
@@ -6704,7 +6704,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first valign
+        // change first vAlign
         await updateTextInputValue({
             text: "top",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -6719,7 +6719,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second valign
+        // change second vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v2"),
@@ -6734,7 +6734,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change first defining valign
+        // change first defining vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("dv1"),
@@ -6749,7 +6749,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // change second defining valign
+        // change second defining vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("dv2"),
@@ -6764,7 +6764,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid second defining valign treated as null
+        // invalid second defining vAlign treated as null
         await updateTextInputValue({
             text: "banana",
             componentIdx: await resolvePathToNodeIdx("dv2"),
@@ -6779,7 +6779,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // invalid first defining valign treated as null
+        // invalid first defining vAlign treated as null
         await updateTextInputValue({
             text: "apple",
             componentIdx: await resolvePathToNodeIdx("dv1"),
@@ -6794,7 +6794,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // reset first valign
+        // reset first vAlign
         await updateTextInputValue({
             text: "middle",
             componentIdx: await resolvePathToNodeIdx("v1"),
@@ -6809,7 +6809,7 @@ describe("SideBySide tag tests @group1", async () => {
             sbsName: "sbs",
         });
 
-        // reset second valign
+        // reset second vAlign
         await updateTextInputValue({
             text: "bottom",
             componentIdx: await resolvePathToNodeIdx("v2"),

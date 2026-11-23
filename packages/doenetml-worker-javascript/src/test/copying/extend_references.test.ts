@@ -4729,36 +4729,16 @@ describe("Extend and references tests @group2", async () => {
                 true,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
-                    .text,
-            ).eq(`(${P11}, ${P12}), (${P21}, ${P22})`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .text,
-            ).eq(`${P11}, ${P21}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .text,
-            ).eq(`${P12}, ${P22}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p4")].stateValues
-                    .text,
-            ).eq(`＿`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p5")].stateValues
-                    .text,
-            ).eq(`${P11}, ${P21}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p6")].stateValues
-                    .text,
-            ).eq(`${P12}, ${P22}`);
-            // A coordinate past the points' dimensions is blank in each
-            // point of the list, as for a math list's entries.
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p7")].stateValues
-                    .text,
-            ).eq(`＿, ＿`);
+            // A property after the point list is the list's own (D59), so
+            // a point's property after it names nothing, a blank (it was
+            // each point's): `$pl.coords`, `$pl.x`, `$pl.y`, `$pl.xs[1]`, …
+            for (const name of ["p1", "p2", "p3", "p4", "p5", "p6", "p7"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .text,
+                    name,
+                ).eq(`＿`);
+            }
 
             // XXX: restore this assertion
             // expect(
@@ -6437,6 +6417,8 @@ describe("Extend and references tests @group2", async () => {
     });
 
     it("handle extending or copying with invalid component type", async () => {
+        // A tag that is not a component type is the same error written with
+        // `extend` or `copy` as written alone (NAME-0, D51).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <graph>
@@ -6444,7 +6426,7 @@ describe("Extend and references tests @group2", async () => {
             <point name="p" >(3,4)</point>
         </graph>
         <graph name="g2">
-            <shortDescription>A graph with warnings</shortDescription>
+            <shortDescription>A graph with errors</shortDescription>
             <invalidName extend="$p" name="p2" /><anotherInvalidName copy="$p" name="p3" />
         </graph>
     `,
@@ -6452,28 +6434,26 @@ describe("Extend and references tests @group2", async () => {
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `Cannot extend or copy an unrecognized component type: invalidName`,
+        expect(diagnosticsByType.errors[0].code).eq("doenet-e0002");
+        expect(diagnosticsByType.errors[0].message).eq(
+            "Invalid component type: `<invalidName>`",
         );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(8);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(13);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(50);
 
-        expect(diagnosticsByType.warnings[0].type).eq("warning");
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(13);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(8);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(50);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            `Cannot extend or copy an unrecognized component type: anotherInvalidName`,
+        expect(diagnosticsByType.errors[1].code).eq("doenet-e0002");
+        expect(diagnosticsByType.errors[1].message).eq(
+            "Invalid component type: `<anotherInvalidName>`",
         );
-
-        expect(diagnosticsByType.warnings[1].type).eq("warning");
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(50);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(8);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(92);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(8);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(50);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(92);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
@@ -6481,13 +6461,13 @@ describe("Extend and references tests @group2", async () => {
                 (v) => v.tree,
             ),
         ).eqls([3, 4]);
-        expect(stateVariables[await resolvePathToNodeIdx("p2")]).eq(undefined);
-        expect(stateVariables[await resolvePathToNodeIdx("p3")]).eq(undefined);
-
+        // each is an error in place of the tag
         expect(
-            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren
-                .length,
-        ).eq(1);
+            stateVariables[await resolvePathToNodeIdx("p2")].componentType,
+        ).eq("_error");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].componentType,
+        ).eq("_error");
     });
 
     it("reference inside composite adds to index resolution but not names", async () => {
@@ -6551,9 +6531,7 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("sec3")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq(
-            "Reference $\u200Bp does not add ability to reference names: (＿, ＿).",
-        );
+        ).eq("Reference $p does not add ability to reference names: (＿, ＿).");
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec4")]
@@ -7337,7 +7315,6 @@ describe("Extend and references tests @group2", async () => {
             for (const [componentType, empty] of [
                 ["integer", "NaN"],
                 ["intComma", ""],
-                ["md", "\uff3f"],
             ] as [string, string][]) {
                 const { text } = await run(`
     <point name="P">(1,2)</point>
@@ -7348,6 +7325,21 @@ describe("Extend and references tests @group2", async () => {
                 const bare = await run(`<${componentType} name="q" />`);
                 expect(bare.text, `bare <${componentType}>`).eq(empty);
             }
+        });
+
+        it("is decided by the entry's type, whether or not the entry is there (TYPE, D45)", async () => {
+            // `x3` of a point is a math, as `x1` is, though this point has no
+            // third coordinate: an `<md>` can't be made from a math, so it is
+            // an error at load, as `<md extend="$P.x" />` is.
+            const { core } = await createTestCore({
+                doenetML: `
+    <point name="P">(1,2)</point>
+    <md name="q" extend="$P.x3" />
+                `,
+            });
+            expect(
+                getDiagnosticsByType(core).errors.map((e: any) => e.code),
+            ).eqls(["doenet-e0065"]);
         });
 
         it("renders an index into an array that is empty for now, and fills it in later", async () => {

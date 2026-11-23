@@ -1784,8 +1784,9 @@ describe("MathList tag tests @group3", async () => {
             doenetML: `
     <mathList name="ml">x/y a^b</mathList>
 
-    <p name="pText">Text: $ml.text</p>
-    <p name="pLatex">Latex: $ml.latex</p>
+    <p name="pText">Text: <text>$ml</text></p>
+    <p name="pLatex">Latex: $ml[1].latex, $ml[2].latex</p>
+    <p name="pOld">$ml.text $ml.latex</p>
 
     `,
         });
@@ -1799,6 +1800,11 @@ describe("MathList tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("pLatex")].stateValues
                 .text,
         ).eq("Latex: \\frac{x}{y}, a^{b}");
+        // A list's text and LaTeX are not properties of its own (D59):
+        // `$ml.text` and `$ml.latex` name nothing.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pOld")].stateValues.text,
+        ).eq("＿ ＿");
     });
 
     it("definition and inverse based on shadowed value from a mathList prop", async () => {

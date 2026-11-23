@@ -1,6 +1,6 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { combinationAtIndex, permutationAtIndex } from "@doenet/utils";
 import {
     setUpVariantSeedAndRng,
     variantDescendantComponentTypes,
@@ -693,8 +693,19 @@ export default class Choiceinput extends Input {
             },
         };
 
+        // The type of its values, decided from what is written when the
+        // document loaded (TYPE, D45, `propertyTypesAtLoad.ts`): a math when
+        // every choice holds one math, else a text. Where the DoenetML
+        // doesn't decide it, it is worked out from the choices only for the
+        // values it holds and records as a response: no reference reads it
+        // as a type, as one that reads its values is an error at load
+        // (TYPE-3, `doenet-e0091`), and its `selectedValues` declare none.
         stateVariableDefinitions.componentType = {
             returnDependencies: () => ({
+                propertyTypes: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "propertyTypes",
+                },
                 choiceChildren: {
                     dependencyType: "child",
                     childGroups: ["choices"],
@@ -702,6 +713,10 @@ export default class Choiceinput extends Input {
                 },
             }),
             definition({ dependencyValues }) {
+                const atLoad = dependencyValues.propertyTypes?.selectedValues;
+                if (atLoad !== undefined) {
+                    return { setValue: { componentType: atLoad } };
+                }
                 let componentType = "text";
                 if (
                     dependencyValues.choiceChildren.length > 0 &&
@@ -1093,9 +1108,9 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedValues = {
             description: "Text values of the currently selected choices.",
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // a math when every choice holds one math, else a text, decided
+            // when the document loads (TYPE, D45, `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             isArray: true,
             allowExtraArrayKeysInInverse: true,
             entryPrefixes: ["selectedValue"],
@@ -1136,12 +1151,17 @@ export default class Choiceinput extends Input {
 
                 for (let arrayKey of arrayKeys) {
                     if (componentType === "math") {
+                        // A choice whose LaTeX doesn't parse has no math,
+                        // and is a blank one. (A selection naming no choice
+                        // is left as it is, #2594 item 7.)
+                        const ind =
+                            globalDependencyValues.selectedIndices[arrayKey] -
+                            1;
                         selectedValues[arrayKey] =
-                            globalDependencyValues.choiceMaths[
-                                globalDependencyValues.selectedIndices[
-                                    arrayKey
-                                ] - 1
-                            ];
+                            ind in globalDependencyValues.choiceMaths
+                                ? (globalDependencyValues.choiceMaths[ind] ??
+                                  me.fromAst("\uff3f"))
+                                : undefined;
                     } else {
                         selectedValues[arrayKey] =
                             globalDependencyValues.choiceTexts[
@@ -1152,10 +1172,7 @@ export default class Choiceinput extends Input {
                     }
                 }
 
-                return {
-                    setValue: { selectedValues },
-                    setCreateComponentOfType: { selectedValues: componentType },
-                };
+                return { setValue: { selectedValues } };
             },
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
@@ -1805,10 +1822,10 @@ export default class Choiceinput extends Input {
         let numbersOfOptions = [...numVariantsByDescendant];
         numbersOfOptions.push(numberOfPermutations);
 
-        let indicesForEachOption = enumerateCombinations({
+        let indicesForEachOption = combinationAtIndex({
             numberOfOptionsByIndex: numbersOfOptions,
-            maxNumber: variantIndex,
-        })[variantIndex - 1].map((x) => x + 1);
+            index: variantIndex - 1,
+        }).map((x) => x + 1);
 
         let permutationsIndex = indicesForEachOption.pop();
 
@@ -1819,10 +1836,10 @@ export default class Choiceinput extends Input {
             (x) => x + 1,
         );
 
-        let permutedIndices = enumeratePermutations({
+        let permutedIndices = permutationAtIndex({
             values: indicesToPermute,
-            maxNumber: permutationsIndex,
-        })[permutationsIndex - 1];
+            index: permutationsIndex - 1,
+        });
 
         if (numChoicesAdjusted < numChoices) {
             // We didn't shuffle the last index, as `preserveLastChoice` was specified.

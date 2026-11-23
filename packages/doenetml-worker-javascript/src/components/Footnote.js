@@ -3,6 +3,8 @@ import InlineComponent from "./abstract/InlineComponent";
 
 export default class Footnote extends InlineComponent {
     static componentType = "footnote";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static renderChildren = true;
 
     static componentDocs = {

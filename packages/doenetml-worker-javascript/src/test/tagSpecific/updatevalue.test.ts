@@ -790,7 +790,7 @@ describe("UpdateValue tag tests @group1", async () => {
         ).eq("(3,6,6)");
     });
 
-    it("update multiple components", async () => {
+    it("a property after a collect names nothing; an index reaches one item (D59)", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="grp">
@@ -802,79 +802,48 @@ describe("UpdateValue tag tests @group1", async () => {
     <collect componentType="point" from="$grp" name="col" />
   
     <updateValue name="uv1" target="$col.x" newValue="2$(p.x)" />
-    <updateValue name="uv2" target="$col.x" newValue="2$(p.x)" />
+    <updateValue name="uv2" target="$col[2].x" newValue="2$(p.x)" />
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p")].stateValues
-                    .latex,
-            ),
-        ).eq("(3,2)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .latex,
-            ),
-        ).eq("(1,5)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .latex,
-            ),
-        ).eq("(7,0)");
+        async function latexes() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return Promise.all(
+                ["p", "p2", "p3"].map(async (name) =>
+                    cleanLatex(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.latex,
+                    ),
+                ),
+            );
+        }
 
+        expect(await latexes()).eqls(["(3,2)", "(1,5)", "(7,0)"]);
+
+        // `$col.x` was every point's x (D41); it names nothing, reported
+        // once at load (`doenet-w0200`), and the action changes nothing.
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv1"),
             core,
         });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p")].stateValues
-                    .latex,
-            ),
-        ).eq("(6,2)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .latex,
-            ),
-        ).eq("(6,5)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .latex,
-            ),
-        ).eq("(6,0)");
+        expect(await latexes()).eqls(["(3,2)", "(1,5)", "(7,0)"]);
 
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv2"),
             core,
         });
+        expect(await latexes()).eqls(["(3,2)", "(6,5)", "(7,0)"]);
 
-        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p")].stateValues
-                    .latex,
-            ),
-        ).eq("(12,2)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .latex,
-            ),
-        ).eq("(12,5)");
-        expect(
-            cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .latex,
-            ),
-        ).eq("(12,0)");
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => d.code),
+        ).eqls(["doenet-w0200"]);
     });
 
     it("update property of property", async () => {
@@ -3488,7 +3457,7 @@ describe("UpdateValue tag tests @group1", async () => {
         await check_coords([5, 6], [7, 8], [10]);
     });
 
-    it("update every entry of a list, or a property of every entry", async () => {
+    it("update every entry of a list; a property after a list names nothing (D59)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <numberList name="nl">1 2</numberList>
@@ -3499,50 +3468,61 @@ describe("UpdateValue tag tests @group1", async () => {
     <updateValue name="uvX" target="$pl.x" newValue="7" />
     <updateValue name="uvOne" target="$nl[2]" newValue="9" type="number" />
     <updateValue name="uvYs" target="$pl.xs[2]" newValue="8" />
+    <updateValue name="uvOneX" target="$pl[2].x" newValue="7" />
     <graph><point name="A">(1,2)</point><point name="B">(3,4)</point></graph>
     <collect name="c" componentType="point" from="$_graph1" />
     <updateValue name="uvCollectedYs" target="$c.xs[2]" newValue="6" />
+    <updateValue name="uvCollectedOneY" target="$c[1].xs[2]" newValue="6" />
     <p name="p">$nl | $tl | $pl</p>
     <p name="pAB">$A $B</p>
     `,
         });
 
-        async function text() {
+        async function text(name = "p") {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
                 .text;
         }
 
+        // `$pl.x` was every entry's x (D41); it names nothing now
         for (const name of ["uvNumbers", "uvTexts", "uvX"]) {
             await updateValue({
                 componentIdx: await resolvePathToNodeIdx(name),
                 core,
             });
         }
-        expect(await text()).eq("5, 5 | z, z | (7, 2), (7, 4)");
+        expect(await text()).eq("5, 5 | z, z | (1, 2), (3, 4)");
 
         // an index picks one entry
-        await updateValue({
-            componentIdx: await resolvePathToNodeIdx("uvOne"),
-            core,
-        });
-        expect(await text()).eq("5, 9 | z, z | (7, 2), (7, 4)");
-
-        // an index on a property applies to every entry
-        for (const name of ["uvYs", "uvCollectedYs"]) {
+        for (const name of ["uvOne", "uvOneX"]) {
             await updateValue({
                 componentIdx: await resolvePathToNodeIdx(name),
                 core,
             });
         }
-        expect(await text()).eq("5, 9 | z, z | (7, 8), (7, 8)");
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(await text()).eq("5, 9 | z, z | (1, 2), (7, 4)");
+
+        // an index on a property after a list, or a collect, names nothing
+        // too; after an index into the items, it is that item's
+        for (const name of ["uvYs", "uvCollectedYs", "uvCollectedOneY"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await text()).eq("5, 9 | z, z | (1, 2), (7, 4)");
+        expect(await text("pAB")).eq("(1, 6) (3, 4)");
+
         expect(
-            stateVariables[await resolvePathToNodeIdx("pAB")].stateValues.text,
-        ).eq("(1, 6) (3, 6)");
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => d.code),
+        ).eqls(["doenet-w0200", "doenet-w0200", "doenet-w0200"]);
     });
 
     it("reset every entry of a math list to blank", async () => {
@@ -3924,5 +3904,393 @@ describe("UpdateValue tag tests @group1", async () => {
         // `triggerWith="$b"` fires on both changes of `b`
         await fireAll();
         await check([1, 1, 1, 1, 2, 1]);
+    });
+
+    describe("a target that is a container of several things is a warning at load (#2554 item 2)", () => {
+        // A `<group>` of several components, or a `<repeat>`, which makes an
+        // item for each iteration, has no one value (COLL-3), so the
+        // `<updateValue>` does nothing, and says so when the document loads
+        // (DIAG-1), once, not again when it acts.
+        const cases = [
+            {
+                name: "a group of two inputs",
+                target: "$g",
+                content: `<group name="g"><mathInput name="a" prefill="1"/><mathInput name="b" prefill="2"/></group>`,
+                container: "group",
+                count: 2,
+            },
+            {
+                name: "a group of two numbers",
+                target: "$g",
+                content: `<group name="g"><number name="a">1</number><number name="b">2</number></group>`,
+                container: "group",
+                count: 2,
+            },
+            {
+                name: "a repeat of inputs",
+                target: "$r",
+                content: `<repeat name="r" for="1 2" valueName="v"><mathInput name="a" prefill="1"/></repeat>`,
+                container: "repeat",
+                count: 0,
+            },
+            {
+                name: "a repeatForSequence of numbers",
+                target: "$r",
+                content: `<repeatForSequence name="r" from="1" to="2" valueName="v"><number name="a">1</number></repeatForSequence>`,
+                container: "repeat",
+                count: 0,
+            },
+        ];
+        for (const { name, target, content, container, count } of cases) {
+            it(name, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${content}
+    <updateValue name="uv" target="${target}" newValue="7" />`,
+                });
+                function warnings() {
+                    return getDiagnosticsByType(core).warnings.filter(
+                        (w: any) =>
+                            w.code === "doenet-w0195" ||
+                            w.code === "doenet-w0044",
+                    );
+                }
+                const atLoad = warnings();
+                expect(atLoad.map((w: any) => w.code)).eqls(["doenet-w0195"]);
+                expect(atLoad[0].args).toMatchObject({
+                    componentType: "updateValue",
+                    reference: target,
+                    container,
+                    count,
+                });
+                expect(atLoad[0].position.start.line).eq(2);
+
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv"),
+                    core,
+                });
+                expect(warnings().map((w: any) => w.code)).eqls([
+                    "doenet-w0195",
+                ]);
+            });
+        }
+
+        it("a target that names what it changes is not", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <group name="g"><number name="a">1</number><number name="b">2</number></group>
+    <group name="g1"><number name="c">1</number></group>
+    <repeat name="r" for="1 2" valueName="v"><number name="x">3</number></repeat>
+    <updateValue name="uv1" target="$g.a" newValue="7" />
+    <updateValue name="uv2" target="$r[1].x" newValue="8" />
+    <updateValue name="uv3" target="$g1" newValue="9" />
+    <updateValue name="uv4" target="$g.value" newValue="9" />
+    `,
+            });
+            expect(
+                getDiagnosticsByType(core).warnings.filter(
+                    (w: any) => w.code === "doenet-w0195",
+                ),
+            ).eqls([]);
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv1"),
+                core,
+            });
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv2"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g.a")].stateValues
+                    .value,
+            ).eq(7);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("r[1].x")].stateValues
+                    .value,
+            ).eq(8);
+        });
+    });
+
+    it("an update of a text input or code editor without type does not throw (#2607)", async () => {
+        // Without `type`, `newValue` is read as a math, which a text input
+        // or code editor refuses, as a `<text>` written with content does
+        // (an empty `<text/>` takes the math's text): each is left as it
+        // was. Before, a text input stored the math as its value, and its
+        // word count threw. Reading `newValue` as the target's type is D54.
+        for (const [tag, target] of [
+            ["textInput", "$ti"],
+            ["textInput", "$ti.value"],
+            ["textInput", "$ti.immediateValue"],
+            ["codeEditor", "$ti"],
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <${tag} name="ti" prefill="hi"/>
+    <updateValue name="uv" target="${target}" newValue="bye"/>
+    <p name="p">$ti.value</p>
+    `,
+            });
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const ti =
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+            expect(ti.value, `${tag} ${target}`).eq("hi");
+            expect(ti.immediateValue, `${tag} ${target}`).eq("hi");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("hi");
+        }
+
+        // with type="text", the update is made
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="ti" prefill="hi"/>
+    <updateValue name="uv" target="$ti" newValue="bye now" type="text"/>
+    `,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ti = stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+        expect(ti.value).eq("bye now");
+        expect(ti.immediateValue).eq("bye now");
+        expect(ti.numWords).eq(2);
+    });
+
+    describe("a target reaches the component a wrapper stands for, and an item by index (#2598 items 1 and 2, D59)", () => {
+        // A wrapper holding one component stands for it (COLL-3), and a name
+        // or a property after a collection is the collection's own (COLL-2,
+        // D59), so anything else names nothing, reported once at load
+        // (`doenet-w0200`), and an index reaches one item: an action's
+        // target is no exception.
+        async function setup(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            return {
+                core,
+                idx: (name: string) => resolvePathToNodeIdx(name),
+                async act(name: string) {
+                    await updateValue({
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                },
+                async values(names: string[]) {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const values = [];
+                    for (const name of names) {
+                        const value =
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.value;
+                        values.push(value?.tree ?? value);
+                    }
+                    return values;
+                },
+                warnings() {
+                    return getDiagnosticsByType(core).warnings.map(
+                        (w: any) => w.code,
+                    );
+                },
+            };
+        }
+
+        it("a group holding one input, and its value", async () => {
+            const h = await setup(`
+    <group name="g"><mathInput name="a" prefill="1"/></group>
+    <group name="g2">
+      <number name="n">1</number>
+    </group>
+    <updateValue name="uv1" target="$g" newValue="7" />
+    <updateValue name="uv2" target="$g2.value" newValue="8" />
+    `);
+            await h.act("uv1");
+            await h.act("uv2");
+            expect(await h.values(["a", "n"])).eqls([7, 8]);
+            expect(h.warnings()).eqls([]);
+        });
+
+        it("a group of one holding a group of one", async () => {
+            const h = await setup(`
+    <group name="g"><group><number name="n">1</number></group></group>
+    <updateValue name="uv" target="$g" newValue="7" />
+    `);
+            await h.act("uv");
+            expect(await h.values(["n"])).eqls([7]);
+            expect(h.warnings()).eqls([]);
+        });
+
+        it("an iteration holding one number", async () => {
+            const h = await setup(`
+    <repeat name="r" for="1 2" valueName="v"><number name="n">$v</number></repeat>
+    <repeatForSequence name="s" from="1" to="2"><number name="m">0</number></repeatForSequence>
+    <updateValue name="uv1" target="$r[1]" newValue="7" />
+    <updateValue name="uv2" target="$s[2]" newValue="8" />
+    `);
+            await h.act("uv1");
+            await h.act("uv2");
+            expect(
+                await h.values(["r[1].n", "r[2].n", "s[1].m", "s[2].m"]),
+            ).eqls([7, 2, 0, 8]);
+            expect(h.warnings()).eqls([]);
+        });
+
+        it("a pick holding one number, and a shown case holding one", async () => {
+            const h = await setup(`
+    <select name="s"><option><number name="n">1</number></option></select>
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="cc"><case condition="$b"><number name="m">2</number></case></conditionalContent>
+    <updateValue name="uv1" target="$s" newValue="7" />
+    <updateValue name="uv2" target="$cc" newValue="8" />
+    `);
+            await h.act("uv1");
+            await h.act("uv2");
+            expect(await h.values(["s.n", "cc.m"])).eqls([7, 8]);
+            expect(h.warnings()).eqls([]);
+        });
+
+        it("a name after a repeat names nothing; an index reaches one iteration's component", async () => {
+            const h = await setup(`
+    <repeat name="r" for="1 2 3" valueName="v"><mathInput name="mi" prefill="$v"/><text>x</text></repeat>
+    <updateValue name="uv1" target="$r.mi" newValue="7" />
+    <updateValue name="uv2" target="$r.mi.value" newValue="8" />
+    <updateValue name="uv3" target="$r[2].mi" newValue="7" />
+    <updateValue name="uv4" target="$r[3].mi.value" newValue="8" />
+    `);
+            // `$r.mi` was every iteration's `mi` (#2611)
+            await h.act("uv1");
+            await h.act("uv2");
+            expect(await h.values(["r[1].mi", "r[2].mi", "r[3].mi"])).eqls([
+                1, 2, 3,
+            ]);
+            await h.act("uv3");
+            await h.act("uv4");
+            expect(await h.values(["r[1].mi", "r[2].mi", "r[3].mi"])).eqls([
+                1, 7, 8,
+            ]);
+            expect(h.warnings()).eqls(["doenet-w0200", "doenet-w0200"]);
+        });
+
+        it("a name after a select of several names nothing; an index reaches one pick's component", async () => {
+            const h = await setup(`
+    <select name="s" numToSelect="2">
+      <option><number name="n">1</number><text>a</text></option>
+      <option><number name="n">2</number><text>b</text></option>
+    </select>
+    <updateValue name="uv1" target="$s.n" newValue="7" />
+    <updateValue name="uv2" target="$s[2].n" newValue="7" />
+    `);
+            const before = await h.values(["s[1].n", "s[2].n"]);
+            await h.act("uv1");
+            expect(await h.values(["s[1].n", "s[2].n"])).eqls(before);
+            await h.act("uv2");
+            expect(await h.values(["s[1].n", "s[2].n"])).eqls([before[0], 7]);
+            expect(h.warnings()).eqls(["doenet-w0200"]);
+        });
+
+        it("a property after a repeat names nothing; after an index it is the iteration's one component's", async () => {
+            const h = await setup(`
+    <repeat name="r" for="1 2" valueName="v"><number name="n">$v</number></repeat>
+    <updateValue name="uv1" target="$r.value" newValue="7" />
+    <updateValue name="uv2" target="$r[2].value" newValue="7" />
+    `);
+            await h.act("uv1");
+            expect(await h.values(["r[1].n", "r[2].n"])).eqls([1, 2]);
+            await h.act("uv2");
+            expect(await h.values(["r[1].n", "r[2].n"])).eqls([1, 7]);
+            expect(h.warnings()).eqls(["doenet-w0200"]);
+        });
+
+        it("a name an iteration lacks changes nothing, with a warning", async () => {
+            const h = await setup(`
+    <repeat name="r" for="1 2" valueName="v"><number name="n">$v</number></repeat>
+    <updateValue name="uv" target="$r[1].n.nope" newValue="7" />
+    `);
+            await h.act("uv");
+            expect(await h.values(["r[1].n", "r[2].n"])).eqls([1, 2]);
+            expect(h.warnings()).contains("doenet-w0044");
+        });
+
+        it("a wrapper of several is still only a container", async () => {
+            // `$g.value` and `$r[1].value` name nothing in a wrapper of
+            // several (COLL-3), and a bare `$r` is `w0195` at load
+            const h = await setup(`
+    <group name="g"><number name="a">1</number><number name="b">2</number></group>
+    <repeat name="r" for="1 2" valueName="v"><number name="n">$v</number><number name="m">0</number></repeat>
+    <repeat name="r1" for="1 2" valueName="v"><number name="k">$v</number></repeat>
+    <updateValue name="uv1" target="$g.value" newValue="7" />
+    <updateValue name="uv2" target="$r[1].value" newValue="7" />
+    <updateValue name="uv3" target="$r1" newValue="7" />
+    `);
+            expect(h.warnings()).eqls(["doenet-w0195"]);
+            await h.act("uv1");
+            await h.act("uv2");
+            await h.act("uv3");
+            expect(
+                await h.values([
+                    "g.a",
+                    "g.b",
+                    "r[1].n",
+                    "r[2].m",
+                    "r1[1].k",
+                    "r1[2].k",
+                ]),
+            ).eqls([1, 2, 1, 0, 1, 2]);
+            expect(h.warnings().filter((c) => c === "doenet-w0044").length).gt(
+                0,
+            );
+        });
+
+        it("an animateFromSequence follows the same rules", async () => {
+            const h = await setup(`
+    <group name="g"><number name="n">1</number></group>
+    <repeat name="r" for="1 2" valueName="v"><number name="m">0</number></repeat>
+    <animateFromSequence name="a1" target="$g" from="1" to="5" animationOn />
+    <animateFromSequence name="a2" target="$r.m" from="1" to="5" animationOn />
+    <animateFromSequence name="a3" target="$r[2].m" from="1" to="5" animationOn />
+    `);
+            for (const name of ["a1", "a2", "a3"]) {
+                await h.core.requestAction({
+                    componentIdx: await h.idx(name),
+                    actionName: "advanceAnimation",
+                    args: { previousAnimationId: "a frame" },
+                });
+            }
+            // `$r.m` names nothing (D59); it was every iteration's `m`
+            expect(await h.values(["n", "r[1].m", "r[2].m"])).eqls([2, 0, 2]);
+            expect(h.warnings()).eqls(["doenet-w0200"]);
+        });
+
+        it("a setting of the wrapper's own is the wrapper's", async () => {
+            const h = await setup(`
+    <group name="g"><number name="n">1</number></group>
+    <updateValue name="uv" target="$g.hide" newValue="true" type="boolean" />
+    `);
+            await h.act("uv");
+            const stateVariables = await h.core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const g = Object.values(stateVariables).find(
+                (c: any) => c.componentType === "group",
+            ) as any;
+            expect(g.stateValues.hide).eq(true);
+            expect(h.warnings()).eqls([]);
+        });
     });
 });

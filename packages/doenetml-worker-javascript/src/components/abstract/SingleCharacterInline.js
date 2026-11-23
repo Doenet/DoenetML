@@ -2,6 +2,8 @@ import InlineComponent from "./InlineComponent";
 
 export default class SingleCharacter extends InlineComponent {
     static componentType = "_singleCharacterInline";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     // Note: this attribute is just for the text state variable, below.
     // It is ignored in the renderers themselves.

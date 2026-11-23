@@ -1,7 +1,7 @@
 import { serializedAttributeComponent } from "./literalAttribute";
 import {
     numberToLetters,
-    enumerateCombinations,
+    combinationAtIndex,
     codedDiagnostic,
 } from "@doenet/utils";
 import type { DiagnosticRecord } from "@doenet/utils";
@@ -29,10 +29,12 @@ export function getVariantsForDescendantsForUniqueVariants({
         (x: any) => x.variants.numVariants,
     );
 
-    let indices = enumerateCombinations({
-        numberOfOptionsByIndex: numVariantsByDescendant,
-        maxNumber: variantIndex,
-    })[variantIndex - 1];
+    // No descendants with variants means no indices, and no subvariants.
+    let indices =
+        combinationAtIndex({
+            numberOfOptionsByIndex: numVariantsByDescendant,
+            index: variantIndex - 1,
+        }) ?? [];
 
     let desiredVariants = [];
     for (let [ind, comp] of descendantVariantComponents.entries()) {
@@ -229,6 +231,92 @@ export function getNumVariants({
     componentInfoObjects: any;
     infoDiagnostics?: DiagnosticRecord[];
 }): any {
+    const result = getNumVariantsOfComponent({
+        serializedComponent,
+        componentInfoObjects,
+        infoDiagnostics,
+    });
+
+    if (serializedComponent.componentType === "document") {
+        determineVariantsOfSectionsWithin({
+            serializedComponents: serializedComponent.children,
+            componentInfoObjects,
+            infoDiagnostics,
+        });
+    }
+
+    return result;
+}
+
+/**
+ * Work out the variants of every section among `serializedComponents` and
+ * their descendants that has a `<variantControl>`, which the document's
+ * variants didn't already work out.
+ *
+ * A section's variants are worked out as the document's unique variants
+ * are counted, when the count reaches it. When the document doesn't have
+ * unique variants (`uniqueVariants="false"`, or a count that can't be made),
+ * or the count stops before it, nothing did, and the section's
+ * `<variantControl>` was ignored, with no diagnostic for what it holds
+ * (#2579 item 5). Working them out here, before anything is made, follows it
+ * wherever the section is, and reports its diagnostics at load (DIAG-7).
+ * `determineVariantsForSection` does nothing for a section already worked
+ * out, so this is the same for a section the count reached.
+ */
+function determineVariantsOfSectionsWithin({
+    serializedComponents,
+    componentInfoObjects,
+    infoDiagnostics,
+}: {
+    serializedComponents: any[] | undefined;
+    componentInfoObjects: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}) {
+    for (const serializedComponent of serializedComponents ?? []) {
+        if (typeof serializedComponent !== "object") {
+            continue;
+        }
+        const children = serializedComponent.children;
+        if (
+            Array.isArray(children) &&
+            children.some(
+                (child: any) => child?.componentType === "variantControl",
+            ) &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: serializedComponent.componentType,
+                baseComponentType: "_sectioningComponent",
+            })
+        ) {
+            determineVariantsForSection({
+                serializedComponent,
+                componentInfoObjects,
+                infoDiagnostics,
+            });
+        }
+
+        const compClass =
+            componentInfoObjects.allComponentClasses[
+                serializedComponent.componentType
+            ];
+        if (!compClass?.ignoreVariantsFromChildren) {
+            determineVariantsOfSectionsWithin({
+                serializedComponents: children,
+                componentInfoObjects,
+                infoDiagnostics,
+            });
+        }
+    }
+}
+
+function getNumVariantsOfComponent({
+    serializedComponent,
+    componentInfoObjects,
+    infoDiagnostics,
+}: {
+    serializedComponent: any;
+    componentInfoObjects: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}): any {
     // get number of variants from document (or other sectioning component)
 
     if (!serializedComponent.variants) {
@@ -266,7 +354,7 @@ export function getNumVariants({
         ) {
             let sectionChild = nonBlankChildren[0];
 
-            let results = getNumVariants({
+            let results = getNumVariantsOfComponent({
                 serializedComponent: sectionChild,
                 componentInfoObjects,
                 infoDiagnostics,
@@ -356,18 +444,44 @@ export function determineVariantsForSection({
         });
     }
 
-    let specifiedVariantNames: string[] = [];
-    if (variantControlChild?.attributes.variantNames) {
-        specifiedVariantNames = serializedAttributeComponent(
-            variantControlChild.attributes.variantNames,
-        )!.children.map((x: any) => x.toLowerCase());
-    }
+    // `<variantControl>` never stops the document (DIAG-5, D47 decision 1):
+    // each problem with what it holds is an error at the attribute, with a
+    // fallback. A reference in it was already removed, with an error, as it
+    // was converted (`readBeforeReferences`).
 
-    if (
-        specifiedVariantNames.length !==
-        [...new Set(specifiedVariantNames)].length
-    ) {
-        throw Error("Duplicate variant names specified");
+    // A name written again, compared without case, is ignored, with an
+    // error, and the first is kept.
+    const namesAttribute = variantControlChild?.attributes.variantNames;
+    const specifiedVariantNamesAsWritten: string[] = [];
+    const specifiedVariantNames: string[] = [];
+    const repeatedNamesAsWritten: string[] = [];
+    for (const nameAsWritten of stringChildren(namesAttribute)) {
+        const name = nameAsWritten.toLowerCase();
+        if (!specifiedVariantNames.includes(name)) {
+            specifiedVariantNames.push(name);
+            specifiedVariantNamesAsWritten.push(nameAsWritten);
+        } else if (
+            !repeatedNamesAsWritten.some((x) => x.toLowerCase() === name)
+        ) {
+            repeatedNamesAsWritten.push(nameAsWritten);
+        }
+    }
+    if (repeatedNamesAsWritten.length > 0) {
+        infoDiagnostics?.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0086",
+                args: {
+                    names: {
+                        list: repeatedNamesAsWritten.map(
+                            (name) => `\`${name}\``,
+                        ),
+                        type: "conjunction",
+                    },
+                },
+                ...attributeLocation(namesAttribute, variantControlChild),
+            }),
+        );
     }
 
     let numVariantsSpecified =
@@ -401,61 +515,35 @@ export function determineVariantsForSection({
         variantNames = variantNames.slice(0, numVariantsSpecified);
     }
 
-    let variantsToInclude: string[] | undefined = serializedAttributeComponent(
-        variantControlChild?.attributes.variantsToInclude,
-    )?.children as string[] | undefined;
-    if (variantsToInclude) {
-        if (variantsToInclude.length === 0) {
-            throw Error(
-                "Cannot specify a blank variantsToInclude attribute of a variantControl",
-            );
-        }
-
-        variantsToInclude = variantsToInclude.map((x) => x.toLowerCase());
-
-        // deduplicate
-        variantsToInclude = [...new Set(variantsToInclude)];
-
-        for (let variant of variantsToInclude) {
-            if (!variantNames.includes(variant)) {
-                throw Error(
-                    `Cannot include variant ${variant} as ${variant} is a not variant name`,
-                );
-            }
-        }
-    }
-
-    let variantsToExclude: string[] =
-        (serializedAttributeComponent(
-            variantControlChild?.attributes.variantsToExclude,
-        )?.children as string[] | undefined) || [];
-    variantsToExclude = variantsToExclude.map((x) => x.toLowerCase());
-
-    for (let variant of variantsToExclude) {
-        if (!variantNames.includes(variant)) {
-            throw Error(
-                `Cannot exclude variant ${variant} as ${variant} is not a variant name`,
-            );
-        }
-    }
-
-    if (variantsToInclude) {
-        variantsToInclude = variantsToInclude.filter(
-            (x: any) => !variantsToExclude.includes(x),
+    // The names written in `variantsToInclude` and `variantsToExclude`. They
+    // are compared with the variant names without case, and are checked
+    // against the variants there are once it is known how many there are,
+    // after unique variants are worked out (`knownVariantNames`).
+    //
+    // A blank `variantsToInclude` is ignored, with an error.
+    const includeAttribute = variantControlChild?.attributes.variantsToInclude;
+    let variantsToIncludeAsWritten: string[] | undefined = includeAttribute
+        ? stringChildren(includeAttribute)
+        : undefined;
+    if (variantsToIncludeAsWritten?.length === 0) {
+        infoDiagnostics?.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0072",
+                args: { attribute: "variantsToInclude" },
+                ...attributeLocation(includeAttribute, variantControlChild),
+            }),
         );
-    } else {
-        variantsToInclude = [...variantNames].filter(
-            (x) => !variantsToExclude.includes(x),
-        );
+        variantsToIncludeAsWritten = undefined;
     }
+
+    const excludeAttribute = variantControlChild?.attributes.variantsToExclude;
+    const variantsToExcludeAsWritten = stringChildren(excludeAttribute);
 
     // determine seeds
-    let specifiedSeeds: string[] = [];
-    if (variantControlChild?.attributes.seeds) {
-        specifiedSeeds = serializedAttributeComponent(
-            variantControlChild.attributes.seeds,
-        )!.children as string[];
-    }
+    const specifiedSeeds = stringChildren(
+        variantControlChild?.attributes.seeds,
+    );
 
     let variantSeeds = [...specifiedSeeds];
 
@@ -468,13 +556,6 @@ export function determineVariantsForSection({
     } else {
         variantSeeds = variantSeeds.slice(0, numVariantsSpecified);
     }
-
-    let variantsIndicesSeedsToInclude = variantsToInclude.map((variant) => {
-        // Note: this index is for the case where we have unique indices.
-        // After unique options are shuffled, use these indices
-        const index = variantNames.indexOf(variant) + 1;
-        return { variant, index, seed: variantSeeds[index - 1] };
-    });
 
     // determine if use unique variants
     // if unique variants attribute is specified as false or fail to determine number of unique variants
@@ -515,6 +596,70 @@ export function determineVariantsForSection({
             uniqueVariants = true;
         }
     }
+
+    // The variants there are. With unique variants, there are no more of them
+    // than there are unique ones, however many names there are.
+    const availableVariantNames =
+        uniqueVariants && uniqueResult
+            ? variantNames.slice(0, uniqueResult.numVariants)
+            : variantNames;
+    const variantNamesAsWritten = availableVariantNames.map(
+        (name, ind) => specifiedVariantNamesAsWritten[ind] ?? name,
+    );
+
+    // A name that is not a variant is ignored, with an error, and the other
+    // names are used (DIAG-5, DIAG-7). If `variantsToInclude` names no
+    // variant at all, every variant is included.
+    const included = variantsToIncludeAsWritten
+        ? knownVariantNames({
+              attributeName: "variantsToInclude",
+              attribute: includeAttribute,
+              namesAsWritten: variantsToIncludeAsWritten,
+              availableVariantNames,
+              variantNamesAsWritten,
+              serializedComponent,
+              variantControlChild,
+              infoDiagnostics,
+          })
+        : undefined;
+    const excluded = knownVariantNames({
+        attributeName: "variantsToExclude",
+        attribute: excludeAttribute,
+        namesAsWritten: variantsToExcludeAsWritten,
+        availableVariantNames,
+        variantNamesAsWritten,
+        serializedComponent,
+        variantControlChild,
+        infoDiagnostics,
+    });
+
+    let variantsToInclude = (
+        included && included.length > 0 ? included : availableVariantNames
+    ).filter((x) => !excluded.includes(x));
+
+    // Names that exclude every variant are ignored, with an error, and every
+    // variant is included, as when `variantsToInclude` names none.
+    if (variantsToInclude.length === 0) {
+        infoDiagnostics?.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0087",
+                args: {
+                    component: serializedComponent.componentType,
+                    withInclude: included && included.length > 0 ? "yes" : "no",
+                },
+                ...attributeLocation(excludeAttribute, variantControlChild),
+            }),
+        );
+        variantsToInclude = availableVariantNames;
+    }
+
+    let variantsIndicesSeedsToInclude = variantsToInclude.map((variant) => {
+        // Note: this index is for the case where we have unique indices.
+        // After unique options are shuffled, use these indices
+        const index = variantNames.indexOf(variant) + 1;
+        return { variant, index, seed: variantSeeds[index - 1] };
+    });
 
     let allPossibleVariants: string[] = [];
     let allPossibleVariantUniqueIndices: number[] = [];
@@ -568,12 +713,7 @@ export function determineVariantsForSection({
         );
     }
 
-    let numVariants = allPossibleVariants.length;
-    if (numVariants === 0) {
-        throw Error(
-            "No variants selected based on variantsToInclude, variantsToExclude, and the number of variants available",
-        );
-    }
+    const numVariants = allPossibleVariants.length;
 
     serializedComponent.variants.uniqueVariants = uniqueVariants;
     serializedComponent.variants.numVariants = numVariants;
@@ -588,6 +728,131 @@ export function determineVariantsForSection({
         success: true,
         numVariants,
     };
+}
+
+/** How many variant names `doenet-e0079` lists before it shortens the list. */
+const MAX_VARIANT_NAMES_LISTED = 8;
+
+/**
+ * The names among `namesAsWritten` (from `variantsToInclude` or
+ * `variantsToExclude`) that are variants, compared without case, without
+ * repeats, in lowercase.
+ *
+ * The others are left out, and named in one error diagnostic at the
+ * attribute (`doenet-e0079`), each once, as it was first written, pushed to
+ * `infoDiagnostics`. That buffer holds every diagnostic found before Core
+ * exists, not only infos: `CoreWorker` makes it Core's
+ * `preliminaryDiagnostics`. This runs once per sectioning
+ * component, as `determineVariantsForSection` returns early once it has set
+ * `allPossibleVariants`.
+ */
+function knownVariantNames({
+    attributeName,
+    attribute,
+    namesAsWritten,
+    availableVariantNames,
+    variantNamesAsWritten,
+    serializedComponent,
+    variantControlChild,
+    infoDiagnostics,
+}: {
+    attributeName: "variantsToInclude" | "variantsToExclude";
+    attribute: any;
+    namesAsWritten: string[];
+    availableVariantNames: string[];
+    variantNamesAsWritten: string[];
+    serializedComponent: any;
+    variantControlChild: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}): string[] {
+    const known: string[] = [];
+    const unknown: string[] = [];
+    // each unknown name as it was first written
+    const unknownAsWritten: string[] = [];
+    for (const nameAsWritten of namesAsWritten) {
+        const name = nameAsWritten.toLowerCase();
+        if (availableVariantNames.includes(name)) {
+            if (!known.includes(name)) {
+                known.push(name);
+            }
+        } else if (!unknown.includes(name)) {
+            unknown.push(name);
+            unknownAsWritten.push(nameAsWritten);
+        }
+    }
+
+    if (unknownAsWritten.length > 0 && infoDiagnostics) {
+        // A long list of variants is shown by its first few and its last,
+        // as the letters `a` to `cv` of a hundred unnamed variants.
+        const numVariants = variantNamesAsWritten.length;
+        const variantsShown =
+            numVariants <= MAX_VARIANT_NAMES_LISTED
+                ? variantNamesAsWritten.map((name) => `\`${name}\``)
+                : [
+                      ...variantNamesAsWritten
+                          .slice(0, MAX_VARIANT_NAMES_LISTED - 2)
+                          .map((name) => `\`${name}\``),
+                      "…",
+                      `\`${variantNamesAsWritten[numVariants - 1]}\``,
+                  ];
+        const allUnknown =
+            attributeName === "variantsToInclude" && known.length === 0;
+        infoDiagnostics.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0079",
+                args: {
+                    attribute: attributeName,
+                    names: {
+                        list: unknownAsWritten.map((name) => `\`${name}\``),
+                        type: "conjunction",
+                    },
+                    component: serializedComponent.componentType,
+                    numVariants,
+                    variants: { list: variantsShown, type: "unit" },
+                    outcome: allUnknown ? "allVariants" : "ignored",
+                },
+                ...attributeLocation(attribute, variantControlChild),
+            }),
+        );
+    }
+
+    return known;
+}
+
+/**
+ * Where a diagnostic about the `<variantControl>` attribute `attribute` is
+ * reported: at the attribute, or at the `<variantControl>` if the attribute
+ * has no position of its own.
+ */
+function attributeLocation(attribute: any, variantControlChild: any) {
+    const component = attribute?.component;
+    return {
+        position:
+            component?.position ??
+            attribute?.position ??
+            variantControlChild?.position,
+        sourceDoc:
+            component?.sourceDoc ??
+            attribute?.sourceDoc ??
+            variantControlChild?.sourceDoc,
+    };
+}
+
+/**
+ * The entries of the `<variantControl>` list attribute `attribute`
+ * (`variantNames`, `variantsToInclude`, …), each a string, or none if the
+ * attribute is not written. A reference was removed from it as it was
+ * converted (`readBeforeReferences`), so only strings are left; anything else
+ * is passed over all the same, as variants are decided before anything else
+ * could be read.
+ */
+function stringChildren(attribute: any): string[] {
+    const children = serializedAttributeComponent(attribute)?.children ?? [];
+    return children.filter(
+        (child): child is string =>
+            typeof child === "string" && child.trim() !== "",
+    );
 }
 
 function indexToLowercaseLetters(index: number) {

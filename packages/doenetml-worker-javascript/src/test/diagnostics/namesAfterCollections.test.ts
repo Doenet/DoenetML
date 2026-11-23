@@ -1,0 +1,829 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
+import { setListFormsEnabled } from "../../utils/dast/listForms";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * A name or a property after a collection is the collection's own, never
+ * each item's (D59, COLL-1, COLL-2; reverting D41 decision 1 for
+ * collections): `numItems`, `hide`, `fixed`, `disabled` and the properties
+ * the tag declares. Anything else names nothing, with `doenet-w0200` at load
+ * suggesting an index (`$r.P` → `$r[1].P`), decided by the tag as written,
+ * never by how many items it holds. A `<conditionalContent>` and a select
+ * that picks one stand for what they show (COMP-11), and a `<group>` holding
+ * one collection stands for it (COLL-3). Each document is loaded with and
+ * without list forms (COMP-4), and again after a reload (DIAG-6).
+ */
+
+type Result = { texts: Record<string, string>; diagnostics: string[] };
+
+async function load(
+    doenetML: string,
+    names: string[],
+    { asLists = true, withMessages = false } = {},
+): Promise<Result & { reloaded: () => Promise<Result> }> {
+    setListFormsEnabled(asLists);
+    try {
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const read = async (core: any, resolvePathToNodeIdx: any) => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const texts: Record<string, string> = {};
+            for (const name of names) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                texts[name] = String(stateValues.text ?? stateValues.value);
+            }
+            const diagnostics = core.core.diagnostics
+                .filter((d: any) => !d.code?.startsWith("doenet-a"))
+                .map(
+                    (d: any) =>
+                        `${d.type} ${d.code}${withMessages ? `: ${d.message}` : ""}`,
+                )
+                .sort();
+            return { texts, diagnostics };
+        };
+        const result = await read(core, resolvePathToNodeIdx);
+        return {
+            ...result,
+            async reloaded() {
+                setListFormsEnabled(asLists);
+                try {
+                    await core.saveImmediately();
+                    const again = await createTestCore({
+                        doenetML,
+                        initialState: scoreState.state,
+                    });
+                    return await read(again.core, again.resolvePathToNodeIdx);
+                } finally {
+                    setListFormsEnabled(true);
+                }
+            },
+        };
+    } finally {
+        setListFormsEnabled(true);
+    }
+}
+
+/**
+ * The texts of `names` and the diagnostics, the same with and without list
+ * forms, and after a reload.
+ */
+async function both(
+    doenetML: string,
+    names: string[],
+    options: { withMessages?: boolean } = {},
+): Promise<Result> {
+    const withLists = await load(doenetML, names, {
+        ...options,
+        asLists: true,
+    });
+    const composites = await load(doenetML, names, {
+        ...options,
+        asLists: false,
+    });
+    const expected = {
+        texts: withLists.texts,
+        diagnostics: withLists.diagnostics,
+    };
+    expect({
+        texts: composites.texts,
+        diagnostics: composites.diagnostics,
+    }).eqls(expected);
+    expect(await withLists.reloaded(), "after a reload").eqls(expected);
+    return expected;
+}
+
+describe("A name or a property after a collection names nothing (D59)", () => {
+    it("after a repeat, a select that picks several, a collect and a list, with a suggestion", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="rmix" for="1 2" valueName="v"><point name="P">($v,3)</point><text name="t">a</text></repeat>
+<select name="s" numToSelect="2"><option><point name="P">(1,2)</point></option><option><point name="P">(3,4)</point></option></select>
+<section name="sec"><group><point name="Q">(5,6)</point></group><group><point name="Q">(7,8)</point></group></section>
+<collect name="c" from="$sec" componentType="group"/>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<p name="p1">$rmix.P</p><p name="p2">$rmix.P.x</p><p name="p3">$rmix.t</p><p name="p4">$s.P.x</p>
+<p name="p5">$c.Q</p><p name="p6">$pl.x</p><p name="p7">$rmix.x</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
+            { withMessages: true },
+        );
+        // Before (D41 decision 1): `(1, 3), (2, 3)`, `1, 2`, `a, a`, `1, 3`,
+        // `(5, 6), (7, 8)`, `1, 3`, and `$rmix.x` `w0193`.
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+            p7: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$c.Q` names nothing: a name after a `<collect>` does not reach into its items. To read it from one item, give its index, such as `$c[1].Q`.",
+            "warning doenet-w0200: `$pl.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0200: `$rmix.P.x` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P.x`.",
+            "warning doenet-w0200: `$rmix.P` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P`.",
+            "warning doenet-w0200: `$rmix.t` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].t`.",
+            "warning doenet-w0200: `$rmix.x` names nothing: a `<repeat>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$rmix[1].x`.",
+            "warning doenet-w0200: `$s.P.x` names nothing: a name after a `<select>` does not reach into its items. To read it from one item, give its index, such as `$s[1].P.x`.",
+        ]);
+    });
+
+    it("written as an index, reaches the item", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="rmix" for="1 2" valueName="v"><point name="P">($v,3)</point><text name="t">a</text></repeat>
+<select name="s" numToSelect="2" type="math"><option><point name="P">(1,2)</point></option><option><point name="P">(1,4)</point></option></select>
+<repeat name="r" for="1 2" valueName="v"><group name="G"><math name="m">$v^2</math></group><repeat name="q" for="a b" valueName="w"><text name="t">$v$w</text></repeat></repeat>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<p name="p1">$rmix[2].P</p><p name="p2">$rmix[1].P.x</p><p name="p3">$s[2].P.x</p>
+<p name="p4">$r[2].G.m</p><p name="p5">$r[2].q[1].t</p><p name="p6">$pl[2].x</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+        );
+        expect(texts).eqls({
+            p1: "(2, 3)",
+            p2: "1",
+            p3: "1",
+            p4: "2²",
+            p5: "2a",
+            p6: "3",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("after a collect, even for a name it holds once", async () => {
+        // Before: the collected `A` built as a composite, and a blank as a
+        // list form (COMP-4), with no diagnostic either way.
+        const { texts, diagnostics } = await both(
+            `<p name="src"><point name="A">(1,2)</point><point>(3,4)</point></p>
+<collect name="c" from="$src" componentType="point"/>
+<p name="p1">$c.A</p><p name="p2">$c[1].x</p>`,
+            ["p1", "p2"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({ p1: "＿", p2: "1" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$c.A` names nothing: `A` is an item of the `<collect>`, and a name after it does not reach into its items. To read an item, give its index, such as `$c[1]`.",
+        ]);
+    });
+
+    it("is decided by the tag as written, not by how many items it holds", async () => {
+        const { texts, diagnostics } = await both(
+            `<number name="n">1</number>
+<repeat name="r" for="5" valueName="v"><point name="P">($v,3)</point></repeat>
+<mathList name="ml">x</mathList>
+<select name="s" numToSelect="$n"><option><point name="P">(1,2)</point></option><option><point name="P">(3,4)</point></option></select>
+<p name="p1">$r.P.x</p><p name="p2">$r.numItems</p><p name="p3">$ml.x</p><p name="p4">$s.P</p><p name="p5">$P</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        expect(texts).eqls({ p1: "＿", p2: "1", p3: "＿", p4: "＿", p5: "＿" });
+        expect(diagnostics).eqls([
+            // `numToSelect` that isn't a constant (the variants)
+            "info doenet-i0023",
+            "warning doenet-w0104",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+        ]);
+    });
+
+    it("keeps the collection's own properties", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v" hide><point>($v,3)</point></repeat>
+<select name="s" numToSelect="2" fixed><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<p name="p1">$r.numItems $r.hide $r.fixed</p><p name="p2">$s.numItems $s.fixed $s.disabled</p><p name="p3">$pl.numItems $pl.numPoints</p>`,
+            ["p1", "p2", "p3"],
+        );
+        expect(texts).eqls({
+            p1: "2 true false",
+            p2: "2 true false",
+            p3: "2 2",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("but a name written inside a list, a sort or a shuffle, or the one it copies, is that component", async () => {
+        const { texts, diagnostics } = await both(
+            `<pointList name="pl"><point name="P">(1,2)</point><point>(3,4)</point></pointList>
+<pointList name="pl2" extend="$pl"/>
+<sort name="so"><number name="n">3</number><number>1</number></sort>
+<math name="m">x</math>
+<mathList name="l"><math name="h" extend="$m"/><math name="k" copy="$m"/> 2</mathList>
+<mathList name="e" extend="$l"/>
+<group name="g2"><group name="r"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group>
+<group name="q" extend="$g2"/>
+<p name="p1">$pl.P</p><p name="p2">$pl2.P.x</p><p name="p3">$so.n</p><p name="p4">$e.h $e.k</p><p name="p5">$q.r[1]</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        // A name on a tag written with `extend` or `copy` in the list, and a
+        // group named on the way to a collection (`$q.r`, the group `r`).
+        expect(texts).eqls({
+            p1: "(1, 2)",
+            p2: "1",
+            p3: "3",
+            p4: "x x",
+            p5: "1",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("suggests the item's spelling of a name or property written in another case (#2627 item 14)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><point name="P">($v,3)</point></repeat>
+<section name="sec"><point>(1,2)</point><point>(3,4)</point></section>
+<collect name="c" from="$sec" componentType="point"/>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<sequence name="s" to="3"/>
+<p name="p1">$r.X</p><p name="p2">$c.X</p><p name="p3">$pl.X1</p><p name="p4">$r.p</p><p name="p5">$s.Value</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$c.X` names nothing: a `<collect>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$c[1].x`.",
+            "warning doenet-w0200: `$pl.X1` names nothing: a `<pointList>` has no property `X1` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].xs[1]`.",
+            "warning doenet-w0200: `$r.X` names nothing: a `<repeat>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].x`.",
+            "warning doenet-w0200: `$r.p` names nothing: a `<repeat>` has no property `p` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].P`.",
+            "warning doenet-w0200: `$s.Value` names nothing: a `<sequence>` has no property `Value` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].value`.",
+        ]);
+    });
+
+    it("but an own property in another case is left for its spelling (D51)", async () => {
+        const { diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><point>($v,3)</point></repeat><p name="p1">$r.numitems</p>`,
+            ["p1"],
+        );
+        expect(diagnostics).eqls(["warning doenet-w0104"]);
+    });
+
+    it("calls a property a property, though a component elsewhere has that name", async () => {
+        const { texts, diagnostics } = await both(
+            `<math name="x">1</math>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<repeat name="r" for="1 2" valueName="v"><point>($v,3)</point></repeat>
+<p name="p1">$pl.x</p><p name="p2">$r.x</p>`,
+            ["p1", "p2"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({ p1: "＿", p2: "＿" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$pl.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0200: `$r.x` names nothing: a `<repeat>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].x`.",
+        ]);
+    });
+
+    it("after the value and index names of a repeat", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="3 5" valueName="v" indexName="i"><math name="m">$v+1</math></repeat>
+<repeatForSequence name="rs" from="4" length="2" valueName="v"><math>$v</math></repeatForSequence>
+<p name="p1">$r.v</p><p name="p2">$r.i</p><p name="p3">$r[2].v</p><p name="p4">$r[1].i</p><p name="p5">$rs[2].v</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        // `$r.v` was `3, 5` (D41 decision 1).
+        expect(texts).eqls({ p1: "＿", p2: "＿", p3: "5", p4: "1", p5: "5" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+        ]);
+    });
+
+    it("in its own template names nothing, rather than being a cycle", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><math name="m">$r.m</math></repeat>
+<p name="p1">$r[1].m</p>`,
+            ["p1"],
+        );
+        expect(texts).eqls({ p1: "＿" });
+        expect(diagnostics).eqls(["warning doenet-w0200"]);
+    });
+
+    it("after a group holding only a collection, at any depth, as after the collection (COLL-3)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2 3" valueName="v"><point name="P">($v,3)</point></repeat>
+<group name="g">$r</group>
+<group name="h"><group><group><repeat for="4 5" valueName="v"><point name="P">($v,3)</point></repeat></group></group></group>
+<group name="a">$r</group><group name="k">$a</group>
+<p name="p1">$g.x</p><p name="p2">$g.P.x</p><p name="p3">$g.numItems</p><p name="p4">$h.x</p><p name="p5">$h.numItems</p>
+<p name="p6">$k.x</p><p name="p7">$k.numItems</p><p name="p8">$g[2].P.x</p><p name="p9">$g</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"],
+        );
+        // `$g.x`, `$g.P.x`, `$h.x` and `$k.x` were each item's (D41).
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "3",
+            p4: "＿",
+            p5: "2",
+            p6: "＿",
+            p7: "3",
+            p8: "2",
+            p9: "(1, 3), (2, 3), (3, 3)",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+        ]);
+    });
+});
+
+describe("A collection reached through a branch or an item (D59, review cycle 4)", () => {
+    it("names nothing after it, with the suggestion, whichever way it is reached", async () => {
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point></repeat></case></conditionalContent>
+<select name="s"><option><repeat name="q" for="1 2" valueName="v"><point name="Q">($v,2)</point></repeat></option></select>
+<repeat name="o" for="1"><repeat name="t" for="1 2" valueName="v"><point name="T">($v,3)</point></repeat></repeat>
+<conditionalContent name="dd"><case condition="true"><pointList name="pl">(1,2) (3,4)</pointList></case></conditionalContent>
+<p name="p1">$cc.r.P</p><p name="p2">$r.P</p><p name="p3">$s.q.Q</p><p name="p4">$o[1].t.T</p>
+<p name="p5">$dd.pl.x</p><p name="p6">$dd.x</p><p name="p7">$dd[1].x</p>
+<p name="i1">$cc.r[2].P</p><p name="i2">$o[1].t[2].T</p><p name="i3">$dd[1][2].x</p><p name="i4">$cc.r.numItems</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "i1", "i2", "i3", "i4"],
+            { withMessages: true },
+        );
+        // each was every item's on main (D41), and a blank with no warning
+        // before this was followed
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+            p7: "＿",
+            i1: "(2, 1)",
+            i2: "(2, 3)",
+            i3: "3",
+            i4: "2",
+        });
+        const suggestions = diagnostics.map((d) =>
+            d.replace(/^.*such as `([^`]*)`\.$/, "$1"),
+        );
+        expect(suggestions).eqls([
+            "$cc.r[1].P",
+            "$dd.pl[1].x",
+            "$dd[1][1].x",
+            "$dd[1][1].x",
+            "$o[1].t[1].T",
+            "$r[1].P",
+            "$s.q[1].Q",
+        ]);
+    });
+
+    it("through a branch container in a branch, an option of a select that picks several, or one in an item (review cycle 5)", async () => {
+        const repeat = (name: string, item: string, from: string) =>
+            `<repeat name="${name}" for="${from}" valueName="v"><point name="${item}">($v,1)</point></repeat>`;
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><conditionalContent name="c2"><case condition="true">${repeat("r", "P", "1 2")}</case></conditionalContent></case></conditionalContent>
+<conditionalContent name="dd"><case condition="true"><select><option>${repeat("q", "Q", "1 2")}</option></select></case></conditionalContent>
+<conditionalContent name="ee"><case condition="true"><conditionalContent><case condition="true"><pointList name="pl">(1,2) (3,4)</pointList></case></conditionalContent></case></conditionalContent>
+<select name="s" numToSelect="2"><option>${repeat("t", "T", "1 2")}</option><option>${repeat("t", "T", "3 4")}</option></select>
+<repeat name="o" for="1"><conditionalContent><case condition="true">${repeat("u", "U", "1 2")}</case></conditionalContent></repeat>
+<conditionalContent name="ff"><case condition="true"><conditionalContent><case condition="true">${repeat("w", "W", "1 2")}</case><else>none</else></conditionalContent></case></conditionalContent>
+<p name="p1">$cc.r.P</p><p name="p2">$r.P</p><p name="p3">$dd.q.Q</p><p name="p4">$pl.x</p><p name="p5">$ee.pl.x</p>
+<p name="p6">$s[1].t.T</p><p name="p7">$o[1].u.U</p><p name="p8">$ff.w.W</p>
+<p name="i1">$cc.r[2].P</p><p name="i2">$s[2].t[1].T</p><p name="i3">$o[1].u[2].U</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "i1", "i2", "i3"],
+            { withMessages: true },
+        );
+        // each of p1–p7 was every item's on main (D41), and a blank with no
+        // warning before this was followed
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+            p7: "＿",
+            p8: "＿",
+            i1: "(2, 1)",
+            i2: "(3, 1)",
+            i3: "(2, 1)",
+        });
+        expect(diagnostics.map((d) => d.split(":")[0])).eqls([
+            // a name only some branches declare is left to `w0183`, as on main
+            "warning doenet-w0183",
+            ...Array(7).fill("warning doenet-w0200"),
+        ]);
+        expect(
+            diagnostics
+                .filter((d) => d.includes("w0200"))
+                .map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls([
+            "$cc.r[1].P",
+            "$dd.q[1].Q",
+            "$ee.pl[1].x",
+            "$o[1].u[1].U",
+            "$pl[1].x",
+            "$r[1].P",
+            "$s[1].t[1].T",
+        ]);
+    });
+});
+
+describe("A collection followed by the every-branch rule (D59, COMP-11)", () => {
+    it("through cases each holding a container holding a list, and a name of different tags in different cases", async () => {
+        const repeat = `<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point></repeat>`;
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><conditionalContent><case condition="true"><pointList>(1,2) (3,4)</pointList></case></conditionalContent></case></conditionalContent>
+<conditionalContent name="d1"><case condition="true">${repeat}</case><else><math name="r">x</math></else></conditionalContent>
+<conditionalContent name="d2"><case condition="true"><math name="r">x</math></case><else>${repeat}</else></conditionalContent>
+<p name="p1">$cc.x</p><p name="p2">$cc[1].x</p><p name="p3">$d1.r.P</p><p name="p4">$d2.r.P</p>
+<p name="i1">$cc[1][1][2].x</p>`,
+            ["p1", "p2", "p3", "p4", "i1"],
+            { withMessages: true },
+        );
+        // `$cc.x` and `$cc[1].x` were each entry's (`1, 3`), with no warning
+        expect(texts).eqls({ p1: "＿", p2: "＿", p3: "＿", p4: "＿", i1: "3" });
+        // the suggestion reaches an entry through each container
+        expect(
+            diagnostics
+                .filter((d) => d.includes("w0200"))
+                .map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls(["$cc[1][1][1].x", "$cc[1][1][1].x"]);
+        // A name a `<repeat>` in one case and a `<math>` in the other: the
+        // every-branch rule decides it, whichever case comes first.
+        expect(
+            diagnostics
+                .filter((d) => !d.includes("w0200"))
+                .map((d) => d.split(":")[0]),
+        ).eqls(["warning doenet-w0183", "warning doenet-w0183"]);
+    });
+
+    it("a repeat's value and index after an index, an item holding a list, and a collection in some cases only (review cycle 6)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="o" for="(1,2) (3,4)" valueName="v" indexName="i"><pointList>(7,8) (9,10)</pointList></repeat>
+<conditionalContent name="cc"><case condition="true"><repeat name="r" for="1 2" valueName="w"><point name="P">($w,1)</point></repeat></case><else><group name="r"><point name="P">(5,5)</point></group></else></conditionalContent>
+<conditionalContent name="dd"><case condition="true"><select name="s" numToSelect="2"><option><point>(1,1)</point></option><option><point>(2,2)</point></option></select></case><else><select name="s"><option><point>(3,3)</point></option></select></else></conditionalContent>
+<p name="v1">$o[1].v.x</p><p name="v2">$o[2].v</p><p name="v3">$o[2].i</p>
+<p name="p1">$o[1].x</p><p name="i1">$o[2][2].x</p>
+<p name="p2">$cc.r.P</p><p name="p3">$dd.s.x</p>`,
+            ["v1", "v2", "v3", "p1", "i1", "p2", "p3"],
+            { withMessages: true },
+        );
+        // The value and index of an item are its own, though the item holds
+        // only a list; `$cc.r.P` was a blank with no warning, and `$dd.s.x`
+        // each pick's `x` (`1, 2`) while the first case is active.
+        expect(texts).eqls({
+            v1: "1",
+            v2: "(3, 4)",
+            v3: "2",
+            p1: "＿",
+            i1: "9",
+            p2: "＿",
+            p3: "＿",
+        });
+        expect(
+            diagnostics.map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls(["$cc.r[1].P", "$dd.s[1].x", "$o[1][1].x"]);
+    });
+});
+
+describe("A tag made from a name or a property after a collection (D59)", () => {
+    it("is missing, with the warning", async () => {
+        for (const source of [
+            `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>`,
+            `<repeatForSequence name="s" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>`,
+            `<pointList name="s">(1,2) (3,4)</pointList>`,
+        ]) {
+            for (const n of ["0", "1", "2"]) {
+                const { texts, diagnostics } = await both(
+                    `<number name="n">${n}</number>${source}
+<point extend="$s" name="A0"/><point extend="$s.x" name="A"/><math extend="$s.x" name="B"/>
+<p name="p">$A0|$A|$B</p><p name="q">$s.x</p>`,
+                    ["p", "q"],
+                );
+                // `$s.x` on a tag was `e0064` (#2548 item 1); the tag of the
+                // collection itself still is.
+                expect(texts.p, source).eq("＿|＿|＿");
+                expect(diagnostics, source).eqls([
+                    "error doenet-e0064",
+                    "warning doenet-w0200",
+                    "warning doenet-w0200",
+                    "warning doenet-w0200",
+                ]);
+            }
+        }
+    });
+});
+
+describe("A list's text, LaTeX and value are its entries', not its own (D59)", () => {
+    it("name nothing after a list, as any entry property does", async () => {
+        const { texts, diagnostics } = await both(
+            `<mathList name="ml">x 2y</mathList><sequence name="s" to="3"/>
+<p name="p1">$ml.value</p><p name="p2">$ml.text</p><p name="p3">$ml.latex</p><p name="p4">$s.value</p>
+<math name="a" extend="$ml.value"/><p name="p5">$a</p>
+<p name="p6"><text>$ml</text></p><p name="p7">$ml[2].text</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
+        );
+        // were each entry's, read together (D41)
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "x, 2 y",
+            p7: "2 y",
+        });
+        expect(diagnostics).eqls(Array(5).fill("warning doenet-w0200"));
+    });
+});
+
+describe("A one-shown-thing tag stands for what it shows (D59 rule 2, COMP-11)", () => {
+    it("a conditionalContent and a select that picks one", async () => {
+        const { texts, diagnostics } = await both(
+            `<select name="s"><option><point name="P">(1,2)</point></option><option><point name="P">(1,4)</point></option></select>
+<select name="s1" numToSelect="1"><option><point name="P">(1,2)</point></option></select>
+<conditionalContent name="cc"><case condition="true"><point name="P">(5,6)</point></case></conditionalContent>
+<math extend="$s.x" name="A"/><math extend="$cc.x" name="B"/>
+<p name="p">$A $B</p><p name="q">$s.P.x $s1.P.x $cc.P.x $cc.x $s.numItems</p>`,
+            ["p", "q"],
+        );
+        expect(texts).eqls({ p: "1 5", q: "1 1 5 5 1" });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("follows the case each item shows, read through an index", async () => {
+        // Both builds, live and after a reload.
+        const doenetML = `<booleanInput name="b" prefill="true"/>
+<repeat name="r" for="1 2" valueName="v"><conditionalContent><case condition="$b"><point name="P">($v,1)</point></case><else><point name="P">($v,5)</point></else></conditionalContent></repeat>
+<p name="p1">$r[1].P.y</p><p name="p2">$r[2].P</p>`;
+        for (const asLists of [true, false]) {
+            setListFormsEnabled(asLists);
+            try {
+                const { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({ doenetML });
+                const read = async (core: any, resolve: any) => {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    return Promise.all(
+                        ["p1", "p2"].map(
+                            async (name) =>
+                                stateVariables[await resolve(name)].stateValues
+                                    .text,
+                        ),
+                    );
+                };
+                expect(await read(core, resolvePathToNodeIdx)).eqls([
+                    "1",
+                    "(2, 1)",
+                ]);
+                await updateBooleanInputValue({
+                    boolean: false,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+                expect(await read(core, resolvePathToNodeIdx)).eqls([
+                    "5",
+                    "(2, 5)",
+                ]);
+                await core.saveImmediately();
+                const reloaded = await createTestCore({
+                    doenetML,
+                    initialState: scoreState.state,
+                });
+                expect(
+                    await read(reloaded.core, reloaded.resolvePathToNodeIdx),
+                ).eqls(await read(core, resolvePathToNodeIdx));
+                expect(
+                    core.core!.diagnostics.filter(
+                        (d: any) => !d.code?.startsWith("doenet-a"),
+                    ),
+                ).eqls([]);
+            } finally {
+                setListFormsEnabled(true);
+            }
+        }
+    });
+});
+
+describe("An index then a property past the items whose count follows an input (#2548 item 7)", () => {
+    it("gives the same information live as after a reload", async () => {
+        const doenetML = `<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>
+<p name="p">$r[1].x</p>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const codes = () =>
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => `${d.type} ${d.code}`);
+        expect(codes()).eqls([]);
+        const set = async (latex: string) =>
+            updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        await set("0");
+        // There was none live, and an info after a reload.
+        expect(codes()).eqls(["info doenet-w0181"]);
+        await core.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            reloaded.core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => `${d.type} ${d.code}`),
+        ).eqls(["info doenet-w0181"]);
+        await set("2");
+        expect(codes()).eqls([]);
+    });
+});
+
+describe("Names after collections, round 2 (#2638)", () => {
+    it("two indices into an item holding a branch container that holds a list (item 1)", async () => {
+        // Before: `$o3[1][1].x` read each point's `x`, `1, 3`, with no
+        // warning.
+        const { texts, diagnostics } = await both(
+            `<repeat name="o3" for="1 2" valueName="v"><conditionalContent><case condition="true"><pointList>(1,2) (3,4)</pointList></case><else><pointList>(5,6)</pointList></else></conditionalContent></repeat>
+<repeat name="o4" for="1 2" valueName="v"><select><option><pointList>(1,2) (3,4)</pointList></option><option><pointList>(1,6)</pointList></option></select></repeat>
+<repeat name="o5" for="1 2" valueName="v"><conditionalContent><case condition="true"><point>(1,2)</point></case></conditionalContent></repeat>
+<p name="p1">$o3[1][1].x</p><p name="p2">$o3[1][1][1].x</p><p name="p3">$o3[1][1].numItems</p>
+<p name="p4">$o4[1][1].x</p><p name="p5">$o5[1][1].x</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({ p1: "＿", p2: "1", p3: "2", p4: "＿", p5: "1" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$o3[1][1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o3[1][1][1].x`.",
+            "warning doenet-w0200: `$o4[1][1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o4[1][1][1].x`.",
+        ]);
+    });
+
+    it("a name from a repeat in a sort or shuffle, and one a collect holds as an item, suggest the index alone (items 2, 3)", async () => {
+        // Before: `$so.P` and `$sh.P` were blanks with `w0105` "Multiple
+        // referents", `$sh2.T` was the picked text, and `$c.A` suggested
+        // `$c[1].A`, which names nothing.
+        const { texts, diagnostics } = await both(
+            `<sort name="so"><repeat for="3 1" valueName="v"><point name="P">($v,1)</point></repeat></sort>
+<shuffle name="sh"><repeat for="3 1" valueName="v"><point name="P">($v,1)</point></repeat></shuffle>
+<shuffle name="sh2"><select numToSelect="2"><option><text name="T">a</text></option><option><text>b</text></option></select></shuffle>
+<section name="sec"><point name="A">(1,2)</point></section>
+<collect name="c" from="$sec" componentType="point"/>
+<p name="p1">$so.P</p><p name="p2">$sh.P</p><p name="p3">$so[1]</p><p name="p4">$so.P.x</p>
+<p name="p5">$c.A</p><p name="p6">$c[1]</p><p name="p7">$sh2.T</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "(1, 1)",
+            p4: "＿",
+            p5: "＿",
+            p6: "(1, 2)",
+            p7: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$c.A` names nothing: `A` is an item of the `<collect>`, and a name after it does not reach into its items. To read an item, give its index, such as `$c[1]`.",
+            "warning doenet-w0200: `$sh.P` names nothing: `P` is an item of the `<shuffle>`, and a name after it does not reach into its items. To read an item, give its index, such as `$sh[1]`.",
+            "warning doenet-w0200: `$sh2.T` names nothing: `T` is an item of the `<shuffle>`, and a name after it does not reach into its items. To read an item, give its index, such as `$sh2[1]`.",
+            "warning doenet-w0200: `$so.P.x` names nothing: `P` is an item of the `<sort>`, and a name after it does not reach into its items. To read an item, give its index, such as `$so[1].x`.",
+            "warning doenet-w0200: `$so.P` names nothing: `P` is an item of the `<sort>`, and a name after it does not reach into its items. To read an item, give its index, such as `$so[1]`.",
+        ]);
+    });
+
+    it("a name from a repeat or a select of several in a list is an item too, and suggests the index alone (items 2, 3)", async () => {
+        // Before: `$pl.P` was a blank with no message. Its suggestion was
+        // `$pl[1].P`, which names nothing (`w0180`), until the items of a
+        // list counted as items themselves too.
+        const { texts, diagnostics } = await both(
+            `<pointList name="pl"><repeat for="1 2" valueName="v"><point name="P">($v,1)</point></repeat></pointList>
+<textList name="tl"><select numToSelect="2"><option><text name="T">a</text></option><option><text>b</text></option></select></textList>
+<p name="p1">$pl.P</p><p name="p2">$pl[1]</p><p name="p3">$pl.P.x</p><p name="p4">$pl[1].x</p><p name="p5">$tl.T</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "(1, 1)",
+            p3: "＿",
+            p4: "1",
+            p5: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$pl.P.x` names nothing: `P` is an item of the `<pointList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0200: `$pl.P` names nothing: `P` is an item of the `<pointList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$pl[1]`.",
+            "warning doenet-w0200: `$tl.T` names nothing: `T` is an item of the `<textList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$tl[1]`.",
+        ]);
+    });
+
+    it("reports nothing more of a reference into a component in error (item 4, DIAG-5)", async () => {
+        // Before: `w0180` "an index cannot select anything in this
+        // `<_error>`" for `$s[1]`, `w0104` for `$r[1].hidden`, and `w0200`
+        // beside the cycle's `e0005` for `$o[1].x`.
+        const { texts, diagnostics } = await both(
+            `<p name="q">x</p><select name="s" extend="$q"/>
+<repeat name="r" for="1 2" valueName="v"><repeat extend="$r"/></repeat>
+<repeat name="o" for="1 2"><repeat copy="$o"/></repeat>
+<foo name="f"/><text name="t">a</text><point name="P" extend="$t"/>
+<p name="p1">$s[1].value</p><p name="p2">$s[1]</p><p name="p3">$r[1].hidden</p><p name="p4">$o[1].x</p>
+<p name="p5">$f[1]</p><p name="p6">$P[1]</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+        });
+        expect(diagnostics).eqls([
+            "error doenet-e0002",
+            "error doenet-e0005",
+            "error doenet-e0005",
+            "error doenet-e0065",
+            "error doenet-e0065",
+        ]);
+    });
+
+    it("a name written in a list, after a group standing for it, is that component (item 5)", async () => {
+        // Before: `$g.P` was a blank with no message, and `$g2.P` and
+        // `$g3.P` `w0200` suggesting `$g2[1].P`, which names nothing.
+        const { texts, diagnostics } = await both(
+            `<pointList name="pl"><point name="P">(1,2)</point><point>(3,4)</point></pointList>
+<group name="g">$pl</group>
+<group name="g2"><pointList extend="$pl"/></group>
+<group name="g3"><pointList name="pp" extend="$pl"/></group>
+<p name="p1">$g.P</p><p name="p2">$pl.P</p><p name="p3">$g2.P</p><p name="p4">$g3.P</p><p name="p5">$g.P.x</p><p name="p6">$g.x</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "(1, 2)",
+            p2: "(1, 2)",
+            p3: "(1, 2)",
+            p4: "(1, 2)",
+            p5: "1",
+            p6: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$g.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$g[1].x`.",
+        ]);
+    });
+
+    it("a name written in a list, after a group standing for it, in each iteration of a repeat and its copies (item 5)", async () => {
+        // Before: blanks, with no message, as what the name is resolved from
+        // was the template's list, not the iteration's.
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><pointList name="pl"><point name="P">($v,2)</point></pointList><group name="g">$pl</group><point name="q" extend="$g.P"/><math name="m">$g.P.x</math></repeat>
+<repeat name="r2" extend="$r"/><repeat name="r3" copy="$r"/>
+<p name="p1">$r[1].q</p><p name="p2">$r[2].q</p><p name="p3">$r[2].m</p><p name="p4">$r2[2].q</p><p name="p5">$r3[2].q</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        expect(texts).eqls({
+            p1: "(1, 2)",
+            p2: "(2, 2)",
+            p3: "2",
+            p4: "(2, 2)",
+            p5: "(2, 2)",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("w0191 speaks of a pick or the case shown, not of each item (item 6)", async () => {
+        const { diagnostics } = await both(
+            `<select name="s"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point></option></select>
+<conditionalContent name="cc"><case condition="true"><point>(1,2)</point></case><else><point>(1,2)</point><point>(3,4)</point></else></conditionalContent>
+<p name="p1">$s[1].x</p><p name="p2">$s.x</p><p name="p3">$cc.x</p>`,
+            ["p1", "p2", "p3"],
+            { withMessages: true },
+        );
+        expect(diagnostics).eqls([
+            'warning doenet-w0191: `$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
+            'warning doenet-w0191: `$s.x`: a property after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
+            'warning doenet-w0191: `$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+        ]);
+    });
+});

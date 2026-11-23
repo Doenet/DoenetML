@@ -235,6 +235,137 @@ describe("What a reader writes to can change", () => {
 <graph><circle through="$A (2,3) (4,1)"/></graph>`,
         ],
         [
+            "a math a reader drags in a graph only to place it",
+            "doenet-w0031",
+            "warning",
+            `<graph><math name="m">(5,0)</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m"/></graph>`,
+        ],
+        [
+            "the anchor of a math a reader drags in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><math name="m" anchor="(5,0)">x</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of a number a reader drags in a graph, by an extend",
+            "doenet-w0031",
+            "info",
+            `<graph><number name="n" anchor="(5,0)">1</number></graph>
+<graph fixed><point name="q" extend="$n.anchor"/><circle radius="1" through="(0,0) $q"/></graph>`,
+        ],
+        [
+            "the anchor of a number a number in a graph extends through another extend",
+            "doenet-w0031",
+            "info",
+            `<number name="n0" anchor="(5,0)">3</number><number name="n4" extend="$n0"/>
+<graph><number extend="$n4"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $n0.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of a math a reader drags in a graph, in an iteration of a repeat",
+            "doenet-w0031",
+            "info",
+            `<repeat name="r" for="1 2"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph></repeat>
+<graph fixed><circle radius="1" through="(0,0) $r[1].m.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of a math a reader drags in a graph, read in the same iteration of a repeat",
+            "doenet-w0031",
+            "info",
+            `<repeat for="1"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m.anchor"/></graph></repeat>`,
+        ],
+        [
+            "a math a reader drags in a graph only to place it, read in the same iteration of a repeat",
+            "doenet-w0031",
+            "warning",
+            `<repeat for="1"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m"/></graph></repeat>`,
+        ],
+        [
+            "a number a reader drags in a graph only to place it, reading the value of an iteration of a repeat",
+            "doenet-w0031",
+            "warning",
+            `<repeat name="r" for="1 2" valueName="v"><graph><number name="n" anchor="(5,0)">$v</number></graph></repeat>
+<graph fixed><circle radius="1" through="(0,0) ($r[2].n,1)"/></graph>`,
+        ],
+        [
+            "a math the anchor of what a number in a graph extends reads",
+            "doenet-w0031",
+            "info",
+            `<math name="q">(5,0)</math><number name="n0" anchor="$q">1</number>
+<graph><number extend="$n0"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $q"/></graph>`,
+        ],
+        [
+            "a math the anchor of what a number in a graph copies reads",
+            "doenet-w0031",
+            "info",
+            `<math name="q">(5,0)</math><number name="n0" anchor="$q">1</number>
+<graph><number copy="$n0"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $q"/></graph>`,
+        ],
+        [
+            "the anchor of a math an entry of a list in a graph references",
+            "doenet-w0031",
+            "info",
+            `<math name="a" anchor="(5,0)">x</math><graph><mathList>$a y</mathList></graph>
+<graph fixed><circle radius="1" through="(0,0) $a.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of a list in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><mathList name="ml"><math anchor="(5,0)">x</math> y</mathList></graph>
+<graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of an extend of a list in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><mathList name="ml"><math anchor="(5,0)">x</math> y</mathList></graph>
+<mathList name="ml2" extend="$ml"/>
+<graph fixed><circle radius="1" through="(0,0) $ml2[1].anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of a list that references a math in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><math name="a" anchor="(5,0)">x</math></graph><mathList name="ml">$a y</mathList>
+<graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
+        ],
+        [
+            "the anchor of a number in a repeat that a number in a graph extends",
+            "doenet-w0031",
+            "info",
+            `<repeat name="r" for="1"><number name="n" anchor="(5,0)">3</number></repeat>
+<graph><number extend="$r[1].n"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $r[1].n.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of what a math in a graph extends a property of",
+            "doenet-w0031",
+            "warning",
+            `<math name="a" anchor="(5,0)">x</math><graph><math extend="$a.value"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $a.anchor"/></graph>`,
+        ],
+        [
+            "a point an m a reader drags in a graph only to place it holds",
+            "doenet-w0031",
+            "warning",
+            `<point name="P">(5,0)</point><graph><m>$P</m></graph>
+<graph fixed><circle radius="1" through="(0,0) $P"/></graph>`,
+        ],
+        [
+            "a math a reader drags in a graph only to place it, as a vector's displacement",
+            "doenet-w0008",
+            "warning",
+            `<graph><math name="m">(1,2,3)</math></graph>
+<graph fixed><vector tail="(1,2)" displacement="$m"/></graph>`,
+        ],
+        [
             "a math in a point in a fixed graph",
             "doenet-w0100",
             "warning",

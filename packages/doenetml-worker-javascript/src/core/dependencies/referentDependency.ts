@@ -146,7 +146,7 @@ export class ReferentDependency extends Dependency {
         // are not public (`isValueEntriesVariable`), but not by name
         // (`$m.__valueEntries`).
         if (!listEntryPath && !(indexAsProp && isValueEntriesVariable(name))) {
-            [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
+            [variableName] = core.publicAliasSubstitutions({
                 stateVariables: [name],
                 componentClass: component.constructor,
             });

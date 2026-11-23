@@ -38,7 +38,11 @@ copy.
 Writing `$p` is the same as writing `<point extend="$p"/>{:dn}`, and an
 `extend` is always the same component again: it can have its own name and look
 different, but it can't change what the component makes or what its state can
-hold, and trying to is an error that says what to write instead.
+hold, and trying to is an error that says what to write instead. For example,
+an `extend` of an `<answer>{:dn}` shares its responses and credit, so it can't be
+given another input or `<award>{:dn}`, or a grading attribute such as `weight`
+or `symbolicEquality`; it can be given a `<label>{:dn}`, or `showCorrectness`. To
+make an answer that grades differently, use `copy`.
 
 ### Making an independent copy: `copy` and `copyWithState`
 
@@ -56,7 +60,9 @@ from another and then changes on its own, use `copy` or `copyWithState`.
   given variant and kept through a reload.
 - `<T copyWithState="$x"/>{:dn}` is a copy that also starts with `x`'s current
   state: what the reader has entered or moved, and the random choices of `x`
-  and of everything inside it. It keeps that snapshot through a reload.
+  and of everything inside it. It keeps that snapshot through a reload. A
+  copy of an input the reader has typed into but not yet entered starts with
+  what was typed, entered.
 
 Below, type in the first input and drag the point, then check the box. The
 `copy` starts at the prefill and where the point was written, while the
@@ -169,6 +175,20 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 <p>$(a)b is the value of a followed by the letter b.</p>
 ```
 
+### Writing a literal `$`
+
+A `$` followed by a letter, an underscore, or `(` starts a reference, and so
+does `$$` followed by one of those, as in `$$f(2)`, which evaluates a function.
+To show a dollar sign there instead, write it as `&dollar;` or `&#36;`. This
+works in text and in attribute values alike. A `$` followed by anything else,
+such as a space or a digit, is already plain text.
+
+```doenet-editor-horiz
+<p name="price">The fee is $5, written in code as &dollar;fee.</p>
+
+<p>Show &#36;(x) as text: <text>&#36;(x)</text></p>
+```
+
 ### Writing a reference as a different tag
 
 A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
@@ -180,9 +200,13 @@ nothing.
 When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
 only between related types:
 
-* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another, by value.
-  A boolean is `1` or `0` as a `<number>` or a `<math>`, and a text is a
-  `<boolean>` while it is the word `true` or `false`;
+* `<math>`, `<number>` and `<text>`, from one another, by value, and
+  `<boolean>` and `<text>`: a text is a `<boolean>` while it is the word
+  `true` or `false`. A boolean is not a number, nor a number a boolean:
+  `<number extend="$b"/>{:dn}` of a `<boolean>` is an error, which suggests
+  `<number convertBoolean>$b</number>{:dn}`, the one way to count a boolean
+  as `1` or `0`, and `<boolean extend="$n"/>{:dn}` of a number suggests a
+  comparison, such as `<boolean>$n != 0</boolean>{:dn}`;
 * `<point>`, `<vector>` and `<coords>`, from one another;
 * a `<math>` from a point, vector or coords, as the tuple of its coordinates,
   and a point, vector or coords from a math whose value is a tuple;
@@ -196,8 +220,8 @@ A `<group>` can be made from anything, and holds it.
 
 Made by value, the tag follows the value, and writing to the tag writes it
 back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`
-edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
-`b` to false.
+edits `mi`, and a `<text extend="$b"/>{:dn}` of a `<boolean>` set to `false`
+sets `b` to false.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
@@ -206,7 +230,7 @@ edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
 
 <p>As a math: <math extend="$P"/></p>
 <p>As a math: <math extend="$g"/></p>
-<p>As a number: <number extend="$bi"/></p>
+<p>As a text: <text extend="$bi"/></p>
 ```
 
 #### Made from a composite
@@ -246,7 +270,7 @@ reference in the tag: `<math>$cc</math>{:dn}`. To use one of several
 components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
 `$r[1]`, or give the one you want a name and refer to it by that name.
 
-```doenet-editor-horiz
+```doenet-editor-horiz expect-error
 <booleanInput name="b"><label>Show a point</label></booleanInput>
 <conditionalContent name="cc">
   <case condition="$b"><point>(1,2)</point></case>
@@ -267,10 +291,24 @@ a missing point isn't drawn in a graph. It is not the same as the empty tag:
 reference to it, or to a property of it, is missing too. `hide` still hides it.
 Written bare, `$nothing` shows `＿` too, with the same warning.
 
-A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or shape
-whose content is only a missing reference is missing in the same way:
+A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or
+shape whose content is only a missing reference is missing in the same way:
 `<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
-and a `<circle>$nothing</circle>{:dn}` isn't drawn. An `<award>{:dn}` whose
+and a `<circle>$nothing</circle>{:dn}` isn't drawn. So is a `<point>{:dn}` or
+`<vector>{:dn}` whose content is a reference that names nothing, such as
+`<point>$nothing</point>{:dn}`, `<point>$pl[$i]</point>{:dn}` past the end of
+a `<pointList name="pl">{:dn}` or `<point>$ml[3]</point>{:dn}` of a two-entry
+`<mathList name="ml">{:dn}`, a blank entry of a list, or a missing point
+(`<point>$Q</point>{:dn}` of a missing `Q`), and so is one holding such a
+reference beside other content (`<ray through="(1,2) $nothing"/>{:dn}`). A
+blank inside one coordinate takes part in it: `<point>($nothing, 2)</point>{:dn}`
+is `(＿, 2)`. A point is missing only when a coordinate it uses is: its `x`, `y`
+and `z` come before its content, so `<point x="3" y="4">$nothing</point>{:dn}` is
+`(3, 4)`. A vector is missing when its content, or a `head` or `tail` it uses,
+names nothing: `<vector tail="$pl[$i]" head="(5,5)"/>{:dn}` past the end of
+`pl`. A shape whose center is a property of a missing shape, such as
+`<circle center="$c.center"/>{:dn}` of `<circle name="c">$nothing</circle>{:dn}`,
+is missing too. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
@@ -289,7 +327,9 @@ such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
 blank never equals anything. Only a number computed from values that are all
 there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A
 property that has no value, such as an `<award>{:dn}`'s `feedbackText` when it
-has none, is missing too.
+has none, is missing too, and so is a tag of it while it has none, though it
+had a value when the tag was made: `<math extend="$im.aspectRatio"/>{:dn}` is
+`＿` once the image's aspect ratio is cleared.
 
 In a list, a missing entry is a blank entry: where `l` has fewer than five
 entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so
@@ -320,7 +360,8 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
   a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
   missing until the value converts. So is one made from an input's value, such
-  as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
+  as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`
+  (missing too while no choice, or more than one, is selected), or
   from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
   tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the

@@ -530,9 +530,9 @@ describe("Value lists as list components @group4", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P" displayDigits="2">(1.23456, 2.34567)</point>
-    <cumulativeSum name="c">1 2 3</cumulativeSum>
+    <math name="m" functionSymbols="f g h" />
     <p name="pxs">$P.xs</p>
-    <p name="ptext">$c.text</p>
+    <p name="ptext">$m.functionSymbols</p>
     <mathList name="l" extend="$P.xs" />
     <p name="pl">$l</p>
     <mathInput name="mi" bindValueTo="$l[2]" />
@@ -549,7 +549,10 @@ describe("Value lists as list components @group4", async () => {
 
         expect(
             await textsOf(core, resolvePathToNodeIdx, ["pxs", "ptext", "pl"]),
-        ).eqls({ pxs: "1.2, 2.3", ptext: "1, 3, 6", pl: "1.2, 2.3" });
+            // (an array of texts of a math, where it was `$c.text` of a
+            // `<cumulativeSum>`, which names nothing since D59: a list's text is
+            // not a property of its own)
+        ).eqls({ pxs: "1.2, 2.3", ptext: "f, g, h", pl: "1.2, 2.3" });
 
         await updateMathInputValue({
             latex: "7",
@@ -1605,8 +1608,8 @@ describe("Value lists as list components @group4", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeatForSequence name="r" length="2" valueName="v"><number name="x">10$v</number></repeatForSequence>
-    <p name="p1"><numberList name="a">0 $r.x 9</numberList> $a.numValues</p>
-    <p name="p2"><mathList>0 $r.x <math>y</math></mathList> <textList>a $r.x b</textList></p>
+    <p name="p1"><numberList name="a">0 $r[3].x 9</numberList> $a.numValues</p>
+    <p name="p2"><mathList>0 $r[3].x <math>y</math></mathList> <textList>a $r[3].x b</textList></p>
     <mathInput name="mi" bindValueTo="$a[2]"/>
     `,
         });
@@ -1714,16 +1717,25 @@ describe("Value lists as list components @group4", async () => {
     <numberList name="nl"><number displayDigits="$dd">2.7182818</number> 3.14159</numberList>
     <p name="pm">$ml[1].number $ml[2].number $ml[1].displayDigits</p>
     <p name="pn">$nl[1].math $nl[2].math</p>
-    <p name="pAll">$ml.number</p>
+    <p name="pAll"><repeat for="$ml" valueName="ev">$ev.number</repeat></p>
+    <p name="pOld">$ml.number</p>
     `,
         });
 
         expect(
-            await textsOf(core, resolvePathToNodeIdx, ["pm", "pn", "pAll"]),
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pm",
+                "pn",
+                "pAll",
+                "pOld",
+            ]),
         ).eqls({
             pm: "2.71828 3.14 6",
             pn: "2.71828 3.14",
             pAll: "2.71828, 3.14",
+            // was each entry's number (D41); a property after a list is its
+            // own (D59), so it names nothing (`doenet-w0200`)
+            pOld: "＿",
         });
 
         await updateMathInputValue({
