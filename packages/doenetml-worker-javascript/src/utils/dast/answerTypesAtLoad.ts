@@ -221,6 +221,18 @@ export function decideAnswerTypesAtLoad({
         );
     }
 
+    /**
+     * Whether `c` is a `tag` as the answer's sugar reads it, by its tag (also
+     * one made with `extend` or `copy`); a bare reference is not one.
+     */
+    function isTag(c: SerializedComponent, tag: string) {
+        if (isBareReference(c)) {
+            return false;
+        }
+        const own = tagOfComponent(c);
+        return own !== undefined && inherits(own, tag);
+    }
+
     function isBlank(child: SerializedComponent | string) {
         return typeof child === "string" && child.trim() === "";
     }
@@ -229,13 +241,15 @@ export function decideAnswerTypesAtLoad({
         const writtenAttribute: SerializedAttribute | undefined =
             answer.attributes?.type;
         // As written, and as the keyword it is read as (`type` declares
-        // `toLowerCase`; D51 decision 3).
+        // `toLowerCase` and valid values, which trim; D51 decision 3).
         const writtenRaw =
             writtenAttribute?.type === "primitive"
                 ? String(writtenAttribute.primitive.value)
                 : undefined;
-        const writtenValue = writtenRaw?.toLowerCase();
-        if (writtenValue === "videowatched") {
+        const writtenValue = writtenRaw?.trim().toLowerCase();
+        // `videoWatched` is made by the parser's sugar, which reads it
+        // without case but untrimmed, as the answer's sugar does.
+        if (writtenRaw?.toLowerCase() === "videowatched") {
             continue;
         }
         const written: AnswerType | undefined =
@@ -245,30 +259,34 @@ export function decideAnswerTypesAtLoad({
                 ? writtenValue
                 : undefined;
 
-        const children = (answer.children ?? []).filter(
+        // The answer's children as its sugar reads them (`Answer.js`): by
+        // tag, a bare reference (`$x`) being content whatever it names;
+        // without labels and descriptions, and blanks at either end.
+        const sugarChildren = (answer.children ?? []).filter(
             (child) =>
-                !isBlank(child) &&
                 !(
                     typeof child === "object" &&
-                    ["label", "description", "shortDescription"].some(
-                        (tag) =>
-                            child.componentType === tag ||
-                            (tagOfComponent(child) !== undefined &&
-                                inherits(tagOfComponent(child)!, tag)),
+                    ["label", "description", "shortDescription"].some((tag) =>
+                        isTag(child, tag),
                     )
                 ),
         );
-
-        const tags = children.map((child) =>
-            typeof child === "object" ? tagOfComponent(child) : undefined,
-        );
+        while (sugarChildren.length > 0 && isBlank(sugarChildren[0])) {
+            sugarChildren.shift();
+        }
+        while (
+            sugarChildren.length > 0 &&
+            isBlank(sugarChildren[sugarChildren.length - 1])
+        ) {
+            sugarChildren.pop();
+        }
 
         // A choice answer is decided by its choices, unchanged.
         if (
-            tags.some(
-                (tag) =>
-                    tag !== undefined &&
-                    (inherits(tag, "choice") || inherits(tag, "choiceInput")),
+            sugarChildren.some(
+                (child) =>
+                    typeof child === "object" &&
+                    (isTag(child, "choice") || isTag(child, "choiceInput")),
             )
         ) {
             continue;
@@ -282,21 +300,24 @@ export function decideAnswerTypesAtLoad({
             content: (SerializedComponent | string)[];
             at: SerializedComponent;
         }[] = [];
-        const ownContent: (SerializedComponent | string)[] = [];
 
-        children.forEach((child, i) => {
-            const tag = tags[i];
-            if (typeof child !== "object") {
-                ownContent.push(child);
-            } else if (
-                tag !== undefined &&
-                inherits(tag, "_input") &&
-                !isBareReference(child)
-            ) {
-                // a bare `$ti` naming an input is content, which the sugar
-                // wraps in an award, not an input written inside
+        /** Whether the sugar wraps `child` in an award of its own. */
+        function isContent(child: SerializedComponent | string) {
+            return (
+                typeof child !== "object" ||
+                !["_input", "award", "considerAsResponses"].some((tag) =>
+                    isTag(child, tag),
+                )
+            );
+        }
+
+        for (const child of sugarChildren) {
+            if (typeof child !== "object" || isContent(child)) {
+                continue;
+            }
+            if (isTag(child, "_input")) {
                 inputs.push(child);
-            } else if (tag !== undefined && inherits(tag, "award")) {
+            } else if (isTag(child, "award")) {
                 const awardChildren: (SerializedComponent | string)[] =
                     child.doenetAttributes?.copiedAward?.children ??
                     (child.componentType === "award" ? child.children : []) ??
@@ -311,17 +332,26 @@ export function decideAnswerTypesAtLoad({
                 if (content.length > 0 && !hasWhen) {
                     comparedContents.push({ content, at: child });
                 }
-            } else if (
-                tag !== undefined &&
-                inherits(tag, "considerAsResponses")
-            ) {
-                // what is recorded, not what is compared
-            } else {
-                ownContent.push(child);
             }
-        });
-        if (ownContent.length > 0) {
-            comparedContents.push({ content: ownContent, at: answer });
+            // a `<considerAsResponses>` is what is recorded, not what is
+            // compared
+        }
+
+        // The sugar wraps one run of content: from the first child it
+        // wraps to the next it doesn't. Content after that is left as it
+        // is, an invalid child of the answer (`doenet-w0107`), compared
+        // with nothing.
+        const start = sugarChildren.findIndex(isContent);
+        if (start !== -1) {
+            const end = sugarChildren.findIndex(
+                (child, i) => i > start && !isContent(child),
+            );
+            const ownContent = sugarChildren
+                .slice(start, end === -1 ? undefined : end)
+                .filter((child) => !isBlank(child));
+            if (ownContent.length > 0) {
+                comparedContents.push({ content: ownContent, at: answer });
+            }
         }
 
         /** The type each typed component of `content` is compared as. */
