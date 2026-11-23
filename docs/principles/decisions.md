@@ -3076,6 +3076,8 @@ property names were matched without case. Some attributes were still matched exa
    (`<Award copy>` in an `<answer>`) as an error, with no change to the answer's sugar.
 3. **Keywords in attribute values stay case-insensitive** (`simplify="FULL"`, `hide="True"`), since a
    value can come from what a reader types.
+   A type named in an attribute (`type="math"`) is not a keyword but a tag name, matched exactly
+   (D63 decision 4).
 
 **Why not make tags case-insensitive instead?**
 - Names can't be: `$Mm` and `$mm` are different.
