@@ -888,7 +888,9 @@ Done by #2427 (content fixed at load) and #2436 (content made at run time). #244
 `W/utils/dast/typeChangeAtLoad.ts`, a pass over the serialized document after sugar and before
 the list forms, which records `typeChangeAtLoad` on each `_copy` written as a tag. The table is
 `typeChangeRule` in `W/utils/typeChange.js`, applied only to author-written extends and copies.
-It also allows, beyond the table above (**known violation**, #2659, for a decision):
+**A component becomes only what it stands in as** (D69): its adapters' types (`<math
+extend="$line"/>`, `<text extend="$ion"/>`, `<text extend="$l"/>` of a label), and no chain past
+them; an `<angle>` is a math. It also allows today, beyond that (**known violation**, #2659):
 - any pair an `adapter` gives, and from there any value type, such as `<text extend="$ion"/>` of an
   `<ion>`, `<math extend="$line"/>` (its equation), and silently `<number extend="$line"/>`
   (`NaN`), `<boolean extend="$ion"/>` (`false`) and `<boolean extend="$me"/>`;
@@ -898,10 +900,10 @@ It also allows, beyond the table above (**known violation**, #2659, for a decisi
 
 Some of these sources give a blank with a misleading `w0107` instead (`<text extend="$line"/>`,
 `<math extend="$l"/>`), and a value that doesn't convert is a silent `NaN` (`<number
-extend="$t"/>` of `hello`) where REF-5 asks for a missing value with an info. Recommended
-(#2659): no chaining through adapters; an `<angle>` is the one non-value with a value (its
-measure); every other such pair is `e0065` naming the property to write (`$l.equation`,
-`$f.formula`, `$ion.name`, `<text>$l</text>`).
+extend="$t"/>` of `hello`) where REF-5 asks for a missing value with an info. Under D69 each
+chain past the adapter is `e0065` naming the property to write (`$l.equation`, `$l.slope`,
+`$f.formula`, `$ion.name`), and the same chain in content (`<number>$line</number>`) a blank with
+a warning.
 
 `<coords>` follows the point group, though it inherits from `<math>`.
 

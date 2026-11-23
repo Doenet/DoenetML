@@ -3544,3 +3544,33 @@ conversion D47 decision 4 ruled out for a number: one the author didn't ask for.
 selection (`type_change_run_time.test.ts`); it becomes `e0065`, suggesting `$ci = true`.
 Implementation: with PR 50 (#2659).
 
+## D69. A component becomes only what it stands in as (decided, November 2026)
+
+**Why.** `typeChange.js` let a component with an adapter to a value type become *any* value type,
+and treated a `<label>` as a text and an `<angle>` as a math "made from, and into, the others".
+So a chain past the adapter was accepted: `<number extend="$line"/>` (the line's equation as a
+number, always `NaN`), `<boolean extend="$ion"/>` (`false`), `<boolean extend="$l"/>` of a label,
+`<label extend="$m"/>`. Each was silent, or a blank with a misleading `w0107`, depending on which
+adapters a class declares (#2659).
+
+**Decided (option B):**
+1. **A component can be made into what it stands in as** (its adapters), and nothing further:
+   `<math extend="$line"/>` is the line's equation, `<text extend="$ion"/>` its name,
+   `<math extend="$m"/>` and `<text extend="$m"/>` an `<m>`'s math and text, `<text extend="$l"/>`
+   a label's text. A further conversion from there is not followed: `<number extend="$line"/>`,
+   `<text extend="$line"/>`, `<boolean extend="$ion"/>`, `<number extend="$l"/>` are `e0065`,
+   naming the property or form that says what's meant (`$line.slope`, `<text>$line.equation</text>`,
+   `$ion.name`).
+2. **The same holds where such a component is content of a value tag** (`<number>$line</number>`,
+   `<text>$line</text>`, which give `NaN` and a blank with `w0107` today): a blank in its place with
+   a warning naming the property, as for a type mix (D47).
+3. **An `<angle>` is the one non-value treated as a value type:** its measure, a math, so it follows
+   math's pairs (`<number extend="$a"/>`), and a math can be made into an angle (D66 decision 17).
+4. **A tag is made from a value only by REF-5's pairs:** a math doesn't stand in as a label, so
+   `<label extend="$m"/>` is `e0065`, suggesting `<label>$m</label>`.
+5. With D68, a text is never read as a boolean, so a label is never a boolean either.
+
+A value conversion that fails within an allowed pair is missing, with an info, as REF-5 already
+says (`<number extend="$t"/>` of `hello` is a silent `NaN` today: a known violation, #2659).
+Implementation: PR 50.
+
