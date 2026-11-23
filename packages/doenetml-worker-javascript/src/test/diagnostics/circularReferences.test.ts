@@ -1775,8 +1775,16 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
         it(`a reference to a ${tag} written in it is an error at load`, async () => {
             const backstopWas = setLoadCycleBackstop(false);
             try {
-                const { errors, rest } = await errorsAndRest(doenetML);
+                const { core, errors, rest } = await errorsAndRest(doenetML);
                 expect(errors).eqls(at(doenetML, ["$h"]));
+                // The load check names the container; the check when the
+                // document runs, which caught a `<graph>`'s before it was
+                // listed, names no tag ("Circular dependency detected.").
+                expect(
+                    getDiagnosticsByType(core).errors.map((e) => e.message),
+                ).eqls([
+                    `Circular dependency detected involving \`<${tag}>\` component.`,
+                ]);
                 expect(rest).eq("rest");
             } finally {
                 setLoadCycleBackstop(backstopWas);
