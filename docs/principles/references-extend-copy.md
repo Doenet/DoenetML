@@ -856,6 +856,11 @@ Not allowed, each an error whose message gives the clearer form (DIAG-3):
   A literal index past what a selector picks (`$s[2]` of a one-pick select) is warning
   `doenet-w0181`, and the tag is missing (D37, #2458; #2447 had made it an error on a scalar tag).
 - **a list from components of more than one type** ("wrap it: `<mathList>$g</mathList>`").
+- **a `<group>` from a collection** (a list, `<repeat>`, `<collect>`, a select of several, …).
+  A collection keeps its kind (COLL-1); "write `<group>$r</group>`, or `<repeat extend="$r"/>`".
+  **Known violation** (#2649): allowed today. A group made from a list or a `<collect>` acts as
+  the list (`$g[2]`, `$g.numItems`), and one made from a `<repeat>` or a select of several shows
+  nothing, with no message.
 - **any other pair.**
 
 What the composite holds is decided at load and not again (D36). Only a value conversion is

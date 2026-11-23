@@ -862,10 +862,13 @@ these cases:
     `sample…` tag;
   - `<math extend="$sub"/>` of a `<substitute>`, and `<point extend="$i"/>` of an
     `<intersection>` that makes one point;
-  - and the same for a `<collect>`, `<sort>` or `<shuffle>` that holds one component.
+  - and the same for a `<collect>`, `<sort>` or `<shuffle>` that holds one component. (Since
+    D36, only when the DoenetML guarantees one: a `<sort>` of one written component, not a
+    `<collect>`, which is `e0064`.)
 - **a list from a composite whose components all match the entry type:** `<mathList
   extend="$g"/>`, `<mathList extend="$cc"/>`, `<numberList extend="$c"/>` of a `<collect>` of
-  numbers, `<mathList extend="$s"/>` of a select with several picks (#2231).
+  numbers, `<mathList extend="$s"/>` of a select with several picks (#2231). Not the reverse: a
+  `<group>` made from a collection is "any other pair" (#2649).
 
 **Not allowed, an error whose message gives the clearer form:**
 - **an input from a value type.** `<mathInput extend="$m1"/>` acts as
@@ -3255,7 +3258,8 @@ Implementation: #2626, done by #2636. It reverts parts of #2565 (per-item names 
 8. **A name written inside a list, sort or shuffle is that component** (`$pl.P`): ordinary name
    resolution, not a reach into each item.
 
-Leftovers: #2638.
+Leftovers: #2638, done by #2644 (items 1–6). Its item 7, a `<group>` made from a repeat, is
+#2649: a collection keeps its kind (COLL-1, REF-5). #2644's own leftovers are #2652.
 
 ## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026; done by #2632)
 

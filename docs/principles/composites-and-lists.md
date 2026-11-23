@@ -219,9 +219,15 @@ implemented it; the work to remove it is #2626.
   list, sort or shuffle is still that component (`$pl.P`). An action's `target="$r.mi"` names
   nothing. The older violations (a name each item lacks, `$c.P` latching onto one item) went with
   the per-item reach;
-- **left** (#2638): two indices into an item holding a branch container that holds a list
-  (`$o3[1][1].x`) still read every entry; `$so.P` through a sort holding a repeat gives `w0105`;
-  `$g.P` of a group holding a list in which `P` is written is a silent blank;
+- **fixed by #2644** (closing #2638): two indices into an item holding a branch container that
+  holds a list (`$o3[1][1].x`) name nothing, with `w0200` suggesting `$o3[1][1][1].x`; a name from
+  a repeat or a select of several in a sort, shuffle or list (`$so.P`) is `w0200`, not `w0105`
+  or a silent blank; a name that is an item itself (`$c.A` of a collected `A`) is told `$c[1]`,
+  which works; nothing more is reported after an error (no `w0180` naming `<_error>`, no `w0200`
+  beside a cycle's `e0005`); `w0191` speaks of a pick or the shown case, not each pick;
+- **left** (#2652): `$g.P[1]` through a group holding a list is a silent blank, and so is
+  `$r[2].g.P` from outside a repeat; some suggestions name nothing (`w0193` suggesting an internal
+  tag, `w0200` for an index past what exists);
 - `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
   collect's own;
 - **fixed by #2624** (D51): a collection's own property spelled in another case (`$r.numitems`,
@@ -254,9 +260,19 @@ child's run together).
 - a property some iterations lack through a `<conditionalContent>` gives a blank with `w0192`;
 - `$r[1].x` at 0 iterations gives `w0181` live as after a reload.
 
-**Known violation** (#2569, from #2548 item 6): a reference whose one item goes away keeps its
-value in a `<text>`, a `<math>`, an attribute or `bindValueTo`, where a `<p>` and a reload show
-nothing.
+**Done by #2644** (#2638 item 5): a `<group>` holding only a list stands for it for a name:
+`$g.P` of `<group name="g">$pl</group>`, with `P` written in `pl`, is `P`, as `$pl.P` is (D59
+decision 8). This holds when the group holds `<pointList extend="$pl"/>`, and in each iteration
+of a repeat holding the group and the list.
+
+**Known violations:**
+- (#2569, from #2548 item 6) a reference whose one item goes away keeps its value in a `<text>`,
+  a `<math>`, an attribute or `bindValueTo`, where a `<p>` and a reload show nothing;
+- (#2649) a `<group>` made from a collection (`<group extend="$r"/>`, `copy`, `copyWithState`)
+  is allowed. Made from a list or a `<collect>`, it acts as the list (`$g[2]` is the second
+  entry), while a group made from a group of several refuses an index (`w0188`). Made from a
+  `<repeat>` or a select of several, it shows nothing, with no message. Under COLL-1 and REF-5
+  it is an error naming `<group>$r</group>` or `<repeat extend="$r"/>`.
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
