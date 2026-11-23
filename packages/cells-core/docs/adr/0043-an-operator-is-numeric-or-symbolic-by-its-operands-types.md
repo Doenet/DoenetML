@@ -23,12 +23,27 @@ NaN.
 by the compile's type pass.** An operator is symbolic when any operand can
 be a non-number, and numeric otherwise; `forceSymbolic` and `forceNumeric`
 decide it instead (numeric wins when both are written, as in the current
-core). "Can be a non-number" is what the type pass already decides for
-math text (ADR 0032, `Types::symbolic`): a free symbol, or a reference to
-a port that stands for an expression of type `Math` (a symbolic `<math>`,
-an unbound `<mathInput>`, a symbolic operator). A numeric operator is
-exactly today's: the same operators over numbers, the same inverses, the
-same cost.
+core). "Can be a non-number" is what the type pass decides for math text
+(ADR 0032, `Types::symbolic`): a free symbol; a reference to a port that
+stands for an expression of type `Math` (a symbolic `<math>`, an unbound
+`<mathInput>`, a symbolic operator); or **constant math text that is no
+number as written** (`pi/2`, `6/2`, `sqrt(2)`), which the current core
+keeps as written. A plain number literal (`3`, `-2.5`) and text whose
+only leaves are numeric references (`2$a`) stay numeric. A numeric
+operator is exactly today's: the same operators over numbers, the same
+inverses, the same cost.
+
+*Refined 2026-11-23:* the third case is the user's decision after the
+first cut, which typed constant math text by its value, so that
+`<math>6/2</math>` was the number 3 and an angle's `radians="pi/2"` the
+number 1.5708. The rule stays static and per element; it only reads the
+text as written rather than its folded value, which ADR 0005's lowering
+had done for every `<math>`. It applies to a `<math>`'s `expr` as to an
+operator's (`Flow::MathHandle`): `<math>6/2</math>` is a math cell
+holding `6/2`, its value the evaluated 3, and as an operand it keeps the
+operator symbolic (`<sum><math>6/2</math> 17 1</sum>` is
+`6/2 + 17 + 1`). A math attribute or a `<number>`'s math text, which no
+`expr` reads, still lowers.
 
 An operator over math has two ports beside its operands
 (`components/operators/over_math.rs`):
@@ -95,10 +110,10 @@ The other unit is the engine's conversion, simplified (`180 α/π`).
   an unbound `<mathInput>` holding `1` is an `Instantiate` and an
   `Evaluate` (four instructions more in `fold.spec`'s references case),
   and gives the same number.
-- Math text with no free symbol is a number, here as in ADR 0005: the
-  current core's `<sum><math>6/2</math> 17 1</sum>` is `6/2 + 17 + 1`, this
-  core's 21; `<sum>6/2 17 1</sum>` likewise. `pi` is a number to the
-  tokenizer, so `<abs>pi</abs>` is a number too.
+- Constant math text that is no number as written costs an `Evaluate`
+  where it lowered to a constant before, and its value is no longer state
+  a request may write; it never was for anything but a literal, which
+  stays given. `<abs>pi</abs>` is symbolic, and evaluates to the number.
 - A request on a symbolic operator is dropped: no inverse is symbolic. The
   current core writes `abs`'s argument (`absInverse`); here, a request
   that would change a numeric operator's kind (typing `x` into an input
@@ -112,11 +127,11 @@ The other unit is the engine's conversion, simplified (`180 α/π`).
 - A `<variance>` or `<standardDeviation>` is symbolic only when
   `population` is written as a literal: the expression's shape depends on
   it.
-- Element children (`<sum><math>x</math> 3</sum>`) are the operands of a
-  list's children, ADR 0041 step 2, refused until that step reads them;
-  an element child of a one-input operator is refused. Once a list's
-  children read an element as an entry, `over_math::operand_exprs` reads it
-  as a leaf, as it reads a reference.
+- Element children (`<sum><math>x</math> 3</sum>`) and a list a reference
+  names are an operator's entries by ADR 0041 step 2 (`list_entries`);
+  `over_math::operand_exprs` reads each entry as math (`entry_math`), a
+  reference's or an element child's as a leaf, so a math child makes the
+  operator symbolic. An element child of a one-input operator is refused.
 - Left: `<extractMath>` and `<convertSetToList>` (the math tokenizer has no
   sets, and extracting needs the engine's tree), and the current core's
   `simplify` levels (ADR 0011).

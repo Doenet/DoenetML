@@ -111,14 +111,14 @@ spec! {
         expect { "s.expr" = "10", "s.value" = 10 }
     }
 
-    case "forced: symbolic over numbers, numeric over math" {
+    case "forced: symbolic over numbers, numeric over math; math text as written" {
         doenet r#"<sum name="sym" forceSymbolic>3 17 1</sum>
                   <sum name="simp" forceSymbolic simplify>3 17 1</sum>
                   <sum name="num" forceNumeric>x 1</sum>
                   <sum name="math">6/2 17 1</sum>"#;
         expect {
             "sym.expr" = "3 + 17 + 1", "sym.value" = 21, "simp.expr" = "21",
-            "num.expr" = "", "num.value" = f64::NAN, "math.expr" = "", "math.value" = 21,
+            "num.expr" = "", "num.value" = f64::NAN, "math.expr" = "6/2 + 17 + 1", "math.value" = 21,
         }
     }
 

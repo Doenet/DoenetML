@@ -151,9 +151,37 @@ fn forced_kinds() {
     assert!(value(&doc, "num").is_nan());
     assert_eq!(expr(&doc, "plain"), None);
     assert_eq!(value(&doc, "plain"), 21.0);
-    // Math text with no symbol is a number to the type pass.
-    assert_eq!(expr(&doc, "numericMath"), None);
+    // Math text that is no number as written is kept as written.
+    assert_eq!(expr(&doc, "numericMath").as_deref(), Some("6/2 + 17 + 1"));
     assert_eq!(value(&doc, "numericMath"), 21.0);
+}
+
+/// Constant math text that is no number as written (`6/2`, `pi/2`) is
+/// symbolic, a `<math>` and an operand alike; a number literal stays
+/// numeric (ADR 0043).
+#[test]
+fn constant_math_text_is_kept_as_written() {
+    let doc = load_unpruned(
+        r#"<math name="q">6/2</math><math name="three">3</math>
+           <math name="neg">-2.5</math><math name="r">sqrt(2)</math>
+           <sum name="s">$q 1</sum><sum name="t">$three 1</sum>
+           <abs name="a">-pi</abs><abs name="b">-2</abs>"#,
+    )
+    .unwrap();
+    assert_eq!(expr(&doc, "q").as_deref(), Some("6/2"));
+    assert_eq!(value(&doc, "q"), 3.0);
+    assert_eq!(expr(&doc, "three"), None);
+    assert_eq!(expr(&doc, "neg"), None);
+    assert_eq!(value(&doc, "neg"), -2.5);
+    assert!((value(&doc, "r") - 2f64.sqrt()).abs() < 1e-12);
+    assert_eq!(expr(&doc, "s").as_deref(), Some("6/2 + 1"));
+    assert_eq!(value(&doc, "s"), 4.0);
+    assert_eq!(expr(&doc, "t"), None);
+    assert_eq!(value(&doc, "t"), 4.0);
+    // Over a constant, the one-input operators evaluate.
+    assert!((value(&doc, "a") - std::f64::consts::PI).abs() < 1e-12);
+    assert_eq!(expr(&doc, "b"), None);
+    assert_eq!(reference::check(&doc), None);
 }
 
 #[test]

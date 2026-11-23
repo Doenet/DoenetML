@@ -309,14 +309,16 @@ impl<'s, 'a> Types<'s, 'a> {
     }
 
     /// Whether the handle of a `<math>` of template `t` with expression
-    /// `id` is a math cell: its text has a free symbol, or a leaf that
-    /// stands for an expression (`stands_for_expression`).
+    /// `id` is a math cell: its text has a free symbol, is constant text
+    /// that is no number as written (`pi/2`, `6/2`; ADR 0043), or has a
+    /// leaf that stands for an expression (`stands_for_expression`).
     fn symbolic(&mut self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
-        let arena = &self.seal.ar.arena;
+        let (ar, dast) = (self.seal.ar, self.seal.dast);
+        let arena = &ar.arena;
         let has_symbol = *self.has_symbol.entry(id).or_insert_with(|| {
             let mut syms = Vec::new();
             arena.symbols(id, &mut syms);
-            !syms.is_empty()
+            !syms.is_empty() || written_math(ar, dast, id)
         });
         if has_symbol {
             return Ok(true);
@@ -957,4 +959,34 @@ fn sel_len(sel: PropSel, width: usize, n_points: Option<usize>) -> Option<usize>
         // Not slots: the build refuses it by name.
         PropSel::TableList => 0,
     })
+}
+
+/// Whether expression `id` is, or has among an operator's operands, math
+/// text with no reference that is no number as written (`pi/2`, `6/2`,
+/// `sqrt(2)`; ADR 0043): math the current core keeps as written, so a
+/// `<math>` of it, or an operator over it, is symbolic. A number literal
+/// (`3`, `-2.5`) is not, and text with a reference is decided by its
+/// leaves.
+fn written_math(ar: &Arenas, dast: &Dast, id: ExprId) -> bool {
+    if let Expr::Operator(args) = ar.arena.get(id) {
+        return args.iter().any(|&a| written_math(ar, dast, a));
+    }
+    let mut leaves = Vec::new();
+    ar.arena.cell_leaves(id, &mut leaves);
+    if !leaves.is_empty() {
+        return false;
+    }
+    ar.sym_text
+        .get(&id)
+        .is_some_and(|text| !is_number_literal(text.spell(dast).trim()))
+}
+
+/// Whether `text` is a number as written: digits, a point, a sign and an
+/// exponent, and nothing else.
+fn is_number_literal(text: &str) -> bool {
+    !text.is_empty()
+        && text
+            .chars()
+            .all(|c| c.is_ascii_digit() || matches!(c, '.' | '-' | '+' | 'e' | 'E'))
+        && text.parse::<f64>().is_ok_and(f64::is_finite)
 }
