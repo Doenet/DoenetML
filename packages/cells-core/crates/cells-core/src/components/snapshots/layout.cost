@@ -1,6 +1,6 @@
-a table takes no place among the divisions: cells 9 · essential 0 · constant 9 · instrs 0 · components 9
+a table takes no place among the divisions: cells 10 · essential 0 · constant 10 · instrs 0 · components 9
 a section inside a table is numbered from 1: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
-an input in a side-by-side of a group: cells 5 · essential 1 · constant 3 · instrs 1 · components 11
-values in an asList and a latex snippet: cells 5 · essential 0 · constant 5 · instrs 0 · components 8
+an input in a side-by-side of a group: cells 6 · essential 1 · constant 4 · instrs 1 · components 11
+values in an asList and a latex snippet: cells 6 · essential 0 · constant 6 · instrs 0 · components 8
 the PreTeXt wrappers are looked through: cells 10 · essential 0 · constant 10 · instrs 0 · components 7
-a graph's axis labels load: cells 9 · essential 6 · constant 3 · instrs 0 · components 6
+a graph's axis labels load: cells 11 · essential 8 · constant 3 · instrs 0 · components 6

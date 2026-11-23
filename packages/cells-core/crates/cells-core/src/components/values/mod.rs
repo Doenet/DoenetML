@@ -110,6 +110,8 @@ pub mod number {
         default_prop: value,
         props {
             value: children { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -153,6 +155,8 @@ pub(crate) mod evaluate {
             function: attr(NO_VALUE) { ref_prop: expr },
             input: attr(NO_VALUE),
             value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         planner: Props,
     }
@@ -215,6 +219,8 @@ pub(crate) mod clamp_number {
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

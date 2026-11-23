@@ -160,6 +160,8 @@ pub(crate) mod abs {
         props {
             operand: children,
             value: computed(OpSpec::Abs, [operand]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -180,6 +182,8 @@ pub(crate) mod sign {
         props {
             operand: children,
             value: computed(OpSpec::Sign, [operand]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -200,6 +204,8 @@ pub(crate) mod floor {
         props {
             operand: children,
             value: computed(OpSpec::SnapFloor, [operand]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -220,6 +226,8 @@ pub(crate) mod ceil {
         props {
             operand: children,
             value: computed(OpSpec::SnapCeil, [operand]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -242,6 +250,8 @@ pub(crate) mod set_small_to_zero {
             operand: children,
             threshold: attr(1e-14),
             value: computed(OpSpec::SmallToZero, [operand, threshold]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,
@@ -265,6 +275,8 @@ pub(crate) mod wrap_number_periodic {
             lowerValue: attr(0.0),
             upperValue: attr(1.0),
             value: computed(OpSpec::Vec(VecOp::Wrap), [operand, lowerValue, upperValue]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

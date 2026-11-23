@@ -1,10 +1,10 @@
-text pieces: cells 17 · essential 0 · constant 17 · instrs 0 · components 9
-references, written apart or together, follow their sources: cells 8 · essential 1 · constant 4 · instrs 3 · components 8
-mod, gcd and lcm: cells 21 · essential 0 · constant 21 · instrs 0 · components 9
+text pieces: cells 18 · essential 0 · constant 18 · instrs 0 · components 9
+references, written apart or together, follow their sources: cells 9 · essential 1 · constant 5 · instrs 3 · components 8
+mod, gcd and lcm: cells 22 · essential 0 · constant 22 · instrs 0 · components 9
 no operands: no value, and a count of none: cells 3 · essential 0 · constant 3 · instrs 0 · components 4
-a count counts any piece: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
+a count counts any piece: cells 4 · essential 0 · constant 4 · instrs 0 · components 2
 a min or max of one operand writes it: cells 4 · essential 1 · constant 3 · instrs 0 · components 5
 of several operands, and a sum, a request cannot change it: cells 7 · essential 0 · constant 7 · instrs 0 · components 8
-a copy has its value: cells 5 · essential 0 · constant 5 · instrs 0 · components 4
+a copy has its value: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
 a piece that is no number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
-one operand per entry of a list, and per element child: cells 14 · essential 0 · constant 13 · instrs 1 · components 10
+one operand per entry of a list, and per element child: cells 15 · essential 0 · constant 14 · instrs 1 · components 10

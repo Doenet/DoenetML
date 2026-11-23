@@ -850,6 +850,16 @@ pub enum PropFrom {
     /// materialized by the build: no planner can wire it, and nothing overrides
     /// it.
     Aggregate(Aggregate),
+    /// Coordinate `coord` (0 for x, 1 for y) of the point where a value is
+    /// drawn in a graph, given by the `anchor` attribute (`anchor="(1,2)"`
+    /// or `anchor="$P"`): planned by the compile for every type that has
+    /// one, whatever its planner, after the planner runs (ADR 0047). Without
+    /// the attribute it is the origin, or under `extend` the referent's;
+    /// with no graph above the element, not given, and no state.
+    Anchor {
+        /// 0 for x, 1 for y.
+        coord: u8,
+    },
 }
 
 /// A set of components around an element, described at compile time and

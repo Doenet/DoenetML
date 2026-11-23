@@ -59,6 +59,10 @@ mod latex {
         /// values inside it.
         tags: ["latex"],
         flags: [container],
+        props {
+            anchorX: anchor(0),
+            anchorY: anchor(1),
+        }
         planner: Props,
     }
 }

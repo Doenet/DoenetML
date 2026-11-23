@@ -1,5 +1,5 @@
-an input and a value inside inline markup: cells 7 · essential 1 · constant 4 · instrs 2 · components 17
-every character, a break and a rule load with nothing to say: cells 3 · essential 0 · constant 3 · instrs 0 · components 13
-values in the plain blocks: cells 5 · essential 1 · constant 3 · instrs 1 · components 7
-a value in an ordered list's item: cells 5 · essential 1 · constant 3 · instrs 1 · components 7
-an attribute nothing reads is refused: cells 3 · essential 0 · constant 3 · instrs 0 · components 3
+an input and a value inside inline markup: cells 8 · essential 1 · constant 5 · instrs 2 · components 17
+every character, a break and a rule load with nothing to say: cells 4 · essential 0 · constant 4 · instrs 0 · components 13
+values in the plain blocks: cells 6 · essential 1 · constant 4 · instrs 1 · components 7
+a value in an ordered list's item: cells 6 · essential 1 · constant 4 · instrs 1 · components 7
+an attribute nothing reads is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3

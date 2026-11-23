@@ -6,4 +6,4 @@ a vertex and a center: a point on the vertex holds the center: cells 16 · essen
 two vertices, from points: cells 12 · essential 8 · constant 4 · instrs 0 · components 5
 a whole-rectangle drag and a center request translate it: cells 18 · essential 8 · constant 4 · instrs 2 · components 4
 the width and height, bound to inputs, keep the center: cells 14 · essential 8 · constant 4 · instrs 2 · components 5
-a width given by a number moves with it: cells 15 · essential 8 · constant 3 · instrs 1 · components 4
+a width given by a number moves with it: cells 16 · essential 8 · constant 4 · instrs 1 · components 4

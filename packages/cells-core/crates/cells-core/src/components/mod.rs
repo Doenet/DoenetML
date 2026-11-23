@@ -37,6 +37,10 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "shortDescription",
     "styleNumber",
 ];
+/// Presentation attributes a renderer reads and the core does not, accepted
+/// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits
+/// against its anchor, and whether a drag moves it.
+pub const ANCHOR_PRESENTATION_ATTRS: &[&str] = &["positionFromAnchor", "draggable"];
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
@@ -725,6 +729,17 @@ impl ComponentType {
     /// Where a component of the type is drawn.
     pub fn renders(self) -> Renders {
         self.def().renders
+    }
+
+    /// The positions of the props giving where a component of the type is
+    /// drawn in a graph, x then y ([`PropFrom::Anchor`]), if it has them.
+    pub fn anchor_props(self) -> Option<[usize; 2]> {
+        let defs = self.prop_defs();
+        let at = |k: u8| {
+            defs.iter()
+                .position(|d| d.from == PropFrom::Anchor { coord: k })
+        };
+        Some([at(0)?, at(1)?])
     }
 
     /// Whether prop `pi` is one an action writes.

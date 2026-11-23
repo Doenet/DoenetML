@@ -21,6 +21,8 @@ component! {
         numDecimals: by_planner,
         numDigits: by_planner,
         value: by_planner { rendered },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     attributes {
         numDecimals: Scalar,
@@ -52,6 +54,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             None => Wire::absent(),
         },
         value: Wire::computed(op, vec![at.operand, by]),
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
     });
     Ok(wiring)
 }

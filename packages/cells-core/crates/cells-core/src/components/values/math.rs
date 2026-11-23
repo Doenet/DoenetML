@@ -22,6 +22,8 @@ component! {
         // Both of a math's props are set by the builder from its children.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     attributes {
         expand: On,
@@ -54,6 +56,9 @@ fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
     wiring.set_public(Props {
         expr: Source::Flow(Flow::MathHandle(id, post)).into(),
         value: Source::Flow(Flow::MathValue(id)).into(),
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
     });
     wiring
 }

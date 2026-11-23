@@ -11,9 +11,10 @@ use crate::program::VecOp;
 component! {
     /// `<line>`: its own two points are derived cells; slope,
     /// intercepts and coefficients follow from them or from the equation.
+    /// Drawn in a graph, and in text as its equation, which a renderer
+    /// writes from its two points.
     tags: ["line"],
     flags: [copyable, located],
-    renders: InGraph,
     props {
         // The first four props are the line's own points (ADR 0006).
         // `basedOnDirection` is 1 when the second point is derived from a slope or

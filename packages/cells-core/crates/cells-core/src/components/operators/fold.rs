@@ -23,6 +23,8 @@ component! {
     default_prop: value,
     props {
         value: by_planner { rendered },
+        anchorX: anchor(0),
+        anchorY: anchor(1),
     }
     children: List,
     planner: Plan(plan),
@@ -89,7 +91,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             Source::vector(op, args).into()
         }
     };
-    wiring.set_public(Props { value });
+    wiring.set_public(Props {
+        value,
+        // Planned after this, from the element's `anchor` (`plan_anchor`).
+        anchorX: Wire::absent(),
+        anchorY: Wire::absent(),
+    });
     Ok(wiring)
 }
 
