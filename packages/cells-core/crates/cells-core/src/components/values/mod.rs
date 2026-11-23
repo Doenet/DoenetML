@@ -94,7 +94,7 @@ pub(crate) mod evaluate {
 
     component! {
         /// `<evaluate function="$m" input="$a"/>`: the math's expression with
-        /// its free symbol set to the input; a function's (ADR 0046) in its
+        /// its free symbol set to the input; a function's (ADR 0049) in its
         /// variable, missing outside its domain.
         tags: ["evaluate"],
         flags: [copyable],

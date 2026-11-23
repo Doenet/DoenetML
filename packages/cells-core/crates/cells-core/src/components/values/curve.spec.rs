@@ -1,5 +1,5 @@
 //! `<function>` and `<derivative>`: a function's variable and domain
-//! (ADR 0046), as the current core evaluates, samples and constrains to
+//! (ADR 0049), as the current core evaluates, samples and constrains to
 //! them (`functionTag.test.ts`).
 
 use crate::spec;

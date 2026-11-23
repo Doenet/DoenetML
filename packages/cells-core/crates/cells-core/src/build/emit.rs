@@ -384,7 +384,7 @@ impl Emit<'_> {
                 let input = self.x.op_inputs[start.index()];
                 // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
-                // A derivative in a function's own variable (ADR 0046) too,
+                // A derivative in a function's own variable (ADR 0049) too,
                 // when the variable is a constant.
                 if compile
                     && matches!(kind, SymKind::Derivative | SymKind::DerivativeBy)
@@ -402,7 +402,7 @@ impl Emit<'_> {
                         post: Post::Simplify,
                     });
                 }
-                // A function's curve (ADR 0046) of one piece on the whole
+                // A function's curve (ADR 0049) of one piece on the whole
                 // line, in a constant variable, is a curve as any other.
                 if compile
                     && kind == SymKind::SampleFunction
@@ -630,7 +630,7 @@ impl Emit<'_> {
     }
 
     /// The name of the symbol a constant math slot holds (a function's
-    /// variable, ADR 0046).
+    /// variable, ADR 0049).
     fn const_symbol(&self, slot: SlotId) -> Option<String> {
         let v = self.const_value(slot)?;
         (!v.is_nan())

@@ -267,6 +267,10 @@ component_types! {
     FractionInput => inputs::fraction_input::DEFINITION,
     FractionInputPart => inputs::fraction_input::part::DEFINITION,
     PiecewiseFunction => values::piecewise_function::DEFINITION,
+    Curve => geometry::curve::DEFINITION,
+    BezierControls => geometry::curve::bezier_controls_tag::DEFINITION,
+    ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
+    EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1116,11 +1120,12 @@ mod tests {
     #[test]
     fn plan_ctx_grows_deliberately() {
         // 23: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
-        // `Inner::port`, for the inputs a type owns. 25: ADR 0046 added
+        // `Inner::port`, for the inputs a type owns. 25: ADR 0049 added
         // `interval`, a domain's endpoints and closedness, `symbol`, a
         // function's variable as a math cell, and `children_playing`, a
-        // piecewise function's pieces.
-        const PLAN_CTX_METHODS: usize = 26;
+        // piecewise function's pieces, and `sym_tokens`, a curve's
+        // coordinate from its tuple's entry.
+        const PLAN_CTX_METHODS: usize = 27;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

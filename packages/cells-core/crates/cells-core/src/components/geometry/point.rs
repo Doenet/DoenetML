@@ -206,7 +206,7 @@ fn constrain(
                         Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
                     ])
                 }
-                // A function's (ADR 0046): `x` held in its domain, `y` the
+                // A function's (ADR 0049): `x` held in its domain, `y` the
                 // function there.
                 ConstrainTarget::Graph {
                     expr,

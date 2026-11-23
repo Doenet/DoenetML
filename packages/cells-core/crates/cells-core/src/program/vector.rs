@@ -371,17 +371,17 @@ pub enum VecOp {
     /// endpoints, whether each is closed; [`in_domain`](crate::program::in_domain)):
     /// at a closed end it stops there, at an open one [`open_step`] inside
     /// it; NaN only when input 0 is. A point constrained to a function
-    /// with a domain (ADR 0046). A request writes input 0 held.
+    /// with a domain (ADR 0049). A request writes input 0 held.
     IntoDomain,
     /// Inputs (xmin, xmax, lo, hi); outputs (xmin, xmax) cut to the
     /// interval from `lo` to `hi`, an endpoint that is no number no bound:
-    /// the range a function's curve is sampled over (ADR 0046). No inverse.
+    /// the range a function's curve is sampled over (ADR 0049). No inverse.
     DomainRange,
     /// Inputs `n` domains of four cells each (lower, upper, lower closed,
     /// upper closed); outputs the least interval holding them, as four
     /// cells, a domain with an endpoint that is no number left out, the
     /// whole line when every one is: a `<piecewiseFunction>`'s domain from
-    /// its pieces' (ADR 0046). No inverse.
+    /// its pieces' (ADR 0049). No inverse.
     DomainHull {
         /// How many domains.
         n: u8,

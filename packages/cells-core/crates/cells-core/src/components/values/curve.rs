@@ -10,7 +10,7 @@ use crate::program::{Post, SymKind, VecOp};
 
 component! {
     /// `<function>`: a math cell `expr` in its variable (`x`, or the one
-    /// `variables` names), its domain (ADR 0046) and, as a curve, the
+    /// `variables` names), its domain (ADR 0049) and, as a curve, the
     /// `SAMPLES` cells from `samples` on, filled by a `Sample` instruction
     /// over the enclosing graph's x-range cut to the domain. Drawn in a
     /// graph, as its curve through the samples when `curve` is 1; in text
@@ -25,7 +25,7 @@ component! {
         // The math cell holding its variable's symbol: `x` unless
         // `variables` names another.
         variable: by_planner,
-        // Its domain (ADR 0046), read as the current core parses an
+        // Its domain (ADR 0049), read as the current core parses an
         // interval: the endpoints, -∞ and ∞ without one, and whether each
         // end is closed (1) or open (0).
         domainMin: by_planner,
@@ -78,7 +78,7 @@ fn is_vector_function(variables: Option<String>, mt: &MathText) -> bool {
         || tuple_entries(mt.tokens()).is_some_and(|entries| entries.len() > 1)
 }
 
-/// What a function of one variable is besides its expression (ADR 0046):
+/// What a function of one variable is besides its expression (ADR 0049):
 /// its variable and its domain, each a wire of its table's props.
 pub(crate) struct FunctionParts {
     /// The math cell holding the variable's symbol.
@@ -112,7 +112,7 @@ pub(crate) fn whole_line() -> [Wire; 4] {
     ]
 }
 
-/// The domain an element's `domain` attribute writes (ADR 0046), as four
+/// The domain an element's `domain` attribute writes (ADR 0049), as four
 /// wires: the endpoints (one that is no number is NaN) and closedness; the whole line without one, and with
 /// a warning when it is not one interval. The second is whether one was
 /// given.
@@ -158,7 +158,7 @@ pub(crate) fn graph_range(ctx: &PlanCtx<'_, '_>) -> [Wire; 2] {
 }
 
 /// The parts of the function `$f` names, when the math text `mt` is that
-/// one reference and it names a function of one variable (ADR 0046): its
+/// one reference and it names a function of one variable (ADR 0049): its
 /// expression, variable and domain props, read through the reference.
 pub(crate) fn referenced_function(
     ctx: &mut PlanCtx<'_, '_>,
@@ -196,7 +196,7 @@ pub(crate) fn referenced_function(
     )))
 }
 
-/// The curve of a function of one variable (ADR 0046): its x-range and
+/// The curve of a function of one variable (ADR 0049): its x-range and
 /// samples. A plain one is sampled in `x` over the graph's range; one
 /// with a variable of its own or a domain over the range cut to the
 /// domain, as one piece. The ports are the table's: its expression,
@@ -231,7 +231,7 @@ pub(crate) fn function_curve(
 }
 
 /// A function of one variable as [`SymKind::EvalFunction`] reads one
-/// (ADR 0046): its domain, then one piece, its expression in its variable
+/// (ADR 0049): its domain, then one piece, its expression in its variable
 /// on the whole line.
 pub(crate) fn one_piece(
     wiring: &mut ElemWiring,

@@ -1,4 +1,4 @@
-//! A function of one variable read at any `x` (ADR 0046): what a reader
+//! A function of one variable read at any `x` (ADR 0049): what a reader
 //! that plots or samples a function itself asks, through the core's own
 //! engine and the function's cells.
 
@@ -54,7 +54,7 @@ impl Document {
         Some(f)
     }
 
-    /// The function `c` is, at `x` (ADR 0046), as an `<evaluate>` of it
+    /// The function `c` is, at `x` (ADR 0049), as an `<evaluate>` of it
     /// computes it: missing outside its domain, a piecewise function's
     /// first piece whose domain holds `x` there. `None` when `c` is no
     /// function of one variable (one of several, or no function).

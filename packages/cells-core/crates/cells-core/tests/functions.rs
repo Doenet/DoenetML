@@ -1,4 +1,4 @@
-//! Functions of one variable read at any `x` (ADR 0046): a `<function>`
+//! Functions of one variable read at any `x` (ADR 0049): a `<function>`
 //! on its domain and a `<piecewiseFunction>` of its pieces, as a reader
 //! that samples a function itself asks for them (`Document::function_value`).
 
@@ -67,4 +67,34 @@ fn math_cannot_read_a_piecewise_function() {
            <math name="m">$f + 1</math>"#,
     );
     assert_eq!(code, "cells-no-default-prop", "{message}");
+}
+
+/// A spline's segment is the cubic Bezier from each point to the next
+/// whose control points are each point plus its control vector toward the
+/// other (`<bezierControls>`, symmetric: the one toward the next point is
+/// the opposite of the one written).
+#[test]
+fn a_spline_segment_is_the_bezier_cubic_of_its_control_points() {
+    let doc = load(
+        r#"<graph><curve name="c" through="(1, 2) (3, 4)">
+             <bezierControls>(3,1) (-1,5)</bezierControls>
+           </curve></graph>"#,
+    )
+    .unwrap();
+    let [p1, c1, c2, p2] = [[1.0, 2.0], [-2.0, 1.0], [2.0, 9.0], [3.0, 4.0]];
+    let n = cells_core::program::SAMPLES;
+    let xs = doc.cell("c", "samplesX").unwrap().index();
+    let ys = doc.cell("c", "samples").unwrap().index();
+    for k in [0, 37, 120, n - 1] {
+        let s = k as f64 / (n - 1) as f64;
+        let b = |d: usize| {
+            let r = 1.0 - s;
+            r * r * r * p1[d]
+                + 3.0 * r * r * s * c1[d]
+                + 3.0 * r * s * s * c2[d]
+                + s * s * s * p2[d]
+        };
+        assert!((doc.cells[xs + k] - b(0)).abs() < 1e-12, "x at {k}");
+        assert!((doc.cells[ys + k] - b(1)).abs() < 1e-12, "y at {k}");
+    }
 }

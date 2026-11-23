@@ -26,7 +26,7 @@ component! {
         expr: by_planner { expr_of: expr },
         lowerValue: by_planner,
         upperValue: by_planner,
-        // Its function's variable and domain (ADR 0046): `x` and the whole
+        // Its function's variable and domain (ADR 0049): `x` and the whole
         // line for math in `x`.
         variable: by_planner,
         domainMin: by_planner,
@@ -67,7 +67,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
-    // Of a function, in its variable and on its domain (ADR 0046).
+    // Of a function, in its variable and on its domain (ADR 0049).
     let (of, parts) = match referenced_function(ctx, &nodes)? {
         Some((f, parts)) => (wiring.hidden(f), parts),
         None => {

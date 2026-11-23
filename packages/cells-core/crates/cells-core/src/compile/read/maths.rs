@@ -172,7 +172,7 @@ impl Reader<'_> {
         Ok(ParsedMath::Entries(entries))
     }
 
-    /// Math text written as one interval, `[a, b)` (ADR 0046): its
+    /// Math text written as one interval, `[a, b)` (ADR 0049): its
     /// endpoints planned from `scope` and whether each end is closed.
     /// `None` when the text is not one interval of two endpoints (several
     /// intervals, a reference to one, anything else), which the planner

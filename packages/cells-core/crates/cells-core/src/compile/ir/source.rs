@@ -316,7 +316,7 @@ mod tests {
 
 /// An interval as an attribute writes one (`domain="[-4, $b)"`), read the
 /// way the JavaScript core parses it into endpoints and closedness
-/// (ADR 0046): no interval value, only its parts. An endpoint written as
+/// (ADR 0049): no interval value, only its parts. An endpoint written as
 /// infinity (`Infinity`, `-inf`, `∞`) is that number.
 #[derive(Debug, Clone)]
 pub(crate) struct IntervalAttr {

@@ -1,5 +1,5 @@
 //! `<piecewiseFunction>`: a function of one variable made of the
-//! `<function>`s among its children, each on its own domain (ADR 0046).
+//! `<function>`s among its children, each on its own domain (ADR 0049).
 
 use crate::compile::api::*;
 use crate::components::Role;

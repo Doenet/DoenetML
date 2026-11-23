@@ -461,7 +461,7 @@ impl Core {
         raw_cells(self.doc.counter_reads(CompIdx::new(idx)))
     }
 
-    /// The function component `idx` is, at `x` (ADR 0046): missing outside
+    /// The function component `idx` is, at `x` (ADR 0049): missing outside
     /// its domain, a piecewise function's piece there; none when it is no
     /// function of one variable.
     pub fn function_value(&mut self, idx: u32, x: f64) -> Option<f64> {

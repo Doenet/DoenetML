@@ -60,7 +60,7 @@ pub enum SymKind {
     /// input 3 to input 4: a `<parabola>`'s curve. Numeric, but a run of
     /// `SAMPLES` outputs, more than a vector instruction holds.
     SampleQuadratic,
-    // Functions of one variable with domains (ADR 0046). A function is
+    // Functions of one variable with domains (ADR 0049). A function is
     // given as its domain and its pieces: `D` is four cells, an
     // interval's lower and upper endpoints and whether each is closed
     // (1) or open (0); a piece is six, its expression, the variable it is
@@ -78,7 +78,23 @@ pub enum SymKind {
     /// d/dv of input 0, where input 1 is a math cell holding the symbol
     /// `v`: a derivative in a function's own variable.
     DerivativeBy,
+    /// Coordinate `coord` of a `<curve>`'s Bézier spline through `n`
+    /// points (ADR 0049) at `SAMPLES` evenly spaced parameters from 0 to
+    /// `n - 1`: input 0 is the spline's tension, then [`BEZIER_POINT_CELLS`]
+    /// per point, its coordinates, its two control vectors (toward the
+    /// previous point and toward the next) and how they are given
+    /// ([`bezier_controls`](crate::program::bezier_controls)). Numeric, but
+    /// a run of `SAMPLES` outputs.
+    SampleBezier {
+        /// 0 for x, 1 for y.
+        coord: u8,
+        /// The uniform spline instead of the centripetal one.
+        uniform: bool,
+    },
 }
+
+/// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
+pub const BEZIER_POINT_CELLS: usize = 7;
 
 /// How many cells a domain takes in [`SymKind::EvalFunction`]'s inputs.
 pub const DOMAIN_CELLS: usize = 4;
@@ -122,7 +138,8 @@ impl SymKind {
             SymKind::Sample
             | SymKind::SampleTape { .. }
             | SymKind::SampleQuadratic
-            | SymKind::SampleFunction => SAMPLES,
+            | SymKind::SampleFunction
+            | SymKind::SampleBezier { .. } => SAMPLES,
             _ => 1,
         }
     }
@@ -261,7 +278,9 @@ impl OpSpec {
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
             OpSpec::Sym(SymKind::SampleQuadratic) => 5,
-            OpSpec::Sym(SymKind::EvalFunction | SymKind::SampleFunction) => usize::MAX,
+            OpSpec::Sym(
+                SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
+            ) => usize::MAX,
             OpSpec::Sym(SymKind::DerivativeBy) => 2,
             _ => unreachable!(),
         }
@@ -279,6 +298,7 @@ impl OpSpec {
             OpSpec::Sym(SymKind::SampleFunction) => {
                 n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS) % PIECE_CELLS == 0
             }
+            OpSpec::Sym(SymKind::SampleBezier { .. }) => n > 1 && (n - 1) % BEZIER_POINT_CELLS == 0,
             _ => self.arity() == n,
         }
     }
@@ -412,6 +432,10 @@ mod arity {
             OpSpec::Sym(SymKind::EvalFunction),
             OpSpec::Sym(SymKind::SampleFunction),
             OpSpec::Sym(SymKind::DerivativeBy),
+            OpSpec::Sym(SymKind::SampleBezier {
+                coord: 1,
+                uniform: false,
+            }),
             OpSpec::Vec(VecOp::IntoDomain),
             OpSpec::Vec(VecOp::DomainRange),
             OpSpec::Vec(VecOp::DomainHull { n: 2 }),
@@ -451,9 +475,9 @@ mod arity {
                 VecOp::BestFitLine { .. } => 25,
                 VecOp::IntersectLines { .. } => 26,
                 VecOp::Parabola { .. } => 27,
-                VecOp::IntoDomain => 42,
-                VecOp::DomainRange => 43,
-                VecOp::DomainHull { .. } => 44,
+                VecOp::IntoDomain => 43,
+                VecOp::DomainRange => 44,
+                VecOp::DomainHull { .. } => 45,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -471,12 +495,13 @@ mod arity {
                     SymKind::EvalFunction => 11,
                     SymKind::SampleFunction => 12,
                     SymKind::DerivativeBy => 13,
+                    SymKind::SampleBezier { .. } => 14,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 45;
+    const N_TAGS: usize = 46;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -496,6 +521,7 @@ mod arity {
             let n = match spec {
                 OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
+                OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
                 _ if spec.arity() == usize::MAX => 2,
                 _ => spec.arity(),
             };

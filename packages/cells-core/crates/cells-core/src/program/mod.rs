@@ -12,8 +12,8 @@ mod scalar;
 mod vector;
 
 pub use instr::{
-    DOMAIN_CELLS, Instr, InstrIdx, MemoIdx, OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES,
-    SymEntry, SymIdx, SymKind, TapeIdx, VecIdx, in_domain,
+    BEZIER_POINT_CELLS, DOMAIN_CELLS, Instr, InstrIdx, MemoIdx, OperandIdx, Operands, PIECE_CELLS,
+    Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx, in_domain,
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
@@ -611,6 +611,10 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 out.fill(f64::NAN);
             }
         }
+        SymKind::SampleBezier { coord, uniform } => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            sample_bezier(&vals, coord as usize, uniform, out);
+        }
         SymKind::DerivativeBy => {
             out[0] = match (handle(v(0)), handle(v(1)).and_then(|h| engine.symbol(h))) {
                 (Some(h), Some(var)) => engine.derivative(h, &var).to_value(),
@@ -666,5 +670,128 @@ pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]
         for (&i, y) in taken.iter().zip(ys) {
             out[i] = y;
         }
+    }
+}
+
+/// How a point of a [`SymKind::SampleBezier`] has its control vectors
+/// given (its last cell): both found from the spline, both given, or one
+/// given and the other found from the spline on that side alone, as the
+/// current core's `controlVectors` directions `none`, `symmetric` or
+/// `both`, `previous` and `next`.
+pub mod bezier_controls {
+    /// Both found from the spline, toward its neighbors.
+    pub const NONE: f64 = 0.0;
+    /// Both given.
+    pub const BOTH: f64 = 1.0;
+    /// The one toward the previous point given.
+    pub const PREVIOUS: f64 = 2.0;
+    /// The one toward the next point given.
+    pub const NEXT: f64 = 3.0;
+}
+
+/// The control vector toward the previous point of a spline through `p1`,
+/// `p2`, `p3` at `p2` (either neighbor may be missing, reflected from the
+/// other), as the current core's `calculateControlVectorFromSpline`; NaN
+/// when `p2` or both neighbors are missing.
+fn spline_vector(
+    tension: f64,
+    uniform: bool,
+    p1: Option<[f64; 2]>,
+    p2: [f64; 2],
+    p3: Option<[f64; 2]>,
+) -> [f64; 2] {
+    let reflect = |p: [f64; 2]| [2.0 * p2[0] - p[0], 2.0 * p2[1] - p[1]];
+    let (p1, p3) = match (p1, p3) {
+        (Some(p1), Some(p3)) => (p1, p3),
+        (None, Some(p3)) => (reflect(p3), p3),
+        (Some(p1), None) => (p1, reflect(p1)),
+        (None, None) => return [f64::NAN; 2],
+    };
+    if uniform {
+        return [0, 1].map(|d| -tension * (p3[d] - p1[d]) / 3.0);
+    }
+    let dist = |a: [f64; 2], b: [f64; 2]| ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt();
+    let eps = 2.0 * f64::EPSILON;
+    let mut dt0 = dist(p1, p2).sqrt();
+    let mut dt1 = dist(p2, p3).sqrt();
+    if dt1 < eps {
+        dt1 = 1.0;
+    }
+    if dt0 < eps {
+        dt0 = dt1;
+    }
+    [0, 1].map(|d| {
+        let t1 = (p2[d] - p1[d]) / dt0 - (p3[d] - p1[d]) / (dt1 + dt0) + (p3[d] - p2[d]) / dt1;
+        -(t1 * tension * (dt0 * dt1).sqrt()) / 3.0
+    })
+}
+
+/// The control vectors of each point of a Bézier spline
+/// ([`SymKind::SampleBezier`]'s inputs after the tension), toward the
+/// previous point and toward the next, as the current core's `<curve>`
+/// finds them.
+pub fn bezier_control_vectors(tension: f64, uniform: bool, pts: &[f64]) -> Vec<[[f64; 2]; 2]> {
+    let n = pts.len() / BEZIER_POINT_CELLS;
+    let at = |i: usize| -> [f64; 2] {
+        let p = &pts[i * BEZIER_POINT_CELLS..];
+        [p[0], p[1]]
+    };
+    (0..n)
+        .map(|i| {
+            let p = &pts[i * BEZIER_POINT_CELLS..(i + 1) * BEZIER_POINT_CELLS];
+            let prev = (i > 0).then(|| at(i - 1));
+            let next = (i + 1 < n).then(|| at(i + 1));
+            let given = [[p[2], p[3]], [p[4], p[5]]];
+            // One side alone, from the neighbor on either side.
+            let one_sided = || spline_vector(tension, uniform, prev.or(next), at(i), None);
+            match p[6] {
+                bezier_controls::BOTH => given,
+                bezier_controls::PREVIOUS => [given[0], one_sided()],
+                bezier_controls::NEXT => [one_sided(), given[1]],
+                _ => {
+                    let v = spline_vector(tension, uniform, prev, at(i), next);
+                    [v, [-v[0], -v[1]]]
+                }
+            }
+        })
+        .collect()
+}
+
+/// Coordinate `coord` of a Bézier spline ([`SymKind::SampleBezier`]'s
+/// inputs `f`) at `out.len()` evenly spaced parameters from 0 to `n - 1`:
+/// on segment `i`, the cubic from point `i` to point `i + 1` whose
+/// control points are each point plus its control vector toward the other.
+fn sample_bezier(f: &[f64], coord: usize, uniform: bool, out: &mut [f64]) {
+    let pts = &f[1..];
+    let n = pts.len() / BEZIER_POINT_CELLS;
+    if n == 0 {
+        out.fill(f64::NAN);
+        return;
+    }
+    let cv = bezier_control_vectors(f[0], uniform, pts);
+    let x = |i: usize| pts[i * BEZIER_POINT_CELLS + coord];
+    let len = (n - 1) as f64;
+    let last = out.len() - 1;
+    for (k, o) in out.iter_mut().enumerate() {
+        let t = if last == 0 {
+            0.0
+        } else {
+            len * k as f64 / last as f64
+        };
+        if t >= len {
+            *o = x(n - 1);
+            continue;
+        }
+        let i = t.floor() as usize;
+        let s = t - i as f64;
+        let (x1, x2) = (x(i), x(i + 1));
+        let (t1, t2) = (3.0 * cv[i][1][coord], -3.0 * cv[i + 1][0][coord]);
+        let c = [
+            x1,
+            t1,
+            -3.0 * x1 + 3.0 * x2 - 2.0 * t1 - t2,
+            2.0 * x1 - 2.0 * x2 + t1 + t2,
+        ];
+        *o = ((c[3] * s + c[2]) * s + c[1]) * s + c[0];
     }
 }

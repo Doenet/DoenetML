@@ -63,7 +63,11 @@ geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
 `endpoint`, and `fractionInput` (its numerator and denominator boxes, a
-prefill each; no bound value). A `<math>` tuple of three or more entries is a tuple
+prefill each; no bound value), a function's `domain` (one interval) and
+`variables` (one), `piecewiseFunction` (of `function` children), `curve`
+(a function's graph, a parametric curve, or a spline through points with
+`bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
+A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

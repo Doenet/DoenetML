@@ -153,7 +153,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// Math text written as one interval, `[a, b)`: its endpoints and
-    /// closedness (ADR 0046); `None` when it is not one interval.
+    /// closedness (ADR 0049); `None` when it is not one interval.
     pub(crate) fn interval(&mut self, nodes: &[NodeId]) -> Result<Option<IntervalAttr>> {
         let scope = self.scope_for(nodes);
         self.p
@@ -162,7 +162,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The math cell of the symbol `name`, a constant: a function's
-    /// variable (ADR 0046).
+    /// variable (ADR 0049).
     pub(crate) fn symbol(&mut self, name: &str) -> Source {
         let id = self.p.ar.arena.push(Expr::Sym(name.into()));
         self.p
@@ -170,6 +170,36 @@ impl<'a> PlanCtx<'_, 'a> {
             .sym_text
             .insert(id, SymText::Spelled(name.to_string()));
         Source::sym_expr(id, crate::program::Post::None)
+    }
+
+    /// Math tokens (an entry of a tuple, `math_tokens`) as an expression
+    /// that may be symbolic, a math cell: a curve's coordinate in its
+    /// parameter (ADR 0049). Its text for the engine is spelled from the
+    /// tokens.
+    pub(crate) fn sym_tokens(&mut self, toks: &[Token]) -> Result<Source> {
+        let src = MathSrc(&[]);
+        let id = self.p.rd.parse_tokens(&mut self.p.ar, toks, src)?;
+        let mut text = String::new();
+        for (k, tok) in toks.iter().enumerate() {
+            let glued = matches!(tok, Token::LParen)
+                && matches!(k.checked_sub(1).map(|j| &toks[j]), Some(Token::Ident(_)));
+            if k > 0 && !glued {
+                text.push(' ');
+            }
+            match tok {
+                Token::Num(v) if *v == std::f64::consts::PI => text.push_str("pi"),
+                Token::Num(v) => text.push_str(&format!("{v}")),
+                Token::Ident(name) => text.push_str(name),
+                Token::Cell(r) => text.push_str(&crate::sym::engine::leaf_name(r.get(), false)),
+                Token::Op(c) => text.push(*c),
+                Token::LParen => text.push('('),
+                Token::RParen => text.push(')'),
+                Token::Comma => text.push(','),
+                Token::Eq => text.push('='),
+            }
+        }
+        self.p.ar.sym_text.insert(id, SymText::Spelled(text));
+        Ok(Source::sym_expr(id, crate::program::Post::None))
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
@@ -327,7 +357,7 @@ impl<'a> PlanCtx<'_, 'a> {
     }
 
     /// The element's children whose type plays `role`, in order: the
-    /// pieces of a piecewise function (ADR 0046), whose ports it reads.
+    /// pieces of a piecewise function (ADR 0049), whose ports it reads.
     pub(crate) fn children_playing(&self, role: crate::components::Role) -> Vec<Inner> {
         self.p
             .rd
@@ -403,7 +433,7 @@ impl<'a> PlanCtx<'_, 'a> {
 
 /// A child element whose ports its parent's planner reads: an input it
 /// owns (ADR 0045), as [`PlanCtx::inner`] finds it, or a piece of a
-/// piecewise function (ADR 0046, [`PlanCtx::children_playing`]).
+/// piecewise function (ADR 0049, [`PlanCtx::children_playing`]).
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Inner(ElemId);
 
