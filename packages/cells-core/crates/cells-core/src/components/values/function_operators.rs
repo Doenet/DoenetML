@@ -79,9 +79,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             (wiring.hidden(Source::sym_expr(id, Post::None)), parts)
         }
     };
-    let bound = |source: Option<Source>, attr: Attr, default: f64| match source {
-        Some(source) => Wire::scalar(source, GivenId::Attr(attr, 0)),
-        None => Wire::constant(default),
+    let bound = |source: Option<Source>, attr: Attr, default: f64| {
+        Wire::attr(attr, source).unwrap_or(Wire::constant(default))
     };
     // The engine's operator over the function and the bounds.
     let kind = *component_type.variant::<SymKind>();

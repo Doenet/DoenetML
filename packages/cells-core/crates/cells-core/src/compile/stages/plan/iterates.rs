@@ -46,8 +46,8 @@ impl<'a> Planning<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        } = *self.rd.own_row(t, e);
+        let Body::Repeat { template: sub } = self.rd.own_row(t, e).body else {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
@@ -64,14 +64,15 @@ impl<'a> Planning<'a> {
             .rd
             .static_target(&self.ar, t, fp)
             .filter(|&(ft, fe)| {
-                self.rd.outlined(ft).elems[fe.index()]
+                self.rd
+                    .referent_row(ft, fe)
                     .component_type
                     .plays(Role::Function)
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
             })?;
-        let fnode = self.rd.outlined(ft).elems[fe.index()].node;
+        let fnode = self.rd.referent_row(ft, fe).node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
         let (mut toks, src) = self.rd.math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
@@ -211,8 +212,8 @@ impl<'a> Planning<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        } = *self.rd.own_row(t, e);
+        let Some((sub, body)) = self.rd.body_rows(t, e) else {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
@@ -241,10 +242,7 @@ impl<'a> Planning<'a> {
             .static_target(&self.ar, t, RefId::from_index(base_id))
         {
             Some((ft, fe))
-                if self.rd.outlined(ft).elems[fe.index()]
-                    .component_type
-                    .def()
-                    .machinery
+                if self.rd.referent_row(ft, fe).component_type.def().machinery
                     == Some(Machinery::FunctionIterates) => {}
             _ => return Err(unsupported()),
         }
@@ -252,10 +250,7 @@ impl<'a> Planning<'a> {
             count: Source::reference(fp),
         }
         .into_vec();
-        let has_item = self
-            .rd
-            .outlined(sub)
-            .elems
+        let has_item = body
             .first()
             .is_some_and(|x| x.node == NodeId::NONE && x.component_type.plays(Role::Item));
         if has_item {
@@ -302,11 +297,10 @@ impl<'a> Planning<'a> {
         fp: RefId,
     ) -> Option<()> {
         let (rt, re) = self.rd.static_target(&self.ar, t, fp)?;
-        let ty = self.rd.outlined(rt).elems[re.index()].component_type;
+        let ty = self.rd.referent_row(rt, re).component_type;
         let base = self.ar.refs[fp.index()].clone();
-        let item = self
-            .has_item(t, e)
-            .then(|| self.rd.outlined(sub).elems[0].component_type);
+        let (_, body) = self.rd.body_rows(t, e)?;
+        let item = self.has_item(t, e).then(|| body[0].component_type);
         let spelled = display_of(self.rd.dast, &base);
         let (count, props) = if let (Some(declared), Some(count)) = (ty.def().item, ty.count_prop())
         {
@@ -358,11 +352,11 @@ impl<'a> Planning<'a> {
                 }
                 // By the iteration's index, a cell (as `$l[$i]` is): the
                 // index outlining made beside the item.
-                let index = (1..self.rd.outlined(sub).elems.len()).find(|&i| {
-                    let x = &self.rd.outlined(sub).elems[i];
+                let index = (1..body.len()).find(|&i| {
+                    let x = &body[i];
                     x.node == NodeId::NONE && x.component_type.plays(Role::Index)
                 })?;
-                let index_ty = self.rd.outlined(sub).elems[index].component_type;
+                let index_ty = body[index].component_type;
                 let index = self.ar.push_ref(RefPlan {
                     hops: 0,
                     steps: vec![Step::Elem(ElemId::from_index(index))],

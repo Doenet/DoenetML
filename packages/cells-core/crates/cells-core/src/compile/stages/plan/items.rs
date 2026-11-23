@@ -68,14 +68,13 @@ impl Planning<'_> {
     /// function, element 0 of the body when there is one; and the index
     /// `indexName` names, the iteration's position.
     pub(super) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        let Some((sub, body)) = self.rd.body_rows(t, e) else {
             return;
         };
-        let owner_ty = self.rd.outlined(t).elems[e.index()].component_type;
+        let owner_ty = self.rd.own_row(t, e).component_type;
         let has_item = self.has_item(t, e);
         let item = has_item.then(|| owner_ty.def().item).flatten();
-        for i in 0..self.rd.outlined(sub).elems.len() {
-            let el = &self.rd.outlined(sub).elems[i];
+        for (i, el) in body.iter().enumerate() {
             if el.node != NodeId::NONE {
                 continue;
             }
@@ -113,7 +112,7 @@ impl Planning<'_> {
     /// one (`valueName`), or its type declares one and it reads no
     /// children (the item is its one child).
     pub(super) fn has_item(&self, t: TemplateId, e: ElemId) -> bool {
-        let el = &self.rd.outlined(t).elems[e.index()];
+        let el = self.rd.own_row(t, e);
         let def = el.component_type.def();
         self.rd.attr_name_str(el.node, "valueName").is_some()
             || (def.item.is_some() && !def.children.built())

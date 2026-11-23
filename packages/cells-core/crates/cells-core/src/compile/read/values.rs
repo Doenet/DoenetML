@@ -9,7 +9,7 @@ use crate::components::{EntryKind, TextKind};
 /// Reading the source, a value from its text: a literal or a reference, a math,
 /// a tuple, a point. Run by parsing for every record, and by a planner for what
 /// it reads itself.
-impl<'a> Reader<'a> {
+impl<'a> SourceReader<'a> {
     /// Whether `m`, a `$t` or `$t.prop` not yet planned, reads a text
     /// value: a prop its referent's type declares as text (a `<text>`'s or
     /// `<textInput>`'s `value`).
@@ -358,7 +358,7 @@ impl<'a> Reader<'a> {
 }
 
 /// What a reference reads, as its referent's type declares it
-/// ([`Reader::ref_value_kind`]).
+/// ([`SourceReader::ref_value_kind`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ValueKind {
     /// A number.

@@ -47,7 +47,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         let referent = referent.map(|b| {
             let Elem {
                 node, name_scope, ..
-            } = *p.rd.elem(t, b);
+            } = *p.rd.referent_row(t, b);
             let d = p.rd.dast;
             let mut subtree = HashSet::new();
             let mut stack = vec![node];
@@ -80,7 +80,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
 
 impl<'a> PlanCtx<'_, 'a> {
     fn elem(&self) -> &Elem {
-        self.p.rd.elem(self.t, self.e)
+        self.p.rd.own_row(self.t, self.e)
     }
 
     fn scope(&self) -> ElemId {
@@ -118,16 +118,8 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The prop at `port` (`graph::Props::PORTS`) of the graph the
     /// element sits in directly, if it sits in one.
     pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
-        let scope = self.scope();
-        (scope != ROOT_SCOPE
-            && self
-                .p
-                .rd
-                .elem(self.t, scope)
-                .component_type
-                .graph_bounds()
-                .is_some())
-        .then_some(Source::alias(Arg::Elem(scope, port)))
+        let graph = self.p.rd.in_graph(self.t, self.e)?;
+        Some(Source::alias(Arg::Elem(graph, port)))
     }
 
     // Planning.
@@ -385,6 +377,78 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
+    /// The type of the element reference `p` names by a path of names
+    /// alone (no prop, no entry), as the records tell: None for any
+    /// other reference.
+    fn ref_elem_type(&self, p: RefId) -> Option<ComponentType> {
+        let r = &self.p.ar.refs[p.index()];
+        if r.prop.is_some() || !r.entries.is_empty() {
+            return None;
+        }
+        let mut last = None;
+        for step in &r.steps {
+            match step {
+                Step::Elem(e) => last = Some(*e),
+                _ => return None,
+            }
+        }
+        let t = self.p.rd.template_up(self.t, r.hops);
+        // Unrecorded (ADR 0050): every caller puts the reference in a
+        // source of the plan (`ref_prop`, `ref_of_elem`).
+        Some(self.p.rd.referent_row(t, last?).component_type)
+    }
+
+    /// Reference `p`, which names an element by a path of names alone
+    /// ([`PlanCtx::ref_elem_type`]), reading that element's prop `name`
+    /// instead, its spelling in any case (`sortByProp`): None when it
+    /// names no element so, or its type has no such prop.
+    pub(crate) fn ref_prop(&mut self, p: RefId, name: &str) -> Option<RefId> {
+        let ty = self.ref_elem_type(p)?;
+        let sel = ty.resolve_prop(name).or_else(|| {
+            let spelled = ty
+                .prop_defs()
+                .iter()
+                .map(|d| d.name)
+                .chain(ty.def().combined_props.iter().map(|(n, _)| *n))
+                .chain(ty.def().alternate_names.iter().map(|(n, _)| *n))
+                .find(|n| n.eq_ignore_ascii_case(name))?;
+            ty.resolve_prop(spelled)
+        })?;
+        let mut plan = self.p.ar.refs[p.index()].clone();
+        plan.prop = Some(RefProp::of(ty, sel));
+        Some(self.p.ar.push_ref(plan))
+    }
+
+    /// Reference `p` naming the element itself, without the prop it
+    /// reads: `p` when it reads none; None when it names no element by a
+    /// path of names alone, or takes an entry.
+    pub(crate) fn ref_of_elem(&mut self, p: RefId) -> Option<RefId> {
+        let r = &self.p.ar.refs[p.index()];
+        if !r.entries.is_empty() || !r.steps.iter().all(|s| matches!(s, Step::Elem(_))) {
+            return None;
+        }
+        if r.prop.is_none() {
+            return Some(p);
+        }
+        let mut plan = r.clone();
+        plan.prop = None;
+        Some(self.p.ar.push_ref(plan))
+    }
+
+    /// How many cells reference `p` reads, when its prop alone says: one
+    /// for a table prop, a combined prop's parts; None for any other.
+    pub(crate) fn ref_cells(&self, p: RefId) -> Option<usize> {
+        let r = &self.p.ar.refs[p.index()];
+        if !r.entries.is_empty() {
+            return None;
+        }
+        match r.prop?.sel {
+            PropSel::At(PropAt::Position(_)) => Some(1),
+            sel @ PropSel::Parts { .. } => Some(sel.parts().len()),
+            _ => None,
+        }
+    }
+
     /// The entries reference `p` contributes when it names a static
     /// sequence (ADR 0041, decision 5): one reference per entry (`$p[k]`);
     /// None when it names one value.
@@ -485,7 +549,13 @@ impl<'a> PlanCtx<'_, 'a> {
             .rd
             .elem_children(self.t, self.e)
             .into_iter()
-            .filter(|&x| self.p.rd.elem(self.t, x).component_type.plays(role))
+            .filter(|&x| {
+                self.p
+                    .rd
+                    .owned_row(self.t, self.e, x)
+                    .component_type
+                    .plays(role)
+            })
             .map(Inner)
             .collect()
     }
@@ -504,7 +574,7 @@ impl<'a> PlanCtx<'_, 'a> {
             .rd
             .elem_children(self.t, self.e)
             .into_iter()
-            .filter(|&x| self.p.rd.elem(self.t, x).component_type == decl.ty)
+            .filter(|&x| self.p.rd.owned_row(self.t, self.e, x).component_type == decl.ty)
             .nth(nth)
             .map(Inner)
             .ok_or_else(missing)
@@ -523,7 +593,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// hold (a port each, a math cell): a math cell, never lowered.
     pub(crate) fn inner_quotient(&mut self, num: (Inner, Port), den: (Inner, Port)) -> Source {
         let mut leaf = |(inner, port): (Inner, Port)| {
-            let ty = self.p.rd.elem(self.t, inner.0).component_type;
+            let ty = self.p.rd.owned_row(self.t, self.e, inner.0).component_type;
             let plan = RefPlan {
                 hops: 0,
                 steps: vec![Step::Elem(inner.0)],

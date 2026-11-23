@@ -67,13 +67,16 @@ built, and planning goes on. A box is a row of boxing's own table
 ([`Tables::boxes`](crate::compile::ir::Tables::boxes), ADR 0031), so what outlining and planning made of the
 element stays as they made it; the build reads the box's row
 ([`Template::row`](crate::compile::ir::Template::row)). Planning goes on, so one compile finds every planning
-error; every read of another element's facts is recorded (an extend's of
-its referent, a container copy's of what it clones, a clone's of its
-original), and linking boxes the readers of every box to a fixpoint (ADR
-0032), so a box's readers never stand on what it was. An error the
+error; a dependency on another element is in the tree, in the plan, or,
+for a read of a referent's settled type, in the read list (an extend's
+of its referent, a container copy's of what it clones, a clone's of its
+original), and what is under a box is boxed with it and linking boxes
+its readers to a fixpoint (ADR 0050), so a box's readers never stand on
+what it was. An error sealing or the
 check raises records the innermost element it concerns, which is boxed
 from the start of a new compile, and the check runs again until every
-element builds. A box keeps its name (ADR 0027): a reference to it
+element builds; the elements sealing's type checks fail on are boxed
+together. A box keeps its name (ADR 0027): a reference to it
 resolves and reads as undefined, with no diagnostic of its own, and an
 extend of it is boxed in turn (`cells-boxed-referent`). A dependency cycle
 boxes the component it names. Only an error with no element to box, a

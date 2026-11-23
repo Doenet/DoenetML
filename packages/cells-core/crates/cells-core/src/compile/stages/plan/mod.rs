@@ -14,6 +14,7 @@ mod items;
 mod iterates;
 mod lists;
 mod planner;
+mod rows;
 
 use crate::compile::*;
 // What a planner is given and how a type names its planner: the planner-facing
@@ -23,14 +24,16 @@ pub(crate) use items::ItemCtx;
 pub(crate) use lists::ListEntry;
 use lists::Splice;
 pub(crate) use planner::Planner;
+use rows::Rows;
 
 /// Planning's view (ADR 0031, "The planner context"): what outlining
 /// settled and what parsing made, read-only; planning's table and the boxes
 /// in the tables, the arenas, and what it makes for linking and sealing,
 /// writable. A planner reaches it only through [`PlanCtx`].
 struct Planning<'a> {
-    /// The source and what outlining settled.
-    rd: Reader<'a>,
+    /// The readers, and outlining's rows by the relation a read is
+    /// (ADR 0050).
+    rd: Rows<'a>,
     /// What parsing made.
     parsed: &'a Parsed,
     /// Boxing's and planning's tables, by [`TemplateId`]: planning fills its
@@ -99,7 +102,7 @@ impl<'a> Planning<'a> {
         reads: Vec<Read>,
     ) -> Self {
         Planning {
-            rd,
+            rd: Rows::new(rd),
             parsed,
             tables,
             ar,
@@ -120,7 +123,7 @@ impl<'a> Planning<'a> {
     ) {
         // Planning's table, a row per element, made here (ADR 0031).
         for t in 0..self.tables.len() {
-            let n = self.rd.outlined(TemplateId::from_index(t)).elems.len();
+            let n = self.rd.elem_count(TemplateId::from_index(t));
             self.tables[t].plans = vec![ElemPlan::default(); n];
         }
         {
@@ -134,22 +137,17 @@ impl<'a> Planning<'a> {
         crate::trace::count("refs", ref_children.len());
         // Planning's table of `$ref` children, made here.
         for t in 0..self.tables.len() {
-            let n = self
-                .rd
-                .outlined(TemplateId::from_index(t))
-                .ref_children
-                .len();
+            let n = self.rd.ref_children(TemplateId::from_index(t)).len();
             self.tables[t].ref_child_plans = vec![RefChildPlan::Unplanned; n];
         }
         for (t, id) in ref_children {
-            let RefChild { node: m, owner, .. } = self.rd.outlined(t).ref_children[id.index()];
+            let RefChild { node: m, owner, .. } = self.rd.ref_children(t)[id.index()];
             // Content of a box is not planned.
             let dead = match owner {
                 Some(e) => self.tables[t.index()].is_box(e),
                 None => self
                     .rd
-                    .outlined(t)
-                    .parent
+                    .template_parent(t)
                     .is_some_and(|(pt, pe)| self.tables[pt.index()].is_box(pe)),
             };
             if dead {
@@ -179,7 +177,7 @@ impl<'a> Planning<'a> {
         if self.tables[t.index()].is_box(e) {
             return;
         }
-        let planned_as = self.rd.outlined(t).elems[e.index()].planned_as;
+        let planned_as = self.rd.own_row(t, e).planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             self.plan_anchor(t, e)?;
@@ -190,13 +188,12 @@ impl<'a> Planning<'a> {
         });
         // Boxed where it fails; what reads it reads the box.
         if let Err(error) = r {
-            self.boxes
-                .box_in_place(&self.rd.settled().templates, &mut self.tables, t, e, error);
+            self.box_in_place(t, e, error);
         }
     }
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
+        let component_type = self.rd.own_row(t, e).planned_as;
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
             // plan.
@@ -229,10 +226,7 @@ impl<'a> Planning<'a> {
                     self.plan_attrs(t, e, extend)?;
                     // A repeat's `valueName` and `indexName` make hidden
                     // elements in its body, which its table cannot say.
-                    if matches!(
-                        self.rd.outlined(t).elems[e.index()].body,
-                        Body::Repeat { .. }
-                    ) {
+                    if matches!(self.rd.own_row(t, e).body, Body::Repeat { .. }) {
                         self.plan_iteration_names(t, e);
                     }
                     Ok(())
@@ -241,10 +235,7 @@ impl<'a> Planning<'a> {
                     self.plan_with_extend(t, e, extend, plan)?;
                     // A repeat-like type's item and index, which its
                     // planner does not plan (ADR 0040).
-                    if matches!(
-                        self.rd.outlined(t).elems[e.index()].body,
-                        Body::Repeat { .. }
-                    ) {
+                    if matches!(self.rd.own_row(t, e).body, Body::Repeat { .. }) {
                         self.plan_iteration_names(t, e);
                     }
                     Ok(())
@@ -259,7 +250,7 @@ impl<'a> Planning<'a> {
         if !self.tables[t.index()].plans[e.index()].props.is_empty() {
             return Ok(());
         }
-        let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
+        let component_type = self.rd.own_row(t, e).planned_as;
         Err(Error::Unsupported(component_type.free_owned_refusal()))
     }
 
@@ -288,7 +279,7 @@ impl<'a> Planning<'a> {
             name_scope: scope,
             component_type: own_type,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         // What it gathers from, and of which type when its own type fixes
         // it (a polyline's points).
         let (attr, fixed) = match own_type.def().settle {
@@ -318,10 +309,7 @@ impl<'a> Planning<'a> {
             });
         }
         debug_assert!(
-            matches!(
-                self.rd.outlined(t).elems[e.index()].body,
-                Body::Collect { .. }
-            ),
+            matches!(self.rd.own_row(t, e).body, Body::Collect { .. }),
             "outlining made a collecting element a collect"
         );
         let mut props = vec![Source::absent(); own_type.prop_defs().len()];
@@ -344,7 +332,7 @@ impl<'a> Planning<'a> {
             name_scope,
             cloned,
             ..
-        } = *self.rd.elem(t, e);
+        } = *self.rd.own_row(t, e);
         let def = component_type.def();
         if cloned || node == NodeId::NONE {
             return Ok(());
@@ -391,10 +379,10 @@ impl<'a> Planning<'a> {
             component_type,
             cloned,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         if cloned {
             // A clone is a copy of its original.
-            let original = self.rd.outlined(t).elems[e.index()].extend;
+            let original = self.rd.own_row(t, e).extend;
             self.tables[t.index()].plans[e.index()].extend = original;
             return Ok(ElemShape::Cloned);
         }
@@ -403,7 +391,7 @@ impl<'a> Planning<'a> {
         }
         // Every `extend` was planned when outlining (ADR 0031). A container
         // copy got its clones then too.
-        let extend = self.rd.outlined(t).elems[e.index()].extend;
+        let extend = self.rd.own_row(t, e).extend;
         if let Some(p) = extend
             && component_type.container()
             && self.ar.refs[p.index()].prop.is_none()
@@ -441,7 +429,7 @@ impl<'a> Planning<'a> {
     /// Plans the synthesized root of a DAST that was not normalized: it has
     /// no source, so only its aggregates, which every root's props are.
     fn plan_synthetic(&mut self, t: TemplateId, e: ElemId) {
-        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.own_row(t, e).component_type;
         let mut props = vec![Source::absent(); component_type.prop_defs().len()];
         mark_aggregates(component_type, &mut props);
         self.tables[t.index()].plans[e.index()].props = props;

@@ -250,9 +250,10 @@ impl Share<'_> {
     fn n_public(&self, t: TemplateId, e: ElemId) -> usize {
         let tpl = &self.c.templates[t.index()];
         let ty = tpl.elems[e.index()].component_type;
-        match tpl.tables.plans[e.index()].list {
-            ListLen::Points(n) => ty.prop_defs().len() + ty.list_props(n as usize),
-            _ => ty.prop_defs().len(),
+        let plan = &tpl.tables.plans[e.index()];
+        match plan.list.count() {
+            Some(n) => ty.prop_defs().len() + plan.shape(ty).list_props(n as usize),
+            None => ty.prop_defs().len(),
         }
     }
 
@@ -316,33 +317,35 @@ impl Share<'_> {
         let tpl = &self.c.templates[t.index()];
         let n_ports = tpl.tables.plans[e.index()].props.len();
         let ty = tpl.elems[e.index()].component_type;
-        let port = match (sel, plan.prop) {
-            (Sel::Port(k), _) => k as usize,
-            (Sel::Whole, Some(p)) if p.of == ty => match p.sel {
-                PropSel::At(PropAt::Position(i)) => i,
-                PropSel::Parts { len: 1, idx } => idx[0] as usize,
-                _ => return None,
-            },
-            (Sel::Coord(j), Some(p)) if p.of == ty => match p.sel {
-                PropSel::Parts { .. } => *p.sel.parts().get(j as usize)? as usize,
-                _ => return None,
-            },
-            // Coordinate `j` of item `i` of a list: of the points the
-            // element's list holds, or of its table's points.
-            (Sel::Item(i, j), Some(p)) if p.of == ty => match p.sel {
-                PropSel::At(PropAt::List) => match tpl.tables.plans[e.index()].list {
-                    ListLen::Points(n) if (i as u32) < n => {
-                        ty.list_slot(self.n_public(t, e), i as usize + 1, j as usize)?
+        let port =
+            match (sel, plan.prop) {
+                (Sel::Port(k), _) => k as usize,
+                (Sel::Whole, Some(p)) if p.of == ty => match p.sel {
+                    PropSel::At(PropAt::Position(i)) => i,
+                    PropSel::Parts { len: 1, idx } => idx[0] as usize,
+                    _ => return None,
+                },
+                (Sel::Coord(j), Some(p)) if p.of == ty => match p.sel {
+                    PropSel::Parts { .. } => *p.sel.parts().get(j as usize)? as usize,
+                    _ => return None,
+                },
+                // Coordinate `j` of item `i` of a list: of the points the
+                // element's list holds, or of its table's points.
+                (Sel::Item(i, j), Some(p)) if p.of == ty => match p.sel {
+                    PropSel::At(PropAt::List) => match tpl.tables.plans[e.index()].list.count() {
+                        Some(n) if (i as u32) < n => tpl.tables.plans[e.index()]
+                            .shape(ty)
+                            .list_slot(self.n_public(t, e), i as usize + 1, j as usize)?,
+                        _ => return None,
+                    },
+
+                    PropSel::TableList => {
+                        ty.table_point_positions().get(i as usize)?[j as usize] as usize
                     }
                     _ => return None,
                 },
-                PropSel::TableList => {
-                    ty.table_point_positions().get(i as usize)?[j as usize] as usize
-                }
                 _ => return None,
-            },
-            _ => return None,
-        };
+            };
         (port < n_ports).then_some(Node::Local(e.get(), port as u8))
     }
 

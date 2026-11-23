@@ -16,25 +16,129 @@ use crate::program::{Post, SymKind};
 pub mod answer;
 pub mod award;
 pub mod boolean;
-pub(crate) mod boolean_list;
 pub mod curve;
 pub(crate) mod formatted;
 pub(crate) mod function_operators;
 pub(crate) mod interval;
 pub(crate) mod interval_list;
 pub mod math;
-pub(crate) mod math_list;
-pub(crate) mod number_list;
 pub(crate) mod piecewise_function;
 pub(crate) mod pluralize;
 pub(crate) mod subset_of_reals;
 pub mod text;
-pub(crate) mod text_list;
 
 pub(crate) mod matrix;
 pub(crate) mod sequence;
 pub(crate) mod structural_sequence;
 pub mod when;
+
+// The specs of the value lists, defined below by `value_list!`, sit
+// beside this file.
+#[cfg(test)]
+#[path = "boolean_list.spec.rs"]
+mod boolean_list_spec;
+#[cfg(test)]
+#[path = "math_list.spec.rs"]
+mod math_list_spec;
+#[cfg(test)]
+#[path = "number_list.spec.rs"]
+mod number_list_spec;
+#[cfg(test)]
+#[path = "text_list.spec.rs"]
+mod text_list_spec;
+
+/// A value list (ADR 0041): a static sequence of values of one kind, one
+/// entry per piece of its text (split at the spaces outside any bracket
+/// pair) and per entry each reference and element child among its
+/// children names, in order, at most `maxNumber`. Its entries are its
+/// list, under the name given and `values` (`numbers`, `number1`, ...),
+/// `numComponents` how many there are, and `text` their texts joined with
+/// commas. The four differ in the name, the kind of an entry and the
+/// attributes they read beside `maxNumber`.
+macro_rules! value_list {
+    (
+        $(#[$doc:meta])*
+        $module:ident: $tag:literal, $names:ident, $item:ident of $kind:ident
+        $(, attributes { $($attrs:tt)* })? $(,)?
+    ) => {
+        pub(crate) mod $module {
+            use super::*;
+
+            component! {
+                $(#[$doc])*
+                tags: [$tag],
+                flags: [copyable],
+                default_prop: $names,
+                props {
+                    numComponents: list_len { rendered },
+                    text: by_planner { text },
+                }
+                list {
+                    names: [$names, values],
+                    item: $item,
+                    values: $item of $kind, max_by: maxNumber, entries: children,
+                    rendered: true,
+                }
+                alternate_names {
+                    numValues: numComponents,
+                }
+                // Whether a renderer shows the entries separated by commas.
+                presentation { asList }
+                attributes {
+                    maxNumber: Literal(f64::INFINITY),
+                    $($($attrs)*)?
+                }
+                children: List,
+                planner: Plan(plan),
+            }
+
+            /// Plans the list from its children ([`plan_list`]), and its
+            /// text from its entries ([`joined_entries`]).
+            fn plan(ctx: &mut PlanCtx<'_, '_>) -> crate::error::Result<ElemWiring> {
+                let attrs = Attrs::of(ctx.record());
+                let (mut wiring, n) = plan_list(ctx, attrs.children, attrs.maxNumber?)?;
+                let booleans = EntryKind::$kind == EntryKind::Boolean;
+                wiring.set_planned(Planned {
+                    text: joined_entries(&wiring, n, booleans).into(),
+                });
+                Ok(wiring)
+            }
+        }
+    };
+}
+
+value_list! {
+    /// `<numberList>`: its entries are numbers, `numbers` (`number1`,
+    /// ...); a piece that is no number is read as the math it is.
+    number_list: "numberList", numbers, number of Number,
+    attributes {
+        // Read as the children are parsed: whether a `<math>` child that
+        // is a list gives its items as entries.
+        mergeMathLists: LiteralFlag,
+    }
+}
+
+value_list! {
+    /// `<mathList>`: its entries are expressions, `maths` (`math1`, ...),
+    /// each piece of text one a write may change.
+    math_list: "mathList", maths, math of Math,
+    attributes {
+        // Read as the children are parsed: whether a `<math>` child that
+        // is a list gives its items as entries.
+        mergeMathLists: LiteralFlag,
+    }
+}
+
+value_list! {
+    /// `<textList>`: its entries are texts, `texts` (`text1`, ...).
+    text_list: "textList", texts, text of Text,
+}
+
+value_list! {
+    /// `<booleanList>`: its entries are booleans, `booleans` (`boolean1`,
+    /// ...).
+    boolean_list: "booleanList", booleans, boolean of Boolean,
+}
 
 /// Plans a value list's entries from its children (ADR 0041, decision 1:
 /// a static sequence, its count a fact of the source): one entry per
@@ -170,13 +274,10 @@ pub mod number {
         tags: ["number"],
         flags: [copyable],
         roles: [Index, Value],
-        text: Number(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Number,
         props {
             value: children { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,
@@ -197,9 +298,7 @@ pub(crate) mod math_value {
         tags: ["mathValue"],
         flags: [copyable, internal],
         roles: [MathValue],
-        text: Held(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Held,
         props {
             value: attr(NO_VALUE) { rendered },
         }
@@ -223,8 +322,7 @@ pub(crate) mod evaluate {
             function: by_planner,
             input: by_planner,
             value: by_planner { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         attributes {
             function: Ref,
@@ -239,10 +337,7 @@ pub(crate) mod evaluate {
         let attrs = Attrs::of(ctx.record());
         let at = Props::PORTS;
         let mut wiring = ElemWiring::of(ctx.component_type());
-        let input = match attrs.input {
-            Some(source) => Wire::scalar(source, GivenId::Attr(attr::input, 0)),
-            None => Wire::absent(),
-        };
+        let input = Wire::attr(attr::input, attrs.input).unwrap_or(Wire::absent());
         let Some(p) = attrs.function else {
             wiring.set_planned(Planned {
                 function: Wire::absent(),
@@ -346,8 +441,7 @@ pub(crate) mod clamp_number {
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,

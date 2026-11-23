@@ -39,8 +39,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
 use crate::components::{
-    AggOp, ChildrenKind, Collection, ComponentType, ExtendValue, Machinery, PropAt, PropFrom,
-    PropSel, ResponseKind, Role, Settle, StructureKind, prop,
+    AggOp, ChildrenKind, Collection, ComponentType, EntryKind, ExtendValue, ListShape, Machinery,
+    PropAt, PropFrom, PropSel, ResponseKind, Role, Settle, StructureKind, prop,
 };
 use crate::dast::{AttrId, Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;
@@ -213,7 +213,8 @@ pub(crate) fn constant_ranges(
 
 /// The compile's loop: plan `dast`, boxing every element that fails where
 /// it fails; then run `check` on the plan. An element `check` fails on, or
-/// a failure no element could carry, is boxed and the plan made again.
+/// a failure no element could carry, is boxed and the plan made again;
+/// the elements sealing's type checks fail on are boxed together.
 /// Each box is an error in `errors`, and the planners' warnings of the
 /// plan that checked join them. A cycle boxes the component it names.
 /// Only a failure with no element to box (a cycle through no component
@@ -227,16 +228,21 @@ fn plan_and_check<T>(
     mut check: impl FnMut(&Dast, &mut Plans) -> std::result::Result<T, Failure>,
 ) -> Result<(Plans, T)> {
     let mut boxed: HashSet<NodeId> = HashSet::new();
-    // Box what `f` names, or fail with it when it names nothing.
-    let restart = |boxed: &mut HashSet<NodeId>, errors: &mut Vec<Diagnostic>, f: Failure| {
-        crate::trace::count("boxed", 1);
-        let node = f.node.filter(|n| boxed.insert(*n));
-        errors.push(Diagnostic::error(node, &f.error));
-        match node {
-            Some(_) => Ok(()),
-            None => Err(f.error),
-        }
-    };
+    // Box what each of `failures` names, or fail with the first that
+    // names nothing.
+    let restart =
+        |boxed: &mut HashSet<NodeId>, errors: &mut Vec<Diagnostic>, failures: Vec<Failure>| {
+            let mut unboxed = None;
+            for f in failures {
+                crate::trace::count("boxed", 1);
+                let node = f.node.filter(|n| boxed.insert(*n));
+                errors.push(Diagnostic::error(node, &f.error));
+                if node.is_none() {
+                    unboxed.get_or_insert(f.error);
+                }
+            }
+            unboxed.map_or(Ok(()), Err)
+        };
     loop {
         let planned = {
             let _s = crate::trace::span("plan");
@@ -269,7 +275,7 @@ fn plan_and_check<T>(
                 errors.extend(warnings);
                 return Ok((plans, checked));
             }
-            Err(f) => restart(&mut boxed, errors, f)?,
+            Err(f) => restart(&mut boxed, errors, vec![f])?,
         }
     }
 }
@@ -309,16 +315,19 @@ pub(crate) type FxMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fx>>;
 impl Compiler {
     /// Compile `dast`, with the nodes in `boxed` as `_error` elements, and
     /// every element that fails to plan boxed where it fails. A failure
-    /// names the node to box before compiling again, when there is one.
+    /// names the node to box before compiling again, when there is one;
+    /// sealing's type checks return every element's at once (ADR 0050,
+    /// decision 4).
     pub(in crate::compile) fn compile<'a>(
         dast: &'a Dast,
         boxed: &'a HashSet<NodeId>,
         share: bool,
-    ) -> std::result::Result<Attempt, Failure> {
+    ) -> std::result::Result<Attempt, Vec<Failure>> {
+        let one = |f: Failure| vec![f];
         // What boxing records, handed to each stage that boxes.
         let (settled, tables, mut ar, mut boxes, mut work) =
             stages::outline::outline(dast, Boxes::new(boxed));
-        boxes.restart_if_needed()?;
+        boxes.restart_if_needed().map_err(one)?;
         // From here on, every stage reads what outlining settled and none
         // changes it: the element set is outlining's (ADR 0030, ADR 0031),
         // and planning and linking make none.
@@ -339,7 +348,7 @@ impl Compiler {
             boxes,
             work,
         );
-        boxes.restart_if_needed()?;
+        boxes.restart_if_needed().map_err(one)?;
         boxes.enter(Stage::Link);
         let root_warnings = stages::link::link(
             Reader::new(dast, &settled),
@@ -347,9 +356,10 @@ impl Compiler {
             &mut tables,
             &mut boxes,
             &mut planned,
-        )?;
+        )
+        .map_err(one)?;
         ar.warnings.extend(root_warnings);
-        boxes.restart_if_needed()?;
+        boxes.restart_if_needed().map_err(one)?;
         boxes.enter(Stage::Seal);
         let (sealed, choice_seals, keys) =
             stages::seal::seal(dast, &settled, &ar, &tables, &planned.given)?;

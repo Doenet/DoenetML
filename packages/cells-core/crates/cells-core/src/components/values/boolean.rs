@@ -16,9 +16,7 @@ component! {
     tags: ["boolean"],
     flags: [copyable],
     roles: [BooleanValue],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         value: children { rendered },
     }

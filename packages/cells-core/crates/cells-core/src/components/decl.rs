@@ -988,6 +988,11 @@ pub enum PropFrom {
     /// materialized by the build: no planner can wire it, and nothing overrides
     /// it.
     Aggregate(Aggregate),
+    /// How many entries the element's list holds (a list's
+    /// `numComponents`, a polygon's `numVertices`): a constant, as the
+    /// count is a fact of the source (ADR 0041), which the wiring knows
+    /// from the planner's `ElemWiring::with_list`.
+    ListLen,
     /// Coordinate `coord` (0 for x, 1 for y) of the point where a value is
     /// drawn in a graph, given by the `anchor` attribute (`anchor="(1,2)"`
     /// or `anchor="$P"`): planned by the compile for every type that has

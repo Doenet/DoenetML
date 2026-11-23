@@ -35,8 +35,7 @@ component! {
         pointsClosed: by_planner { rendered },
         intervals: by_planner { rendered },
         isolatedPoints: by_planner { rendered },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         variable: Content,
@@ -66,7 +65,7 @@ fn wiring_of(id: ExprId, variable: Source, inequalities: bool) -> ElemWiring {
         )
         .into()
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr: part(SubsetPart::Value),
         value: Source::computed(OpSpec::Sym(SymKind::Evaluate), vec![at.expr]).into(),
         variable: variable.into(),
@@ -74,9 +73,6 @@ fn wiring_of(id: ExprId, variable: Source, inequalities: bool) -> ElemWiring {
         pointsClosed: part(SubsetPart::PointsClosed),
         intervals: part(SubsetPart::Intervals),
         isolatedPoints: part(SubsetPart::IsolatedPoints),
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     wiring
 }

@@ -16,7 +16,7 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        numVertices: by_planner { rendered },
+        numVertices: list_len { rendered },
         // The midpoint of the opposite corners; a request on it translates
         // the rectangle.
         cx: by_planner,
@@ -69,9 +69,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let center = attrs.center.map(PointAttr::point).transpose()?;
     let mut wiring = ElemWiring::with_list(ComponentType::Rectangle, 4);
     let size = |wiring: &mut ElemWiring| -> [Port; 2] {
-        let side = |source: Option<Source>, a: Attr| match source {
-            Some(s) => Wire::scalar(s, GivenId::Attr(a, 0)),
-            None => Wire::given_by(a, 1.0),
+        let side = |source: Option<Source>, a: Attr| {
+            Wire::attr(a, source).unwrap_or_else(|| Wire::given_by(a, 1.0))
         };
         [
             wiring.hidden_wire(side(attrs.width.clone(), attr::width)),
@@ -121,7 +120,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let [height] = ElemWiring::vector([at.height], VecOp::Extent, vec![py, qy]);
     let half_perimeter = wiring.hidden(Source::computed(OpSpec::Add, vec![at.width, at.height]));
     wiring.set_planned(Planned {
-        numVertices: Wire::constant(4.0),
         cx,
         cy,
         width,

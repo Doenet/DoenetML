@@ -270,7 +270,7 @@ impl<'a> Planning<'a> {
                 self.rd
                     .static_target(&self.ar, t, p)
                     .is_some_and(|(tt, e)| {
-                        let node = self.rd.outlined(tt).elems[e.index()].node;
+                        let node = self.rd.referent_row(tt, e).node;
                         node != NodeId::NONE && self.rd.attr_on(node, "unordered")
                     })
             })

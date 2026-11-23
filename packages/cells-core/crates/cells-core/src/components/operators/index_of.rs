@@ -19,13 +19,10 @@ component! {
     tags: ["argMin"],
     variant: Find::Least,
     flags: [copyable],
-    text: Number(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Number,
     props {
         value: by_planner { rendered },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         target: Scalar,

@@ -8,6 +8,7 @@
 //! here.
 
 use super::Seal;
+use crate::compile::boxes::subtree;
 use crate::compile::*;
 use crate::components::{PropAt, PropSel};
 
@@ -41,11 +42,15 @@ struct Target {
 /// template at once.
 impl Seal<'_> {
     /// Every port's type, by template and template slot (`offs` are the
-    /// elements' slot offsets), and the checks that need them.
+    /// elements' slot offsets), and the checks that need them. The checks
+    /// run once every type is settled, so one element's failure changes
+    /// no other's: every element that fails a check is reported, and the
+    /// compile boxes them together and runs again once (ADR 0050,
+    /// decision 4).
     pub(super) fn infer_types(
         &self,
         offs: &[(Vec<TemplateSlot>, u32)],
-    ) -> std::result::Result<Vec<Vec<PortType>>, Failure> {
+    ) -> std::result::Result<Vec<Vec<PortType>>, Vec<Failure>> {
         let mut types: Vec<Vec<PortType>> = offs
             .iter()
             .map(|(_, n)| vec![PortType::Num; *n as usize])
@@ -80,7 +85,9 @@ impl Seal<'_> {
                     let slot = pass.offs[t.index()].0[e.index()].offset(pi);
                     owner[t.index()][slot.index()] = (e, pi);
                     pass.reads.clear();
-                    let ty = pass.source_type(t, e, pi, src, false)?;
+                    let ty = pass
+                        .source_type(t, e, pi, src, false)
+                        .map_err(|f| vec![f])?;
                     for &(rt, rs) in &pass.reads {
                         readers[rt.index()][rs.index()].push((t, slot));
                     }
@@ -97,24 +104,50 @@ impl Seal<'_> {
                 // Its reads were recorded the first time; they do not
                 // change.
                 pass.reads.clear();
-                let ty = pass.source_type(t, e, pi, src, false)?;
+                let ty = pass
+                    .source_type(t, e, pi, src, false)
+                    .map_err(|f| vec![f])?;
                 if pass.raise(t, slot, ty) {
                     work.push((t, slot));
                 }
             }
         }
         // The checks, once every type is settled: what a reference's shape
-        // must be, read where the types are final.
+        // must be, read where the types are final. Each element's first
+        // failure, of every element that has one.
+        let mut failed: Vec<((TemplateId, ElemId), Failure)> = Vec::new();
         for t in self.template_ids() {
             let tpl = self.view(t);
             for e in ElemId::below(tpl.elems.len()) {
                 for (pi, src) in tpl.plan(e).props.iter().enumerate() {
-                    pass.source_type(t, e, pi, src, true)?;
+                    if let Err(f) = pass.source_type(t, e, pi, src, true) {
+                        failed.push(((t, e), f));
+                        break;
+                    }
                 }
             }
         }
-        pass.check_interfaces()?;
+        if !failed.is_empty() {
+            return Err(self.outermost(failed));
+        }
+        pass.check_interfaces().map_err(|f| vec![f])?;
         Ok(types)
+    }
+
+    /// The failures of `failed` to box together: one per node, and none
+    /// of an element under another that failed, which is not there once
+    /// that one is a box. A box reports nothing of what is under it.
+    fn outermost(&self, failed: Vec<((TemplateId, ElemId), Failure)>) -> Vec<Failure> {
+        let mut under: HashSet<(TemplateId, ElemId)> = HashSet::new();
+        for &((t, e), _) in &failed {
+            under.extend(subtree(self.templates, t, e).into_iter().skip(1));
+        }
+        let mut nodes = HashSet::new();
+        failed
+            .into_iter()
+            .filter(|(at, f)| !under.contains(at) && f.node.is_none_or(|n| nodes.insert(n)))
+            .map(|(_, f)| f)
+            .collect()
     }
 }
 
@@ -556,8 +589,9 @@ impl<'s, 'a> Types<'s, 'a> {
                 continue;
             };
             let n_public = self.seal.view(ct).plan(ce).n_public(ty);
-            let n_points = n_public.map(|n| ty.list_len(n));
-            let Some(len) = sel_len(sel, ty.list_width(), n_points) else {
+            let shape = self.seal.view(ct).plan(ce).shape(ty);
+            let n_points = n_public.map(|n| shape.list_len(n));
+            let Some(len) = sel_len(sel, shape.width(), n_points) else {
                 // As many as the referent has: known only when built.
                 cells.known = false;
                 continue;
@@ -579,14 +613,15 @@ impl<'s, 'a> Types<'s, 'a> {
                 // which `Num` already says; a value list's are its ports'.
                 PropSel::At(at) => {
                     let n = n_public.unwrap_or(0);
-                    let w = ty.list_width();
+                    let w = shape.width();
                     let slots: Vec<Option<usize>> = match at {
-                        PropAt::Item(k) => (0..w).map(|j| ty.list_slot(n, k, j)).collect(),
-                        PropAt::Coord(k, j) => vec![ty.list_slot(n, k, j)],
-                        PropAt::List => (1..=ty.list_len(n))
-                            .flat_map(|k| (0..w).map(move |j| ty.list_slot(n, k, j)))
+                        PropAt::Item(k) => (0..w).map(|j| shape.list_slot(n, k, j)).collect(),
+                        PropAt::Coord(k, j) => vec![shape.list_slot(n, k, j)],
+                        PropAt::List => (1..=shape.list_len(n))
+                            .flat_map(|k| (0..w).map(move |j| shape.list_slot(n, k, j)))
                             .collect(),
-                        PropAt::Companion => ty.companion_slots(n).map(Some).collect(),
+                        PropAt::Companion => shape.companion_slots(n).map(Some).collect(),
+
                         PropAt::Position(_) => unreachable!("matched above"),
                     };
                     for (k, pi) in slots.into_iter().enumerate() {

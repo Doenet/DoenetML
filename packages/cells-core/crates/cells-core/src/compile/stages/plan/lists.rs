@@ -40,9 +40,7 @@ impl<'a> Planning<'a> {
     /// contributes among a list's children. A read of a sequence is
     /// recorded, so a box it names boxes `e` (ADR 0032).
     pub(super) fn splice(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Splice {
-        let points = self.rd.outlined(t).elems[e.index()]
-            .component_type
-            .lists_points();
+        let points = self.rd.own_row(t, e).component_type.lists_points();
         let splice = self.splice_within(t, p, &mut Vec::new(), points);
         if splice != Splice::Value {
             crate::compile::read::record_read(&mut self.planned.reads, t, e, p);
@@ -72,7 +70,7 @@ impl<'a> Planning<'a> {
             return Splice::Value;
         };
         let rt = self.rd.template_up(t, plan.hops);
-        let ty = self.rd.outlined(rt).elems[x.index()].component_type;
+        let ty = self.rd.referent_row(rt, x).component_type;
         if !is_value_list(ty, points) {
             return Splice::Value;
         }
@@ -115,7 +113,7 @@ impl<'a> Planning<'a> {
             return None;
         }
         let record = self.parsed.record_ref(t, x)?;
-        let el = self.rd.outlined(t).elems[x.index()].clone();
+        let el = self.rd.referent_row(t, x);
         // A sequence or a sampler counts its own (a copy's are its
         // referent's, merged into its record).
         if let Some(count) = el.component_type.def().static_count {
@@ -200,10 +198,7 @@ impl<'a> Planning<'a> {
         pieces: &[ListPiece],
         n: usize,
     ) {
-        let Some(row) = self.rd.outlined(t).elems[e.index()]
-            .component_type
-            .entry_row()
-        else {
+        let Some(row) = self.rd.own_row(t, e).component_type.entry_row() else {
             return;
         };
         let children = self.rd.elem_children(t, e);
@@ -227,7 +222,7 @@ impl<'a> Planning<'a> {
                                 plan.prop,
                                 plan.entries.is_empty(),
                             ) && children.contains(x)
-                                && self.rd.outlined(t).elems[x.index()].component_type == row
+                                && self.rd.owned_row(t, e, *x).component_type == row
                                 && k < n
                             {
                                 rows.push((k as u32, *x));
@@ -328,8 +323,10 @@ impl<'a> Planning<'a> {
                 _ => None,
             })
         {
-            let ty =
-                self.rd.outlined(self.rd.template_up(t, plan.hops)).elems[x.index()].component_type;
+            let ty = self
+                .rd
+                .referent_row(self.rd.template_up(t, plan.hops), x)
+                .component_type;
             plan.prop = Some(RefProp::of(ty, PropSel::At(PropAt::List)));
         }
         let width = plan.prop.map_or(1, |rp| rp.of.list_width().max(1) as u8);

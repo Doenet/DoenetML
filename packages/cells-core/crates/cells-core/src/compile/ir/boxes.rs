@@ -4,6 +4,20 @@
 //! build reads the box's row instead of what other stages made of it.
 //! What it records is a [`Boxes`], which the driver hands to each stage
 //! that boxes and to no other: a stage without one cannot box.
+//!
+//! What a box takes with it follows where the dependency on it is (ADR
+//! 0050, decision 2):
+//!
+//! | The read | Where the dependency is | What boxing does |
+//! |---|---|---|
+//! | Of an ancestor | The tree | [`Boxes::box_in_place`] boxes the subtree ([`subtree`]) |
+//! | A port of an element of the reader's template (`Arg::Elem`) | The plan | linking boxes the reader ([`Boxes::box_elem_reader`]) |
+//! | A referent's settled type | The read list ([`Planned::reads`]) | linking boxes the reader in place, the box its cause |
+//!
+//! An element is boxed in place up to linking, when nothing has been
+//! made from its plan. One sealing or the check fails on is named in a
+//! [`Failure`], and the compile runs again from outlining with its node in
+//! [`Boxes::prior`] (ADR 0050, decision 4).
 
 use crate::compile::*;
 
@@ -246,7 +260,7 @@ impl Boxes<'_> {
 }
 
 /// The boxes a reader of a referent's type may see while a stage runs
-/// ([`Boxes::visible`]): what [`Reader::read_referent`] stops at.
+/// ([`Boxes::visible`]): what [`SourceReader::read_referent`] stops at.
 #[derive(Clone, Copy)]
 pub(in crate::compile) struct Visible<'t> {
     tables: &'t [Tables],
@@ -264,8 +278,13 @@ impl Visible<'_> {
 }
 
 /// Element `e` and everything under it: its children, theirs, and the
-/// elements of every template a repeat or choice among them owns.
-fn subtree(templates: &[Outlined], t: TemplateId, e: ElemId) -> Vec<(TemplateId, ElemId)> {
+/// elements of every template a repeat or choice among them owns, `e`
+/// first.
+pub(in crate::compile) fn subtree(
+    templates: &[Outlined],
+    t: TemplateId,
+    e: ElemId,
+) -> Vec<(TemplateId, ElemId)> {
     let mut seen: HashSet<(TemplateId, ElemId)> = HashSet::from([(t, e)]);
     let mut out = vec![(t, e)];
     let mut i = 0;

@@ -37,7 +37,7 @@ impl<'a> Planning<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         // An extend of an answer would be the same answer again (REF-7);
         // planned from its own children it was a second answer graded on
         // its own, with no diagnostic. Refused until it is the same one.
@@ -52,10 +52,10 @@ impl<'a> Planning<'a> {
         let mut awards = Vec::new();
         // The synthetic children outlining made are planned below.
         for k in self.rd.elem_children(t, e) {
-            if self.rd.outlined(t).elems[k.index()].node == NodeId::NONE {
+            if self.rd.owned_row(t, e, k).node == NodeId::NONE {
                 continue;
             }
-            match self.rd.outlined(t).elems[k.index()].component_type {
+            match self.rd.owned_row(t, e, k).component_type {
                 ty if ty.response().is_some() => inputs.push(k),
                 ty if ty.plays(Role::Award) => awards.push(k),
                 other => {
@@ -70,9 +70,7 @@ impl<'a> Planning<'a> {
         // A choice input: the submitted index earns its choice's credit.
         if let [ci] = inputs.as_slice()
             && matches!(
-                self.rd.outlined(t).elems[ci.index()]
-                    .component_type
-                    .response(),
+                self.rd.owned_row(t, e, *ci).component_type.response(),
                 Some(ResponseKind::Index(_))
             )
         {
@@ -88,9 +86,7 @@ impl<'a> Planning<'a> {
         }
         if inputs.iter().any(|&k| {
             matches!(
-                self.rd.outlined(t).elems[k.index()]
-                    .component_type
-                    .response(),
+                self.rd.owned_row(t, e, k).component_type.response(),
                 Some(ResponseKind::Text(_))
             )
         }) {
@@ -116,7 +112,7 @@ impl<'a> Planning<'a> {
         let needs_input = !text_nodes.is_empty() || forms.iter().any(|f| f.when.is_none());
 
         let ports = answer::Props::PORTS;
-        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
+        let mut wiring = ElemWiring::of(self.rd.own_row(t, e).component_type);
         let response_attr = d.attr(el, "response");
         let mut response = match (needs_input, response_attr, inputs.as_slice()) {
             (true, Some(a), []) => self.rd.plan_value(
@@ -135,9 +131,8 @@ impl<'a> Planning<'a> {
             (true, None, [mi]) => {
                 // The expression the input declares its response
                 // (`response: Math(expr)`): a mathInput's, a fractionInput's.
-                let Some(ResponseKind::Math(expr)) = self.rd.outlined(t).elems[mi.index()]
-                    .component_type
-                    .response()
+                let Some(ResponseKind::Math(expr)) =
+                    self.rd.owned_row(t, e, *mi).component_type.response()
                 else {
                     return Err(Error::Unsupported(
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
@@ -212,7 +207,7 @@ impl<'a> Planning<'a> {
     /// the answer's scope like any other attribute's.
     fn plan_weight(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<Source> {
         let d = self.rd.dast;
-        let scope = self.rd.outlined(t).elems[e.index()].name_scope;
+        let scope = self.rd.own_row(t, e).name_scope;
         Ok(match d.attr(el, "weight") {
             Some(a) => {
                 self.rd
@@ -237,7 +232,8 @@ impl<'a> Planning<'a> {
             .elem_children(t, ci)
             .into_iter()
             .filter(|&k| {
-                self.rd.outlined(t).elems[k.index()]
+                self.rd
+                    .owned_row(t, e, k)
                     .component_type
                     .plays(Role::Choice)
             })
@@ -249,9 +245,29 @@ impl<'a> Planning<'a> {
             )));
         }
         let ports = answer::Props::PORTS;
-        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
+        let mut wiring = ElemWiring::of(self.rd.own_row(t, e).component_type);
         let weight = self.plan_weight(t, e, el)?;
-        let mut args = vec![Arg::Own(ports.submitted)];
+        // The submitted index is a choice's place as shown: with
+        // `shuffleOrder` the choice there is the one `choiceOrder` names
+        // (ADR 0053), as the current core's `childIndicesSelected`.
+        let shuffled = self
+            .parsed
+            .record_ref(t, ci)
+            .is_some_and(|r| choice_input::Attrs::of(r).shuffleOrder);
+        let submitted = if shuffled {
+            let first = self.rd.owned_row(t, e, ci).component_type.prop_defs().len();
+            let mut order = vec![Arg::Own(ports.submitted)];
+            order.extend((0..choices.len()).map(|k| Arg::Elem(ci, Port::table(first + k))));
+            Arg::Own(wiring.hidden(Source::op(
+                OpSpec::Vec(VecOp::Choose {
+                    n: byte(choices.len()),
+                }),
+                order,
+            )))
+        } else {
+            Arg::Own(ports.submitted)
+        };
+        let mut args = vec![submitted];
         args.extend(
             choices
                 .iter()
@@ -289,9 +305,7 @@ impl<'a> Planning<'a> {
         let d = self.rd.dast;
         let ti = match inputs {
             [ti] if matches!(
-                self.rd.outlined(t).elems[ti.index()]
-                    .component_type
-                    .response(),
+                self.rd.owned_row(t, e, *ti).component_type.response(),
                 Some(ResponseKind::Text(_))
             ) =>
             {
@@ -308,7 +322,7 @@ impl<'a> Planning<'a> {
                 "<answer type=\"text\"> without <award> children".into(),
             ));
         }
-        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
+        let mut wiring = ElemWiring::of(self.rd.own_row(t, e).component_type);
         let weight = self.plan_weight(t, e, el)?;
         let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
@@ -387,8 +401,8 @@ impl<'a> Planning<'a> {
                 // Each input a `$mi` names has a response, planned once.
                 for &m in nodes.iter().filter(|&&n| d.kind(n) == NodeKind::Macro) {
                     // Planned when outlining made the responses.
-                    let p = match self.rd.settled().when_refs.get(&m) {
-                        Some(&p) => p,
+                    let p = match self.rd.when_ref(m) {
+                        Some(p) => p,
                         None => self.rd.plan_ref(&mut self.ar, t, w, m)?,
                     };
                     if let Some((key, input_type)) = self.rd.input_named(&self.ar, t, p)
@@ -453,11 +467,7 @@ impl<'a> Planning<'a> {
     /// names.
     fn outlined_response(&self, t: TemplateId, e: ElemId, key: (u32, ElemId)) -> Result<ElemId> {
         self.rd
-            .settled()
-            .answer_responses
-            .get(&(t, e))
-            .and_then(|rs| rs.iter().find(|(k, _)| *k == key))
-            .map(|&(_, r)| r)
+            .answer_response(t, e, key)
             .ok_or_else(|| Error::Internal("a response outlining did not make".into()))
     }
 
@@ -496,7 +506,7 @@ impl<'a> Planning<'a> {
             .elem_children(t, e)
             .into_iter()
             .find(|&k| {
-                let el = &self.rd.outlined(t).elems[k.index()];
+                let el = self.rd.owned_row(t, e, k);
                 el.node == NodeId::NONE && el.component_type.plays(Role::ImplicitInput)
             })
             .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;

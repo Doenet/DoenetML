@@ -112,6 +112,12 @@ impl<'c> Builder<'c> {
         if n != component_type.prop_defs().len() {
             self.n_public[w.index()] = n as u32;
         }
+        if let Some(&first) = members.first()
+            && self.components.component_type[first.index()] == component_type
+            && let Some(own) = self.components.shape(first).own
+        {
+            self.components.own_entries.insert(w, own);
+        }
         w
     }
 

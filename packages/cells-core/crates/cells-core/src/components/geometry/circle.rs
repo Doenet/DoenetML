@@ -115,10 +115,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     // essential one (1 by default), behind it receives the clamped value
     // (projection, ADR 0003).
     let radius_wire = |wiring: &mut ElemWiring| -> Wire {
-        let pres = wiring.hidden_wire(match &radius {
-            Some(source) => Wire::scalar(source.clone(), GivenId::Attr(attr::radius, 0)),
-            None => Wire::given_by(attr::radius, 1.0),
-        });
+        let pres = wiring.hidden_wire(
+            Wire::attr(attr::radius, radius.clone())
+                .unwrap_or_else(|| Wire::given_by(attr::radius, 1.0)),
+        );
         Wire::from(Source::computed_k(OpSpec::Max, pres, 0.0))
     };
     // Through points and the center-as-reference, for `$c.throughPoint1`

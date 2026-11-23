@@ -17,7 +17,7 @@ component! {
     flags: [copyable],
     default_prop: numbers,
     props {
-        numComponents: by_planner { rendered },
+        numComponents: list_len { rendered },
     }
     list {
         names: [numbers, values],
@@ -60,9 +60,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         exclude: attrs.exclude,
     };
     let mut wiring = plan_random(ctx, n, params)?;
-    wiring.set_planned(Planned {
-        numComponents: Wire::constant(n as f64),
-    });
+    wiring.set_planned(Planned {});
     Ok(wiring)
 }
 

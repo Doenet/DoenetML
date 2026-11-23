@@ -592,9 +592,11 @@ impl<'c> Stamp<'c> {
         let sel = prop.sel_on(component_type);
         if sel == Some(PropSel::At(PropAt::List)) {
             let n = self.n_public(c);
-            return (1..=component_type.list_len(n))
+            let shape = self.shape(c);
+            return (1..=shape.list_len(n))
                 .map(|k| {
-                    let at = |j| Some(self.slot(c, component_type.list_slot(n, k, j).unwrap()));
+                    let at = |j| shape.list_slot(n, k, j).map(|i| self.slot(c, i));
+
                     [at(0), at(1)]
                 })
                 .collect();

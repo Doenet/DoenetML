@@ -60,9 +60,32 @@ pub(crate) enum ListLen {
     /// As many entries as planning made, after the table's props: two
     /// ports a point, one a value (`ComponentType::list_width`).
     Points(u32),
+    /// As many entries as planning made, of the kind the element decides
+    /// (a `<sort>` or `<shuffle>` of points or booleans, whose type's
+    /// entries are its operands', ADR 0053): [`EntryKind::width`] ports
+    /// an entry.
+    Entries(u32, EntryKind),
     /// As many as its `extend` referent has: a bare or cloned copy of a
     /// type with a list, whose length is known only when built.
     AsReferent,
+}
+
+impl ListLen {
+    /// How many entries the list holds, when planning knows.
+    pub(crate) fn count(self) -> Option<u32> {
+        match self {
+            ListLen::Points(n) | ListLen::Entries(n, _) => Some(n),
+            ListLen::None | ListLen::AsReferent => None,
+        }
+    }
+
+    /// The kind of entry the element decides, if it does (ADR 0053).
+    pub(crate) fn own_entry(self) -> Option<EntryKind> {
+        match self {
+            ListLen::Entries(_, entry) => Some(entry),
+            _ => None,
+        }
+    }
 }
 
 /// The template itself, as the parent of its top-level elements.
@@ -179,9 +202,19 @@ impl ElemPlan {
         let n_table = component_type.prop_defs().len();
         match self.list {
             ListLen::None => Some(n_table),
-            ListLen::Points(n) => Some(n_table + component_type.list_props(n as usize)),
+            ListLen::Points(n) | ListLen::Entries(n, _) => {
+                Some(n_table + self.shape(component_type).list_props(n as usize))
+            }
             ListLen::AsReferent => None,
         }
+    }
+
+    /// The layout of the element's list, for an element of
+    /// `component_type`: its type's, with the entries it decides
+    /// ([`ListLen::Entries`]). A copy's ([`ListLen::AsReferent`]) is its
+    /// referent's, which only a build knows; this is then the type's.
+    pub(crate) fn shape(&self, component_type: ComponentType) -> ListShape {
+        ListShape::new(component_type, self.list.own_entry())
     }
 }
 

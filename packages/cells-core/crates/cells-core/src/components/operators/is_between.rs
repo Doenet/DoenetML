@@ -12,9 +12,7 @@ component! {
     /// `strict` holds; false without both limits.
     tags: ["isBetween"],
     flags: [copyable],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         operand: by_planner,
         strict: by_planner,

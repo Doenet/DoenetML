@@ -28,14 +28,11 @@ component! {
     /// when the author gave none.
     tags: ["pluralize"],
     flags: [copyable],
-    text: Text(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Text,
     props {
         value: by_planner { text, rendered },
         basedOnNumber: by_planner,
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         pluralForm: Text,

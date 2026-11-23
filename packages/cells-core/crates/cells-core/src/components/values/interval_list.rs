@@ -16,7 +16,7 @@ component! {
     flags: [copyable],
     default_prop: intervals,
     props {
-        numComponents: by_planner { rendered },
+        numComponents: list_len { rendered },
     }
     list {
         names: [intervals, values],
@@ -40,10 +40,8 @@ component! {
 /// made intervals.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
-    let (mut wiring, n) = super::plan_list_as(ctx, attrs.children, attrs.maxNumber?, true)?;
-    wiring.set_public(Props {
-        numComponents: Wire::constant(n as f64),
-    });
+    let (mut wiring, _) = super::plan_list_as(ctx, attrs.children, attrs.maxNumber?, true)?;
+    wiring.set_planned(Planned {});
     Ok(wiring)
 }
 

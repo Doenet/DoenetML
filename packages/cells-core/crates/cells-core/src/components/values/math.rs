@@ -22,8 +22,7 @@ component! {
         // Both of a math's props are set by the builder from its children.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         expand: On,

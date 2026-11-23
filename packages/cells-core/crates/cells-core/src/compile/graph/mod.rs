@@ -342,6 +342,9 @@ pub(crate) struct TemplateGraph {
     /// Each copy of a list type that took its referent's ports, with how
     /// many are public.
     pub(crate) list_copies: FxMap<(TemplateId, ElemId), usize>,
+    /// The kind of the entries of each copy, of either kind, of an
+    /// element that decides its entries (ADR 0053): its referent's.
+    pub(crate) own_entries: FxMap<Comp, EntryKind>,
     /// Every component the stamping makes, in the order it makes them
     /// (the abstract build's, so a message shows a component as that
     /// build did): what define's walks and the refuse warnings read of
@@ -380,6 +383,20 @@ pub(crate) struct GraphComp {
     pub(crate) parent: u32,
     /// The element it is, if it is one.
     pub(crate) elem: Option<(TemplateId, ElemId)>,
+    /// The kind of its entries, when it decides them (ADR 0053).
+    pub(crate) own_entry: Option<EntryKind>,
+}
+
+impl GraphComp {
+    /// The layout of its list (ADR 0053).
+    pub(crate) fn shape(&self) -> ListShape {
+        ListShape::new(self.component_type, self.own_entry)
+    }
+
+    /// The name of its public port `pi`.
+    pub(crate) fn prop_name(&self, pi: usize) -> Option<std::borrow::Cow<'static, str>> {
+        self.shape().prop_name(self.n_public as usize, pi)
+    }
 }
 
 impl TemplateGraph {
@@ -780,7 +797,9 @@ impl<'c> Stamp<'c> {
                 let (rendered, in_sticky) = placed.get(&c).copied().unwrap_or_default();
                 let n_public = self.n_public(c);
                 GraphComp {
+                    own_entry: self.shape(c).own,
                     component_type: self.component_type(c),
+
                     base: if n_public == 0 {
                         GraphNode::NONE
                     } else {
@@ -987,8 +1006,12 @@ impl<'c> Stamp<'c> {
             .map(|&m| self.n_public(m))
             .max()
             .unwrap_or(component_type.prop_defs().len());
+        let first = members.first().copied();
         let w = self.make(component_type, t, n, MadeKind::StandIn { members });
         self.g.made[w as usize].owner = Some(owner);
+        if let Some(first) = first.filter(|&m| self.component_type(m) == component_type) {
+            self.copy_shape(Comp::Made(w), first);
+        }
         w
     }
 
@@ -1364,6 +1387,24 @@ impl<'c> Stamp<'c> {
         }
     }
 
+    /// The layout of component `c`'s list: its type's, with the entries
+    /// it decides, or its referent's when it copies one (ADR 0053).
+    pub(super) fn shape(&self, c: Comp) -> ListShape {
+        let own = self.g.own_entries.get(&c).copied().or_else(|| match c {
+            Comp::Elem(t, e) => self.c.plans.templates[t.index()].plan(e).list.own_entry(),
+            Comp::Made(_) => None,
+        });
+        ListShape::new(self.component_type(c), own)
+    }
+
+    /// Copy `referent`'s own entries, if it decides them, to `c`, which
+    /// takes its ports.
+    pub(super) fn copy_shape(&mut self, c: Comp, referent: Comp) {
+        if let Some(own) = self.shape(referent).own {
+            self.g.own_entries.insert(c, own);
+        }
+    }
+
     /// How many public ports component `c` has.
     pub(super) fn n_public(&self, c: Comp) -> usize {
         match c {
@@ -1577,7 +1618,6 @@ impl<'c> Stamp<'c> {
     /// missing (a point past the list's end); None as a whole for a table
     /// list, which names no slots.
     pub(super) fn sel_slots(&self, c: Comp, sel: PropSel) -> Option<Vec<Option<GraphNode>>> {
-        let component_type = self.component_type(c);
         let at = match sel {
             PropSel::Parts { .. } => {
                 return Some(
@@ -1591,17 +1631,18 @@ impl<'c> Stamp<'c> {
             PropSel::At(at) => at,
         };
         let n = self.n_public(c);
-        let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| self.slot(c, i));
-        let w = component_type.list_width();
+        let shape = self.shape(c);
+        let coord = |k: usize, j: usize| shape.list_slot(n, k, j).map(|i| self.slot(c, i));
+        let w = shape.width();
         Some(match at {
             PropAt::Position(i) => vec![Some(self.slot(c, i))],
             PropAt::Item(k) => (0..w).map(|j| coord(k, j)).collect(),
             PropAt::Coord(k, j) => vec![coord(k, j)],
-            PropAt::List => (1..=component_type.list_len(n))
+            PropAt::List => (1..=shape.list_len(n))
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
-            PropAt::Companion => component_type
+            PropAt::Companion => shape
                 .companion_slots(n)
                 .map(|i| Some(self.slot(c, i)))
                 .collect(),

@@ -15,7 +15,7 @@ pub(in crate::compile) struct AwardForm {
 /// Reading the source, an `<answer>`: the attributes out of scope, each award's
 /// form and the input a reference names. Read-only; run by outlining and
 /// planning.
-impl Reader<'_> {
+impl SourceReader<'_> {
     /// Attributes that change what an answer checks and are out of scope.
     /// Returns whether the answer is `type="text"`.
     pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {

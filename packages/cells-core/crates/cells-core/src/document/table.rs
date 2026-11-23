@@ -2,7 +2,7 @@
 //! children and prop cells.
 
 use super::*;
-use crate::components::{EntryKind, PropAt};
+use crate::components::{EntryKind, ListShape, PropAt};
 
 /// The component table as parallel arrays indexed by [`CompIdx`]. Props are
 /// implicit: component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for
@@ -42,9 +42,22 @@ pub struct ComponentTable {
     /// type's declared attributes, the component named), sorted by
     /// component.
     pub links: Vec<(CompIdx, u16, CompIdx)>,
+    /// The kind of the entries of each component that decides them, a
+    /// `<sort>` or `<shuffle>` of points or booleans (ADR 0053), and of
+    /// each copy of one; every other component's entries are its type's.
+    pub own_entries: std::collections::HashMap<CompIdx, EntryKind>,
 }
 
 impl ComponentTable {
+    /// The layout of component `c`'s list: its type's, with the entries
+    /// it decides (ADR 0053).
+    pub fn shape(&self, c: CompIdx) -> ListShape {
+        ListShape::new(
+            self.component_type[c.index()],
+            self.own_entries.get(&c).copied(),
+        )
+    }
+
     /// What `c`'s attributes of the declarations' position `attr` name,
     /// in the order written.
     pub fn linked(&self, c: CompIdx, attr: u16) -> impl Iterator<Item = CompIdx> + '_ {
@@ -173,6 +186,7 @@ impl ComponentTable {
                 + self.dast_node.capacity()
                 + self.scope.capacity()
                 + self.referent.capacity())
+            + self.own_entries.capacity() * 8
     }
 }
 
@@ -291,23 +305,17 @@ impl Built {
         }
         let cells = self.comp_cells(comp);
         let n = cells.len();
-        let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| cells[i]);
+        let shape = self.components.shape(comp);
+        let coord = |k: usize, j: usize| shape.list_slot(n, k, j).map(|i| cells[i]);
         match component_type.prop_at(prop)? {
             PropAt::Position(i) => Some(vec![cells[i]]),
-            PropAt::Item(k) => (0..component_type.list_width())
-                .map(|j| coord(k, j))
-                .collect(),
+            PropAt::Item(k) => (0..shape.width()).map(|j| coord(k, j)).collect(),
             PropAt::Coord(k, j) => Some(vec![coord(k, j)?]),
-            PropAt::List => (1..=component_type.list_len(n))
-                .flat_map(|k| (0..component_type.list_width()).map(move |j| (k, j)))
+            PropAt::List => (1..=shape.list_len(n))
+                .flat_map(|k| (0..shape.width()).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
-            PropAt::Companion => Some(
-                component_type
-                    .companion_slots(n)
-                    .map(|i| cells[i])
-                    .collect(),
-            ),
+            PropAt::Companion => Some(shape.companion_slots(n).map(|i| cells[i]).collect()),
         }
     }
 
@@ -348,22 +356,24 @@ impl Document {
         {
             return;
         }
+        let shape = self.components.shape(c);
         // A value list shows its entries, separated by commas (ADR 0041).
         // A point list's own points (`(1, 2), (3, 4)`) likewise; a shape's
         // vertices are no text of it.
-        if let Some(kind) = ty
-            .list_entry()
+        if let Some(kind) = shape
+            .entry()
             .filter(|&k| k != EntryKind::Point || ty.entry_row().is_some())
+            .filter(|_| shape.width() > 0)
         {
             let n_table = ty.prop_defs().len();
-            let end = n_table + ty.list_width() * ty.list_len(cells.len());
+            let end = n_table + shape.width() * shape.list_len(cells.len());
             let entries = &cells[n_table.min(cells.len())..end.min(cells.len())];
             // Commas between the entries, unless the list says not.
             let separator = match self.attr_text(c, "asList") {
                 Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
                 _ => ", ",
             };
-            for (k, entry) in entries.chunks(ty.list_width().max(1)).enumerate() {
+            for (k, entry) in entries.chunks(shape.width().max(1)).enumerate() {
                 if k > 0 {
                     out.push_str(separator);
                 }
@@ -374,6 +384,14 @@ impl Document {
                     EntryKind::Text => out.push_str(&self.text_value(cell)),
                     EntryKind::Boolean => out.push_str(boolean_text(v)),
                     EntryKind::Math | EntryKind::Any => out.push_str(&self.held_text(cell)),
+                    // A sort's point, each coordinate as its cell holds it.
+                    EntryKind::Point if shape.own.is_some() && entry.len() == 2 => {
+                        out.push_str(&format!(
+                            "({}, {})",
+                            self.held_text(entry[0]),
+                            self.held_text(entry[1])
+                        ));
+                    }
                     EntryKind::Point => {
                         let y = entry.get(1).map_or(f64::NAN, |c| self.cells[c.index()]);
                         out.push_str(&format!("({}, {})", format_number(v), format_number(y)));

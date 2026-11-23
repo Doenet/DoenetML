@@ -43,8 +43,10 @@ What more than one stage runs is in
 looked up, reference plans (`refs`), math text (`maths`), literal values
 and children (`source`, `values`), point lists, records read from another
 template (`rebase`) and an answer's form. The readers are methods of
-[`Reader`](crate::compile::read::Reader): the source and what outlining
-settled, read-only, which every stage holds or makes. What they write is
+[`SourceReader`](crate::compile::read::SourceReader): the source and what
+outlining settled, read-only. It hands out no row of outlining's tables;
+[`Reader`](crate::compile::read::Reader), which every stage but planning
+holds or makes, is the readers and the rows. What they write is
 an [`Arenas`](crate::compile::read::Arenas), the reference and
 expression arenas and what else only grows, handed to them `&mut`. An
 element's record ([`compile::ir::record`](crate::compile::ir::record))
@@ -67,6 +69,21 @@ once all are planned. A planner is a function of its element's record
 and what parsing made, read-only, and planning's table, the boxes and the
 arenas, writable (ADR 0031, "The planner context").
 
+Planning holds no `Reader`. It reaches a row of outlining's tables
+through `Rows` (`stages/plan/rows.rs`), by the relation the read is (ADR
+0050, decision 3), and the raw index into a template's rows does not
+compile in any other file of `stages/plan/`:
+
+| The accessor | The row | Where the dependency is |
+|---|---|---|
+| `own_row` | the element being planned | nowhere |
+| `enclosing_row`, and the walks on it: `in_graph`, `under_graph`, `nearest_attr` | an ancestor | the tree |
+| `owned_row`, `body_rows` | an element under the one planned, which its plan is made of (an answer's input, a choice input's choice, an owned input, a repeat's hidden elements) | the plan, which reads a port of it |
+| `referent_row` | an element a reference names, read for more than its type | the plan, where the reference is in a source; else the read list |
+
+None of them records a read. The one recorded read is the readers'
+`referent_type`, of a referent's settled type.
+
 ## Boxing
 
 An element that fails is *boxed* where it fails (ADR 0027): it is
@@ -75,9 +92,29 @@ name, and what is under it dies with it. Boxing writes only its own table
 ([`Boxes`](crate::compile::ir::boxes::Boxes), ADR 0031), which the driver
 hands to the stages that box (outlining, planning, linking) and to no
 other: what outlining and planning made of the element stays as they
-made it, and the build reads the box's row instead. Every cross-element
-read is recorded, and linking boxes the readers of every box to a
-fixpoint (ADR 0032), so a box's readers never stand on what it was.
+made it, and the build reads the box's row instead.
+
+What depends on a box goes with it or reads it as missing, by where the
+dependency is (ADR 0050, decision 2):
+
+| The read | Where the dependency is | What boxing does |
+|---|---|---|
+| Of an ancestor: the graph an element sits in, the nearest container whose `fixed` it inherits (ADR 0022), a provided prop (ADR 0040) | The tree | `box_in_place` boxes everything under the element it boxes |
+| One that is in the plan: a port of another element (`Arg::Elem`), a reference in a source | The plan | linking boxes what reads a port of a box (`box_elem_readers_of_boxes`); a reference to a box reads the missing value |
+| One that decides the plan and is not in it: a referent's settled type | The read list (`Outline::reads`, `Planned::reads`) | linking boxes the reader, to a fixpoint (`box_readers_of_boxes`) |
+
+A dependency is read off the tree or the plan where they show it, and
+recorded only where they do not, so a box's readers never stand on what
+it was and no site can forget to record what is read off.
+
+**A new relation between elements says which row it is.** A read of what
+encloses an element goes through `enclosing_row` and is the first row. A
+source that names another element's port is the second, and needs
+nothing. A read of another element that decides the plan and leaves no
+port or reference in it is the third: it goes through `referent_type`,
+or, if the element is no referent, it is the case the read list would
+have to be widened for (ADR 0050, consequences). It adds no mechanism
+of its own.
 
 ## The retry
 
@@ -85,7 +122,12 @@ A failure no element can carry in place, one sealing or the check finds,
 ends the compile at the next stage boundary as a
 [`Failure`](crate::compile::Failure) that names the element to box. The
 compile then runs again from outlining with that element's node boxed
-from the start, until the check passes. A dependency cycle boxes the
+from the start, until the check passes: given leaves are tied and types
+inferred by then, and a compile that runs again keeps nothing that could
+be stale (ADR 0050, decision 4). Sealing's type checks run once every
+type is settled, so they report every element that fails one, outermost
+only, and those are boxed together: a document with several compiles
+twice, not once more per failure. A dependency cycle boxes the
 component it names (ADR 0013's amendment). Only a failure with no
 element to box, a cycle through no component the author wrote, fails
 the load. The diagnostics are the
