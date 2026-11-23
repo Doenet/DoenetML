@@ -124,8 +124,10 @@ export default class Copy extends CompositeComponent {
         // `<group extend>`) inherits no `compositesMustHaveAReplacement`
         // from its parent (`ComponentBuilder`), since a shadow usually
         // copies the replacements its source already made. A copy that
-        // makes its own in a parent that needs one (a `<math>`, a `<text>`
-        // or a `<boolean>`) makes them as it would outside a shadow:
+        // makes its own in a parent whose class needs one
+        // (`descendantCompositesMustHaveAReplacement`: a `<math>`, `<text>`
+        // or `<boolean>`, and those made from them, such as `<not>`, `<abs>`
+        // or `<latex>`) makes them as it would outside a shadow:
         // `<math>$nothing</math>` there holds a missing `<math>` that takes
         // a written value, not a `_missing` that can't (#2596).
         const parentClass = this.ancestors?.[0]?.componentClass;
