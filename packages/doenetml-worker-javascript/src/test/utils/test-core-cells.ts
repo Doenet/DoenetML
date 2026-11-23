@@ -822,6 +822,21 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     // Values with entries inside a math (ADR 0041, decision 8).
     interval: mathReaders,
+    // A sort's and a shuffle's order (ADR 0053): the 1-based operand at
+    // each position, the list's companion sequence.
+    ...Object.fromEntries(
+        ["sort", "shuffle"].map((t) => [
+            t,
+            {
+                componentOrder: (_g: Get, x: Ctx) =>
+                    Array.from(x.cells.propCells(x.idx, "componentOrder")).map(
+                        (c) => x.cells.value(c),
+                    ),
+                numComponents: (g: Get) => g("numComponents"),
+                text: textOf,
+            } as Record<string, Reader>,
+        ]),
+    ),
 };
 
 /** The component fields the harness answers for some types: a fraction

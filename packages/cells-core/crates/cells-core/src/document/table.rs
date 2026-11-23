@@ -302,6 +302,12 @@ impl Built {
                 .flat_map(|k| (0..component_type.list_width()).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
+            PropAt::Companion => Some(
+                component_type
+                    .companion_slots(n)
+                    .map(|i| cells[i])
+                    .collect(),
+            ),
         }
     }
 
@@ -341,7 +347,8 @@ impl Document {
             .filter(|&k| k != EntryKind::Point || ty.entry_row().is_some())
         {
             let n_table = ty.prop_defs().len();
-            let entries = &cells[n_table.min(cells.len())..];
+            let end = n_table + ty.list_width() * ty.list_len(cells.len());
+            let entries = &cells[n_table.min(cells.len())..end.min(cells.len())];
             // Commas between the entries, unless the list says not.
             let separator = match self.attr_text(c, "asList") {
                 Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
@@ -357,7 +364,7 @@ impl Document {
                     EntryKind::Number => out.push_str(&format_number(v)),
                     EntryKind::Text => out.push_str(&self.text_value(cell)),
                     EntryKind::Boolean => out.push_str(boolean_text(v)),
-                    EntryKind::Math => out.push_str(&self.held_text(cell)),
+                    EntryKind::Math | EntryKind::Any => out.push_str(&self.held_text(cell)),
                     EntryKind::Point => {
                         let y = entry.get(1).map_or(f64::NAN, |c| self.cells[c.index()]);
                         out.push_str(&format!("({}, {})", format_number(v), format_number(y)));
@@ -507,7 +514,7 @@ fn boolean_text(v: f64) -> &'static str {
 
 /// A number as text, as the current core formats one; the missing value is
 /// the blank and the NaN of a computation with no value `NaN`.
-fn format_number(v: f64) -> String {
+pub(crate) fn format_number(v: f64) -> String {
     if crate::program::is_missing(v) {
         return BLANK.into();
     }

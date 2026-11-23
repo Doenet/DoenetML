@@ -697,6 +697,10 @@ pub struct ListProp {
     pub interactive: bool,
     /// A renderer reads every point (a polygon's vertices).
     pub rendered: bool,
+    /// A second public sequence over the element's own ports, one cell
+    /// per entry, after the entries, by this name (ADR 0041 decision 1,
+    /// ADR 0053): a `<shuffle>`'s `componentOrder`.
+    pub companion: Option<&'static str>,
 }
 
 /// Where a component of a type is drawn, and so whether the props a renderer
@@ -769,6 +773,10 @@ pub enum EntryKind {
     Boolean,
     /// An expression handle, or a number where an entry aliases one.
     Math,
+    /// What its operands hold, one kind for all, which the compile
+    /// decides per element (a `<sort>`'s, ADR 0053): read as its cell
+    /// holds it.
+    Any,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
@@ -797,6 +805,8 @@ pub enum PropAt {
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
+    /// The list's companion sequence as a whole ([`ListProp::companion`]).
+    Companion,
 }
 
 /// A prop of a component type, resolved from its name.

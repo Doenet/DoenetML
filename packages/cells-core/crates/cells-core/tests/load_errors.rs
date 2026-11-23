@@ -152,14 +152,20 @@ fn an_error_a_growth_would_find_is_reported_at_load() {
 
 // A choice's interface name holds whatever its branch does, so each branch
 // must hold the same kind of value: else whether `$cc.t` is text depends on
-// the case a student's input selects.
+// the case a student's input selects. (A text of a value the records tell
+// is a number is that number's text, ADR 0053; one read through another
+// choice is an alias of what it reads.)
 #[test]
 fn an_interface_name_holds_one_kind_of_value() {
     let doc = load(
         r#"<booleanInput name="g"/><numberInput name="n"/>
+<conditionalContent name="c2">
+  <case condition="$g"><number name="v">$n</number></case>
+  <else><number name="v">2</number></else>
+</conditionalContent>
 <conditionalContent name="cc">
   <case condition="$g"><text name="t">hi</text></case>
-  <else><text name="t">$n</text></else>
+  <else><text name="t">$c2.v</text></else>
 </conditionalContent>
 <p>$cc.t</p>"#,
     )

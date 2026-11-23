@@ -179,7 +179,7 @@ impl ElemPlan {
         let n_table = component_type.prop_defs().len();
         match self.list {
             ListLen::None => Some(n_table),
-            ListLen::Points(n) => Some(n_table + component_type.list_width() * n as usize),
+            ListLen::Points(n) => Some(n_table + component_type.list_props(n as usize)),
             ListLen::AsReferent => None,
         }
     }

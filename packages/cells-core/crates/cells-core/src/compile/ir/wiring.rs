@@ -286,7 +286,7 @@ impl ElemWiring {
     /// How many of the ports are public: the table's props and the list's
     /// points.
     fn n_public(&self) -> usize {
-        self.component_type.prop_defs().len() + self.component_type.list_width() * self.n_points
+        self.component_type.prop_defs().len() + self.component_type.list_props(self.n_points)
     }
 
     /// The port holding entry `k` (0-based) of a value list (ADR 0041).
@@ -308,6 +308,20 @@ impl ElemWiring {
             self.props[port.index()] = Some(e.source);
             if let Some(id) = e.given {
                 self.given.insert(id, port);
+            }
+        }
+    }
+
+    /// The list's companion sequence (ADR 0053), one wire per entry,
+    /// which fill the public ports after the entries.
+    pub(crate) fn set_companion(&mut self, wires: Vec<Wire>) {
+        assert_eq!(wires.len(), self.n_points, "one per entry");
+        let start = self.component_type.prop_defs().len()
+            + self.component_type.list_width() * self.n_points;
+        for (k, w) in wires.into_iter().enumerate() {
+            self.props[start + k] = Some(w.source);
+            if let Some(id) = w.given {
+                self.given.insert(id, Port::table(start + k));
             }
         }
     }

@@ -1334,6 +1334,22 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect(first[3].split(", ").map(Number).sort()).toEqual([1, 2, 3, 4]);
         expect((await open(source)).texts()).toEqual(first);
     });
+
+    it("draws a sort of texts and of maths as the text of its entries, and a joined text", async () => {
+        const { texts } = await open(`
+<p><sort>pear apple fig</sort></p>
+<p><sort type="math">z b a</sort></p>
+<p><sort asList="false" type="math">z b a</sort></p>
+<p><textList name="tl">kiwi plum</textList></p>
+<p><text>$tl</text></p>`);
+        expect(texts()).toEqual([
+            "apple, fig, pear",
+            "a, b, z",
+            "abz",
+            "kiwi, plum",
+            "kiwi, plum",
+        ]);
+    });
 });
 
 describe("function operators and triangles", () => {

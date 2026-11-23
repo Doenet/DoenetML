@@ -238,9 +238,14 @@ function inputPresentation(table: CellsTable, c: number) {
 }
 
 /** LaTeX of what a cell of a math list's entry holds: its expression (the
- * blank one for none), or the number an entry aliasing one holds. */
+ * blank one for none), or the number an entry aliasing one holds; a
+ * sort's text entry (ADR 0053) as text. */
 function heldLatex(r: Reads, cell: number): string {
     const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) === "text") {
+        if (r.missingCell(cell)) return BLANK;
+        return `\\text{${Number.isNaN(v) ? "" : r.table.string(v)}}`;
+    }
     if (r.table.core.cell_holds(cell) !== "math") return numberLatex(v);
     return Number.isNaN(v) ? BLANK : r.table.core.expr_latex(cell);
 }
@@ -1364,10 +1369,25 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
+    // A sort's or a shuffle's row holds what its operands do (ADR 0053):
+    // a text one is drawn as a text.
     mathValue: {
-        name: () => "math",
+        name: (table, c) => {
+            const cell = table.cell(c, "value");
+            return cell !== undefined && table.core.cell_holds(cell) === "text"
+                ? "text"
+                : "math";
+        },
         props: (r, c) => {
             const cell = r.table.cell(c, "value");
+            if (
+                cell !== undefined &&
+                r.table.core.cell_holds(cell) === "text"
+            ) {
+                return {
+                    value: r.missingCell(cell) ? BLANK : r.text(c, "value"),
+                };
+            }
             return {
                 latex: cell === undefined ? BLANK : heldLatex(r, cell),
                 renderMode: "inline",

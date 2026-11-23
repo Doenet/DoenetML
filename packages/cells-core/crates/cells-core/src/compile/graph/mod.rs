@@ -1601,6 +1601,10 @@ impl<'c> Stamp<'c> {
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
+            PropAt::Companion => component_type
+                .companion_slots(n)
+                .map(|i| Some(self.slot(c, i)))
+                .collect(),
         })
     }
 }

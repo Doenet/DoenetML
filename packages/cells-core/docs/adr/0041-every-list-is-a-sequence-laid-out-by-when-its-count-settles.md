@@ -1,8 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done,
-step 2's first two pieces, and step 3, with their departures recorded
-there. Drafted as 0038, and renumbered as `cells`
+step 2's first two pieces, step 3, and step 6 in part, with their
+departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
@@ -440,6 +440,9 @@ otherwise.
      id, and a join of entries a write can change makes a string during
      a tick, which no operator does. It needs either a text whose value
      is a sequence of strings, shown joined, or strings made in a tick.
+     *Done 2026-11-23* by strings made in a tick (ADR 0053): a `<text>` of
+     one reference to a static sequence joins its entries, and every value
+     list has a `text` prop, its entries joined.
    - A `<mathInput>` bound to a math entry is numeric, as every bound one
      is, so a number typed into it is written into a math cell as a
      handle; an input bound to a cell that holds math needs to write an
@@ -509,5 +512,30 @@ otherwise.
    math"), `functionTag.test.ts` (extrema).
 6. **Order.** `<sort>` as a permutation aggregate with an order port;
    `<shuffle>` seeded. Test: `sort.test.ts`, `shuffle.test.ts`.
+
+   *Done in part 2026-11-23*, with ADR 0053 (text in the tick). A
+   `<sort>` or `<shuffle>` holds its operands as one kind, decided from the
+   records: numbers, else maths, else texts (`components/operators/
+   sort.rs`); its order is a hidden port per position (`SymKind::Order`
+   comparing as the current core's `compareExtractedValues`, or a
+   `Shuffle` of the positions by a draw), and each entry a `Choose` over
+   the operands by it. Its entry kind is `EntryKind::Any`, read as each
+   cell holds it. `type` (`number`, `math`, `text`), an invalid `type`
+   warned and dropped, bare text read as numbers when every piece is one,
+   and `asList`. Tested by the spec and `tests/text_in_tick.rs`.
+   Departures:
+
+   - A write through a sorted entry is dropped (its branch is `Shown`): the
+     operand it shows decides the order, so the write would move it and no
+     round trip is stable. A shuffled entry writes its operand.
+   - Points and vectors (`sortByComponent`, `sortVectorsBy`, `sortByProp`)
+     are refused: a point entry is two cells and a type's entries have one
+     width, while a sort's entry type follows its operands. They wait on
+     entries as rows (step 3) or a point held as one value (decision 8).
+     Booleans are refused likewise.
+   - The order is public as a second named sequence over the element's
+     own ports (decision 1), the list's `companion`: `componentOrder`, one
+     cell per entry after the entries (`PropAt::Companion`). Its entries
+     are rows (step 3), `mathValue` rows of `EntryKind::Any`.
 7. **Glossary.** `CONTEXT.md` gains *sequence*, *entry*, *capped list* and
    *live length*, and *point list* and *tuple* are rewritten as sequences.
