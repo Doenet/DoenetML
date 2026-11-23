@@ -300,8 +300,11 @@ export function decideAnswerTypesAtLoad({
     for (const answer of answers) {
         const writtenAttribute: SerializedAttribute | undefined =
             answer.attributes?.type;
-        // As written, and as the keyword it is read as (`type` declares
-        // `toLowerCase` and valid values, which trim; D51 decision 3).
+        // As written, and as the type it names (`type` declares
+        // `toLowerCase` and valid values, which trim). A type named in an
+        // attribute is a tag name matched exactly (D63 decision 4): another
+        // case is applied for the fallback release, and its `w0197` is
+        // still to come (PR 49 of #2509). That is the place to change.
         const writtenRaw =
             writtenAttribute?.type === "primitive"
                 ? String(writtenAttribute.primitive.value)
