@@ -852,6 +852,12 @@ impl ComponentType {
         self.def().structure_kind
     }
 
+    /// What the type is to the sequences numbering the divisions and the
+    /// list items, when it is neither numbered nor structure (ADR 0054).
+    pub fn numbering(self) -> Option<Numbering> {
+        self.def().numbering
+    }
+
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
     /// its value, when `to` takes a value rather than a copy: `value` for a
     /// boolean of an input that reads as a boolean, else `from`'s default

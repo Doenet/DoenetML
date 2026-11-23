@@ -6,8 +6,8 @@
 //! Each is a container with few or no props of its own: how it looks is the
 //! renderer's. What the core cares about is whether the sections inside it
 //! are numbered among the sections around it: through an introduction, a
-//! conclusion or a statement they are (each is structure, as a `<div>` is in
-//! the current core); a proof, a solution or a figure numbers its own
+//! conclusion or a statement they are (each passes the divisions' sequence
+//! through, as a `<div>` does; ADR 0054); a proof, a solution or a figure numbers its own
 //! sections from 1 and takes no number among its siblings.
 //!
 //! A figure's number ("Figure 2", shared with the tables) and a footnote's
@@ -60,9 +60,10 @@ pub(crate) mod proof {
     component! {
         /// `<proof>`: a division with a heading, collapsed until opened
         /// (`startOpen`), that takes no number: the sections inside it are
-        /// numbered among themselves.
+        /// numbered among themselves. It takes a place among its parent's
+        /// list items, as every sectioning component does (ADR 0054).
         tags: ["proof"],
-        flags: [container],
+        flags: [container, unnumbered_division],
         presentation { startOpen, boxed, postponeRendering }
         planner: Props,
     }
@@ -87,12 +88,11 @@ pub(crate) mod introduction {
     use super::*;
 
     component! {
-        /// `<introduction>`: the opening block of a division, looked
-        /// through: a section inside it is numbered among the sections
-        /// around it.
+        /// `<introduction>`: the opening block of a division, a `<div>`
+        /// to the numbering: a section inside it is numbered among the
+        /// sections around it (ADR 0054).
         tags: ["introduction"],
-        flags: [container],
-        structure: Transparent,
+        flags: [container, passes_divisions],
         planner: Props,
     }
 }
@@ -101,11 +101,10 @@ pub(crate) mod conclusion {
     use super::*;
 
     component! {
-        /// `<conclusion>`: the closing block of a division, looked through
-        /// as an `<introduction>` is.
+        /// `<conclusion>`: the closing block of a division, numbered
+        /// through as an `<introduction>` is.
         tags: ["conclusion"],
-        flags: [container],
-        structure: Transparent,
+        flags: [container, passes_divisions],
         planner: Props,
     }
 }
@@ -114,11 +113,10 @@ pub(crate) mod statement {
     use super::*;
 
     component! {
-        /// `<statement>`: the statement of a problem or a theorem, looked
-        /// through as an `<introduction>` is.
+        /// `<statement>`: the statement of a problem or a theorem,
+        /// numbered through as an `<introduction>` is.
         tags: ["statement"],
-        flags: [container],
-        structure: Transparent,
+        flags: [container, passes_divisions],
         planner: Props,
     }
 }

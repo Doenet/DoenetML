@@ -134,6 +134,6 @@ Two ways to keep one:
    bridge's figure, table and footnote contracts; the test adapter's
    `figureName`, `tableName`, `footnoteTag` and their kin. `<aside>`
    numbered among the divisions (`containers/aside.rs`).
-2. Open: the `equation` counter, with numbered display math; a
-   list-item sequence for `<part>` and `<task>` once the divisions'
-   sequence passes through a `<div>`.
+2. Open: the `equation` counter, with numbered display math.
+3. Done (2026-11-23): the list-item sequence for `<part>` and `<task>`,
+   with the divisions' sequence passing through a `<div>` (ADR 0054).

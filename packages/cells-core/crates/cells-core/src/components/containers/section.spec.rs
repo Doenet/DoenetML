@@ -112,4 +112,20 @@ spec! {
             "a.includeParentNumber" = 0,
         }
     }
+
+    case "a part is a list item, and a problems' problems are its list's" {
+        doenet r#"<problem name="p"><part name="a"/><proof><p>Clear.</p></proof><part name="b"/></problem>
+                  <problems name="ps"><problem name="q"/></problems>
+                  <exercises name="es" asList="false"/>"#;
+        expect {
+            "a.listItem" = 1, "p.listItem" = 0, "q.listItem" = 0,
+            "ps.asList" = 1, "es.asList" = 0, "p.asList" = 0,
+            "a.number" = 1, "b.number" = 3, "q.number" = 1,
+        }
+    }
+
+    case "a section inside a div is numbered among the sections around it" {
+        doenet r#"<section name="a"/><div><section name="b"/></div><section name="c"/>"#;
+        expect { "a.number" = 1, "b.number" = 2, "c.number" = 3 }
+    }
 }

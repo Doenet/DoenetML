@@ -483,6 +483,23 @@ impl Core {
         raw_cells(self.doc.counter_reads(CompIdx::new(idx)))
     }
 
+    /// A section's full number, such as "2.1" (ADR 0054): its own number,
+    /// after its nearest numbered ancestor's when it includes it and is no
+    /// list item; none for a component that is no numbered section. It
+    /// reads the `number` cells of `idx` and its numbered ancestors.
+    pub fn section_number(&self, idx: u32) -> Option<String> {
+        if (idx as usize) >= self.doc.n_components() {
+            return None;
+        }
+        self.doc.section_number(CompIdx::new(idx))
+    }
+
+    /// Whether numbered section `idx` is an item of its parent's list (ADR
+    /// 0054): a `<part>`, or a `<problems>`'s problem.
+    pub fn is_list_item(&self, idx: u32) -> bool {
+        (idx as usize) < self.doc.n_components() && self.doc.is_list_item(CompIdx::new(idx))
+    }
+
     /// The function component `idx` is, at `x` (ADR 0049): missing outside
     /// its domain, a piecewise function's piece there; none when it is no
     /// function of one variable.

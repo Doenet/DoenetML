@@ -111,7 +111,9 @@ pub(crate) const BR: ComponentDef = character::DEFINITION.with_tags(&["br"]);
 pub(crate) const HR: ComponentDef = character::DEFINITION.with_tags(&["hr"]);
 
 /// `<div>`: a block with no look of its own.
-pub(crate) const DIV: ComponentDef = block::DEFINITION;
+/// The divisions inside it are numbered among the divisions around it, as
+/// the current core's `<div>` passes their sequence through (ADR 0054).
+pub(crate) const DIV: ComponentDef = block::DEFINITION.passes_divisions();
 /// `<pre>`: preformatted text, its whitespace kept.
 pub(crate) const PRE: ComponentDef = block::DEFINITION.with_tags(&["pre"]);
 /// `<blockQuote>`: a quotation set off as a block.
