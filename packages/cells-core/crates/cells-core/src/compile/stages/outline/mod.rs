@@ -315,8 +315,17 @@ impl<'a> Outlining<'a> {
     fn add_elem_inner(&mut self, t: TemplateId, el: NodeId, name_scope: ElemId) -> Result<ElemId> {
         let d = self.dast;
         let tag = d.str(el);
-        let component_type =
-            ComponentType::from_tag(tag).ok_or_else(|| Error::UnsupportedTag(tag.to_string()))?;
+        // What the parent declares a child of the tag is, else the tag's
+        // own type (ADR 0055).
+        let parent = (name_scope != ROOT_SCOPE)
+            .then(|| self.outlined(t).elems.get(name_scope.index()))
+            .flatten()
+            .map(|p| p.component_type);
+        let component_type = match parent {
+            Some(p) => p.child_type(tag),
+            None => ComponentType::from_tag(tag),
+        }
+        .ok_or_else(|| Error::UnsupportedTag(tag.to_string()))?;
         // `<group rendered="c">` is a conditional content with one case.
         let component_type = component_type.rewritten(|attr| d.attr(el, attr).is_some());
         // A sequence whose count follows a value is a structural one (ADR

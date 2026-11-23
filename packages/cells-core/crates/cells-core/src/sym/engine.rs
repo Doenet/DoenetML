@@ -228,6 +228,26 @@ impl Engine {
         self.push(out)
     }
 
+    /// The matrix of `rows` by `cols` whose entries, by row, are `h`'s:
+    /// the entries of a list, or `h` alone for one entry; none for no
+    /// entry. The blank expression when they do not fill it.
+    pub fn matrix(&mut self, h: Handle, rows: u32, cols: u32) -> Handle {
+        let entries = match &self.exprs[h.index()] {
+            _ if rows == 0 || cols == 0 => Vec::new(),
+            Expr::Seq(me::expr::SeqKind::List, xs) if xs.len() > 1 => xs.clone(),
+            e => vec![e.clone()],
+        };
+        let (rows, cols) = if entries.is_empty() {
+            (0, 0)
+        } else {
+            (rows, cols)
+        };
+        let e = me::Mat::new(rows, cols, entries)
+            .map(Expr::Matrix)
+            .unwrap_or(Expr::Blank);
+        self.push(e)
+    }
+
     /// `h` simplified.
     pub fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h.index()]);

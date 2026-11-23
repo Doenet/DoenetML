@@ -872,6 +872,23 @@ const STATE: Record<string, Record<string, Reader>> = {
         intervals: subsetPart("intervals"),
         isolatedPoints: subsetPart("isolatedPoints"),
     },
+    // A matrix (ADR 0041, decision 8): a math holding a matrix, its size
+    // its own cells, its entries read off the expression.
+    matrix: {
+        ...mathReaders,
+        numRows: (g) => g("numRows"),
+        numColumns: (g) => g("numColumns"),
+        matrixSize: (g) => [g("numRows"), g("numColumns")],
+        matrix: (g, x) => {
+            const tree = (mathValue(g, x) as any).tree;
+            if (!Array.isArray(tree) || tree[0] !== "matrix") return [];
+            return tree[2]
+                .slice(1)
+                .map((row: any[]) =>
+                    row.slice(1).map((e: unknown) => me.fromAst(e)),
+                );
+        },
+    },
 };
 
 /** What `idx` holds among its children as the current core's

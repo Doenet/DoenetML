@@ -656,6 +656,22 @@ otherwise.
    - `type="letters"` and `type="math"` sequences, and `validSequence`,
      are not done.
    - `<matrixInput>`, whose grid follows its size, is not done.
+
+   *`<matrix>`, 2026-11-24*, the open question of piece 3 answered by a
+   parent-declared type (ADR 0055): a `<matrix>`'s `<row>` and `<column>`
+   children are `<matrixRow>` and `<matrixColumn>`, each a list of
+   entries read as a `<mathList>`'s. The matrix is a math cell
+   (`Flow::SymExpr`) whose expression is its entries by row, made a
+   matrix in the engine (`Post::Matrix`, `Engine::matrix`): of its rows,
+   else its columns turned, else its children as one entry (a 1 by 1
+   matrix), or one reference alone the expression it names; rows shorter
+   than the longest, and a literal `numRows`/`numColumns`, filled with
+   `defaultEntry`. `numRows`, `numColumns` and `matrixSize` (the two) are
+   constants. Tested by `matrix.spec.rs` and the bridge test. Not done:
+   a size that follows a value (refused; it is a structural matrix),
+   `$A[i][j]` (an entry inside a math handle, decision 3's projection),
+   rows and columns as named sequences, `extend` of a matrix's value,
+   and `<matrixInput>`; every case of `matrix.test.ts` needs the input.
 5. **Dynamic sequences.** The capped list with a live length: point
    coordinates first (merging point, tuple and vector), then a mathInput's
    list, then maxima and intersections with their caps. Test:

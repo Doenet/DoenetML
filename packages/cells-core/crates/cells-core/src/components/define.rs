@@ -312,6 +312,7 @@ pub(super) const fn definition(
         owner: None,
         rewrite: None,
         structural: None,
+        child_types: &[],
         settle: None,
         extend_value: None,
         actions: &[],
@@ -410,6 +411,14 @@ impl ComponentDef {
     /// An element of the type carrying `attr` is a `to` instead.
     pub(super) const fn rewrite(mut self, attr: &'static str, to: super::ComponentType) -> Self {
         self.rewrite = Some((attr, to));
+        self
+    }
+    /// What a child of each tag is under it ([`super::ComponentDef::child_types`]).
+    pub(super) const fn child_types(
+        mut self,
+        child_types: &'static [(&'static str, super::ComponentType)],
+    ) -> Self {
+        self.child_types = child_types;
         self
     }
     /// The type of an element whose count follows a value
@@ -886,6 +895,7 @@ macro_rules! component {
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
+        $(child_types { $($cttag:ident : $ctty:ident),+ $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggers { when: $twhen:ident $(,)? })?
@@ -972,6 +982,7 @@ macro_rules! component {
                     when: &[$(stringify!($stwhen)),+],
                     is: $crate::components::ComponentType::$stis,
                 }))?
+                $(.child_types(&[$((stringify!($cttag), $crate::components::ComponentType::$ctty)),+]))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggers($crate::components::Triggers {

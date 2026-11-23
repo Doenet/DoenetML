@@ -75,7 +75,8 @@ prefill each; no bound value). A function's `domain` (one interval) and
 (a function's graph, a parametric curve, or a spline through points with
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
-`intervalList`, and `subsetOfReals` (intervals, points, set operations,
+`intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
+entry; a literal size, ADR 0055), and `subsetOfReals` (intervals, points, set operations,
 inequalities and memberships in its `variable`, merged, written as
 intervals or, with a literal `displayMode`, as inequalities); a
 `mathInput` bound to one, or to a math list's entry, writes an

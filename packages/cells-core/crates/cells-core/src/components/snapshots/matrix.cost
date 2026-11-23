@@ -1,0 +1,6 @@
+by rows: cells 13 · essential 0 · constant 13 · instrs 0 · components 10
+by columns: cells 13 · essential 0 · constant 13 · instrs 0 · components 11
+a size fills with the default entry and cuts: cells 13 · essential 0 · constant 13 · instrs 0 · components 10
+nothing given, and a size alone: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
+an entry that reads a value, and children that are one entry: cells 13 · essential 0 · constant 13 · instrs 0 · components 8
+a size that follows a value is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3

@@ -1399,6 +1399,13 @@ export const CONTRACTS: Record<string, Contract> = {
         name: () => "math",
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
     },
+    // A matrix (ADR 0041, decision 8) is a math, drawn as one; its rows
+    // and columns (ADR 0055) are what it is made of, never drawn.
+    matrix: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+        noChildren: true,
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */

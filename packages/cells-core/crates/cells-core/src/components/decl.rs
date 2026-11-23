@@ -48,6 +48,10 @@ pub struct ComponentDef {
     /// The type an element of the type is when its count follows a value
     /// (ADR 0041, decision 2): a structural sequence.
     pub structural: Option<Structural>,
+    /// What a child element of a tag is under an element of the type, in
+    /// place of what the tag alone makes it (ADR 0055): a `<matrix>`'s
+    /// `<row>` is a `<matrixRow>`.
+    pub child_types: &'static [(&'static str, ComponentType)],
     /// What outlining settles of an element of the type from its own
     /// source, for a reference to it to read: its type, or what it
     /// collects.

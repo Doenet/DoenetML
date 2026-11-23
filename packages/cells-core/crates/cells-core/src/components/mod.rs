@@ -281,6 +281,9 @@ component_types! {
     SubsetOfReals => values::subset_of_reals::DEFINITION,
     IntervalList => values::interval_list::DEFINITION,
     StructuralSequence => values::structural_sequence::DEFINITION,
+    Matrix => values::matrix::DEFINITION,
+    MatrixRow => values::matrix::row::DEFINITION,
+    MatrixColumn => values::matrix::column::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -390,6 +393,18 @@ impl ComponentType {
     pub fn lists_items(self) -> bool {
         matches!(self.structure_kind(), Some(StructureKind::Repeat { .. }))
             || self.def().machinery == Some(Machinery::Collect)
+    }
+
+    /// The type a child element of tag `tag` is under an element of this
+    /// type (ADR 0055): the one the type declares for the tag, else the
+    /// tag's own.
+    pub fn child_type(self, tag: &str) -> Option<ComponentType> {
+        self.def()
+            .child_types
+            .iter()
+            .find(|(t, _)| *t == tag)
+            .map(|&(_, ty)| ty)
+            .or_else(|| ComponentType::from_tag(tag))
     }
 
     /// The tag the type shows as: the first of its tags.

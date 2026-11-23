@@ -227,6 +227,17 @@ pub enum Post {
         /// Expanded after.
         expand: bool,
     },
+    /// Its entries, a list by row, made a matrix of `rows` by `cols`
+    /// (ADR 0041, decision 8), then simplified as the flag says: a
+    /// `<matrix>`'s post.
+    Matrix {
+        /// How many rows.
+        rows: u32,
+        /// How many columns.
+        cols: u32,
+        /// Simplified after.
+        simplify: bool,
+    },
 }
 
 impl Post {
@@ -264,6 +275,14 @@ impl Post {
                     h = engine.expand(h);
                 }
                 h
+            }
+            Post::Matrix {
+                rows,
+                cols,
+                simplify,
+            } => {
+                let h = engine.matrix(h, rows, cols);
+                if simplify { engine.simplify(h) } else { h }
             }
         }
     }
