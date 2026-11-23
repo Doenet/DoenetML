@@ -1769,6 +1769,15 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
             "an award reading a point extended in a graph, whose label holds the award",
             '<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>',
         ],
+        // Nor where the extend is written in one of the containers, or in
+        // a paragraph: a tag written with `extend` is the component, its
+        // label held as the component holds it, wherever it is written.
+        // A `<cell>` or a `<stack>` here was a false error at load, as a
+        // `<p>` was before.
+        ...["cell", "stack", "p"].map((tag) => [
+            `an award reading a point extended in a ${tag}, whose label holds the award`,
+            `<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point></graph><${tag}><point name="b" extend="$a"/></${tag}>`,
+        ]),
         // A point made with `copy` or `copyWithState` pastes the DoenetML of
         // what it copies, the reference to itself in its label included,
         // which reads its value (VAL-10), as with `extend` (item 3). It

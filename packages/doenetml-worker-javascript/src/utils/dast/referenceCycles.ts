@@ -1371,7 +1371,9 @@ export function breakReferenceCycles({
 
     /**
      * Whether `copy`, a whole reference to the component `target`, makes a
-     * copy of it, label and all, rather than reading its value. It does when
+     * copy of it, label and all, rather than reading its value. A tag
+     * written with `extend` or `copy` (`<point name="b" extend="$a"/>`) is
+     * not such a reference, wherever it is written. It does when
      * it is written as content (`writtenAsContent`: in a `<p>`, an `<em>`),
      * and wherever else the value-reference pass leaves it a copy, but not
      * where a value is read (a `<label>`, a `<text>`, an `<m>`, a `<math>`,
@@ -1385,13 +1387,16 @@ export function breakReferenceCycles({
         copy: SerializedComponent,
         target: SerializedComponent,
     ) {
-        if (writtenAsContent(copy)) {
-            return true;
-        }
         if (!copy.extending || !("Ref" in copy.extending)) {
             // a tag written with `extend` or `copy` is the component, and
-            // holds its label as the component does
+            // holds its label as the component does, wherever it is
+            // written: in a `<p>`, a `<cell>` or a `<stack>` too, where
+            // `$b` in a `<when>` in what its label holds reads its value,
+            // not its label (Doenet/DoenetML#2654, review)
             return false;
+        }
+        if (writtenAsContent(copy)) {
+            return true;
         }
         for (
             let ancestor = parentOf.get(copy.componentIdx);
