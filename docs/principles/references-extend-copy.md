@@ -532,8 +532,8 @@ inline and is not drawn in a graph. It is not `<T/>`: `<text/>` is still `""`, `
 
 | Written | Shows while the source is missing |
 |---|---|
-| `<math extend="$nothing"/>`, `<math extend="$nothing">+1</math>` | `＿` |
-| `<text extend="$nothing">hi</text>`, `<p extend="$nothing">hi</p>` | `＿` |
+| `<math extend="$nothing"/>` | `＿` |
+| `<p extend="$nothing">hi</p>` | `＿` |
 | `<mathInput extend="$nothing"/>` | `＿`, with no input box |
 | `<point extend="$nothing"/>` in a graph | not drawn |
 | `<p extend="$r[$i]">note</p>` while the index names nothing | `＿`, until it names an iteration |
@@ -1109,7 +1109,11 @@ the document renders.
 - **Known violation** (#2668): children written inside an extend of a value tag are appended,
   silently changing its value: `<number extend="$n">5</number>` of `2` is `25`,
   `<math extend="$m">+1</math>` is `x + 1`, `<point extend="$P">(3,4)</point>` is `(3, 4)`. The
-  Tier 1 rule above allows children only on a `<group>` or `<module>` extend.
+  Tier 1 rule above allows children only on a `<group>` or `<module>` extend. The error should
+  suggest the clearer form: a new tag holding the reference and the children
+  (`<math>$m+1</math>`), or `copy` for an object (`<point copy="$P">(3,4)</point>`). Proposed
+  (#2668, for a decision): content (`<p>`, sections, `<graph>`, …) may be extended with
+  children, appended as for a `<group>`.
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
 - **Through a composite** (done by #2642): an extend of a `<conditionalContent>` holding the
