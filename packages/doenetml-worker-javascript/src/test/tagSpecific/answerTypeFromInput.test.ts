@@ -302,6 +302,87 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         expect(error.position?.start.column).eq(18);
     });
 
+    it("a type in another case is read as its keyword, and one that names no type is still a warning", async () => {
+        for (const doenetML of [
+            `<answer name="a" type="Text"><textInput name="in"/>hello</answer>`,
+            `<answer name="a" type="TEXT">hello<textInput name="in"/></answer>`,
+        ]) {
+            const { credit, core } = await creditFor({
+                doenetML,
+                kind: "text",
+                value: "hello",
+            });
+            expect(credit, doenetML).eq(1);
+            expect(coded(core, "warnings"), doenetML).eqls([]);
+            expect(coded(core, "errors"), doenetML).eqls([]);
+        }
+
+        // with no input, it picks the input added
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<answer name="a" type="TEXT">hello</answer>`,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("textInput");
+        expect(coded(core, "warnings")).eqls([]);
+
+        // the input decides, and the `type` that names no type is reported
+        const { credit, core: core2 } = await creditFor({
+            doenetML: `<answer name="a" type="bogus"><textInput name="in"/>hello</answer>`,
+            kind: "text",
+            value: "hello",
+        });
+        expect(credit).eq(1);
+        expect(coded(core2, "warnings")).eqls([
+            "doenet-w0078: Invalid type for answer: bogus",
+        ]);
+    });
+
+    it("a reference to an input written in the answer is content, not an input written inside", async () => {
+        // `$ti` is wrapped in an award and compared with the input the
+        // answer has or adds, not taken for a `<textInput>` written inside
+        const { core } = await createTestCore({
+            doenetML: `<textInput name="ti"/>
+<answer name="a" type="math">$ti</answer>
+<answer name="b"><mathInput/>$ti</answer>`,
+        });
+        expect(coded(core, "errors")).eqls([]);
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0202: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0202: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+        ]);
+
+        // and the one input written inside still decides
+        const { credit } = await creditFor({
+            doenetML: `<booleanInput name="b"/><answer name="a"><booleanInput name="in"/>$b</answer>`,
+            kind: "boolean",
+            value: false,
+        });
+        expect(credit).eq(1);
+    });
+
+    it("a reference to a property of a subtype of text is a text", async () => {
+        // `$m.latex` reads a `<latex>`, which is a text
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<math name="m">x</math><answer name="a">$m.latex</answer>
+<answer name="b"><mathInput/><award>$m.latex</award></answer>`,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("textInput");
+        await updateTextInputValue({ text: "x", componentIdx: inputIdx, core });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0202: This `<latex>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+        ]);
+    });
+
     it("award content of another type than the input is a warning at load", async () => {
         const { credit, core } = await creditFor({
             doenetML: `<answer name="a"><textInput name="in"/><math>2</math></answer>`,

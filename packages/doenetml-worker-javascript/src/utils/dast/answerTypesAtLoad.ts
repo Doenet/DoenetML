@@ -53,15 +53,15 @@ type AnswerType = "math" | "text" | "boolean";
 /**
  * The type an award compares the value of an input of its own type as
  * (`Award.js`, `buildParsedExpression`): a `<mathInput>`, a
- * `<fractionInput>` and a `<matrixInput>` give a math, a `<textInput>` and
- * a `<codeEditor>` a text, a `<booleanInput>` a boolean.
+ * `<fractionInput>` and a `<matrixInput>` give a math, a `<textInput>` a
+ * text, a `<booleanInput>` a boolean. (A `<codeEditor>` is not an input,
+ * so it is not one an answer compares.)
  */
 const INPUT_TYPES: Record<string, AnswerType> = {
     mathInput: "math",
     fractionInput: "math",
     matrixInput: "math",
     textInput: "text",
-    codeEditor: "text",
     booleanInput: "boolean",
 };
 
@@ -187,9 +187,7 @@ export function decideAnswerTypesAtLoad({
         c: SerializedComponent,
     ): { type: AnswerType; tag: string } | undefined {
         const tag = tagOfComponent(c);
-        const isReference =
-            c.componentType === "_copy" &&
-            c.attributes?._createComponentOfType === undefined;
+        const isReference = isBareReference(c);
         const ref: any =
             isReference && c.extending
                 ? unwrapSource(c.extending as any)
@@ -200,7 +198,10 @@ export function decideAnswerTypesAtLoad({
             (path.length > 0 || (tag && inherits(tag, "_input")))
         ) {
             const read = responseRead(c, true).type;
-            const type = comparedAs(read);
+            // by inheritance: `$m.latex` reads a `<latex>`, which is a text
+            const type =
+                comparedAs(read) ??
+                (read === undefined ? undefined : tagComparedAs(read));
             return type === undefined ? undefined : { type, tag: tag ?? read! };
         }
         if (tag === undefined) {
@@ -210,6 +211,14 @@ export function decideAnswerTypesAtLoad({
         return type === undefined ? undefined : { type, tag };
     }
 
+    /** A `$x` written alone (not `<tag copy="$x"/>`). */
+    function isBareReference(c: SerializedComponent) {
+        return (
+            c.componentType === "_copy" &&
+            c.attributes?._createComponentOfType === undefined
+        );
+    }
+
     function isBlank(child: SerializedComponent | string) {
         return typeof child === "string" && child.trim() === "";
     }
@@ -217,10 +226,13 @@ export function decideAnswerTypesAtLoad({
     for (const answer of answers) {
         const writtenAttribute: SerializedAttribute | undefined =
             answer.attributes?.type;
-        const writtenValue =
+        // As written, and as the keyword it is read as (`type` declares
+        // `toLowerCase`; D51 decision 3).
+        const writtenRaw =
             writtenAttribute?.type === "primitive"
-                ? String(writtenAttribute.primitive.value).toLowerCase()
+                ? String(writtenAttribute.primitive.value)
                 : undefined;
+        const writtenValue = writtenRaw?.toLowerCase();
         if (writtenValue === "videowatched") {
             continue;
         }
@@ -274,7 +286,13 @@ export function decideAnswerTypesAtLoad({
             const tag = tags[i];
             if (typeof child !== "object") {
                 ownContent.push(child);
-            } else if (tag !== undefined && inherits(tag, "_input")) {
+            } else if (
+                tag !== undefined &&
+                inherits(tag, "_input") &&
+                !isBareReference(child)
+            ) {
+                // a bare `$ti` naming an input is content, which the sugar
+                // wraps in an award, not an input written inside
                 inputs.push(child);
             } else if (tag !== undefined && inherits(tag, "award")) {
                 const awardChildren: (SerializedComponent | string)[] =
@@ -376,7 +394,23 @@ export function decideAnswerTypesAtLoad({
             }
         }
 
-        if (decided !== undefined && decided !== writtenValue) {
+        // Written as the sugar reads it, which is exactly (`type="Text"`
+        // would be read as no type there).
+        if (decided !== undefined && decided !== writtenRaw) {
+            if (writtenRaw !== undefined && written === undefined) {
+                // A `type` that names no type, replaced: reported here, as
+                // the answer's sugar would have, since it no longer sees it.
+                diagnostics.push({
+                    ...codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0078",
+                        args: { type: writtenRaw },
+                    }),
+                    position:
+                        (writtenAttribute as any)?.position ?? answer.position,
+                    sourceDoc: answer.sourceDoc,
+                });
+            }
             answer.attributes = {
                 ...answer.attributes,
                 type: {
