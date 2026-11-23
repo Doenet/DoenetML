@@ -47,6 +47,11 @@ pub mod clamped {
 }
 ```
 
+A container with nothing else to say is an entry of a `containers!` list
+in `containers/mod.rs` or `containers/blocks/mod.rs` (`caption:
+["caption"];`), and the four value lists are one `value_list!` definition
+in `values/mod.rs`; each still makes a module with its `DEFINITION`.
+
 Then register it with one line in the `component_types!` list in
 [`components`](crate::components) (`components/mod.rs`): `Clamped => values::clamped::DEFINITION,`. Nothing else
 is needed; a request on `clamped` inverts through the operators' own
