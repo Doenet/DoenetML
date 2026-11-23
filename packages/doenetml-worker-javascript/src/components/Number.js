@@ -159,11 +159,13 @@ function numberCountingBooleans(dependencyValues) {
 
     /**
      * `tree` with each boolean replaced by `1` or `0`, or `MISSING_OPERAND`
-     * if an operand it is computed from is missing.
+     * if an operand it is computed from is missing, by `isMissing`: in an
+     * operand of a comparison, only a reference to nothing
+     * (`isMissingCompared`), as an input left blank is a value it compares.
      */
-    function counted(tree) {
+    function counted(tree, isMissing = isMissingCode) {
         if (typeof tree === "string") {
-            if (isMissingCode(tree)) {
+            if (isMissing(tree)) {
                 return MISSING_OPERAND;
             }
             const booleanChild = booleanChildrenByCode[tree];
@@ -223,10 +225,12 @@ function numberCountingBooleans(dependencyValues) {
                 // two booleans compare as 1 or 0 as they would as booleans.
                 // A chain (`lts`, `gts`) counts its operands, not the tuple
                 // of whether each ordering is strict.
+                const countedOperand = (operand) =>
+                    counted(operand, isMissingCompared);
                 const countedOperands =
                     operator === "lts" || operator === "gts"
-                        ? [counted(operands[0]), operands[1]]
-                        : operands.map(counted);
+                        ? [countedOperand(operands[0]), operands[1]]
+                        : operands.map(countedOperand);
                 if (countedOperands.includes(MISSING_OPERAND)) {
                     return MISSING_OPERAND;
                 }
@@ -238,7 +242,9 @@ function numberCountingBooleans(dependencyValues) {
                 valueOnInvalid: NaN,
             });
         }
-        const countedOperands = operands.map(counted);
+        const countedOperands = operands.map((operand) =>
+            counted(operand, isMissing),
+        );
         if (countedOperands.includes(MISSING_OPERAND)) {
             return MISSING_OPERAND;
         }

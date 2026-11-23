@@ -1210,14 +1210,20 @@ boolean-number-mix = { $reason ->
 # Inside a `<number convertBoolean>` (also an `<award>`'s or `<choice>`'s
 # `credit`), every boolean counts as 1 or 0 (D67 decision 1), so a boolean
 # compared with a number is compared as 1 or 0. That works, but is hard to
-# read, so the message suggests the plain form. $reason is `boolean` for a
-# boolean compared with a number (`$b = 1`; $source is the boolean as written,
-# `$b`), and `literal` for a number compared with the word `true` or `false`
-# (`$n = true`; $source is the number as written, $literal the word and $count
-# the 1 or 0 it counts as). `true`, `false`, `convertBoolean` and the
-# references are DoenetML, so they stay in English.
+# read, so the message suggests a plain form that means the same. $reason is
+# `boolean` for a boolean compared with a number that tests it is true
+# (`$b = 1`, `$b != 0`; $source is the boolean as written, `$b`), `negated`
+# for one that tests it is false (`$b = 0`, `$b != 1`), `other` for any
+# other comparison of a boolean with a number (`$b > 0`, `$b = $n`), and
+# `literal` for a number compared with the word `true` or `false`
+# (`$n = true`; $source is the number as written, $literal the word, $count
+# the 1 or 0 it counts as, and $rewritten the comparison with $count in place
+# of the word, `$n = 1` or `$n != 1`). `true`, `false`, `not`,
+# `convertBoolean` and the references are DoenetML, so they stay in English.
 counted-boolean-compared-with-number = { $reason ->
-        [literal] Here `{ $literal }` counts as { $count }, so this compares `{ $source }` with { $count }. To say so, write `{ $source } = { $count }`, or, to test a number, a comparison such as `{ $source } != 0`.
+        [literal] Here `{ $literal }` counts as { $count }, so this compares `{ $source }` with { $count }. To say so, write `{ $rewritten }`, or, to test a number, a comparison such as `{ $source } != 0`.
+        [negated] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test that it is false, write `not { $source }` or `{ $source } = false`.
+        [other] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, compare it with `true` or `false` instead, such as `{ $source } = true`.
        *[boolean] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, write `{ $source }` or `{ $source } = true`.
     }
 

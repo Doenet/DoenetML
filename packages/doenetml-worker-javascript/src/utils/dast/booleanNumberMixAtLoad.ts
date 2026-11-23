@@ -806,9 +806,10 @@ export function checkBooleanNumberMixAtLoad({
         }[] = [];
         /** comparisons in counted content (`doenet-w0208`) */
         const countedComparisons: {
-            reason: "boolean" | "literal";
+            reason: "boolean" | "negated" | "other" | "literal";
             source: string;
             literal?: string;
+            rewritten?: string;
         }[] = [];
 
         function describe(
@@ -924,9 +925,28 @@ export function checkBooleanNumberMixAtLoad({
                     const pair = [typed[i], typed[i + 1]];
                     const boolean = pair.find((x) => x.type === "boolean");
                     const number = pair.find((x) => x.type === "math");
+                    // the comparison as written (`!=` of `$b != 1`), so
+                    // that the form suggested means the same
+                    const written = chained
+                        ? chainedOrdering(operator, tree[2], i)
+                        : RELATION_AS_WRITTEN[operator];
                     if (boolean && number && boolean.child) {
+                        // `$b = 1` and `$b != 0` test that `b` is true,
+                        // `$b = 0` and `$b != 1` that it is false; anything
+                        // else (`$b > 0`, `$b = $n`) only a comparison with
+                        // `true` or `false` says plainly
+                        const tested =
+                            (written === "=" || written === "!=") &&
+                            (number.tree === 1 || number.tree === 0)
+                                ? (number.tree === 1) === (written === "=")
+                                : undefined;
                         countedComparisons.push({
-                            reason: "boolean",
+                            reason:
+                                tested === undefined
+                                    ? "other"
+                                    : tested
+                                      ? "boolean"
+                                      : "negated",
                             source: asWritten(boolean.child).source,
                         });
                     } else if (
@@ -934,10 +954,22 @@ export function checkBooleanNumberMixAtLoad({
                         number &&
                         booleanLiteral(boolean.tree) !== undefined
                     ) {
+                        const literal = booleanLiteral(boolean.tree)!;
+                        const source = describe(
+                            number.tree,
+                            number.child,
+                        ).source;
+                        const count = literal === "true" ? "1" : "0";
                         countedComparisons.push({
                             reason: "literal",
-                            source: describe(number.tree, number.child).source,
-                            literal: booleanLiteral(boolean.tree),
+                            source,
+                            literal,
+                            // with the count in place of the word, in the
+                            // order written (`$n != 1` of `$n != true`)
+                            rewritten:
+                                pair[0] === boolean
+                                    ? `${count} ${written} ${source}`
+                                    : `${source} ${written} ${count}`,
                         });
                     }
                 }
@@ -1033,7 +1065,12 @@ export function checkBooleanNumberMixAtLoad({
 
         if (counted) {
             everyRelation(parsed.tree);
-            for (const { reason, source, literal } of countedComparisons) {
+            for (const {
+                reason,
+                source,
+                literal,
+                rewritten,
+            } of countedComparisons) {
                 diagnostics.push(
                     codedDiagnostic({
                         type: "warning",
@@ -1043,6 +1080,7 @@ export function checkBooleanNumberMixAtLoad({
                             source,
                             literal: literal ?? "",
                             count: literal === "true" ? "1" : "0",
+                            rewritten: rewritten ?? "",
                         },
                         position,
                         sourceDoc,
@@ -1497,6 +1535,13 @@ const ORDERING_AS_WRITTEN: Record<string, string> = {
     ">": ">",
     le: "<=",
     ge: ">=",
+};
+
+/** How a comparison is written, for the message. */
+const RELATION_AS_WRITTEN: Record<string, string> = {
+    ...ORDERING_AS_WRITTEN,
+    "=": "=",
+    ne: "!=",
 };
 
 /**

@@ -581,9 +581,13 @@ describe("Booleans and numbers kept apart @group2", () => {
     <boolean name="c6">$mi = x</boolean>
     <answer name="a1"><award><when>$nothing != 1</when></award></answer>
     <answer name="a2"><mathInput name="mi2"><label>mi2</label></mathInput><award><when>$mi2 != 5</when></award></answer>
+    <number name="n1" convertBoolean>$mi != x</number>
+    <number name="n2" convertBoolean>$nothing != x</number>
+    <answer name="a3"><mathInput name="mi3"><label>mi3</label></mathInput><award credit="$mi3 != 5"><when>true</when></award></answer>
+    <answer name="a4"><choiceInput name="ci"><label>ci</label><choice>a</choice><choice>b</choice></choiceInput><award><when>$ci.selectedIndex != 1</when></award></answer>
     `,
         });
-        for (const name of ["a1", "a2"]) {
+        for (const name of ["a1", "a2", "a3", "a4"]) {
             await submitAnswer({
                 componentIdx: await resolvePathToNodeIdx(name),
                 core,
@@ -602,6 +606,12 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("c6")).valueMissing).eq(false);
         expect((await sv("a1")).creditAchieved).eq(0);
         expect((await sv("a2")).creditAchieved).eq(1);
+        // the same in a `<number convertBoolean>`, and so in a `credit`
+        expect((await sv("n1")).value).eq(1);
+        expect((await sv("n2")).valueMissing).eq(true);
+        expect((await sv("a3")).creditAchieved).eq(1);
+        // a value with nothing to read yet is missing as well: no choice
+        expect((await sv("a4")).creditAchieved).eq(0);
     });
 
     // In a `<number convertBoolean>`, also a `credit`, every boolean counts
@@ -623,6 +633,9 @@ describe("Booleans and numbers kept apart @group2", () => {
     <answer name="a1"><award credit="$b = 1"><when>true</when></award></answer>
     <answer name="a2"><award credit="$n != true"><when>true</when></award></answer>
     <answer name="a3"><award credit="$f = 1"><when>true</when></award></answer>
+    <number name="n8" convertBoolean>$n != true</number>
+    <number name="n9" convertBoolean>$b = 0</number>
+    <number name="n10" convertBoolean>$b > 0</number>
     `,
         });
         for (const name of ["a1", "a2", "a3"]) {
@@ -636,7 +649,18 @@ describe("Booleans and numbers kept apart @group2", () => {
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
 
         const values: Record<string, any> = {};
-        for (const name of ["n1", "n2", "n3", "n4", "n5", "n6", "n7"]) {
+        for (const name of [
+            "n1",
+            "n2",
+            "n3",
+            "n4",
+            "n5",
+            "n6",
+            "n7",
+            "n8",
+            "n9",
+            "n10",
+        ]) {
             const stateValues = await sv(name);
             values[name] = stateValues.valueMissing ? "＿" : stateValues.value;
         }
@@ -648,6 +672,9 @@ describe("Booleans and numbers kept apart @group2", () => {
             n5: 1,
             n6: 1,
             n7: "＿",
+            n8: 1,
+            n9: 0,
+            n10: 1,
         });
         expect((await sv("a1")).creditAchieved).eq(1);
         expect((await sv("a2")).creditAchieved).eq(1);
@@ -655,16 +682,26 @@ describe("Booleans and numbers kept apart @group2", () => {
 
         const booleanMessage = (source: string) =>
             `Here \`${source}\` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, write \`${source}\` or \`${source} = true\`.`;
-        const literalMessage =
-            "Here `true` counts as 1, so this compares `$n` with 1. To say so, write `$n = 1`, or, to test a number, a comparison such as `$n != 0`.";
+        const literalMessage = (rewritten: string) =>
+            `Here \`true\` counts as 1, so this compares \`$n\` with 1. To say so, write \`${rewritten}\`, or, to test a number, a comparison such as \`$n != 0\`.`;
+        // the form suggested means the same as the comparison written
         expect(diagnosticsOf(core, ["doenet-w0208"])).eqls([
             [5, booleanMessage("$b")],
             [6, booleanMessage("$f")],
-            [7, literalMessage],
+            [7, literalMessage("$n = 1")],
             [8, booleanMessage("$b")],
             [12, booleanMessage("$b")],
-            [13, literalMessage],
+            [13, literalMessage("$n != 1")],
             [14, booleanMessage("$f")],
+            [15, literalMessage("$n != 1")],
+            [
+                16,
+                "Here `$b` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test that it is false, write `not $b` or `$b = false`.",
+            ],
+            [
+                17,
+                "Here `$b` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, compare it with `true` or `false` instead, such as `$b = true`.",
+            ],
         ]);
         // none is a mix
         expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([]);
