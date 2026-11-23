@@ -2873,4 +2873,49 @@ describe("Missing values, round 4 (#2596) @group2", () => {
         }
         expect(texts).eqls(["＿, ＿", "1 + ＿, 2 + ＿", "＿", "[false]"]);
     });
+
+    it("makes a point, vector or shape holding a reference that names nothing in a repeat missing, as outside it", async () => {
+        // An iteration's copy of `$nothing` is a typeless `_missing`, not a
+        // missing point, and it names nothing as one does (D49, VAL-5).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+    <repeatForSequence name="r" from="1" to="1" indexName="i">
+        <point name="P">$nothing</point>
+        <vector name="v">$nothing</vector>
+        <circle name="c" center="$nothing"/>
+        <point name="Q" x="$i">$nothing</point>
+        <point name="R" x="$i" y="2">$nothing</point>
+        <point name="S">($i, $nothing)</point>
+    </repeatForSequence>
+    <point name="P0">$nothing</point>
+    </graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const missing = {};
+        for (const name of [
+            "r[1].P",
+            "r[1].v",
+            "r[1].c",
+            "r[1].Q",
+            "r[1].R",
+            "r[1].S",
+            "P0",
+        ]) {
+            missing[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.valueMissing;
+        }
+        expect(missing).eqls({
+            "r[1].P": true,
+            "r[1].v": true,
+            "r[1].c": true,
+            "r[1].Q": true,
+            "r[1].R": false,
+            "r[1].S": false,
+            P0: true,
+        });
+    });
 });
