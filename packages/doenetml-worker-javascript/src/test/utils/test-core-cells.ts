@@ -570,8 +570,17 @@ const STATE: Record<string, Record<string, Reader>> = {
             "exercises",
         ].map((t) => [t, sectionReaders]),
     ),
-    // The buttons (ADR 0040): a press is the core's action `trigger`.
+    // The buttons (ADR 0040): a press is the core's action `trigger`; one
+    // something else presses (ADR 0042) is hidden.
     callAction: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    updateValue: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    triggerSet: {
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
     },
@@ -891,6 +900,15 @@ export async function createTestCoreCells({
             }
             if (PRESSES[componentType] === actionName) {
                 core.trigger(componentIdx);
+                table.reload();
+                return;
+            }
+            // A click or a focus, which a button may wait on (ADR 0042).
+            if (
+                componentType === "point" &&
+                (actionName === "pointClicked" || actionName === "pointFocused")
+            ) {
+                core.act_by_name(componentIdx, actionName);
                 table.reload();
                 return;
             }

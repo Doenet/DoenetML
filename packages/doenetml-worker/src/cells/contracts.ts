@@ -1130,6 +1130,17 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
+    // A button setting another component's value, the same way; inside a
+    // `<triggerSet>` it is what the set does, not what it shows.
+    updateValue: {
+        props: (r, c) => ({
+            clickAction: "updateValue",
+            label: label(r.table, c),
+            labelHasLatex: false,
+            disabled: false,
+        }),
+        noChildren: true,
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -1215,7 +1226,6 @@ export const OMITTED = new Set([
     "setup",
     "label",
     "shortDescription",
-    "updateValue",
     "mrow",
     // `<xLabel>` and `<yLabel>`: the prototype's graph draws no axis
     // labels.

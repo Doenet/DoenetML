@@ -208,6 +208,12 @@ export class CellsBridge {
             case "trigger":
                 changed = this.core.trigger(effect.component);
                 break;
+            case "act":
+                changed = this.core.act_by_name(
+                    effect.component,
+                    effect.action,
+                );
+                break;
         }
         const ticked = performance.now();
         const payload = this._afterTick(changed);

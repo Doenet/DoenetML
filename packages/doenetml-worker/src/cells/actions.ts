@@ -1,7 +1,8 @@
 /**
  * Renderer actions, resolved for the cells core (ADR 0020): each one the
  * prototype's component renderers send becomes requests, a point group, or a
- * core action (`submit`, `trigger`). The core never sees a renderer action.
+ * core action (`submit`, `trigger`, or one by name). The core never sees a
+ * renderer action.
  */
 import { CellsTable } from "./table";
 
@@ -12,7 +13,10 @@ export type Effect =
      * into pairs, as `Core.request_points` takes them. */
     | { kind: "points"; pairs: [cell: number, value: number][] }
     | { kind: "submit"; answer: number }
-    | { kind: "trigger"; component: number };
+    | { kind: "trigger"; component: number }
+    /** A core action by name (ADR 0040), such as a click a button waits
+     * on (ADR 0042). */
+    | { kind: "act"; component: number; action: string };
 
 type Resolver = (
     table: CellsTable,
@@ -129,7 +133,22 @@ const fixed: Resolver = () => ({ kind: "none" });
 
 /** Keyed by component type, then action name. */
 export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
-    point: { move: movePoint },
+    // A click or a focus changes nothing of a point: the core's action of
+    // that name, which a button may wait on (ADR 0042). The prototype's
+    // point renderer does not send them yet.
+    point: {
+        move: movePoint,
+        pointClicked: (_t, c) => ({
+            kind: "act",
+            component: c,
+            action: "pointClicked",
+        }),
+        pointFocused: (_t, c) => ({
+            kind: "act",
+            component: c,
+            action: "pointFocused",
+        }),
+    },
     graph: {
         changeBoundingBox: (t, c, { xMin, xMax, yMin, yMax }) => ({
             kind: "request",
@@ -318,6 +337,10 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     // A button calling another component's action: the core's `trigger`.
     callAction: {
         callAction: (_t, c) => ({ kind: "trigger", component: c }),
+    },
+    // A button setting another component's value, alone: the same press.
+    updateValue: {
+        updateValue: (_t, c) => ({ kind: "trigger", component: c }),
     },
 };
 

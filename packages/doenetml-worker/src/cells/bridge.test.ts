@@ -545,6 +545,33 @@ describe("step 3 components", () => {
         });
     });
 
+    it("presses an update value, and one waiting on a click or a condition", async () => {
+        const { all, props, send, changed } = await open(`
+<graph><point name="P">(1,2)</point></graph>
+<number name="n">0</number><number name="n1">$n + 1</number>
+<number name="m">0</number><number name="m1">$m + 1</number>
+<updateValue target="$n" newValue="$n1"><label>Add</label></updateValue>
+<updateValue target="$m" newValue="$m1" triggerWhenObjectsClicked="$P"/>
+<updateValue target="$m" newValue="$m1" triggerWhen="$n > 1"/>
+<p name="out">$n $m</p>`);
+        // The two pressed otherwise are hidden: one button is sent.
+        expect(all("updateValue")).toHaveLength(1);
+        expect(props("updateValue")).toEqual({
+            clickAction: "updateValue",
+            label: "Add",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        let payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "1" });
+        payload = send("point", "pointClicked", {});
+        expect(changed(payload, "number", 2)).toEqual({ text: "1" });
+        // `n` rises past 1: the condition's button presses as a follow-up.
+        payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "2" });
+        expect(changed(payload, "number", 2)).toEqual({ text: "2" });
+    });
+
     it("draws operators as math notation and booleans, without their operands", async () => {
         const { all, props, send, changed } = await open(`
 <numberInput name="n" value="-4"/>
