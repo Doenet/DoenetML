@@ -1133,8 +1133,9 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 # boolean is wanted (D47 decisions 3 and 4): DoenetML keeps them apart, so the
 # value is a blank in its place. $source is what was written: a reference
 # (`$b`, when $form is `reference`), a tag (`<isInteger>`, when $form is
-# `tag`), a literal number (`1`, when $form is `literal`), or an expression
-# (`x - x + 1`, when $form is `expression`). $reason says
+# `tag`), a reference to a list (`$bl`, when $form is `list`), a literal
+# number (`1`, when $form is `literal`), or an expression (`x - x + 1`, when
+# $form is `expression`). $reason says
 # which mix it is:
 # - `booleanAsNumber`: a boolean in a `<math>`, a `<number>`, a list of
 #   numbers or a math attribute; `<number convertBoolean>` is the one place a
@@ -1150,6 +1151,7 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 boolean-number-mix = { $reason ->
         [booleanAsNumber] { $form ->
             [tag] This `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.
+            [list] `{ $source }` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a `<number convertBoolean>`, such as `<number convertBoolean>{ $source }[1]</number>`.
            *[other] `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
         }
         [literalAsBoolean] `{ $source }` is a number, not true or false, so it is a blank here. Write `true` or `false`, or, to test a number, a comparison such as `$n != 0`.
@@ -1161,6 +1163,7 @@ boolean-number-mix = { $reason ->
         [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="{ $source }"/>`.
        *[numberAsBoolean] { $form ->
             [tag] This `{ $source }` is a number, not true or false, so it is a blank here. To test it, write a comparison, such as one with `!= 0`.
+            [list] `{ $source }` holds numbers, not values that are true or false, so it is a blank here. To test one, write a comparison such as `{ $source }[1] != 0`.
            *[other] `{ $source }` is a number, not true or false, so it is a blank here. To test it, write a comparison such as `{ $source } != 0`.
         }
     }

@@ -36,6 +36,9 @@
  * property its declared or decided type (TYPE, D45), a list its entries'
  * type, and a wrapper of one component that component. A child whose type
  * the DoenetML doesn't decide, or a wrapper holding several, is not judged.
+ * A composite (and a reference to one) is read once (`summaryOf`), so
+ * composites whose cases name the same composite don't make the reading
+ * exponential.
  *
  * Runs after sugar (which wraps a `<number>`'s several children in a
  * `<math>`, and splits a `<booleanList>`'s text) and after the type-change
@@ -50,6 +53,7 @@ import { codedDiagnostic } from "../diagnostics";
 import { documentReferents } from "./valueReferences";
 import { itemReader } from "./reorderedItemsAtLoad";
 import { unwrapSource } from "./convertNormalizedDast";
+import { literalText } from "./choiceErrorsAtLoad";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { buildParsedExpression } from "../booleanLogic";
 import me from "math-expressions";
@@ -118,29 +122,195 @@ export function checkBooleanNumberMixAtLoad({
      * DoenetML decides it: one component, or a list or wrapper whose
      * components are all of one type.
      */
-    const valueCache = new Map<
-        number,
-        { type: ValueType; tag: string } | undefined
-    >();
     function valueOf(
         child: SerializedComponent,
     ): { type: ValueType; tag: string } | undefined {
-        if (!valueCache.has(child.componentIdx)) {
-            valueCache.set(child.componentIdx, readValueOf(child));
-        }
-        return valueCache.get(child.componentIdx);
+        const value = summaryOf(child);
+        return value === "none" ? undefined : value;
     }
-    function readValueOf(
-        child: SerializedComponent,
-    ): { type: ValueType; tag: string } | undefined {
-        if (child.componentType === "_error") {
+
+    /**
+     * What `component` is, as `itemReader` reads it, folded as it is read:
+     * the one type of value its items are of (and the first one's tag),
+     * `"none"` for no items, or `undefined` when they aren't all one
+     * component of one value type, or may be others not known. A composite
+     * written plainly (a `<conditionalContent>`, `<select>`, `<group>`,
+     * repeat, `<sort>` or `<shuffle>`), and a reference to one, is read
+     * here, once per component: each of its cases may name the same
+     * composite, and listing the items of every path, as `itemReader` does,
+     * can take time and memory exponential in how deep they nest.
+     * Everything else is read by `itemReader`.
+     */
+    type Summary = ValueSummary;
+    const summaryCache = new Map<number, Summary>();
+    const reading = new Set<number>();
+    function summaryOf(component: SerializedComponent): Summary {
+        const idx = component.componentIdx;
+        if (summaryCache.has(idx)) {
+            return summaryCache.get(idx);
+        }
+        if (reading.has(idx)) {
+            // a cycle, an error of its own at load
             return undefined;
         }
-        const { items, unknown } = reader.itemsOfChildren([child], new Set());
-        if (unknown || items.length === 0) {
+        reading.add(idx);
+        const summary = readSummaryOf(component);
+        reading.delete(idx);
+        summaryCache.set(idx, summary);
+        return summary;
+    }
+    function readSummaryOf(component: SerializedComponent): Summary {
+        const type = component.componentType;
+        if (type === "_error") {
             return undefined;
         }
-        let found: { type: ValueType; tag: string } | undefined;
+        if (type === "_copy") {
+            const target = plainReferent(component);
+            return target === undefined
+                ? itemsSummary(component)
+                : summaryOf(target);
+        }
+        if (component.extending !== undefined) {
+            return itemsSummary(component);
+        }
+        if (type === "select" || type === "conditionalContent") {
+            // every pick or case, each a wrapper of what it holds
+            let summary: Summary = "none";
+            for (const part of component.children ?? []) {
+                if (typeof part !== "object") {
+                    continue;
+                }
+                if (
+                    part.componentType !== "option" &&
+                    part.componentType !== "case"
+                ) {
+                    return undefined;
+                }
+                summary = union(
+                    summary,
+                    wrapperSummary(withoutSugarGroup(part.children ?? [])),
+                );
+            }
+            return summary;
+        }
+        if (type === "group") {
+            return wrapperSummary(component.children ?? []);
+        }
+        if (
+            type === "repeat" ||
+            type === "repeatForSequence" ||
+            type === "sort" ||
+            type === "shuffle"
+        ) {
+            if (component.doenetAttributes?.reorderErrorAtLoad) {
+                return undefined;
+            }
+            if (type === "repeat" || type === "repeatForSequence") {
+                // each iteration is a wrapper of the template
+                return wrapperSummary(component.children ?? []);
+            }
+            // flattened into its items
+            let summary: Summary = "none";
+            for (const child of component.children ?? []) {
+                if (typeof child === "object") {
+                    summary = union(summary, summaryOf(child));
+                }
+            }
+            return summary;
+        }
+        return itemsSummary(component);
+    }
+
+    /**
+     * The component the reference `copy` names, when what it is is what
+     * that component is (`itemsOfCopy`), and that is a composite read here
+     * or another reference; otherwise `undefined`.
+     */
+    function plainReferent(
+        copy: SerializedComponent,
+    ): SerializedComponent | undefined {
+        if (!copy.extending) {
+            return undefined;
+        }
+        const createdType = copy.attributes?._createComponentOfType;
+        const written =
+            createdType === undefined
+                ? undefined
+                : componentInfoObjects.componentTypeAsWritten(
+                      String(literalText(createdType) ?? ""),
+                  );
+        if (
+            (written !== undefined &&
+                !componentInfoObjects.isCompositeComponent({
+                    componentType: written,
+                    includeNonStandard: true,
+                })) ||
+            (copy.children ?? []).some((child) =>
+                typeof child === "string" ? child.trim() !== "" : true,
+            )
+        ) {
+            return undefined;
+        }
+        const ref: any = unwrapSource(copy.extending as any);
+        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
+            return undefined;
+        }
+        const node =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        if (
+            node === undefined ||
+            !(
+                node.componentType === "_copy" ||
+                (node.extending === undefined &&
+                    READ_HERE.has(node.componentType))
+            )
+        ) {
+            return undefined;
+        }
+        return node;
+    }
+
+    /** What a wrapper holding `children` is (`wrapperItems`). */
+    function wrapperSummary(children: (SerializedComponent | string)[]) {
+        const held = children.filter((child) =>
+            typeof child === "string"
+                ? child.trim() !== ""
+                : child.componentType !== "setup" &&
+                  child.componentType !== "_repeatSetup",
+        );
+        if (
+            held.some(
+                (child) =>
+                    typeof child === "object" &&
+                    child.componentType === "_error",
+            )
+        ) {
+            return undefined;
+        }
+        if (held.length === 0) {
+            return "none";
+        }
+        if (held.length > 1) {
+            // an item of several components, which has no one value
+            return undefined;
+        }
+        const [only] = held;
+        return typeof only === "string"
+            ? { type: "text" as const, tag: "text" }
+            : summaryOf(only);
+    }
+
+    /** What `component` is, read by `itemReader`. */
+    function itemsSummary(component: SerializedComponent): Summary {
+        const { items, unknown } = reader.itemsOfChildren(
+            [component],
+            new Set(),
+        );
+        if (unknown) {
+            return undefined;
+        }
+        let summary: Summary = "none";
         for (const item of items) {
             if (item.kind !== "one") {
                 return undefined;
@@ -149,12 +319,9 @@ export function checkBooleanNumberMixAtLoad({
             if (type !== "math" && type !== "boolean" && type !== "text") {
                 return undefined;
             }
-            if (found !== undefined && found.type !== type) {
-                return undefined;
-            }
-            found ??= { type, tag: item.tag };
+            summary = union(summary, { type, tag: item.tag });
         }
-        return found;
+        return summary;
     }
 
     /**
@@ -237,6 +404,43 @@ export function checkBooleanNumberMixAtLoad({
                   )
                 : child.componentType;
         return { source: `<${tag}>`, form: "tag" };
+    }
+
+    /**
+     * `child` as the author wrote it, as `asWritten`, with the form `list`
+     * for a reference to a list (`$bl`), whose message suggests an entry
+     * (`$bl[1]`).
+     */
+    function asWrittenOrList(child: SerializedComponent): {
+        source: string;
+        form: "reference" | "tag" | "list";
+    } {
+        const written = asWritten(child);
+        if (written.form !== "reference") {
+            return written;
+        }
+        const createdType = child.attributes?._createComponentOfType;
+        let type: string | undefined =
+            createdType === undefined
+                ? undefined
+                : componentInfoObjects.componentTypeAsWritten(
+                      String(literalText(createdType) ?? ""),
+                  );
+        if (type === undefined) {
+            const ref: any = unwrapSource(child.extending as any);
+            if (
+                ref &&
+                ref.nodeIdx >= 0 &&
+                (ref.unresolvedPath ?? []).length === 0
+            ) {
+                type = referents.referentType(ref.nodeIdx);
+            }
+        }
+        const typeClass = type === undefined ? undefined : allClasses[type];
+        return typeClass?.listEntryComponentType !== undefined ||
+            typeClass?.listEntryTypeAttribute !== undefined
+            ? { ...written, form: "list" }
+            : written;
     }
 
     /**
@@ -324,7 +528,7 @@ export function checkBooleanNumberMixAtLoad({
     }: {
         reason: MixReason;
         source: string;
-        form: "reference" | "tag" | "literal" | "expression";
+        form: "reference" | "tag" | "list" | "literal" | "expression";
         position: SerializedComponent["position"];
         sourceDoc: number | undefined;
     }) {
@@ -441,7 +645,7 @@ export function checkBooleanNumberMixAtLoad({
         const found: {
             reason: MixReason;
             source: string;
-            form: "reference" | "tag" | "literal" | "expression";
+            form: "reference" | "tag" | "list" | "literal" | "expression";
             /** in full, for a random choice's error */
             written: string;
             /**
@@ -461,10 +665,10 @@ export function checkBooleanNumberMixAtLoad({
             child?: SerializedComponent,
         ): {
             source: string;
-            form: "reference" | "tag" | "literal" | "expression";
+            form: "reference" | "tag" | "list" | "literal" | "expression";
         } {
             if (child) {
-                return asWritten(child);
+                return asWrittenOrList(child);
             }
             if (typeof tree === "number") {
                 return { source: String(tree), form: "literal" };
@@ -524,8 +728,9 @@ export function checkBooleanNumberMixAtLoad({
 
         function relation(tree: any[]) {
             const operator = tree[0];
-            // A chain (`1 < $t < 3`) is `lts` or `gts` of the tuple of its
-            // operands, each pair ordered.
+            // A chain (`1 < $t <= 3`) is `lts` or `gts` of the tuple of its
+            // operands, each pair ordered, and the tuple of whether each
+            // ordering is strict.
             const chained = operator === "lts" || operator === "gts";
             const operands = chained
                 ? Array.isArray(tree[1]) && tree[1][0] === "tuple"
@@ -555,9 +760,7 @@ export function checkBooleanNumberMixAtLoad({
                     orderings.push({
                         source,
                         operator: chained
-                            ? operator === "lts"
-                                ? "<"
-                                : ">"
+                            ? chainedOrdering(operator, tree[2], i)
                             : ORDERING_AS_WRITTEN[operator],
                         ...(sectionNumberOf(text.child, source) !== undefined
                             ? {
@@ -705,7 +908,7 @@ export function checkBooleanNumberMixAtLoad({
                             }
                         }
                         if (reason !== undefined) {
-                            const { source, form } = asWritten(child);
+                            const { source, form } = asWrittenOrList(child);
                             warn({
                                 reason,
                                 source,
@@ -742,6 +945,76 @@ export function checkBooleanNumberMixAtLoad({
     }
 
     return { diagnostics, nComponents };
+}
+
+/**
+ * How the `index`th ordering of a chain (`lts` or `gts`, with `strict` the
+ * tuple of whether each is strict) is written: `1 <= $t < 3` is `<=` then
+ * `<`.
+ */
+function chainedOrdering(operator: string, strict: any, index: number) {
+    const isStrict = Array.isArray(strict) ? strict[index + 1] : true;
+    return operator === "lts"
+        ? isStrict === false
+            ? "<="
+            : "<"
+        : isStrict === false
+          ? ">="
+          : ">";
+}
+
+/**
+ * The composites `summaryOf` reads itself, as `itemReader` reads them, when
+ * written plainly.
+ */
+const READ_HERE = new Set([
+    "select",
+    "conditionalContent",
+    "group",
+    "repeat",
+    "repeatForSequence",
+    "sort",
+    "shuffle",
+]);
+
+type ValueSummary =
+    { type: "math" | "boolean" | "text"; tag: string } | "none" | undefined;
+
+/**
+ * What the items of two parts are together: of one type if both are (the
+ * first one's tag), `"none"` if neither has any.
+ */
+function union(a: ValueSummary, b: ValueSummary): ValueSummary {
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    if (a === "none") {
+        return b;
+    }
+    if (b === "none") {
+        return a;
+    }
+    return a.type === b.type ? a : undefined;
+}
+
+/**
+ * The children of a case or an option, through the `<group>` with no
+ * attributes that its sugar wraps them in (as `itemReader` reads them).
+ */
+function withoutSugarGroup(children: (SerializedComponent | string)[]) {
+    const shown = children.filter(
+        (child) => typeof child !== "string" || child.trim() !== "",
+    );
+    const [only] = shown;
+    if (
+        shown.length === 1 &&
+        typeof only === "object" &&
+        only.componentType === "group" &&
+        Object.keys(only.attributes ?? {}).length === 0
+    ) {
+        return only.children;
+    }
+    return children;
 }
 
 /** How an ordering is written, for the message. */

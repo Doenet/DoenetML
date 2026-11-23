@@ -24,6 +24,16 @@ function booleanAsNumber(source: string) {
     return `\`${source}\` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\`.`;
 }
 
+/** `doenet-w0202` for a list of booleans read as numbers. */
+function booleanListAsNumbers(source: string) {
+    return `\`${source}\` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a \`<number convertBoolean>\`, such as \`<number convertBoolean>${source}[1]</number>\`.`;
+}
+
+/** `doenet-w0202` for a list of numbers read as booleans. */
+function numberListAsBooleans(source: string) {
+    return `\`${source}\` holds numbers, not values that are true or false, so it is a blank here. To test one, write a comparison such as \`${source}[1] != 0\`.`;
+}
+
 /** `doenet-w0202` for a number read as a boolean (`numberAsBoolean`). */
 function numberAsBoolean(source: string) {
     return `\`${source}\` is a number, not true or false, so it is a blank here. To test it, write a comparison such as \`${source} != 0\`.`;
@@ -98,7 +108,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             [10, booleanAsNumber("$b")],
             [11, booleanAsNumber("$f")],
             [12, booleanAsNumber("$b")],
-            [13, booleanAsNumber("$bl")],
+            [13, booleanListAsNumbers("$bl")],
             [14, booleanAsNumber("$b")],
             [15, booleanAsNumber("$b")],
             [16, booleanAsNumber("$v")],
@@ -300,6 +310,53 @@ describe("Booleans and numbers kept apart @group2", () => {
         ]);
     });
 
+    // `<number convertBoolean>$bl</number>` of several booleans is no
+    // number, so the warning for a list suggests an entry
+    it("for a list, the warning suggests an entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanList name="bl">true false</booleanList>
+    <mathList name="ml">1 0</mathList>
+    <mathList name="m1">$bl</mathList>
+    <boolean name="b1">$ml</boolean>
+    <number name="n1" convertBoolean>$bl[1]</number>
+    <boolean name="b2">$ml[1] != 0</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value;
+        // what each suggests works
+        expect(await value("n1")).eq(1);
+        expect(await value("b2")).eq(true);
+        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+            [4, booleanListAsNumbers("$bl")],
+            [5, numberListAsBooleans("$ml")],
+        ]);
+    });
+
+    it("composites nested by reference are read once", async () => {
+        // Each case and else names the next composite, so listing the
+        // items of every path would read the innermost group 2^24 times.
+        const depth = 24;
+        let doenetML = `<booleanInput name="bi"/>\n<group name="g${depth}"><math>x</math></group>\n`;
+        for (let k = depth - 1; k >= 0; k--) {
+            doenetML += `<conditionalContent name="g${k}"><case condition="$bi">$g${k + 1}</case><else>$g${k + 1}</else></conditionalContent>\n`;
+        }
+        doenetML += `<boolean name="b">$g0</boolean>\n<math name="m">$g0 + 1</math>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("b")).value).eq(false);
+        expect((await sv("m")).value.tree).eqls(["+", "x", 1]);
+        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+            [depth + 3, numberAsBoolean("$g0")],
+        ]);
+    }, 15000);
+
     // D58: a text ordered against a number is never true. Nothing is
     // converted, and `=` is unchanged.
     it("ordering a text against a number is warned of at load", async () => {
@@ -336,6 +393,10 @@ describe("Booleans and numbers kept apart @group2", () => {
             [
                 7,
                 "`$t` is a text, so ordering it against a number with `<` is never true.",
+            ],
+            [
+                7,
+                "`$t` is a text, so ordering it against a number with `<=` is never true.",
             ],
         ]);
     });
