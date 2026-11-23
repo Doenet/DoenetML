@@ -70,6 +70,15 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws an interval list's entries as maths (ADR 0041)", async () => {
+        const bridge = await load(
+            `<p><intervalList>(1, 2) [3, 4]</intervalList></p>`,
+        );
+        expect(paragraphs(bridge.flatDast())).toEqual([
+            ["<math>(1, 2)", ", ", "<math>[3, 4]"],
+        ]);
+    });
+
     it("draws a point list's entries as points, in a graph one by one (ADR 0041)", async () => {
         const bridge = await load(`<point name="P">(9,10)</point>
 <graph><pointList name="pl"><point name="A">(1,2)</point> (3,4) $P</pointList></graph>
@@ -666,6 +675,29 @@ describe("step 3 components", () => {
         payload = send("slider", "changeValue", { value: 5 });
         // The core snaps to the slider's steps.
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
+    });
+
+    // A math input bound to a cell holding an expression writes an
+    // expression there, a number included (ADR 0041).
+    it("types an expression into an input bound to a math list's entry or a subset", async () => {
+        const { props, send, changed } = await open(`
+<mathList name="ml">x y</mathList>
+<mathInput name="mi" bindValueTo="$ml[1]"/>
+<mathInput name="m0" prefill="(0, 1) union [1, 2]"/>
+<subsetOfReals name="s">$m0</subsetOfReals>
+<mathInput name="ms" bindValueTo="$s"/>`);
+        expect(props("mathInput", 0).text).toBe("x");
+        expect(props("mathInput", 2).text).toBe("(0, 2]");
+        let payload = send("mathInput", "updateValue", { text: "5" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("5");
+        // Written to what the subset reads, as the subset writes it.
+        payload = send("mathInput", "updateValue", { text: "x > 3" }, 2);
+        expect(changed(payload, "mathInput", 2)?.text).toBe("(3, ∞)");
+        expect(changed(payload, "mathInput", 1)?.text).toBe("(3, ∞)");
+        // Drawn as a math, after the list's two entries.
+        expect(changed(payload, "math", 2)?.latex).toBe(
+            "\\left( 3, \\infty \\right)",
+        );
     });
 
     // A fraction input has its label, and as its children the two math
