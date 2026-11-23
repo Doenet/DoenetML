@@ -380,7 +380,12 @@ export function checkBooleanNumberMixAtLoad({
             }
             const children = component.children ?? [];
             if (children.every((c: unknown) => typeof c === "string")) {
-                return children.join("").trim().toLowerCase() !== "false";
+                // read as a boolean primitive is (`convertNormalizedDast`):
+                // true written with no value, else only the word `true`
+                return (
+                    children.length === 0 ||
+                    children.join("").trim().toLowerCase() === "true"
+                );
             }
             return true;
         }

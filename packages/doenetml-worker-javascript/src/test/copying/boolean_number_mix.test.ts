@@ -237,6 +237,11 @@ describe("Booleans and numbers kept apart @group2", () => {
     <number name="e2" copy="$nce">$b</number>
     <number name="e3" extend="$ne" convertBoolean>$b</number>
     <number name="e4" extend="$nce" convertBoolean="false">$b</number>
+    <boolean name="f">false</boolean>
+    <number name="e5" extend="$nce">$f</number>
+    <number name="e6" extend="$nce" convertBoolean="yes">$b</number>
+    <number name="e7" extend="$ne" convertBoolean="TRUE">$f</number>
+    <number name="e8" copy="$nce" convertBoolean="">$b</number>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -256,6 +261,9 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("e1")).value).eq(1);
         expect((await sv("e2")).value).eq(1);
         expect((await sv("e3")).value).eq(1);
+        // false is 0 (a blank would be 1)
+        expect((await sv("e5")).value).eq(0);
+        expect((await sv("e7")).value).eq(0);
         expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [5, numberAsBoolean("$n")],
             [6, literalAsBoolean("1")],
@@ -266,6 +274,9 @@ describe("Booleans and numbers kept apart @group2", () => {
             [9, booleanAsNumberInAttribute("$b")],
             [15, numberAsBoolean("$n")],
             [22, booleanAsNumber("$b")],
+            // read as written on the tag: only the word `true`, or no value
+            [25, booleanAsNumber("$b")],
+            [27, booleanAsNumber("$b")],
         ]);
     });
 
