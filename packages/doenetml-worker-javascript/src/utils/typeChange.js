@@ -20,7 +20,8 @@
  *   extend="$mi"/>` of a `<mathInput>`, and anything its value can be made
  *   into;
  * - an angle as the math of its measure, and a label as its text
- *   (`VALUED_AS`);
+ *   (`VALUED_AS`), but not a boolean from a label: REF-5 makes a boolean
+ *   only from a text, and a label is not one (#2656);
  * - any other component as a type it stands in as where its own type is not
  *   taken (its `adapters`): an `<ion>` as the text of its name, a `<line>`
  *   as the math of its equation, and, for an adapter to a value type, as any
@@ -206,6 +207,17 @@ export function typeChangeRule({
     }
 
     if (source.kind === "value") {
+        if (
+            written.type === "boolean" &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: sourceType,
+                baseComponentType: "label",
+            })
+        ) {
+            // A label stands in as its text (`VALUED_AS`), but REF-5 makes
+            // a boolean only from a text itself.
+            return { allowed: false, kind: "unrelated" };
+        }
         const writtenIsValue = VALUE_TYPES.includes(written.type);
         const sourceIsValue = VALUE_TYPES.includes(source.type);
         if (writtenIsValue && sourceIsValue) {

@@ -753,31 +753,31 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
     });
 
-    // #2656 item 6: a label's value is its text (`VALUED_AS`, D26)
-    it("a boolean made from a label reads its text as the word true or false", async () => {
+    // #2656 item 6: REF-5 makes a boolean only from a text; a label stands
+    // in as its text only where a text is wanted (D26)
+    it("a boolean can't be made from a label", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <label name="l1">true</label>
-    <label name="l2">false</label>
-    <label name="l3">maybe</label>
     <boolean name="b1" extend="$l1"/>
-    <boolean name="b2" extend="$l2"/>
-    <boolean name="b3" extend="$l3"/>
+    <boolean name="b2" copy="$l1"/>
+    <text name="t1" extend="$l1"/>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            stateVariables[await resolvePathToNodeIdx(name)]?.stateValues;
 
-        expect((await sv("b1")).value).eq(true);
-        expect((await sv("b1")).valueMissing).eq(false);
-        expect((await sv("b2")).value).eq(false);
-        expect((await sv("b2")).valueMissing).eq(false);
-        expect((await sv("b3")).valueMissing).eq(true);
-        expect(diagnosticsOf(core, ["doenet-i0053"])).eqls([
+        // a label is still made a text
+        expect((await sv("t1")).value).eq("true");
+        expect(diagnosticsOf(core, ["doenet-e0065"])).eqls([
             [
-                7,
-                "A `<boolean>` can't be made from `$l3` while its value, maybe, isn't true or false, so it is missing until it is.",
+                3,
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
+            ],
+            [
+                4,
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
             ],
         ]);
     });
