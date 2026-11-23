@@ -7,8 +7,8 @@
 
 use super::{PieceKind, operands};
 use crate::compile::api::*;
+use crate::components::ComponentDef;
 use crate::components::define::*;
-use crate::components::{ComponentDef, ComponentType};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::VecOp;
@@ -18,6 +18,7 @@ component! {
     /// of numbers (`numbers`, `number1`, ...). A request cannot change an
     /// entry.
     tags: ["sort"],
+    variant: Order::Increasing,
     flags: [copyable],
     default_prop: numbers,
     props {
@@ -44,7 +45,16 @@ component! {
 /// `<shuffle>`: its operands in an order drawn at load from the document
 /// seed (a seeded permutation, ADR 0041 decision 7), which no student
 /// can change; the values themselves follow their operands.
-pub(crate) const SHUFFLE: ComponentDef = DEFINITION.with_tags(&["shuffle"]);
+pub(crate) const SHUFFLE: ComponentDef = DEFINITION.variant(&["shuffle"], &Order::Drawn);
+
+/// The order a type of this table puts its operands in.
+#[derive(PartialEq)]
+pub(crate) enum Order {
+    /// Increasing: a `<sort>`'s.
+    Increasing,
+    /// Drawn at load: a `<shuffle>`'s.
+    Drawn,
+}
 
 /// Its entries: one instruction over a hidden port per operand
 /// ([`operands`]), and for a `<shuffle>` a draw (a scope constant) before
@@ -65,7 +75,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let n = pieces.len();
     let mut wiring = ElemWiring::with_list(ty, n);
     if n > 0 {
-        let shuffle = ty == ComponentType::Shuffle;
+        let shuffle = *ty.variant::<Order>() == Order::Drawn;
         let draw = shuffle.then(|| wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw))));
         let mut args: Vec<Port> = draw.into_iter().collect();
         args.extend(operands(

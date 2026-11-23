@@ -93,6 +93,14 @@ methods. Rules for planners:
   compile refuses one standing free. A type that cannot be extended says
   `flags: [not_extendable]`, and the compile refuses the extend; no
   planner sees `extend` (its record is the merge).
+- Types that differ only in what they compute share one block, and the
+  planner they share matches on no type: the block says what it is among
+  them (`variant: Reduction::All` on `<and>`), each other type is the
+  definition under its own tag with its own value (`DEFINITION.variant(&["or"],
+  &Reduction::Any)`), and the planner reads it back
+  (`ctx.component_type().variant::<Reduction>()`). The value is of
+  whatever type the planner chooses: an operator the program already has,
+  or an enum beside the block (`operators/fold.rs`).
 - What a planner would know about another type belongs to that type: a
   point constrained to a component wires what the target declares
   (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`,
