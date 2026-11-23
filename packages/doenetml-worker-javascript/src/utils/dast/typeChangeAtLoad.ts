@@ -90,7 +90,10 @@ import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 import { ownSettingOfWrapper } from "../wrappers";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
-import { checkNamesAfterCollectionsAtLoad } from "./namesAfterCollectionsAtLoad";
+import {
+    checkNamesAfterCollectionsAtLoad,
+    type NameAfterCollection,
+} from "./namesAfterCollectionsAtLoad";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
@@ -497,7 +500,7 @@ export function checkTypeChangesAtLoad({
     collectionItemWarnings: CollectionItemWarning[];
     branchReads: Map<SerializedComponent, BranchRead>;
     /** a name or a property after a collection (D59, `doenet-w0200`) */
-    nameAfterCollectionDiagnostics: DiagnosticRecord[];
+    nameAfterCollectionDiagnostics: NameAfterCollection[];
 } {
     const branchNameWarnings: BranchNameWarning[] = [];
     const collectionItemWarnings: CollectionItemWarning[] = [];

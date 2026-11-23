@@ -812,6 +812,11 @@ export default class Copy extends CompositeComponent {
 
                             if (
                                 typeof source === "string" ||
+                                // a component in error has no properties,
+                                // and its error is reported where it is
+                                // (DIAG-5): `$r[1].hidden` of an error in
+                                // place of an iteration is a blank
+                                source.componentType === "_error" ||
                                 indexPastConditional ||
                                 (indexPastComposite &&
                                     componentInfoObjects.allComponentClasses[
@@ -4449,6 +4454,15 @@ export async function replacementFromProp({
         if (propName === "__no_target_found") {
             // find name of prop from unresolvedPath position and doenetML
             const unresolvedPath = await component.stateValues.unresolvedPath;
+
+            if (replacementSource?.componentType === "_error") {
+                // A component in error has no properties and nothing an
+                // index selects, and its error is reported where it is
+                // (DIAG-5): `$r[1].hidden` of a `<repeat>` in `doenet-e0005`
+                // reports nothing more: a blank, as a reference to a
+                // component in error is (VAL-5).
+                return blankReplacement();
+            }
 
             if (unresolvedPath[0].name === "") {
                 // An index was left over: what the reference reached produces
