@@ -537,6 +537,7 @@ impl<'c> Builder<'c> {
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
                 referent: Vec::with_capacity(guess),
+                links: Vec::new(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),

@@ -300,7 +300,8 @@ pub(super) const fn definition(
         rewrite: None,
         settle: None,
         extend_value: None,
-        triggered: None,
+        actions: &[],
+        triggers: None,
         numbered: None,
         submit: None,
         roles: &[],
@@ -402,9 +403,15 @@ impl ComponentDef {
         self.extend_value = Some(value);
         self
     }
-    /// What pressing a trigger above it requests ([`super::Triggered`]).
-    pub(super) const fn triggered(mut self, triggered: super::Triggered) -> Self {
-        self.triggered = Some(triggered);
+    /// Its actions ([`super::ActionDecl`], ADR 0040).
+    pub(super) const fn actions(mut self, actions: &'static [super::ActionDecl]) -> Self {
+        self.actions = actions;
+        self
+    }
+    /// What presses it besides a student ([`super::Triggers`], ADR 0042).
+    #[allow(dead_code)]
+    pub(super) const fn triggers(mut self, triggers: super::Triggers) -> Self {
+        self.triggers = Some(triggers);
         self
     }
     /// How its full number and title read ([`super::Numbered`]).
@@ -412,7 +419,7 @@ impl ComponentDef {
         self.numbered = Some(numbered);
         self
     }
-    /// What a submit does to a component of the type ([`super::Submit`]).
+    /// What an answer's response is ([`super::Submit`]).
     pub(super) const fn submit(mut self, submit: super::Submit) -> Self {
         self.submit = Some(submit);
         self
@@ -639,13 +646,17 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// vertices)`, `CollectsByAttr(componentType, from)` or `FromMathText(f)`
 /// says what outlining settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
 /// `Point(f)`, `Expr(f)` or `List` says what `extend="$x.prop"` makes of
-/// the value ([`super::ExtendValue`]). `triggered: Sets(target, value)`
-/// says what a trigger requests ([`super::Triggered`]), and `numbered:
+/// the value ([`super::ExtendValue`]). `triggers { when: p }` says the
+/// rise of the 0/1 prop `p` presses it ([`super::Triggers`], ADR 0042),
+/// and `numbered:
 /// Titled(include, label, f)` how a number and title read
-/// ([`super::Numbered`]). `submit: Copies(response, submitted)` or
-/// `Counted(response, submitted, count)` says what a submit does
-/// ([`super::Submit`]). A prop option `infinite` lets a prop hold
-/// infinity. A prop
+/// ([`super::Numbered`]). `submit: Copies(response, submitted)` says
+/// what an answer's response is, for what reads one ([`super::Submit`]).
+/// `actions { submitAnswer: submit, pointClicked: nothing [Click] }`
+/// lists the type's actions, each a function over an
+/// [`ActionView`](crate::document::ActionView) returning requests, an
+/// act unless marked a `[Click]` or `[Focus]` ([`super::ActionDecl`], ADR
+/// 0040). A prop option `infinite` lets a prop hold infinity. A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
@@ -718,11 +729,11 @@ macro_rules! component {
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
-        $(triggered: $trkind:ident ($($trarg:tt)+),)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
+        $(actions { $($actname:ident : $actfn:path $([$actev:ident])?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(machinery: $mach:ident,)?
         $(owner: $owner:ident,)?
@@ -741,11 +752,15 @@ macro_rules! component {
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
-                $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
+                $(.actions(&[$($crate::components::ActionDecl {
+                    name: stringify!($actname),
+                    run: $actfn,
+                    event: $crate::components::define::component!(@event $($actev)?),
+                }),*]))?
                 .children(CHILDREN)
                 $(.machinery($crate::components::Machinery::$mach))?
                 $(.owner($crate::components::ComponentType::$owner))?
@@ -772,7 +787,7 @@ macro_rules! component {
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
-        $(triggered: $trkind:ident ($($trarg:tt)+),)?
+        $(triggers { when: $twhen:ident $(,)? })?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
@@ -802,6 +817,7 @@ macro_rules! component {
             $(graph: $ctgraph:ident)? $(,)?
         })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
+        $(actions { $($actname:ident : $actfn:path $([$actev:ident])?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(machinery: $mach:ident,)?
@@ -828,7 +844,9 @@ macro_rules! component {
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
-                $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
+                $(.triggers($crate::components::Triggers {
+                    when: $crate::components::define::at(PROPS, stringify!($twhen)),
+                }))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
@@ -852,6 +870,11 @@ macro_rules! component {
                     $(graph $ctgraph)?
                 )))?
                 .attributes(ATTRS)
+                $(.actions(&[$($crate::components::ActionDecl {
+                    name: stringify!($actname),
+                    run: $actfn,
+                    event: $crate::components::define::component!(@event $($actev)?),
+                }),*]))?
                 .children(CHILDREN)
                 $(.params(&[$(stringify!($param)),*]))?
                 $(.machinery($crate::components::Machinery::$mach))?
@@ -954,23 +977,13 @@ macro_rules! component {
         $crate::components::Submit {
             response: $crate::components::define::at(PROPS, stringify!($response)),
             submitted: $crate::components::define::at(PROPS, stringify!($submitted)),
-            count: None,
         }
     };
-    (@submit Counted($response:ident, $submitted:ident, $count:ident)) => {
-        $crate::components::Submit {
-            response: $crate::components::define::at(PROPS, stringify!($response)),
-            submitted: $crate::components::define::at(PROPS, stringify!($submitted)),
-            count: Some($crate::components::define::at(PROPS, stringify!($count))),
-        }
-    };
-    // What pressing a trigger requests, and how a number and title read.
-    (@triggered Sets($target:ident, $value:ident)) => {
-        $crate::components::Triggered {
-            target: $crate::components::define::at(PROPS, stringify!($target)),
-            value: $crate::components::define::at(PROPS, stringify!($value)),
-        }
-    };
+    // What an action is to a component waiting on it: an act unless
+    // marked `[Click]` or `[Focus]`.
+    (@event) => { $crate::components::Event::Act };
+    (@event $ev:ident) => { $crate::components::Event::$ev };
+    // How a number and title read.
     (@numbered Titled($include:ident, $label:ident, $title:path)) => {
         $crate::components::Numbered {
             include_parent: $crate::components::define::at(PROPS, stringify!($include)),
@@ -1186,6 +1199,8 @@ macro_rules! component {
     (@kind Text) => { $crate::components::AttrKind::Text };
     (@kind Math) => { $crate::components::AttrKind::Math };
     (@kind Ref) => { $crate::components::AttrKind::Ref };
+    (@kind Component) => { $crate::components::AttrKind::Component };
+    (@kind After($ev:ident)) => { $crate::components::AttrKind::After($crate::components::Event::$ev) };
     (@kind $other:ident $(($($karg:tt)*))?) => {
         compile_error!(concat!(
             "component!: attribute kind `", stringify!($other),
@@ -1208,6 +1223,8 @@ macro_rules! component {
     (@field Text) => { Option<String> };
     (@field Math) => { Option<Box<[$crate::dast::NodeId]>> };
     (@field Ref) => { Option<$crate::compile::ir::RefId> };
+    (@field Component) => { Option<$crate::compile::ir::RefId> };
+    (@field After($ev:ident)) => { bool };
     (@get Scalar, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Value, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Point, $r:ident, $a:expr) => { $r.point($a) };
@@ -1224,6 +1241,8 @@ macro_rules! component {
     (@get Text, $r:ident, $a:expr) => { $r.text($a) };
     (@get Math, $r:ident, $a:expr) => { $r.math($a) };
     (@get Ref, $r:ident, $a:expr) => { $r.reference($a) };
+    (@get Component, $r:ident, $a:expr) => { $r.reference($a) };
+    (@get After($ev:ident), $r:ident, $a:expr) => { $r.bool($a, false) };
     (@planner $kind:ident) => { $crate::compile::api::Planner::$kind };
     (@planner $kind:ident ($f:path)) => { $crate::compile::api::Planner::$kind($f) };
     (@list_points table [$([$x:ident, $y:ident]),+]) => {

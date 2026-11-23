@@ -253,7 +253,7 @@ impl Record {
         }
     }
 
-    /// A `Ref`: the reference, none when absent. No type declares one yet.
+    /// A `Ref` or a `Component`: the reference, none when absent.
     #[allow(dead_code)]
     pub(crate) fn reference(&self, attr: Attr) -> Option<RefId> {
         match self.get(attr) {
@@ -728,6 +728,26 @@ impl Reader<'_> {
                 })?;
                 AttrValue::Ref(self.plan_ref(ar, t, scope, m)?)
             }
+            // A component, not a prop of one; the compile records it on the
+            // plan as well (`Planning::plan_links`).
+            AttrKind::Component => {
+                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+                    attr: decl.name.into(),
+                    text: self.attr_text(a).unwrap_or_default(),
+                })?;
+                let p = self.plan_ref(ar, t, scope, m)?;
+                if ar.refs[p.index()].prop.is_some() {
+                    return Err(Error::Unsupported(format!(
+                        "{}=\"{}\" must name a component, not a prop of one",
+                        decl.name,
+                        self.attr_text(a).unwrap_or_default()
+                    )));
+                }
+                AttrValue::Ref(p)
+            }
+            // Only whether it is written: the compile records what it names
+            // on the plan (`Planning::plan_links`).
+            AttrKind::After(_) => AttrValue::Bool(true),
         })
     }
 }

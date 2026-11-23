@@ -17,6 +17,7 @@ use crate::program::{Program, SymRun, SymState, ValueType};
 use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
+mod act;
 mod interactive;
 mod load;
 mod outputs;
@@ -27,6 +28,7 @@ mod state;
 mod sticky;
 mod table;
 
+pub use act::ActionView;
 pub use load::{LoadOptions, LoadTimings};
 pub(crate) use table::ChildEntry;
 pub use table::{Child, ComponentTable};

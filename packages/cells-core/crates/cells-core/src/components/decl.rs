@@ -52,11 +52,15 @@ pub struct ComponentDef {
     /// What `extend="$x.prop"` makes of the value for an element of the
     /// type; `None` for a type that cannot extend a prop.
     pub(crate) extend_value: Option<ExtendValue>,
-    /// What pressing a trigger above an element of the type requests.
-    pub triggered: Option<Triggered>,
+    /// The type's actions, each a function over the built document that
+    /// returns requests (ADR 0040).
+    pub actions: &'static [ActionDecl],
+    /// What presses a component of the type besides a student (ADR 0042).
+    pub triggers: Option<Triggers>,
     /// How a numbered component's full number and title read.
     pub numbered: Option<Numbered>,
-    /// What a submit does to a component of the type.
+    /// What an answer's response is, for what reads an answer's responses
+    /// (not for its submit, which is an action).
     pub submit: Option<Submit>,
     /// The roles the type plays for the core: what it makes when it needs a
     /// root, a refused element's box, an iteration's index, ... Each role is
@@ -157,6 +161,14 @@ pub enum AttrKind {
     Math,
     /// One reference and nothing else.
     Ref,
+    /// One reference to a component, not a prop (`target="$ans"`): the
+    /// component an action of the type acts on (ADR 0040). The compile
+    /// records it on the element's plan and the build resolves it.
+    Component,
+    /// References to components, separated by spaces, whose `event`
+    /// presses the element (`triggerWith="$a $b"`, ADR 0042). The compile
+    /// records them on the element's plan and the build resolves them.
+    After(Event),
 }
 
 /// One attribute a type's planner reads.
@@ -480,29 +492,63 @@ pub(crate) enum ExtendValue {
     List,
 }
 
-/// What pressing a trigger above an element requests (ADR 0038): `target`
-/// gets `value`'s current value (an `<updateValue>`). Positions in the
-/// type's table.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Triggered {
-    /// The prop requested.
-    pub target: usize,
-    /// The prop whose current value it asks for.
-    pub value: usize,
+/// One of a type's actions (ADR 0040): a name a renderer, a
+/// `<callAction>` or another action calls it by, and the function that
+/// returns the requests it makes, over a read-only view of the built
+/// document. `event` says what it is to a component waiting on it
+/// (`triggerWith`, `triggerWhenObjectsClicked`, ADR 0042).
+#[derive(Clone, Copy)]
+pub struct ActionDecl {
+    /// The name it is called by, matched without regard to case.
+    pub name: &'static str,
+    /// What it requests, given its arguments.
+    pub run: fn(&crate::document::ActionView<'_>, &[f64]) -> Vec<crate::tick::Request>,
+    /// What it is to a component waiting on it.
+    pub event: Event,
 }
 
-/// What a submit does to a component (ADR 0038): copies its live
-/// `response` into `submitted`, and counts the submission in `count` when
-/// it counts them (an answer, and each response of one). Positions in the
-/// type's table.
+impl std::fmt::Debug for ActionDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ActionDecl")
+            .field("name", &self.name)
+            .field("event", &self.event)
+            .finish()
+    }
+}
+
+/// What an action is to a component waiting on it (ADR 0042): an act
+/// (`triggerWith` waits on one), a click (`triggerWhenObjectsClicked`) or
+/// a focus (`triggerWhenObjectsFocused`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Event {
+    /// The action itself: a press, a submit.
+    Act,
+    /// A click on the component, which changes nothing of it.
+    Click,
+    /// The component taking focus, which changes nothing of it.
+    Focus,
+}
+
+/// What presses a component of the type besides a student (ADR 0042): the
+/// rise of its 0/1 prop `when` (`triggerWhen`), and the events of the
+/// components its `after` attributes name (`triggerWith`), each a
+/// follow-up tick of the tick that raised or fired it.
+#[derive(Debug, Clone, Copy)]
+pub struct Triggers {
+    /// The 0/1 prop whose rise from 0 to 1 presses it.
+    pub when: usize,
+}
+
+/// What an answer's response is (ADR 0038): its live `response` and the
+/// `submitted` copy its submit takes, for what reads an answer's responses
+/// and inputs. The submit itself is an action of the type (ADR 0040).
+/// Positions in the type's table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Submit {
     /// The prop a submit reads.
     pub response: usize,
     /// The prop it writes the response into.
     pub submitted: usize,
-    /// The prop counting the submissions, when it counts them.
-    pub count: Option<usize>,
 }
 
 /// How a numbered component's full number and title read (ADR 0038): its

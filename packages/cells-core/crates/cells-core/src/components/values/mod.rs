@@ -122,11 +122,19 @@ pub mod response {
         default_prop: value,
         props {
             response: by_planner { read_by_action },
-            // A submit writes it (`Document::submit`).
+            // A submit writes it (its answer's `submitAnswer`).
             submitted: by_planner { written_by_action, expr_of: submitted },
             value: by_planner { expr_of: submitted },
         }
+        actions { submit: submit }
         owner: Answer,
+    }
+
+    /// `submit`, which its answer's submit calls: copies the live response
+    /// into the submitted cell.
+    fn submit(view: &crate::document::ActionView<'_>, _args: &[f64]) -> Vec<crate::tick::Request> {
+        let at = Props::AT;
+        vec![view.request(at.submitted, view.value(at.response))]
     }
 
     /// The position of `response`: the input's live expression.
@@ -246,13 +254,20 @@ pub mod update_value {
         /// for `newValue`'s current value.
         tags: ["updateValue"],
         renders: Never,
-        triggered: Sets(target, newValue),
         props {
-            // Pressing its `<triggerSet>` requests it (`Document::trigger`).
+            // Pressing it, or its `<triggerSet>`, requests it (`trigger`).
             target: attr(NO_VALUE) { written_by_action },
             newValue: attr(NO_VALUE) { read_by_action },
         }
+        actions { trigger: update, updateValue: update }
         planner: Props,
+    }
+
+    /// `trigger` (and the current core's `updateValue`): requests
+    /// `newValue`'s current value on its target.
+    fn update(view: &crate::document::ActionView<'_>, _args: &[f64]) -> Vec<crate::tick::Request> {
+        let at = Props::AT;
+        vec![view.request(at.target, view.value(at.newValue))]
     }
 
     /// The position of `target`: an alias of the target's value cell.

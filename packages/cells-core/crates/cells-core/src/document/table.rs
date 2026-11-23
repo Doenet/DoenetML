@@ -37,9 +37,37 @@ pub struct ComponentTable {
     /// holds no cell for (a label, how a number is displayed) a renderer reads
     /// through it.
     pub referent: Vec<CompIdx>,
+    /// What each component's `Component` and `After` attributes name
+    /// (ADR 0040, 0042), as (component, attribute's position among its
+    /// type's declared attributes, the component named), sorted by
+    /// component.
+    pub links: Vec<(CompIdx, u16, CompIdx)>,
 }
 
 impl ComponentTable {
+    /// What `c`'s attributes of the declarations' position `attr` name,
+    /// in the order written.
+    pub fn linked(&self, c: CompIdx, attr: u16) -> impl Iterator<Item = CompIdx> + '_ {
+        let start = self.links.partition_point(|&(k, _, _)| k < c);
+        self.links[start..]
+            .iter()
+            .take_while(move |&&(k, _, _)| k == c)
+            .filter(move |&&(_, a, _)| a == attr)
+            .map(|&(_, _, t)| t)
+    }
+
+    /// The component `c`'s `target` names: what its type's `Component`
+    /// attribute resolved to (ADR 0040).
+    pub fn target(&self, c: CompIdx) -> Option<CompIdx> {
+        let ty = self.component_type[c.index()];
+        let attr = ty
+            .def()
+            .attributes
+            .iter()
+            .position(|a| a.kind == crate::components::AttrKind::Component)?;
+        self.linked(c, attr as u16).next()
+    }
+
     /// The cell indices of component `c`'s props, in prop order
     /// (`prop_cells` from `prop_base[c]`); the cells themselves are not
     /// contiguous.
