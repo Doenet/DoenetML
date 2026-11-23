@@ -210,6 +210,8 @@ pub(crate) struct ElemWiring {
     /// How many entries the list holds after the table's props: two ports
     /// a point, one a value (`ComponentType::list_width`).
     n_points: usize,
+    /// The kind of the entries, when the element decides it (ADR 0053).
+    own_entry: Option<EntryKind>,
     /// Which port holds each given leaf, by what gave it.
     given: HashMap<GivenId, Port>,
 }
@@ -268,6 +270,7 @@ impl ElemWiring {
             component_type,
             props: vec![None; n_table],
             n_points: 0,
+            own_entry: None,
             given: HashMap::new(),
         }
     }
@@ -283,16 +286,52 @@ impl ElemWiring {
         wiring
     }
 
+    /// Wiring for an element of `component_type`, a type whose entries
+    /// are its operands' ([`EntryKind::Any`]), whose list holds `n`
+    /// entries of kind `entry`, which the element decides (ADR 0053):
+    /// [`EntryKind::width`] public ports an entry, set by
+    /// `set_entry_cells`.
+    pub(crate) fn with_entries(component_type: ComponentType, n: usize, entry: EntryKind) -> Self {
+        let mut wiring = Self::of(component_type);
+        wiring.n_points = n;
+        wiring.own_entry = Some(entry);
+        wiring.props.resize(wiring.n_public(), None);
+        wiring
+    }
+
+    /// The layout of the list: the type's, with the entries the element
+    /// decides.
+    fn shape(&self) -> ListShape {
+        ListShape::new(self.component_type, self.own_entry)
+    }
+
     /// How many of the ports are public: the table's props and the list's
     /// points.
     fn n_public(&self) -> usize {
-        self.component_type.prop_defs().len() + self.component_type.list_props(self.n_points)
+        self.component_type.prop_defs().len() + self.shape().list_props(self.n_points)
+    }
+
+    /// The entries' cells, `width` wires an entry in order, which fill
+    /// the public ports after the table's props, for a list of any width.
+    pub(crate) fn set_entry_cells(&mut self, cells: Vec<Wire>) {
+        assert_eq!(
+            cells.len(),
+            self.n_points * self.shape().width(),
+            "the wiring holds the entries' cells"
+        );
+        let start = self.component_type.prop_defs().len();
+        for (i, w) in cells.into_iter().enumerate() {
+            self.props[start + i] = Some(w.source);
+            if let Some(id) = w.given {
+                self.given.insert(id, Port::table(start + i));
+            }
+        }
     }
 
     /// The port holding entry `k` (0-based) of a value list (ADR 0041).
     pub(crate) fn entry(&self, k: usize) -> Port {
         assert!(
-            k < self.n_points && self.component_type.list_width() == 1,
+            k < self.n_points && self.shape().width() == 1,
             "entry {k} of a value list of {}",
             self.n_points
         );
@@ -316,8 +355,7 @@ impl ElemWiring {
     /// which fill the public ports after the entries.
     pub(crate) fn set_companion(&mut self, wires: Vec<Wire>) {
         assert_eq!(wires.len(), self.n_points, "one per entry");
-        let start = self.component_type.prop_defs().len()
-            + self.component_type.list_width() * self.n_points;
+        let start = self.component_type.prop_defs().len() + self.shape().width() * self.n_points;
         for (k, w) in wires.into_iter().enumerate() {
             self.props[start + k] = Some(w.source);
             if let Some(id) = w.given {
@@ -463,7 +501,9 @@ impl ElemWiring {
     /// Every port's source, by [`Port::index`], and how many points the list
     /// holds: what an element's plan keeps of it.
     pub(crate) fn finish(self) -> (Vec<Source>, ListLen) {
-        let list = if self.component_type.given_coords().is_some() {
+        let list = if let Some(entry) = self.own_entry {
+            ListLen::Entries(self.n_points as u32, entry)
+        } else if self.component_type.given_coords().is_some() {
             ListLen::Points(self.n_points as u32)
         } else {
             ListLen::None

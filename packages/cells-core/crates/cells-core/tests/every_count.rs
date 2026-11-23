@@ -446,6 +446,23 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <number name="n">$s + $r[$k].c</number>"#,
     ),
+    (
+        // A sort and a shuffle of points, whose entries are two cells
+        // each (ADR 0053), their copies, a choice between two, and one in
+        // a repeat whose count a cell sets.
+        "sorted-points",
+        r#"<numberInput name="k" value="1"/><booleanInput name="b"/>
+        <graph><point name="A">(1,2)</point><point name="B">($k,0)</point>
+          <vector name="V" displacement="(3,1)"/>
+          <sort name="s">$A $B $V</sort><shuffle name="h">$A $B</shuffle>
+          <sort name="t" sortByComponent="2" type="boolean">true false $b</sort></graph>
+        <p>$s $h</p><sort name="c" extend="$s"/>
+        <conditionalContent><case condition="$b"><sort name="x">$A $B</sort></case>
+          <else><sort name="x">$B $A</sort></else></conditionalContent>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <shuffle name="q">$A $B</shuffle>
+        </repeatForSequence>"#,
+    ),
 ];
 
 #[test]

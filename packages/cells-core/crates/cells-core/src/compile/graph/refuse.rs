@@ -157,7 +157,7 @@ pub(crate) fn refuse_warnings(
         while asked[at] != cell {
             at += 1;
         }
-        let (ci, pi, np) = owner[at];
+        let (ci, pi, _) = owner[at];
         let comp = g.comps[ci];
         let ty = comp.component_type;
         let (who, node) = match comp.elem {
@@ -171,7 +171,7 @@ pub(crate) fn refuse_warnings(
             }
             None => (format!("<{}>", ty.tag()), None),
         };
-        let prop = match ty.prop_name(np, pi) {
+        let prop = match comp.prop_name(pi) {
             Some(name) => format!("{who}.{name}"),
             None => who,
         };
@@ -216,7 +216,7 @@ pub(super) fn slot_label(g: &TemplateGraph, c: CompiledRef<'_>, n: GraphNode) ->
             s => Some(c.dast.strings.get(s).trim().to_string()),
         });
     let owner = name.unwrap_or_else(|| format!("<{}>#{ci}", comp.component_type.tag()));
-    match comp.component_type.prop_name(comp.n_public as usize, pi) {
+    match comp.prop_name(pi) {
         Some(name) => format!("{owner}.{name}"),
         None => format!("{owner}.(hidden slot {pi})"),
     }

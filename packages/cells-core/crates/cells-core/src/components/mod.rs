@@ -18,6 +18,7 @@ pub(crate) mod geometry;
 pub(crate) mod inputs;
 pub(crate) mod operators;
 pub mod prop;
+mod shape;
 pub(crate) mod structure;
 #[cfg(test)]
 pub(crate) mod test_only;
@@ -25,6 +26,7 @@ pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
 pub use decl::*;
+pub use shape::ListShape;
 
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any element. Every other attribute must be read by the type's
@@ -489,17 +491,7 @@ impl ComponentType {
         else {
             return None;
         };
-        Some(
-            match entry {
-                EntryKind::Number => Role::Value,
-                EntryKind::Text => Role::TextValue,
-                EntryKind::Boolean => Role::BooleanValue,
-                // What the cell holds, read as it holds it (ADR 0053).
-                EntryKind::Math | EntryKind::Any => Role::MathValue,
-                EntryKind::Point => Role::ListPoint,
-            }
-            .ty(),
-        )
+        Some(shape::entry_row_type(entry))
     }
 
     /// The ports of a row of this type (an [`ComponentType::entry_row`])
@@ -683,38 +675,23 @@ impl ComponentType {
     }
 
     /// The position of coordinate `j` of list point `k` (1-based) in an
-    /// element with `n_props` props, if the element has that point.
+    /// element with `n_props` props, if the element has that point, when
+    /// the element's entries are the type's ([`ListShape::list_slot`]).
     pub fn list_slot(self, n_props: usize, k: usize, j: usize) -> Option<usize> {
-        let (n_table, w) = (self.prop_defs().len(), self.list_width());
-        (w > 0 && j < w && k >= 1 && n_table + w * k <= n_props).then(|| n_table + w * (k - 1) + j)
+        self.shape().list_slot(n_props, k, j)
     }
 
     /// The name of prop `pi` of an element with `n_props` public props:
     /// the table's, or a list coordinate (`throughX2`); None for a hidden
-    /// slot.
+    /// slot ([`ListShape::prop_name`]).
     pub fn prop_name(self, n_props: usize, pi: usize) -> Option<std::borrow::Cow<'static, str>> {
-        let n_table = self.prop_defs().len();
-        if pi < n_table {
-            return Some(self.prop_defs()[pi].name.into());
-        }
-        let coords = self.given_coords().filter(|_| pi < n_props)?;
-        if let Some(companion) = self.list().and_then(|l| l.companion)
-            && self.companion_slots(n_props).contains(&pi)
-        {
-            let k = pi - self.companion_slots(n_props).start + 1;
-            return Some(format!("{companion}{k}").into());
-        }
-        let w = coords.len();
-        let (k, j) = ((pi - n_table) / w + 1, (pi - n_table) % w);
-        Some(format!("{}{k}", coords[j]).into())
+        self.shape().prop_name(n_props, pi)
     }
 
-    /// How many points the list of an element with `n_props` props holds.
+    /// How many points the list of an element with `n_props` props holds
+    /// ([`ListShape::list_len`]).
     pub fn list_len(self, n_props: usize) -> usize {
-        match self.list_width() {
-            0 => 0,
-            w => (n_props - self.prop_defs().len()) / (w + self.companion_width()),
-        }
+        self.shape().list_len(n_props)
     }
 
     /// How many cells an entry has in the list's companion sequence
@@ -724,20 +701,23 @@ impl ComponentType {
     }
 
     /// How many public props an element with `n` list entries has after
-    /// its table's: the entries' cells, then the companion sequence's.
+    /// its table's: the entries' cells, then the companion sequence's
+    /// ([`ListShape::list_props`]).
     pub fn list_props(self, n: usize) -> usize {
-        (self.list_width() + self.companion_width()) * n
+        self.shape().list_props(n)
     }
 
     /// The positions of the companion sequence ([`ListProp::companion`])
-    /// of an element with `n_props` props.
+    /// of an element with `n_props` props ([`ListShape::companion_slots`]).
     pub fn companion_slots(self, n_props: usize) -> std::ops::Range<usize> {
-        if self.companion_width() == 0 {
-            return 0..0;
-        }
-        let n = self.list_len(n_props);
-        let start = self.prop_defs().len() + self.list_width() * n;
-        start..start + n
+        self.shape().companion_slots(n_props)
+    }
+
+    /// The list shape of an element of the type whose entries are the
+    /// type's: every element's but a `<sort>`'s or `<shuffle>`'s of
+    /// points or booleans, whose entries are its own (ADR 0053).
+    pub fn shape(self) -> ListShape {
+        ListShape::new(self, None)
     }
 
     /// Whether prop `pi` of an element with `n_props` public props is
