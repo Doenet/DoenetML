@@ -302,6 +302,7 @@ pub(super) const fn definition(
         extend_value: None,
         triggered: None,
         numbered: None,
+        counted: None,
         submit: None,
         roles: &[],
         structure_kind: None,
@@ -410,6 +411,11 @@ impl ComponentDef {
     /// How its full number and title read ([`super::Numbered`]).
     pub(super) const fn numbered(mut self, numbered: super::Numbered) -> Self {
         self.numbered = Some(numbered);
+        self
+    }
+    /// The counter it takes a number from ([`super::Counted`]).
+    pub(super) const fn counted(mut self, counted: super::Counted) -> Self {
+        self.counted = Some(counted);
         self
     }
     /// What a submit does to a component of the type ([`super::Submit`]).
@@ -642,7 +648,9 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// the value ([`super::ExtendValue`]). `triggered: Sets(target, value)`
 /// says what a trigger requests ([`super::Triggered`]), and `numbered:
 /// Titled(include, label, f)` how a number and title read
-/// ([`super::Numbered`]). `submit: Copies(response, submitted)` or
+/// ([`super::Numbered`]); `counted: Figures(number)` or `counted:
+/// Footnotes` the document-wide counter it takes a number from, and the
+/// prop saying whether it does ([`super::Counted`], ADR 0044). `submit: Copies(response, submitted)` or
 /// `Counted(response, submitted, count)` says what a submit does
 /// ([`super::Submit`]). A prop option `infinite` lets a prop hold
 /// infinity. A prop
@@ -720,6 +728,7 @@ macro_rules! component {
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggered: $trkind:ident ($($trarg:tt)+),)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(counted: $cokind:ident $(($cowhen:ident))?,)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
@@ -743,6 +752,7 @@ macro_rules! component {
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.counted($crate::components::define::component!(@counted $cokind [] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
@@ -774,6 +784,7 @@ macro_rules! component {
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggered: $trkind:ident ($($trarg:tt)+),)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(counted: $cokind:ident $(($cowhen:ident))?,)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
         props {
@@ -830,6 +841,7 @@ macro_rules! component {
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.counted($crate::components::define::component!(@counted $cokind [PROPS] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
@@ -969,6 +981,19 @@ macro_rules! component {
         $crate::components::Triggered {
             target: $crate::components::define::at(PROPS, stringify!($target)),
             value: $crate::components::define::at(PROPS, stringify!($value)),
+        }
+    };
+    // The counter it takes a number from, and the prop saying whether.
+    (@counted $kind:ident [$($props:ident)?]) => {
+        $crate::components::Counted {
+            counter: $crate::components::Counter::$kind,
+            when: None,
+        }
+    };
+    (@counted $kind:ident [$props:ident] [$when:ident]) => {
+        $crate::components::Counted {
+            counter: $crate::components::Counter::$kind,
+            when: Some($crate::components::define::at($props, stringify!($when))),
         }
     };
     (@numbered Titled($include:ident, $label:ident, $title:path)) => {

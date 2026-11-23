@@ -1264,7 +1264,6 @@ mod tests {
             InlineMath,
             DisplayMath,
             MathRow,
-            Aside,
             SideBySide,
             Stack,
             Tabular,

@@ -56,6 +56,9 @@ pub struct ComponentDef {
     pub triggered: Option<Triggered>,
     /// How a numbered component's full number and title read.
     pub numbered: Option<Numbered>,
+    /// The document-wide counter a component of the type takes its number
+    /// from ("Figure 2", a footnote's marker), read when asked (ADR 0044).
+    pub counted: Option<Counted>,
     /// What a submit does to a component of the type.
     pub submit: Option<Submit>,
     /// The roles the type plays for the core: what it makes when it needs a
@@ -503,6 +506,29 @@ pub struct Submit {
     pub submitted: usize,
     /// The prop counting the submissions, when it counts them.
     pub count: Option<usize>,
+}
+
+/// A document-wide counter (ADR 0044): the components that advance one
+/// are numbered 1, 2, ... in document order, through the active cases
+/// only, whatever their type. The current core's counters: figures and
+/// tables share `sectioning`, footnotes have their own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Counter {
+    /// Figures and tables ("Figure 1", "Table 2").
+    Figures,
+    /// Footnotes (their markers).
+    Footnotes,
+}
+
+/// How a component of the type takes a number from a [`Counter`] (ADR
+/// 0044): it advances `counter` when its `when` prop is nonzero (a
+/// figure's `number`), or always without one.
+#[derive(Debug, Clone, Copy)]
+pub struct Counted {
+    /// The counter it advances.
+    pub counter: Counter,
+    /// The 0/1 prop saying whether it takes a number; always without one.
+    pub when: Option<usize>,
 }
 
 /// How a numbered component's full number and title read (ADR 0038): its
