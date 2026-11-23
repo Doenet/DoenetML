@@ -290,8 +290,9 @@ describe("Missing values and missing tags (D37) @group2", () => {
     `);
         // A missing number entry makes a sum of numbers missing, and a missing
         // operand makes a boolean operator missing, whatever the other
-        // operands: a number or a boolean can't hold a blank (D40, #2460).
-        expect(text).eq("[＿ + 3][＿][＿ + 3][false][false][＿][＿]");
+        // operands: a number or a boolean can't hold a blank (D40, #2460). A
+        // comparison with a missing operand is missing too (VAL-5, #2656).
+        expect(text).eq("[＿ + 3][＿][＿ + 3][＿][＿][＿][＿]");
     });
 
     it("treats a bare reference with no referent as a blank operand, as the tag", async () => {
@@ -612,37 +613,27 @@ describe("Missing content and missing values (D40) @group2", () => {
         );
     });
 
-    it("keeps a math, text or comparison holding a missing reference as it was, and makes a number or boolean computed from it missing", async () => {
-        // The blank takes part in a math expression and a comparison (D37).
-        // A number or a boolean computed from it is missing (`n1`, `a1`,
-        // D40, #2460).
+    it("keeps a math or text holding a missing reference as it was, and makes a number, boolean or comparison computed from it missing", async () => {
+        // The blank takes part in a math expression (D37). A number or a
+        // boolean computed from it is missing (`n1`, `a1`, D40, #2460), and
+        // so is a comparison (`b1`, `b2`): a missing value never equals
+        // anything, so it is neither true nor false (VAL-5, #2656).
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <number name="nm" extend="$nothing"/>
     <p name="p">[<number name="n1">$nothing + 1</number>][<boolean name="b1">$nothing = 1</boolean>][<boolean name="b2">$nm = $nm</boolean>][<function name="f1">$nothing + 1</function>][<number name="n2">3</number>][<number name="n3"/>][<boolean name="b3"/>][<and name="a1">$nothing</and>][<math name="m1">$nothing</math>][<text name="t1">$nothing</text>][<math name="m2">$nothing + 1</math>][<text name="t2">x $nothing y</text>]</p>
     `);
         expect(text).eq(
-            "[＿][false][false][＿ + 1][3][NaN][false][＿][＿][＿][＿ + 1][x ＿ y]",
+            "[＿][＿][＿][＿ + 1][3][NaN][false][＿][＿][＿][＿ + 1][x ＿ y]",
         );
         const stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["n1", "a1"]) {
+        for (const name of ["n1", "a1", "b1", "b2"]) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .valueMissing,
                 name,
             ).eq(true);
         }
-        for (const name of [
-            "b1",
-            "b2",
-            "f1",
-            "n2",
-            "n3",
-            "b3",
-            "m1",
-            "t1",
-            "m2",
-            "t2",
-        ]) {
+        for (const name of ["f1", "n2", "n3", "b3", "m1", "t1", "m2", "t2"]) {
             expect(
                 Boolean(
                     stateVariables[await resolvePathToNodeIdx(name)].stateValues
@@ -684,7 +675,7 @@ describe("Missing content and missing values (D40) @group2", () => {
     <boolean name="bb">$nothing</boolean>
     <p name="p">[$n][$n.value][<boolean>$n = $n</boolean>][<boolean>$bb = $bb</boolean>][<math>$n + 1</math>]</p>
     `);
-        expect(text).eq("[＿][＿][false][false][＿ + 1]");
+        expect(text).eq("[＿][＿][＿][＿][＿ + 1]");
     });
 
     it("makes a number whose content is missing from it again once the reference names something", async () => {
@@ -909,7 +900,7 @@ describe("Missing content and missing values (D40) @group2", () => {
     <answer name="ans"><mathInput name="mi"/><award>x</award></answer>
     <p name="p">[<math name="m" extend="$ans.submittedResponse"/>][<boolean>$m = $m</boolean>]</p>
     `);
-        expect(text).eq("[＿][false]");
+        expect(text).eq("[＿][＿]");
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("m")].stateValues
@@ -917,7 +908,7 @@ describe("Missing content and missing values (D40) @group2", () => {
         ).eq(true);
         expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
             "_blank",
-            "boolean",
+            "_blank",
         ]);
 
         await updateMathInputValue({
@@ -957,7 +948,7 @@ describe("Missing content and missing values (D40) @group2", () => {
                 `${doenetML}
     <p name="p">[<text name="t1">${reference}</text>][<text name="t2">x ${reference} y</text>][${reference}][<math name="m">${reference}</math>][<boolean name="b">${reference} = ${reference}</boolean>]</p>`,
             );
-            expect(text, reference).eq("[＿][x ＿ y][＿][＿][false]");
+            expect(text, reference).eq("[＿][x ＿ y][＿][＿][＿]");
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1360,7 +1351,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
             p2: "＿, x",
             p3: "＿ ＿ [＿] ＿",
             p4: "＿, 2 ＿, 2",
-            p5: "false",
+            p5: "＿",
         });
         await check(true);
 
@@ -1433,7 +1424,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
             p1: "[＿] [＿] ＿, 2",
             p2: "＿ ＿",
-            p3: "false",
+            p3: "＿",
         });
         await check(true);
 
@@ -1457,7 +1448,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
             p1: "[＿] [＿] ＿, 2",
             p2: "＿ ＿",
-            p3: "false",
+            p3: "＿",
         });
         await check(true);
     });
@@ -1718,7 +1709,7 @@ describe("A value computed from a missing input (D40) @group2", () => {
             ["p", "p2"],
         );
         expect(texts.p).eq("[＿][＿][＿][＿][NaN][NaN][0]");
-        expect(texts.p2).eq("[＿][＿ + 1][false]");
+        expect(texts.p2).eq("[＿][＿ + 1][＿]");
         for (const [name, missing] of [
             ["n1", true],
             ["n2", true],
@@ -1777,7 +1768,7 @@ describe("A value computed from a missing input (D40) @group2", () => {
         expect(texts.p).eq("[1 + ＿][1 + ＿][＿][＿][＿][3][＿][＿]");
     });
 
-    it("makes a boolean computed from a missing operand missing, whatever the other operand, and keeps a comparison false", async () => {
+    it("makes a boolean computed from a missing operand missing, whatever the other operand, a comparison included", async () => {
         const { texts, stateVariables, resolvePathToNodeIdx } = await textsOf(
             `
     <booleanList name="bl">true</booleanList>
@@ -1786,13 +1777,15 @@ describe("A value computed from a missing input (D40) @group2", () => {
     `,
             ["p", "p2"],
         );
-        expect(texts.p).eq("[＿][＿][＿][false][true][false][＿]");
-        expect(texts.p2).eq("[＿][＿][＿][＿][false][true]");
+        // a comparison with a missing operand is missing too (VAL-5, #2656)
+        expect(texts.p).eq("[＿][＿][＿][＿][＿][false][＿]");
+        // a test of a missing value is missing too (D70)
+        expect(texts.p2).eq("[＿][＿][＿][＿][＿][true]");
         for (const [name, missing] of [
             ["b1", true],
             ["b3", true],
-            ["b4", false],
-            ["b5", false],
+            ["b4", true],
+            ["b5", true],
             ["b6", false],
         ] as const) {
             expect(
@@ -2106,7 +2099,7 @@ describe("Missing content read by a math and a list (#2516, #2525) @group2", () 
         ).eqls([true, false]);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("[＿, 3][false]");
+        ).eq("[＿, 3][＿]");
     });
 
     it("reads the blank entries of a property of every entry, by a repeat, while they are blank", async () => {
@@ -2279,7 +2272,7 @@ describe("Missing values, round 3 (#2544) @group2", () => {
         }
         expect(await missing()).eqls({
             result: { P: true, v: true, Q: true, B: true, N: true },
-            text: "[＿][＿][＿][＿][＿][false]",
+            text: "[＿][＿][＿][＿][＿][＿]",
         });
         // not drawn in the graph
         expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
@@ -2314,7 +2307,7 @@ describe("Missing values, round 3 (#2544) @group2", () => {
         });
         expect(await missing()).eqls({
             result: { P: true, v: true, Q: true, B: true, N: true },
-            text: "[＿][＿][＿][＿][＿][false]",
+            text: "[＿][＿][＿][＿][＿][＿]",
         });
     });
 
@@ -2475,7 +2468,7 @@ describe("Missing values, round 4 (#2596) @group2", () => {
         const names = ["A", "B", "C", "D", "E", "F"];
         expect(await missingAndShown(core, resolvePathToNodeIdx, names)).eqls({
             missing: { A: true, B: true, C: true, D: true, E: true, F: true },
-            text: "[＿][＿][＿][＿][＿][＿][false]",
+            text: "[＿][＿][＿][＿][＿][＿][＿]",
         });
         // not drawn, rather than drawn with blank coordinates
         expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
@@ -2900,7 +2893,7 @@ describe("Missing values, round 4 (#2596) @group2", () => {
                     .text,
             );
         }
-        expect(texts).eqls(["＿, ＿", "1 + ＿, 2 + ＿", "＿", "[false]"]);
+        expect(texts).eqls(["＿, ＿", "1 + ＿, 2 + ＿", "＿", "[＿]"]);
     });
 
     it("makes a point, vector or shape holding a reference that names nothing in a repeat missing, as outside it", async () => {

@@ -99617,7 +99617,7 @@
                 },
                 {
                     "name": "convertBoolean",
-                    "description": "Whether to read the content as true or false (a comparison or a boolean), giving 1 or 0. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
+                    "description": "Whether to count every boolean in the content (a boolean or a comparison) as 1 when true and 0 when false. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -100144,7 +100144,7 @@
                 },
                 {
                     "name": "convertBoolean",
-                    "description": "Whether to read the content as true or false (a comparison or a boolean), giving 1 or 0. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
+                    "description": "Whether to count every boolean in the content (a boolean or a comparison) as 1 when true and 0 when false. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
                     "defaultValue": false,
                     "values": [
                         "true",

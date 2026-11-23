@@ -157,6 +157,10 @@ export default class When extends BooleanComponent {
                     dependencyType: "stateVariable",
                     variableName: "otherChildrenByCode",
                 },
+                typeMixInLogic: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "typeMixInLogic",
+                },
             }),
             definition({ dependencyValues, usedDefault }) {
                 // evaluate logic in parsedExpression and return fraction correct
@@ -177,12 +181,20 @@ export default class When extends BooleanComponent {
                 // A condition computed from a missing operand is missing
                 // (`computedFromMissing`), and a missing condition gives no
                 // credit (D40, #2460): `<when>not $nothing</when>` is not
-                // satisfied, nor is `<when>$nothing or true</when>`.
+                // satisfied, nor is `<when>$nothing or true</when>`, nor a
+                // condition holding a type mix (`typeMixInLogic`, decided at
+                // load: `<when>not ($b = 1)</when>`, #2656).
                 if (
+                    dependencyValues.typeMixInLogic ||
                     logicTreeMissing({
                         logicTree: dependencyValues.parsedExpression.tree,
                         isMissingCode: (code) =>
                             childByCodeMissing(dependencyValues, code),
+                        // a reference to nothing, not a blank input
+                        isMissingCompared: (code) =>
+                            childByCodeMissing(dependencyValues, code, {
+                                referenceOnly: true,
+                            }),
                     })
                 ) {
                     return {

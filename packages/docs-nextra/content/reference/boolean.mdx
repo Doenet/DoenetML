@@ -15,6 +15,13 @@ A number is not true or false. A number where a boolean is wanted, such as
 blank, with a warning. Write `true` or `false`, or a comparison such as
 `<boolean>$n != 0</boolean>{:dn}`. Nor is a boolean a number: to count one as
 1 or 0, write [`<number convertBoolean>$b</number>{:dn}`](number.mdx).
+Comparing a boolean with a number (`<boolean>$b = 1</boolean>{:dn}`) or a
+number with `true` or `false` (`<boolean>$n = true</boolean>{:dn}`) is a blank
+too.
+
+A `<boolean>{:dn}` whose content holds such a blank is itself a blank, shown as
+`＿`, not `false`: a blank is never equal to anything, so an `<answer>{:dn}`
+with a `<booleanInput>{:dn}` doesn't credit the response `false` for it.
 
 <AttrPropDisplay name='boolean'/>
 

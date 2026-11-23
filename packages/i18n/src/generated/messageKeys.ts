@@ -504,6 +504,7 @@ export type MessageKey =
     | "attribute-name-case"
     | "attribute-written-twice"
     | "boolean-number-mix"
+    | "counted-boolean-compared-with-number"
     | "text-ordered-against-number"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
@@ -1230,6 +1231,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "attribute-name-case",
     "attribute-written-twice",
     "boolean-number-mix",
+    "counted-boolean-compared-with-number",
     "text-ordered-against-number",
     "list-brackets-unmatched",
     "list-reference-joins-entry",

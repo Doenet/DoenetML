@@ -6,6 +6,7 @@ import {
     missingWhileSourceMissingDefinition,
     missingWhileAdaptedMissingDefinition,
     contentMissingDefinition,
+    valueFalseWhileMissing,
 } from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
@@ -393,6 +394,13 @@ export default class BaseComponent {
      * `＿ + 1`), nor on a container (`<p>`), which shows the blank inline.
      */
     static missingWhenContentMissing = false;
+
+    /**
+     * Whether a component of this type has a boolean `value` that is `false`
+     * while it is missing (D70, `valueFalseWhileMissing` in `utils/missing.ts`):
+     * set on `<boolean>`, so on every tag whose value is a boolean.
+     */
+    static valueFalseWhileMissing = false;
 
     /**
      * Whether a component of this type is missing while its value is
@@ -1306,6 +1314,14 @@ export default class BaseComponent {
 
         //  add state variable definitions from component class
         let newDefinitions = this.returnStateVariableDefinitions(numerics);
+
+        if (
+            this.valueFalseWhileMissing &&
+            newDefinitions?.value &&
+            newDefinitions.valueMissing
+        ) {
+            newDefinitions.value = valueFalseWhileMissing(newDefinitions.value);
+        }
 
         if (!newDefinitions) {
             throw Error(

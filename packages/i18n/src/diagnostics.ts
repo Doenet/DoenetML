@@ -305,6 +305,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0205": "award-content-type-mix",
     "doenet-w0206": "award-content-several-inputs",
     "doenet-w0207": "award-content-for-answer-input",
+    "doenet-w0208": "counted-boolean-compared-with-number",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

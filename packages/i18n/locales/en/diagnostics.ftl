@@ -1167,6 +1167,8 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 #   `hide`); a comparison such as `!= 0` decides a boolean from a number.
 # - `literalAsBoolean`: a literal number where true or false is wanted.
 # - `comparedWithNumber`: a boolean compared with a number (`$b = 1`).
+# - `numberComparedWithBoolean`: a number compared with the word `true` or
+#   `false` (`$n = true`); $literal is that word.
 # - `mathInputBoundToBoolean`, `booleanInputBoundToNumber`: an input bound
 #   with `bindValueTo` to a value of the other type.
 # The words `true`, `false`, `convertBoolean`, `bindValueTo` and the tags are
@@ -1191,6 +1193,11 @@ boolean-number-mix = { $reason ->
                *[other] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
             }
         }
+        [numberComparedWithBoolean] { $form ->
+            [tag] This `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. To test it, write a comparison, such as one with `!= 0`.
+            [literal] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. Write `true` or `false` instead.
+           *[other] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. To test it, write a comparison such as `{ $source } != 0`.
+        }
         [mathInputBoundToBoolean] A `<mathInput>` can't edit `{ $source }`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="{ $source }"/>`.
         [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="{ $source }"/>`.
        *[numberAsBoolean] { $form ->
@@ -1198,6 +1205,27 @@ boolean-number-mix = { $reason ->
             [list] `{ $source }` holds numbers, not values that are true or false, so it is a blank here. To test one, write a comparison such as `{ $source }[1] != 0`.
            *[other] `{ $source }` is a number, not true or false, so it is a blank here. To test it, write a comparison such as `{ $source } != 0`.
         }
+    }
+
+# Inside a `<number convertBoolean>` (also an `<award>`'s or `<choice>`'s
+# `credit`), every boolean counts as 1 or 0 (D67 decision 1), so a boolean
+# compared with a number is compared as 1 or 0. That works, but is hard to
+# read, so the message suggests a plain form that means the same. $reason is
+# `boolean` for a boolean compared with a number that tests it is true
+# (`$b = 1`, `$b != 0`; $source is the boolean as written, `$b`, or logic in
+# parentheses, `($n > 1)`), `negated`
+# for one that tests it is false (`$b = 0`, `$b != 1`), `other` for any
+# other comparison of a boolean with a number (`$b > 0`, `$b = $n`), and
+# `literal` for a number compared with the word `true` or `false`
+# (`$n = true`; $source is the number as written, $literal the word, $count
+# the 1 or 0 it counts as, and $rewritten the comparison with $count in place
+# of the word, `$n = 1` or `$n != 1`). `true`, `false`, `not`,
+# `convertBoolean` and the references are DoenetML, so they stay in English.
+counted-boolean-compared-with-number = { $reason ->
+        [literal] Here `{ $literal }` counts as { $count }, so this compares `{ $source }` with { $count }. To say so, write `{ $rewritten }`, or, to test a number, a comparison such as `{ $source } != 0`.
+        [negated] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test that it is false, write `not { $source }` or `{ $source } = false`.
+        [other] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, compare it with `true` or `false` instead, such as `{ $source } = true`.
+       *[boolean] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, write `{ $source }` or `{ $source } = true`.
     }
 
 # Ordering a text against a number with `<`, `>`, `<=` or `>=` (D58): it is

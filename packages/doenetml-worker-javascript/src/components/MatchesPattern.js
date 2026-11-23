@@ -1,4 +1,5 @@
 import BooleanComponent from "./Boolean";
+import { anyChildMissingDefinition } from "../utils/missing";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
@@ -55,8 +56,8 @@ function replacePlaceholders(tree, placeholderFor) {
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
 
-    // not missing for a missing operand: a pattern match is a test, not a computation on the value (D40, VAL-5)
-    static missingWhenComputedFromMissing = false;
+    // missing while an operand is (D70: any logic with a missing operand is
+    // missing; `computedFromMissing` below), and so false as a condition
 
     /**
      * It tests its first `<math>` child, so of one written on its copy and
@@ -203,6 +204,9 @@ export default class MatchesPattern extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
+
+        stateVariableDefinitions.computedFromMissing =
+            anyChildMissingDefinition(["maths"]);
 
         stateVariableDefinitions.pattern = {
             additionalStateVariablesDefined: ["patternVariables"],
