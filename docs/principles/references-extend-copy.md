@@ -804,7 +804,11 @@ That is worth doing there, not retrofitting into the JavaScript core.
 `<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
 `copy` and `copyWithState` (D26). The allowed cases:
 - **between value types:**
-  - math, number and text among each other, and boolean and text. **A boolean is not a number
+  - math, number and text among each other, and text from a boolean (shown as the word). **A
+    text is not a boolean** (D68): `<boolean extend="$t"/>` is an error suggesting
+    `<boolean>$t = true</boolean>`; a text where a boolean is wanted is a blank with `w0203`.
+    **Known violation** (#2659): `<boolean extend="$t"/>` converts the words `true`/`false`, and
+    the other forms are a silent `false`. **A boolean is not a number
     or a math** (D47 decision 3): `<math extend="$b"/>` is an error that suggests
     `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. A number
     is not a boolean either (D47 decision 4): `<boolean extend="$n"/>` is an error suggesting

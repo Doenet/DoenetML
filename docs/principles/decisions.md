@@ -3519,3 +3519,28 @@ Each follows the recommendation in its issue.
 8. **`$slider.items` of a `from`/`to`/`step` slider is the values it steps through** (#2581 item
    4), as a list, as it is for a slider given its items. It can then take an index (#2581 item 5).
 
+## D68. A text is never read as a boolean; a comparison decides one (decided, November 2026)
+
+**Why.** REF-5 listed "boolean and text" among the related value types, so `<boolean extend="$t"/>`
+of a text holding `true` was `true`. Every other form gave a silent `false`: `<boolean><text>true
+</text></boolean>`, `<boolean>$t</boolean>`, `<boolean>$ti</boolean>` of a `<textInput>`,
+`hide="$t"` and `<booleanInput bindValueTo="$t"/>`. Reading the word "true" as the boolean is the
+conversion D47 decision 4 ruled out for a number: one the author didn't ask for. It also let a
+`<label>` that says "true" become a boolean through its text (#2659).
+
+**Decided** (the same rule as D47 decision 4):
+1. **`<boolean extend="$t"/>` of a text is `e0065`**, suggesting `<boolean>$t = true</boolean>`.
+   The same goes for anything that stands in as a text (a `<label>`, a `<textInput>`, a
+   `<choiceInput>` of texts).
+2. **A text where a boolean is wanted is a type mix:** a blank in its place with `w0203`, suggesting
+   the comparison. This covers a `<boolean>`'s or `<when>`'s content, a boolean attribute
+   (`hide="$t"`) and `<booleanInput bindValueTo="$t"/>`.
+3. **A comparison decides a boolean from a text:** `$t = true`, `$animal = cat`. A literal `true` or
+   `false` written as a boolean, or in a boolean attribute, is a keyword, not a text.
+4. **A boolean still shows as the word `true` or `false` in text** (`<text>$b</text>`,
+   `<text extend="$b"/>`): that is display, as for a number (D47).
+
+`<boolean extend="$ci"/>` of a `<choiceInput>` whose choices are "true" and "false" followed the
+selection (`type_change_run_time.test.ts`); it becomes `e0065`, suggesting `$ci = true`.
+Implementation: with PR 50 (#2659).
+
