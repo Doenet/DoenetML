@@ -91,8 +91,9 @@ impl<'a> Planning<'a> {
 
     /// How many entries value list `x` of template `t` has, when its
     /// record tells: one per piece of text, the entries each reference and
-    /// element child among its children contributes, cut at its
-    /// `maxNumber`; a bare copy's, its referent's. None for one in a loop
+    /// element child among its children contributes, less as many as its
+    /// list declares (`from_children`) and cut at its `maxNumber`; a bare
+    /// copy's, its referent's. None for one in a loop
     /// of lists, or one whose children did not parse.
     fn list_len(
         &self,
@@ -127,7 +128,8 @@ impl<'a> Planning<'a> {
                         }
                     };
                 }
-                Some(n)
+                let less = el.component_type.list_from_children().unwrap_or(0);
+                Some(n.saturating_sub(usize::from(less)))
             }
         };
         visiting.pop();
@@ -236,14 +238,13 @@ impl<'a> Planning<'a> {
     }
 }
 
-/// Whether a type is a value list: a static sequence of the values its
-/// children give, cut at its `maxNumber` (ADR 0041), which is what its
-/// list declares (`max_by`). An operator over a list of operands
-/// (`<sort>`, `<differences>`) computes its entries, as many as its
-/// operator makes, and is not one.
+/// Whether a type is a list of values whose count follows its children's
+/// (ADR 0041, a static sequence): a value list's, cut at its `maxNumber`,
+/// or a list operator's (`<sort>`, `<cumulativeSum>`, `<differences>`),
+/// as its list declares (`from_children`).
 fn is_value_list(ty: ComponentType) -> bool {
     ty.def().children.kind == crate::components::ChildrenKind::List
-        && ty.list_max_attr().is_some()
+        && ty.list_from_children().is_some()
         && ty
             .list_entry()
             .is_some_and(|k| k != crate::components::EntryKind::Point)

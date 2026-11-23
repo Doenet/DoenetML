@@ -26,7 +26,7 @@ component! {
     list {
         names: [numbers, values],
         item: number,
-        values: number of Number,
+        values: number of Number, entries: children,
         rendered: true,
     }
     alternate_names {
@@ -44,7 +44,8 @@ pub(crate) const CUMULATIVE_MIN: ComponentDef = DEFINITION.with_tags(&["cumulati
 pub(crate) const CUMULATIVE_MAX: ComponentDef = DEFINITION.with_tags(&["cumulativeMax"]);
 /// `<differences>`: each operand less the one before it, one fewer than
 /// its operands.
-pub(crate) const DIFFERENCES: ComponentDef = DEFINITION.with_tags(&["differences"]);
+pub(crate) const DIFFERENCES: ComponentDef =
+    DEFINITION.with_tags(&["differences"]).with_entries_less(1);
 
 /// What a type of this table computes over its operands' prefixes.
 fn scan(ty: ComponentType) -> Scan {

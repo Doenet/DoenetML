@@ -26,7 +26,7 @@ component! {
     list {
         names: [numbers, values],
         item: number,
-        values: number of Number,
+        values: number of Number, entries: children,
         rendered: true,
     }
     alternate_names {

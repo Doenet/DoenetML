@@ -19,7 +19,7 @@ component! {
     list {
         names: [booleans, values],
         item: boolean,
-        values: boolean of Boolean, max_by: maxNumber,
+        values: boolean of Boolean, max_by: maxNumber, entries: children,
         rendered: true,
     }
     alternate_names {

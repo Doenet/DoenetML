@@ -374,7 +374,12 @@ otherwise.
    (`Splice::Nothing`); anything else one value, as before. The count is
    the referent's pieces, its references' contributions in turn and its
    literal `maxNumber`, a bare copy's its referent's; the read is
-   recorded, so a box it names boxes the reader. `list_entries`
+   recorded, so a box it names boxes the reader. A list operator's count
+   follows its children's the same way, as its list declares
+   (`from_children`: as many for `<sort>`, `<shuffle>` and the
+   cumulative operators, one fewer for `<differences>`), so
+   `<differences><cumulativeSum>$nl</cumulativeSum></differences>` reads
+   its entries. `list_entries`
    (`PlanCtx`) gives the value lists and every operator over a list of
    operands (`<sum>`, `<mean>`, the cumulative and index operators,
    `argMin`, `argMax`, `<sort>`) the same entries.
@@ -410,7 +415,8 @@ otherwise.
      a cell, are left: the first needs the engine's `list` head (decision
      8), the second is structural (step 4).
    - A reference to a list in an iteration (`$r[1].l`), or a `<sequence>`
-     or a sampler among a list's children, still contributes one value,
+     or a sampler among a list's children (`from_children` none), still
+     contributes one value,
      refused as an arity mismatch when it names several: their counts are
      structural (step 4).
 

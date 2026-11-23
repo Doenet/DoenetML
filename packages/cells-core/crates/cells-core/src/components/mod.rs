@@ -450,6 +450,16 @@ impl ComponentType {
         }
     }
 
+    /// How many fewer entries the type's list has than its children
+    /// contribute, when its count follows its children's (a value list's,
+    /// a `<sort>`'s, a `<cumulativeSum>`'s, one for a `<differences>`).
+    pub(crate) fn list_from_children(self) -> Option<u8> {
+        match self.list()?.points {
+            ListPoints::Given { from_children, .. } => from_children,
+            ListPoints::Table(_) => None,
+        }
+    }
+
     /// Whether the type's given list holds points, two cells an entry.
     pub fn lists_points(self) -> bool {
         self.list_width() == 2

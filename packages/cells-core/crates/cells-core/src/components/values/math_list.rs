@@ -20,7 +20,7 @@ component! {
     list {
         names: [maths, values],
         item: math,
-        values: math of Math, max_by: maxNumber,
+        values: math of Math, max_by: maxNumber, entries: children,
         rendered: true,
     }
     alternate_names {

@@ -621,6 +621,11 @@ pub enum ListPoints {
         /// The attribute whose literal number cuts the entries a value
         /// list's children give (`maxNumber`, ADR 0041).
         max_by: Option<crate::compile::api::Attr>,
+        /// How a value list's count follows its children (ADR 0041): as
+        /// many entries as they contribute, less this many (one for a
+        /// `<differences>`), cut at `max_by`; None for a list whose count
+        /// is no count of its children (a sequence's, a sampler's).
+        from_children: Option<u8>,
         /// What an entry is: a point, or a value of a kind.
         entry: EntryKind,
     },

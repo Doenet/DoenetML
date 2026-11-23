@@ -110,3 +110,20 @@ fn an_empty_list_is_the_missing_value() {
     assert!(v(&doc, "n", "value").is_nan());
     assert_eq!(v(&doc, "s", "value"), 2.0);
 }
+
+/// A list operator's entries are as many as its operator makes of its
+/// children's, and are spliced where a list's are.
+#[test]
+fn a_list_operator_contributes_its_entries() {
+    let doc = load(
+        r#"<numberList name="nl">5 3 8 1</numberList>
+           <p name="count"><count><differences>30 75 87 147</differences></count></p>
+           <p name="undo"><differences><cumulativeSum>$nl</cumulativeSum></differences></p>
+           <p name="sorted"><numberList><sort>$nl</sort> 9</numberList></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "count"), "3");
+    assert_eq!(text(&doc, "undo"), "3, 8, 1");
+    assert_eq!(text(&doc, "sorted"), "1, 3, 5, 8, 9");
+    assert_eq!(reference::check(&doc), None);
+}

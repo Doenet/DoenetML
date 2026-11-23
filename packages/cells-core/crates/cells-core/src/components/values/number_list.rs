@@ -19,7 +19,7 @@ component! {
     list {
         names: [numbers, values],
         item: number,
-        values: number of Number, max_by: maxNumber,
+        values: number of Number, max_by: maxNumber, entries: children,
         rendered: true,
     }
     alternate_names {
