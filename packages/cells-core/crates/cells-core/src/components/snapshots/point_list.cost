@@ -4,5 +4,6 @@ an authored point is its own entry, and a reference's entry is its source's: cel
 a point list among the children gives its points: cells 19 · essential 10 · constant 9 · instrs 0 · components 9
 maxNumber keeps the first points: cells 13 · essential 8 · constant 5 · instrs 0 · components 5
 a copy has the referent's points, and a drag of its entry moves them: cells 17 · essential 12 · constant 5 · instrs 0 · components 9
-a click on an entry presses what names it, and what names the authored point: cells 20 · essential 11 · constant 6 · instrs 3 · components 14
+a click on an entry presses what names it, the authored point and the list: cells 22 · essential 12 · constant 6 · instrs 4 · components 17
+a click on one made entry is not a click on another: cells 17 · essential 9 · constant 7 · instrs 1 · components 9
 a callAction on an entry calls the row's action; one past the end does nothing: cells 17 · essential 9 · constant 7 · instrs 1 · components 12

@@ -1,7 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
-Status: proposed 2026-11-10. Step 1 of the Migration is done, and
-step 2's first two pieces, with their departures recorded there. Drafted as 0038, and renumbered as `cells`
+Status: proposed 2026-11-10. Step 1 of the Migration is done,
+step 2's first two pieces, and step 3, with their departures recorded
+there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
@@ -450,6 +451,52 @@ otherwise.
      which no value of this core rounds yet.
 3. **Entries as rows.** Rows per entry, renderer address `list:k`, targets.
    Test: `listentrytargets.test.ts`, `listcomponentvaluelistgraphs.test.ts`.
+
+   *Done 2026-11-23.* A type whose list's entries are its own
+   (`ListPoints::Given` with no attribute: the value lists, the list
+   operators, the samplers and `<sequence>`, `<pointList>`) has a row
+   per entry (`ComponentType::entry_row`): a `number`, `text`,
+   `boolean`, `mathValue` or `point` (the roles `Value`, `TextValue`,
+   `BooleanValue`, `MathValue`, `ListPoint`), a child of the list, whose
+   entry ports (`entry_ports`) alias the entry's cells. A build makes
+   them after the copies of lists take their ports (`expand_rows`,
+   `build/expand/rows.rs`) and the template graph alike
+   (`compile/graph/rows.rs`); a `$ref` copy of a list has rows of its
+   own over its own entries. An element child of the entry's type that
+   contributes one entry is its own row (`ElemPlan::entry_elems`, from
+   `PlanCtx::element_rows`), so a click on it is a click on both.
+   `<pointList>` is a static sequence of its own points
+   (`PlanCtx::point_entries`: `(1,2)` pieces, references, authored
+   points, another point list's points spliced, a list prop's items,
+   `maxNumber`); `$pl[k]` steps to its row (`Collection::ListPoints`,
+   as for a point list made from a list prop), so `$pl[k].x` is a port of
+   the row and a drag of the row lands on the entry's source. A link
+   (`triggerWhenObjectsClicked`, `<callAction target>`) to `$l[k]` names
+   the row, and an event on a row is one on its list too. The bridge
+   draws each list as its rows, each by its own contract, separated by
+   commas outside a graph (`LIST_LIKE`), `asList="false"` turning them
+   off; the core's text of a list and of a point is likewise. Tested by
+   `point_list.spec.rs`, `tests/value_lists.rs` and the bridge tests.
+   Departures:
+
+   - The row of a value list's entry (`$l[k]`) is reached only as a
+     link; a value read of `$l[k]` is still the entry step of step 1, and
+     `$l[k].text` and `$l.text` (a port of every row) are not planned.
+     A point list's `$pl[k]` is the row in both.
+   - A link through an index by a cell (`$pl[$i]`) names nothing: links
+     are resolved per build, and the index is a cell.
+   - A `<math>` child of a `<mathList>` is not its own row (the row is a
+     `mathValue`, the child a `math`); its entry is drawn by a made row.
+   - A list's element children that are not rows (a nested list, a child
+     of another type) stay in the table under the list, not among its
+     children; a `<label>` child of a list is not among them either.
+   - An event's key (`document/act.rs`) tells components the compile made
+     apart by their place under the nearest authored component, so two
+     made rows are not one.
+   - `<ref to="$pl[2]">`, a legend's label for an entry, `<vectorList>`
+     (whose rows need a vector's tail and head wiring) and display
+     settings are not done; `<intervalList>` waits for the interval
+     component.
 4. **Structural sequences.** `<sequence>`, the samplers, a list with a
    repeat or a structural reference among its children, `<collect>`'s
    items, `<repeat for>` over any sequence, `maxNumber="$n"`. Test:

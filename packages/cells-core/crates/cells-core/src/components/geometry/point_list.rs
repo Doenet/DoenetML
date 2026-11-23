@@ -34,6 +34,8 @@ component! {
         numComponents: numPoints,
         numValues: numPoints,
     }
+    // Whether a renderer shows the entries separated by commas.
+    presentation { asList }
     attributes {
         maxNumber: Literal(f64::INFINITY),
     }

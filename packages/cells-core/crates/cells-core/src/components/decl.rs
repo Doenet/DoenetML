@@ -406,6 +406,9 @@ pub enum TextKind {
     /// Each child's text, trimmed, the empty ones left out, joined by a
     /// separator: an `<asList>`'s, its children separated by commas.
     Separated(&'static str),
+    /// Two numbers as a pair, `(1, 2)`: a point's coordinates, an entry of
+    /// a point list shown by itself (ADR 0041).
+    Pair(usize, usize),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):

@@ -14,6 +14,7 @@ component! {
     tags: ["point"],
     flags: [copyable, located],
     roles: [ListPoint],
+    text: Pair(x, y),
     extend_value: Point(props_of),
     default_prop: coords,
     props {

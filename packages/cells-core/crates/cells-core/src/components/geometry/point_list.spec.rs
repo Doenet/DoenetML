@@ -51,18 +51,31 @@ spec! {
         expect { "pl.point1" = (5, 6), "c.point1" = (5, 6) }
     }
 
-    case "a click on an entry presses what names it, and what names the authored point" {
+    case "a click on an entry presses what names it, the authored point and the list" {
         doenet r#"<graph><pointList name="pl"><point name="A">(1,2)</point> (3,4)</pointList></graph>
                   <number name="nA">0</number><number name="nAp">$nA + 1</number>
                   <number name="n2">0</number><number name="n2p">$n2 + 1</number>
                   <number name="nl">0</number><number name="nlp">$nl + 1</number>
                   <updateValue name="ua" target="$nA" newValue="$nAp" triggerWhenObjectsClicked="$A"/>
                   <updateValue name="u2" target="$n2" newValue="$n2p" triggerWhenObjectsClicked="$pl[2]"/>
-                  <updateValue name="ul" target="$nl" newValue="$nlp" triggerWhenObjectsClicked="$pl[1] $pl[5]"/>"#;
+                  <updateValue name="ul" target="$nl" newValue="$nlp" triggerWhenObjectsClicked="$pl[1] $pl[5]"/>
+                  <number name="nw">0</number><number name="nwp">$nw + 1</number>
+                  <updateValue name="uw" target="$nw" newValue="$nwp" triggerWhenObjectsClicked="$pl"/>"#;
         act("pl[2]", "pointClicked")
-        expect { "nA.value" = 0, "n2.value" = 1, "nl.value" = 0 }
+        expect { "nA.value" = 0, "n2.value" = 1, "nl.value" = 0, "nw.value" = 1 }
         act("pl[1]", "pointClicked")
-        expect { "nA.value" = 1, "n2.value" = 1, "nl.value" = 1 }
+        expect { "nA.value" = 1, "n2.value" = 1, "nl.value" = 1, "nw.value" = 2 }
+    }
+
+    case "a click on one made entry is not a click on another" {
+        doenet r#"<point name="P">(9,10)</point>
+                  <graph><pointList name="pl">(1,2) $P</pointList></graph>
+                  <number name="n">0</number><number name="np">$n + 1</number>
+                  <updateValue name="u" target="$n" newValue="$np" triggerWhenObjectsClicked="$pl[1]"/>"#;
+        act("pl[2]", "pointClicked")
+        expect { "n.value" = 0 }
+        act("pl[1]", "pointClicked")
+        expect { "n.value" = 1 }
     }
 
     case "a callAction on an entry calls the row's action; one past the end does nothing" {
