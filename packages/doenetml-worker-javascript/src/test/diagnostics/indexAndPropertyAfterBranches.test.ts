@@ -323,12 +323,20 @@ describe("An index after options or cases that hold several, decided at load (Do
 
     it("options of different shapes: the warning at load in every variant, the pick of several an info", async () => {
         // the option holding several written as a group was counted as one
-        // component, so only the variants picking it were told, at run time
+        // component, so only the variants picking it were told, at run time;
+        // so was a group written with `extend` or `copy`, read through what
+        // it extends (Doenet/DoenetML#2654 item 6)
+        // `g1` extends `g2`, so an extend of `g1` reads through both
+        const groups = `<setup><group name="g2"><math>3</math><math>4</math></group><group name="g1" extend="$g2"/></setup>`;
         for (const second of [
             "<math>3</math><math>4</math>",
             "<group><math>3</math><math>4</math></group>",
+            `<group extend="$g2"/>`,
+            `<group copy="$g2"/>`,
+            `<group><group extend="$g2"/></group>`,
+            `<group extend="$g1"/>`,
         ]) {
-            const doenetML = `<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
+            const doenetML = `${second.includes("$g") ? groups : ""}<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
 <p name="p">[$s[1][2]]</p>`;
             const texts = new Set<string>();
             for (const requestedVariantIndex of [1, 2]) {
@@ -354,6 +362,32 @@ describe("An index after options or cases that hold several, decided at load (Do
             }
             expect([...texts].sort()).eqls(["[2]", "[＿]"]);
         }
+    });
+
+    it("an option written as an extend of a group holding one component passes the index into it", async () => {
+        // read through what it extends (Doenet/DoenetML#2654 item 6), as a
+        // group written there is
+        const doenetML = `<setup><group name="g2"><math>(3,4)</math></group></setup><select name="s"><option><math>(1,2)</math></option><option><group extend="$g2"/></option></select>
+<p name="p">[$s[1][2]]</p>`;
+        const texts = new Set<string>();
+        for (const requestedVariantIndex of [1, 2]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            texts.add(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            );
+            const { warnings, infos } = getDiagnosticsByType(core);
+            expect(warnings).eqls([]);
+            expect(infos).eqls([]);
+        }
+        expect([...texts].sort()).eqls(["[2]", "[4]"]);
     });
 });
 

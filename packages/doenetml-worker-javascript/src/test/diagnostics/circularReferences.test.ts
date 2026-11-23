@@ -1159,17 +1159,6 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             '<point name="a"><label><p>$b</p></label></point><point name="b" extend="$a"/>',
             ["doenet-e0005 1:27-29"],
         ],
-        // A point made with `copy` pastes the DoenetML of what it copies,
-        // the reference to itself in its label included, which stopped the
-        // document when it was made ("duplicate componentIdx"): an error at
-        // load (found, not fixed, Doenet/DoenetML#2645). With `extend` it
-        // reads the point's value (below).
-        [
-            "2643",
-            "a copy of a point, as the point's label",
-            '<point name="a"><label>$b</label></point><point name="b" copy="$a"/>',
-            ["doenet-e0005 1:24-26"],
-        ],
         // A line, a vector or a circle has no math or text value to read
         // where a value is read, so a reference to one in a label is a copy
         // of it, label and all; through an extend of it in its own label it
@@ -1622,6 +1611,225 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             ).eq("rest");
         });
     }
+});
+
+/**
+ * Doenet/DoenetML#2654 items 1–3, decided at load (D14, NAME-7, DIAG-5,
+ * DIAG-7).
+ */
+describe("Cycles through what a container holds, through fixed, and a copy in its own label @group2", async () => {
+    // A reference to a container whose content is its children copies them,
+    // so `$q` in the label of a point `b` extends holds itself when `q`
+    // holds `$b`: `b` copies the label too. Before these containers were
+    // followed, the copies ran away without throwing and the worker hung
+    // (item 1). The `$b` in the container and the `$q` in the label are each
+    // `doenet-e0005`; the rest renders.
+    const graph =
+        '<graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>';
+    const containers: [string, string][] = [
+        [
+            "caption",
+            '<figure><caption name="q"><span>$b</span></caption>GRAPH</figure>',
+        ],
+        [
+            "caption, holding the reference bare",
+            '<figure><caption name="q">$b</caption>GRAPH</figure>',
+        ],
+        ["figure", '<figure name="q"><p>$b</p></figure>GRAPH'],
+        ["table", '<table name="q"><p>$b</p></table>GRAPH'],
+        [
+            "tabular",
+            '<tabular name="q"><row><cell>$b</cell></row></tabular>GRAPH',
+        ],
+        ["row", '<tabular><row name="q"><cell>$b</cell></row></tabular>GRAPH'],
+        [
+            "column",
+            '<spreadsheet><column name="q"><cell>$b</cell></column></spreadsheet>GRAPH',
+        ],
+        ["cell", '<tabular><row><cell name="q">$b</cell></row></tabular>GRAPH'],
+        [
+            "cellBlock",
+            '<spreadsheet><cellBlock name="q"><cell>$b</cell></cellBlock></spreadsheet>GRAPH',
+        ],
+        [
+            "spreadsheet",
+            '<spreadsheet name="q"><cell>$b</cell></spreadsheet>GRAPH',
+        ],
+        ["chart", '<chart name="q"><title>$b</title></chart>GRAPH'],
+        ["sideBySide", '<sideBySide name="q"><p>$b</p></sideBySide>GRAPH'],
+        [
+            "sbsGroup",
+            '<sbsGroup name="q"><sideBySide><p>$b</p></sideBySide></sbsGroup>GRAPH',
+        ],
+        ["stack", '<stack name="q"><p>$b</p></stack>GRAPH'],
+        ["panel", '<panel name="q"><p>$b</p></panel>GRAPH'],
+        ["page", '<paginator><page name="q"><p>$b</p></page></paginator>GRAPH'],
+        ["cascade", '<cascade name="q"><p>$b</p></cascade>GRAPH'],
+        ["hint", '<hint name="q"><p>$b</p></hint>GRAPH'],
+        [
+            "feedback",
+            '<feedback name="q" condition="true"><p>$b</p></feedback>GRAPH',
+        ],
+        ["solution", '<solution name="q"><p>$b</p></solution>GRAPH'],
+        ["givenAnswer", '<givenAnswer name="q"><p>$b</p></givenAnswer>GRAPH'],
+        [
+            "description",
+            '<mathInput><description name="q"><p>$b</p></description></mathInput>GRAPH',
+        ],
+        ["asList", '<asList name="q"><text>a</text>$b</asList>GRAPH'],
+        ["ref", '<ref name="q" to="https://doenet.org">a $b</ref>GRAPH'],
+    ];
+    /** Where each of `references` is written in `doenetML`, as `errorsAt` gives it. */
+    function at(doenetML: string, references: string[]) {
+        return references.map((reference) => {
+            const start = doenetML.indexOf(reference) + 1;
+            return `doenet-e0005 1:${start}-${start + reference.length}`;
+        });
+    }
+    for (const [tag, written] of containers) {
+        const doenetML = written.replace("GRAPH", graph);
+        it(`a ${tag} holding an extend of a point whose label holds it is an error at load`, async () => {
+            if (tag === "panel") {
+                // Reading the state of a `<p>` in a `<panel>` throws
+                // ("Unknown state variable width"), cycle or not, so only
+                // what is reported at load is read.
+                const { core } = await createTestCore({ doenetML });
+                expect(errorsAt(core)).eqls(at(doenetML, ["$b", "$q"]));
+                return;
+            }
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls(at(doenetML, ["$b", "$q"]));
+            expect(rest).eq("rest");
+        });
+    }
+
+    // Whether a component is fixed, or its location is, reads its own
+    // `fixed` (or `fixLocation`) and that of each component it is written
+    // in. The load check followed only `hidden`, so the backstop blamed one
+    // of these cycles and the other was gone from the rebuilt document
+    // (item 2).
+    for (const [description, doenetML, references] of [
+        [
+            "a group and a number in it, each fixed by its own fixed",
+            '<group name="g" fixed="$g.fixed"><number name="n" fixed="$n.fixed">1</number></group>',
+            ["$g.fixed", "$n.fixed"],
+        ],
+        [
+            "a number fixed by its own fixed",
+            '<number name="n" fixed="$n.fixed">1</number>',
+            ["$n.fixed"],
+        ],
+        [
+            "a paragraph fixed by whether a number in it is",
+            '<p name="q" fixed="$n.fixed"><number name="n">1</number></p>',
+            ["$n.fixed"],
+        ],
+        [
+            "two points fixed by each other's fixed",
+            '<graph><point name="P" fixed="$Q.fixed">(1,2)</point><point name="Q" fixed="$P.fixed">(3,4)</point></graph>',
+            ["$Q.fixed", "$P.fixed"],
+        ],
+        [
+            "a point whose location is fixed by its own fixLocation",
+            '<graph><point name="P" fixLocation="$P.fixLocation">(1,2)</point></graph>',
+            ["$P.fixLocation"],
+        ],
+        [
+            "a graph whose location is fixed by whether a point in it is",
+            '<graph name="G" fixLocation="$P.fixLocation"><point name="P">(1,2)</point></graph>',
+            ["$P.fixLocation"],
+        ],
+    ] as [string, string, string[]][]) {
+        it(`${description} is an error at load`, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls(at(doenetML, references));
+            expect(rest).eq("rest");
+        });
+    }
+
+    for (const [description, doenetML] of [
+        // `fixed` changes no value, so a value is read as ever
+        [
+            "a number fixed by its own value",
+            '<number name="n" fixed="$n.value > 0">1</number>',
+        ],
+        // what a component is written in does not read it
+        [
+            "a number fixed by the paragraph it is in",
+            '<p name="q"><number name="n" fixed="$q.fixed">1</number></p>',
+        ],
+        [
+            "a number fixed by another's fixed",
+            '<number name="m" fixed="$n.fixed">1</number><number name="n" fixed="true">2</number>',
+        ],
+        // A graph is not listed among the containers: where a point is read
+        // as a value (`$b` in `<when>`), it reads no label, and an extend of
+        // a point in a graph would hold the point's label.
+        [
+            "an award reading a point extended in a graph, whose label holds the award",
+            '<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>',
+        ],
+        // A point made with `copy` or `copyWithState` pastes the DoenetML of
+        // what it copies, the reference to itself in its label included,
+        // which reads its value (VAL-10), as with `extend` (item 3). It
+        // stopped the document when it was made ("Found a duplicate
+        // componentIdx"), so it was an error at load.
+        [
+            "a copy of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" copy="$a"/>',
+        ],
+        [
+            "a copy of a point with its state, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" copyWithState="$a"/>',
+        ],
+    ]) {
+        it(`${description} is not a cycle`, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls([]);
+            expect(rest).eq("rest");
+        });
+    }
+
+    it("a copy of a point read in the point's label shows the copy's coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph>
+<point name="a">(1,2)<label>$b</label></point>
+<point name="b" copy="$a"/>
+</graph>`,
+        });
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return Promise.all(
+                ["a", "b"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.label,
+                ),
+            );
+        }
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const start = "\\(\\left( 1, 2 \\right)\\)";
+        expect(await labels()).eqls([start, start]);
+        // unlinked: each moves alone, and both labels read `b`
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("b"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        const moved = "\\(\\left( 5, 6 \\right)\\)";
+        expect(await labels()).eqls([moved, moved]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(await labels()).eqls([moved, moved]);
+    });
 });
 
 /**

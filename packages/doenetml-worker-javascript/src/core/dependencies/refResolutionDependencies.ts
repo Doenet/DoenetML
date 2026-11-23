@@ -642,6 +642,14 @@ export class RefResolutionDependency extends Dependency {
             this.addUpdateTriggersForCompositeReplacements([
                 compositeCreating.componentIdx,
             ]);
+            // The composite making `nodeIdx` can itself be made again, in
+            // the same update as this resolution, after it (a `$cc.x` in
+            // the iteration `<math name="e2" extend="$r[1]"/>` copies,
+            // when the case changes), so the triggers just above are on one
+            // that is about to be deleted. Resolve again when `nodeIdx` is
+            // made anew (Doenet/DoenetML#2654 item 4), so `$e2[2]` doesn't
+            // keep the blank it found while `nodeIdx` was gone.
+            this.addUpdateTriggerForMissingComponent(nodeIdx);
         }
 
         // A list made by a `copy` or `extend` (`convertToCopy.ts`) has its

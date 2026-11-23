@@ -64,7 +64,9 @@
  * - a reference to the `hidden` of a component (`$n.hidden`), to the
  *   components in its `hide` and in the `hide` of each component it is
  *   written in, as whether it is hidden reads whether they are
- *   (Doenet/DoenetML#2643 item 10);
+ *   (Doenet/DoenetML#2643 item 10), and likewise a reference to its
+ *   `fixed` or `fixLocation`, to the components in that attribute of it
+ *   and of each component it is written in (Doenet/DoenetML#2654 item 2);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
@@ -92,8 +94,9 @@
  *   `<math>`, a `<text>`, a `<label>`, an `<em>`, …, which takes children, so
  *   not an `<evaluate>`), a tag whose content is its children
  *   (`CONTENT_FROM_CHILDREN`: a `<p>`, a `<section>`, a `<div>`, a `<li>`,
- *   …, a copy of which copies them, so that a reference to it in it holds
- *   itself), or a reference written as one, to each child;
+ *   a `<caption>`, a `<table>`, a `<cell>`, a `<hint>`, …, a copy of which
+ *   copies them, so that a reference to it in it holds itself), or a
+ *   reference written as one, to each child;
  * - an input, to the components in the attributes its value starts from
  *   (`INPUTS`: `prefill`, `bindValueTo`, …), but not to its children;
  * - a tag that is neither a composite nor an input, to the components in
@@ -244,6 +247,39 @@ const CONTENT_FROM_CHILDREN = [
     "_sectioningComponent",
     // `<title>`, `<shortDescription>`
     "_textOrInline",
+    // The containers below hung the worker before they were listed, when
+    // the reference to one ran through a label a copy copies (`<caption
+    // name="ca"><span>$b</span></caption>` with `<label>$ca</label>` in a
+    // point that `b` extends): the copies ran away without throwing, so
+    // nothing reported them (Doenet/DoenetML#2654 item 1). A `<solution>`
+    // can't be held in a label, but a reference to one in it holds itself
+    // the same way. Not a `<graph>`: a reference in one is a copy, label
+    // and all, but where it is read as a value (`<when>$b=1</when>`) it
+    // reads no label, and this list also says where a reference is
+    // written as content (`writtenAsContent`), so every `extend` of a point
+    // in a graph would hold its label, a false `doenet-e0005`.
+    "caption",
+    "figure",
+    "table",
+    "tabular",
+    "row",
+    "column",
+    "cell",
+    "cellBlock",
+    "spreadsheet",
+    "chart",
+    "sideBySide",
+    "sbsGroup",
+    "stack",
+    "panel",
+    "page",
+    "cascade",
+    "hint",
+    "feedback",
+    "solution",
+    "description",
+    "asList",
+    "ref",
 ];
 
 /**
@@ -1386,13 +1422,7 @@ export function breakReferenceCycles({
             }
             ancestors.push({ componentClass: ancestorClass });
         }
-        const unlinkedCopy =
-            target.componentType === "_copy" &&
-            target.extending !== undefined &&
-            ("CopyAttribute" in target.extending ||
-                "CopyWithStateAttribute" in target.extending);
         if (
-            !unlinkedCopy &&
             inherits(targetType, "_graphical") &&
             getSelfReferentialFallbackPropName({
                 componentAncestors: ancestors,
@@ -1402,10 +1432,10 @@ export function breakReferenceCycles({
         ) {
             // where a value is read, a graphical component with a math or a
             // text value is read as its value, not copied (`Copy.js`,
-            // `valueInPlaceOfCopy`). Not one made with `copy`, which pastes
-            // the DoenetML of what it copies, the reference to itself in its
-            // label included, which stops the document when it is made
-            // (Doenet/DoenetML#2645, found, not fixed)
+            // `valueInPlaceOfCopy`). Also one made with `copy` or
+            // `copyWithState`, which pastes the DoenetML of what it copies,
+            // the reference to itself in its label included: that reference
+            // reads the copy's value too (Doenet/DoenetML#2654 item 3).
             return false;
         }
         const parentClass =
@@ -1823,12 +1853,24 @@ export function breakReferenceCycles({
                 componentInfoObjects,
             }).map((composite) => expansionNode(composite.componentIdx));
         }
-        if (property === "hidden" && !forExpansion) {
+        const settingAttribute =
+            property === "hidden"
+                ? "hide"
+                : property === "fixed" || property === "fixLocation"
+                  ? property
+                  : undefined;
+        if (settingAttribute !== undefined && !forExpansion) {
             // whether it is hidden: its own `hide`, and whether what it is
             // written in is hidden, so the `hide` of each component it is
             // in (`hidden` in `BaseComponent.js`). `<group name="g"
             // hide="$g.hidden">` and `<number name="n" hide="$n.hidden">` in
-            // it are each a cycle (Doenet/DoenetML#2643 item 10).
+            // it are each a cycle (Doenet/DoenetML#2643 item 10). Whether it
+            // is fixed, or its location is, the same way: its own `fixed`
+            // (or `fixLocation`) and that of each component it is written in
+            // (`addContextAttributeDefinitions` in `contextAttribute.js`),
+            // so `<group name="g" fixed="$g.fixed">` and `<number name="n"
+            // fixed="$n.fixed">` in it are each a cycle too
+            // (Doenet/DoenetML#2654 item 2).
             const edges: number[] = [];
             for (
                 let hiding: SerializedComponent | undefined = target;
@@ -1842,7 +1884,7 @@ export function breakReferenceCycles({
                     componentInfoObjects.publicStateVariableInfo[hidingType]
                         ?.stateVariableDescriptions &&
                     !(
-                        "hidden" in
+                        property in
                         componentInfoObjects.publicStateVariableInfo[hidingType]
                             .stateVariableDescriptions
                     )
@@ -1855,7 +1897,7 @@ export function breakReferenceCycles({
                 for (const [name, attribute] of Object.entries(
                     hiding.attributes ?? {},
                 )) {
-                    if (name.toLowerCase() === "hide") {
+                    if (name.toLowerCase() === settingAttribute.toLowerCase()) {
                         edges.push(
                             ...componentsOfAttribute(attribute).map(
                                 (component) => component.componentIdx,

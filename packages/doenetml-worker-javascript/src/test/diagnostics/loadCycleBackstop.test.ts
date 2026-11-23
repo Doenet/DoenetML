@@ -202,46 +202,46 @@ $cc.hidden
         // the cycle is blamed, not it
         await expectBlamed(
             `<p name="p">hi</p>
-<section name="s" fixed="$n.fixed"/>
-<number name="n" fixed="$s.fixed" displayDigits="$s.sectionNumber">1</number>`,
-            "$n.fixed",
+<section name="s" disabled="$n.disabled"/>
+<number name="n" disabled="$s.disabled" displayDigits="$s.sectionNumber">1</number>`,
+            "$n.disabled",
         );
         await expectBlamed(
             `<p name="p">hi</p>
-<section name="s" fixed="$r[1].n.fixed"/>
-<repeatForSequence name="r" to="1"><number name="n" fixed="$s.fixed" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
-            "$r[1].n.fixed",
+<section name="s" disabled="$r[1].n.disabled"/>
+<repeatForSequence name="r" to="1"><number name="n" disabled="$s.disabled" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
+            "$r[1].n.disabled",
         );
         // a copy that writes the attribute the cycle runs through: the
-        // variable is the copy's (`m`'s `fixed`), not that of what it copies,
+        // variable is the copy's (`m`'s `disabled`), not that of what it copies,
         // so the number read in `n`'s `hide`, off the cycle, is not blamed
         // (that stopped the document: the rebuild met the same cycle)
         for (const copy of [
-            `<number extend="$n" name="m" fixed="$s.fixed"/>`,
-            `<number copy="$n" name="m" fixed="$s.fixed"/>`,
+            `<number extend="$n" name="m" disabled="$s.disabled"/>`,
+            `<number copy="$n" name="m" disabled="$s.disabled"/>`,
         ]) {
             await expectBlamed(
                 `<p name="p">hi</p>
-<section name="s" fixed="$m.fixed"/>
+<section name="s" disabled="$m.disabled"/>
 <number name="n" hide="$s.sectionNumber=5">1</number>
 ${copy}
 <section/>`,
-                "$m.fixed",
+                "$m.disabled",
             );
         }
         // the same with the copy in a repeat's template: the reference that
         // made it is an instance of the one written
         for (const copy of [
-            `<number extend="$n" name="m" fixed="$s.fixed"/>`,
-            `<number copy="$n" name="m" fixed="$s.fixed"/>`,
+            `<number extend="$n" name="m" disabled="$s.disabled"/>`,
+            `<number copy="$n" name="m" disabled="$s.disabled"/>`,
         ]) {
             await expectBlamed(
                 `<p name="p">hi</p>
-<section name="s" fixed="$r[1].m.fixed"/>
+<section name="s" disabled="$r[1].m.disabled"/>
 <number name="n" hide="$s.sectionNumber=5">1</number>
 <repeatForSequence name="r" to="1">${copy}</repeatForSequence>
 <section/>`,
-                "$r[1].m.fixed",
+                "$r[1].m.disabled",
             );
         }
     });
@@ -254,12 +254,12 @@ ${copy}
     it("in a chain of copies, blames the copy that writes the attribute", async () => {
         for (const kind of ["extend", "copy"]) {
             for (const chain of [
-                `<number ${kind}="$k" name="m" fixed="$m.fixed"/>`,
+                `<number ${kind}="$k" name="m" disabled="$m.disabled"/>`,
                 `<number ${kind}="$k" name="n"/>
-<number ${kind}="$n" name="m" fixed="$m.fixed"/>`,
+<number ${kind}="$n" name="m" disabled="$m.disabled"/>`,
                 `<number ${kind}="$k" name="j"/>
 <number ${kind}="$j" name="n"/>
-<number ${kind}="$n" name="m" fixed="$m.fixed"/>`,
+<number ${kind}="$n" name="m" disabled="$m.disabled"/>`,
             ]) {
                 await expectBlamed(
                     `<p name="p">hi</p>
@@ -350,8 +350,8 @@ $cc.hidden
             ],
             [
                 `<p name="p">hi</p>
-<repeatForSequence to="1"><p>$n</p><number name="n" fixed="$n.fixed">1</number></repeatForSequence>`,
-                "$n.fixed",
+<repeatForSequence to="1"><p>$n</p><number name="n" disabled="$n.disabled">1</number></repeatForSequence>`,
+                "$n.disabled",
             ],
         ]) {
             await expectBlamed(doenetML, blamed);
@@ -467,17 +467,17 @@ $r2[2].q
     it("two and three independent cycles are each blamed", async () => {
         expect(
             await blamedTexts(`<p name="p">hi</p>
-<number name="n" fixed="$n.fixed">1</number>
-<number name="m" fixed="$m.fixed">2</number>`),
-        ).eqls(["$n.fixed", "$m.fixed"]);
+<number name="n" disabled="$n.disabled">1</number>
+<number name="m" disabled="$m.disabled">2</number>`),
+        ).eqls(["$n.disabled", "$m.disabled"]);
         expect(
-            await blamedTexts(`<number name="n" fixed="$n.fixed">1</number>
+            await blamedTexts(`<number name="n" disabled="$n.disabled">1</number>
 <point name="P">($P.x+1, 2)</point>
 <p name="p">hi</p>
 $cc.hidden
 <conditionalContent name="cc" hide="$s.sectionNumber=1"><p>a</p></conditionalContent>
 <section name="s"/>`),
-        ).eqls(["$n.fixed", "$P.x", "$s.sectionNumber"]);
+        ).eqls(["$n.disabled", "$P.x", "$s.sectionNumber"]);
     });
 
     // Five rebuilds, so five independent cycles load; a sixth stops the
@@ -487,12 +487,12 @@ $cc.hidden
             Array.from(
                 { length: count },
                 (_, i) =>
-                    `<number name="n${i}" fixed="$n${i}.fixed">${i}</number>`,
+                    `<number name="n${i}" disabled="$n${i}.disabled">${i}</number>`,
             ).join("\n");
         expect(
             await blamedTexts(`<p name="p">hi</p>
 ${cycles(5)}`),
-        ).eqls(Array.from({ length: 5 }, (_, i) => `$n${i}.fixed`));
+        ).eqls(Array.from({ length: 5 }, (_, i) => `$n${i}.disabled`));
         await expect(
             createTestCore({
                 doenetML: `<p name="p">hi</p>
@@ -508,7 +508,7 @@ ${cycles(6)}`,
         for (const resolverSave of ["none", "restoreFails"] as const) {
             await expect(
                 createTestCore({
-                    doenetML: `<p name="p">hi</p><number name="n" fixed="$n.fixed">1</number>`,
+                    doenetML: `<p name="p">hi</p><number name="n" disabled="$n.disabled">1</number>`,
                     resolverSave,
                 }),
                 resolverSave,
@@ -523,7 +523,7 @@ ${cycles(6)}`,
         try {
             await expect(
                 createTestCore({
-                    doenetML: `<p name="p">hi</p><number name="n" fixed="$n.fixed">1</number>`,
+                    doenetML: `<p name="p">hi</p><number name="n" disabled="$n.disabled">1</number>`,
                 }),
             ).rejects.toThrow("Circular dependency");
         } finally {
