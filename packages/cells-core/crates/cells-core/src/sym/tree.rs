@@ -65,6 +65,9 @@ pub enum Tree<L> {
     /// A value with entries (ADR 0041, decision 8): a list, tuple, vector,
     /// interval, set or matrix, its entries in order (a matrix's by row).
     Shape(Shape, Vec<Tree<L>>),
+    /// Constant math text only the engine reads, as written: a relation
+    /// (`x > 1`) or anything else a tree cannot say. No leaves.
+    Written(String),
 }
 
 /// The head of a [`Tree::Shape`]: what kind of value its entries make.
@@ -108,6 +111,7 @@ impl<L: Copy> Tree<L> {
         Ok(match self {
             Tree::Num(v) => Tree::Num(*v),
             Tree::Sym(s) => Tree::Sym(s.clone()),
+            Tree::Written(s) => Tree::Written(s.clone()),
             Tree::Cell { cell, math } => {
                 let (cell, math) = f(*cell, *math)?;
                 Tree::Cell { cell, math }
@@ -142,6 +146,24 @@ impl<L: Copy> Tree<L> {
         })
     }
 
+    /// The tree with each tuple and array of two made an interval, open
+    /// or closed (`createIntervals`), as the engine's `to_intervals` makes
+    /// them; a list's entries likewise.
+    pub fn intervals(self) -> Tree<L> {
+        match self {
+            Tree::Shape(Shape::Tuple, ts) if ts.len() == 2 => {
+                Tree::Shape(Shape::Interval([false, false]), ts)
+            }
+            Tree::Shape(Shape::Array, ts) if ts.len() == 2 => {
+                Tree::Shape(Shape::Interval([true, true]), ts)
+            }
+            Tree::Shape(Shape::List, ts) => {
+                Tree::Shape(Shape::List, ts.into_iter().map(Tree::intervals).collect())
+            }
+            other => other,
+        }
+    }
+
     /// The same tree with each leaf mapped by `f`, keeping its kind.
     pub fn map_leaves<M>(&self, mut f: impl FnMut(L) -> M) -> Tree<M> {
         let r: Result<_, std::convert::Infallible> =
@@ -154,7 +176,7 @@ impl<L: Copy> Tree<L> {
     /// Each leaf with whether it is a math leaf, left to right.
     pub fn for_each_leaf(&self, f: &mut impl FnMut(L, bool)) {
         match self {
-            Tree::Num(_) | Tree::Sym(_) => {}
+            Tree::Num(_) | Tree::Sym(_) | Tree::Written(_) => {}
             Tree::Cell { cell, math } => f(*cell, *math),
             Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
                 ts.iter().for_each(|t| t.for_each_leaf(f))

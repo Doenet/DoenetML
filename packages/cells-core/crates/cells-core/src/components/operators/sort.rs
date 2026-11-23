@@ -28,7 +28,7 @@
 use super::operands;
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentDef, ComponentType, EntryKind};
+use crate::components::{ComponentDef, EntryKind};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -42,6 +42,7 @@ component! {
     /// dropped (it would move the entry); `asList="false"` shows the
     /// entries with no separator.
     tags: ["sort"],
+    variant: Order::Increasing,
     flags: [copyable],
     default_prop: values,
     props {
@@ -58,8 +59,9 @@ component! {
     alternate_names {
         numValues: numComponents,
     }
-    // Whether a renderer shows the entries separated by commas.
-    presentation { asList }
+    // Whether a renderer shows the entries separated by commas, and
+    // whether it hides them.
+    presentation { asList, hide }
     attributes {
         r#type: Text,
         asList: LiteralFlag,
@@ -75,7 +77,16 @@ component! {
 /// seed (a seeded permutation, ADR 0041 decision 7), which no student
 /// can change; the values themselves follow their operands, and a write
 /// to an entry lands on the operand it shows.
-pub(crate) const SHUFFLE: ComponentDef = DEFINITION.with_tags(&["shuffle"]);
+pub(crate) const SHUFFLE: ComponentDef = DEFINITION.variant(&["shuffle"], &Order::Drawn);
+
+/// The order a type of this table puts its operands in.
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum Order {
+    /// Increasing: a `<sort>`'s.
+    Increasing,
+    /// Drawn at load: a `<shuffle>`'s.
+    Drawn,
+}
 
 /// The diagnostic for a `type` that names no reading of bare text.
 pub(crate) const INVALID_TYPE: &str = "cells-invalid-type";
@@ -190,10 +201,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 .collect(),
             None => keys
                 .into_iter()
-                .map(|k| k.unwrap_or_else(|| wiring.hidden(Source::constant(f64::NAN))))
+                .map(|k| k.unwrap_or_else(|| wiring.hidden(Source::constant(NO_VALUE))))
                 .collect(),
         };
-        let order = order_ports(&mut wiring, ty, &keys);
+        let drawn = *ty.variant::<Order>() == Order::Drawn;
+        let order = order_ports(&mut wiring, drawn, &keys);
         // A sort's entry is chosen by an order the operand it shows
         // decides, so a write through it would move it: each branch is
         // shown, and a request on an entry dropped. A shuffle's order is
@@ -204,7 +216,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             for j in 0..width {
                 let mut args = vec![o];
                 for c in &cells {
-                    args.push(if ty == ComponentType::Shuffle {
+                    args.push(if drawn {
                         c[j]
                     } else {
                         wiring.hidden(Source::computed(OpSpec::Shown, vec![c[j]]))
@@ -222,7 +234,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // a shuffle's `componentOrder`, and a sort's.
         wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
     }
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
         asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
     });
@@ -345,7 +357,7 @@ fn prop_key(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, e: &ListEntry, n
     };
     match q {
         Some(q) if ctx.ref_cells(q) == Some(1) => wiring.hidden(Source::reference(q)),
-        _ => wiring.hidden(Source::constant(f64::NAN)),
+        _ => wiring.hidden(Source::constant(NO_VALUE)),
     }
 }
 
@@ -435,9 +447,9 @@ fn text_of(booleans: bool) -> OpSpec {
 /// The order port: a hidden port per position, holding the 1-based
 /// operand that comes there. A sort compares the operands' keys; a
 /// shuffle shuffles the positions by a draw, a scope constant.
-fn order_ports(wiring: &mut ElemWiring, ty: ComponentType, keys: &[Port]) -> Vec<Port> {
+fn order_ports(wiring: &mut ElemWiring, drawn: bool, keys: &[Port]) -> Vec<Port> {
     let n = keys.len();
-    let spec = if ty == ComponentType::Shuffle {
+    let spec = if drawn {
         let draw = wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)));
         let mut args = vec![draw];
         args.extend((1..=n).map(|k| wiring.hidden(Source::constant(k as f64))));

@@ -196,12 +196,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // A center with two or more points, a radius with three: `over`.
         (None, ..) => unreachable!("an over-determined circle is warned about above"),
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         cx,
         cy,
         radius,
-        diameter: Wire::from_table(ComponentType::Circle, at.diameter),
-        circumference: Wire::from_table(ComponentType::Circle, at.circumference),
         area: Source::computed_k(OpSpec::Mul, r2, std::f64::consts::PI).into(),
         centerX: center_x,
         centerY: center_y,

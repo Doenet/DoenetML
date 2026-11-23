@@ -53,9 +53,15 @@ const documents = [
 ].map((path) => [basename(path, ".doenet"), path] as const);
 
 /** Component types no document places as a component of its own: an
- * element the core could not load, and a point's constraints, which the
- * core folds into the point. */
-const NOT_PLACED = new Set(["_error", "constrainTo", "constrainToGrid"]);
+ * element the core could not load, a point's constraints and a curve's
+ * Bézier controls, which the core folds into what owns them. */
+const NOT_PLACED = new Set([
+    "_error",
+    "constrainTo",
+    "constrainToGrid",
+    "bezierControls",
+    "controlVectors",
+]);
 
 /** The elements no prototype renderer draws, by name and constraint, from
  * the warning the renderer gives for each. */

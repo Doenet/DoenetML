@@ -205,9 +205,9 @@ component_types! {
     Footnote => containers::blocks::footnote::DEFINITION,
     PostponeRenderContainer => containers::blocks::postpone_render_container::DEFINITION,
     Abs => operators::abs::DEFINITION,
-    Sign => operators::sign::DEFINITION,
-    Floor => operators::floor::DEFINITION,
-    Ceil => operators::ceil::DEFINITION,
+    Sign => operators::abs::SIGN,
+    Floor => operators::abs::FLOOR,
+    Ceil => operators::abs::CEIL,
     Round => operators::round::DEFINITION,
     SetSmallToZero => operators::set_small_to_zero::DEFINITION,
     WrapNumberPeriodic => operators::wrap_number_periodic::DEFINITION,
@@ -281,6 +281,8 @@ component_types! {
     ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
     EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
     Interval => values::interval::DEFINITION,
+    SubsetOfReals => values::subset_of_reals::DEFINITION,
+    IntervalList => values::interval_list::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -340,6 +342,23 @@ impl ComponentType {
     /// The type's row in `COMPONENT_DEFS`.
     pub fn def(self) -> &'static ComponentDef {
         &COMPONENT_DEFS[self as usize]
+    }
+
+    /// What the type is among the types that share its definition, as its
+    /// block's `variant` or its `DEFINITION.variant(..)` says: how the
+    /// planner they share tells them apart. Panics for a type that
+    /// declares none of type `V`, a mistake in its definition.
+    pub(crate) fn variant<V: 'static>(self) -> &'static V {
+        self.def()
+            .variant
+            .and_then(|v| v.downcast_ref())
+            .unwrap_or_else(|| {
+                panic!(
+                    "<{}> declares no variant of type {}",
+                    self.tag(),
+                    std::any::type_name::<V>()
+                )
+            })
     }
 
     /// The type a tag in the source makes, if any; internal types have none.

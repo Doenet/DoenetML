@@ -370,7 +370,12 @@ const NUMBER_TYPES = new Set([
 /** A component's value as LaTeX, where math notation refers to it. */
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
-    if (type === "math" || type === "mathInput" || type === "interval") {
+    if (
+        type === "math" ||
+        type === "mathInput" ||
+        type === "interval" ||
+        type === "subsetOfReals"
+    ) {
         return r.mathLatex(c);
     }
     if (NUMBER_TYPES.has(type)) {
@@ -1400,6 +1405,11 @@ export const CONTRACTS: Record<string, Contract> = {
         name: () => "math",
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
     },
+    // A subset of the reals is a math, drawn as one.
+    subsetOfReals: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -1445,6 +1455,7 @@ export const TRANSPARENT = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1475,6 +1486,7 @@ export const LIST_LIKE = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** List-like types whose items are the children of one scope (an

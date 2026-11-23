@@ -15,7 +15,7 @@ use me::expr::SeqKind;
 use me::{EqOptions, Expr};
 
 /// How two values compare, past the lattice.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct CompareOpts {
     /// Entries match in any order (`unorderedCompare`).
     pub unordered: bool,

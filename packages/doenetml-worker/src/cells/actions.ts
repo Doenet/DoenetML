@@ -292,14 +292,19 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
             pairs: [[cellOf(t, c, "value"), value ?? NaN]],
         }),
     },
-    // Typed text is parsed in the core and the expression requested. A
-    // mathInput bound to a number stays numeric: its expression is a
-    // constant, and the number is requested on its value.
+    // Typed text is parsed in the core and the expression requested, on
+    // the input's own expression or, bound, on the one it is bound to (an
+    // entry of a math list, a symbolic math, a subset). A mathInput bound
+    // to a number stays numeric: its expression is a constant, and the
+    // number is requested on its value.
     mathInput: {
         updateValue: (t, c, { text }) => {
             const blank = String(text).trim() === "";
             const expr = cellOf(t, c, "expr");
-            if (t.core.cell_class(expr) !== "essential") {
+            if (
+                t.core.cell_holds(expr) !== "math" ||
+                t.core.cell_class(expr) === "constant"
+            ) {
                 const n = blank ? NaN : Number(text);
                 if (!blank && Number.isNaN(n)) return { kind: "none" };
                 return { kind: "request", pairs: [[cellOf(t, c, "value"), n]] };

@@ -21,11 +21,13 @@ pub mod curve;
 pub(crate) mod formatted;
 pub(crate) mod function_operators;
 pub(crate) mod interval;
+pub(crate) mod interval_list;
 pub mod math;
 pub(crate) mod math_list;
 pub(crate) mod number_list;
 pub(crate) mod piecewise_function;
 pub(crate) mod pluralize;
+pub(crate) mod subset_of_reals;
 pub mod text;
 pub(crate) mod text_list;
 
@@ -44,6 +46,18 @@ pub(crate) fn plan_list(
     ctx: &mut PlanCtx<'_, '_>,
     pieces: Vec<ListPiece>,
     max: f64,
+) -> crate::error::Result<(ElemWiring, usize)> {
+    plan_list_as(ctx, pieces, max, false)
+}
+
+/// [`plan_list`], a math list's pieces of text and math text with their
+/// pairs made intervals when `intervals` (an `<intervalList>`'s, ADR 0041
+/// decision 8).
+pub(crate) fn plan_list_as(
+    ctx: &mut PlanCtx<'_, '_>,
+    pieces: Vec<ListPiece>,
+    max: f64,
+    intervals: bool,
 ) -> crate::error::Result<(ElemWiring, usize)> {
     let component_type = ctx.component_type();
     let kind = component_type.list_entry().expect("a value list");
@@ -69,7 +83,9 @@ pub(crate) fn plan_list(
             }
             ListEntry::Ref(p) => Source::reference(p).into(),
             ListEntry::Math(id) if kind == EntryKind::Number => Source::math(id).into(),
-            ListEntry::Math(id) => Source::sym_expr(id, Post::None).into(),
+            ListEntry::Math(id) => {
+                Source::sym_expr(id, Post::None.with_shapes(false, intervals)).into()
+            }
             ListEntry::Text(k, text) => {
                 let id = GivenId::Children(k);
                 match kind {
@@ -88,7 +104,11 @@ pub(crate) fn plan_list(
                     // As written: a given expression a write may change, or
                     // blank for text that is no math.
                     EntryKind::Math => {
-                        Wire::given_math(id, crate::sym::Engine::new().parse_tree(text.trim()).ok())
+                        let tree = crate::sym::Engine::new().parse_tree(text.trim()).ok();
+                        Wire::given_math(
+                            id,
+                            tree.map(|t| if intervals { t.intervals() } else { t }),
+                        )
                     }
                     EntryKind::Point | EntryKind::Any => {
                         unreachable!("a value list's entries are values of a kind")
@@ -222,13 +242,10 @@ pub(crate) mod evaluate {
             None => Wire::absent(),
         };
         let Some(p) = attrs.function else {
-            wiring.set_public(Props {
+            wiring.set_planned(Planned {
                 function: Wire::absent(),
                 input,
                 value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
-                // Planned after this, from the element's `anchor` (`plan_anchor`).
-                anchorX: Wire::absent(),
-                anchorY: Wire::absent(),
             });
             return Ok(wiring);
         };
@@ -261,13 +278,10 @@ pub(crate) mod evaluate {
                 Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
             ),
         };
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             function,
             input,
             value,
-            // Planned after this, from the element's `anchor` (`plan_anchor`).
-            anchorX: Wire::absent(),
-            anchorY: Wire::absent(),
         });
         Ok(wiring)
     }
@@ -400,7 +414,7 @@ pub mod tuple {
             .chain(std::iter::repeat_with(Wire::absent));
         let mut next = || entries.next().expect("an endless supply");
         let mut wiring = ElemWiring::of(ComponentType::Tuple);
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             n,
             x1: next(),
             x2: next(),

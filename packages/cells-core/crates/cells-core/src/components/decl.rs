@@ -99,10 +99,20 @@ pub struct ComponentDef {
     pub params: &'static [&'static str],
     /// Attributes of this type a renderer reads and the core does not.
     pub presentation: &'static [&'static str],
+    /// What the type is among the types that share its definition (a
+    /// `<product>` among the folds): a value of a type the planner they
+    /// share chooses, which it reads back
+    /// ([`ComponentType::variant`]). `None` for a type with a definition
+    /// of its own.
+    pub(crate) variant: Option<&'static Variant>,
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
+
+/// A variant's value, of whatever type its planner chose
+/// ([`ComponentDef::variant`]).
+pub(crate) type Variant = dyn std::any::Any + Send + Sync;
 
 /// What an attribute a planner reads holds: how it is parsed, and the type of
 /// its field in the type's `Attrs`.

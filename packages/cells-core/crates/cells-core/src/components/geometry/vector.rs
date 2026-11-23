@@ -111,7 +111,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         VecOp::CircleCenterPoint,
         vec![at.tailX, at.tailY, at.headX, at.headY],
     );
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         tailX: tx,
         tailY: ty,
         headX: hx,
