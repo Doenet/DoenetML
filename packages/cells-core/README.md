@@ -27,7 +27,7 @@ or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
 pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
-`functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
+`functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
 `title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
 sections), `sideBySide`,
@@ -55,7 +55,8 @@ drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
-numbers, texts and maths; not points), `sequence` (numbers, literal parameters), and
+numbers, texts and maths; not points), `sequence` (numbers; a parameter that is a reference or math makes
+its count structural, ADR 0041), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
 from the document seed, and the function operators `clampFunction` and

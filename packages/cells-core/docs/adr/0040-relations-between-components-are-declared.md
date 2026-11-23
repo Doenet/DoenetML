@@ -1,6 +1,6 @@
 # Relations between components are declared: context, items and actions
 
-Status: proposed 2026-11-10. Draft; step 4 is done (see Migration). Builds on
+Status: proposed 2026-11-10. Draft; steps 3 and 4 are done (see Migration). Builds on
 ADR 0034 (a planner is a function of its record), ADR 0038 (the core
 names no component type) and ADR 0039 (the declaration language has two
 tiers), whose `action` hook this gives its shape and whose reconsidering
@@ -269,6 +269,30 @@ Each step lands alone with the golden diff unchanged.
 3. **`item`.** `ItemCtx`; `<repeatForSequence>` declares its item;
    `sequenceValue` and its role go. Test: `tests/every_count.rs` and the
    repeat fixtures; the load cost (`load-diff.sh`) within noise.
+
+   Landed 2026-11-24 (`components/decl.rs` `ItemDecl`,
+   `compile/stages/plan/items.rs`). `item: Number(item)` names the
+   type and a function beside the repeat returning that type's
+   `Planned`; outlining makes the element (the body's one child with
+   `children: None`, else the hidden element `valueName` names, element
+   0 either way) and planning calls the function after the repeat's own
+   planner, `Props` or `Plan`. `<repeatForSequence>`'s value is a
+   `<number>`; `sequenceValue`, `Role::SequenceValue` and their contract
+   in the bridge go. The structural `<sequence>` (ADR 0041, step 4)
+   declares its item the same way. Departures:
+
+   - `ItemCtx` has four methods, not two: `index` and `index_from_zero`
+     (the iteration's position), `owner(port)` (a port of the repeat's
+     table, one scope up) and `computed(op, ports)`, a hidden port of
+     the item for an intermediate value, since an operator reads ports,
+     not nested sources. Each returns a port of the item's wiring.
+   - A `<sequence>` of literal numbers is not a repeat: it keeps ADR
+     0041's static layout, and only its structural type declares the
+     item.
+   - A `<repeat for>`'s item is not declared: its type is the entries'
+     of what `for` names, settled by outlining from that sequence once
+     every name is in the table (ADR 0041, step 4), and its machinery
+     wires it.
 4. **`actions`.** `ActionView`, `Document::act`, the `Component`
    attribute kind; `submit` and `trigger` become actions; `triggered`
    and `submit` go. The spec language gains an `act` step, so a button
