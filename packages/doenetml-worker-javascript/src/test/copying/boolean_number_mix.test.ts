@@ -24,6 +24,14 @@ function booleanAsNumber(source: string) {
     return `\`${source}\` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\`.`;
 }
 
+/**
+ * `doenet-w0202` for a boolean read as a number in an attribute, where no
+ * tag can be written.
+ */
+function booleanAsNumberInAttribute(source: string) {
+    return `\`${source}\` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\` outside this attribute, give it a name, and refer to it here.`;
+}
+
 /** `doenet-w0202` for a list of booleans read as numbers. */
 function booleanListAsNumbers(source: string) {
     return `\`${source}\` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a \`<number convertBoolean>\`, such as \`<number convertBoolean>${source}[1]</number>\`.`;
@@ -110,7 +118,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             [12, booleanAsNumber("$b")],
             [13, booleanListAsNumbers("$bl")],
             [14, booleanAsNumber("$b")],
-            [15, booleanAsNumber("$b")],
+            [15, booleanAsNumberInAttribute("$b")],
             [16, booleanAsNumber("$v")],
         ]);
         // and no boolean is dropped as an invalid child
@@ -176,20 +184,31 @@ describe("Booleans and numbers kept apart @group2", () => {
     <boolean name="b">true</boolean>
     <boolean name="c1">$b = 1</boolean>
     <boolean name="c2">$b = true</boolean>
+    <boolean name="c3"><number convertBoolean>$b</number> = 1</boolean>
+    <text name="t1" hide="$b = 1">hi</text>
+    <number name="nb" convertBoolean>$b</number>
+    <text name="t2" hide="$nb = 1">hi</text>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
         // the boolean is a blank, which never equals anything (VAL-5)
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.value,
-        ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
-        ).eq(true);
+        expect((await sv("c1")).value).eq(false);
+        expect((await sv("t1")).hidden).eq(false);
+        // what the warnings suggest works, in content and, through a named
+        // number, in an attribute
+        expect((await sv("c2")).value).eq(true);
+        expect((await sv("c3")).value).eq(true);
+        expect((await sv("t2")).hidden).eq(true);
         expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
             [
                 3,
                 "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>`.",
+            ],
+            [
+                6,
+                "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>` outside this attribute, give it a name, and refer to it here.",
             ],
         ]);
     });
@@ -332,6 +351,51 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
             [4, booleanListAsNumbers("$bl")],
             [5, numberListAsBooleans("$ml")],
+        ]);
+    });
+
+    // a component written in place is named by its tag, and an expression
+    // as written
+    it("the warning names a component written in place by its tag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="n">3</number>
+    <math name="m1"><boolean>true</boolean> + 1</math>
+    <boolean name="c1"><boolean>true</boolean> = 1</boolean>
+    <boolean name="d1"><math>3</math></boolean>
+    <boolean name="d2">$n + 1</boolean>
+    <math name="m1f"><number convertBoolean><boolean>true</boolean></number> + 1</math>
+    <boolean name="c1f"><number convertBoolean><boolean>true</boolean></number> = 1</boolean>
+    <boolean name="d1f"><math>3</math> != 0</boolean>
+    <boolean name="d2f">$n + 1 != 0</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("m1")).value.tree).eqls(["+", "＿", 1]);
+        for (const name of ["c1", "d1", "d2"]) {
+            expect((await sv(name)).value, name).eq(false);
+        }
+        // what each suggests works
+        expect((await sv("m1f")).value.tree).eqls(["+", 1, 1]);
+        for (const name of ["c1f", "d1f", "d2f"]) {
+            expect((await sv(name)).value, name).eq(true);
+        }
+        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+            [
+                3,
+                "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+            [
+                4,
+                "This `<boolean>` is true or false, not a number, so comparing it with a number is a blank. Compare it with `true` or `false` instead, or, to count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+            [
+                5,
+                "This `<math>` is a number, not true or false, so it is a blank here. To test it, write a comparison, such as one with `!= 0`.",
+            ],
+            [6, numberAsBoolean("$n + 1")],
         ]);
     });
 

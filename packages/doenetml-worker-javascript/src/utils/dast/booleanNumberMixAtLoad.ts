@@ -519,24 +519,36 @@ export function checkBooleanNumberMixAtLoad({
         return component;
     }
 
+    /**
+     * Report a type mix. `inAttribute` is whether it is written in an
+     * attribute (`<point x="$b">`), where no tag can be written, so the
+     * message suggests a `<number convertBoolean>` written outside it.
+     */
     function warn({
         reason,
         source,
         form,
         position,
         sourceDoc,
+        inAttribute,
     }: {
         reason: MixReason;
         source: string;
         form: "reference" | "tag" | "list" | "literal" | "expression";
         position: SerializedComponent["position"];
         sourceDoc: number | undefined;
+        inAttribute: boolean;
     }) {
         diagnostics.push(
             codedDiagnostic({
                 type: "warning",
                 code: "doenet-w0202",
-                args: { reason, source, form },
+                args: {
+                    reason,
+                    source,
+                    form,
+                    place: inAttribute ? "attribute" : "content",
+                },
                 position,
                 sourceDoc,
             }),
@@ -548,12 +560,14 @@ export function checkBooleanNumberMixAtLoad({
      * its content as one (a `<when>`, a boolean attribute), read as logic:
      * a number or a math at a place of logic, a boolean compared with a
      * number, and a text ordered against a number. With `bound`, it is the
-     * `bindValueTo` of a `<booleanInput>`.
+     * `bindValueTo` of a `<booleanInput>`; with `inAttribute`, it is written
+     * in an attribute.
      */
     function checkLogic(
         component: SerializedComponent,
         fallback: SerializedComponent["position"],
         bound: boolean,
+        inAttribute: boolean,
     ) {
         const children = component.children ?? [];
         const objects = children.filter(
@@ -778,7 +792,7 @@ export function checkBooleanNumberMixAtLoad({
         atPlaceOfLogic(parsed.tree);
 
         for (const { reason, source, form } of found) {
-            warn({ reason, source, form, position, sourceDoc });
+            warn({ reason, source, form, position, sourceDoc, inAttribute });
         }
         for (const { source, operator, sectionOf } of orderings) {
             diagnostics.push(
@@ -821,14 +835,16 @@ export function checkBooleanNumberMixAtLoad({
     /**
      * Check the children of `component`, and then everything in it. `owner`
      * and `attributeName` are the component and attribute it is the
-     * attribute component of, if it is one, and `parentPosition` where its
-     * parent is reported.
+     * attribute component of, if it is one, `parentPosition` where its
+     * parent is reported, and `inAttribute` whether it is written in an
+     * attribute (an attribute component, or what it holds).
      */
     function visit(
         component: SerializedComponent,
         owner?: SerializedComponent,
         attributeName?: string,
         parentPosition?: SerializedComponent["position"],
+        inAttribute = false,
     ) {
         const componentClass = allClasses[component.componentType];
         // Where to report what has no position of its own: a component the
@@ -855,6 +871,7 @@ export function checkBooleanNumberMixAtLoad({
                     component,
                     fallback,
                     bound !== undefined && inherits(bound, "booleanInput"),
+                    inAttribute,
                 );
             } else {
                 const isNumber = inherits(component.componentType, "number");
@@ -916,6 +933,7 @@ export function checkBooleanNumberMixAtLoad({
                                 position: child.position ?? fallback,
                                 sourceDoc:
                                     child.sourceDoc ?? component.sourceDoc,
+                                inAttribute,
                             });
                             blank(child);
                         }
@@ -926,16 +944,64 @@ export function checkBooleanNumberMixAtLoad({
 
         for (const child of component.children ?? []) {
             if (typeof child === "object") {
-                visit(child, undefined, undefined, fallback);
+                visit(child, undefined, undefined, fallback, inAttribute);
             }
         }
         for (const [name, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
             if (attribute.type === "component") {
-                visit(attribute.component, component, name);
+                visit(
+                    attribute.component,
+                    component,
+                    name,
+                    undefined,
+                    inAttribute || writtenInTag(attribute.component, component),
+                );
             }
         }
+    }
+
+    /**
+     * Whether `attributeComponent`, an attribute component of `owner`, was
+     * written in `owner`'s tag (`<point x="$b">`) rather than made by a
+     * sugar from its children (`<point>($b, 2)</point>`, whose `xs` hold
+     * what was written as content): what it holds lies outside `owner`'s
+     * children.
+     */
+    function writtenInTag(
+        attributeComponent: SerializedComponent,
+        owner: SerializedComponent,
+    ): boolean {
+        const offset = firstOffsetIn(attributeComponent);
+        if (offset === undefined) {
+            return false;
+        }
+        const start = owner.childrenPosition?.start?.offset;
+        const end = owner.childrenPosition?.end?.offset;
+        return !(
+            typeof start === "number" &&
+            typeof end === "number" &&
+            offset >= start &&
+            offset <= end
+        );
+    }
+
+    /** The offset in the source of the first thing in `component` written. */
+    function firstOffsetIn(component: SerializedComponent): number | undefined {
+        const offset = component.position?.start?.offset;
+        if (typeof offset === "number") {
+            return offset;
+        }
+        for (const child of component.children ?? []) {
+            if (typeof child === "object") {
+                const found = firstOffsetIn(child);
+                if (found !== undefined) {
+                    return found;
+                }
+            }
+        }
+        return undefined;
     }
 
     for (const component of serializedComponents) {

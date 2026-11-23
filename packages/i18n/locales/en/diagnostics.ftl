@@ -1140,8 +1140,10 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 # (`$b`, when $form is `reference`), a tag (`<isInteger>`, when $form is
 # `tag`), a reference to a list (`$bl`, when $form is `list`), a literal
 # number (`1`, when $form is `literal`), or an expression (`x - x + 1`, when
-# $form is `expression`). $reason says
-# which mix it is:
+# $form is `expression`). $place is `attribute` when it is written in an
+# attribute (`<point x="$b">`), where no tag can be written, so a
+# `<number convertBoolean>` is suggested outside it, named, and referred to,
+# and `content` otherwise. $reason says which mix it is:
 # - `booleanAsNumber`: a boolean in a `<math>`, a `<number>`, a list of
 #   numbers or a math attribute; `<number convertBoolean>` is the one place a
 #   boolean counts as 1 or 0.
@@ -1156,13 +1158,22 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 boolean-number-mix = { $reason ->
         [booleanAsNumber] { $form ->
             [tag] This `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.
-            [list] `{ $source }` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a `<number convertBoolean>`, such as `<number convertBoolean>{ $source }[1]</number>`.
-           *[other] `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
+            [list] { $place ->
+                [attribute] `{ $source }` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a `<number convertBoolean>` outside this attribute, such as `<number convertBoolean>{ $source }[1]</number>`, give that a name, and refer to it here.
+               *[other] `{ $source }` holds values that are true or false, not numbers, so it is a blank here. To count one as 1 or 0, write it inside a `<number convertBoolean>`, such as `<number convertBoolean>{ $source }[1]</number>`.
+            }
+           *[other] { $place ->
+                [attribute] `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>` outside this attribute, give it a name, and refer to it here.
+               *[other] `{ $source }` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
+            }
         }
         [literalAsBoolean] `{ $source }` is a number, not true or false, so it is a blank here. Write `true` or `false`, or, to test a number, a comparison such as `$n != 0`.
         [comparedWithNumber] { $form ->
             [tag] This `{ $source }` is true or false, not a number, so comparing it with a number is a blank. Compare it with `true` or `false` instead, or, to count it as 1 or 0, write it inside a `<number convertBoolean>`.
-           *[other] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
+           *[other] { $place ->
+                [attribute] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>` outside this attribute, give it a name, and refer to it here.
+               *[other] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
+            }
         }
         [mathInputBoundToBoolean] A `<mathInput>` can't edit `{ $source }`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="{ $source }"/>`.
         [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="{ $source }"/>`.
