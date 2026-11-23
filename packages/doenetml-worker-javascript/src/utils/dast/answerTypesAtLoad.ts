@@ -31,13 +31,13 @@
  *
  * - content of another type than the input it is compared with (written,
  *   or the one the sugar adds), which can never earn credit
- *   (`doenet-w0202`); only an award's one component, since content of more
+ *   (`doenet-w0203`); only an award's one component, since content of more
  *   than one child is wrapped in the answer's type and read as it;
  * - in an answer with more than one input, where it is compared with
- *   nothing (`doenet-w0203`);
+ *   nothing (`doenet-w0204`);
  * - in an answer with no input inside but a `forAnswer` input, where it is
  *   compared with an input the answer adds, not the `forAnswer` one
- *   (`doenet-w0204`).
+ *   (`doenet-w0205`).
  *
  * `<considerAsResponses>`, `referencesAreResponses` and a `forAnswer` input
  * don't decide the type. A `<when>` reads its literal text by detection
@@ -482,7 +482,7 @@ export function decideAnswerTypesAtLoad({
                         diagnostics.push({
                             ...codedDiagnostic({
                                 type: "warning",
-                                code: "doenet-w0202",
+                                code: "doenet-w0203",
                                 args: {
                                     contentType: tag,
                                     input: comparedWith.tag,
@@ -504,7 +504,7 @@ export function decideAnswerTypesAtLoad({
                 diagnostics.push({
                     ...codedDiagnostic({
                         type: "warning",
-                        code: "doenet-w0203",
+                        code: "doenet-w0204",
                         args: {
                             numInputs: inputs.length,
                             ownContent: at === answer ? "true" : "false",
@@ -527,7 +527,7 @@ export function decideAnswerTypesAtLoad({
                 diagnostics.push({
                     ...codedDiagnostic({
                         type: "warning",
-                        code: "doenet-w0204",
+                        code: "doenet-w0205",
                         args: {
                             input: comparedWith?.tag ?? "mathInput",
                             ownContent: at === answer ? "true" : "false",

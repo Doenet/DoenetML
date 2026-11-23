@@ -22,7 +22,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
     function coded(core: any, kind: "errors" | "warnings") {
         return getDiagnosticsByType(core)
             [kind].filter((d) =>
-                /doenet-(e0092|w0078|w0202|w0203|w0204)/.test(d.code ?? ""),
+                /doenet-(e0092|w0078|w0203|w0204|w0205)/.test(d.code ?? ""),
             )
             .map((d) => `${d.code}: ${d.message}`);
     }
@@ -394,8 +394,8 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         });
         expect(coded(core, "errors")).eqls([]);
         expect(coded(core, "warnings")).eqls([
-            "doenet-w0202: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
-            "doenet-w0202: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0203: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0203: This `<textInput>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
         ]);
 
         // and the one input written inside still decides
@@ -423,7 +423,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
         expect(coded(core, "warnings")).eqls([
-            "doenet-w0202: This `<latex>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0203: This `<latex>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
         ]);
     });
 
@@ -435,7 +435,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         });
         expect(credit).eq(0);
         expect(coded(core, "warnings")).eqls([
-            "doenet-w0202: This `<math>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
+            "doenet-w0203: This `<math>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
         ]);
 
         // also for an input the answer adds, and for a reference
@@ -445,8 +445,8 @@ describe("An answer's type comes from its input (D55) @group4", () => {
 <answer name="b"><booleanInput/><award><number>1</number></award></answer>`,
         });
         expect(coded(core2, "warnings")).eqls([
-            "doenet-w0202: This `<text>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
-            "doenet-w0202: This `<number>` is compared with the answer's `<booleanInput>`, which gives a `boolean`, so it can never earn credit. Write it as a `boolean`, or use an input of its type.",
+            "doenet-w0203: This `<text>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0203: This `<number>` is compared with the answer's `<booleanInput>`, which gives a `boolean`, so it can never earn credit. Write it as a `boolean`, or use an input of its type.",
         ]);
     });
 
@@ -483,7 +483,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
             doenetML: `<answer name="a"><textInput/> <math>x</math> <award><text>hello</text></award> <math>y</math></answer>`,
         });
         expect(coded(core2, "warnings")).eqls([
-            "doenet-w0202: This `<math>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
+            "doenet-w0203: This `<math>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
         ]);
 
         // and only it decides the type: the `<math>` left after the award
@@ -509,7 +509,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         });
         expect(credit).eq(0);
         expect(coded(core, "warnings")).eqls([
-            "doenet-w0203: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+            "doenet-w0204: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
         ]);
 
         const { core: core2 } = await createTestCore({
@@ -517,7 +517,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
 <answer name="b"><textInput name="ti"/><mathInput name="mi"/><award><when>$ti = hello and $mi = x</when></award></answer>`,
         });
         expect(coded(core2, "warnings")).eqls([
-            "doenet-w0203: This `<answer>` has 2 inputs, so the content written in it is compared with none of them and can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+            "doenet-w0204: This `<answer>` has 2 inputs, so the content written in it is compared with none of them and can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
         ]);
     });
 
@@ -531,8 +531,8 @@ describe("An answer's type comes from its input (D55) @group4", () => {
 <answer name="c"><award><text>hello</text></award></answer>`,
         });
         expect(coded(core, "warnings")).eqls([
-            "doenet-w0204: The content written in this `<answer>` is compared with a `<mathInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
-            "doenet-w0204: This `<award>`'s content is compared with a `<textInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
+            "doenet-w0205: The content written in this `<answer>` is compared with a `<mathInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
+            "doenet-w0205: This `<award>`'s content is compared with a `<textInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
         ]);
     });
 
@@ -564,7 +564,7 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         });
         expect(credit3).eq(0);
         expect(coded(core3, "warnings")).eqls([
-            "doenet-w0203: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+            "doenet-w0204: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
         ]);
     });
 

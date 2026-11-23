@@ -33,6 +33,30 @@ describe("parser", () => {
         expect(xml).toEqual("<foo />");
     });
 
+    it("a `$` written as a reference prints back as text, not a reference", () => {
+        // A zero-width space after the `$` keeps it from starting a reference
+        // when the printed text is read again (Doenet/DoenetML#2643 item 8).
+        for (const [written, printed] of [
+            ["<p>&#36;(x)</p>", "<p>$\u200B(x)</p>"],
+            ["<p>&dollar;(x)</p>", "<p>$\u200B(x)</p>"],
+            ["<p>&#36;&#40;x)</p>", "<p>$\u200B(x)</p>"],
+            ["<p>&#36;$f</p>", "<p>$\u200B$f</p>"],
+            ["<p>&#36;&#36;f</p>", "<p>$\u200B$\u200Bf</p>"],
+            ["<p>&#36;x</p>", "<p>$\u200Bx</p>"],
+            ["<p>&#36;1</p>", "<p>$1</p>"],
+            ["<p>&#36; x</p>", "<p>$ x</p>"],
+            ["<p>&#36;$</p>", "<p>$$</p>"],
+            ["<p>&#36;</p>", "<p>$</p>"],
+        ]) {
+            const xml = toXml(lezerToDast(written));
+            expect(xml, written).toEqual(printed);
+            // read again, it holds the references it held, and no more
+            const macros = (source: string) =>
+                JSON.stringify(lezerToDast(source)).split('"macro"').length;
+            expect(macros(xml), written).toEqual(macros(written));
+        }
+    });
+
     it("can print macros", () => {
         source = `$foo.bar`;
         dast = lezerToDast(source);

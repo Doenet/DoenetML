@@ -145,6 +145,12 @@ export type CollectionItemWarning = {
     code: string;
     args: Record<string, any>;
     kind: "index" | "property";
+    /**
+     * For an index after options or cases that each hold several, the name
+     * the component it would have selected has in every one of them, if it
+     * has the same one (`$s[1].q` for `$s[1][1]`).
+     */
+    childName?: string;
 };
 
 /**
@@ -3781,6 +3787,73 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The name of the component the literal index `index` selects among
+     * what each of `parts` holds, when it is the same in all of them, as
+     * `$s[1].q` names it in place of `$s[1][1]` (`doenet-w0191`).
+     */
+    function sharedChildName(
+        parts: { part: SerializedComponent }[],
+        index: any,
+    ): string | undefined {
+        const value = index?.value;
+        const k =
+            Array.isArray(value) &&
+            value.length === 1 &&
+            typeof value[0] === "string" &&
+            /^\s*[1-9]\d*\s*$/.test(value[0])
+                ? Number(value[0])
+                : undefined;
+        if (k === undefined) {
+            return undefined;
+        }
+        let shared: string | undefined;
+        for (const { part } of parts) {
+            const item = heldItems(part)[k - 1];
+            const nameAttribute: any =
+                typeof item === "object" ? item.attributes?.name : undefined;
+            const name =
+                typeof nameAttribute?.primitive?.value === "string"
+                    ? nameAttribute.primitive.value
+                    : literalText(nameAttribute);
+            if (
+                name === undefined ||
+                name === "" ||
+                name.startsWith("_") ||
+                (shared !== undefined && name !== shared)
+            ) {
+                return undefined;
+            }
+            shared = name;
+        }
+        return shared;
+    }
+
+    /**
+     * What one option or case `part` holds: its children but blank text and
+     * its `<setup>`, where a `<group>` written as the one component stands
+     * for what it holds, as an index or a property passes into it
+     * (Doenet/DoenetML#2643 item 5).
+     */
+    function heldItems(part: SerializedComponent) {
+        const held = (holder: SerializedComponent) =>
+            withoutSugarGroup(holder.children ?? []).filter((child) =>
+                typeof child === "string"
+                    ? child.trim() !== ""
+                    : child.componentType !== "setup" &&
+                      child.componentType !== "_repeatSetup",
+            );
+        let items = held(part);
+        while (
+            items.length === 1 &&
+            typeof items[0] === "object" &&
+            items[0].componentType === "group"
+        ) {
+            items = held(items[0]);
+        }
+        return items;
+    }
+
+    /**
      * What one option or case of a `<select>` or `<conditionalContent>`
      * holds, for `checkCollectionItems`: nothing, one component (its tag,
      * `undefined` when the DoenetML does not give it or it is itself a
@@ -3795,12 +3868,7 @@ export function checkTypeChangesAtLoad({
         | { kind: "one"; type?: string; component?: SerializedComponent }
         | { kind: "several"; count: number }
         | null {
-        const items = withoutSugarGroup(part.children ?? []).filter((child) =>
-            typeof child === "string"
-                ? child.trim() !== ""
-                : child.componentType !== "setup" &&
-                  child.componentType !== "_repeatSetup",
-        );
+        const items = heldItems(part);
         if (
             items.some(
                 (item) =>
@@ -3839,12 +3907,13 @@ export function checkTypeChangesAtLoad({
      *   property after it (`$s[1][2]`, `$s.x`, `$s[1].x`) passes into the
      *   ones holding one, and is read from each component of the others,
      *   so what it means depends on the pick or the case (#2520 item 1):
-     *   `doenet-w0191`, naming those holding several. For a property, also
-     *   when every one holds several: a property after a wrapper of several
-     *   names nothing (D41 decision 3), which the DoenetML decides here, so
-     *   it is a warning, whether or not one is picked or shown
+     *   `doenet-w0191`, naming those holding several. Also when every one
+     *   holds several: an index or a property after a wrapper of several
+     *   names nothing (NAME-2, D41 decision 3), which the DoenetML decides
+     *   here, so it is a warning, whether or not one is picked or shown
      *   (`severalAtLoad`, read by `wrapperOfSeveralDiagnostics` in
-     *   `Copy.js`);
+     *   `Copy.js` and `reportChildIndex` in `refResolutionDependencies.ts`).
+     *   A `<group>` written as the one component stands for what it holds;
      * - when each holds one component, and some of their types have a
      *   property and others lack it (`$cc.x` of a `<math>` case and a
      *   `<text>` `<else>`), it is a warning, and each component lacking it
@@ -3951,22 +4020,17 @@ export function checkTypeChangesAtLoad({
             }
         }
         if (several.length > 0) {
-            if (!anyOne && kind !== "property") {
-                // each a wrapper of several: an index after it names
-                // nothing, with `doenet-w0188` at run time
-                return;
-            }
-            // A property after a wrapper of several names nothing (D41
-            // decision 3, `doenet-w0193` at run time). Decided here when
-            // every option or case holds several, so it is not reported
-            // again there; when only some do, what is reported there is
-            // which is picked or shown now, an info (DIAG-2).
-            if (kind === "property") {
-                copy.doenetAttributes = {
-                    ...copy.doenetAttributes,
-                    severalAtLoad: anyOne ? "some" : "every",
-                };
-            }
+            // An index or a property after a wrapper of several names
+            // nothing (NAME-2, D41 decision 3: `doenet-w0188` or
+            // `doenet-w0193` at run time). Decided here when every option or
+            // case holds several, so it is not reported again there; when
+            // only some do, what is reported there is which is picked or
+            // shown now, an info (DIAG-2, DIAG-7; Doenet/DoenetML#2643 items
+            // 4 and 5).
+            copy.doenetAttributes = {
+                ...copy.doenetAttributes,
+                severalAtLoad: anyOne ? "some" : "every",
+            };
             const withElse = several.some((s) => s.isElse);
             // The suggestion names `P` after the select or conditional
             // (`$s.P.x`), or after its index (`$s[1].P.x`, the only form
@@ -3975,6 +4039,10 @@ export function checkTypeChangesAtLoad({
                 copy,
                 kind,
                 code: "doenet-w0191",
+                childName:
+                    kind === "index" && !anyOne
+                        ? sharedChildName(parts, firstIndex[1])
+                        : undefined,
                 args: {
                     what: kind,
                     branch,

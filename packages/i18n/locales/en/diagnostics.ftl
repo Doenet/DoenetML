@@ -657,8 +657,10 @@ reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $na
 # hold several, and $withElse is `true` when the `<else>` does too.
 # $container is the container's name when $hasName is `true`, else its tag
 # name. $suggestion (when $hasSuggestion is `true`) is the reference with
-# `.P` after the container and its first index. Tags, names and references
-# stay as written.
+# `.P` after the container and its first index; when $hasSuggestion is
+# `named`, it is the reference with the index replaced by the name the
+# component it would select has in every option or case (`$s[1].q` for
+# `$s[1][1]`). Tags, names and references stay as written.
 
 reference-branches-hold-several = `{ $reference }`: { $what ->
         [index] an index
@@ -686,6 +688,7 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
             }
         }
     } several. { $hasSuggestion ->
+        [named] The component it would select has the same name in each: write `{ $suggestion }`.
         [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
        *[other] Give the component you mean a name in each, and write that name after a `.`.
     }
@@ -1084,6 +1087,19 @@ action-target-not-one-value = { $container ->
 # isn't math that can be read (`\text{hi}`), so the math is a blank (D46).
 # $latex is the LaTeX as written. The tags stay in English.
 latex-not-read-as-math = The LaTeX of this `<{ $component }>`, `{ $latex }`, can't be read as math, so the math made from it is a blank.
+
+# The content of a `<point>` or `<vector>` ($componentType) that its
+# attributes override entirely, so it isn't used (D49). A point takes each
+# coordinate from `x`, `y` or `z` first, then from `coords`, then from its
+# content. $reason is `coords` when `coords` is written, `displacement` when a
+# vector's `displacement` is written, and `coordinates` when the attributes
+# $attributes (a list such as "`x`, `y`") give every coordinate the content
+# would. Tag and attribute names stay in English.
+content-unused-attributes-give-value = { $reason ->
+        [coords] `coords` gives every coordinate of this `<{ $componentType }>`, so its content isn't used. Remove the content or `coords`.
+        [displacement] `displacement` gives this `<{ $componentType }>` its whole value, so its content isn't used. Remove the content or `displacement`.
+       *[coordinates] Every coordinate of this `<{ $componentType }>` is given by { $attributes }, so its content isn't used. Remove the content or { $attributes }.
+    }
 
 # A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
 # matrix uses one `<math>` child, the last one written. $reason is `several`

@@ -258,6 +258,55 @@ describe("An index that names nothing @group4", async () => {
         expect(warnings[0].message).contain("$$f.x");
     });
 
+    it("past the end and back, in a group shown by a reference, live and after a reload", async () => {
+        // The reference kept replacing its blank with a new one, so it and
+        // the group's copy queued each other until the loop check made the
+        // copy `doenet-e0005`, which stayed once the index came back
+        // (Doenet/DoenetML#2643 item 2; DIAG-5, DIAG-6, DIAG-7).
+        const doenetML = `<mathInput name="mi" prefill="1"/><mathList name="ls">1 2</mathList>
+<number name="i">$mi</number><group name="s">$ls[$i]</group><p name="p">$s</p>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+
+        async function shown(c: any, resolve: typeof resolvePathToNodeIdx) {
+            const stateVariables = await c.returnAllStateVariables(false, true);
+            const { errors, warnings } = getDiagnosticsByType(c);
+            return {
+                text: stateVariables[await resolve("p")].stateValues.text,
+                errors: errors.map((d) => d.code),
+                warnings: warnings.map((d) => d.code),
+            };
+        }
+
+        for (const [value, text] of [
+            ["2", "2"],
+            ["5", "＿"],
+            ["1", "1"],
+            ["3", "＿"],
+            ["2", "2"],
+        ]) {
+            await updateMathInputValue({
+                latex: value,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            const expected = { text, errors: [], warnings: [] };
+            expect(await shown(core, resolvePathToNodeIdx), value).eqls(
+                expected,
+            );
+            await core.saveImmediately();
+            const reloaded = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            });
+            expect(
+                await shown(reloaded.core, reloaded.resolvePathToNodeIdx),
+                `${value}, after a reload`,
+            ).eqls(expected);
+        }
+    });
+
     it("gives an info while a dynamic index is 0, and none once it names an entry", async () => {
         const doenetML = `${preamble}<mathInput name="i" prefill="2" /><p name="p">[$l[$i]]</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({

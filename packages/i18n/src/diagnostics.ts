@@ -299,9 +299,10 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0199": "reference-to-variant-control",
     "doenet-w0200": "reference-name-after-collection",
     "doenet-w0201": "attribute-written-twice",
-    "doenet-w0202": "award-content-type-mix",
-    "doenet-w0203": "award-content-several-inputs",
-    "doenet-w0204": "award-content-for-answer-input",
+    "doenet-w0202": "content-unused-attributes-give-value",
+    "doenet-w0203": "award-content-type-mix",
+    "doenet-w0204": "award-content-several-inputs",
+    "doenet-w0205": "award-content-for-answer-input",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

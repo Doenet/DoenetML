@@ -14,6 +14,30 @@ export type OffsetToPositionMap = {
 };
 
 /**
+ * The first few characters of `source` from `offset`, with a character or
+ * entity reference among them decoded (`&#40;x` is `(x`), enough to tell
+ * whether a `$` before them would start a macro.
+ */
+function decodedAfter(offset: number, source: string): string {
+    let decoded = "";
+    let i = offset;
+    while (decoded.length < 2 && i < source.length) {
+        const reference =
+            /^&(#x[0-9a-fA-F]+|#[0-9]+|[a-zA-Z][a-zA-Z0-9]*);/.exec(
+                source.slice(i, i + 40),
+            );
+        if (reference) {
+            decoded += entityStringToRawString(reference[0]);
+            i += reference[0].length;
+        } else {
+            decoded += source.charAt(i);
+            i++;
+        }
+    }
+    return decoded;
+}
+
+/**
  * Convert an `EntityReference` to a string.
  */
 export function entityToString(node: SyntaxNode, source: string): string {
@@ -22,11 +46,17 @@ export function entityToString(node: SyntaxNode, source: string): string {
         case "EntityReference": {
             const entity = extractContent(node, source);
             const converted = entityStringToRawString(entity);
-            // Special care must be taken for things like `$dollar;` which
-            // convert to `$`. If they are followed by [a-zA-Z_], then converting
-            // `&dollar;` to `$` will insert a macro reference where there was previously none.
-            if (converted === "$" && /[a-zA-Z_]/.test(source.charAt(node.to))) {
-                // If the next character is a letter, add a zero-width space afterward.
+            // Special care must be taken for things like `&dollar;` which
+            // convert to `$`. Followed by a letter, `_` or `(`, or by `$` and
+            // one of those (`&#36;$f`), converting it to `$` would insert a
+            // macro where there was none, and print back as one (`toXml`).
+            // A zero-width space after the `$` keeps it text, as the
+            // attribute path does (`unescapeEntitiesWithOffsets`); the
+            // worker removes it when it reads the value.
+            if (
+                converted === "$" &&
+                /^\$?[a-zA-Z_(]/.test(decodedAfter(node.to, source))
+            ) {
                 return converted + "\u200B";
             }
             return converted;

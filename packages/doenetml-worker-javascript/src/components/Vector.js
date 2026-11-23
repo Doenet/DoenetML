@@ -23,6 +23,11 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import {
+    contentHoldsMoreThanErrors,
+    contentUnusedDiagnostic,
+    unusedContentAttribute,
+} from "../utils/coordinateContent";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
@@ -103,6 +108,12 @@ export default class Vector extends GraphicalComponent {
         attributes.displacement = {
             createComponentOfType: "coords",
             description: "The vector's displacement (head minus tail).",
+        };
+        // Set by sugar, not by authors: content that `displacement`
+        // overrides entirely, made but not read (D49, `doenet-w0202`).
+        attributes._unusedContent = {
+            createComponentOfType: "coords",
+            excludeFromSchema: true,
         };
         attributes.head = {
             createComponentOfType: "point",
@@ -187,9 +198,18 @@ export default class Vector extends GraphicalComponent {
             componentInfoObjects,
             nComponents,
             stateIdInfo,
+            writtenAttributeNames = [],
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
+
+            // A written `displacement` gives the vector's whole value, so
+            // the content is unused, with a warning (D49), whatever form it
+            // takes. Otherwise the content is the displacement, which `x`,
+            // `y`, `z`, `head` and `tail` don't override.
+            const displacementWritten =
+                writtenAttributeNames.includes("displacement");
+            const diagnostics = [];
 
             // Find potential component children, i.e., consecutive children that aren't constraints or labels
             // Note: including constraints here in case we add constraints later to vectors
@@ -219,6 +239,18 @@ export default class Vector extends GraphicalComponent {
                 return { success: false };
             }
 
+            if (
+                displacementWritten &&
+                contentHoldsMoreThanErrors(componentChildren)
+            ) {
+                diagnostics.push(
+                    contentUnusedDiagnostic({
+                        componentType: "vector",
+                        reason: "displacement",
+                    }),
+                );
+            }
+
             if (componentChildren.length === 1) {
                 let child = componentChildren[0];
 
@@ -227,9 +259,31 @@ export default class Vector extends GraphicalComponent {
                     componentIsSpecifiedType(child, "vector")
                 ) {
                     // if have an isolated point or vector, don't use sugar
-                    // and that child will picked up by the point or vector child group
-                    return { success: false };
+                    // and that child will picked up by the point or vector
+                    // child group, which `displacement` overrides
+                    // (`sourceOfDisplacement`)
+                    return { success: false, diagnostics };
                 }
+            }
+
+            if (displacementWritten) {
+                // the content is made, so its references report what they
+                // do, but isn't read
+                const result = unusedContentAttribute({
+                    children: componentChildren,
+                    nComponents,
+                    stateIdInfo,
+                });
+                return {
+                    success: true,
+                    newAttributes: { _unusedContent: result.attribute },
+                    newChildren: [
+                        ...nonComponentChildrenBegin,
+                        ...nonComponentChildrenEnd,
+                    ],
+                    nComponents: result.nComponents,
+                    diagnostics,
+                };
             }
 
             let nCompChildren = componentChildren.length;
@@ -366,6 +420,75 @@ export default class Vector extends GraphicalComponent {
         // (`BaseComponent.missingWhenContentNamesNothing`, #2544).
         stateVariableDefinitions.contentNamesNothing =
             contentNamesNothingDefinition("displacement");
+
+        // Whether a `head` or `tail` it uses is missing (#2596 item 3):
+        // `<vector tail="$pl[$i]" head="(5,5)"/>` past the end of `pl`. A
+        // `head` overridden by a `tail` and a displacement (`doenet-w0007`)
+        // isn't used. It reads the points' own missingness, which reads
+        // only what they hold, never what their references read, so a
+        // vector whose `head` is a property of another (`head="$(v1.tail)"`)
+        // makes no cycle.
+        stateVariableDefinitions.endpointMissing = {
+            returnDependencies: () => ({
+                basedOnHead: {
+                    dependencyType: "stateVariable",
+                    variableName: "basedOnHead",
+                },
+                basedOnTail: {
+                    dependencyType: "stateVariable",
+                    variableName: "basedOnTail",
+                },
+                headAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "head",
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
+                },
+                tailAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "tail",
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        endpointMissing:
+                            (dependencyValues.basedOnHead &&
+                                Boolean(
+                                    dependencyValues.headAttr?.stateValues
+                                        .valueMissing,
+                                )) ||
+                            (dependencyValues.basedOnTail &&
+                                Boolean(
+                                    dependencyValues.tailAttr?.stateValues
+                                        .valueMissing,
+                                )),
+                    },
+                };
+            },
+        };
+        // So it is missing while one is (`valueMissing`, from
+        // `BaseComponent.missingWhenContentNamesNothing`).
+        const valueMissingDefinition = stateVariableDefinitions.valueMissing;
+        stateVariableDefinitions.valueMissing = {
+            ...valueMissingDefinition,
+            returnDependencies: (args) => ({
+                ...valueMissingDefinition.returnDependencies(args),
+                endpointMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "endpointMissing",
+                },
+            }),
+            definition(args) {
+                const result = valueMissingDefinition.definition(args);
+                if (args.dependencyValues.endpointMissing) {
+                    result.setValue.valueMissing = true;
+                }
+                return result;
+            },
+        };
 
         Object.assign(
             stateVariableDefinitions,
@@ -633,11 +756,14 @@ export default class Vector extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // A written `displacement` comes before the content, as a
+                // point's `coords` does (D49): the content is unused then,
+                // with a warning at load (the sugar's `doenet-w0202`).
                 let sourceOfDisplacement = null;
-                if (dependencyValues.pointOrVectorChild.length > 0) {
-                    sourceOfDisplacement = "pointOrVectorChild";
-                } else if (dependencyValues.displacementAttr !== null) {
+                if (dependencyValues.displacementAttr !== null) {
                     sourceOfDisplacement = "displacementAttr";
+                } else if (dependencyValues.pointOrVectorChild.length > 0) {
+                    sourceOfDisplacement = "pointOrVectorChild";
                 } else if (dependencyValues.xsAttr !== null) {
                     sourceOfDisplacement = "xsAttr";
                 } else if (
@@ -1169,10 +1295,24 @@ export default class Vector extends GraphicalComponent {
                     ],
                     childGroups: ["pointsAndVectors"],
                 },
+                // a missing vector, made from a head or tail that is
+                // missing, has no dimensions to disagree (#2596): the
+                // point's are those of its blank
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 // console.log(`numDimensions definition`)
                 // console.log(dependencyValues)
+
+                if (dependencyValues.valueMissing) {
+                    return {
+                        setValue: { numDimensions: NaN },
+                        checkForActualChange: { numDimensions: true },
+                    };
+                }
 
                 let numDimensions;
                 if (dependencyValues.basedOnDisplacement) {
