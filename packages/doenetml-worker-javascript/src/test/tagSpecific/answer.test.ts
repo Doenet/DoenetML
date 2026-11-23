@@ -4466,6 +4466,7 @@ Enter any letter:
     <answer name="a3"><booleanInput name="bi3"><label>3</label></booleanInput><award><boolean>$n + 0</boolean></award></answer>
     <answer name="a4"><booleanInput name="bi4"><label>4</label></booleanInput><award><when>$bi4 = not ($b = 1)</when></award></answer>
     <answer name="a5"><booleanInput name="bi5"><label>5</label></booleanInput><award>$b = true</award></answer>
+    <answer name="a6"><award><when>not ($b = 1)</when></award></answer>
     `,
         });
 
@@ -4491,6 +4492,13 @@ Enter any letter:
         // what the warning suggests works
         expect(await creditFor(5, false)).eq(0);
         expect(await creditFor(5, true)).eq(1);
+
+        // a `<when>` holding a mix is never satisfied: `not ($b = 1)` would
+        // otherwise be `not false`
+        const a6Idx = await resolvePathToNodeIdx("a6");
+        await submitAnswer({ componentIdx: a6Idx, core });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[a6Idx].stateValues.creditAchieved).eq(0);
     });
 
     // A credit is a `<number convertBoolean>`, so a missing one is a blank,

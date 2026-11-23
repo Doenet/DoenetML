@@ -6,9 +6,12 @@
  * - **A boolean where a number or a math is wanted** (`doenet-w0203`,
  *   `booleanAsNumber`): a boolean child of a `<math>`, of a `<number>`
  *   without `convertBoolean`, of a list of numbers or maths, of a math
- *   operator, or of a math attribute (`<point x="$b">`). It is a blank in
- *   its place (VAL-5), and the warning names the way to ask for `1` or `0`:
- *   `<number convertBoolean>`, the one place a boolean is read as a number.
+ *   operator, or of a math attribute (`<point x="$b">`), also one in a
+ *   `<group>` written there (each item is judged), and a boolean in
+ *   arithmetic inside a comparison (`<boolean>$b + 1 = 2</boolean>`). It is
+ *   a blank in its place (VAL-5), and the warning names the way to ask for
+ *   `1` or `0`: `<number convertBoolean>`, the one place a boolean is read
+ *   as a number.
  * - **A number or a math where a boolean is wanted** (`numberAsBoolean`,
  *   and `literalAsBoolean` for a literal `1` or `0`): a `<boolean>`'s
  *   content, or a boolean attribute's (`hide="$n"`, `hide="1"`), or an
@@ -18,6 +21,10 @@
  * - **A boolean compared with a number** (`comparedWithNumber`):
  *   `<boolean>$b = 1</boolean>`. The `<boolean>` is missing. `$b = true`
  *   compares booleans.
+ * - **A number compared with `true` or `false`**
+ *   (`numberComparedWithBoolean`): `<boolean>$n = true</boolean>`, whose
+ *   warning suggests a comparison such as `$n != 0`. The `<boolean>` is
+ *   missing.
  * - **An input bound to the other type** (`mathInputBoundToBoolean`,
  *   `booleanInputBoundToNumber`): `<mathInput bindValueTo="$b">`, whose
  *   warning suggests a `<booleanInput>`, and the reverse. It is bound to a
@@ -26,6 +33,16 @@
  *   `>=` between them is never true (`$s.sectionNumber > 2`). Nothing is
  *   converted, and `=` is unchanged. For a `sectionNumber`, the warning
  *   suggests `ownNumber` (D56).
+ *
+ * A mix is found also inside logic that is compared (`$bi = not ($b =
+ * 1)`). In logic written as a tag, each child the mix is made of becomes a
+ * blank, and the component is marked missing (`typeMixInLogic`, read by
+ * `Boolean.js` and `When.js`), so logic built on the blank (`not ($b = 1)`)
+ * is missing too, never `false` (#2656). In an attribute, an `extend` or a
+ * `copy`, or for a literal, the whole content becomes one blank instead. A
+ * tag written where a mix is (`<math><boolean name="q">true</boolean> +
+ * 1</math>`) keeps its own value for references elsewhere: a new blank
+ * takes its place, and the tag is kept in a `<setup>` (`blankPlace`).
  *
  * A type change between them (`<math extend="$b"/>`, `<boolean
  * extend="$n"/>`) is a REF-5 error, decided by `typeChangeRule`
