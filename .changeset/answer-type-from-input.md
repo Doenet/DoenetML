@@ -17,3 +17,5 @@ An `<answer>`'s type comes from its input (D55), so `type` is needed only when n
   - content of another type than the input it is compared with (`<textInput/>` beside `<math>2</math>`), `doenet-w0202`. Only an award's one component is warned of: content of more than one child is wrapped in the answer's type (`<award><text>x</text>y</award>` is a math in a math answer);
   - an award with content and no `<when>` in an answer with more than one input, which is compared with none of them, `doenet-w0203`;
   - an award with content and no `<when>` in an answer whose input is written outside it with `forAnswer`, which is compared with an input the answer adds, `doenet-w0204`.
+
+  An award whose content is one `<when>` (also a `<when>` written directly in the answer, which its sugar wraps in an award) compares in the `<when>`, so it is not warned of.

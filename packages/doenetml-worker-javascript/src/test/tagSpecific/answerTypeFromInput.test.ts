@@ -536,6 +536,38 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         ]);
     });
 
+    it("a when written directly in the answer is its award's condition, not content", async () => {
+        // two inputs: the sugar wraps the `<when>` in an award, which earns credit
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><mathInput name="in"/><mathInput/><when>$in = x</when></answer>`,
+            kind: "math",
+            value: "x",
+        });
+        expect(credit).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+
+        // a `forAnswer` input, compared in the `<when>`
+        const { credit: credit2, core: core2 } = await creditFor({
+            doenetML: `<mathInput name="in" forAnswer="$a"/><answer name="a"><when>$in = x</when></answer>`,
+            kind: "math",
+            value: "x",
+        });
+        expect(credit2).eq(1);
+        expect(coded(core2, "warnings")).eqls([]);
+
+        // with other content, the award's sugar wraps the `<when>` in the
+        // answer's type, so it is content, compared with neither input
+        const { credit: credit3, core: core3 } = await creditFor({
+            doenetML: `<answer name="a"><mathInput name="in"/><mathInput/><award><when>$in = x</when> y</award></answer>`,
+            kind: "math",
+            value: "x",
+        });
+        expect(credit3).eq(0);
+        expect(coded(core3, "warnings")).eqls([
+            "doenet-w0203: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+        ]);
+    });
+
     it("a when comparing a text input is unchanged", async () => {
         const { credit, core } = await creditFor({
             doenetML: `<answer name="a"><textInput name="in"/><award><when>$in = hello</when></award></answer>`,

@@ -25,8 +25,9 @@
  * as that type (`Award.js` reads the answer's `type`; D55 decision 3), as
  * if the author had written it.
  *
- * Also reported here, as warnings, for an award with content and no
- * `<when>` (an award its sugar makes from the answer's content included):
+ * Also reported here, as warnings, for an award with content other than
+ * one `<when>` (an award its sugar makes from the answer's content
+ * included, so also a `<when>` written directly in the answer):
  *
  * - content of another type than the input it is compared with (written,
  *   or the one the sugar adds), which can never earn credit
@@ -233,6 +234,21 @@ export function decideAnswerTypesAtLoad({
         return own !== undefined && inherits(own, tag);
     }
 
+    /**
+     * Whether `content` is one `<when>`, which an award reads as its
+     * condition. With other content, the award's sugar wraps it with the
+     * rest in the answer's type, and it is compared as that.
+     */
+    function isWhen(content: (SerializedComponent | string)[]) {
+        const c = content[0];
+        return (
+            content.length === 1 &&
+            typeof c === "object" &&
+            tagOfComponent(c) !== undefined &&
+            inherits(tagOfComponent(c)!, "when")
+        );
+    }
+
     function isBlank(child: SerializedComponent | string) {
         return typeof child === "string" && child.trim() === "";
     }
@@ -293,7 +309,7 @@ export function decideAnswerTypesAtLoad({
         }
 
         const inputs: SerializedComponent[] = [];
-        // The content of each award with content and no `<when>`, which is
+        // The content of each award with content other than one `<when>`, which is
         // compared with the answer's one input; the answer's own content,
         // which its sugar wraps in an award, is one of them.
         const comparedContents: {
@@ -323,13 +339,7 @@ export function decideAnswerTypesAtLoad({
                     (child.componentType === "award" ? child.children : []) ??
                     [];
                 const content = awardChildren.filter((c) => !isBlank(c));
-                const hasWhen = content.some(
-                    (c) =>
-                        typeof c === "object" &&
-                        tagOfComponent(c) !== undefined &&
-                        inherits(tagOfComponent(c)!, "when"),
-                );
-                if (content.length > 0 && !hasWhen) {
+                if (content.length > 0 && !isWhen(content)) {
                     comparedContents.push({ content, at: child });
                 }
             }
@@ -349,7 +359,9 @@ export function decideAnswerTypesAtLoad({
             const ownContent = sugarChildren
                 .slice(start, end === -1 ? undefined : end)
                 .filter((child) => !isBlank(child));
-            if (ownContent.length > 0) {
+            // A `<when>` written in the answer is wrapped in an award as
+            // its condition, as one written in an award is.
+            if (ownContent.length > 0 && !isWhen(ownContent)) {
                 comparedContents.push({ content: ownContent, at: answer });
             }
         }
