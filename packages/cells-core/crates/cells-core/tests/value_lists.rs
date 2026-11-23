@@ -6,7 +6,7 @@
 mod common;
 use cells_core::Document;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{load, load_error};
 use common::*;
 
 fn text(doc: &Document, name: &str) -> String {
@@ -126,4 +126,19 @@ fn a_list_operator_contributes_its_entries() {
     assert_eq!(text(&doc, "undo"), "3, 8, 1");
     assert_eq!(text(&doc, "sorted"), "1, 3, 5, 8, 9");
     assert_eq!(reference::check(&doc), None);
+}
+
+/// An element child of a list is an entry (ADR 0041), not content a value
+/// drops (COMP-1); `mergeMathLists` set by a cell would make the count
+/// follow a value, and is refused rather than read as false (VAL-7).
+#[test]
+fn a_list_reads_its_element_children_and_refuses_a_bound_merge() {
+    let doc =
+        load(r#"<p name="p"><numberList><number>3</number> <math>2 + 1</math></numberList></p>"#)
+            .unwrap();
+    assert_eq!(text(&doc, "p"), "3, 3");
+    let (_, message) = load_error(
+        r#"<booleanInput name="b"/><mathList mergeMathLists="$b"><math>a, b</math></mathList>"#,
+    );
+    assert!(message.contains("mergeMathLists"), "{message}");
 }

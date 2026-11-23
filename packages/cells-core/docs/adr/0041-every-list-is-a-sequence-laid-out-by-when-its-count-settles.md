@@ -414,6 +414,13 @@ otherwise.
      list-valued math (`<mathList>$lm</mathList>`), and the flag bound to
      a cell, are left: the first needs the engine's `list` head (decision
      8), the second is structural (step 4).
+   - An element child of a list or of an operator over a list of
+     operands is an entry (decision 9), where the principles review's
+     COMP-1 refuses an element inside `<math>` or `<number>` content: a
+     list reads its element children as this decision makes them
+     meaningful, and every other value still refuses one. A
+     `mergeMathLists` set by a reference is refused (VAL-7) rather than
+     read as false.
    - A reference to a list in an iteration (`$r[1].l`), or a `<sequence>`
      or a sampler among a list's children (`from_children` none), still
      contributes one value,
