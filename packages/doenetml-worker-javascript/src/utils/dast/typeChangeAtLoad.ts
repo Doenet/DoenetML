@@ -3904,6 +3904,33 @@ export function checkTypeChangesAtLoad({
         if (typeof item === "string") {
             return { kind: "one", type: "text" };
         }
+        if (item.componentType === "_copy" && declaredType(item) === "group") {
+            // A `<group>` written with `extend` or `copy`, or a bare `$g` of
+            // a group, holds what its source holds (and, written as a tag,
+            // what is written in it), read through the source, as a
+            // `<group>` written here is read through, so it is decided from
+            // the DoenetML in every variant (DIAG-7, Doenet/DoenetML#2654
+            // item 6).
+            const holding = itemHolding(item, new Set());
+            const count = holding.skip ? undefined : countOf(holding);
+            if (count === 0) {
+                return { kind: "none" };
+            }
+            if (count !== undefined && count > 1) {
+                return { kind: "several", count };
+            }
+            const [type] = holding.types;
+            return {
+                kind: "one",
+                type:
+                    count === 1 &&
+                    holding.types.size === 1 &&
+                    holding.unknown === undefined &&
+                    !isHolder(type)
+                        ? type
+                        : undefined,
+            };
+        }
         // A reference as the one component (`<option>$m</option>`) counts
         // as what it names, when that is one component whose tag the
         // DoenetML gives (`declaredType`; #2548 item 4).
