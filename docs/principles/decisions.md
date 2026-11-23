@@ -3350,3 +3350,25 @@ uncorrected (#2641).
      types (`simplify="FULL"`, `hide="True"`, and item 3's, if kept) stay case-insensitive.
    - Or keep `type` values as keywords, read without case, and do the same for `componentType`.
 
+## D64. A collection keeps its kind when a tag is made from it (decided, November 2026)
+
+**Why.** #2644 (PR 46) first made `<group extend="$r"/>` of a repeat hold its iterations, then
+took it out: a `<group>` made from a collection isn't the same component (REF-7), changes the
+collection's kind (COLL-1), and is no pair D26's table allows. On `main`, a group made from a list
+or a `<collect>` acts as the list (`$g[2]` is the second entry, `$g.numItems` the count), while a
+group made from a group of several refuses an index (`w0188`), and one made from a `<repeat>` or a
+select of several shows nothing. #2649.
+
+1. **A `<group>` made from a collection by `extend`, `copy` or `copyWithState` is `doenet-e0065`**
+   at load ("any other pair" in REF-5), with a reason for a collection naming the forms that work:
+   `<group>$r…</group>`, a group holding the collection, and `<repeat extend="$r"/>`, the same
+   collection again. No new code.
+2. **This includes a list:** `<group extend="$pl"/>` is an error too. D26 allows a list made from a
+   group whose components match (`<mathList extend="$g"/>`), not the reverse; a list is many
+   things (COLL-1). `<group>$pl</group>` works, and `$g.P` reaches a name written in the list
+   through it (#2644).
+
+Unchanged: a `<group>` made from a group, an iteration, a pick or a one-shown-thing tag; a scalar
+tag made from a composite the DoenetML guarantees holds one component; a list made from a
+collection whose items all match its entry type. Implementation: PR 50 of #2509, with #2594 item 2.
+

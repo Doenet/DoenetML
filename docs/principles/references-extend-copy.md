@@ -858,7 +858,7 @@ Not allowed, each an error whose message gives the clearer form (DIAG-3):
 - **a list from components of more than one type** ("wrap it: `<mathList>$g</mathList>`").
 - **a `<group>` from a collection** (a list, `<repeat>`, `<collect>`, a select of several, …).
   A collection keeps its kind (COLL-1); "write `<group>$r</group>`, or `<repeat extend="$r"/>`".
-  **Known violation** (#2649): allowed today. A group made from a list or a `<collect>` acts as
+  Decided (D64), also for a list: `<group extend="$pl"/>`. **Known violation** (#2649): allowed today. A group made from a list or a `<collect>` acts as
   the list (`$g[2]`, `$g.numItems`), and one made from a `<repeat>` or a select of several shows
   nothing, with no message.
 - **any other pair.**
