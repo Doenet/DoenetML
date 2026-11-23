@@ -1115,8 +1115,10 @@ mod tests {
     #[test]
     fn plan_ctx_grows_deliberately() {
         // 23: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
-        // `Inner::port`, for the inputs a type owns.
-        const PLAN_CTX_METHODS: usize = 23;
+        // `Inner::port`, for the inputs a type owns. 25: ADR 0046 added
+        // `interval`, a domain's endpoints and closedness, and `symbol`, a
+        // function's variable as a math cell.
+        const PLAN_CTX_METHODS: usize = 25;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1258,8 +1260,6 @@ mod tests {
             Hint,
             Setup,
             StickyGroup,
-            Function,
-            Derivative,
             Answer,
             Text,
             ConditionalContent,

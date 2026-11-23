@@ -821,7 +821,8 @@ macro_rules! component {
         $(sticky: $sticky:expr,)?
         $(constrain_target {
             $(ports: [$($ctport:ident),+ $(,)?], op: $ctop:ident)?
-            $(graph: $ctgraph:ident)? $(,)?
+            $(graph: $ctgraph:ident)?
+            $(function: $ctfunction:ident)? $(,)?
         })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
@@ -874,6 +875,7 @@ macro_rules! component {
                 $(.constrain_target($crate::components::define::component!(@constrain_target
                     $([$($ctport),+] $ctop)?
                     $(graph $ctgraph)?
+                    $(function $ctfunction)?
                 )))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -1181,7 +1183,25 @@ macro_rules! component {
             $crate::components::define::has(PROPS, stringify!($expr)),
             concat!("component!: constrain_target names `", stringify!($expr), "`, which is not a prop"),
         );
-        $crate::components::ConstrainTarget::Graph { expr: stringify!($expr) }
+        $crate::components::ConstrainTarget::Graph { expr: stringify!($expr), function: false }
+    }};
+    (@constrain_target function $expr:ident) => {{
+        const _: () = assert!(
+            $crate::components::define::has(PROPS, stringify!($expr)),
+            concat!("component!: constrain_target names `", stringify!($expr), "`, which is not a prop"),
+        );
+        const _: () = {
+            let names = $crate::components::FUNCTION_PROPS;
+            let mut k = 0;
+            while k < names.len() {
+                assert!(
+                    $crate::components::define::has(PROPS, names[k]),
+                    "component!: a function target needs every prop FUNCTION_PROPS names",
+                );
+                k += 1;
+            }
+        };
+        $crate::components::ConstrainTarget::Graph { expr: stringify!($expr), function: true }
     }};
     (@children) => { $crate::components::ChildrenDecl::RENDERED };
     (@children $ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?) => {

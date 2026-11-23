@@ -12,8 +12,8 @@ mod scalar;
 mod vector;
 
 pub use instr::{
-    Instr, InstrIdx, MemoIdx, OperandIdx, Operands, Post, SAMPLES, SymEntry, SymIdx, SymKind,
-    TapeIdx, VecIdx,
+    DOMAIN_CELLS, Instr, InstrIdx, MemoIdx, OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES,
+    SymEntry, SymIdx, SymKind, TapeIdx, VecIdx, in_domain,
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
@@ -400,10 +400,14 @@ impl Program {
         let inputs = self.operands_at(start, n);
         let state = &mut *sym.state;
         let (last, outs) = state.memo[memo.index()..memo.index() + n + n_out].split_at_mut(n);
-        if !inputs
-            .iter()
-            .zip(last.iter())
-            .all(|(&c, m)| cells[c.index()].to_bits() == m.to_bits())
+        // One with no inputs (a derivative of a constant expression, taken
+        // at build time) runs once: no input can tell it has not.
+        let never_ran = n == 0 && outs.first().is_some_and(|o| o.to_bits() == NEVER.to_bits());
+        if never_ran
+            || !inputs
+                .iter()
+                .zip(last.iter())
+                .all(|(&c, m)| cells[c.index()].to_bits() == m.to_bits())
         {
             #[cfg(feature = "testing")]
             {
@@ -592,6 +596,27 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 out.fill(f64::NAN);
             }
         }
+        SymKind::EvalFunction => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            eval_function(engine, &vals[1..], &[vals[0]], out);
+        }
+        SymKind::SampleFunction => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            let (lo, hi) = (vals[0], vals[1]);
+            if lo.is_finite() && hi.is_finite() {
+                let step = (hi - lo) / (SAMPLES - 1) as f64;
+                let xs: Vec<f64> = (0..SAMPLES).map(|i| lo + step * i as f64).collect();
+                eval_function(engine, &vals[2..], &xs, out);
+            } else {
+                out.fill(f64::NAN);
+            }
+        }
+        SymKind::DerivativeBy => {
+            out[0] = match (handle(v(0)), handle(v(1)).and_then(|h| engine.symbol(h))) {
+                (Some(h), Some(var)) => engine.derivative(h, &var).to_value(),
+                _ => f64::NAN,
+            }
+        }
         SymKind::Sample => {
             let (lo, hi) = (v(1), v(2));
             match handle(v(0)) {
@@ -602,6 +627,44 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 }
                 _ => out.fill(f64::NAN),
             }
+        }
+    }
+}
+
+/// A function given as its domain and pieces (`f`: [`DOMAIN_CELLS`] cells,
+/// then [`PIECE_CELLS`] per piece; [`SymKind::EvalFunction`]) at each of
+/// `xs`, into `out`: NaN outside its domain, else the first piece whose
+/// own domain holds `x`, else NaN. Each piece is evaluated once at every
+/// `x` it takes.
+pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]) {
+    out.fill(f64::NAN);
+    let (domain, pieces) = f.split_at(DOMAIN_CELLS);
+    let mut todo: Vec<usize> = (0..xs.len())
+        .filter(|&i| in_domain(xs[i], domain))
+        .collect();
+    for piece in pieces.chunks_exact(PIECE_CELLS) {
+        if todo.is_empty() {
+            break;
+        }
+        let (taken, rest): (Vec<usize>, Vec<usize>) = todo
+            .into_iter()
+            .partition(|&i| in_domain(xs[i], &piece[2..]));
+        todo = rest;
+        let (Some(h), Some(var)) = (
+            handle(piece[0]),
+            handle(piece[1]).and_then(|v| engine.symbol(v)),
+        ) else {
+            continue;
+        };
+        let at: Vec<f64> = taken.iter().map(|&i| xs[i]).collect();
+        let mut ys = vec![f64::NAN; at.len()];
+        if at.len() == 1 {
+            ys[0] = engine.evaluate(h, Some((&var, at[0])));
+        } else if !at.is_empty() {
+            engine.evaluate_many(h, &var, &at, &mut ys);
+        }
+        for (&i, y) in taken.iter().zip(ys) {
+            out[i] = y;
         }
     }
 }

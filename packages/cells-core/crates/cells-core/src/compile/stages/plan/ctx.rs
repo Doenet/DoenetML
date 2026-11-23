@@ -152,6 +152,26 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.plan_value_children(self.t, scope, v)
     }
 
+    /// Math text written as one interval, `[a, b)`: its endpoints and
+    /// closedness (ADR 0046); `None` when it is not one interval.
+    pub(crate) fn interval(&mut self, nodes: &[NodeId]) -> Result<Option<IntervalAttr>> {
+        let scope = self.scope_for(nodes);
+        self.p
+            .rd
+            .plan_interval(&mut self.p.ar, self.t, scope, nodes)
+    }
+
+    /// The math cell of the symbol `name`, a constant: a function's
+    /// variable (ADR 0046).
+    pub(crate) fn symbol(&mut self, name: &str) -> Source {
+        let id = self.p.ar.arena.push(Expr::Sym(name.into()));
+        self.p
+            .ar
+            .sym_text
+            .insert(id, SymText::Spelled(name.to_string()));
+        Source::sym_expr(id, crate::program::Post::None)
+    }
+
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
     /// an error when what it names has no such prop.
     pub(crate) fn with_prop(&mut self, p: RefId, prop: &'static str) -> Result<RefId> {

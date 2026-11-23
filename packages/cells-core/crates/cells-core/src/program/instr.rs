@@ -60,6 +60,38 @@ pub enum SymKind {
     /// input 3 to input 4: a `<parabola>`'s curve. Numeric, but a run of
     /// `SAMPLES` outputs, more than a vector instruction holds.
     SampleQuadratic,
+    // Functions of one variable with domains (ADR 0046). A function is
+    // given as its domain and its pieces: `D` is four cells, an
+    // interval's lower and upper endpoints and whether each is closed
+    // (1) or open (0), a NaN endpoint standing for no bound; a piece is
+    // six, its expression, the variable it is in (a math cell holding a
+    // symbol) and its own domain. Its value at `x` is NaN outside `D`,
+    // else the first piece whose domain holds `x`, evaluated there, else
+    // NaN. A `<function>` is one piece whose domain is the function's.
+    /// Input 1.. a function (`D`, then pieces) at input 0.
+    EvalFunction,
+    /// Inputs 2.. a function (`D`, then pieces) at `SAMPLES` evenly spaced
+    /// x from input 0 to input 1: its curve.
+    SampleFunction,
+    /// d/dv of input 0, where input 1 is a math cell holding the symbol
+    /// `v`: a derivative in a function's own variable.
+    DerivativeBy,
+}
+
+/// How many cells a domain takes in [`SymKind::EvalFunction`]'s inputs.
+pub const DOMAIN_CELLS: usize = 4;
+/// How many cells a piece takes in [`SymKind::EvalFunction`]'s inputs.
+pub const PIECE_CELLS: usize = 6;
+
+/// Whether `x` lies in the domain `d` (lower, upper, lower closed, upper
+/// closed), as the JavaScript core's `find_effective_domain` reads one: an
+/// endpoint that is no number is no bound, and an infinite end holds
+/// every number on its side.
+pub fn in_domain(x: f64, d: &[f64]) -> bool {
+    let (lo, hi, lo_closed, hi_closed) = (d[0], d[1], d[2], d[3]);
+    let above = lo.is_nan() || x > lo || (x == lo && (lo_closed != 0.0 || lo == f64::NEG_INFINITY));
+    let below = hi.is_nan() || x < hi || (x == hi && (hi_closed != 0.0 || hi == f64::INFINITY));
+    !x.is_nan() && above && below
 }
 
 /// What a `<math>` does to its expression after instantiating it.
@@ -80,7 +112,10 @@ impl SymKind {
     /// How many cells it writes: [`SAMPLES`] for a sampler, else 1.
     pub fn n_out(self) -> usize {
         match self {
-            SymKind::Sample | SymKind::SampleTape { .. } | SymKind::SampleQuadratic => SAMPLES,
+            SymKind::Sample
+            | SymKind::SampleTape { .. }
+            | SymKind::SampleQuadratic
+            | SymKind::SampleFunction => SAMPLES,
             _ => 1,
         }
     }
@@ -102,6 +137,7 @@ impl SymKind {
                 | SymKind::Derivative
                 | SymKind::ClampFunction
                 | SymKind::WrapFunctionPeriodic
+                | SymKind::DerivativeBy
         )
     }
 }
@@ -218,6 +254,8 @@ impl OpSpec {
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
             OpSpec::Sym(SymKind::SampleQuadratic) => 5,
+            OpSpec::Sym(SymKind::EvalFunction | SymKind::SampleFunction) => usize::MAX,
+            OpSpec::Sym(SymKind::DerivativeBy) => 2,
             _ => unreachable!(),
         }
     }
@@ -227,6 +265,13 @@ impl OpSpec {
     pub const fn accepts(&self, n: usize) -> bool {
         match self {
             OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            // A domain and at least one piece, after the input or range.
+            OpSpec::Sym(SymKind::EvalFunction) => {
+                n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS) % PIECE_CELLS == 0
+            }
+            OpSpec::Sym(SymKind::SampleFunction) => {
+                n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS) % PIECE_CELLS == 0
+            }
             _ => self.arity() == n,
         }
     }
@@ -357,6 +402,10 @@ mod arity {
             OpSpec::Sym(SymKind::ClampFunction),
             OpSpec::Sym(SymKind::WrapFunctionPeriodic),
             OpSpec::Sym(SymKind::SampleQuadratic),
+            OpSpec::Sym(SymKind::EvalFunction),
+            OpSpec::Sym(SymKind::SampleFunction),
+            OpSpec::Sym(SymKind::DerivativeBy),
+            OpSpec::Vec(VecOp::IntoDomain),
         ]);
         ops
     }
@@ -393,6 +442,7 @@ mod arity {
                 VecOp::BestFitLine { .. } => 25,
                 VecOp::IntersectLines { .. } => 26,
                 VecOp::Parabola { .. } => 27,
+                VecOp::IntoDomain => 42,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -407,12 +457,15 @@ mod arity {
                     SymKind::ClampFunction => 8,
                     SymKind::WrapFunctionPeriodic => 9,
                     SymKind::SampleQuadratic => 10,
+                    SymKind::EvalFunction => 11,
+                    SymKind::SampleFunction => 12,
+                    SymKind::DerivativeBy => 13,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 39;
+    const N_TAGS: usize = 43;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -429,10 +482,11 @@ mod arity {
             "`every` misses an operator"
         );
         for spec in ops {
-            let n = if spec.arity() == usize::MAX {
-                2
-            } else {
-                spec.arity()
+            let n = match spec {
+                OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
+                OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
+                _ if spec.arity() == usize::MAX => 2,
+                _ => spec.arity(),
             };
             assert!(spec.accepts(n));
             let inputs: Vec<CellIdx> = CellIdx::below(n).collect();

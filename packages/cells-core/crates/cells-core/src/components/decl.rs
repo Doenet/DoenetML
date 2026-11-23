@@ -217,8 +217,27 @@ pub enum ConstrainTarget {
     Graph {
         /// The target's prop holding the curve's expression.
         expr: &'static str,
+        /// Whether the target is a function with a variable and a domain
+        /// (ADR 0046), in the props [`FUNCTION_PROPS`] names (`constrain_target
+        /// { function: expr }`): the point is held in the domain, and the
+        /// expression evaluated in the variable. Without, it is in `x` on
+        /// the whole line (a `<parabola>`).
+        function: bool,
     },
 }
+
+/// The props of a function of one variable (ADR 0046) besides its
+/// expression: the math cell holding its variable, and its domain's lower
+/// and upper endpoints and whether each is closed, as
+/// [`SymKind::EvalFunction`](crate::program::SymKind::EvalFunction) reads
+/// a piece.
+pub const FUNCTION_PROPS: [&str; 5] = [
+    "variable",
+    "domainMin",
+    "domainMax",
+    "domainMinClosed",
+    "domainMaxClosed",
+];
 
 /// Machinery several types share, which plans an element of a type that names
 /// it.

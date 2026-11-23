@@ -53,6 +53,8 @@
 //! | `Parabola{n, vertex}`    | (a, vertex, n points) → (a, b, c) and | a vertex asked for keeps a; the vertex to the vertex asked for, each | a, the vertex,    |
 //! |                          | the vertex of the parabola through    | point vertically onto the parabola asked for (sideways with the      | the points (or a, |
 //! |                          | them (or (a, b, c) → the same)        | vertex), a when asked (or a, b, c themselves)                        | b, c)             |
+//! | `IntoDomain`             | (x, domain) → x held in the domain,   | projection: the requested value held in the domain, written to x     | x                 |
+//! |                          | a step inside an open end             |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -360,6 +362,12 @@ pub enum VecOp {
         /// Whether a vertex is given (with at most one point).
         vertex: bool,
     },
+    /// Input 0 held in the domain of inputs 1 to 4 (lower and upper
+    /// endpoints, whether each is closed; [`in_domain`](crate::program::in_domain)):
+    /// at a closed end it stops there, at an open one [`open_step`] inside
+    /// it; NaN only when input 0 is. A point constrained to a function
+    /// with a domain (ADR 0046). A request writes input 0 held.
+    IntoDomain,
 }
 
 /// What a [`VecOp::Scan`] computes over the prefixes of its inputs, as the
@@ -1066,6 +1074,44 @@ pub use crate::limits::MAX_VEC_IN;
 
 /// `x` held between `lo` and `hi`; NaN if any is NaN (unlike `f64::clamp`,
 /// which panics on bounds out of order).
+/// How far inside an open end of a domain [`VecOp::IntoDomain`] holds a
+/// value: a millionth of the end's size, at least a millionth, and no more
+/// than half the domain's width.
+fn open_step(end: f64, width: f64) -> f64 {
+    let step = 1e-6 * end.abs().max(1.0);
+    if width.is_finite() {
+        step.min(width / 2.0)
+    } else {
+        step
+    }
+}
+
+/// `x` held in the domain `d` (lower, upper, lower closed, upper closed):
+/// past an end it stops there when the end is closed, an [`open_step`]
+/// inside it when open. An endpoint that is no number is no bound.
+fn into_domain(x: f64, d: &[f64]) -> f64 {
+    let (lo, hi, lo_closed, hi_closed) = (d[0], d[1], d[2], d[3]);
+    if x.is_nan() {
+        return x;
+    }
+    let width = hi - lo;
+    if !lo.is_nan() && lo.is_finite() && (x < lo || (x == lo && lo_closed == 0.0)) {
+        return if lo_closed != 0.0 {
+            lo
+        } else {
+            lo + open_step(lo, width)
+        };
+    }
+    if !hi.is_nan() && hi.is_finite() && (x > hi || (x == hi && hi_closed == 0.0)) {
+        return if hi_closed != 0.0 {
+            hi
+        } else {
+            hi - open_step(hi, width)
+        };
+    }
+    x
+}
+
 fn clamp(x: f64, lo: f64, hi: f64) -> f64 {
     if x.is_nan() || lo.is_nan() || hi.is_nan() {
         f64::NAN
@@ -1117,6 +1163,7 @@ impl VecOp {
                 vertex: false,
             } => 3,
             VecOp::Parabola { through, vertex } => 1 + 2 * vertex as usize + 2 * through as usize,
+            VecOp::IntoDomain => 5,
         }
     }
 
@@ -1147,6 +1194,7 @@ impl VecOp {
             VecOp::Extent => first(2),
             VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 0,
             VecOp::Parabola { .. } => first(self.n_in()),
+            VecOp::IntoDomain => 1,
         }
     }
 
@@ -1241,6 +1289,7 @@ impl VecOp {
             VecOp::Draws { n, .. } => n as usize,
             VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 3,
             VecOp::Parabola { .. } => 5,
+            VecOp::IntoDomain => 1,
         }
     }
 
@@ -1394,6 +1443,7 @@ impl VecOp {
                 let [vx, vy] = parabola_vertex(a, b, c);
                 out.copy_from_slice(&[a, b, c, vx, vy]);
             }
+            VecOp::IntoDomain => out[0] = into_domain(inp[0], &inp[1..5]),
         }
     }
 
@@ -1551,6 +1601,13 @@ impl VecOp {
                     true
                 }
                 None => false,
+            },
+            VecOp::IntoDomain => match desired[0] {
+                Some(d) if !d.is_nan() => {
+                    out.write(inputs[0], into_domain(d, &inp[1..5]));
+                    true
+                }
+                _ => false,
             },
             VecOp::Wrap => match desired[0].map(|d| wrap_periodic(d, inp[1], inp[2])) {
                 Some(x) if !x.is_nan() => {
@@ -2375,6 +2432,7 @@ mod writes {
                 through: 1,
                 vertex: true,
             },
+            VecOp::IntoDomain,
         ]
     }
 
@@ -2497,6 +2555,7 @@ mod writes {
             | VecOp::BestFitLine { .. }
             | VecOp::IntersectLines { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
             VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],
+            VecOp::IntoDomain => vec![vec![0]],
         }
     }
 

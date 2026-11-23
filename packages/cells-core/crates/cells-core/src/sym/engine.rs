@@ -254,6 +254,15 @@ impl Engine {
         to_tree(&self.exprs[h.index()])
     }
 
+    /// The name of the symbol `h` is, if it is one (a function's
+    /// variable).
+    pub fn symbol(&self, h: Handle) -> Option<String> {
+        match &self.exprs[h.index()] {
+            Expr::Sym(s) => Some(s.name()),
+            _ => None,
+        }
+    }
+
     /// `h` as math text.
     pub fn text(&self, h: Handle) -> String {
         me::to_text(&self.exprs[h.index()], &TextOpts::default())

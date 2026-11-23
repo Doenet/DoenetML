@@ -8,7 +8,7 @@ use crate::compile::api::*;
 use crate::components::ComponentDef;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::components::prop::graph;
+use crate::components::values::curve::{FunctionParts, function_curve, referenced_function};
 use crate::error::Result;
 use crate::program::{Post, SymKind};
 
@@ -26,6 +26,13 @@ component! {
         expr: by_planner { expr_of: expr },
         lowerValue: by_planner,
         upperValue: by_planner,
+        // Its function's variable and domain (ADR 0046): `x` and the whole
+        // line for math in `x`.
+        variable: by_planner,
+        domainMin: by_planner,
+        domainMax: by_planner,
+        domainMinClosed: by_planner,
+        domainMaxClosed: by_planner,
         xmin: by_planner { rendered },
         xmax: by_planner { rendered },
         // Always 1: the bridge draws it as a `<function>`'s curve.
@@ -34,7 +41,7 @@ component! {
     }
     // A point constrained to it rides its graph, as one constrained to a
     // `<function>` does.
-    constrain_target { graph: expr }
+    constrain_target { function: expr }
     attributes {
         lowerValue: Scalar,
         upperValue: Scalar,
@@ -60,8 +67,18 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
-    let id = ctx.sym_math(&nodes, &mt)?;
-    let of = wiring.hidden(Source::sym_expr(id, Post::None));
+    // Of a function, in its variable and on its domain (ADR 0046).
+    let (of, parts) = match referenced_function(ctx, &nodes)? {
+        Some((f, parts)) => (wiring.hidden(f), parts),
+        None => {
+            let id = ctx.sym_math(&nodes, &mt)?;
+            let parts = FunctionParts {
+                variable: ctx.symbol("x").into(),
+                ..FunctionParts::plain()
+            };
+            (wiring.hidden(Source::sym_expr(id, Post::None)), parts)
+        }
+    };
     let bound = |source: Option<Source>, attr: Attr, default: f64| match source {
         Some(source) => Wire::scalar(source, GivenId::Attr(attr, 0)),
         None => Wire::constant(default),
@@ -71,24 +88,34 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     } else {
         SymKind::WrapFunctionPeriodic
     };
-    let [xmin, xmax] = match (
-        ctx.enclosing_graph_prop(graph::Props::PORTS.xmin),
-        ctx.enclosing_graph_prop(graph::Props::PORTS.xmax),
-    ) {
-        (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
-        _ => [Wire::constant(-10.0), Wire::constant(10.0)],
-    };
+    let domain_ports = [
+        at.domainMin,
+        at.domainMax,
+        at.domainMinClosed,
+        at.domainMaxClosed,
+    ];
+    let [xmin, xmax, samples] = function_curve(
+        ctx,
+        &mut wiring,
+        parts.plain,
+        [at.expr, at.variable],
+        domain_ports,
+        [at.xmin, at.xmax],
+    );
+    let [d0, d1, d2, d3] = parts.domain;
     wiring.set_public(Props {
         expr: Wire::computed(OpSpec::Sym(kind), vec![of, at.lowerValue, at.upperValue]),
         lowerValue: bound(attrs.lowerValue, attr::lowerValue, 0.0),
         upperValue: bound(attrs.upperValue, attr::upperValue, 1.0),
+        variable: parts.variable,
+        domainMin: d0,
+        domainMax: d1,
+        domainMinClosed: d2,
+        domainMaxClosed: d3,
         xmin,
         xmax,
         curve: Wire::constant(1.0),
-        samples: Wire::computed(
-            OpSpec::Sym(SymKind::Sample),
-            vec![at.expr, at.xmin, at.xmax],
-        ),
+        samples,
     });
     Ok(wiring)
 }

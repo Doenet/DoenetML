@@ -88,19 +88,79 @@ pub mod number {
 
 pub(crate) mod evaluate {
     use super::*;
+    use crate::components::{ConstrainTarget, FUNCTION_PROPS};
+    use crate::error::Result;
 
     component! {
         /// `<evaluate function="$m" input="$a"/>`: the math's expression with
-        /// its free symbol set to the input.
+        /// its free symbol set to the input; a function's (ADR 0046) in its
+        /// variable, missing outside its domain.
         tags: ["evaluate"],
         flags: [copyable],
         default_prop: value,
         props {
-            function: attr(NO_VALUE) { ref_prop: expr },
-            input: attr(NO_VALUE),
-            value: computed(OpSpec::Sym(SymKind::EvalAt), [function, input]) { rendered },
+            function: by_planner,
+            input: by_planner,
+            value: by_planner { rendered },
         }
-        planner: Props,
+        attributes {
+            function: Ref,
+            input: Scalar,
+        }
+        planner: Plan(plan),
+    }
+
+    /// `x` bound to the input in the math's expression, or the function
+    /// of one variable (`EvalFunction`) at the input.
+    fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let attrs = Attrs::of(ctx.record());
+        let at = Props::PORTS;
+        let mut wiring = ElemWiring::of(ctx.component_type());
+        let input = match attrs.input {
+            Some(source) => Wire::scalar(source, GivenId::Attr(attr::input, 0)),
+            None => Wire::absent(),
+        };
+        let Some(p) = attrs.function else {
+            wiring.set_public(Props {
+                function: Wire::absent(),
+                input,
+                value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+            });
+            return Ok(wiring);
+        };
+        let target = ctx
+            .reference_type(p)?
+            .and_then(|ty| ty.def().constrain_target);
+        let (function, value) = match target {
+            Some(ConstrainTarget::Graph {
+                expr,
+                function: true,
+            }) => {
+                let mut f = Vec::new();
+                for name in FUNCTION_PROPS {
+                    f.push(wiring.hidden(Source::reference(ctx.with_prop(p, name)?)));
+                }
+                let (var, domain) = (f[0], &f[1..5]);
+                let mut eval = vec![at.input];
+                eval.extend_from_slice(domain);
+                eval.extend([at.function, var]);
+                eval.extend_from_slice(domain);
+                (
+                    Wire::from(Source::reference(ctx.with_prop(p, expr)?)),
+                    Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),
+                )
+            }
+            _ => (
+                Wire::from(Source::reference(ctx.with_prop(p, "expr")?)),
+                Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+            ),
+        };
+        wiring.set_public(Props {
+            function,
+            input,
+            value,
+        });
+        Ok(wiring)
     }
 }
 
