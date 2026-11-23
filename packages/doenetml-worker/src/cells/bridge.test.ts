@@ -31,29 +31,65 @@ function byName(root: ReturnType<CellsBridge["flatDast"]>, name: string) {
 }
 
 describe("flat DAST", () => {
-    it("draws a value list as the text of its entries (ADR 0041)", async () => {
-        const bridge = await load(`<numberList>1 2.5 3</numberList>
-<textList>a b</textList>
-<booleanList>true false</booleanList>`);
-        const root = bridge.flatDast();
-        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
-            { value: "1, 2.5, 3" },
-            { value: "a, b" },
-            { value: "true, false" },
+    /** The children of each `<p>`, each element as `<name>` and the text
+     * its props show. */
+    function paragraphs(root: ReturnType<CellsBridge["flatDast"]>) {
+        return byName(root, "p").map((e: any) =>
+            e.children.map((c: any) => {
+                if (typeof c === "string") return c;
+                const el = root.elements[c.id] as any;
+                const props = el.data.props ?? {};
+                return `<${el.name}>${props.text ?? props.value ?? props.latex ?? props.coordsLatex ?? ""}`;
+            }),
+        );
+    }
+
+    it("draws each entry of a value list by its own renderer, separated by commas (ADR 0041)", async () => {
+        const bridge = await load(`<p><numberList>1 2.5 3</numberList></p>
+<p><textList>a b</textList></p>
+<p><booleanList>true false</booleanList></p>
+<p><numberList asList="false">1 2</numberList></p>`);
+        expect(paragraphs(bridge.flatDast())).toEqual([
+            ["<number>1", ", ", "<number>2.5", ", ", "<number>3"],
+            ["<text>a", ", ", "<text>b"],
+            ["<boolean>true", ", ", "<boolean>false"],
+            ["<number>1", "<number>2"],
         ]);
     });
 
-    it("draws a math list as the text of its entries, and an entry as a math (ADR 0041)", async () => {
+    it("draws a math list's entries as maths, an authored entry as itself (ADR 0041)", async () => {
         const bridge =
-            await load(`<mathList name="ml">x y+1 <number>3</number></mathList>
-<p>$ml[2]</p>`);
-        const root = bridge.flatDast();
-        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
-            { value: "x, y + 1, 3" },
+            await load(`<p><mathList name="ml">x y+1 <number>3</number></mathList></p>
+<p>$ml[2]</p>
+<p><numberList><number name="a">5</number> 6</numberList></p>`);
+        expect(paragraphs(bridge.flatDast())).toEqual([
+            ["<math>x", ", ", "<math>y + 1", ", ", "<math>3"],
+            ["<math>y + 1"],
+            ["<number>5", ", ", "<number>6"],
         ]);
-        expect(
-            byName(root, "math").map((e) => (e.data as any).props.latex),
-        ).toEqual(["y + 1"]);
+    });
+
+    it("draws a point list's entries as points, in a graph one by one (ADR 0041)", async () => {
+        const bridge = await load(`<point name="P">(9,10)</point>
+<graph><pointList name="pl"><point name="A">(1,2)</point> (3,4) $P</pointList></graph>
+<p>$pl</p>`);
+        const root = bridge.flatDast();
+        const [graph] = byName(root, "graph");
+        const drawn = (graph as any).children
+            .filter((c: any) => typeof c !== "string")
+            .map((c: any) => (root.elements[c.id] as any).data.props);
+        expect(drawn).toEqual([
+            { x: { math_object: "1" }, y: { math_object: "2" } },
+            { x: { math_object: "3" }, y: { math_object: "4" } },
+            { x: { math_object: "9" }, y: { math_object: "10" } },
+        ]);
+        expect(paragraphs(root).at(-1)).toEqual([
+            "<point>\\left( 1, 2 \\right)",
+            ", ",
+            "<point>\\left( 3, 4 \\right)",
+            ", ",
+            "<point>\\left( 9, 10 \\right)",
+        ]);
     });
 
     it("gives each component its renderer's props", async () => {
@@ -240,9 +276,9 @@ describe("values and lists", () => {
 
 describe("missing values", () => {
     it("shows a reference that names nothing, and what is made from it, as a blank, and keeps NaN for a computation", async () => {
-        const bridge = await load(`<numberList name="l">1 2</numberList>
+        const bridge = await load(`<setup><numberList name="l">1 2</numberList>
+<booleanList name="bl">true</booleanList></setup>
 <p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
-<booleanList name="bl">true</booleanList>
 <p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
 <p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
 <p><numberList>$l[5] 2</numberList></p>`);
@@ -250,7 +286,14 @@ describe("missing values", () => {
         const props = (name: string) =>
             byName(root, name).map((e) => (e.data as any).props);
         // VAL-5, D40: missing is the blank; NaN stays for 0/0 (ADR 0046).
-        expect(props("number").map((p) => p.text)).toEqual(["＿", "＿", "NaN"]);
+        // The last list's entries are drawn one by one (ADR 0041).
+        expect(props("number").map((p) => p.text)).toEqual([
+            "＿",
+            "＿",
+            "NaN",
+            "＿",
+            "2",
+        ]);
         expect(props("text").map((p) => p.value)).toContain("＿");
         // A missing boolean is the blank; a comparison with a missing side
         // is false, since a blank never equals anything (D37, D40).
@@ -289,6 +332,46 @@ describe("renderer actions", () => {
                 changedState: { text: "5" },
             },
         });
+    });
+
+    it("moves an entry of a point list to its source, and a click on it presses what names it (ADR 0041)", async () => {
+        const bridge = await load(`<point name="P">(9,10)</point>
+<graph><pointList name="pl">(1,2) $P</pointList></graph>
+<number name="n">0</number>
+<updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$pl[1]"/>
+<p><number>$P.x</number> <number>$pl[1].x</number> <number>$n</number></p>`);
+        const root = bridge.flatDast();
+        const [graph] = byName(root, "graph") as any[];
+        const [first, second] = graph.children.filter(
+            (c: any) => typeof c !== "string",
+        );
+        const texts = () =>
+            byName(bridge.flatDast(), "number")
+                .slice(1)
+                .map((e) => (e.data as any).props.text);
+        const move = (id: number, x: number, y: number) =>
+            bridge.dispatch({
+                component: "point",
+                actionName: "move",
+                componentIdx: id,
+                args: { x, y },
+            });
+        move(second.id, -9, -10);
+        move(first.id, 5, 6);
+        expect(texts()).toEqual(["-9", "5", "0"]);
+        bridge.dispatch({
+            component: "point",
+            actionName: "pointClicked",
+            componentIdx: first.id,
+            args: {},
+        });
+        bridge.dispatch({
+            component: "point",
+            actionName: "pointClicked",
+            componentIdx: second.id,
+            args: {},
+        });
+        expect(texts()).toEqual(["-9", "5", "1"]);
     });
 
     it("types text, checks a box and picks a choice", async () => {
@@ -1151,8 +1234,18 @@ describe("random selections, sequences, reordering and list operators", () => {
         const bridge = await load(source);
         const root = bridge.flatDast();
         const all = (name: string) => byName(root, name);
+        // Each paragraph's text: a list's entries are drawn one by one,
+        // separated by commas (ADR 0041, decision 4).
         const texts = () =>
-            all("text").map((e) => (e.data as any).props.value as string);
+            all("p").map((p: any) =>
+                p.children
+                    .map((c: any) => {
+                        if (typeof c === "string") return c;
+                        const props = (root.elements[c.id] as any).data.props;
+                        return props.text ?? props.value ?? props.latex;
+                    })
+                    .join(""),
+            );
         const send = (component: string, actionName: string, args: object) =>
             bridge.dispatch({
                 component,
@@ -1166,14 +1259,14 @@ describe("random selections, sequences, reordering and list operators", () => {
     it("draws computed lists of numbers as the text of their entries, without their operands", async () => {
         const { all, texts, send } = await open(`
 <numberInput name="a" value="5"/>
-<cumulativeSum>1 $a 2</cumulativeSum>
-<cumulativeProduct>1 2 3</cumulativeProduct>
-<cumulativeMin>3 1 4</cumulativeMin>
-<cumulativeMax>3 1 4</cumulativeMax>
-<differences>30 75 87</differences>
-<sort>5 3 1</sort>
-<sequence from="2" to="10" step="4"/>
-<selectPrimeNumbers to="5" numToSelect="3" sort/>
+<p><cumulativeSum>1 $a 2</cumulativeSum></p>
+<p><cumulativeProduct>1 2 3</cumulativeProduct></p>
+<p><cumulativeMin>3 1 4</cumulativeMin></p>
+<p><cumulativeMax>3 1 4</cumulativeMax></p>
+<p><differences>30 75 87</differences></p>
+<p><sort>5 3 1</sort></p>
+<p><sequence from="2" to="10" step="4"/></p>
+<p><selectPrimeNumbers to="5" numToSelect="3" sort/></p>
 <argMax>3 9 2</argMax> <indexOf target="2">3 9 2</indexOf>`);
         expect(texts()).toEqual([
             "1, 6, 8",
@@ -1185,9 +1278,7 @@ describe("random selections, sequences, reordering and list operators", () => {
             "2, 6, 10",
             "2, 3, 5",
         ]);
-        for (const e of all("text")) {
-            expect(e.children).toEqual([]);
-        }
+        expect(all("text")).toEqual([]);
         expect((all("argMax")[0].data as any).props).toEqual({
             latex: "2",
             renderMode: "inline",
@@ -1195,16 +1286,19 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect((all("indexOf")[0].data as any).props.latex).toBe("3");
 
         const payload = send("numberInput", "updateValue", { value: 10 });
-        expect(payload[all("text")[0].data.id]?.changedState).toEqual({
-            value: "1, 11, 13",
-        });
+        const [sum] = all("p") as any[];
+        expect(
+            sum.children
+                .filter((c: any) => typeof c !== "string")
+                .map((c: any) => payload[c.id]?.changedState),
+        ).toEqual([undefined, { text: "11" }, { text: "13" }]);
     });
 
     it("draws the numbers a sampler or a shuffle drew, the same on every load", async () => {
-        const source = `<selectRandomNumbers type="discreteUniform" from="1" to="6" numToSelect="4"/>
-<sampleRandomNumbers numSamples="2"/>
-<samplePrimeNumbers numSamples="3"/>
-<shuffle>1 2 3 4</shuffle>`;
+        const source = `<p><selectRandomNumbers type="discreteUniform" from="1" to="6" numToSelect="4"/></p>
+<p><sampleRandomNumbers numSamples="2"/></p>
+<p><samplePrimeNumbers numSamples="3"/></p>
+<p><shuffle>1 2 3 4</shuffle></p>`;
         const first = (await open(source)).texts();
         expect(first).toHaveLength(4);
         const dice = first[0].split(", ").map(Number);
