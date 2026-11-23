@@ -17,6 +17,8 @@ export default class P extends BlockComponent {
         });
     }
     static componentType = "p";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A paragraph of inline content",

@@ -163,7 +163,9 @@ jobs:
             matrix:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-                test-group: [group1, group2, group3, group4]
+                # docs-examples loads every DoenetML example in the docs
+                # (src/test/docsExamples); group4 leaves those out.
+                test-group: [group1, group2, group3, group4, docs-examples]
         steps:
             - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}

@@ -431,16 +431,18 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
 });
 
 describe("Infos that follow their value, after a reload too (#2506) @group4", () => {
-    it("a selectRandomNumbers whose selection a reload keeps reports its info again", async () => {
+    it("a selectRandomNumbers whose selection a reload keeps reports its error again", async () => {
         // Its parameter is a reference, so a save holds its selection, and
-        // a reload keeps it rather than selecting again (#2468).
+        // a reload keeps it rather than selecting again (#2468). It can't
+        // select as written, which is an error wherever its parameter comes
+        // from (D39), and is the same after a reload (DIAG-6).
         const d = await setup(`<selectFromSequence name="sd" from="-1" to="-1"/>
 <selectRandomNumbers type="gaussian" standardDeviation="$sd"/>
 <selectRandomNumbers type="gaussian" standardDeviation="-1"/>
 <booleanInput name="b"/>`);
         const expected = [
-            { code: "doenet-w0126", type: "info", line: 2 },
-            { code: "doenet-w0126", type: "warning", line: 3 },
+            { code: "doenet-w0126", type: "error", line: 2 },
+            { code: "doenet-w0126", type: "error", line: 3 },
         ];
         await d.refresh();
         expect(

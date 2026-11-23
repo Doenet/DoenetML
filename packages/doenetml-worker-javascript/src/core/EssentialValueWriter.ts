@@ -15,6 +15,7 @@ import {
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 import { isReferenceShadow } from "../utils/referenceShadow";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { CircularDependencyError } from "./dependencies/CircularDependencyError";
 
 /**
  * Passes of `replacementChangesFromCompositesToUpdate` after which composites
@@ -75,6 +76,28 @@ export class EssentialValueWriter {
 
     constructor({ core }: { core: Core }) {
         this.core = core;
+    }
+
+    /**
+     * Log a change refused because `componentIdx` (the component asked to
+     * change, or a source it shadows) is `fixed` or has `fixLocation`, and
+     * tell `core.onChangeRefused`, if set, unless the change was asked for
+     * by an action another action set off (a triggered or chained action).
+     */
+    refuseChange(
+        componentIdx: ComponentIdx,
+        stateVariable: string,
+        reason: "fixed" | "fixLocation",
+        message: string,
+    ) {
+        reportInternalError(message);
+        if (this.core.actionTriggerScheduler.triggeredActionDepth === 0) {
+            this.core.onChangeRefused?.({
+                componentIdx,
+                stateVariable,
+                reason,
+            });
+        }
     }
 
     /**
@@ -410,9 +433,19 @@ export class EssentialValueWriter {
                     const involved = stillQueued.length
                         ? ` ${this.core.dependencies.getCircularDependencyMessage(stillQueued)}`
                         : "";
-                    throw Error(
-                        `Seem to have an infinite loop while calculating replacement changes.${involved}`,
-                    );
+                    const message = `Seem to have an infinite loop while calculating replacement changes.${involved}`;
+                    if (!this.core.diagnosticsManager.loaded) {
+                        // While the document loads, a loop is a cycle the
+                        // load rebuilds around, blaming one of the
+                        // composites still looping (D57, `blameLoadCycle`).
+                        throw new CircularDependencyError(
+                            message,
+                            stillQueued.map(
+                                (component: any) => component.componentIdx,
+                            ),
+                        );
+                    }
+                    throw Error(message);
                 }
                 for (const composite of looping) {
                     // The same code a copy inside its own source reports.
@@ -963,7 +996,10 @@ export class EssentialValueWriter {
             !stateVarObj.ignoreFixed &&
             (await component.stateValues.fixed)
         ) {
-            reportInternalError(
+            this.refuseChange(
+                component.componentIdx,
+                stateVariable,
+                "fixed",
                 `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
             );
             return;
@@ -974,7 +1010,10 @@ export class EssentialValueWriter {
             stateVarObj.isLocation &&
             (await component.stateValues.fixLocation)
         ) {
-            reportInternalError(
+            this.refuseChange(
+                component.componentIdx,
+                stateVariable,
+                "fixLocation",
                 `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
             );
             return;
@@ -996,7 +1035,10 @@ export class EssentialValueWriter {
                     break;
                 }
                 if (await source.stateValues.fixLocation) {
-                    reportInternalError(
+                    this.refuseChange(
+                        source.componentIdx,
+                        stateVariable,
+                        "fixLocation",
                         `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation of ${source.componentIdx} is true.`,
                     );
                     return;
@@ -1349,7 +1391,10 @@ export class EssentialValueWriter {
                             !stateVarObj.ignoreFixed &&
                             (await baseComponent.stateValues.fixed)
                         ) {
-                            reportInternalError(
+                            this.refuseChange(
+                                baseComponent.componentIdx,
+                                stateVariable,
+                                "fixed",
                                 `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
                             );
                             return;
@@ -1361,7 +1406,10 @@ export class EssentialValueWriter {
                             stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
-                            reportInternalError(
+                            this.refuseChange(
+                                baseComponent.componentIdx,
+                                stateVariable,
+                                "fixLocation",
                                 `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
                             );
                             return;

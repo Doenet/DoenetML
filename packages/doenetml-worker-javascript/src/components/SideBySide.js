@@ -17,6 +17,8 @@ export class SideBySide extends BlockComponent {
         });
     }
     static componentType = "sideBySide";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Renders children in a side-by-side horizontal layout",
@@ -42,7 +44,7 @@ export class SideBySide extends BlockComponent {
                 "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
         };
 
-        attributes.valign = {
+        attributes.vAlign = {
             createComponentOfType: "text",
             toLowerCase: true,
             validValues: [
@@ -58,7 +60,7 @@ export class SideBySide extends BlockComponent {
             ],
             description: "Default vertical alignment for all panels.",
         };
-        attributes.valigns = {
+        attributes.vAligns = {
             createComponentOfType: "textList",
             toLowerCase: true,
             validValues: [
@@ -1084,14 +1086,14 @@ export class SideBySide extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.valigns = {
+        stateVariableDefinitions.vAligns = {
             description: "Vertical alignment of each child.",
             public: true,
             isArray: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
-            entryPrefixes: ["valign"],
+            entryPrefixes: ["vAlign"],
             forRenderer: true,
             returnArraySizeDependencies: () => ({
                 numPanels: {
@@ -1106,12 +1108,12 @@ export class SideBySide extends BlockComponent {
                 let globalDependencies = {
                     valignAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "valign",
+                        attributeName: "vAlign",
                         variableNames: ["value"],
                     },
                     valignsAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "valigns",
+                        attributeName: "vAligns",
                         variableNames: ["numComponents"],
                     },
                 };
@@ -1121,18 +1123,13 @@ export class SideBySide extends BlockComponent {
                     dependenciesByKey[arrayKey] = {
                         valignsAttr: {
                             dependencyType: "attributeComponent",
-                            attributeName: "valigns",
+                            attributeName: "vAligns",
                             variableNames: [`text${varEnding}`],
                         },
                         parentValign: {
                             dependencyType: "parentStateVariable",
                             parentComponentType: "sbsGroup",
-                            variableName: `valign${varEnding}`,
-                        },
-                        parentValignAbsolute: {
-                            dependencyType: "parentStateVariable",
-                            parentComponentType: "sbsGroup",
-                            variableName: `valignAbsolute${varEnding}`,
+                            variableName: `vAlign${varEnding}`,
                         },
                         essentialValign: {
                             dependencyType: "stateVariable",
@@ -1148,7 +1145,7 @@ export class SideBySide extends BlockComponent {
                 arrayKeys,
                 arraySize,
             }) {
-                let valigns = {};
+                let vAligns = {};
 
                 let nValignsSpecifiedFromAttrs;
                 let usingSingleValign = false;
@@ -1169,11 +1166,11 @@ export class SideBySide extends BlockComponent {
 
                     if (arrayIndex < nValignsSpecifiedFromAttrs) {
                         if (usingSingleValign) {
-                            valigns[arrayKey] =
+                            vAligns[arrayKey] =
                                 globalDependencyValues.valignAttr.stateValues.value.toLowerCase();
                         } else {
                             let varEnding = arrayIndex + 1;
-                            valigns[arrayKey] =
+                            vAligns[arrayKey] =
                                 dependencyValuesByKey[
                                     arrayKey
                                 ].valignsAttr.stateValues[
@@ -1182,10 +1179,10 @@ export class SideBySide extends BlockComponent {
                         }
                         if (
                             !["top", "middle", "bottom"].includes(
-                                valigns[arrayKey],
+                                vAligns[arrayKey],
                             )
                         ) {
-                            valigns[arrayKey] = "top";
+                            vAligns[arrayKey] = "top";
                         }
                     } else {
                         if (dependencyValuesByKey[arrayKey].parentValign) {
@@ -1193,12 +1190,12 @@ export class SideBySide extends BlockComponent {
                                 dependencyValuesByKey[arrayKey]
                                     .essentialValign === null
                             ) {
-                                valigns[arrayKey] =
+                                vAligns[arrayKey] =
                                     dependencyValuesByKey[
                                         arrayKey
                                     ].parentValign;
                             } else {
-                                valigns[arrayKey] =
+                                vAligns[arrayKey] =
                                     dependencyValuesByKey[
                                         arrayKey
                                     ].essentialValign;
@@ -1208,9 +1205,9 @@ export class SideBySide extends BlockComponent {
                                 dependencyValuesByKey[arrayKey]
                                     .essentialValign === null
                             ) {
-                                valigns[arrayKey] = "top";
+                                vAligns[arrayKey] = "top";
                             } else {
-                                valigns[arrayKey] =
+                                vAligns[arrayKey] =
                                     dependencyValuesByKey[
                                         arrayKey
                                     ].essentialValign;
@@ -1219,7 +1216,7 @@ export class SideBySide extends BlockComponent {
                     }
                 }
 
-                return { setValue: { valigns } };
+                return { setValue: { vAligns } };
             },
             inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
@@ -1243,9 +1240,9 @@ export class SideBySide extends BlockComponent {
 
                 let instructions = [];
 
-                for (let arrayKey in desiredStateVariableValues.valigns) {
+                for (let arrayKey in desiredStateVariableValues.vAligns) {
                     let desiredValue =
-                        desiredStateVariableValues.valigns[
+                        desiredStateVariableValues.vAligns[
                             arrayKey
                         ].toLowerCase();
                     if (!["top", "middle", "bottom"].includes(desiredValue)) {
@@ -1310,6 +1307,8 @@ export class SbsGroup extends BlockComponent {
         });
     }
     static componentType = "sbsGroup";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerBlock";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -1337,7 +1336,7 @@ export class SbsGroup extends BlockComponent {
                 "Two margin widths applied to every panel: the first on the panel's leading side and the second on its trailing side, following the writing direction.",
         };
 
-        attributes.valign = {
+        attributes.vAlign = {
             createComponentOfType: "text",
             toLowerCase: true,
             validValues: [
@@ -1353,7 +1352,7 @@ export class SbsGroup extends BlockComponent {
             ],
             description: "Default vertical alignment for all panels.",
         };
-        attributes.valigns = {
+        attributes.vAligns = {
             createComponentOfType: "textList",
             toLowerCase: true,
             validValues: [
@@ -2245,14 +2244,14 @@ export class SbsGroup extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.valigns = {
+        stateVariableDefinitions.vAligns = {
             public: true,
             description: "Vertical alignment of each child.",
             isArray: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
-            entryPrefixes: ["valign"],
+            entryPrefixes: ["vAlign"],
             // forRenderer: true,
             hasEssential: true,
             defaultValueByArrayKey: () => "top",
@@ -2269,12 +2268,12 @@ export class SbsGroup extends BlockComponent {
                 let globalDependencies = {
                     valignAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "valign",
+                        attributeName: "vAlign",
                         variableNames: ["value"],
                     },
                     valignsAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "valigns",
+                        attributeName: "vAligns",
                         variableNames: ["numComponents"],
                     },
                 };
@@ -2284,7 +2283,7 @@ export class SbsGroup extends BlockComponent {
                     dependenciesByKey[arrayKey] = {
                         valignsAttr: {
                             dependencyType: "attributeComponent",
-                            attributeName: "valigns",
+                            attributeName: "vAligns",
                             variableNames: [`text${varEnding}`],
                         },
                     };
@@ -2297,7 +2296,7 @@ export class SbsGroup extends BlockComponent {
                 arrayKeys,
                 arraySize,
             }) {
-                let valigns = {};
+                let vAligns = {};
                 let essentialValigns = {};
 
                 let nValignsSpecified;
@@ -2319,11 +2318,11 @@ export class SbsGroup extends BlockComponent {
 
                     if (arrayIndex < nValignsSpecified) {
                         if (usingSingleValign) {
-                            valigns[arrayKey] =
+                            vAligns[arrayKey] =
                                 globalDependencyValues.valignAttr.stateValues.value.toLowerCase();
                         } else {
                             let varEnding = arrayIndex + 1;
-                            valigns[arrayKey] =
+                            vAligns[arrayKey] =
                                 dependencyValuesByKey[
                                     arrayKey
                                 ].valignsAttr.stateValues[
@@ -2332,10 +2331,10 @@ export class SbsGroup extends BlockComponent {
                         }
                         if (
                             !["top", "middle", "bottom"].includes(
-                                valigns[arrayKey],
+                                vAligns[arrayKey],
                             )
                         ) {
-                            valigns[arrayKey] = "top";
+                            vAligns[arrayKey] = "top";
                         }
                     } else {
                         essentialValigns[arrayKey] = true;
@@ -2344,12 +2343,12 @@ export class SbsGroup extends BlockComponent {
 
                 let result = {};
 
-                if (Object.keys(valigns).length > 0) {
-                    result.setValue = { valigns };
+                if (Object.keys(vAligns).length > 0) {
+                    result.setValue = { vAligns };
                 }
                 if (Object.keys(essentialValigns).length > 0) {
                     result.useEssentialOrDefaultValue = {
-                        valigns: essentialValigns,
+                        vAligns: essentialValigns,
                     };
                 }
 
@@ -2377,9 +2376,9 @@ export class SbsGroup extends BlockComponent {
 
                 let instructions = [];
 
-                for (let arrayKey in desiredStateVariableValues.valigns) {
+                for (let arrayKey in desiredStateVariableValues.vAligns) {
                     let desiredValue =
-                        desiredStateVariableValues.valigns[
+                        desiredStateVariableValues.vAligns[
                             arrayKey
                         ].toLowerCase();
                     if (!["top", "middle", "bottom"].includes(desiredValue)) {
@@ -2406,7 +2405,7 @@ export class SbsGroup extends BlockComponent {
                         }
                     } else {
                         instructions.push({
-                            setEssentialValue: "valigns",
+                            setEssentialValue: "vAligns",
                             value: { [arrayKey]: desiredValue },
                         });
                     }
@@ -2443,6 +2442,8 @@ export class Stack extends BlockComponent {
         });
     }
     static componentType = "stack";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerBlock";
     static renderChildren = true;
     static canDisplayChildErrors = true;

@@ -759,7 +759,8 @@ describe("Shuffle tag tests @group1", async () => {
         );
     });
 
-    it("string children ignored when mixed with non-string children with warning", async () => {
+    it("text beside components is read as their type", async () => {
+        // It used to be left out, with a warning, as `<sort>` left it out.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh">
@@ -768,25 +769,15 @@ describe("Shuffle tag tests @group1", async () => {
   `,
         });
 
-        const options = ["d", undefined, "b"];
-
         await test_shuffle({
             core,
             resolvePathToNodeIdx,
-            options,
+            options: ["d", "a", "b"],
             must_be_reordered: [],
             replacements_all_of_type: "math",
         });
 
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String " a " is not a valid component to shuffle.',
-                ),
-            ),
-        ).eq(true);
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
     it("gives its replacements ids that a rebuild reproduces", async () => {
         // Saved reader state is keyed by `stateId`, and without one of its own
@@ -1066,9 +1057,9 @@ describe("Shuffle tag tests @group1", async () => {
         const sfs = `<selectFromSequence from="1" to="1000"/>`;
         const cases: { shuffle: string; names: string[] }[] = [
             {
-                // a child making two items
-                shuffle: `<shuffle name="sh"><group><p name="a">${sfs}</p><p name="b">${sfs}</p></group><p name="c">${sfs}</p></shuffle>`,
-                names: ["a", "b", "c"],
+                // groups of two, each moved as one item (COLL-4)
+                shuffle: `<shuffle name="sh"><group><p name="a">${sfs}</p><p name="b">${sfs}</p></group><group><p name="c">${sfs}</p><p name="d">${sfs}</p></group><group><p name="e">${sfs}</p><p name="f">${sfs}</p></group></shuffle>`,
+                names: ["a", "b", "c", "d", "e", "f"],
             },
             {
                 // a repeat as an item, with another random item
@@ -1081,8 +1072,9 @@ describe("Shuffle tag tests @group1", async () => {
                 names: ["a", "c"],
             },
             {
-                // a random component written directly as an item
-                shuffle: `<shuffle name="sh"><p name="a">${sfs}</p><selectFromSequence name="z" from="1" to="1000"/><p name="c">${sfs}</p></shuffle>`,
+                // random components written directly as items (of one type,
+                // COLL-4)
+                shuffle: `<shuffle name="sh"><selectFromSequence name="a" from="1" to="1000"/><selectFromSequence name="z" from="1" to="1000"/><selectFromSequence name="c" from="1" to="1000"/></shuffle>`,
                 names: ["a", "z", "c"],
             },
             {
@@ -1135,6 +1127,9 @@ describe("Shuffle tag tests @group1", async () => {
                     doenetML: shuffle,
                     requestedVariantIndex: variantIndex,
                 });
+                expect(getDiagnosticsByType(first.core).errors, shuffle).eqls(
+                    [],
+                );
                 const firstResult = await shown(
                     first.core,
                     first.resolvePathToNodeIdx,

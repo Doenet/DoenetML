@@ -24,24 +24,24 @@ Rather than listing out all of the possible attributes and values, documentation
 ```doenet-example
  <tabular topBorder="minor" bottomBorder="minor">
     <row>
-      <cell halign="end"><c>xmin=</c></cell>
-      <cell halign="start"><mathInput name="xMin" prefill="-1" /></cell>
-      <cell halign="end"><c>xmax</c></cell>
-      <cell halign="start"><mathInput name="xMax" prefill="6" /></cell>
-      <cell halign="end"><c>grid</c></cell>
-      <cell halign="start"><booleanInput name="showGrid" /></cell>
+      <cell hAlign="end"><c>xMin=</c></cell>
+      <cell hAlign="start"><mathInput name="xMin" prefill="-1" /></cell>
+      <cell hAlign="end"><c>xMax</c></cell>
+      <cell hAlign="start"><mathInput name="xMax" prefill="6" /></cell>
+      <cell hAlign="end"><c>grid</c></cell>
+      <cell hAlign="start"><booleanInput name="showGrid" /></cell>
     </row>
     <row>
-      <cell halign="end"><c>ymin=</c></cell>
-      <cell halign="start"><mathInput name="yMin" prefill="-2" /></cell>
-      <cell halign="end"><c>ymax</c></cell>
-      <cell halign="start"><mathInput name="yMax" prefill="10" /></cell>
-      <cell halign="end"><c>fix axes</c></cell>
-      <cell halign="start"><booleanInput name="fixAxes" prefill="false" /></cell>
+      <cell hAlign="end"><c>yMin=</c></cell>
+      <cell hAlign="start"><mathInput name="yMin" prefill="-2" /></cell>
+      <cell hAlign="end"><c>yMax</c></cell>
+      <cell hAlign="start"><mathInput name="yMax" prefill="10" /></cell>
+      <cell hAlign="end"><c>fix axes</c></cell>
+      <cell hAlign="start"><booleanInput name="fixAxes" prefill="false" /></cell>
     </row>
     <row>
-      <cell halign="end"><c>size</c></cell>
-      <cell halign="start">
+      <cell hAlign="end"><c>size</c></cell>
+      <cell hAlign="start">
         <choiceInput name="sizeChoice" inline preselectChoice="3">
           <choice>tiny</choice>
           <choice>small</choice>
@@ -50,22 +50,22 @@ Rather than listing out all of the possible attributes and values, documentation
           <choice>full</choice>
         </choiceInput>
       </cell> 
-      <cell halign="end"><c>align</c></cell>
-      <cell halign="start">
+      <cell hAlign="end"><c>align</c></cell>
+      <cell hAlign="start">
         <choiceInput name="alignChoice" inline preselectChoice="2">
           <choice>left</choice>
           <choice>center</choice>
           <choice>right</choice>
         </choiceInput>
       </cell> 
-      <cell halign="end"><c>border</c></cell>
-      <cell halign="start"><booleanInput name="showBorder" prefill="true" /></cell>  
+      <cell hAlign="end"><c>border</c></cell>
+      <cell hAlign="start"><booleanInput name="showBorder" prefill="true" /></cell>  
     </row>
   </tabular>
   <p><alert>Resulting <tag>graph</tag><tag>/graph</tag> tag and graph</alert>:</p>
   <p><c><tag>graph
-    xmin="$xMin" xmax="$xMax"
-    ymin="$yMin" ymax="$yMax"
+    xMin="$xMin" xMax="$xMax"
+    yMin="$yMin" yMax="$yMax"
     <conditionalContent condition="$sizeChoice != medium">
       size="$sizeChoice"
     </conditionalContent>
@@ -75,11 +75,11 @@ Rather than listing out all of the possible attributes and values, documentation
       border="$showBorder"
     </conditionalContent>
     <conditionalContent condition="$alignChoice != center">
-      halign="$alignChoice"
+      hAlign="$alignChoice"
     </conditionalContent>
    </tag><tag>/graph</tag></c></p>
   
-  <graph xmin="$xMin" xmax="$xMax" ymin="$yMin" ymax="$yMax"
+  <graph xMin="$xMin" xMax="$xMax" yMin="$yMin" yMax="$yMax"
     size="$sizeChoice" grid="$showGrid"
     fixAxes="$fixAxes" 
     showBorder="$showBorder"
@@ -97,7 +97,7 @@ Notice that the `<graph></graph>` code above includes `grid` (which is equivalen
 One additional attribute which was not demonstrated above is `identicalAxisScales`. By default, Deonet will always display a square graph. If you adjust the ranges of $x$ and $y$, that often means the axes are scaled differently. That's true in the following graph; $x$ ranges from -10 to 10, but $y$ only stretches from -4 to 4. The unit `<circle />` is squashed into an ellipse.
 
 ```doenet-editor-horiz
-<graph ymin="-4" ymax="4" fixAxes >
+<graph yMin="-4" yMax="4" fixAxes >
   <circle />
 </graph>
 ```
@@ -106,7 +106,7 @@ One additional attribute which was not demonstrated above is `identicalAxisScale
 By including the `identicalAxisScales` attribute (equivalent to `identicalAxisScales="true"`), we force Doenet to use the same scaling for both axes, which results in a rectangular graph.  The unit `<circle />` now displays as a circle.
 
 ```doenet-editor-horiz
-<graph ymin="-4" ymax="4" identicalAxisScales="true" fixAxes >
+<graph yMin="-4" yMax="4" identicalAxisScales="true" fixAxes >
   <circle />
 </graph>
 ```
@@ -117,8 +117,8 @@ By default, the axes in Doenet graphs are unlabeled. You can adjust this behavio
 
 ```doenet-editor-horiz
 <graph fixAxes
-       xmin="-1" xmax="8" 
-       ymin="-2" ymax="10" >
+       xMin="-1" xMax="8" 
+       yMin="-2" yMax="10" >
     <line>y = x/2</line>
     <xLabel><m>t</m></xLabel>
     <yLabel>dist</yLabel>
@@ -152,7 +152,7 @@ If a function changes because of user interaction, e.g. a `<mathInput>` or `<sli
   <label><m>a</m></label>
 </slider>
 
-<graph xmin="-4" xmax="4" ymin="-6" ymax="6" size="small" fixAxes>
+<graph xMin="-4" xMax="4" yMin="-6" yMax="6" size="small" fixAxes>
   <function>(x^2-1)(x-$a)</function>
 </graph>
 ```
@@ -175,7 +175,7 @@ The styles associated with each `styleNumber` vary in terms of color and width. 
     <label>stylenumber</label>
 </slider>
      
-<graph size="small" xmin="-1" xmax="1" ymin="-1" ymax="1" >
+<graph size="small" xMin="-1" xMax="1" yMin="-1" yMax="1" >
     <function styleNumber="$styleSlider">x sin(5/x)</function>
 </graph>
 ```

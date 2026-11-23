@@ -20,8 +20,8 @@ import type { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
 interface PegboardSVs extends UnlabeledGraphicalSVs {
     dx: number;
     dy: number;
-    xoffset: number;
-    yoffset: number;
+    xOffset: number;
+    yOffset: number;
 }
 
 /**
@@ -53,13 +53,13 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
     let dx = useRef<number>(SVs.dx);
     let dy = useRef<number>(SVs.dy);
-    let xoffset = useRef<number>(SVs.xoffset);
-    let yoffset = useRef<number>(SVs.yoffset);
+    let xOffset = useRef<number>(SVs.xOffset);
+    let yOffset = useRef<number>(SVs.yOffset);
 
     dx.current = SVs.dx;
     dy.current = SVs.dy;
-    xoffset.current = SVs.xoffset;
-    yoffset.current = SVs.yoffset;
+    xOffset.current = SVs.xOffset;
+    yOffset.current = SVs.yOffset;
 
     let jsxPointAttributes = useRef<Record<string, any>>({
         visible: !SVs.hidden,
@@ -124,8 +124,8 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     /** Where the peg at lattice index `(xind, yind)` sits on the graph. */
     function pegCoords(xind: number, yind: number): [number, number] {
         return [
-            xind * dx.current + xoffset.current,
-            yind * dy.current + yoffset.current,
+            xind * dx.current + xOffset.current,
+            yind * dy.current + yOffset.current,
         ];
     }
 
@@ -154,10 +154,10 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     function pegIndexRange(theBoard: JXGBoard): PegIndexRange {
         let [xMin, yMax, xMax, yMin] = theBoard.getBoundingBox();
 
-        let xind1 = (xMin - xoffset.current) / dx.current;
-        let xind2 = (xMax - xoffset.current) / dx.current;
-        let yind1 = (yMin - yoffset.current) / dy.current;
-        let yind2 = (yMax - yoffset.current) / dy.current;
+        let xind1 = (xMin - xOffset.current) / dx.current;
+        let xind2 = (xMax - xOffset.current) / dx.current;
+        let yind1 = (yMin - yOffset.current) / dy.current;
+        let yind2 = (yMax - yOffset.current) / dy.current;
 
         // Note: use round from mathjs so that it rounds -0.5 to -1, not 0.
         return [

@@ -143,17 +143,20 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0126: a selectRandomNumbers from another random choice is an info", async () => {
-        // Its selection is made once, so the info stays with it. (One from
-        // an input would be an error, D39, SEL-1.)
+    it("w0126: a selectRandomNumbers that can't select is an error, from another random choice too", async () => {
+        // A selection that can't be made as written is an error, wherever
+        // its parameters come from (D39). (One from an input is an error
+        // for that, D39, SEL-1.) A sampler's stays a warning or an info.
         const { diagnostics } = await setup(`
 <selectRandomNumbers type="gaussian" standardDeviation="-1"/>
 <selectFromSequence name="sd" from="-1" to="-1"/>
 <selectRandomNumbers type="gaussian" standardDeviation="$sd"/>
+<sampleRandomNumbers type="gaussian" standardDeviation="-1"/>
 `);
         expect(diagnostics("doenet-w0126")).eqls([
-            { type: "warning", line: 2 },
-            { type: "info", line: 4 },
+            { type: "error", line: 2 },
+            { type: "error", line: 4 },
+            { type: "warning", line: 5 },
         ]);
     });
 
@@ -269,7 +272,9 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
     it("w0043: a target that holds nothing, and cannot come to, is a warning", async () => {
         // An action's target is written to by the action, so whether it
         // can change says nothing here: what can change is which
-        // replacements or entries it gives.
+        // replacements or entries it gives. An index past an entry's
+        // coordinates is read through one entry (`$ml2[1].xs[5]`): a
+        // property after a list is the list's own (D59).
         const { diagnostics, refresh } = await setup(`
 <conditionalContent name="cc">
   <case condition="false"><math>1</math></case>
@@ -284,13 +289,13 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
 <repeatForSequence name="r2" from="1" to="$mi" valueName="v"><math>$v</math></repeatForSequence>
 <updateValue target="$r2" newValue="2"/>
 <mathList name="ml2">1 2</mathList>
-<updateValue target="$ml2.xs[5]" newValue="2"/>
+<updateValue target="$ml2[1].xs[5]" newValue="2"/>
 <number name="n">5</number>
-<updateValue target="$ml2.xs[$n]" newValue="2"/>
+<updateValue target="$ml2[1].xs[$n]" newValue="2"/>
 <mathInput name="i" prefill="5"/>
-<updateValue target="$ml2.xs[$i]" newValue="2"/>
+<updateValue target="$ml2[1].xs[$i]" newValue="2"/>
 <mathList name="ml3">$mi 2</mathList>
-<updateValue target="$ml3.xs[5]" newValue="2"/>
+<updateValue target="$ml3[1].xs[5]" newValue="2"/>
 `);
         await refresh();
         expect(diagnostics("doenet-w0043")).eqls([
@@ -306,10 +311,11 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0044: a target with no value to change is a warning, case or not", async () => {
-        // A `<conditionalContent>` replaces itself with a `<group>` whatever
-        // the active case, so a target that is one has no value whichever
-        // case is active: the DoenetML decides it.
+    it("w0044: a target with no value to change is a warning, or an info when the case shown decides it", async () => {
+        // A shown case holding one component stands for it (COLL-3): the
+        // `<math>` has a value, and the `<p>` of the `<else>` has none,
+        // which the input deciding the case decides (DIAG-2). A `<p>`
+        // written as the target has none by its type.
         const { diagnostics, refresh, setBoolean } = await setup(`
 <p name="p">hi</p>
 <updateValue target="$p" newValue="1"/>
@@ -323,13 +329,23 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         await refresh();
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
-            { type: "warning", line: 9 },
         ]);
 
         await setBoolean("b", false);
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
-            { type: "warning", line: 9 },
+            { type: "info", line: 9 },
+        ]);
+    });
+
+    it("w0044: a group holding one component with no value is a warning", async () => {
+        const { diagnostics, refresh } = await setup(`
+<group name="g"><p>hi</p></group>
+<updateValue target="$g" newValue="1"/>
+`);
+        await refresh();
+        expect(diagnostics("doenet-w0044")).eqls([
+            { type: "warning", line: 3 },
         ]);
     });
 

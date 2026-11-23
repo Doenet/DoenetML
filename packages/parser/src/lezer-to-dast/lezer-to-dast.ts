@@ -26,7 +26,7 @@ import { codedDastError } from "../coded-dast-error";
 import { createErrorNode } from "./create-error-node";
 import {
     OffsetToPositionMap,
-    attributeValueText,
+    attributeValueTextWithOffsets,
     createOffsetToPositionMap,
     entityToString,
     extractContent,
@@ -172,25 +172,27 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         }
                         continue;
                     }
-                    let attrChildren: DastAttribute["children"] = attrValue
-                        ? [
-                              ...reprocessTextForMacros(
-                                  {
-                                      type: "text",
-                                      value: attributeValueText(
-                                          attrValue,
-                                          source,
-                                      ),
-                                      position: lezerNodeToPosition(
-                                          attrValue,
-                                          offsetMap,
-                                          true,
-                                      ),
-                                  } as DastText,
-                                  offsetMap,
-                              ),
-                          ]
-                        : [];
+                    const valueText = attrValue
+                        ? attributeValueTextWithOffsets(attrValue, source)
+                        : undefined;
+                    let attrChildren: DastAttribute["children"] =
+                        attrValue && valueText
+                            ? [
+                                  ...reprocessTextForMacros(
+                                      {
+                                          type: "text",
+                                          value: valueText.text,
+                                          position: lezerNodeToPosition(
+                                              attrValue,
+                                              offsetMap,
+                                              true,
+                                          ),
+                                      } as DastText,
+                                      offsetMap,
+                                      valueText.sourceOffsets,
+                                  ),
+                              ]
+                            : [];
                     // Attributes with no specified value are assigned the value "true".
                     // E.g. `<foo bar />` is the same as `<foo bar="true" />`
                     attrEntries.push({
@@ -282,6 +284,32 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                             offsetMap,
                         );
                         children.push(errorNode);
+                    }
+                    const earlier = attributesList.find(
+                        (a) => a.name === dastAttr.name,
+                    );
+                    if (earlier) {
+                        // An attribute written twice in the same case
+                        // (`simplify="full" simplify="none"`): the first is
+                        // used and this one is ignored, with a warning
+                        // (D62 decision 1). One in another case
+                        // (`xMin="1" xmin="2"`) is a different name, left
+                        // to `attribute-name-case.ts`.
+                        children.push(
+                            codedDastError({
+                                code: "doenet-w0201",
+                                message: `The attribute \`${dastAttr.name}\` is written more than once on this \`<${name}>\`. The first is used, and this one is ignored.`,
+                                args: {
+                                    attribute: dastAttr.name,
+                                    componentType: name,
+                                },
+                                error_type: "warning",
+                                position:
+                                    dastAttr.position ??
+                                    lezerNodeToPosition(node, offsetMap),
+                            }),
+                        );
+                        continue;
                     }
                     attributesList.push(dastAttr);
                 }
@@ -490,10 +518,17 @@ function isInsideAttribute(error: SyntaxNode, openTag: SyntaxNode): boolean {
 
 /**
  * Process a text node and expose any macros within as DastNodes.
+ *
+ * `sourceOffsets`, when given, maps each offset into `textNode.value` to the
+ * offset from `textNode`'s start where it was written
+ * (`attributeValueTextWithOffsets`). It is needed when the value was decoded
+ * from what was written, as an attribute's is: `<a x="&lt; $y"/>` has `$y` at
+ * 2 in the value and at 5 in the source.
  */
 function reprocessTextForMacros(
     textNode: DastText,
     offsetToPositionMap: OffsetToPositionMap,
+    sourceOffsets?: number[],
 ): (DastText | DastMacro | DastFunctionMacro)[] {
     if (!textNode.value.includes("$")) {
         return [textNode];
@@ -509,6 +544,15 @@ function reprocessTextForMacros(
     // the position data for all nodes in the parsed array.
     const nodesToProcess = findNodesWithPositionInfo(parsed);
     nodesToProcess.forEach((n) => {
+        if (sourceOffsets && n.position) {
+            const { start, end } = n.position;
+            if (start.offset != null) {
+                start.offset = sourceOffsets[start.offset] ?? start.offset;
+            }
+            if (end.offset != null) {
+                end.offset = sourceOffsets[end.offset] ?? end.offset;
+            }
+        }
         updateNodePositionData(n, textNode, offsetToPositionMap);
     });
     return parsed;

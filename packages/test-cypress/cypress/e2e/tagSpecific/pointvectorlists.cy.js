@@ -94,7 +94,7 @@ describe("Point and vector list rendering", { tags: ["@group4"] }, function () {
       <vectorList name="vl">(1,2) <vector tail="(1,1)" head="(4,5)" /></vectorList>
     </graph>
     <p name="pvl">$vl</p>
-    <p name="ptails">$vl.tail</p>
+    <p name="ptails"><repeat for="$vl" valueName="ev">$ev.tail</repeat></p>
     `;
 
         cy.window().then(async (win) => {

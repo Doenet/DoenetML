@@ -87,3 +87,26 @@ margin that applies to both `<sideBySide>{:dn}` elements.
 The `widths` attribute can be used in the `<sbsGroup>{:dn}` container to 
 set the widths for all of the `<sideBySide>{:dn}` components contained in the group.
 
+
+
+---
+
+### Attribute Example: vAlign, vAligns
+
+
+```doenet-example
+<sbsGroup vAligns="middle bottom">
+  <sideBySide>
+    <p>Centered.</p>
+    <p><lorem generateWords="40"/></p>
+  </sideBySide>
+  <sideBySide vAlign="top">
+    <p><lorem generateWords="40"/></p>
+    <p>At the top.</p>
+  </sideBySide>
+</sbsGroup>
+```
+
+
+
+The `vAlign` and `vAligns` attributes of an `<sbsGroup>{:dn}` set the vertical alignment of the portions of each `<sideBySide>{:dn}` in the group, as they do on a single `<sideBySide>{:dn}`: `vAlign` for every portion, `vAligns` for each in turn. A `<sideBySide>{:dn}` uses its own `vAlign` instead, as the second one here does, or its own `vAligns` for the portions that reaches.

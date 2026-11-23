@@ -196,7 +196,7 @@ describe("Repeat tag tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-        <group name="s1"><number>-10</number><number>5</number></group>
+        <numberList name="s1">-10 5</numberList>
         <sequence name="s2" from="1" to="2"/>
     </setup>
     <p name="p"><repeat for="$s1" valueName="n" indexName="j">
@@ -1895,14 +1895,18 @@ describe("Repeat tag tests @group1", async () => {
     });
 
     it("repeat iterates over combination of list, group, sequence, components, and string", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        // A group of one component stands for it; a group of several is one
+        // item, which is content, so beside numbers it is an error at load
+        // (COLL-5, #2567).
+        for (const [group, ok] of [
+            ["<numberList>3 4</numberList>", true],
+            ["<number>3</number><number>4</number>", false],
+        ] as const) {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
     <setup>
         <mathList name="ml">1 2</mathList>
-        <group name="g">
-            <number>3</number>
-            <number>4</number>
-        </group>
+        <group name="g">${group}</group>
         <sequence name="s" from="5" to="6" />
         <number name="n7">7</number>
         <math name="m8">8</math>
@@ -1911,45 +1915,49 @@ describe("Repeat tag tests @group1", async () => {
         <number name="number">$n^2</number>
     </repeat>
     `,
-        });
+            });
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
 
-        for (let i = 1; i <= 9; i++) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(`r[${i}].number`)]
-                    .stateValues.value,
-            ).eq(i ** 2);
+            if (!ok) {
+                expect(
+                    getDiagnosticsByType(core).errors.map((e) => e.code),
+                ).eqls(["doenet-e0081"]);
+                continue;
+            }
+            for (let i = 1; i <= 9; i++) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].number`)]
+                        .stateValues.value,
+                ).eq(i ** 2);
+            }
         }
     });
 
-    it("repeat over a group that mixes components and list references", async () => {
-        // The group's own children mix written components with references, so
-        // the repeat must number the group's items the way `$g` displays them.
+    it("repeat over a for that mixes components and list references", async () => {
+        // The items of `for` are numbered the way they are shown. (A group
+        // holding several is one item, COLL-5, so they are written in `for`
+        // itself.)
         const cases = [
+            { for: "$m7 $m8", values: ["7", "8"] },
+            { for: "$l", values: ["1", "2", "3"] },
+            { for: "$m7 $m8 $l", values: ["7", "8", "1", "2", "3"] },
+            { for: "$l $m7", values: ["1", "2", "3", "7"] },
+            { for: "$m7 $l", values: ["7", "1", "2", "3"] },
             {
-                children: "<math>7</math><math>8</math>",
-                values: ["7", "8"],
-            },
-            { children: "$l", values: ["1", "2", "3"] },
-            {
-                children: "<math>7</math><math>8</math>$l",
-                values: ["7", "8", "1", "2", "3"],
-            },
-            { children: "$l<math>7</math>", values: ["1", "2", "3", "7"] },
-            { children: "$m7 $l", values: ["7", "1", "2", "3"] },
-            {
-                children: "$l <math>8</math> $m7 $l",
+                for: "$l $m8 $m7 $l",
                 values: ["1", "2", "3", "8", "7", "1", "2", "3"],
             },
         ];
 
-        for (const { children, values } of cases) {
+        for (const { for: forAttr, values } of cases) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathList name="l">1 2 3</mathList><math name="m7">7</math>
-    <setup><group name="g">${children}</group></setup>
-    <p name="p"><repeat for="$g" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
+    <mathList name="l">1 2 3</mathList><math name="m7">7</math><math name="m8">8</math>
+    <p name="p"><repeat for="${forAttr}" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
     `,
             });
 
@@ -1960,36 +1968,39 @@ describe("Repeat tag tests @group1", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
-                children,
+                forAttr,
             ).eq(values.map((v, i) => `(${i + 1}, ${v})`).join(", "));
         }
     });
 
     it("repeat over a group holding composites written inside it", async () => {
+        // A group holding one composite stands for it; one holding several
+        // is one item (COLL-5), so those are written in a `<sort>`, whose
+        // items, already in order, are flattened.
         const cases = [
             {
-                children: `<mathList extend="$l" />`,
+                children: `<group name="g"><mathList extend="$l" /></group>`,
                 values: ["1", "2", "3"],
             },
             {
-                children: "<mathList>4 5</mathList><math>6</math>",
+                children:
+                    '<sort name="g"><mathList>4 5</mathList><math>6</math></sort>',
                 values: ["4", "5", "6"],
             },
             {
-                children: "<numberList>4 5</numberList>",
+                children: `<group name="g"><numberList>4 5</numberList></group>`,
                 values: ["4", "5"],
             },
             {
-                children: `<math>0</math><sequence length="3" />`,
+                children: `<sort name="g"><math>0</math><sequence length="3" /></sort>`,
                 values: ["0", "1", "2", "3"],
             },
             {
-                children:
-                    "<group><math>4</math><math>5</math></group><math>6</math>",
-                values: ["4", "5", "6"],
+                children: `<group name="g"><group><numberList>4 5</numberList></group></group>`,
+                values: ["4", "5"],
             },
             {
-                children: `<repeat for="4 5" valueName="x"><math>$x</math></repeat>`,
+                children: `<group name="g"><repeat for="4 5" valueName="x"><math>$x</math></repeat></group>`,
                 values: ["4", "5"],
             },
         ];
@@ -1998,7 +2009,7 @@ describe("Repeat tag tests @group1", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathList name="l">1 2 3</mathList>
-    <setup><group name="g">${children}</group></setup>
+    <setup>${children}</setup>
     <p name="p"><repeat for="$g" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
     `,
             });
@@ -2015,10 +2026,10 @@ describe("Repeat tag tests @group1", async () => {
         }
     });
 
-    it("repeat over a group or sort whose items contain references", async () => {
+    it("repeat over a list or sort whose items contain references", async () => {
         const cases = [
             {
-                setup: `<group name="c"><math>$a</math><math>$b</math><math>5</math></group>`,
+                setup: `<mathList name="c">$a $b 5</mathList>`,
                 values: ["3", "1", "5"],
             },
             {
@@ -2049,16 +2060,16 @@ describe("Repeat tag tests @group1", async () => {
         }
     });
 
-    it("repeat over a changing mixed group keeps each value with its item", async () => {
+    it("repeat over a changing mixed for keeps each value with its item", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n" prefill="2" />
     <mathInput name="m" prefill="0" />
     <setup>
         <sequence name="s" length="$n" />
-        <group name="g"><math>0</math>$s<sequence length="$m" from="10" /></group>
+        <sequence name="s10" length="$m" from="10" />
     </setup>
-    <p name="p"><repeat for="$g" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
+    <p name="p"><repeat for="0 $s $s10" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
     `,
         });
 

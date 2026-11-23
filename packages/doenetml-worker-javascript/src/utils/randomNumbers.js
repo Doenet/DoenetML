@@ -778,6 +778,15 @@ function slowSamplingDiagnostics(distribution, workPerVariate) {
 }
 
 /**
+ * Whether `diagnostic`, one {@link sampleFromRandomNumbers} gave, only says
+ * that drawing will be slow (`doenet-w0133`), rather than why it can't draw
+ * at all (its values are then NaN).
+ */
+export function isSlowSamplingNotice(diagnostic) {
+    return diagnostic.code === "doenet-w0133";
+}
+
+/**
  * Draw `numSamples` independent values from the distribution named by `type`.
  *
  * Returns the samples alongside any diagnostics they raised, rather than logging

@@ -210,3 +210,28 @@ describe("DAST", async () => {
         });
     });
 });
+
+describe("An attribute written twice (D62)", () => {
+    it("keeps the first, with a warning at each written after it", () => {
+        const source = `<math simplify="full" simplify="none">x</math>`;
+        const dast = lezerToDast(source);
+        const math = dast.children[0] as any;
+        expect(math.attributes.simplify.children).toEqual([
+            expect.objectContaining({ type: "text", value: "full" }),
+        ]);
+        const warnings = math.children.filter((c: any) => c.type === "error");
+        expect(warnings.map((w: any) => [w.code, w.error_type])).toEqual([
+            ["doenet-w0201", "warning"],
+        ]);
+        expect(warnings[0].position.start.offset).toBe(
+            source.indexOf('simplify="none"'),
+        );
+    });
+
+    it("leaves one in another case alone, a different name", () => {
+        const dast = lezerToDast(`<graph xMin="1" xmin="2"/>`);
+        const graph = dast.children[0] as any;
+        expect(Object.keys(graph.attributes)).toEqual(["xMin", "xmin"]);
+        expect(graph.children).toEqual([]);
+    });
+});

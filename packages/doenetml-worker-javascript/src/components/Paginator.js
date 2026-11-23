@@ -15,6 +15,8 @@ export class Paginator extends BlockComponent {
         });
     }
     static componentType = "paginator";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Defines a paginated section of content",
@@ -243,6 +245,8 @@ export class PaginatorControls extends BlockComponent {
         });
     }
     static componentType = "paginatorControls";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static renderChildren = true;
 
     static componentDocs = {

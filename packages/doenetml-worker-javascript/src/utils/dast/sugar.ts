@@ -125,6 +125,12 @@ export function applySugar({
                         parentAttributes,
                         parentComponentType,
                         componentAttributes,
+                        // every attribute written, primitive or not: a
+                        // `<point>` whose `coords` is written uses none of
+                        // its content (D49)
+                        writtenAttributeNames: Object.keys(
+                            component.attributes ?? {},
+                        ),
                         componentInfoObjects,
                         isAttributeComponent,
                         nComponents,

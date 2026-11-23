@@ -1,4 +1,5 @@
 import MathComponent from "./Math";
+import { contentNamesNothingDefinition } from "../utils/missing";
 
 export default class Coords extends MathComponent {
     static componentType = "coords";
@@ -19,6 +20,13 @@ export default class Coords extends MathComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // It holds a point's or vector's whole content, so one reference
+        // that names nothing beside other content makes the point missing
+        // (`<ray through="(1,2) $nothing"/>`, #2596), where a `<math>` holds
+        // the blank.
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition(undefined, { anyChild: true });
 
         stateVariableDefinitions.createVectors = {
             description:

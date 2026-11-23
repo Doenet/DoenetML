@@ -46,6 +46,7 @@ import {
     roundValue,
 } from "./valueFunctions/mathOperators";
 import { numberToMathExpression, plainComplex } from "./math";
+import { holdsBlank, holdsNaN } from "./missing";
 import {
     coordinatesOf,
     vectorOf,
@@ -301,7 +302,7 @@ export function functionEvaluator({ symbolically, functionValues }) {
     if (functionValues === undefined) {
         return undefined;
     }
-    return symbolically
+    const f = symbolically
         ? returnSymbolicFunctionForEvaluate({
               numInputs: functionValues.numInputs,
               symbolicfs: functionValues.symbolicfs,
@@ -310,6 +311,18 @@ export function functionEvaluator({ symbolically, functionValues }) {
               numInputs: functionValues.numInputs,
               numericalfs: functionValues.numericalfs,
           });
+    // A numeric function at a blank input computes a number, which can't
+    // hold the blank, so the value is missing (D40, #2596), as `<evaluate>`
+    // gives; a symbolic one holds the blank (`f(＿)`, `1 + ＿`). So is a
+    // `NaN` a blank input causes.
+    return (inputs) => {
+        const blankInput = inputs.some(holdsBlank);
+        if (blankInput && !symbolically) {
+            return BLANK;
+        }
+        const value = f(inputs);
+        return blankInput && holdsNaN(value) ? BLANK : value;
+    };
 }
 
 /**

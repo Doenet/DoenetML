@@ -25,6 +25,10 @@ export default class Circle extends Curve {
     }
     static componentType = "circle";
 
+    // Missing while its center is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["center"];
+
     static componentDocs = {
         summary:
             "A circle, potentially defined by center, radius, and/or points on the circle",

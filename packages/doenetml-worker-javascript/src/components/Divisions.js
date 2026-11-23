@@ -21,6 +21,8 @@ export class Div extends BlockComponent {
         });
     }
     static componentType = "div";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A generic block-level container",
@@ -106,6 +108,8 @@ export class Span extends InlineComponent {
         });
     }
     static componentType = "span";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerInline";
     static renderChildren = true;
 

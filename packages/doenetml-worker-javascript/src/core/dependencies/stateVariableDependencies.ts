@@ -209,9 +209,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
         this.publicStateVariablesOnly =
             Boolean(this.definition.publicStateVariablesOnly) && !listEntryPath;
-        this.caseInsensitiveVariableMatch =
-            Boolean(this.definition.caseInsensitiveVariableMatch) &&
-            !listEntryPath;
 
         let unresolvedPath = [...(listEntryPath?.path ?? definitionPath)];
         let nextPart = unresolvedPath.shift();
@@ -249,7 +246,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         // (`$m.__valueEntries`).
         if (indexAsProp && isValueEntriesVariable(variableName)) {
             this.publicStateVariablesOnly = false;
-            this.caseInsensitiveVariableMatch = false;
         }
 
         // A wrapper holding several components keeps as its own the
@@ -484,165 +480,6 @@ export class MultipleStateVariablesDependency extends Dependency {
                 }
             }
         }
-    }
-}
-
-export class StateVariableComponentTypeDependency extends StateVariableDependency {
-    static dependencyType = "stateVariableComponentType";
-
-    async getValue({ verbose = false, consumeChanges = true }: any = {}) {
-        let value: any = [];
-        let changes: any = {};
-
-        if (this.staticValue) {
-            value = [this.staticValue];
-        } else {
-            if (this.componentIdentitiesChanged) {
-                changes.componentIdentitiesChanged = true;
-                if (consumeChanges) {
-                    this.componentIdentitiesChanged = false;
-                }
-            }
-
-            if (this.downstreamComponentIndices.length === 1) {
-                let componentIdx = this.downstreamComponentIndices[0];
-                let depComponent =
-                    this.dependencyHandler.components[componentIdx];
-
-                let componentObj: any = {
-                    componentIdx: depComponent.componentIdx,
-                    componentType: depComponent.componentType,
-                };
-
-                componentObj.stateValues = {};
-
-                let originalVarName = this.originalDownstreamVariableNames[0];
-                let mappedVarName =
-                    this.mappedDownstreamVariableNamesByComponent[0][0];
-
-                let nameForOutput = this.useMappedVariableNames
-                    ? mappedVarName
-                    : originalVarName;
-
-                if (
-                    !this.variablesOptional ||
-                    mappedVarName in depComponent.state
-                ) {
-                    if (!depComponent.state[mappedVarName].deferred) {
-                        let stateVarObj = depComponent.state[mappedVarName];
-                        // call getter to make sure component type is set
-                        await stateVarObj.value;
-                        componentObj.stateValues[nameForOutput] =
-                            stateVarObj.componentType;
-
-                        if (stateVarObj.isArray) {
-                            // If array, use componentType from wrapping components, if exist.
-                            // See description of returnWrappingComponents in Core.js.
-                            if (stateVarObj.wrappingComponents?.length > 0) {
-                                let wrapCT =
-                                    stateVarObj.wrappingComponents[
-                                        stateVarObj.wrappingComponents.length -
-                                            1
-                                    ][0];
-                                if (typeof wrapCT === "object") {
-                                    wrapCT = wrapCT.componentType;
-                                }
-                                componentObj.stateValues[nameForOutput] =
-                                    wrapCT;
-                            }
-                        }
-
-                        // absent when already consumed and not marked
-                        // changed since
-                        let valueChanged0 =
-                            this.valuesChanged[0][mappedVarName];
-                        if (valueChanged0?.changed) {
-                            if (!changes.valuesChanged) {
-                                changes.valuesChanged = {};
-                            }
-                            if (!changes.valuesChanged[0]) {
-                                changes.valuesChanged[0] = {};
-                            }
-                            changes.valuesChanged[0][nameForOutput] =
-                                cloneChangeMetadataIfNeeded({
-                                    changeMetadata: valueChanged0,
-                                    consumeChanges,
-                                });
-                        }
-                        if (consumeChanges) {
-                            this.consumeChangeRecord(0, mappedVarName);
-                        }
-
-                        let hasVariableComponentType =
-                            stateVarObj.shadowingInstructions
-                                ?.hasVariableComponentType;
-                        if (
-                            !hasVariableComponentType &&
-                            stateVarObj.isArrayEntry
-                        ) {
-                            let arrayStateVarObj =
-                                depComponent.state[
-                                    stateVarObj.arrayStateVariable
-                                ];
-                            hasVariableComponentType =
-                                arrayStateVarObj.shadowingInstructions
-                                    ?.hasVariableComponentType;
-                        }
-                        if (!hasVariableComponentType) {
-                            // since this value won't change,
-                            // remove the downstream dependency
-                            // and create static value
-                            this.staticValue = componentObj;
-                            await this.removeDownstreamComponent({
-                                indexToRemove: 0,
-                                recordChange: false,
-                            });
-                        }
-                    }
-                }
-
-                value = [componentObj];
-            }
-        }
-
-        if (!verbose) {
-            if (this.returnSingleVariableValue) {
-                if (value.length === 1) {
-                    value = value[0];
-                    let stateVariables = Object.keys(value.stateValues);
-                    if (
-                        changes.valuesChanged &&
-                        changes.valuesChanged[0] &&
-                        changes.valuesChanged[0][0]
-                    ) {
-                        changes.valuesChanged = changes.valuesChanged[0][0];
-                    }
-
-                    if (stateVariables.length === 1) {
-                        value = value.stateValues[stateVariables[0]];
-                    } else {
-                        value = null;
-                    }
-                } else {
-                    value = null;
-                }
-            } else if (this.returnSingleComponent) {
-                if (value.length === 1) {
-                    value = value[0];
-                    if (changes.valuesChanged && changes.valuesChanged[0]) {
-                        changes.valuesChanged = changes.valuesChanged[0];
-                    }
-                } else {
-                    value = null;
-                }
-            }
-        }
-
-        // if (!this.doNotProxy && value !== null && typeof value === 'object') {
-        //   value = new Proxy(value, readOnlyProxyHandler)
-        // }
-
-        return { value, changes, usedDefault: false };
     }
 }
 

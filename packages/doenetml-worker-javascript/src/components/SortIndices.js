@@ -44,7 +44,9 @@ export default class SortIndices extends ValueListComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType, {
+                allowComponents: true,
+            }),
         );
 
         return sugarInstructions;
@@ -67,6 +69,7 @@ export default class SortIndices extends ValueListComponent {
             returnListValueStateVariableDefinitions({
                 componentName: this.componentType,
                 supportProps: true,
+                keepMissing: true,
             }),
         );
 

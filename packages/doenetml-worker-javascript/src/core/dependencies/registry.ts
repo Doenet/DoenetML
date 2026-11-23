@@ -2,7 +2,6 @@ import {
     StateVariableDependency,
     StateVariableFromUnresolvedPathDependency,
     MultipleStateVariablesDependency,
-    StateVariableComponentTypeDependency,
     StateVariableArraySizeDependency,
     RecursiveDependencyValuesDependency,
 } from "./stateVariableDependencies";
@@ -41,6 +40,7 @@ import {
 import { ReferentDependency } from "./referentDependency";
 import {
     CountAmongSiblingsDependency,
+    NearestPrecedingSiblingDependency,
     ValueDependency,
     DecidedByDoenetMLDependency,
     ContentDecidedByDoenetMLDependency,
@@ -80,7 +80,6 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     StateVariableDependency,
     StateVariableFromUnresolvedPathDependency,
     MultipleStateVariablesDependency,
-    StateVariableComponentTypeDependency,
     StateVariableArraySizeDependency,
     RecursiveDependencyValuesDependency,
     ComponentIdentityDependency,
@@ -108,6 +107,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     AdapterSourceStateVariableDependency,
     AdapterSourceDependency,
     CountAmongSiblingsDependency,
+    NearestPrecedingSiblingDependency,
     ValueDependency,
     DecidedByDoenetMLDependency,
     ContentDecidedByDoenetMLDependency,

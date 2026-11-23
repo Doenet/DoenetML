@@ -146,6 +146,22 @@ const documents: [string, string, string[]][] = [
         `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inCase(`<group extend="$rr"><text>z</text></group>`)}`,
         [],
     ],
+    // an award or a choice can only be copied (D42)
+    [
+        "an award extend in a case",
+        `<setup><award name="aw"><when>$b</when></award></setup>${inCase(`<answer><award extend="$aw"/></answer>`)}`,
+        ["doenet-e0078"],
+    ],
+    [
+        "an award copyWithState in a repeat",
+        `<setup><award name="aw"><when>$b</when></award></setup>${inRepeat(`<answer><award copyWithState="$aw"/></answer>`)}`,
+        ["doenet-e0078"],
+    ],
+    [
+        "a choice extend in a repeat",
+        `<setup><choice name="c">a</choice></setup>${inRepeat(`<choiceInput><choice extend="$c"/><choice>b</choice></choiceInput>`)}`,
+        ["doenet-e0078"],
+    ],
     // a select whose literals keep it from selecting
     [
         "a select in a case with more to select than options",
@@ -187,7 +203,7 @@ const documents: [string, string, string[]][] = [
     [
         "a select in a case with withReplacement written as an expression, which is true",
         inCase(
-            `<select numToSelect="3" withReplacement="1"><option>a</option></select><select numToSelect="3" withReplacement="1>0"><option>a</option></select>`,
+            `<select numToSelect="3" withReplacement="true"><option>a</option></select><select numToSelect="3" withReplacement="1>0"><option>a</option></select>`,
         ),
         [],
     ],

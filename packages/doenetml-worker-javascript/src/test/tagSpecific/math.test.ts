@@ -725,9 +725,9 @@ describe("Math tag tests @group3", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Default: <math name="m1">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
-    <p>Create vectors: <math name="m2" createvectors="true">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
-    <p>Create intervals: <math name="m3" createintervals="true">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
-    <p>Create vectors and intervals: <math name="m4" createvectors createintervals>(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
+    <p>Create vectors: <math name="m2" createVectors="true">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
+    <p>Create intervals: <math name="m3" createIntervals="true">(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
+    <p>Create vectors and intervals: <math name="m4" createVectors createIntervals>(1,2,3),(4,5),[6,7],(8,9],[10,11)</math></p>
     <p>Alt vectors: <math name="m5">⟨1,2,3⟩,⟨4,5⟩,[6,7],(8,9],[10,11)</math></p>
     `,
         });
@@ -825,10 +825,10 @@ describe("Math tag tests @group3", async () => {
     it("display small numbers as zero by default", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><math name="m1" parseScientificNotation displaysmallaszero="false">2x + (1E-15)y</math></p>
+  <p><math name="m1" parseScientificNotation displaySmallAsZero="false">2x + (1E-15)y</math></p>
   <p><math name="m2" parseScientificNotation>2x + (1E-15)y</math></p>
-  <p><math name="m3" parseScientificNotation displaysmallaszero>2x + (1E-13)y</math></p>
-  <p><math name="m4" parseScientificNotation displaysmallaszero="1E-12">2x + (1E-13)y</math></p>
+  <p><math name="m3" parseScientificNotation displaySmallAsZero>2x + (1E-13)y</math></p>
+  <p><math name="m4" parseScientificNotation displaySmallAsZero="1E-12">2x + (1E-13)y</math></p>
   `,
         });
 
@@ -11955,8 +11955,8 @@ describe("Math tag tests @group3", async () => {
             <p>Style number: <mathInput prefill="1" name="sn" /></p>
         
             <p><math name="no_style">x^2</math> is <text name="tsd_no_style">$no_style.textStyleDescription</text>, i.e., the text color is <text name="tc_no_style">$no_style.textColor</text> and the background color is <text name="bc_no_style">$no_style.backgroundColor</text>.</p>
-            <p><math name="fixed_style" stylenumber="2">x^3</math> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
-            <p><math name="variable_style" stylenumber="$sn">x^4</math> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
+            <p><math name="fixed_style" styleNumber="2">x^3</math> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
+            <p><math name="variable_style" styleNumber="$sn">x^4</math> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
         
             <graph>
               $no_style{anchor="(1,2)"}
@@ -12784,7 +12784,8 @@ describe("Math tag tests @group3", async () => {
             <math name="math2">$math.latex</math>
             <math name="l2">$l.latex</math>
             <math name="al2">$al.latex</math>
-            <math name="ml2">$ml.latex</math>
+            <!-- a list's LaTeX is not a property of its own (D59): read each entry's -->
+            <math name="ml2">$ml[1].latex, $ml[2].latex</math>
           </p>
           `,
         });
@@ -13136,7 +13137,7 @@ describe("Math tag tests @group3", async () => {
     <math name="m1b" simplify extend="$m1" assumptions="x > 0" />
     <math name="m1c" simplify extend="$m1" assumptions="x elementof R" />
 
-    <math name name="m2">sqrt(x^4)</math>
+    <math name="m2">sqrt(x^4)</math>
     <math name="m2a" simplify extend="$m2" />
     <math name="m2b" simplify extend="$m2" assumptions="x > 0" />
     <math name="m2c" simplify extend="$m2" assumptions="x elementof R" />
@@ -13781,5 +13782,77 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
         ).eq(5);
+    });
+
+    // A boolean is not a number or a math (D47 decision 3, #2582, revising
+    // #2572): everything that takes a math but not a boolean reads one as a
+    // blank, with a warning at load that suggests `<number convertBoolean>`,
+    // the one place a boolean is 1 or 0. More in
+    // `copying/boolean_number_mix.test.ts`.
+    it("what takes a math reads a boolean as a blank, with a warning", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="f">false</boolean>
+    <booleanList name="bl">true false true</booleanList>
+    <isNumber name="in">$b</isNumber>
+    <count name="c1">$b $f</count>
+    <max name="mx">$b 3</max>
+    <mean name="mn">$b 3</mean>
+    <function name="fn">$b x</function>
+    <interval name="iv">($f, $b)</interval>
+    <matrix name="mat"><row>$b $f</row></matrix>
+    <math name="mbl1">$bl[1]</math>
+    <mathInput name="mibl1" bindValueTo="$bl[1]"><label>mibl1</label></mathInput>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("in")).value).eq(false);
+        // `<count>` counts a blank
+        expect((await sv("c1")).value.tree).eq(2);
+        expect((await sv("mx")).value.tree).eqls([
+            "apply",
+            "max",
+            ["tuple", "＿", 3],
+        ]);
+        expect((await sv("mn")).value.tree).eqls(["/", ["+", "＿", 3], 2]);
+        expect((await sv("fn")).formula.tree).eqls(["*", "＿", "x"]);
+        expect((await sv("iv")).value.tree).eqls([
+            "interval",
+            ["tuple", "＿", "＿"],
+            ["tuple", false, false],
+        ]);
+        expect((await sv("mat")).value.tree).eqls([
+            "matrix",
+            ["tuple", 1, 2],
+            ["tuple", ["tuple", "＿", "＿"]],
+        ]);
+        expect((await sv("mbl1")).value.tree).eq("＿");
+
+        expect(
+            core
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
+                .map((d: any) => d.position.start.line),
+        ).eqls([5, 6, 6, 7, 8, 9, 10, 10, 11, 11, 12, 13]);
+        expect(
+            core.core!.diagnostics.filter((d: any) =>
+                ["doenet-w0106", "doenet-w0107"].includes(d.code),
+            ),
+        ).eqls([]);
+
+        // the input bound to the entry doesn't write to it
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mibl1"),
+            core,
+        });
+        const after = await core.returnAllStateVariables(false, true);
+        expect(
+            after[await resolvePathToNodeIdx("bl")].stateValues.booleans,
+        ).eqls([true, false, true]);
     });
 });

@@ -17,17 +17,25 @@
  * select is an error only when what decides it cannot change
  * (`selectErrors.ts`).
  */
+import { isPlacementLocation } from "./readerWritable";
+import {
+    LIST_ENTRY_ARRAY_PREFIX,
+    LIST_ENTRY_PREFIX,
+} from "./listEntryReference";
 
 /**
  * What {@link canChange} reads: the live components, the component classes,
  * what a reader can write to (`Core.readerWritable`, from
- * `buildReaderWritableIndex`), and the answers found so far, keyed by
- * component index and whether it was reached by a reference.
+ * `buildReaderWritableIndex`), what a reader drags in a graph only to place
+ * it, whose `anchor` alone a reader changes (`Core.readerPlaced`), and the
+ * answers found so far, keyed by component index and whether it was
+ * reached by a reference.
  */
 export type ChangeContext = {
     components: any[];
     componentInfoObjects: any;
     writable: Set<number>;
+    placed: Set<number>;
     memo: Map<string, boolean>;
 };
 
@@ -40,11 +48,13 @@ export function changeContext(core: {
     _components: any[];
     componentInfoObjects: any;
     readerWritable?: Set<number>;
+    readerPlaced?: Set<number>;
 }): ChangeContext {
     return {
         components: core._components,
         componentInfoObjects: core.componentInfoObjects,
         writable: core.readerWritable ?? new Set(),
+        placed: core.readerPlaced ?? new Set(),
         memo: new Map(),
     };
 }
@@ -230,7 +240,17 @@ function canChangeUncached(
     }
     if (component.shadows) {
         const source = ctx.components[component.shadows.componentIdx];
-        if (!source || canChange(source, ctx, true)) {
+        // a copy of a placed component's `anchor` (`$m.anchor`, `<point
+        // extend="$m.anchor"/>`) follows the drag
+        if (
+            !source ||
+            readsPlacedAnchor(
+                component.shadows.componentIdx,
+                component.shadows.propVariable,
+                ctx,
+            ) ||
+            canChange(source, ctx, true)
+        ) {
             return true;
         }
     }
@@ -601,6 +621,110 @@ export function referenceCanChange(
     }
     const source = ctx.components[refResolution.nodeIdx];
     return !source || canChange(source, ctx, true);
+}
+
+/**
+ * Whether `property` of the component `componentIdx` is the `anchor` of a
+ * component a reader drags in a graph only to place it (`ctx.placed`): the
+ * drag changes that, and nothing else of it (`$m.anchor` of a `<math>` in
+ * a graph).
+ */
+function readsPlacedAnchor(
+    componentIdx: number,
+    property: unknown,
+    ctx: ChangeContext,
+): boolean {
+    if (typeof property !== "string") {
+        return false;
+    }
+    if (isPlacementLocation(property)) {
+        return ctx.placed.has(componentIdx);
+    }
+    // the `anchor` of an entry of a list (`$ml[1].anchor`), which is the
+    // anchor of the component the entry is placed as
+    const location = entryPropertyOf(property);
+    return (
+        location !== undefined &&
+        isPlacementLocation(location) &&
+        entryAnchorIsPlaced(componentIdx, ctx, new Set())
+    );
+}
+
+/**
+ * The entry property a list's per-entry variable reads (`anchor` of
+ * `__listEntry_anchor_1` or `__listEntries_anchor`), if it is one.
+ */
+function entryPropertyOf(variable: string): string | undefined {
+    if (variable.startsWith(LIST_ENTRY_ARRAY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_ARRAY_PREFIX.length);
+    }
+    if (variable.startsWith(LIST_ENTRY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_PREFIX.length).replace(/_\d+$/, "");
+    }
+    return undefined;
+}
+
+/**
+ * Whether a reader drags where an entry of the list `listIdx` is placed
+ * (`graphSourceOf` in `AuthoredValueList.js`): the list is placed in a
+ * graph, or an entry comes from a placed component, a child of the list or
+ * the referent of a value reference in it (`$a` in `<mathList>`), or from
+ * an entry of a list among its children or what a composite among them
+ * makes, or the list shadows one that is. Any entry counts, erring toward
+ * changeable.
+ */
+function entryAnchorIsPlaced(
+    listIdx: number,
+    ctx: ChangeContext,
+    seen: Set<number>,
+): boolean {
+    if (seen.has(listIdx)) {
+        return false;
+    }
+    seen.add(listIdx);
+    if (ctx.placed.has(listIdx)) {
+        return true;
+    }
+    const list = ctx.components[listIdx];
+    if (!list) {
+        return false;
+    }
+    if (
+        typeof list.shadows?.componentIdx === "number" &&
+        entryAnchorIsPlaced(list.shadows.componentIdx, ctx, seen)
+    ) {
+        return true;
+    }
+    // what a composite among the children makes stands for it (the copy
+    // of `ml` in `<mathList extend="$ml"/>`)
+    const entries = (list.definingChildren ?? []).flatMap((child: any) =>
+        Array.isArray(child?.replacements) ? child.replacements : [child],
+    );
+    return entries.some((child: any) => {
+        if (typeof child !== "object" || child === null) {
+            return false;
+        }
+        let source =
+            child.componentType === "_ref"
+                ? ctx.components[child.refResolution?.nodeIdx]
+                : child;
+        // an extend shares its source's anchor unless it writes its own
+        const visited = new Set<any>();
+        while (source && !visited.has(source)) {
+            visited.add(source);
+            if (
+                ctx.placed.has(source.componentIdx) ||
+                entryAnchorIsPlaced(source.componentIdx, ctx, seen)
+            ) {
+                return true;
+            }
+            if (source.attributes?.anchor) {
+                return false;
+            }
+            source = ctx.components[source.shadows?.componentIdx];
+        }
+        return false;
+    });
 }
 
 /**

@@ -16,7 +16,7 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   of the types of `REORDERED_LIST_BASES`, or a list of them: an authored
  *   component, the text its sugar split into such components, a reference
  *   whose type the document gives, a list component, or a `<group>` of
- *   such children;
+ *   one such child (a group of several is moved as one item, COLL-4);
  * - and none is an `extend` or `copy`, or takes an attribute the list does
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
@@ -57,73 +57,84 @@ const LIST_FORMS: Record<string, string> = {
 };
 
 /**
- * The attributes, in lowercase, that each composite can have as a list:
- * those of the list form that mean what they meant on the composite.
+ * The attributes that each composite can have as a list: those of the list
+ * form that mean what they meant on the composite. Matched exactly (NAME-0,
+ * D51), as an attribute in another case was given the component's spelling
+ * before the document loads.
  */
 const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
     collect: new Set([
         "name",
         "from",
-        "componenttype",
-        "maxnumber",
-        "aslist",
+        "componentType",
+        "maxNumber",
+        "asList",
         "hide",
-        "displaydigits",
-        "displaydecimals",
-        "displaysmallaszero",
-        "padzeros",
-        "avoidscientificnotation",
+        "displayDigits",
+        "displayDecimals",
+        "displaySmallAsZero",
+        "padZeros",
+        "avoidScientificNotation",
     ]),
     sort: new Set([
         "name",
         "type",
-        "aslist",
-        "sortvectorsby",
-        "sortbycomponent",
+        "asList",
+        "sortVectorsBy",
+        "sortByComponent",
     ]),
-    shuffle: new Set(["name", "type", "aslist"]),
+    shuffle: new Set(["name", "type", "asList"]),
 };
 
 /**
- * The attributes, in lowercase, that a `<group>` among the children of a
+ * The attributes that a `<group>` among the children of a
  * `<sort>` or `<shuffle>` can have for the list form to read through it.
  */
 const GROUP_ATTRIBUTES = new Set(["name", "hide"]);
 
 /**
- * The attributes, in lowercase, that an `extend` or `copy` of each list form
+ * The attributes that an `extend` or `copy` of each list form
  * can set: those that are the copy's own setting. One that changes what the
  * list holds (`type`, `componentType`, `from`, `maxNumber`, `sortByProp`)
  * keeps the list it copies a composite, as do any others.
  */
 const COPY_MECHANICS = [
-    "_createcomponentoftype",
-    "_createcomponentidx",
-    "_createcomponentname",
-    "_copyinchildren",
+    "_createComponentOfType",
+    "_createComponentIdx",
+    "_createComponentName",
+    "_copyInChildren",
     "_link",
-    "_copywithstate",
+    "_copyWithState",
     "name",
 ];
 const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
     collect: new Set([
         ...COPY_MECHANICS,
-        "aslist",
+        "asList",
         "hide",
-        "displaydigits",
-        "displaydecimals",
-        "displaysmallaszero",
-        "padzeros",
-        "avoidscientificnotation",
+        "displayDigits",
+        "displayDecimals",
+        "displaySmallAsZero",
+        "padZeros",
+        "avoidScientificNotation",
     ]),
     sort: new Set([
         ...COPY_MECHANICS,
-        "aslist",
-        "sortvectorsby",
-        "sortbycomponent",
+        "asList",
+        "sortVectorsBy",
+        "sortByComponent",
     ]),
-    shuffle: new Set([...COPY_MECHANICS, "aslist"]),
+    shuffle: new Set([...COPY_MECHANICS, "asList"]),
 };
+
+/**
+ * Disable the pass, to compare a document with its `<collect>`, `<sort>` and
+ * `<shuffle>` built as lists and as composites in tests (COMP-4).
+ */
+let listFormsEnabled = true;
+export function setListFormsEnabled(enabled: boolean) {
+    listFormsEnabled = enabled;
+}
 
 /**
  * Whether the `<collect>` `collect` is made a `_collectList` as written: it
@@ -139,13 +150,17 @@ export function collectIsListFormAsWritten(
     collect: SerializedComponent,
     componentInfoObjects: ComponentInfoObjects,
 ) {
-    if (collect.componentType !== "collect" || collect.extending) {
+    if (
+        !listFormsEnabled ||
+        collect.componentType !== "collect" ||
+        collect.extending
+    ) {
         return false;
     }
     const allowed = LIST_FORM_ATTRIBUTES.collect;
     if (
         !Object.keys(collect.attributes ?? {}).every((name) =>
-            allowed.has(name.toLowerCase()),
+            allowed.has(name),
         )
     ) {
         return false;
@@ -159,12 +174,10 @@ export function collectIsListFormAsWritten(
     ) {
         return false;
     }
-    const written = (component.children as string[])
-        .join("")
-        .trim()
-        .toLowerCase();
-    const type = componentInfoObjects.componentTypeLowerCaseMapping[written];
-    return type in COLLECT_LIST_BASES;
+    // A tag name, matched exactly (D62): one in another case was given the
+    // tag's spelling before the document loads (`correctValueNameCase`).
+    const written = (component.children as string[]).join("").trim();
+    return Object.hasOwn(COLLECT_LIST_BASES, written);
 }
 
 export function convertToListForms({
@@ -176,6 +189,9 @@ export function convertToListForms({
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): { nComponents: number } {
+    if (!listFormsEnabled) {
+        return { nComponents };
+    }
     const { componentsByIdx, copiesByCreatedIdx, referentType, referentClass } =
         documentReferents({ serializedComponents, componentInfoObjects });
 
@@ -227,7 +243,7 @@ export function convertToListForms({
         if (createdType?.type !== "primitive") {
             return undefined;
         }
-        const type = String(createdType.primitive.value).toLowerCase();
+        const type = String(createdType.primitive.value);
         return type in LIST_FORMS ? type : undefined;
     }
 
@@ -247,9 +263,7 @@ export function convertToListForms({
         const allowed = LIST_FORM_COPY_ATTRIBUTES[component.componentType];
         return (copiesOfCandidate.get(component.componentIdx) ?? []).every(
             (copy) =>
-                Object.keys(copy.attributes).every((name) =>
-                    allowed.has(name.toLowerCase()),
-                ),
+                Object.keys(copy.attributes).every((name) => allowed.has(name)),
         );
     }
 
@@ -366,7 +380,9 @@ export function convertToListForms({
      * reads through a `<group>` among its children. Only a group that is not
      * an `extend` or `copy` and sets nothing but its name and `hide`
      * qualifies, so that a hidden group hides its entries in the list as it
-     * hides them anywhere else (#2390).
+     * hides them anywhere else (#2390). A group of several components is not
+     * flattened (COLL-4): a `<shuffle>` moves it as one item, which the
+     * composite does, and a `<sort>` of it is an error.
      */
     function groupValueType(
         group: SerializedComponent,
@@ -374,8 +390,11 @@ export function convertToListForms({
         if (
             group.extending !== undefined ||
             !Object.keys(group.attributes).every((name) =>
-                GROUP_ATTRIBUTES.has(name.toLowerCase()),
-            )
+                GROUP_ATTRIBUTES.has(name),
+            ) ||
+            group.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            ).length > 1
         ) {
             return undefined;
         }
@@ -408,7 +427,7 @@ export function convertToListForms({
         const allowed = LIST_FORM_ATTRIBUTES[component.componentType];
         return Object.keys(component.attributes).every(
             (name) =>
-                allowed.has(name.toLowerCase()) &&
+                allowed.has(name) &&
                 !(
                     component.componentType !== "collect" &&
                     component.attributes[name].type === "unresolved"
@@ -432,6 +451,9 @@ export function convertToListForms({
         let type: string | null = null;
         if (
             component.extending === undefined &&
+            // one whose items are not of one type is an error, shown by the
+            // composite (`reorderedItemsAtLoad.ts`)
+            component.doenetAttributes?.reorderErrorAtLoad === undefined &&
             hasOnlyListFormAttributes(component) &&
             copiesKeepTheList(component)
         ) {
@@ -456,13 +478,9 @@ export function convertToListForms({
         ) {
             return null;
         }
-        const written = (component.children as string[])
-            .join("")
-            .trim()
-            .toLowerCase();
-        const type =
-            componentInfoObjects.componentTypeLowerCaseMapping[written];
-        return type in COLLECT_LIST_BASES ? type : null;
+        // matched exactly (D62), as above
+        const written = (component.children as string[]).join("").trim();
+        return Object.hasOwn(COLLECT_LIST_BASES, written) ? written : null;
     }
 
     /** The type of the values a `<sort>` or `<shuffle>` reorders, if one. */
@@ -547,9 +565,7 @@ function withoutAttribute(
     attributeName: string,
 ) {
     return Object.fromEntries(
-        Object.entries(attributes).filter(
-            ([name]) => name.toLowerCase() !== attributeName.toLowerCase(),
-        ),
+        Object.entries(attributes).filter(([name]) => name !== attributeName),
     );
 }
 

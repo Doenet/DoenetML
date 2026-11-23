@@ -17,7 +17,15 @@ import {
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { suggestionArgs } from "../utils/dast/nameCase";
 import { levelFromSource } from "../utils/decidedByDoenetML";
+import {
+    compositeTargetsDependency,
+    pathOfTarget,
+    propertyWithIndices,
+    propertyCaseSuggestionArgs,
+    targetsAmongReplacements,
+} from "../utils/actionTargets";
 
 /**
  * Whether a target of an action (`<updateValue>`, `<animateFromSequence>`)
@@ -30,22 +38,44 @@ import { levelFromSource } from "../utils/decidedByDoenetML";
  * path cannot change (`targetsDecided`, a `contentDecidedByDoenetML`
  * dependency): `$ml.xs[5]` of a `<mathList>` written as literals is a
  * warning.
- *
- * A target without the property to change (`doenet-w0044`) stays a warning
- * even when the targets are the replacements of a `<conditionalContent>` or
- * `<select>`: those replace themselves with a `<group>` whatever the active
- * case or choice, so what the target is, and whether it has the property, is
- * decided by the DoenetML.
  */
 export function missingTargetDecided({
     targetComponent,
     targetIdentities,
     targetsDecided,
 }) {
-    const fromReplacements = (targetIdentities ?? []).some(
+    return (
+        !targetsFromReplacements({ targetComponent, targetIdentities }) &&
+        targetsDecided !== false
+    );
+}
+
+/**
+ * The level of the diagnostic for a target of an action without the
+ * property to change (`doenet-w0044`), by what decides it (DIAG-2). A
+ * target that is the component written has the property, or not, by its
+ * type, which the DoenetML decides: a warning. Targets that are what a
+ * composite or a wrapper stands for (COLL-2, COLL-3) are decided by the
+ * DoenetML only when what it holds cannot change (`targetsDecided`): `$g` of
+ * a `<group>` holding one `<p>` is a warning, and `$cc` of a
+ * `<conditionalContent>` whose case shown follows an input, showing a `<p>`,
+ * an info.
+ */
+export function noValueTargetLevel({
+    targetComponent,
+    targetIdentities,
+    targetsDecided,
+}) {
+    return targetsFromReplacements({ targetComponent, targetIdentities })
+        ? levelFromSource(targetsDecided !== false)
+        : "warning";
+}
+
+/** Whether the targets are what the target component holds, not itself. */
+function targetsFromReplacements({ targetComponent, targetIdentities }) {
+    return (targetIdentities ?? []).some(
         (target) => target.componentIdx !== targetComponent?.componentIdx,
     );
-    return !fromReplacements && targetsDecided !== false;
 }
 
 export default class UpdateValue extends InlineComponent {
@@ -280,7 +310,14 @@ export default class UpdateValue extends InlineComponent {
                 stateValues,
                 componentInfoObjects,
             }) {
-                let dependencies = {};
+                let dependencies = {
+                    // a target after a collection, which names nothing,
+                    // reported at load (`doenet-w0200`, D59)
+                    targetNamesNothingAtLoad: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "targetNamesNothingAtLoad",
+                    },
+                };
 
                 if (stateValues.targetComponent !== null) {
                     // whether the target can come to give targets
@@ -310,21 +347,15 @@ export default class UpdateValue extends InlineComponent {
                             dependencyType: "stateVariable",
                             variableName: "targetComponent",
                         };
-                    } else if (
-                        componentInfoObjects.isCompositeComponent({
-                            componentType:
-                                stateValues.targetComponent.componentType,
-                            includeNonStandard: false,
-                        })
-                    ) {
-                        dependencies.targets = {
-                            dependencyType: "replacement",
-                            compositeIdx:
-                                stateValues.targetComponent.componentIdx,
-                            recursive: true,
-                        };
                     } else {
-                        dependencies.targets = {
+                        // a composite or a wrapper, through which the
+                        // target reaches its component(s) (COLL-2, COLL-3)
+                        const fromReplacements = compositeTargetsDependency({
+                            targetComponent: stateValues.targetComponent,
+                            unresolvedPath: stateValues.unresolvedPath,
+                            componentInfoObjects,
+                        });
+                        dependencies.targets = fromReplacements ?? {
                             dependencyType: "stateVariable",
                             variableName: "targetComponent",
                         };
@@ -338,6 +369,9 @@ export default class UpdateValue extends InlineComponent {
                     targetIdentities = dependencyValues.targets;
                     if (!Array.isArray(targetIdentities)) {
                         targetIdentities = [targetIdentities];
+                    } else {
+                        targetIdentities =
+                            targetsAmongReplacements(targetIdentities);
                     }
                 }
                 if (dependencyValues.numEntries !== undefined) {
@@ -354,8 +388,9 @@ export default class UpdateValue extends InlineComponent {
                 }
                 let diagnostics = [];
                 if (
-                    targetIdentities === null ||
-                    targetIdentities.length === 0
+                    (targetIdentities === null ||
+                        targetIdentities.length === 0) &&
+                    !dependencyValues.targetNamesNothingAtLoad
                 ) {
                     // No target is what the DoenetML says, a warning. A
                     // target that is a composite with no replacements now,
@@ -398,6 +433,10 @@ export default class UpdateValue extends InlineComponent {
                     targetIdentities: {
                         dependencyType: "stateVariable",
                         variableName: "targetIdentities",
+                    },
+                    targetNotOneValueAtLoad: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "targetNotOneValueAtLoad",
                     },
                     unresolvedPath: {
                         dependencyType: "stateVariable",
@@ -453,24 +492,22 @@ export default class UpdateValue extends InlineComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };
-                        } else if (stateValues.unresolvedPath) {
-                            let propIndex = stateValues.propIndex;
-                            if (propIndex) {
-                                // make propIndex be a shallow copy
-                                // so that can detect if it changed
-                                // when update dependencies
-                                propIndex = [...propIndex];
-                            }
-
+                        } else if (
+                            pathOfTarget(target, stateValues.unresolvedPath)
+                        ) {
                             thisTarget = {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                unresolvedPath: stateValues.unresolvedPath,
+                                // what is left of the path after the target,
+                                // a property of it (`$P.x`)
+                                unresolvedPath: pathOfTarget(
+                                    target,
+                                    stateValues.unresolvedPath,
+                                ),
                                 // So that an index in the path that cannot be
                                 // applied is reported as the reference the
                                 // author wrote in `target`.
@@ -478,7 +515,6 @@ export default class UpdateValue extends InlineComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };
@@ -509,10 +545,15 @@ export default class UpdateValue extends InlineComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let targets = null;
                 let diagnostics = [];
                 const targetDecided = missingTargetDecided({
+                    targetComponent: dependencyValues.targetComponent,
+                    targetIdentities: dependencyValues.targetIdentities,
+                    targetsDecided: dependencyValues.targetsDecided,
+                });
+                const noValueLevel = noValueTargetLevel({
                     targetComponent: dependencyValues.targetComponent,
                     targetIdentities: dependencyValues.targetIdentities,
                     targetsDecided: dependencyValues.targetsDecided,
@@ -534,39 +575,47 @@ export default class UpdateValue extends InlineComponent {
                             continue;
                         }
                         targets.push(target);
-                        if (Object.keys(target.stateValues)[0] === undefined) {
-                            if (dependencyValues.unresolvedPath) {
-                                let prop =
-                                    dependencyValues.unresolvedPath[0].name;
-                                if (
-                                    dependencyValues.unresolvedPath[0].index
-                                        .length > 0
-                                ) {
-                                    for (const idx of dependencyValues
-                                        .unresolvedPath[0].index) {
-                                        prop += `[idx]`;
-                                    }
-                                }
+                        if (
+                            Object.keys(target.stateValues)[0] === undefined &&
+                            // reported at load, as a container of several
+                            // things (`doenet-w0195`)
+                            !dependencyValues.targetNotOneValueAtLoad
+                        ) {
+                            const path = pathOfTarget(
+                                dependencyValues.targetIdentities[ind],
+                                dependencyValues.unresolvedPath,
+                            );
+                            if (path) {
+                                const prop = propertyWithIndices(path[0]);
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: noValueLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",
                                             property: prop,
                                             component: target.componentType,
+                                            // a property in another case
+                                            // names nothing (D51)
+                                            ...propertyCaseSuggestionArgs({
+                                                pathPart: path[0],
+                                                componentType:
+                                                    target.componentType,
+                                                componentInfoObjects,
+                                            }),
                                         },
                                     }),
                                 );
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: noValueLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "updateValue",
                                             property: "value",
                                             component: target.componentType,
+                                            ...suggestionArgs(undefined),
                                         },
                                     }),
                                 );

@@ -1309,7 +1309,7 @@ describe("Point tag tests @group4", async () => {
 
   <point name="P" xs="1 3.1">
     <constrainToGrid dx="2" dy="2"/>
-    <constrainToGrid dx="2" dy="2" xoffset="1" yoffset="1" />
+    <constrainToGrid dx="2" dy="2" xOffset="1" yOffset="1" />
   </point>
 
   </graph>
@@ -1623,13 +1623,13 @@ describe("Point tag tests @group4", async () => {
             doenetML: `
   <mathInput name="dx"/>
   <mathInput name="dy"/>
-  <mathInput name="xoffset"/>
-  <mathInput name="yoffset"/>
+  <mathInput name="xOffset"/>
+  <mathInput name="yOffset"/>
 
   <graph>
     <point name="original">(1.2,3.6)</point>
     <point name="constrained" x="$(original.x)+1" y="$(original.y)+1">
-      <constrainToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" />
+      <constrainToGrid dx="$dx" dy="$dy" xOffset="$xOffset" yOffset="$yOffset" />
     </point>
     <point name="follower">
         ($constrained.x+1,
@@ -1644,15 +1644,15 @@ describe("Point tag tests @group4", async () => {
             y,
             dx,
             dy,
-            xoffset,
-            yoffset,
+            xOffset,
+            yOffset,
         }: {
             x: number;
             y: number;
             dx?: number;
             dy?: number;
-            xoffset?: number;
-            yoffset?: number;
+            xOffset?: number;
+            yOffset?: number;
         }) {
             let x2 = x + 1;
             let y2 = y + 1;
@@ -1660,11 +1660,11 @@ describe("Point tag tests @group4", async () => {
             if (
                 dx !== undefined &&
                 dy !== undefined &&
-                xoffset !== undefined &&
-                yoffset !== undefined
+                xOffset !== undefined &&
+                yOffset !== undefined
             ) {
-                x2 = Math.round((x2 - xoffset) / dx) * dx + xoffset;
-                y2 = Math.round((y2 - yoffset) / dy) * dy + yoffset;
+                x2 = Math.round((x2 - xOffset) / dx) * dx + xOffset;
+                y2 = Math.round((y2 - yOffset) / dy) * dy + yOffset;
             }
 
             const stateVariables = await core.returnAllStateVariables(
@@ -1715,8 +1715,8 @@ describe("Point tag tests @group4", async () => {
         // constrain x and y to integers
         let dx = 1;
         let dy = 1;
-        let xoffset = 0;
-        let yoffset = 0;
+        let xOffset = 0;
+        let yOffset = 0;
 
         await updateMathInputValue({
             componentIdx: await resolvePathToNodeIdx("dx"),
@@ -1729,16 +1729,16 @@ describe("Point tag tests @group4", async () => {
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("xoffset"),
-            latex: xoffset.toString(),
+            componentIdx: await resolvePathToNodeIdx("xOffset"),
+            latex: xOffset.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("yoffset"),
-            latex: yoffset.toString(),
+            componentIdx: await resolvePathToNodeIdx("yOffset"),
+            latex: yOffset.toString(),
             core,
         });
-        await check_items({ x: 1.2, y: 3.6, dx, dy, xoffset, yoffset });
+        await check_items({ x: 1.2, y: 3.6, dx, dy, xOffset, yOffset });
 
         // move point2 to (5.3, -2.2)
         await movePoint({
@@ -1747,13 +1747,13 @@ describe("Point tag tests @group4", async () => {
             y: -2.2,
             core,
         });
-        await check_items({ x: 4, y: -3, dx, dy, xoffset, yoffset });
+        await check_items({ x: 4, y: -3, dx, dy, xOffset, yOffset });
 
         // change constraints
         dx = 3;
         dy = 0.5;
-        xoffset = 1;
-        yoffset = 0.1;
+        xOffset = 1;
+        yOffset = 0.1;
 
         await updateMathInputValue({
             componentIdx: await resolvePathToNodeIdx("dx"),
@@ -1766,16 +1766,16 @@ describe("Point tag tests @group4", async () => {
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("xoffset"),
-            latex: xoffset.toString(),
+            componentIdx: await resolvePathToNodeIdx("xOffset"),
+            latex: xOffset.toString(),
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("yoffset"),
-            latex: yoffset.toString(),
+            componentIdx: await resolvePathToNodeIdx("yOffset"),
+            latex: yOffset.toString(),
             core,
         });
-        await check_items({ x: 4, y: -3, dx, dy, xoffset, yoffset });
+        await check_items({ x: 4, y: -3, dx, dy, xOffset, yOffset });
 
         // move point to (-2.2, -8.6)
         await movePoint({
@@ -1784,9 +1784,9 @@ describe("Point tag tests @group4", async () => {
             y: -8.6,
             core,
         });
-        let x = Math.round((-0.6 - xoffset) / dx) * dx + xoffset - 1;
-        let y = Math.round((-8.6 - yoffset) / dy) * dy + yoffset - 1;
-        await check_items({ x, y, dx, dy, xoffset, yoffset });
+        let x = Math.round((-0.6 - xOffset) / dx) * dx + xOffset - 1;
+        let y = Math.round((-8.6 - yOffset) / dy) * dy + yOffset - 1;
+        await check_items({ x, y, dx, dy, xOffset, yOffset });
     });
 
     async function test_attract_to_grid(
@@ -1940,7 +1940,7 @@ describe("Point tag tests @group4", async () => {
             doenetML: `
 <graph>
     <point name="P" xs="3.1 -3.4">
-        <attractToGrid includeGridLines/>
+        <attractToGrid includeGridlines/>
     </point>
 </graph>
   `,
@@ -2004,14 +2004,14 @@ describe("Point tag tests @group4", async () => {
             doenetML: `
 <mathInput name="dx"/>
 <mathInput name="dy"/>
-<mathInput name="xoffset"/>
-<mathInput name="yoffset"/>
+<mathInput name="xOffset"/>
+<mathInput name="yOffset"/>
 <mathInput name="xThreshold"/>
 <mathInput name="yThreshold"/>
 
 <graph>
     <point name="P" xs="-7.1 8.9">
-        <attractToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" xThreshold="$xThreshold" yThreshold="$yThreshold" />
+        <attractToGrid dx="$dx" dy="$dy" xOffset="$xOffset" yOffset="$yOffset" xThreshold="$xThreshold" yThreshold="$yThreshold" />
     </point>
 </graph>
 
@@ -2056,12 +2056,12 @@ describe("Point tag tests @group4", async () => {
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xOffset"),
             latex: "0",
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yOffset"),
             latex: "0",
             core,
         });
@@ -2089,12 +2089,12 @@ describe("Point tag tests @group4", async () => {
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("xoffset"),
+            componentIdx: await resolvePathToNodeIdx("xOffset"),
             latex: "1",
             core,
         });
         await updateMathInputValue({
-            componentIdx: await resolvePathToNodeIdx("yoffset"),
+            componentIdx: await resolvePathToNodeIdx("yOffset"),
             latex: "0.1",
             core,
         });
@@ -2120,7 +2120,7 @@ describe("Point tag tests @group4", async () => {
 
 <graph grid="3 3" xMin="-8.5" xMax="8.5" yMin="-8.5" yMax="8.5">
     <point name="P" xs="-3.5 6.6">
-        <attractToGrid dx="3" dy="3" xThreshold="1" yThreshold="1" includeGridLines="$includeGridLines" />
+        <attractToGrid dx="3" dy="3" xThreshold="1" yThreshold="1" includeGridlines="$includeGridLines" />
     </point>
 </graph>
   `,
@@ -4543,11 +4543,11 @@ describe("Point tag tests @group4", async () => {
       <setup>
         <collect componentType="point" from="$thePoints" name="colAllPoints" />
       </setup>
-    <p name="pAllX">x-coordinates: <mathList extend="$colAllPoints.x1" /></p>
-    <p name="pAllY">y-coordinates: <mathList extend="$colAllPoints.x2" /></p>
-    <p name="pAllZ">z-coordinates: <mathList extend="$colAllPoints.x3" /></p>
-    <p name="pAllAll">All individual coordinates: <mathList extend="$colAllPoints.xs" /></p>
-    <p>Coordinates: <mathList extend="$colAllPoints.coords" name="coordsAll" /></p>
+    <p name="pAllX">x-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x1</repeat></mathList></p>
+    <p name="pAllY">y-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x2</repeat></mathList></p>
+    <p name="pAllZ">z-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x3</repeat></mathList></p>
+    <p name="pAllAll">All individual coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.xs</repeat></mathList></p>
+    <p>Coordinates: <mathList name="coordsAll"><repeat for="$colAllPoints" valueName="cItem">$cItem.coords</repeat></mathList></p>
     </section>
 
     <section><title>Extracting from point 3</title>

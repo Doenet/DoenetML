@@ -353,7 +353,7 @@ describe(
   <vector name="V" labelIsName tail="(0,0)" displacement="(2,3)" addControls="displacement" />
 </graph>
 <number name="CRadius" extend="$C.radius" />
-<number name="RPRadius" extend="$RP.circumradius" />
+<number name="RPRadius" extend="$RP.circumRadius" />
 <number name="RWidth" extend="$R.width" />
 <number name="LEndpoint1X" extend="$L.endpoint1.x" />
 <number name="VHeadX" extend="$V.head.x" />
@@ -471,10 +471,10 @@ describe(
 <text name="ready">ready</text>
 <booleanInput name="middleDraggable" prefill="true" />
 <graph name="g" addControls="all" controlsPosition="left">
-  <regularPolygon center="(0,0)" circumradius="2" numSides="5" addControls="center" />
-  <regularPolygon draggable="$middleDraggable.value" center="(2,0)" circumradius="3" numSides="5" addControls="centerAndRadius" />
-  <regularPolygon center="(4,0)" circumradius="4" numSides="5" addControls="radius" />
-  <regularPolygon center="(6,0)" circumradius="5" numSides="5" addControls="none" />
+  <regularPolygon center="(0,0)" circumRadius="2" numSides="5" addControls="center" />
+  <regularPolygon draggable="$middleDraggable.value" center="(2,0)" circumRadius="3" numSides="5" addControls="centerAndRadius" />
+  <regularPolygon center="(4,0)" circumRadius="4" numSides="5" addControls="radius" />
+  <regularPolygon center="(6,0)" circumRadius="5" numSides="5" addControls="none" />
 </graph>
 `);
             expandControlCardIfCollapsed("Regular polygon 3");
@@ -532,7 +532,7 @@ describe(
 <graph name="g" addControls="all" controlsPosition="left">
   <regularPolygon
     center="(1,0)"
-    circumradius="2"
+    circumRadius="2"
     numSides="6"
     addControls="centerAndRadius"
     draggable="$allowCenter.value"
@@ -827,7 +827,7 @@ describe(
 <graph name="g" addControls="all" controlsPosition="left">
   <regularPolygon name="RP" labelIsName vertices="(1,0) (3,0)" numSides="5" addControls="centerAndRadius" />
 </graph>
-<number name="RPRadius" extend="$RP.circumradius" />
+<number name="RPRadius" extend="$RP.circumRadius" />
 `);
 
             const radiusSlider = '[aria-label="radius for RP"]';

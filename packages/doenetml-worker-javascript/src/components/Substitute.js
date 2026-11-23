@@ -1,5 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { normalizeMathExpression } from "@doenet/utils";
+import me from "math-expressions";
+import { textToMathFactory } from "../utils/math";
 import {
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
@@ -175,6 +177,14 @@ export default class Substitute extends CompositeComponent {
         return sugarInstructions;
     }
 
+    /**
+     * A substitute reads one child, which its sugar makes of what is written
+     * in it, so a child written on a copy replaces its source's (REF-4a,
+     * #2546). An extend can't be given
+     * children (`doenet-e0057`, REF-7).
+     */
+    static childGroupsReadOnce = ["anything"];
+
     static returnChildGroups() {
         return [
             {
@@ -192,46 +202,72 @@ export default class Substitute extends CompositeComponent {
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
+        // The value of the child, read as the substitute's `type`: a
+        // `<text>` child of a math substitute is read as a math, and a
+        // `<math>` child of a text substitute as its text. So a copy that
+        // writes another `type` reads its source's content with that type,
+        // as the source's DoenetML written again would (CPY-1, #2546).
         stateVariableDefinitions.originalValue = {
             returnDependencies: () => ({
+                type: {
+                    dependencyType: "stateVariable",
+                    variableName: "type",
+                },
                 child: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["value"],
+                    variableNames: ["value", "math", "text"],
+                    variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.child.length > 0) {
-                    return {
-                        setValue: {
-                            originalValue:
-                                dependencyValues.child[0].stateValues.value,
-                        },
-                    };
-                } else {
+                const child = dependencyValues.child[0];
+                if (child === undefined) {
                     return { setValue: { originalValue: null } };
                 }
+                const { value, math, text } = child.stateValues;
+                let originalValue = value;
+                if (dependencyValues.type === "text") {
+                    if (typeof value !== "string" && typeof text === "string") {
+                        originalValue = text;
+                    }
+                } else if (
+                    !(value instanceof me.class) &&
+                    math instanceof me.class
+                ) {
+                    originalValue = math;
+                }
+                return { setValue: { originalValue } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                if (dependencyValues.child.length > 0) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "child",
-                                desiredValue:
-                                    desiredStateVariableValues.originalValue,
-                                childIndex: 0,
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                } else {
+                const child = dependencyValues.child[0];
+                if (child === undefined) {
                     return { success: false };
                 }
+                const { value } = child.stateValues;
+                const readsValue =
+                    dependencyValues.type === "text"
+                        ? typeof value === "string"
+                        : value instanceof me.class;
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "child",
+                            desiredValue:
+                                desiredStateVariableValues.originalValue,
+                            childIndex: 0,
+                            variableIndex: readsValue
+                                ? 0
+                                : dependencyValues.type === "text"
+                                  ? 2
+                                  : 1,
+                        },
+                    ],
+                };
             },
         };
 
@@ -270,7 +306,10 @@ export default class Substitute extends CompositeComponent {
                     variableName: "preserveCase",
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues: dependencyValuesAsWritten }) {
+                const dependencyValues = withMatchAsType(
+                    dependencyValuesAsWritten,
+                );
                 if (dependencyValues.originalValue === null) {
                     return {
                         setValue: { value: null },
@@ -346,8 +385,29 @@ export default class Substitute extends CompositeComponent {
             },
             inverseDefinition({
                 desiredStateVariableValues,
-                dependencyValues,
+                dependencyValues: dependencyValuesAsWritten,
             }) {
+                const dependencyValues = withMatchAsType(
+                    dependencyValuesAsWritten,
+                );
+                if (dependencyValues.originalValue === null) {
+                    return { success: false };
+                }
+                if (
+                    dependencyValues.match === null ||
+                    dependencyValues.replacement === null
+                ) {
+                    // nothing is substituted, so the value is the child's
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "originalValue",
+                                desiredValue: desiredStateVariableValues.value,
+                            },
+                        ],
+                    };
+                }
                 if (dependencyValues.type === "text") {
                     let desiredValue = desiredStateVariableValues.value;
                     let reForMatch, reForReplacement;
@@ -595,6 +655,45 @@ export default class Substitute extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * `dependencyValues` of a substitute's `value`, with its `match` and
+ * `replacement` read with its `type`, as is its child (`originalValue`): on a
+ * copy that writes another `type`, they are its source's, made with its
+ * source's type (#2546).
+ */
+function withMatchAsType(dependencyValues) {
+    return {
+        ...dependencyValues,
+        match: valueAsType(dependencyValues.match, dependencyValues.type),
+        replacement: valueAsType(
+            dependencyValues.replacement,
+            dependencyValues.type,
+        ),
+    };
+}
+
+/**
+ * `value`, a math-expression or a string, as a value of a substitute of
+ * `type`: a string read as a math, or a math-expression as its text. `null`
+ * stays `null`.
+ */
+function valueAsType(value, type) {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    if (type === "text") {
+        return value instanceof me.class ? value.toString() : value;
+    }
+    if (typeof value === "string") {
+        try {
+            return textToMathFactory()(value);
+        } catch (e) {
+            return me.fromAst("\uFF3F");
+        }
+    }
+    return value;
 }
 
 // from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Using_special_characters

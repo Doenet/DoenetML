@@ -11,16 +11,17 @@ Configuration lives in `.changeset/config.json`. The version-packages PR (`chang
 
 ## Fixed Group (synchronized versioning)
 
-Six packages version together:
+Seven packages version together:
 
 - `@doenet/doenetml`
 - `@doenet/standalone`
 - `@doenet/doenetml-iframe`
 - `@doenet/v06-to-v07`
+- `@doenet/doenetml-headless`
 - `@doenet/vscode-extension`
 - `doenet-vscode-extension`
 
-Bump any one of these and Changesets bumps all six. Listing or omitting a fixed-group member only controls which package's CHANGELOG the entry lands in — not whether it gets a version bump.
+Bump any one of these and Changesets bumps all seven. Listing or omitting a fixed-group member only controls which package's CHANGELOG the entry lands in — not whether it gets a version bump.
 
 ## Independent Versioning
 
@@ -35,23 +36,24 @@ following the instructions in `packages/prefigure/README.md`.
 
 Most `@doenet/*` packages are **internal**: their source is bundled into `@doenet/doenetml`, so a change to any of them rides out under `@doenet/doenetml`'s version. **Never list an internal package in a changeset** — not even when the files that changed are its own.
 
-Rather than enumerate them — the list grows — invert it. **Exactly six packages are published**, and every other `@doenet/*` package is internal:
+Rather than enumerate them — the list grows — invert it. **Exactly seven packages are published**, and every other `@doenet/*` package is internal:
 
 - `@doenet/doenetml`
 - `@doenet/standalone`
 - `@doenet/doenetml-iframe`
 - `@doenet/v06-to-v07`
+- `@doenet/doenetml-headless` (bundles the JavaScript core to run it in Node)
 - `@doenet/vscode-extension` / `doenet-vscode-extension`
 - `@doenet/prefigure` (published, but never listed in a changeset — see above)
 
-So `@doenet/i18n`, `@doenet/utils`, `@doenet/parser`, `@doenet/ui-components`, `@doenet/static-assets`, `@doenet/lsp-tools`, `@doenet/lsp`, `@doenet/codemirror`, `@doenet/virtual-keyboard`, `@doenet/doenetml-worker`, `@doenet/doenetml-worker-javascript`, `@doenet/debug-hooks` and the rest never appear in a changeset. A change to any of them is a change to `@doenet/doenetml`.
+So `@doenet/i18n`, `@doenet/utils`, `@doenet/parser`, `@doenet/ui-components`, `@doenet/static-assets`, `@doenet/lsp-tools`, `@doenet/lsp`, `@doenet/codemirror`, `@doenet/virtual-keyboard`, `@doenet/doenetml-worker`, `@doenet/doenetml-worker-javascript`, `@doenet/debug-hooks` and the rest never appear in a changeset. A change to any of them is a change to `@doenet/doenetml` — and, when it is a change to what the core computes (credit, diagnostics, saved state), to `@doenet/doenetml-headless` as well, which bundles the core; list it when its users would notice.
 
-Don't infer "never published" from `"private": true` alone, and don't infer "published" from its absence. Most packages in this repo — including every published one (`@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, `@doenet/prefigure`) — carry `"private": true` at the root and are published anyway, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with no `private` flag at all.
+Don't infer "never published" from `"private": true` alone, and don't infer "published" from its absence. Most packages in this repo — including every published one (`@doenet/doenetml`, `@doenet/standalone`, `@doenet/doenetml-iframe`, `@doenet/v06-to-v07`, `@doenet/doenetml-headless`, `@doenet/prefigure`) — carry `"private": true` at the root and are published anyway, because their Vite build runs `scripts/transform-package-json.ts` to emit a `dist/package.json` with no `private` flag at all.
 
 **The two reliable signals**, either of which settles it:
 
 1. The package's `vite.config.ts` runs `scripts/transform-package-json.ts`. Internal packages have no such step.
-2. The package appears in the publish targets in `.github/workflows/publish.yml` (`npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07`, plus `@doenet/vscode-extension`), or has a publish workflow of its own (`publish-prefigure.yml`).
+2. The package appears in the publish targets in `.github/workflows/publish.yml` (`npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/doenetml-headless`, plus `@doenet/vscode-extension`), or has a publish workflow of its own (`publish-prefigure.yml`).
 
 Check one of those before adding an unfamiliar package to a changeset — the enumeration above is a convenience, and new packages land as internal by default.
 

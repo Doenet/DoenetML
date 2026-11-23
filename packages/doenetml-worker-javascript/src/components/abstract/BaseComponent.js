@@ -9,7 +9,7 @@ import {
 } from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
-import { deepClone, enumerateCombinations } from "@doenet/utils";
+import { deepClone, combinationAtIndex } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import { variableRefSnapshot } from "../../utils/variableRefAttribute";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
@@ -24,6 +24,10 @@ import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
+import {
+    attributesAsProperties,
+    stateVariablesAsProperties,
+} from "../../utils/numItems";
 
 export const SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX = "Encountered ";
 
@@ -152,6 +156,12 @@ export default class BaseComponent {
 
         if (this.doenetAttributes.missing) {
             this.state.valueMissing = missingDefinition();
+            // made for a reference that names nothing
+            // (`contentNamesNothingDefinition`)
+            this.state.namesNothing = {
+                returnDependencies: () => ({}),
+                definition: () => ({ setValue: { namesNothing: true } }),
+            };
         } else if (this.doenetAttributes.missingWhileEntryEmpty) {
             this.state.valueMissing = missingWhileEntryEmptyDefinition();
         } else if (
@@ -163,6 +173,10 @@ export default class BaseComponent {
             this.state.valueMissing = missingWhileSourceMissingDefinition();
         } else if (this.doenetAttributes.missingWhileAdaptedMissing) {
             this.state.valueMissing = missingWhileAdaptedMissingDefinition();
+            // it names nothing while what it adapts does: the `coords` of
+            // `<point>$pl[2]</point>` of a blank entry (#2544)
+            this.state.namesNothing =
+                missingWhileAdaptedMissingDefinition("namesNothing");
         } else if (
             this.doenetAttributes.missingWhenContentMissing &&
             !this.constructor.missingWhenContentMissing
@@ -266,6 +280,24 @@ export default class BaseComponent {
     static listOwnProperties = [];
 
     /**
+     * Whether the attributes of this component are properties an author
+     * reads (`$P.draggable`). A collection's are not (D41 decision 2,
+     * COLL-2): a property after a collection applies to each item, so an
+     * attribute of the collection must not shadow the items' properties
+     * (`$c.maxNumber` of a `<collect>`). The settings every component has
+     * stay properties, with those in `attributePropertiesKept`
+     * (`utils/numItems.ts`, `attributeNamesNotProperties`).
+     */
+    static attributesAreProperties = true;
+
+    /**
+     * For a collection, the properties named as its attributes that stay
+     * properties, as they are documented for authors and computed beyond
+     * what is written (a `<tally>`'s `categories`).
+     */
+    static attributePropertiesKept = [];
+
+    /**
      * Whether a linked copy of this component (a shadow, `serialize`
      * without `copyAll`) is made without its children, since everything it
      * shows is shadowed from the component it copies.
@@ -339,6 +371,8 @@ export default class BaseComponent {
             (this.constructor.missingWhenContentMissing ||
                 this.constructor.missingWhenComputedFromMissing ||
                 this.constructor.missingWhenEntriesMissing.length > 0 ||
+                this.constructor.missingWhenPointsMissing.length > 0 ||
+                this.constructor.missingWhenContentNamesNothing ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
@@ -379,6 +413,26 @@ export default class BaseComponent {
      * entry is there (`missingWhenContentMissingDefinitions`).
      */
     static missingWhenEntriesMissing = [];
+
+    /**
+     * The attributes giving a shape one point (`center`, `vertex`, a ray's
+     * `endpoint` and `through`) whose missing point makes it missing (D40,
+     * VAL-5): `<circle center="$pl[3]"/>` while `pl` has two points is a
+     * missing circle, as `missingWhenEntriesMissing` is for a list of points.
+     */
+    static missingWhenPointsMissing = [];
+
+    /**
+     * Whether a component of this type is missing while what it holds is
+     * only references that name nothing now, or a blank entry of a list
+     * (`contentNamesNothing`; D40, VAL-5, #2544): `<point>$pl[$i]</point>`
+     * while `i` is past the end of `pl` is a missing point, not `(＿, 0)`.
+     * Set on `<point>` and `<vector>`, which can't use
+     * `missingWhenContentMissing`: that reads whether a reference's source is
+     * missing, which for a point and a vector defined from each other reads
+     * each other's missingness, a real cycle.
+     */
+    static missingWhenContentNamesNothing = false;
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1227,14 +1281,18 @@ export default class BaseComponent {
         if (
             this.missingWhenContentMissing ||
             this.missingWhenComputedFromMissing ||
-            this.missingWhenEntriesMissing.length > 0
+            this.missingWhenEntriesMissing.length > 0 ||
+            this.missingWhenPointsMissing.length > 0 ||
+            this.missingWhenContentNamesNothing
         ) {
             Object.assign(
                 stateVariableDefinitions,
                 missingWhenContentMissingDefinitions({
                     contentMissing: this.missingWhenContentMissing,
                     entriesAttributes: this.missingWhenEntriesMissing,
+                    pointAttributes: this.missingWhenPointsMissing,
                     computedMissing: this.missingWhenComputedFromMissing,
+                    contentNamesNothing: this.missingWhenContentNamesNothing,
                 }),
             );
         }
@@ -1342,6 +1400,9 @@ export default class BaseComponent {
             }
         }
 
+        // A collection's attributes are not properties (D41 decision 2).
+        stateVariablesAsProperties(this, stateVariableDefinitions);
+
         return stateVariableDefinitions;
     }
 
@@ -1349,7 +1410,10 @@ export default class BaseComponent {
         onlyPublic = false,
         onlyForRenderer = false,
     } = {}) {
-        let attributeObject = this.createAttributesObject();
+        let attributeObject = attributesAsProperties(
+            this,
+            this.createAttributesObject(),
+        );
 
         let stateVariableDescriptions = {};
         let arrayEntryPrefixes = {};
@@ -2109,6 +2173,9 @@ export default class BaseComponent {
                     nodesInResolvedPath: deepClone(
                         this.refResolution.nodesInResolvedPath,
                     ),
+                    ...(this.refResolution.standIn
+                        ? { standIn: { ...this.refResolution.standIn } }
+                        : {}),
                 },
             };
         }
@@ -2554,10 +2621,10 @@ export default class BaseComponent {
         let subvariants = [];
 
         if (descendantVariantComponents.length > 0) {
-            let indicesForEachDescendant = enumerateCombinations({
+            let indicesForEachDescendant = combinationAtIndex({
                 numberOfOptionsByIndex: numVariantsByDescendant,
-                maxNumber: variantIndex,
-            })[variantIndex - 1].map((x) => x + 1);
+                index: variantIndex - 1,
+            }).map((x) => x + 1);
 
             // for each descendant, get unique variant corresponding
             // to the selected variant number and include that as a subvariant

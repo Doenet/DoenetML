@@ -1,3 +1,5 @@
+import { controlCoreMessages } from "../../support/coreMessages";
+
 describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -630,5 +632,143 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.log("Blur the input: focused becomes false");
         cy.get("#ti_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("keeps every key when core replies before the renderer update", () => {
+        // See `typeWhileRepliesComeFirst` in mathinput.cy.js: core's replies to
+        // the first two keys reach the viewer before their renderer updates,
+        // and the first key's late update must not put "9" back in the box.
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage(
+                {
+                    doenetML: `<p><textInput name="ti" /></p>
+<p><text name="iv">$ti.immediateValue</text></p>`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti_input").type("90");
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter(
+                    (u) => u.actionName === "updateImmediateValue",
+                ),
+            ).to.have.length(2);
+        });
+
+        cy.window().then(() => {
+            const firstKey = control.held.findIndex(
+                (u) => u.actionName === "updateImmediateValue",
+            );
+            control.release(firstKey + 1);
+        });
+
+        // The text shows that the first key's update has been drawn; the box
+        // must still read what was typed. (A keystroke typed after this point
+        // is not a reliable check here: Cypress computes the typed value from
+        // its own record of the field, not from what a stale update put in it.)
+        cy.get("#iv").should("have.text", "9");
+        cy.get("#ti_input").should("have.value", "90");
+
+        cy.get("#ti_input").type("8");
+        cy.window().then(() => {
+            control.hold = false;
+            control.release();
+        });
+
+        cy.get("#ti_input").should("have.value", "908");
+        cy.get("#iv").should("have.text", "908");
+    });
+
+    it("shows another action's change held back while an Enter that changes nothing was in flight", () => {
+        // A change to the input made through a second input arrives while the
+        // reader's Enter in the first is in flight, so it is left off the
+        // screen. The Enter has nothing to commit, so core sends it no update;
+        // the change held back must then be shown.
+        const doenetML = `<p><textInput name="ti" /></p>
+<p><textInput name="ti2" bindValueTo="$ti" /></p>
+<p><text name="v">$ti</text></p>`;
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti2_input").type("5{enter}");
+        cy.get("#ti_input").focus();
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            // the update for the Enter in the second input, which changed
+            // the first
+            expect(control.held.some((u) => u.actionName === "updateValue")).eq(
+                true,
+            );
+        });
+        // none of it has reached the screen yet
+        cy.get("#ti_input").should("have.value", "");
+
+        cy.window().then(() => {
+            control.releaseWithNextAction = true;
+        });
+        cy.get("#ti_input").type("{enter}");
+
+        cy.get("#v").should("have.text", "5");
+        cy.get("#ti_input").should("have.value", "5");
+    });
+
+    it("an update still due from a replaced core does not hold back the next one's", () => {
+        // Core replies to the key before its renderer update arrives, so the
+        // viewer keeps the typed value until that update. Then the document is
+        // rebuilt (a new attempt), and the update, from the replaced core, is
+        // never delivered. The kept value must not go on holding the input's
+        // updates from the new core off the screen.
+        const doenetML = `<p><textInput name="ti" /></p>
+<p><textInput name="ti2" bindValueTo="$ti" /></p>
+<p><text name="v">$ti</text></p>`;
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti_input").type("9");
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter(
+                    (u) => u.actionName === "updateImmediateValue",
+                ),
+            ).to.have.length(1);
+        });
+
+        cy.window().then((win) => {
+            control.hold = false;
+            win.postMessage({ doenetML, attemptNumber: 2 }, "*");
+        });
+        // the new attempt starts empty
+        cy.get("#ti_input").should("have.value", "");
+
+        cy.get("#ti2_input").type("abc{enter}");
+        cy.get("#v").should("have.text", "abc");
+        cy.get("#ti_input").should("have.value", "abc");
     });
 });

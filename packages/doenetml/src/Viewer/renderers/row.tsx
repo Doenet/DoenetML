@@ -7,7 +7,7 @@ interface RowSVs {
     [key: string]: any;
     hidden: boolean;
     startBorder?: any;
-    valign?: any;
+    vAlign?: any;
 }
 
 export default React.memo(function Row(props: UseDoenetRendererProps) {
@@ -19,8 +19,8 @@ export default React.memo(function Row(props: UseDoenetRendererProps) {
 
     let style: React.CSSProperties = {};
 
-    if (SVs.valign !== null) {
-        style.verticalAlign = SVs.valign;
+    if (SVs.vAlign !== null) {
+        style.verticalAlign = SVs.vAlign;
     }
     if (SVs.startBorder !== "none") {
         style.borderInlineStartStyle = "solid";

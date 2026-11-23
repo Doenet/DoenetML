@@ -19,6 +19,8 @@ import {
  */
 export default class Page extends BlockComponent {
     static componentType = "page";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "The content of one printed page",

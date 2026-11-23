@@ -14,7 +14,9 @@ equation across `numDiscretizationPoints` sample points, identifies sign
 changes, and refines each candidate to a numerical root.
 
 The result is a list of solutions, exposed through the `solutions` property
-and `numSolutions`. Because the solver is numerical, it can find roots that
+and `numSolutions`. A `<solveEquations>{:dn}` is one thing, not a list: an
+index after it selects nothing, so the first solution is
+`$solve.solutions[1]`, not `$solve[1]`. Because the solver is numerical, it can find roots that
 have no closed form, but it has the usual caveats: nearby roots, very flat
 crossings, and roots outside the search range may be missed.
 

@@ -98,6 +98,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0058": "list-brackets-unmatched",
     "doenet-i0059": "list-reference-joins-entry",
     "doenet-i0060": "action-target-not-shown",
+    "doenet-i0061": "type-change-property-not-one-value",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -290,6 +291,20 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0191": "reference-branches-hold-several",
     "doenet-w0192": "reference-property-partly-held",
     "doenet-w0193": "reference-property-after-several",
+    "doenet-w0194": "matrix-math-child-ignored",
+    "doenet-w0195": "action-target-not-one-value",
+    "doenet-w0196": "latex-not-read-as-math",
+    "doenet-w0197": "attribute-name-case",
+    "doenet-w0198": "sort-by-prop-names-nothing",
+    "doenet-w0199": "reference-to-variant-control",
+    "doenet-w0200": "reference-name-after-collection",
+    "doenet-w0201": "attribute-written-twice",
+    "doenet-w0202": "content-unused-attributes-give-value",
+    "doenet-w0203": "boolean-number-mix",
+    "doenet-w0204": "text-ordered-against-number",
+    "doenet-w0205": "award-content-type-mix",
+    "doenet-w0206": "award-content-several-inputs",
+    "doenet-w0207": "award-content-for-answer-input",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -363,6 +378,26 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0070": "choice-parameter-reader-changeable",
     "doenet-e0071": "type-change-own-type-only",
     "doenet-e0072": "attribute-empty",
+    "doenet-e0073": "choice-not-always-possible",
+    "doenet-e0074": "choice-parameter-not-analysable",
+    "doenet-e0075": "choice-parameter-not-a-number",
+    "doenet-e0076": "reorder-items-of-several-types",
+    "doenet-e0077": "sort-item-of-several",
+    "doenet-e0078": "extend-award-or-choice",
+    "doenet-e0079": "variant-name-unknown",
+    "doenet-e0080": "sort-needs-sort-by-prop",
+    "doenet-e0081": "repeat-for-items-of-several-types",
+    "doenet-e0082": "answer-responses-of-several-types",
+    "doenet-e0083": "extend-answer-grading-attribute",
+    "doenet-e0084": "extend-answer-children",
+    "doenet-e0085": "variant-control-reference",
+    "doenet-e0086": "variant-name-repeated",
+    "doenet-e0087": "variants-all-excluded",
+    "doenet-e0088": "variant-control-made-from",
+    "doenet-e0089": "attribute-not-a-number",
+    "doenet-e0090": "attribute-written-as-reference",
+    "doenet-e0091": "property-type-undecided",
+    "doenet-e0092": "answer-type-disagrees-with-input",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -428,6 +463,15 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // An index never selects a child of a container, with no deprecation
         // period (D27 revised): the reference names nothing, with `w0188`.
         "doenet-w0179",
+        // Neither can be reached from authored DoenetML since names are
+        // case-sensitive (D51, #2627 item 6). A tag that is no component
+        // type, written with `copy` or `extend`, is `e0002` before a copy is
+        // made; the parser keeps the first of an attribute written twice in
+        // one case (with `w0201`, D62), so the core never sees both, and of one
+        // written in two cases, one not given the component's spelling stays
+        // an attribute the component doesn't have (`e0004`).
+        "doenet-w0065",
+        "doenet-e0003",
     ]);
 
 /**

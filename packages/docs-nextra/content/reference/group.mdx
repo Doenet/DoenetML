@@ -77,3 +77,15 @@ single reference to the name of the `<group>{:dn}`, `$points`.
 A `<group>{:dn}` need not be composed of a single type of element. 
 Objects defined within a `<group>{:dn}` can be collectively hidden.
 
+A property after a `<group>{:dn}` that holds several components, such as
+`$group1.x`, can't tell which one you mean, so it names nothing: give the
+component a name and write the name before the property. A `<group>{:dn}`
+holding one component stands for it, so a property after it is that
+component's. A `<group>{:dn}` holding only a reference to a `<repeat>{:dn}`
+stands for the `<repeat>{:dn}`, so a property after it is the
+`<repeat>{:dn}`'s own, such as `numItems`, as after the `<repeat>{:dn}`
+itself. A `<group>{:dn}` holding only a list stands for the list, so a name
+written in the list names that component after the group too: with
+`<point name="P">{:dn}` written in a `<pointList name="pl">{:dn}`, `$g.P` of
+`<group name="g">$pl</group>{:dn}` is that point, as `$pl.P` is.
+

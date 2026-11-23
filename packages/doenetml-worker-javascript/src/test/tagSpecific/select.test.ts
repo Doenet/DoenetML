@@ -946,7 +946,7 @@ describe("Select tag tests @group2", async () => {
     <math hide name="x2">y</math>
     <math hide name="x3">z</math>
 
-    <select name="sel" numToSelect="5" withreplacement>
+    <select name="sel" numToSelect="5" withReplacement>
       <option><p>Option 1: <math>3$x1$y1</math></p></option>
       <option><p name="h">Option 2: <math>4$x2$y2</math></p></option>
       <option><p name="l">Option 3: <math>5$x3$y3</math></p></option>
@@ -1018,7 +1018,7 @@ describe("Select tag tests @group2", async () => {
     it("internal references", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <select name="s1" numToSelect="5" withreplacement>
+    <select name="s1" numToSelect="5" withReplacement>
       <option><p>Option 1: <math>3<math name="x">x</math> + <math name="z1">a</math> + $x^2$z1^3</math></p></option>
       <option><p>Option 2: <math>4<math name="x">y</math> + <math name="z2">b</math> + $x^2$z2^3</math></p></option>
       <option><p>Option 3: <math>5<math name="x">z</math> + <math name="z3">c</math> + $x^2$z3^3</math></p></option>
@@ -1619,9 +1619,9 @@ describe("Select tag tests @group2", async () => {
         <setup><sequence length="200" name="s" /></setup>
         <repeat for="$s" name="repeat1">
           <select>
-            <option selectweight="0.2"><text>x</text></option>
+            <option selectWeight="0.2"><text>x</text></option>
             <option><text>y</text></option>
-            <option selectweight="5"><text>z</text></option>
+            <option selectWeight="5"><text>z</text></option>
           </select>
         </repeat>
         `,
@@ -1659,10 +1659,10 @@ describe("Select tag tests @group2", async () => {
     it("select weighted with replacement", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <select numToSelect="200" withreplacement name="sel">
-      <option selectweight="0.2"><text>x</text></option>
+    <select numToSelect="200" withReplacement name="sel">
+      <option selectWeight="0.2"><text>x</text></option>
       <option><text>y</text></option>
-      <option selectweight="5"><text>z</text></option>
+      <option selectWeight="5"><text>z</text></option>
     </select>
     `,
             requestedVariantIndex: 0,
@@ -1702,12 +1702,12 @@ describe("Select tag tests @group2", async () => {
         <setup><sequence length="200" name="s" /></setup>
         <repeat for="$s" name="repeat1">
           <select numToSelect="2">
-            <option selectweight="0.1"><text>u</text></option>
-            <option selectweight="0.1"><text>v</text></option>
-            <option selectweight="0.1"><text>w</text></option>
-            <option selectweight="5"><text>x</text></option>
+            <option selectWeight="0.1"><text>u</text></option>
+            <option selectWeight="0.1"><text>v</text></option>
+            <option selectWeight="0.1"><text>w</text></option>
+            <option selectWeight="5"><text>x</text></option>
             <option><text>y</text></option>
-            <option selectweight="10"><text>z</text></option>
+            <option selectWeight="10"><text>z</text></option>
           </select>
         </repeat>
         `,
@@ -1769,7 +1769,7 @@ describe("Select tag tests @group2", async () => {
     it("references to internal components", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <select name="o" numToSelect="7" withreplacement>
+    <select name="o" numToSelect="7" withReplacement>
       <option><p><setup><select name="s" type="text" numToSelect="2">a e i o u</select></setup><text extend="$s[1]" name="q" /><text extend="$s[2]" name="r" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
       <option><p><setup><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="z" /></setup><text extend="$s[1]" name="q" /><text extend="$s[2]" name="r" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
       <option><p><text name="q">z</text><selectFromSequence type="letters" name="r" numToSelect="1" from="u" to="z" /><text extend="$q" name="q2" /><text extend="$r" name="r2" /></p></option>
@@ -1936,7 +1936,7 @@ describe("Select tag tests @group2", async () => {
     it("references to select of selects", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <select name="o" numToSelect="5" withreplacement>
+    <select name="o" numToSelect="5" withReplacement>
       <option><select name="s" numToSelect="2" type="text">a e i o u</select></option>
       <option><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="z" /></option>
     </select>
@@ -2102,8 +2102,8 @@ describe("Select tag tests @group2", async () => {
     it("references to select of selects of selects", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <select name="o" numToSelect="3" withreplacement>
-      <option><select name="p" numToSelect="3" withreplacement>
+    <select name="o" numToSelect="3" withReplacement>
+      <option><select name="p" numToSelect="3" withReplacement>
         <option><select type="text" name="s" numToSelect="2">a e i o u</select></option>
         <option><selectFromSequence type="letters" name="s" numToSelect="2" from="a" to="j" /></option>
       </select></option>
@@ -2969,33 +2969,18 @@ describe("Select tag tests @group2", async () => {
             stateVariables[replacements[5].componentIdx].stateValues.text,
         ).eq(`r2 = ＿`);
 
+        // Every option of `s` holds several, so it is decided at load
+        // (`doenet-w0191`, Doenet/DoenetML#2643 item 4). The named child is
+        // named in the form to write instead; the other is to be given a
+        // name.
         const warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.map((w) => w.code)).eqls([
-            "doenet-w0188",
-            "doenet-w0188",
-        ]);
-        // The named child is named in the form to write instead; the other
-        // is to be given a name
-        expect(warnings.map((w) => w.args)).toEqual(
+        expect(warnings.map((w) => [w.code, w.args.suggestion])).toEqual(
             expect.arrayContaining([
-                {
-                    reference: "$s[1][1]",
-                    suggestion: "$s[1].q",
-                    child: "named",
-                    container: "pick",
-                    component: "select",
-                    count: 2,
-                },
-                {
-                    reference: "$s[1][2]",
-                    suggestion: "$s[1].x",
-                    child: "unnamed",
-                    container: "pick",
-                    component: "select",
-                    count: 2,
-                },
+                ["doenet-w0191", "$s[1].q"],
+                ["doenet-w0191", "$s[1].P[2]"],
             ]),
         );
+        expect(warnings.length).eq(2);
     });
 
     it("display error when miss a name in selectForVariants, inside text", async () => {

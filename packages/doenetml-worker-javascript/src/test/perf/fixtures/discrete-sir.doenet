@@ -32,7 +32,7 @@ where</p>
 </ul>
 <p>Total population size: <m>N_{tot} = <math simplify="true" name="Ntot">$S0+$I0+$R0</math> </m></p>
 
-<graph xmin="$xmin" xmax="$xmax" ymin="$ymin" ymax="$ymax" name="plot">
+<graph xMin="$xmin" xMax="$xmax" yMin="$ymin" yMax="$ymax" name="plot">
   <setup>
     <repeat name="SPoints" for="$iteration.allIteratesWithInitial" valueName="x" indexName="i">
       <point>($i-1, $x[1])</point>

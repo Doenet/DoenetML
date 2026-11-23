@@ -1,4 +1,8 @@
-import { contentMissingDefinition, holdsNaN } from "../utils/missing";
+import {
+    contentMissingDefinition,
+    contentNamesNothingDefinition,
+    holdsNaN,
+} from "../utils/missing";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
@@ -54,6 +58,8 @@ export default class MathComponent extends InlineComponent {
         });
     }
     static componentType = "math";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary: "A math expression",
@@ -663,6 +669,10 @@ export default class MathComponent extends InlineComponent {
         // but a component made from it is: a `<function>` or a `<number>`
         // whose children a sugar wrapped in a math (D40).
         stateVariableDefinitions.contentMissing = contentMissingDefinition();
+        // Whether it holds only references that name nothing, which makes a
+        // shape whose point it gives missing (`center="$nothing"`, D40).
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition();
 
         stateVariableDefinitions.value = {
             description: "The math expression value.",

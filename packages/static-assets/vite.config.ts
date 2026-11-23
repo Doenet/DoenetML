@@ -43,6 +43,7 @@ export default defineConfig({
                 "math-assets": "./src/math-assets.ts",
                 "relaxng-schema": "./src/relaxng-schema.ts",
                 schema: "./src/schema.ts",
+                "attribute-names": "./src/attribute-names.ts",
             },
             formats: ["es"],
         },

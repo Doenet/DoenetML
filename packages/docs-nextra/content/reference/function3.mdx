@@ -43,7 +43,7 @@ list of points that should be maxima of the function.
 The `maxima` points can have an empty $x$- or $y$-coordinate, in which case 
 the missing values will be determined algorithmically.
 
-The attributes `xscale` and `yscale` will be used to determine aspects of the 
+The attributes `xScale` and `yScale` will be used to determine aspects of the 
 maxima that aren't specified as well as the shape of the function.
 
 If additional features (`minima`, `extrema`, `through`) of the function are specified, 
@@ -84,7 +84,7 @@ list of points that should be extrema of the function.
 The `extrema` points can have an empty $x$- or $y$-coordinate, in which case the 
 missing values will be determined algorithmically.
 
-The attributes `xscale` and `yscale` will be used to determine aspects of the 
+The attributes `xScale` and `yScale` will be used to determine aspects of the 
 extrema that aren't specified as well as the shape of the function.
 
 If additional features (`minima`, `maxima`, `through`) of the function are specified, 
@@ -152,7 +152,7 @@ through, the `throughPoints` can specify the slope of the function at those poin
 
 ---
 
-### Attribute Example: xscale
+### Attribute Example: xScale
 
 
 ```doenet-example
@@ -161,7 +161,7 @@ through, the `throughPoints` can specify the slope of the function at those poin
   <li>Influence on range of calculated extrema
     <p>
       <m>g(x)=<function name="g">cos(pi x/40)</function></m>,
-      <m>h(x)=<function name="h" xscale="0.5">cos(pi x/40)</function></m>
+      <m>h(x)=<function name="h" xScale="0.5">cos(pi x/40)</function></m>
     </p>
     <p>Maxima of <m>g</m>: $g.maxima</p>
     <p>Maxima of <m>h</m>: $h.maxima</p>
@@ -169,45 +169,45 @@ through, the `throughPoints` can specify the slope of the function at those poin
 
   <li>Influence on location of underspecified extrema
     <graph size="small">
-      <shortDescription>three interpolated functions with varying xscale</shortDescription>
+      <shortDescription>three interpolated functions with varying xScale</shortDescription>
       <function name="g1" maxima="(-8,6)" minima="(,3) (,3)"/>
-      <function name="g2" maxima="(-8,6)" minima="(,3) (,3)" xscale="4" styleNumber="2"/>
-      <function name="g3" maxima="(-8,6)" minima="(,3) (,3)" xscale="0.1" styleNumber="3"/>
+      <function name="g2" maxima="(-8,6)" minima="(,3) (,3)" xScale="4" styleNumber="2"/>
+      <function name="g3" maxima="(-8,6)" minima="(,3) (,3)" xScale="0.1" styleNumber="3"/>
     </graph>
 
-    <p>The $g1.styleDescription curve has a default xscale of $g1.xscale, 
-    the $g2.styleDescription curve has an xscale of $g2.xscale, 
-    and the $g3.styleDescription curve has an xscale of $g3.xscale.</p>
+    <p>The $g1.styleDescription curve has a default xScale of $g1.xScale, 
+    the $g2.styleDescription curve has an xScale of $g2.xScale, 
+    and the $g3.styleDescription curve has an xScale of $g3.xScale.</p>
   </li>
 
 </ol>
 ```
 
-The `xscale` is used to determine the range of $x$-values over which to look for function extrema.
+The `xScale` is used to determine the range of $x$-values over which to look for function extrema.
 
-The `xscale` attribute also influences the position of extrema when they are specified without an $x$-component.
+The `xScale` attribute also influences the position of extrema when they are specified without an $x$-component.
 
 
 
 ---
 
-### Attribute Example: yscale
+### Attribute Example: yScale
 
 
 ```doenet-example
 <graph size="small">
-  <shortDescription>three interpolated functions with varying yscale</shortDescription>
+  <shortDescription>three interpolated functions with varying yScale</shortDescription>
   <function name="f1" minima="(4,5)" maxima="(6,)" />
-  <function name="f2" minima="(4,5)" maxima="(6,)" yscale="4" styleNumber="2" />
-  <function name="f3" minima="(4,5)" maxima="(6,)" yscale="0.1" styleNumber="3" />
+  <function name="f2" minima="(4,5)" maxima="(6,)" yScale="4" styleNumber="2" />
+  <function name="f3" minima="(4,5)" maxima="(6,)" yScale="0.1" styleNumber="3" />
 </graph>
 
-<p>The $f1.styleDescription curve has a default yscale of $f1.yscale, 
-the $f2.styleDescription curve has a yscale of $f2.yscale, and the 
-$f3.styleDescription curve has a yscale of $f3.yscale.</p>
+<p>The $f1.styleDescription curve has a default yScale of $f1.yScale, 
+the $f2.styleDescription curve has a yScale of $f2.yScale, and the 
+$f3.styleDescription curve has a yScale of $f3.yScale.</p>
 ```
 
-The `yscale` attribute influences the position of extrema when they are specified without an $y$-component.
+The `yScale` attribute influences the position of extrema when they are specified without an $y$-component.
 
 
 ---

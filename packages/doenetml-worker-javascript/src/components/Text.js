@@ -32,6 +32,8 @@ export default class Text extends InlineComponent {
         });
     }
     static componentType = "text";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary: "A text string",

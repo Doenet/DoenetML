@@ -50,10 +50,10 @@ async function setupRegularPolygonScene({
   </graph>
 
 
-  <p>circumradius: <mathInput name="micr" bindValueTo="$rp.circumradius" /> <number extend="$rp.circumradius" name="cr" /></p>
+  <p>circumRadius: <mathInput name="micr" bindValueTo="$rp.circumRadius" /> <number extend="$rp.circumRadius" name="cr" /></p>
   <p>radius: <mathInput name="mir" bindValueTo="$rp.radius" /> <number extend="$rp.radius" name="r" /></p>
 
-  <p>inradius: <mathInput name="miir" bindValueTo="$rp.inradius" /> <number extend="$rp.inradius" name="ir" /></p>
+  <p>inRadius: <mathInput name="miir" bindValueTo="$rp.inRadius" /> <number extend="$rp.inRadius" name="ir" /></p>
   <p>apothem: <mathInput name="miap" bindValueTo="$rp.apothem" /> <number extend="$rp.apothem" name="ap" /></p>
 
   <p>side length: <mathInput name="misl" bindValueTo="$rp.sideLength" /> <number extend="$rp.sideLength" name="sl" /></p>
@@ -396,23 +396,23 @@ async function runRegularPolygonTests({
         );
     }
 
-    // Change circumradius
+    // Change circumRadius
     stateVariables = await core.returnAllStateVariables(false, true);
     let oldCr =
         stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
-            .circumradius;
+            .circumRadius;
 
-    let circumradius = 1;
+    let circumRadius = 1;
 
     await updateMathInputValue({
-        latex: `${circumradius}`,
+        latex: `${circumRadius}`,
         componentIdx: await resolvePathToNodeIdx("micr"),
         core,
     });
 
     vertex1 = [
-        ((vertex1[0] - center[0]) * circumradius) / oldCr + center[0],
-        ((vertex1[1] - center[1]) * circumradius) / oldCr + center[1],
+        ((vertex1[0] - center[0]) * circumRadius) / oldCr + center[0],
+        ((vertex1[1] - center[1]) * circumRadius) / oldCr + center[1],
     ];
 
     await checkPolygonValues(
@@ -428,7 +428,7 @@ async function runRegularPolygonTests({
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldR =
             stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
-                .circumradius;
+                .circumRadius;
 
         let radius = 3;
 
@@ -450,23 +450,23 @@ async function runRegularPolygonTests({
             resolvePathToNodeIdx,
         );
 
-        // Change inradius
+        // Change inRadius
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldIr =
             stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
-                .inradius;
+                .inRadius;
 
-        let inradius = 5;
+        let inRadius = 5;
 
         await updateMathInputValue({
-            latex: `${inradius}`,
+            latex: `${inRadius}`,
             componentIdx: await resolvePathToNodeIdx("miir"),
             core,
         });
 
         vertex1 = [
-            ((vertex1[0] - center[0]) * inradius) / oldIr + center[0],
-            ((vertex1[1] - center[1]) * inradius) / oldIr + center[1],
+            ((vertex1[0] - center[0]) * inRadius) / oldIr + center[0],
+            ((vertex1[1] - center[1]) * inRadius) / oldIr + center[1],
         ];
 
         await checkPolygonValues(
@@ -484,7 +484,7 @@ async function runRegularPolygonTests({
         stateVariables = await core.returnAllStateVariables(false, true);
         let oldAp =
             stateVariables[await resolvePathToNodeIdx(polygonName)].stateValues
-                .inradius;
+                .inRadius;
 
         let apothem = 4;
 
@@ -656,11 +656,11 @@ function adjustVertex1CenterWhenChangeNumVertices(
     numVerticesOld: number,
     numVerticesNew: number,
     conservedWhenChangeNumVertices:
-        "inradius" | "sideLength" | "perimeter" | "area" | "twoVertices",
+        "inRadius" | "sideLength" | "perimeter" | "area" | "twoVertices",
 ) {
     let radiusRatio = 1;
 
-    if (conservedWhenChangeNumVertices === "inradius") {
+    if (conservedWhenChangeNumVertices === "inRadius") {
         radiusRatio =
             Math.cos(Math.PI / numVerticesOld) /
             Math.cos(Math.PI / numVerticesNew);
@@ -701,7 +701,7 @@ function adjustVertex1CenterWhenChangeNumVertices(
             (vertex1[1] + vertex2[1]) / 2,
         ];
         let sideLength = Math.sqrt(sideVector[0] ** 2 + sideVector[1] ** 2);
-        let inradius = sideLength / (2 * Math.tan(Math.PI / numVerticesNew));
+        let inRadius = sideLength / (2 * Math.tan(Math.PI / numVerticesNew));
 
         let inradiusDirection = [
             -sideVector[1] / sideLength,
@@ -709,8 +709,8 @@ function adjustVertex1CenterWhenChangeNumVertices(
         ];
 
         center = [
-            midpoint[0] + inradiusDirection[0] * inradius,
-            midpoint[1] + inradiusDirection[1] * inradius,
+            midpoint[0] + inradiusDirection[0] * inRadius,
+            midpoint[1] + inradiusDirection[1] * inRadius,
         ];
     }
 
@@ -744,15 +744,15 @@ async function checkPolygonValues(
 
     let directionWithRadius = [vertex1[0] - center[0], vertex1[1] - center[1]];
 
-    let circumradius = Math.sqrt(
+    let circumRadius = Math.sqrt(
         directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2,
     );
-    let inradius = circumradius * Math.cos(Math.PI / numVertices);
-    let sideLength = circumradius * (2 * Math.sin(Math.PI / numVertices));
+    let inRadius = circumRadius * Math.cos(Math.PI / numVertices);
+    let sideLength = circumRadius * (2 * Math.sin(Math.PI / numVertices));
     let perimeter =
-        circumradius * (2 * numVertices * Math.sin(Math.PI / numVertices));
+        circumRadius * (2 * numVertices * Math.sin(Math.PI / numVertices));
     let area =
-        circumradius ** 2 *
+        circumRadius ** 2 *
         ((numVertices / 2) * Math.sin((2 * Math.PI) / numVertices));
 
     for (let i = 1; i < numVertices; i++) {
@@ -791,13 +791,13 @@ async function checkPolygonValues(
 
         expect(polygon.stateValues.numVertices).eq(numVertices);
 
-        expect(polygon.stateValues.circumradius).closeTo(
-            circumradius,
-            1e-13 * circumradius,
+        expect(polygon.stateValues.circumRadius).closeTo(
+            circumRadius,
+            1e-13 * circumRadius,
         );
-        expect(polygon.stateValues.inradius).closeTo(
-            inradius,
-            1e-13 * inradius,
+        expect(polygon.stateValues.inRadius).closeTo(
+            inRadius,
+            1e-13 * inRadius,
         );
         expect(polygon.stateValues.sideLength).closeTo(
             sideLength,
@@ -850,7 +850,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [1, 0],
             center: [0, 0],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
         });
     });
 
@@ -906,7 +906,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 6,
             vertex1: [-2 + 3 / Math.cos(Math.PI / 6), 5],
             center: [-2, 5],
-            conservedWhenChangeNumVertices: "inradius",
+            conservedWhenChangeNumVertices: "inRadius",
         });
     });
 
@@ -924,7 +924,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 7,
             vertex1: [0 + 4 / Math.cos(Math.PI / 7), 0],
             center: [0, 0],
-            conservedWhenChangeNumVertices: "inradius",
+            conservedWhenChangeNumVertices: "inRadius",
             abbreviated: true,
         });
     });
@@ -949,11 +949,11 @@ describe("Regular Polygon  tag tests @group4", async () => {
         });
     });
 
-    it("specify circumradius, center for triangle", async () => {
+    it("specify circumRadius, center for triangle", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numSides: "3",
-                circumradius: "6",
+                circumRadius: "6",
                 center: "(-5,8)",
             },
         });
@@ -964,7 +964,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [-5 + 6, 8],
             center: [-5, 8],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
         });
     });
 
@@ -983,7 +983,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 4,
             vertex1: [-6 + 7, -2],
             center: [-6, -2],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
@@ -1002,7 +1002,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 5,
             vertex1: [-5 + 1, -3],
             center: [-5, -3],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
         });
     });
 
@@ -1020,7 +1020,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 4,
             vertex1: [2, -5],
             center: [1, -5],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
         });
     });
 
@@ -1043,7 +1043,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             (vertex1[1] + vertex2[1]) / 2,
         ];
         let sideLength = Math.sqrt(sideVector[0] ** 2 + sideVector[1] ** 2);
-        let inradius = sideLength / (2 * Math.tan(Math.PI / numVertices));
+        let inRadius = sideLength / (2 * Math.tan(Math.PI / numVertices));
 
         let inradiusDirection = [
             -sideVector[1] / sideLength,
@@ -1051,8 +1051,8 @@ describe("Regular Polygon  tag tests @group4", async () => {
         ];
 
         let center = [
-            midpoint[0] + inradiusDirection[0] * inradius,
-            midpoint[1] + inradiusDirection[1] * inradius,
+            midpoint[0] + inradiusDirection[0] * inRadius,
+            midpoint[1] + inradiusDirection[1] * inRadius,
         ];
 
         await runRegularPolygonTests({
@@ -1080,7 +1080,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
         });
     });
 
@@ -1099,7 +1099,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
@@ -1110,8 +1110,8 @@ describe("Regular Polygon  tag tests @group4", async () => {
                 numVertices: "3",
                 vertices: "(2,-5)",
                 center: "(-1,-3)",
-                circumradius: "11",
-                inradius: "3",
+                circumRadius: "11",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1124,18 +1124,18 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [2, -5],
             center: [-1, -3],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
 
-    it("specify center and circumradius for triangle, ignore all other size attributes", async () => {
+    it("specify center and circumRadius for triangle, ignore all other size attributes", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 center: "(-1,-3)",
-                circumradius: "11",
-                inradius: "3",
+                circumRadius: "11",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1148,18 +1148,18 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [10, -3],
             center: [-1, -3],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
 
-    it("specify vertex and circumradius for triangle, ignore all other size attributes", async () => {
+    it("specify vertex and circumRadius for triangle, ignore all other size attributes", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5)",
-                circumradius: "11",
-                inradius: "3",
+                circumRadius: "11",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1172,7 +1172,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [2, -5],
             center: [-9, -5],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
@@ -1182,8 +1182,8 @@ describe("Regular Polygon  tag tests @group4", async () => {
             attributes: {
                 numVertices: "3",
                 vertices: "(2,-5) (5,1)",
-                circumradius: "11",
-                inradius: "3",
+                circumRadius: "11",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1201,7 +1201,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             (vertex1[1] + vertex2[1]) / 2,
         ];
         let sideLength = Math.sqrt(sideVector[0] ** 2 + sideVector[1] ** 2);
-        let inradius = sideLength / (2 * Math.tan(Math.PI / numVertices));
+        let inRadius = sideLength / (2 * Math.tan(Math.PI / numVertices));
 
         let inradiusDirection = [
             -sideVector[1] / sideLength,
@@ -1209,8 +1209,8 @@ describe("Regular Polygon  tag tests @group4", async () => {
         ];
 
         let center = [
-            midpoint[0] + inradiusDirection[0] * inradius,
-            midpoint[1] + inradiusDirection[1] * inradius,
+            midpoint[0] + inradiusDirection[0] * inRadius,
+            midpoint[1] + inradiusDirection[1] * inRadius,
         ];
 
         await runRegularPolygonTests({
@@ -1224,12 +1224,12 @@ describe("Regular Polygon  tag tests @group4", async () => {
         });
     });
 
-    it("specify circumradius for triangle, ignore all other size attributes", async () => {
+    it("specify circumRadius for triangle, ignore all other size attributes", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
-                circumradius: "11",
-                inradius: "3",
+                circumRadius: "11",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1242,7 +1242,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [11, 0],
             center: [0, 0],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
@@ -1252,7 +1252,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             attributes: {
                 numVertices: "3",
                 radius: "11",
-                inradius: "3",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1265,16 +1265,16 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [11, 0],
             center: [0, 0],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });
 
-    it("specify inradius for triangle, ignore all other size attributes", async () => {
+    it("specify inRadius for triangle, ignore all other size attributes", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {
                 numVertices: "3",
-                inradius: "3",
+                inRadius: "3",
                 sideLength: "5",
                 perimeter: "10",
                 area: "99",
@@ -1287,7 +1287,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [3 / Math.cos(Math.PI / 3), 0],
             center: [0, 0],
-            conservedWhenChangeNumVertices: "inradius",
+            conservedWhenChangeNumVertices: "inRadius",
             abbreviated: true,
         });
     });
@@ -1310,7 +1310,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 3,
             vertex1: [-1 + 3 / Math.cos(Math.PI / 3), -3],
             center: [-1, -3],
-            conservedWhenChangeNumVertices: "inradius",
+            conservedWhenChangeNumVertices: "inRadius",
             abbreviated: true,
         });
     });
@@ -1372,7 +1372,7 @@ describe("Regular Polygon  tag tests @group4", async () => {
             numVertices: 4,
             vertex1: [5, 1],
             center: [4, 1],
-            conservedWhenChangeNumVertices: "circumradius",
+            conservedWhenChangeNumVertices: "circumRadius",
             abbreviated: true,
         });
     });

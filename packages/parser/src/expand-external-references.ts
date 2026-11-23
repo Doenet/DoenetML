@@ -14,6 +14,7 @@ import {
 import { isDastElement } from "./types-util";
 import { toXml } from "./dast-to-xml/dast-util-to-xml";
 import { lezerToDast } from "./lezer-to-dast";
+import { correctAttributes } from "./dast-normalize/attribute-name-case";
 
 type RemoteSource = {
     sourceUri: string;
@@ -24,9 +25,15 @@ type RemoteSource = {
 };
 
 /**
- * The attributes, lowercased, that make an element from what they reference.
+ * The attributes that make an element from what they reference. Matched
+ * exactly, as every attribute is (NAME-0, D51). This runs before
+ * normalization gives an attribute written in another case its component's
+ * spelling (`dast-normalize/attribute-name-case.ts`), which, for one release,
+ * still applies it with a warning (`doenet-w0197`), so an element with one of
+ * these in another case (`Copy="doenet:…"`) is given its attributes'
+ * spellings here first, by the same rule.
  */
-const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copywithstate"];
+const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copyWithState"];
 
 /**
  * Find any `extend`, `copy` or `copyWithState` attribute that begins with `doenet:`.
@@ -48,6 +55,8 @@ export async function expandExternalReferences(
         return async (tree) => {
             const promiseStack: RemoteSource[] = [];
             const uriWithStateWarnings: DastError[] = [];
+            // `doenet-w0197`, for attributes given their spelling here
+            const attributeCaseWarnings: DastError[] = [];
 
             let maxRecursion = 10;
             let counter = 0;
@@ -62,11 +71,25 @@ export async function expandExternalReferences(
                     return;
                 }
 
+                if (
+                    Object.keys(node.attributes).some(
+                        (attrName) =>
+                            !EXTEND_OR_COPY_ATTRIBUTES.includes(attrName) &&
+                            EXTEND_OR_COPY_ATTRIBUTES.some(
+                                (name) =>
+                                    name.toLowerCase() ===
+                                    attrName.toLowerCase(),
+                            ),
+                    )
+                ) {
+                    // One in another case (`Copy`): give the element's
+                    // attributes their spellings now, as normalization
+                    // would, so that it is read as normalization will.
+                    correctAttributes(node, attributeCaseWarnings);
+                }
+
                 const sourceAttributeName = Object.keys(node.attributes).find(
-                    (attrName) =>
-                        EXTEND_OR_COPY_ATTRIBUTES.includes(
-                            attrName.toLowerCase(),
-                        ),
+                    (attrName) => EXTEND_OR_COPY_ATTRIBUTES.includes(attrName),
                 );
                 if (sourceAttributeName === undefined) {
                     return;
@@ -87,7 +110,7 @@ export async function expandExternalReferences(
                 // not among the element's children: those are content, and
                 // sugar that reads them (e.g. `<select>` splitting text into
                 // options) rejects a diagnostic mixed in.
-                if (sourceAttributeName.toLowerCase() === "copywithstate") {
+                if (sourceAttributeName === "copyWithState") {
                     uriWithStateWarnings.push(
                         codedDastError({
                             code: "doenet-w0185",
@@ -192,11 +215,7 @@ export async function expandExternalReferences(
                 // Delete all `extend`, `copy` or `copyWithState` attributes from the parent.
                 // (The external reference supersedes any others.)
                 for (const attrName in parent.attributes) {
-                    if (
-                        EXTEND_OR_COPY_ATTRIBUTES.includes(
-                            attrName.toLowerCase(),
-                        )
-                    ) {
+                    if (EXTEND_OR_COPY_ATTRIBUTES.includes(attrName)) {
                         delete parent.attributes[attrName];
                     }
                 }
@@ -209,20 +228,23 @@ export async function expandExternalReferences(
                     child,
                     source_doc,
                     findExternalReferenceAttribute,
+                    attributeCaseWarnings,
                 );
             }
 
             // Like deprecation warnings, these go in the `<document>` (or at
             // the root, which normalization wraps in one), where no sugar
             // reads them as content.
-            if (uriWithStateWarnings.length > 0) {
+            const documentWarnings = [
+                ...attributeCaseWarnings,
+                ...uriWithStateWarnings,
+            ];
+            if (documentWarnings.length > 0) {
                 const documentElement = tree.children.find(
                     (child): child is DastElement =>
                         isDastElement(child) && child.name === "document",
                 );
-                (documentElement ?? tree).children.push(
-                    ...uriWithStateWarnings,
-                );
+                (documentElement ?? tree).children.push(...documentWarnings);
             }
         };
     };
@@ -238,7 +260,12 @@ export async function expandExternalReferences(
  * to the children of `parent`.
  *
  * `parent` is assigned the attributes of both `parent` and `child`,
- * with attributes from `parent` taking precedence.
+ * with attributes from `parent` taking precedence. Names are matched exactly
+ * (NAME-0, D51), so each is first given its component's spelling where it
+ * was written in another case (`doenet-w0197`, pushed onto `warnings`), as
+ * normalization would give it: `<math Simplify="none" copy="doenet:…"/>`
+ * takes precedence over the external `<math simplify="full">`, and an
+ * external `Name` is the external document's `name`.
  *
  * If `child` has a `name` attribute, it is recorded as the name of `parent`
  * that is valid in the context of `source_doc`. To accomplish this,
@@ -252,6 +279,7 @@ function mergeExternalChildIntoParent(
     child: DastElement,
     source_doc: number,
     findExternalReferenceAttribute: (node: DastNodes) => void,
+    warnings: DastError[],
 ) {
     // Step 1: annotate `child` and descendants with `source_doc`
     const addDocSource = (node: DastNodes) => {
@@ -285,7 +313,10 @@ function mergeExternalChildIntoParent(
 
     visit(child, addDocSource);
 
-    // Step 2: merge in the attributes of `child` into `parent`.
+    // Step 2: merge in the attributes of `child` into `parent`, each in its
+    // component's spelling. (`child`'s positions are in `source_doc` now.)
+    correctAttributes(parent, warnings);
+    correctAttributes(child, warnings);
 
     // copy the child attributes to the parent
     const parentAttributes = { ...child.attributes };
@@ -301,7 +332,6 @@ function mergeExternalChildIntoParent(
     }
 
     // The original attributes from the parent take precedence
-    // TODO: handle duplicates due to capitalization differences
     Object.assign(parentAttributes, parent.attributes);
     parent.attributes = parentAttributes;
 

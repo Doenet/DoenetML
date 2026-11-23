@@ -95,7 +95,7 @@ A `<graph>{:dn}` without border, axes, or navigation buttons appears invisible.
 
 
 ```doenet-editor-horiz
-<graph xmin="-3" ymin="-3">
+<graph xMin="-3" yMin="-3">
   <shortDescription>A graph of distance increasing linearly with time</shortDescription>
   <xLabel>time</xLabel>
   <yLabel>distance</yLabel>
@@ -200,16 +200,16 @@ performed for math entered into a `<textInput/>{:dn}`.
 
 ## Attribute Examples
 
-### Attribute Example: xmin, xmax, ymin, ymax
+### Attribute Example: xMin, xMax, yMin, yMax
 
 
 ```doenet-example
 <graph 
   name="g" 
-  xmin="-1" 
-  xmax="1" 
-  ymin="-2" 
-  ymax="2" 
+  xMin="-1" 
+  xMax="1" 
+  yMin="-2" 
+  yMax="2" 
   size="small"
  >
     <shortDescription>A graph with different scales for x and y</shortDescription>
@@ -222,7 +222,7 @@ performed for math entered into a `<textInput/>{:dn}`.
 </graph>
 ```
 
-Use the `xmin`, `xmax`, `ymin` and `ymax` attributes to adjust the extents of 
+Use the `xMin`, `xMax`, `yMin` and `yMax` attributes to adjust the extents of 
 the axis scales. Note that the relative proportions of the axes will automatically 
 adjust to keep the `<graph>{:dn}` square unless the `identicalAxisScales` attribute 
 is also specified, as illustrated in the second graph.

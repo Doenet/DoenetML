@@ -505,7 +505,7 @@
     </setup>
     <p>Fill in the blanks to compute $a.binary + $b.binary.</p>
 
-  <tabular halign="center">
+  <tabular hAlign="center">
     <row>
       <cell>Carry digits:</cell>
       <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
@@ -577,7 +577,7 @@
     </setup>
     <p>Fill in the blanks to compute $a.binary + $b.binary.</p>
 
-  <tabular halign="center">
+  <tabular hAlign="center">
     <row>
       <cell>Carry digits:</cell>
       <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
@@ -664,7 +664,7 @@
 
     <p>Now, we add $a.binary and the negation of $b.binary.</p>
 
-    <tabular halign="center">
+    <tabular hAlign="center">
     <row>
       <cell>Carry digits:</cell>
       <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
@@ -753,7 +753,7 @@
 
     <p>Now, we add $a.binary and the negation of $b.binary.</p>
 
-    <tabular halign="center">
+    <tabular hAlign="center">
     <row>
       <cell>Carry digits:</cell>
       <cell><mathInput name="c1" minWidth="20"></mathInput></cell>

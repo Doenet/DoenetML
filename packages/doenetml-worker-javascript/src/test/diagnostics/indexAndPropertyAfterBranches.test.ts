@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -116,27 +117,29 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
         expect(d.diagnostics()).eqls(expected);
     });
 
-    it("the picks of a select: each pick lacking it gives a blank", async () => {
+    it("the picks of a select that picks several: a property after it names nothing (D59)", async () => {
+        // It was each pick's, with a blank for the text (`[x, ＿] [x, hi]`,
+        // `w0192`): a property after a collection is the collection's own.
         const d =
             await setup(`<select name="s" numToSelect="2"><option><math>x</math></option><option><text>hi</text></option></select>
 <p name="p">[$s.x] [$s.value]</p><text name="t">$s.x</text>`);
         expect(d.codes()).eqls([
-            "warning doenet-w0192",
-            "warning doenet-w0192",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
         ]);
-        expect(d.diagnostics()[0].message).eq(
-            "`$s.x`: a `<text>` in `s` has no property `x`, so it gives a blank there. For a value from each, give every option a component that has `x`.",
+        expect(d.diagnostics().map((x: any) => x.message)).toContain(
+            "`$s.x` names nothing: a `<select>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].x`.",
         );
-        // was `[x]`, the text skipped
-        expect(await d.text()).eq("[x, ＿] [x, hi]");
-        // in a `<text>` too: not the blank dropped (`x`)
-        expect(await d.text("t")).eq("x, ＿");
+        expect(await d.text()).eq("[＿] [＿]");
+        expect(await d.text("t")).eq("＿");
         await d.reload();
         expect(d.codes()).eqls([
-            "warning doenet-w0192",
-            "warning doenet-w0192",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
         ]);
-        expect(await d.text("t")).eq("x, ＿");
+        expect(await d.text("t")).eq("＿");
     });
 
     it("a one-pick select, and a property after an index into the picks", async () => {
@@ -190,10 +193,10 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
     it("stays silent when every item has it, and a property none has stays w0104", async () => {
         const d = await setup(`<booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><math>x</math></case><else><math>(1,2)</math></else></conditionalContent>
-<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><vector>(3,4)</vector></option></select>
+<select name="s"><option><point>(1,2)</point></option><option><vector>(1,4)</vector></option></select>
 <p name="p">[$cc.value] [$cc.x] [$s.x] [$cc.nothing]</p>`);
         expect(d.codes()).eqls(["warning doenet-w0104"]);
-        expect(await d.text()).eq("[(1, 2)] [1] [1, 3] [＿]");
+        expect(await d.text()).eq("[(1, 2)] [1] [1] [＿]");
     });
 
     it("is not decided inside a wrapper of several, nor for a reference as the item", async () => {
@@ -220,9 +223,9 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             .diagnostics()
             .filter((x: any) => x.code === "doenet-w0191");
         expect(atLoad.map((x: any) => x.message)).eqls([
-            '`$cc.x`: a property after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
-            '`$cc[1].x`: a property after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P.x`.',
-            '`$cc[1][2]`: an index after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+            '`$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
+            '`$cc[1].x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P.x`.',
+            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
         ]);
         expect(atLoad.every((x: any) => x.type === "warning")).eq(true);
 
@@ -238,35 +241,119 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
     });
 
     it("an index and a property after a select names the options holding several", async () => {
+        // A property right after a select that picks several is its own
+        // (D59, `w0200`); after an index into the picks it passes into what
+        // the pick holds, decided from every option.
         const d =
             await setup(`<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point><point>(5,6)</point></option><option>hi <math>4</math></option></select>
-<p name="p">[$s[1][2]] [$s.x]</p>`);
+<p name="p">[$s[1][2]] [$s[1].x] [$s.x]</p>`);
         const messages = d
             .diagnostics()
             .filter((x: any) => x.code === "doenet-w0191")
             .map((x: any) => x.message);
         expect(messages).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
-            '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+            '`$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
         ]);
+        expect(
+            d.diagnostics().filter((x: any) => x.code === "doenet-w0200")
+                .length,
+        ).eq(1);
     });
 
     it("for a property also when every option holds several; nothing when every one holds one", async () => {
         const d =
             await setup(`<select name="s" numToSelect="2"><option><point>(3,4)</point><point>(5,6)</point></option><option><point>(3,4)</point><point>(5,6)</point></option></select>
 <select name="t" numToSelect="2"><option><point>(3,4)</point></option><option><point>(5,6)</point></option></select>
-<p name="p">[$s.x] [$t[1][2]] [$t.x]</p>`);
+<p name="p">[$s[1].x] [$t[1][2]] [$t[1].x]</p>`);
         // A property after a pick of several names nothing (D41 decision 3):
         // decided at load from every option, one warning, nothing more
-        // when the document runs. (Was `3, 5, 3, 5`.)
+        // when the document runs.
         expect(d.diagnostics().map((x: any) => x.message)).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
         ]);
         expect(d.codes()).eqls(["warning doenet-w0191"]);
-        expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
+        const shown = await d.text();
+        expect(shown).match(/^\[＿\] \[(4|6)\] \[(3|5)\]$/);
         await d.reload();
         expect(d.codes()).eqls(["warning doenet-w0191"]);
-        expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
+        expect(await d.text()).eq(shown);
+    });
+});
+
+describe("An index after options or cases that hold several, decided at load (Doenet/DoenetML#2643 items 4 and 5)", () => {
+    it("every case holds several: one warning at load, nothing more as the case changes", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math><math>4</math></else></conditionalContent>
+<p name="p">[$cc[1][2]]</p>`);
+        const atLoad = [
+            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and case 1 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+        ];
+        expect(d.diagnostics().map((x: any) => x.message)).eqls(atLoad);
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[＿]");
+        await d.setBoolean("b", true);
+        expect(await d.text()).eq("[＿]");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        await d.reload();
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+    });
+
+    it("every option holds several, in a group or not: the same warning in every variant", async () => {
+        for (const doenetML of [
+            `<select name="s"><option><math>1</math><math>2</math></option><option><math>3</math><math>4</math></option></select>
+<p name="p">[$s[1][2]]</p>`,
+            `<select name="s"><option><group><math>1</math><math>2</math></group></option><option><group><math>3</math><math>4</math></group></option></select>
+<p name="p">[$s[1][2]]</p>`,
+        ]) {
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(
+                    warnings.map((x) => x.code),
+                    `${doenetML}, variant ${requestedVariantIndex}`,
+                ).eqls(["doenet-w0191"]);
+                expect(infos.map((x) => x.code)).eqls([]);
+            }
+        }
+    });
+
+    it("options of different shapes: the warning at load in every variant, the pick of several an info", async () => {
+        // the option holding several written as a group was counted as one
+        // component, so only the variants picking it were told, at run time
+        for (const second of [
+            "<math>3</math><math>4</math>",
+            "<group><math>3</math><math>4</math></group>",
+        ]) {
+            const doenetML = `<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
+<p name="p">[$s[1][2]]</p>`;
+            const texts = new Set<string>();
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const text =
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text;
+                texts.add(text);
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(warnings.map((x) => x.message)).eqls([
+                    '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 2 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+                ]);
+                expect(infos.map((x) => x.code)).eqls(
+                    text === "[2]" ? [] : ["doenet-w0188"],
+                );
+            }
+            expect([...texts].sort()).eqls(["[2]", "[＿]"]);
+        }
     });
 });
 
@@ -319,19 +406,16 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         expect(await d.text()).eq("(＿, 3)");
     });
 
-    it("in a text, a blank for each pick of several", async () => {
+    it("in a text and a math, a blank for a pick of several", async () => {
         const d =
             await setup(`<select name="s" numToSelect="2"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point><point>(7,8)</point></option></select>
-<text name="t">$s.x</text><math name="m">$s.x+1</math>`);
+<text name="t">$s[1].x</text><math name="m">$s[2].x+1</math>`);
         expect(d.codes()).eqls([
             "warning doenet-w0191",
             "warning doenet-w0191",
         ]);
-        // as a `<p>` shows them, not one blank for all
-        expect(await d.text("t")).eq("＿, ＿");
-        // a math holds a blank for each, as it holds two picks' values
-        // (`(1, 5) + 1`, D40 decision 1)
-        expect(await d.text("m")).eq("(＿, ＿) + 1");
+        expect(await d.text("t")).eq("＿");
+        expect(await d.text("m")).eq("＿ + 1");
     });
 
     it("a child written as a reference alone: suggest writing it as a tag with a name", async () => {
@@ -358,10 +442,13 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 <group name="g2"><group><point>(1,2)</point><point>(3,4)</point></group></group>
 <group name="g3"><mathList>1 2</mathList></group>
 <p name="p">[$g1.x] [$g2.x] [$g3.value]</p>`);
-        expect(await d.text()).eq("[＿] [＿] [12]");
-        expect(d.codes()).eqls([
+        // `$g3.value` was the list's entries (`[12]`): the group stands for
+        // the list, after which a property is its own (D59, `w0200`).
+        expect(await d.text()).eq("[＿] [＿] [＿]");
+        expect(d.codes().sort()).eqls([
             "warning doenet-w0193",
             "warning doenet-w0193",
+            "warning doenet-w0200",
         ]);
     });
 
@@ -371,15 +458,18 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 <repeat name="r1" for="1 2" valueName="v"><point>($v,1)</point></repeat>
 <group name="e" extend="$r[1]"/>
 <p name="p">[$r[1].x] [$r.x] [$e.x] [$r[1].hide] [$r1[1].x] [$r1.x]</p>`);
-        expect(await d.text()).eq("[＿] [＿, ＿] [＿] [false] [1] [1, 2]");
+        // `$r.x` and `$r1.x` were each iteration's (`[＿, ＿]`, `[1, 2]`):
+        // a property after a repeat is its own (D59, `w0200`).
+        expect(await d.text()).eq("[＿] [＿] [＿] [false] [1] [＿]");
         const messages = d.diagnostics().map((x: any) => x.message);
         expect(messages).toContain(
-            '`$r[1].x` names nothing: this iteration of a `<repeat>` holds 2 components, and a property passes into an iteration only when it holds one. To read the property of a child, give it a name, such as `name="P"`, and write `$r[1].P.x`.',
+            '`$r[1].x` names nothing: what is written inside the `<repeat>` holds 2 components, so each item holds 2, and a property applies to an item only when it is one component. To read the property of a child, give it a name, such as `name="P"`, and write `$r[1].P.x`.',
         );
-        expect(d.codes()).eqls([
+        expect(d.codes().sort()).eqls([
             "warning doenet-w0193",
             "warning doenet-w0193",
-            "warning doenet-w0193",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
         ]);
     });
 
@@ -404,25 +494,26 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         expect(await d.text("b")).eq("true");
     });
 
-    it("suggests the first item's child after a repeat, or a select that picks several", async () => {
-        // `$r.P.x` and `$s.P.x` (with several picks) do not name `P` of
-        // each item until D41 decision 1 (PR 14), so the warning suggests
-        // what works (DIAG-3).
+    it("suggests an index after a repeat, or a select that picks several, and the name after it works", async () => {
+        // A property after a repeat or a select of several is its own (D59),
+        // so the warning suggests an index (`w0200`); the suggested index
+        // and a name after it reach one item (DIAG-3). (It suggested
+        // `$r.P.x`, every item's `P`, before.)
         const d =
             await setup(`<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point><point>($v,2)</point></repeat>
 <group name="g">$r</group>
 <select name="s" numToSelect="2"><option><point name="P">(1,2)</point><point>(3,5)</point></option><option><point name="P">(1,4)</point><point>(7,2)</point></option></select>
 <p name="p">[$r.x] [$g.x] [$s.x]</p>
-<p name="q">[$r[1].P.x] [$g[1].P.x] [$s[1].P.x]</p>`);
-        expect(await d.text("q")).eq("[1] [1] [1]");
+<p name="q">[$r[2].P.x] [$g[2].P.x] [$s[1].P.x]</p>`);
+        expect(await d.text("q")).eq("[2] [2] [1]");
         const suggestions = d
             .diagnostics()
-            .map((x: any) => x.message.match(/write `([^`]*)`\.$/)?.[1]);
-        expect(suggestions).eqls(["$g[1].P.x", "$r[1].P.x", "$s[1].P.x"]);
+            .map((x: any) => x.message.match(/such as `([^`]*)`\.$/)?.[1]);
+        expect(suggestions).eqls(["$g[1].x", "$r[1].x", "$s[1].x"]);
         expect(d.codes()).eqls([
-            "warning doenet-w0193",
-            "warning doenet-w0193",
-            "warning doenet-w0191",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
+            "warning doenet-w0200",
         ]);
     });
 

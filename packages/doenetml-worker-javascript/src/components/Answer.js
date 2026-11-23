@@ -14,6 +14,7 @@ import {
     returnLabelChildIndDefinition,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { missingResponseValue } from "./abstract/referenceSlotDefinitions";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
@@ -36,19 +37,21 @@ const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
 
 /**
  * The `set` of `submittedResponses`: an entry written to it, as the value of
- * the type `submittedResponsesComponentType` records for it.
+ * its type, the one the DoenetML decides (`propertyTypes`, TYPE-2). A saved
+ * type never decides it (TYPE-4), and none is saved.
  *
  * A save holds a math-expression as its tree
  * (`removeFunctionsMathExpressionClass`), so an entry restored from one is a
  * bare tree until it is made a math-expression again here. Anything reading
  * the entry directly — `$ans.submittedResponse` in an expression such as
- * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
- * read from the same write when it carries it, as a restore does, and an
- * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
- * entry that is not a bare tree, or whose type neither is in
- * `MATH_RESPONSE_TYPES` nor inherits from one of them, is returned unchanged.
+ * `<feedback condition="$ans.submittedResponse = z">` — needs one. An entry
+ * whose type the DoenetML doesn't decide is read as a `math`: no reference
+ * reads it (`doenet-e0091`), and it is blank or not as before
+ * (`responseIsBlank`). An entry that is not a bare tree, or whose type
+ * neither is in `MATH_RESPONSE_TYPES` nor inherits from one of them, is
+ * returned unchanged.
  */
-function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
+function submittedResponseOfItsType(value, { arrayKey, component }) {
     // only a bare tree is made a math-expression: a `subsetOfReals`, which
     // inherits from `math`, holds a subset, and a save restores it as one
     if (
@@ -58,10 +61,10 @@ function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
     ) {
         return value;
     }
-    const componentTypes =
-        newValues.submittedResponsesComponentType ??
-        component.essentialState.submittedResponsesComponentType;
-    const componentType = componentTypes?.[arrayKey] ?? "math";
+    const atLoad =
+        component.doenetAttributes?.propertyTypes?.submittedResponses;
+    const componentType =
+        (typeof atLoad === "string" ? atLoad : atLoad?.[arrayKey]) ?? "math";
     const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
         component.componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentType,
@@ -69,6 +72,46 @@ function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
         }),
     );
     return holdsMath ? convertValueToMathExpression(value) : value;
+}
+
+/**
+ * The types of `numEntries` responses decided from the DoenetML when the
+ * document loaded (`propertyTypes`, `propertyTypesAtLoad.ts`, TYPE-2): the
+ * one type they share, or the type of each when they are as many as it
+ * decided. `undefined` when it decided none, or for another number of them.
+ */
+function responseTypesAtLoad(atLoad, numEntries) {
+    if (typeof atLoad === "string") {
+        return Array(numEntries).fill(atLoad);
+    }
+    if (Array.isArray(atLoad) && atLoad.length === numEntries) {
+        return [...atLoad];
+    }
+    return undefined;
+}
+
+/**
+ * The type of each of `responses`, for the `submitted` event, which a host
+ * reads to show them (the editor's responses tab, `formatResponse`): those
+ * decided from the DoenetML when the document loaded (TYPE-2), one per
+ * entry. Where the DoenetML doesn't decide them (no reference may read them,
+ * `doenet-e0091`), each is named by the kind of value it holds, only to show
+ * it: a math-expression a `math`, else a `text`, `number` or `boolean`.
+ */
+function responseTypesForEvent(atLoad, responses) {
+    const decided = responseTypesAtLoad(atLoad, responses.length);
+    if (decided) {
+        return decided;
+    }
+    return responses.map((response) =>
+        response instanceof me.class
+            ? "math"
+            : typeof response === "number"
+              ? "number"
+              : typeof response === "boolean"
+                ? "boolean"
+                : "text",
+    );
 }
 
 export default class Answer extends InlineComponent {
@@ -304,7 +347,8 @@ export default class Answer extends InlineComponent {
                         "Mark correct when the associated video has been watched.",
                 },
             ],
-            description: "Type of input the answer expects.",
+            description:
+                "Type of the answer, needed only when neither an input written inside it nor its awards' typed content decides it.",
         };
 
         attributes.selectMultiple = {
@@ -442,10 +486,11 @@ export default class Answer extends InlineComponent {
                 for (let component of components) {
                     if (component?.attributes) {
                         for (const attr in component.attributes) {
-                            // Need a case-insensitive test because composites such as Copy
-                            // don't have have an isResponse attribute, but accept any attribute,
-                            // which means those attribute names have not been normalized
-                            if (attr.toLowerCase() === "isresponse") {
+                            // Matched exactly (D51), also on a composite such
+                            // as a copy, which accepts any attribute: one
+                            // written in another case was given its spelling
+                            // before the core read it (`attribute-name-case.ts`).
+                            if (attr === "isResponse") {
                                 const attribute = component.attributes[attr];
                                 if (attribute.type === "primitive") {
                                     if (attribute.primitive.value) {
@@ -475,6 +520,19 @@ export default class Answer extends InlineComponent {
                     }
                 }
                 return false;
+            }
+
+            /**
+             * The children the award `child` holds: for an `<award copy>`
+             * whose source the DoenetML gives, its source's and its own
+             * (`copiedAwards.ts`); otherwise those written in it.
+             */
+            function awardChildrenOf(child) {
+                return (
+                    child.doenetAttributes?.copiedAward?.children ??
+                    child.children ??
+                    []
+                );
             }
 
             function addPotentialResponsesToReferenceDescendants(components) {
@@ -575,11 +633,19 @@ export default class Answer extends InlineComponent {
                 } else if (componentIsSpecifiedType(child, "award")) {
                     foundAward = true;
                     childIsWrappable.push(false);
-                    if (child.attributes?.referencesAreResponses) {
+                    // An `<award copy>` is decided as its source written
+                    // out (CPY-1), from the children it will hold
+                    // (`copiedAwards.ts`).
+                    const copiedAward = child.doenetAttributes?.copiedAward;
+                    if (
+                        child.attributes?.referencesAreResponses ||
+                        copiedAward?.referencesAreResponses
+                    ) {
                         foundResponse = true;
                     }
-                    if (child.children?.length > 0) {
-                        for (let grandChild of child.children) {
+                    const awardChildren = awardChildrenOf(child);
+                    if (awardChildren.length > 0) {
+                        for (let grandChild of awardChildren) {
                             if (typeof grandChild !== "object") {
                                 if (grandChild.trim()) {
                                     mayNeedInput = true;
@@ -648,7 +714,8 @@ export default class Answer extends InlineComponent {
                             }
                         }
                     } else {
-                        // if copied in award, it won't have children
+                        // No children, or a copy whose source the DoenetML
+                        // does not give, so it is not known what it holds.
                         mayNeedInput = true;
                     }
                 } else if (componentIsSpecifiedType(child, "mathInput")) {
@@ -739,8 +806,9 @@ export default class Answer extends InlineComponent {
                 // recurse to all descendants of awards to see if have a response
                 for (let child of matchedChildren) {
                     if (componentIsSpecifiedType(child, "award")) {
-                        if (child.children?.length > 0) {
-                            if (checkForResponseDescendant(child.children)) {
+                        const awardChildren = awardChildrenOf(child);
+                        if (awardChildren.length > 0) {
+                            if (checkForResponseDescendant(awardChildren)) {
                                 foundResponse = true;
                                 break;
                             }
@@ -752,7 +820,17 @@ export default class Answer extends InlineComponent {
                     // definitely have a case where there is not a response
                     // look inside each award and add isPotentialResponse to any reference
                     for (let child of matchedChildren) {
-                        if (componentIsSpecifiedType(child, "award")) {
+                        if (child.doenetAttributes?.copiedAward) {
+                            // Its references are made from its source's
+                            // when it is made, and marked then (`Award.js`).
+                            child.attributes ??= {};
+                            child.attributes._referencesArePotentialResponses =
+                                {
+                                    type: "unresolved",
+                                    name: "_referencesArePotentialResponses",
+                                    children: ["true"],
+                                };
+                        } else if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
                                 addPotentialResponsesToReferenceDescendants(
                                     child.children,
@@ -835,6 +913,8 @@ export default class Answer extends InlineComponent {
                     type = "math";
                 }
             } else {
+                // Only when the type was not decided at load
+                // (`answerTypesAtLoad.ts`), which writes it as `type`.
                 if (foundMath) {
                     type = "math";
                 } else if (foundText) {
@@ -1754,8 +1834,9 @@ export default class Answer extends InlineComponent {
             description:
                 "The current (unsubmitted) response values from this answer's inputs.",
             public: true,
+            // the types decided when the document loads (TYPE-2, TYPE-4,
+            // `propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables: {
                     displayDigits: {
                         stateVariableToShadow: "displayDigitsForResponses",
@@ -1795,6 +1876,11 @@ export default class Answer extends InlineComponent {
                     usePotentialResponses: {
                         dependencyType: "stateVariable",
                         variableName: "usePotentialResponses",
+                    },
+                    // the types decided when the document loaded (TYPE-2)
+                    propertyTypes: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "propertyTypes",
                     },
                 };
 
@@ -1886,7 +1972,8 @@ export default class Answer extends InlineComponent {
                 componentInfoObjects,
             }) {
                 let currentResponses = [];
-                let componentType = [];
+                // the responses that are missing (D37), by place
+                const missingAt = [];
 
                 let responseComponents = [];
 
@@ -1954,24 +2041,14 @@ export default class Answer extends InlineComponent {
                     ) {
                         // A value reference: the referenced value as it is
                         // on the referent, not what the reference presents
-                        // (`$n` in a `<math>` is the number), and a blank
-                        // math when it has nothing to read.
+                        // (`$n` in a `<math>` is the number), and a missing
+                        // value of its type when it has nothing to read.
+                        if (component.stateValues.valueMissing) {
+                            missingAt.push(currentResponses.length);
+                        }
                         currentResponses.push(
                             component.stateValues.valueAsResponse,
                         );
-                        componentType.push(
-                            component.stateValues.componentTypeAsResponse,
-                        );
-                        continue;
-                    }
-
-                    if (component.stateValues.valueMissing) {
-                        // A missing component (D37), such as
-                        // `<boolean extend="$nothing"/>`, holds the value of
-                        // `<T/>`, but is recorded as one blank math, as a
-                        // value reference with nothing to read is.
-                        currentResponses.push(me.fromAst("\uff3f"));
-                        componentType.push("math");
                         continue;
                     }
 
@@ -1994,40 +2071,72 @@ export default class Answer extends InlineComponent {
                         ct = "vector";
                     }
 
+                    if (component.stateValues.valueMissing) {
+                        // A missing component (D37), such as
+                        // `<boolean extend="$nothing"/>`, is recorded as one
+                        // missing value of its type (D52 decision 1), as a
+                        // value reference with nothing to read is.
+                        // The type it is recorded as when not missing (as
+                        // below): its own, else, with no value, a math for a
+                        // function and an empty text for anything else.
+                        const missingType =
+                            component.stateValues.value !== undefined ||
+                            Array.isArray(component.stateValues.values)
+                                ? ct
+                                : component.stateValues.formula instanceof
+                                    me.class
+                                  ? "math"
+                                  : "text";
+                        missingAt.push(currentResponses.length);
+                        currentResponses.push(
+                            missingResponseValue(
+                                missingType,
+                                componentInfoObjects,
+                            ),
+                        );
+                        continue;
+                    }
+
                     if (component.stateValues.subsetValue !== undefined) {
                         // A subset of the reals is recorded as its subset,
                         // not as the math it inherits from.
                         currentResponses.push(
                             component.stateValues.subsetValue,
                         );
-                        componentType.push(ct);
                     } else if (Array.isArray(component.stateValues.values)) {
                         currentResponses.push(...component.stateValues.values);
-                        componentType.push(
-                            ...Array(component.stateValues.values.length).fill(
-                                ct,
-                            ),
-                        );
                     } else if (component.stateValues.value !== undefined) {
                         currentResponses.push(component.stateValues.value);
-                        componentType.push(ct);
                     } else if (
                         component.stateValues.formula instanceof me.class
                     ) {
                         currentResponses.push(component.stateValues.formula);
-                        componentType.push("math");
                     } else {
                         currentResponses.push("");
-                        componentType.push("text");
                     }
                 }
 
-                return {
-                    setValue: { currentResponses },
-                    setCreateComponentOfType: {
-                        currentResponses: componentType,
-                    },
-                };
+                // Each response's type is decided from the DoenetML when the
+                // document loads (TYPE-2, `propertyTypesAtLoad.ts`), and a
+                // reference to them makes components of those types
+                // (`StateVariableInitializer.ts`); none is worked out here.
+                const typesAtLoad = responseTypesAtLoad(
+                    globalDependencyValues.propertyTypes?.currentResponses,
+                    currentResponses.length,
+                );
+                if (typesAtLoad) {
+                    // A missing response is a missing value of the type the
+                    // DoenetML gives it (D52 decision 1), which a reference
+                    // with nothing to read may not know (`$ci` of a
+                    // `<choiceInput>` with nothing selected).
+                    for (const ind of missingAt) {
+                        currentResponses[ind] = missingResponseValue(
+                            typesAtLoad[ind],
+                            componentInfoObjects,
+                        );
+                    }
+                }
+                return { setValue: { currentResponses } };
             },
         };
 
@@ -2066,51 +2175,12 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        stateVariableDefinitions.submittedResponsesComponentType = {
-            hasEssential: true,
-            defaultValue: null,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    submittedResponsesComponentType: true,
-                },
-            }),
-            inverseDefinition: function ({ desiredStateVariableValues }) {
-                if (
-                    desiredStateVariableValues.submittedResponsesComponentType
-                ) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue:
-                                    "submittedResponsesComponentType",
-                                value: [
-                                    ...desiredStateVariableValues.submittedResponsesComponentType,
-                                ],
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue:
-                                    "submittedResponsesComponentType",
-                                value: [],
-                            },
-                        ],
-                    };
-                }
-            },
-        };
-
         stateVariableDefinitions.submittedResponses = {
             description: "The response values from the most recent submission.",
             public: true,
+            // the types decided when the document loads (TYPE-2, TYPE-4,
+            // `propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables: {
                     displayDigits: {
                         stateVariableToShadow: "displayDigitsForResponses",
@@ -2136,10 +2206,6 @@ export default class Answer extends InlineComponent {
             },
             returnArrayDependenciesByKey() {
                 let globalDependencies = {
-                    submittedResponsesComponentType: {
-                        dependencyType: "stateVariable",
-                        variableName: "submittedResponsesComponentType",
-                    },
                     numSubmittedResponses: {
                         dependencyType: "stateVariable",
                         variableName: "numSubmittedResponses",
@@ -2148,17 +2214,6 @@ export default class Answer extends InlineComponent {
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let componentType = [];
-
-                if (globalDependencyValues.submittedResponsesComponentType) {
-                    componentType.push(
-                        ...globalDependencyValues.submittedResponsesComponentType.slice(
-                            0,
-                            globalDependencyValues.numSubmittedResponses,
-                        ),
-                    );
-                }
-
                 let essentialSubmittedResponses = {};
 
                 for (
@@ -2169,18 +2224,11 @@ export default class Answer extends InlineComponent {
                     // this function doesn't change the values once they set for the first time
                     // (The values will just be changed using the inverse function)
                     essentialSubmittedResponses[ind] = true;
-
-                    if (!componentType[ind]) {
-                        componentType[ind] = "math";
-                    }
                 }
 
                 return {
                     useEssentialOrDefaultValue: {
                         submittedResponses: essentialSubmittedResponses,
-                    },
-                    setCreateComponentOfType: {
-                        submittedResponses: componentType,
                     },
                 };
             },
@@ -2786,14 +2834,6 @@ export default class Answer extends InlineComponent {
         instructions.push({
             updateType: "updateValue",
             componentIdx: this.componentIdx,
-            stateVariable: "submittedResponsesComponentType",
-            value: this.state.currentResponses.shadowingInstructions
-                .createComponentOfType,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
             stateVariable: "justSubmitted",
             value: true,
         });
@@ -2899,9 +2939,10 @@ export default class Answer extends InlineComponent {
                 result: {
                     response: currentResponses,
                     responseText,
-                    componentTypes:
-                        this.state.currentResponses.shadowingInstructions
-                            .createComponentOfType,
+                    componentTypes: responseTypesForEvent(
+                        this.doenetAttributes?.propertyTypes?.currentResponses,
+                        currentResponses,
+                    ),
                     creditAchieved,
                     ...attemptCountsForEvent({
                         numSubmissions,

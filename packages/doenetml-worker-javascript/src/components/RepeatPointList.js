@@ -80,6 +80,10 @@ export const REPEAT_POINT_RENDERER_ATTRIBUTES = [
 export default class RepeatPointList extends PointList {
     static componentType = "_repeatPointList";
 
+    // Built as a list, it keeps none of the attributes of a `<pointList>` as
+    // properties, as the composite `<repeat>` (COMP-4).
+    static attributePropertiesKept = [];
+
     // The entries come from the template; the list has no authored ones.
     static listChildGroups = [];
 

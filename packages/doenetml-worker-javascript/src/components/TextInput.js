@@ -27,6 +27,10 @@ export default class Textinput extends Input {
         defineSubmitAnswerExternalAction(this);
     }
     static componentType = "textInput";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
 
     static componentDocs = {
         summary: "An interactive text input",
@@ -287,6 +291,14 @@ export default class Textinput extends Input {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                // A text input holds text. A value of another type, such as
+                // the math an `<updateValue>` without `type="text"` sends,
+                // is refused rather than stored, where reading it as text
+                // would throw (DIAG-5, #2607).
+                if (typeof desiredStateVariableValues.value !== "string") {
+                    return { success: false };
+                }
+
                 let instructions = [
                     {
                         setDependency: "valueChanged",
