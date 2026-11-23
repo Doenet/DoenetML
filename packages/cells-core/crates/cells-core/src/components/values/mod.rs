@@ -252,13 +252,10 @@ pub mod number {
         tags: ["number"],
         flags: [copyable],
         roles: [Index, Value],
-        text: Number(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Number,
         props {
             value: children { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,
@@ -279,9 +276,7 @@ pub(crate) mod math_value {
         tags: ["mathValue"],
         flags: [copyable, internal],
         roles: [MathValue],
-        text: Held(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Held,
         props {
             value: attr(NO_VALUE) { rendered },
         }
@@ -305,8 +300,7 @@ pub(crate) mod evaluate {
             function: by_planner,
             input: by_planner,
             value: by_planner { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         attributes {
             function: Ref,
@@ -425,8 +419,7 @@ pub(crate) mod clamp_number {
             upperValue: attr(1.0),
             atLeastLower: computed(OpSpec::Max, [unclamped, lowerValue]),
             value: computed(OpSpec::Min, [atLeastLower, upperValue]) { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,

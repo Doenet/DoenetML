@@ -16,17 +16,14 @@ component! {
     /// children (the current core writes it unrounded).
     tags: ["round"],
     flags: [copyable],
-    text: Math(expr, value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Math(expr),
     props {
         operand: by_planner,
         expr: by_planner { rendered, expr_of: expr },
         numDecimals: by_planner,
         numDigits: by_planner,
         value: by_planner { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         numDecimals: Scalar,

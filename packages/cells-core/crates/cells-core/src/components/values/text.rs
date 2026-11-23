@@ -11,13 +11,10 @@ component! {
     tags: ["text"],
     flags: [copyable],
     roles: [TextValue],
-    text: Text(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Text,
     props {
         value: children { text, rendered },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     children: Value,
     planner: Plan(plan),

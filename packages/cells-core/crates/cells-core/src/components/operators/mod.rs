@@ -182,15 +182,12 @@ pub(crate) mod abs {
         tags: ["abs"],
         variant: OneInput(OpSpec::Abs, Post::Abs),
         flags: [copyable],
-        text: Math(expr, value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Math(expr),
         props {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             value: by_planner { rendered, expr_of: expr },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Plan(plan),
@@ -248,16 +245,13 @@ pub(crate) mod set_small_to_zero {
         /// the asked value so treated to them.
         tags: ["setSmallToZero"],
         flags: [copyable],
-        text: Math(expr, value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Math(expr),
         props {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             threshold: by_planner,
             value: by_planner { rendered, expr_of: expr },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         attributes {
             threshold: Scalar,
@@ -308,16 +302,13 @@ pub(crate) mod wrap_number_periodic {
         /// bounds. A request writes the asked value wrapped to them.
         tags: ["wrapNumberPeriodic"],
         flags: [copyable],
-        text: Number(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Number,
         props {
             operand: children,
             lowerValue: attr(0.0),
             upperValue: attr(1.0),
             value: computed(OpSpec::Vec(VecOp::Wrap), [operand, lowerValue, upperValue]) { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,
@@ -332,9 +323,7 @@ pub(crate) mod is_integer {
         /// integer, within roundoff.
         tags: ["isInteger"],
         flags: [copyable],
-        text: Boolean(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Boolean,
         props {
             operand: children,
             value: computed(OpSpec::IsInteger, [operand]) { rendered },
@@ -352,9 +341,7 @@ pub(crate) mod is_number {
         /// number.
         tags: ["isNumber"],
         flags: [copyable],
-        text: Boolean(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Boolean,
         props {
             operand: children,
             value: computed(OpSpec::IsFinite, [operand]) { rendered },

@@ -24,14 +24,11 @@ mod integer {
         /// writes the asked value so rounded to them.
         tags: ["integer"],
         flags: [copyable],
-        text: Number(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Number,
         props {
             valuePreRound: children,
             value: computed(OpSpec::Round, [valuePreRound]) { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,
@@ -47,13 +44,10 @@ mod int_comma {
         /// with its integer digits in groups of three.
         tags: ["intComma"],
         flags: [copyable],
-        text: Grouped(value),
-        extend_value: Scalar(value),
-        default_prop: value,
+        value: Grouped,
         props {
             value: children { rendered },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         children: Value,
         planner: Props,

@@ -93,6 +93,12 @@ methods. Rules for planners:
   compile refuses one standing free. A type that cannot be extended says
   `flags: [not_extendable]`, and the compile refuses the extend; no
   planner sees `extend` (its record is the merge).
+- A type that holds one value says so in one line (`value: Number`,
+  `value: Math(expr)`): it shows in text as that kind, `extend="$x.prop"`
+  makes its `value` of a scalar, and a bare reference reads it. A table
+  ending `..anchor` has the two props of where the value is drawn in a
+  graph, which the compile plans. A prop that counts the type's list is
+  `list_len`, wired from the list the planner makes.
 - Types that differ only in what they compute share one block, and the
   planner they share matches on no type: the block says what it is among
   them (`variant: Reduction::All` on `<and>`), each other type is the

@@ -17,9 +17,7 @@ component! {
     tags: ["and"],
     variant: Reduction::All,
     flags: [copyable],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         value: by_planner { rendered },
     }

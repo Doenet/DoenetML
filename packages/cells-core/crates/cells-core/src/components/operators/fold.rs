@@ -24,14 +24,11 @@ component! {
     tags: ["sum"],
     variant: Fold::Reduce(Reduction::Sum, Spelled::Joined(" + ")),
     flags: [copyable],
-    text: Math(expr, value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Math(expr),
     props {
         expr: by_planner { rendered, expr_of: expr },
         value: by_planner { rendered, expr_of: expr },
-        anchorX: anchor(0),
-        anchorY: anchor(1),
+        ..anchor
     }
     attributes {
         forceSymbolic: On,

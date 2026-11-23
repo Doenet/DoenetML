@@ -229,8 +229,7 @@ pub(crate) mod inline_math {
         tags: ["m"],
         flags: [container],
         props {
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         planner: Props,
     }
@@ -244,8 +243,7 @@ pub(crate) mod display_math {
         tags: ["md", "me"],
         flags: [container],
         props {
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         planner: Props,
     }

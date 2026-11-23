@@ -771,6 +771,18 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// builder of that name. A list ending `interactive: true` or `rendered:
 /// true` marks every point so.
 ///
+/// A table ending `..anchor` has, last, the two props of where a value is
+/// drawn in a graph, `anchorX: anchor(0)` and `anchorY: anchor(1)`
+/// ([`PropFrom::Anchor`]).
+///
+/// `value: Number`, `value: Boolean`, `value: Text` or `value: Math(expr)`,
+/// where `text:` would be, says the type holds one value, in its prop
+/// `value`: it shows in text as that kind (`text: Number(value)`, `text:
+/// Math(expr, value)`), `extend="$x.prop"` makes its value of a scalar
+/// (`extend_value: Scalar(value)`), and a bare reference reads it
+/// (`default_prop: value`). A type that is one of the three and not the
+/// others writes them out.
+///
 /// `renders: Never` or `renders: InGraph`, after `flags`, says where a
 /// component of the type is drawn ([`super::Renders`]); by default
 /// wherever it is. `sticky: shape` makes the type a sticky group member
@@ -866,6 +878,7 @@ macro_rules! component {
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(response: $rkind:ident ($rprop:ident),)?
+        $(value: $vkind:ident $(($($vprop:ident),+ $(,)?))?,)?
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
         $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
         $(needs: $needs:ident,)?
@@ -879,7 +892,8 @@ macro_rules! component {
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
         props {
-            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
+            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),* $(,)?
+            $(.. $anch:ident)?
         }
         $(combined_props { $($cname:ident : [$($cpart:ident),+ $(,)?]),* $(,)? })?
         $(list {
@@ -934,6 +948,16 @@ macro_rules! component {
                 $(.response($crate::components::ResponseKind::$rkind(
                     $crate::components::define::at(PROPS, stringify!($rprop)),
                 )))?
+                $(
+                    .text($crate::components::TextKind::$vkind(
+                        $($($crate::components::define::at(PROPS, stringify!($vprop)),)+)?
+                        $crate::components::define::at(PROPS, "value"),
+                    ))
+                    .extend_value($crate::components::ExtendValue::Scalar(
+                        $crate::components::define::at(PROPS, "value"),
+                    ))
+                    .default_prop("value")
+                )?
                 $(.text($crate::components::TextKind::$tkind(
                     $($crate::components::define::at(PROPS, stringify!($tprop))),+
                 )))?
@@ -991,8 +1015,12 @@ macro_rules! component {
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
             $(
                 $crate::components::define::component!(@prop $kind $pname $(($($karg)*))?)
-                    $($(.$opt($(stringify!($oval))?))*)?
-            ),+
+                    $($(.$opt($(stringify!($oval))?))*)?,
+            )*
+            $(
+                $crate::components::define::component!(@anchor $anch anchorX 0),
+                $crate::components::define::component!(@anchor $anch anchorY 1),
+            )?
         ]);
 
         $(
@@ -1012,14 +1040,26 @@ macro_rules! component {
         #[allow(non_snake_case, dead_code)]
         #[derive(Debug, Clone)]
         pub(crate) struct Props<T> {
-            $(pub(crate) $pname: T,)+
+            $(pub(crate) $pname: T,)*
+            $(
+                #[doc = concat!("The x-coordinate of its ", stringify!($anch), ".")]
+                pub(crate) anchorX: T,
+                #[doc = concat!("The y-coordinate of its ", stringify!($anch), ".")]
+                pub(crate) anchorY: T,
+            )?
         }
 
         #[allow(dead_code)]
         impl<T> Props<T> {
             /// The props in table order.
             pub(crate) fn into_vec(self) -> Vec<T> {
-                vec![$(self.$pname),+]
+                vec![
+                    $(self.$pname,)*
+                    $(
+                        $crate::components::define::component!(@with $anch self.anchorX),
+                        $crate::components::define::component!(@with $anch self.anchorY),
+                    )?
+                ]
             }
         }
 
@@ -1031,7 +1071,14 @@ macro_rules! component {
             type Item = T;
             type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
             fn into_iter(self) -> Self::IntoIter {
-                [$(self.$pname),+].into_iter()
+                [
+                    $(self.$pname,)*
+                    $(
+                        $crate::components::define::component!(@with $anch self.anchorX),
+                        $crate::components::define::component!(@with $anch self.anchorY),
+                    )?
+                ]
+                .into_iter()
             }
         }
 
@@ -1039,7 +1086,15 @@ macro_rules! component {
         impl Props<usize> {
             /// Each prop's position in the table.
             pub(crate) const AT: Props<usize> = Props {
-                $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)+
+                $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)*
+                $(
+                    anchorX: $crate::components::define::component!(
+                        @with $anch $crate::components::define::at(PROPS, "anchorX")
+                    ),
+                    anchorY: $crate::components::define::component!(
+                        @with $anch $crate::components::define::at(PROPS, "anchorY")
+                    ),
+                )?
             };
         }
 
@@ -1050,11 +1105,23 @@ macro_rules! component {
             pub(crate) const PORTS: Props<$crate::compile::api::Port> = Props {
                 $($pname: $crate::compile::api::Port::table(
                     $crate::components::define::at(PROPS, stringify!($pname))
-                ),)+
+                ),)*
+                $(
+                    anchorX: $crate::components::define::component!(
+                        @with $anch $crate::compile::api::Port::table(
+                            $crate::components::define::at(PROPS, "anchorX")
+                        )
+                    ),
+                    anchorY: $crate::components::define::component!(
+                        @with $anch $crate::compile::api::Port::table(
+                            $crate::components::define::at(PROPS, "anchorY")
+                        )
+                    ),
+                )?
             };
         }
 
-        $crate::components::define::component!(@planned [] $($kind $pname)+);
+        $crate::components::define::component!(@planned [] $($kind $pname)*);
 
         $crate::components::define::component!(@record
             [$($($aname : $akind $(($($akarg)*))?),*)?]
@@ -1120,6 +1187,17 @@ macro_rules! component {
             }
         }
     };
+    // `..anchor`, ending a table: the anchor's two props, and an
+    // expression there only with it.
+    (@anchor anchor $name:ident $coord:literal) => {
+        $crate::components::define::anchor(stringify!($name), $coord)
+    };
+    (@anchor $other:ident $name:ident $coord:literal) => {
+        compile_error!(concat!(
+            "component!: a table ends `..anchor`, not `..", stringify!($other), "`"
+        ))
+    };
+    (@with $anch:ident $e:expr) => { $e };
     // What a submit does.
     (@submit Copies($response:ident, $submitted:ident)) => {
         $crate::components::Submit {

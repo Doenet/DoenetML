@@ -11,9 +11,7 @@ component! {
     /// A request cannot change it, as in the current core.
     tags: ["not"],
     flags: [copyable],
-    text: Boolean(value),
-    extend_value: Scalar(value),
-    default_prop: value,
+    value: Boolean,
     props {
         operand: by_planner,
         value: by_planner { rendered },

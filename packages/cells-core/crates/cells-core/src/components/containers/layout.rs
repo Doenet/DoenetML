@@ -60,8 +60,7 @@ mod latex {
         tags: ["latex"],
         flags: [container],
         props {
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
         planner: Props,
     }
