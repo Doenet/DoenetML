@@ -1117,10 +1117,10 @@ export function checkBooleanNumberMixAtLoad({
                  * place, which holds values of several types (a boolean
                  * beside a math), each judged in its place.
                  */
-                const judge = (
+                function judge(
                     holder: SerializedComponent,
                     child: SerializedComponent,
-                ) => {
+                ) {
                     const value = valueOf(child);
                     if (value === undefined) {
                         if (
@@ -1175,7 +1175,7 @@ export function checkBooleanNumberMixAtLoad({
                         });
                         blankPlace(holder, child);
                     }
-                };
+                }
                 if (
                     isNumber
                         ? !mayConvertBoolean(component)

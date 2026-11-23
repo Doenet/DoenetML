@@ -131,10 +131,14 @@ function numberCountingBooleans(dependencyValues) {
         booleanListChildrenByCode: {},
         otherChildrenByCode: {},
     };
-    const isMissingCode = (code) =>
-        [mathChildrenByCode, numberChildrenByCode, booleanChildrenByCode].some(
-            (byCode) => byCode[code] && isMissingInput(byCode[code]),
-        );
+    /** Whether the child of `code` is missing. */
+    function isMissingCode(code) {
+        return [
+            mathChildrenByCode,
+            numberChildrenByCode,
+            booleanChildrenByCode,
+        ].some((byCode) => byCode[code] && isMissingInput(byCode[code]));
+    }
 
     /**
      * `tree` with each boolean replaced by `1` or `0`, or `MISSING_OPERAND`
@@ -150,11 +154,8 @@ function numberCountingBooleans(dependencyValues) {
                 return booleanChild.stateValues.value ? 1 : 0;
             }
             if (textChildrenByCode[tree]) {
-                return evaluateLogic({
-                    logicTree: tree,
-                    dependencyValues: logicValues,
-                    valueOnInvalid: NaN,
-                });
+                // a text is neither a boolean nor a number
+                return NaN;
             }
             const word = tree.toLowerCase();
             if (word === "true" || word === "false") {
