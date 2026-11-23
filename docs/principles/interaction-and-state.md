@@ -434,9 +434,10 @@ type is **`doenet-w0205`**; an award with content in an answer with several inpu
 
 **Known violations** (#2657): an `<award copy>` from outside the answer keeps its source's reading
 of plain text and can earn 0 silently; a false `w0206`/`w0207` for an indexed reference to a
-composite holding a `<when>`; content of another type inside a composite gets no `w0205`. Four
-small decisions are open there (whether `videoWatched` is matched exactly, which of two warnings
-yields, naming a reference's value, `w0078`'s position). **A boolean answer credits "false"** for
+composite holding a `<when>`; content of another type inside a composite gets no `w0205`. Decided
+(D67 decisions 2–5): an answer's `type` is matched exactly, `videoWatched` included; `w0205` alone
+where it and `w0203` would both fire; a warning names a reference's value; `w0078` at the
+attribute. **A boolean answer credits "false"** for
 plain text whose operand the boolean–number rule blanks (`<award>$b = 1</award>`): a `<boolean>`
 holding a blank is `false`, not missing (VAL-5; #2656).
 

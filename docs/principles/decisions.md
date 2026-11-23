@@ -3007,9 +3007,9 @@ Alternatives: `<collection>`, `<items>`.
    the adapter is removed; each mix is a blank with **`doenet-w0203`**, also on an `extend` or a
    `copy`; type changes are `e0065` with the suggestion; `credit` keeps taking a boolean. Left
    (#2656): a `<boolean>` with a blanked operand is `false` rather than missing, so a boolean
-   answer can credit "false"; `<number convertBoolean>$b + 1</number>` is `NaN` (for a decision:
-   recommended, `convertBoolean` counts every boolean in its expression); `$n = true` and a named
-   boolean inside a `<math>` (blanked everywhere).
+   answer can credit "false"; `<number convertBoolean>$b + 1</number>` is `NaN` (decided, D67
+   decision 1: `convertBoolean` counts every boolean in its expression); `$n = true`,
+   `<boolean>$b + 1 = 2</boolean>` and a named boolean inside a `<math>` (blanked everywhere).
 
    A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
 
@@ -3049,7 +3049,8 @@ Alternatives: `<collection>`, `<items>`.
 
 **Done by #2650** (closing #2596), for a point; the warning is `doenet-w0202`. For a vector, only
 a written `displacement` overrides its content. Left for a decision (#2655): a vector's `x`/`y`/`z`
-come after its content and `displacement`, the reverse of a point's.
+come after its content and `displacement`, the reverse of a point's; decided (D67 decisions 6 and
+7): the point's order, and a written `xs` ranks with `coords`.
 
 ## D50. Decisions from the review of #2597 (November 2026)
 
@@ -3493,4 +3494,28 @@ each following the recommendation except where noted:
 Also from the sweep: 34 issues were closed as fixed, superseded or duplicates (with #2156, answered
 by D65 decision 7), and the rest still broken were scheduled in #2509 (PRs 51–60) under rules
 already decided.
+
+## D67. Decisions from the leftovers of #2648, #2650 and #2651, and `$slider.items` (decided, November 2026)
+
+Each follows the recommendation in its issue.
+
+1. **`<number convertBoolean>` counts every boolean in its expression as `1` or `0`** (#2656 item
+   2): `<number convertBoolean>$b + 1</number>` is `2` when `b` is true. The author asked for
+   the conversion. Elsewhere a boolean in arithmetic stays a type mix (D47 decision 3).
+2. **An answer's `type` is matched exactly, `videoWatched` included** (#2657 item 1): one rule for
+   one attribute (D63 decision 4), with `w0197` for another case in the fallback release. The
+   value is trimmed.
+3. **One warning where two would pull apart** (#2657 item 2): content in an answer that is both a
+   boolean–number mix and of another type than the input (`<number>$b</number>` in a
+   `<booleanInput>` answer) gets only `w0205`, whose advice resolves both (DIAG-3).
+4. **A warning about a reference names its value** (#2657 item 3): "`$ti` gives a text", as
+   `e0065` does, not "this `<textInput>`".
+5. **`w0078` is at the `type` attribute** whichever part reports it (#2657 item 4; DIAG-4).
+6. **A vector takes the point's order** (#2655 item 1; D49): `x`/`y`/`z`, then `displacement`,
+   then its content, coordinate by coordinate, with `w0202` for content they override entirely.
+   A vector's value changes where both are written, and so does what a drag writes: a changeset.
+7. **A written `xs` ranks with `coords`** (#2655 item 2): it is the whole value, so it comes before
+   the content, with `w0202` when it overrides it entirely.
+8. **`$slider.items` of a `from`/`to`/`step` slider is the values it steps through** (#2581 item
+   4), as a list, as it is for a slider given its items. It can then take an index (#2581 item 5).
 

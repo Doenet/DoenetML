@@ -366,8 +366,8 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     content whatever form it takes; a point holding a value reference to a list entry past the end
     or blank, or to a missing point (`<point>$ml[3]</point>`, `<point>$Q</point>`), is missing;
     a vector whose `head` or `tail` names nothing is missing while it uses it. **Left** (#2655):
-    a vector's `x`/`y`/`z` come after its content (for a decision: recommended the point's
-    order), a written `xs` after the content, a whole reference to a vector missing by its
+    a vector's `x`/`y`/`z` come after its content (decided, D67: the point's order), a written
+    `xs` after the content (decided: it ranks with `coords`), a whole reference to a vector missing by its
     endpoints doesn't make a point missing, and `<latex>` of a missing child is `""`.
 - **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
   `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
@@ -412,7 +412,9 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     of it and a `<number>` computed from it are `＿` (they read `NaN`). An unlinked `copy` made
     while the property had a value keeps it;
   - **fixed by #2572** (closing #2545): `$slider.items` is a `<numberList>` or `<textList>`, and
-    `$P.scales` and `$sort.sortByComponent` are not properties (`w0104`).
+    `$P.scales` and `$sort.sortByComponent` are not properties (`w0104`); decided (D67 decision 8,
+    #2581 item 4): a slider given by `from`/`to`/`step` lists the values it steps through, and
+    `$slider.items[2]` takes an index (it is `w0100` today, #2581 item 5).
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
   nothing, not a right angle. 0.7 documents are not converted (the changeset says to add
