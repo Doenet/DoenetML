@@ -43,6 +43,19 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws a math list as the text of its entries, and an entry as a math (ADR 0041)", async () => {
+        const bridge =
+            await load(`<mathList name="ml">x y+1 <number>3</number></mathList>
+<p>$ml[2]</p>`);
+        const root = bridge.flatDast();
+        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
+            { value: "x, y + 1, 3" },
+        ]);
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["y + 1"]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>
@@ -560,6 +573,51 @@ describe("step 3 components", () => {
             creditAchieved: 1,
             numSubmissions: 1,
         });
+    });
+
+    it("presses a call action, which submits the answer it names", async () => {
+        const { props, send, changed } = await open(`
+<answer name="a"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+<callAction target="$a" actionName="submitAnswer"><label>Check it</label></callAction>`);
+        expect(props("callAction")).toEqual({
+            clickAction: "callAction",
+            label: "Check it",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        send("mathInput", "updateValue", { text: "x" });
+        const payload = send("callAction", "callAction", {});
+        expect(changed(payload, "answer")).toEqual({
+            creditAchieved: 1,
+            numSubmissions: 1,
+        });
+    });
+
+    it("presses an update value, and one waiting on a click or a condition", async () => {
+        const { all, props, send, changed } = await open(`
+<graph><point name="P">(1,2)</point></graph>
+<number name="n">0</number><number name="n1">$n + 1</number>
+<number name="m">0</number><number name="m1">$m + 1</number>
+<updateValue target="$n" newValue="$n1"><label>Add</label></updateValue>
+<updateValue target="$m" newValue="$m1" triggerWhenObjectsClicked="$P"/>
+<updateValue target="$m" newValue="$m1" triggerWhen="$n > 1"/>
+<p name="out">$n $m</p>`);
+        // The two pressed otherwise are hidden: one button is sent.
+        expect(all("updateValue")).toHaveLength(1);
+        expect(props("updateValue")).toEqual({
+            clickAction: "updateValue",
+            label: "Add",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        let payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "1" });
+        payload = send("point", "pointClicked", {});
+        expect(changed(payload, "number", 2)).toEqual({ text: "1" });
+        // `n` rises past 1: the condition's button presses as a follow-up.
+        payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "2" });
+        expect(changed(payload, "number", 2)).toEqual({ text: "2" });
     });
 
     it("draws operators as math notation and booleans, without their operands", async () => {

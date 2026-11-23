@@ -97,7 +97,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ComponentType::SearchSorted => Reduction::SearchSorted { right, unsorted },
         _ => unreachable!("<{}> is not planned by this table", ty.tag()),
     };
-    let pieces = attrs.children;
+    let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let mut wiring = ElemWiring::of(ty);
     let value = match (takes_target, attrs.target) {
         (true, None) => {

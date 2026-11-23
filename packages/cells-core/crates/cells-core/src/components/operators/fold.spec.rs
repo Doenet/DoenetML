@@ -121,4 +121,28 @@ spec! {
             "num.expr" = "", "num.value" = f64::NAN, "math.expr" = "", "math.value" = 21,
         }
     }
+
+    case "one operand per entry of a list, and per element child" {
+        doenet r#"<numberList name="l">1 2.5 3</numberList>
+                  <sum name="s">$l 4</sum>
+                  <mean name="m">$l</mean>
+                  <count name="c">$l $l</count>
+                  <sum name="e"><number>3</number><number>17</number><number>5-4</number></sum>
+                  <max name="past">$l[9] 5</max>"#;
+        expect {
+            "s.value" = 10.5, "m.value" = 6.5 / 3.0, "c.value" = 6, "e.value" = 21,
+            "past.value" = 5,
+        }
+    }
+
+    case "an element child or a list's entry that is math makes it symbolic (ADR 0043)" {
+        doenet r#"<mathList name="ml">x y</mathList>
+                  <sum name="s"><math>x</math><number>3</number> 2x</sum>
+                  <sum name="simp" simplify><math>x</math> $ml 2</sum>
+                  <sum name="num"><math>3</math><number>17</number></sum>"#;
+        expect {
+            "s.expr" = "x + 3 + 2 x", "simp.expr" = "2 x + y + 2",
+            "num.expr" = "", "num.value" = 20,
+        }
+    }
 }

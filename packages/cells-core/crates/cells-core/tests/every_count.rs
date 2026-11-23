@@ -410,13 +410,32 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         <number name="c">$r[$k].m[2] + $nl[$k]</number>"#,
     ),
     (
+        // Nested lists spliced, element children, math pieces and math
+        // lists (ADR 0041, step 2), inside a repeat whose count a cell
+        // sets: a list in an iteration reading one outside it, and an
+        // operator one operand per entry.
+        "nested-value-lists",
+        r#"<numberInput name="k" value="1"/>
+        <numberList name="nl">1 $k <number>3</number> 1+1</numberList>
+        <mathList name="ml">x <math>y</math> $nl</mathList>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <numberList name="m" maxNumber="4">$nl $i <numberList>7 8</numberList></numberList>
+          <mathList name="q">$ml[$i] $ml</mathList>
+          <sum name="s">$m $nl[9]</sum>
+          <p>$q $m</p>
+        </repeatForSequence>
+        <math name="c">$ml[1] + $r[$k].q[2]</math>"#,
+    ),
+    (
         // Operators over math (ADR 0043): numeric and symbolic by their
-        // operands, forced, an operand read twice over (a variance's), and
-        // an angle's measure, inside a repeat whose count a cell sets.
+        // operands, forced, an operand read twice over (a variance's),
+        // element children and a list's entries as operands, and an
+        // angle's measure, inside a repeat whose count a cell sets.
         "operators-over-math",
         r#"<numberInput name="k" value="1"/>
         <mathInput name="mi" prefill="x"/>
-        <sum name="s" simplify>$mi 2x $k</sum>
+        <numberList name="nl">1 $k</numberList>
+        <sum name="s" simplify>$mi 2x $k <math>y</math> $nl</sum>
         <variance name="v">$mi $k</variance>
         <abs name="a">$mi</abs><round name="rd" numDecimals="1">$s</round>
         <max name="m" forceSymbolic>$k 3</max><mod name="md">$k 3</mod>

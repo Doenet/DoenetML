@@ -1,7 +1,7 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done, and
-step 2's first piece, with their departures recorded there. Drafted as 0038, and renumbered as `cells`
+step 2's first two pieces, with their departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
@@ -362,23 +362,89 @@ otherwise.
    what its branches hold, so `$tl[$k]` and `$r[$k].t.value` show as
    text, not as a string id. Tested by the three types' specs, `tests/sequence.rs` and a
    `value-lists` document in `tests/every_count.rs`; the golden diff is
-   identical. Left for the next pieces:
+   identical.
 
-   - Decision 5's reading of a list of other than one entry where one
-     value is read: `<math>$l</math>` (a `list` head), `<text>$tl</text>`
-     (joined), `<number>$l</number>` with none (the missing value). Each
-     is refused as an arity mismatch, and its element boxed.
-   - A reference to a list among a list's children contributes one
-     entry, refused as an arity mismatch when it names several; a
-     nested list's entries spliced (`<numberList>$nl 4</numberList>`)
-     need a count only the referent's plan knows.
-   - Element children (`<numberList><number>5</number></numberList>`),
-     and a reference inside brackets, are refused.
-   - A piece of a `<numberList>` that is no plain number (`pi`, `1/2`) is
-     the missing value, not the math it reads as.
-   - `<mathList>`, `<intervalList>`, `<pointList>` of its own points and
-     `<vectorList>`, `mergeMathLists`, `maxNumber`, `unordered` and
-     display settings.
+   *Piece 2, done 2026-11-23.* What a reference contributes among a
+   list's (or an operator's) children is told from the records, never
+   the plans (ADR 0029; `compile/stages/plan/lists.rs`): a reference by
+   a path of names to a value list, in its template or one around it,
+   contributes that list's entries (`Splice::Entries`), each read as
+   `$l[k]`, so a write through one lands where the referent's entry
+   comes from; a literal index past such a list's end contributes none
+   (`Splice::Nothing`); anything else one value, as before. The count is
+   the referent's pieces, its references' contributions in turn and its
+   literal `maxNumber`, a bare copy's its referent's; the read is
+   recorded, so a box it names boxes the reader. A list operator's count
+   follows its children's the same way, as its list declares
+   (`from_children`: as many for `<sort>`, `<shuffle>` and the
+   cumulative operators, one fewer for `<differences>`), so
+   `<differences><cumulativeSum>$nl</cumulativeSum></differences>` reads
+   its entries. `list_entries`
+   (`PlanCtx`) gives the value lists and every operator over a list of
+   operands (`<sum>`, `<mean>`, the cumulative and index operators,
+   `argMin`, `argMax`, `<sort>`) the same entries.
+
+   - Element children of a `children: List` type are outlined as its
+     components and read through a plan naming each
+     (`ListPiece::Element`), as a reference to them is: an entry, or a
+     nested list's entries.
+   - A reference inside brackets makes its piece math text
+     (`ListPiece::Math`); a `<numberList>` piece that is no plain number
+     reads as the math it is (`1+1`, `8/2`, `pi`), `x` and `@` as the
+     missing value.
+   - `<mathList>` (`EntryKind::Math`): a piece is a given expression (a
+     write through its entry lands on it), a reference the expression its
+     one cell stands for, an element child's likewise. A cell that holds
+     math stands for its own expression: a leaf naming it inside math is
+     a math leaf, and a `$ref` child naming it shows as a math
+     (`mathValue`, `TextKind::Held`; the wasm binding's `cell_holds`).
+   - `maxNumber` (literal) on the value lists; `mergeMathLists`
+     (literal) and the one-child rule split a `<math>` child of literal
+     list text (`1,2,3`) into the list's own pieces.
+   - Decision 5 where one value is read: a list of none, or an entry
+     past a list's end, is the missing value (`<number>$empty</number>`);
+     an operator reads one operand per entry.
+
+   Tested by the specs, `tests/value_lists.rs` and a `nested-value-lists`
+   document in `tests/every_count.rs`. Departures:
+
+   - `mergeMathLists` splits only a literal `<math>` child: its items are
+     the list's own pieces, so a write through one lands on the list, not
+     on the `<math>`, which the current core rewrites. A reference to a
+     list-valued math (`<mathList>$lm</mathList>`), and the flag bound to
+     a cell, are left: the first needs the engine's `list` head (decision
+     8), the second is structural (step 4).
+   - An element child of a list or of an operator over a list of
+     operands is an entry (decision 9), where the principles review's
+     COMP-1 refuses an element inside `<math>` or `<number>` content: a
+     list reads its element children as this decision makes them
+     meaningful, and every other value still refuses one. A
+     `mergeMathLists` set by a reference is refused (VAL-7) rather than
+     read as false.
+   - A reference to a list in an iteration (`$r[1].l`), or a `<sequence>`
+     or a sampler among a list's children (`from_children` none), still
+     contributes one value,
+     refused as an arity mismatch when it names several: their counts are
+     structural (step 4).
+
+   Left for the next pieces:
+
+   - `<math>$l</math>` as a `list` head, and `<math>$emptyM + 1</math>`
+     as the blank expression: a math cell holds no `list` or `tuple`
+     (`Engine::parse_tree` refuses them), which decision 8 gives it.
+   - `<text>$tl</text>` joined with commas: a text's value is one string
+     id, and a join of entries a write can change makes a string during
+     a tick, which no operator does. It needs either a text whose value
+     is a sequence of strings, shown joined, or strings made in a tick.
+   - A `<mathInput>` bound to a math entry is numeric, as every bound one
+     is, so a number typed into it is written into a math cell as a
+     handle; an input bound to a cell that holds math needs to write an
+     expression.
+   - `<intervalList>` (intervals), `<pointList>` of its own points and
+     `<vectorList>` (drawn and dragged entries are step 3, and a
+     point's coordinates a capped sequence step 5), `unordered` (a flag
+     on a comparison of two sequences, decision 7) and display settings,
+     which no value of this core rounds yet.
 3. **Entries as rows.** Rows per entry, renderer address `list:k`, targets.
    Test: `listentrytargets.test.ts`, `listcomponentvaluelistgraphs.test.ts`.
 4. **Structural sequences.** `<sequence>`, the samplers, a list with a

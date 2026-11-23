@@ -93,10 +93,11 @@ impl<'c> Stamp<'c> {
             (at, Some(prop)) => {
                 let (targets, label) = self.port_targets(p, at, Some(prop), label, t, Some(1));
                 let target = targets.first().copied().flatten();
-                let is_text = target.is_some_and(|n| self.value_type(n) == PortType::Text);
+                let held = target.map(|n| self.value_type(n));
                 let component_type = match prop.of.shows_as(prop.sel) {
                     Some(role) => role.ty(),
-                    None if is_text => Role::TextValue.ty(),
+                    None if held == Some(PortType::Text) => Role::TextValue.ty(),
+                    None if held == Some(PortType::Math) => Role::MathValue.ty(),
                     None => Role::Value.ty(),
                 };
                 self.place_as(m, component_type, 1);

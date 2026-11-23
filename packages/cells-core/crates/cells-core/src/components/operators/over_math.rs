@@ -12,7 +12,7 @@
 //! `Flow::SymExpr`), or never (`forceNumeric`, no value).
 
 use crate::compile::api::{
-    ChildValue, ElemWiring, ExprId, GivenId, Leaf, ListPiece, PlanCtx, Port, Source, ValueChildren,
+    ChildValue, ElemWiring, ExprId, GivenId, Leaf, ListEntry, PlanCtx, Port, Source, ValueChildren,
     Wire,
 };
 use crate::error::{Error, Result};
@@ -73,21 +73,31 @@ pub(crate) fn value(wiring: &mut ElemWiring, expr: Port, numeric: Wire) -> Wire 
 }
 
 /// The operands of an operator over its children as a list, as math, one
-/// per port `operands` makes, in order: a text piece as math text (a
-/// number's as written), a reference as its leaf.
+/// per entry its children contribute ([`PlanCtx::list_entries`], ADR 0041:
+/// a list a reference or an element child names spliced into its
+/// entries), in order, as `operands` makes a port of each: a text piece as
+/// math text (a number's as written), a reference or an element child as
+/// its leaf, math text with references as parsed.
 pub(crate) fn operand_exprs(
     ctx: &mut PlanCtx<'_, '_>,
-    pieces: &[ListPiece],
+    entries: &[ListEntry],
 ) -> Result<Vec<ExprId>> {
-    pieces
-        .iter()
-        .map(|piece| match piece {
-            ListPiece::Text(text) => ctx.piece_math(text),
-            ListPiece::Reference(p) => Ok(ctx
-                .operand_expr(&Source::reference(*p))
-                .expect("a reference is an operand")),
-        })
-        .collect()
+    entries.iter().map(|entry| entry_expr(ctx, entry)).collect()
+}
+
+/// One entry of an operator's operands as math; text that is no math is
+/// refused.
+pub(crate) fn entry_expr(ctx: &mut PlanCtx<'_, '_>, entry: &ListEntry) -> Result<ExprId> {
+    ctx.entry_math(entry).ok_or_else(|| match entry {
+        ListEntry::Text(_, text) => Error::BadMath {
+            text: text.clone(),
+            reason: format!(
+                "an operand of <{}> that is no math",
+                ctx.component_type().tag()
+            ),
+        },
+        _ => unreachable!("a reference or math text is math"),
+    })
 }
 
 /// The number a planned value is as written: a literal's.

@@ -537,6 +537,7 @@ impl<'c> Builder<'c> {
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
                 referent: Vec::with_capacity(guess),
+                links: Vec::new(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -997,6 +998,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
+        self.resolve_links();
         self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
@@ -1007,6 +1009,24 @@ impl<'c> Builder<'c> {
         }
         self.aggregate_sources();
         self.hold_all()
+    }
+
+    /// What each element's `Component` and `After` attributes name
+    /// (ADR 0040, 0042), resolved in its instance's scope to the component
+    /// table's links. A reference to anything but one component (an
+    /// iteration, a list's entry) names none.
+    fn resolve_links(&mut self) {
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            let tpl = &self.compiled.plans.templates[inst.template.index()];
+            for &(attr, p) in &tpl.plan(inst.elem).links {
+                if let Ok((Resolved::Comp(c), _)) = self.resolve(p, inst.scope) {
+                    self.components.links.push((inst.comp, attr, c));
+                }
+            }
+        }
+        // Stable: each attribute's components stay in the order written.
+        self.components.links.sort_by_key(|&(c, attr, _)| (c, attr));
     }
 
     /// Hold every slot of every element the compile says is held, each by
@@ -1094,11 +1114,12 @@ impl<'c> Builder<'c> {
             }
             (target, Some(prop)) => {
                 let targets = self.port_targets(target, Some(prop), plan, Some(1), scope)?;
-                // A string id shows as a text.
-                let is_text = self.value_type(targets[0]) == ValueType::Text;
+                // A string id shows as a text, a math cell as a math.
+                let held = self.value_type(targets[0]);
                 let component_type = match prop.of.shows_as(prop.sel) {
                     Some(role) => role.ty(),
-                    None if is_text => Role::TextValue.ty(),
+                    None if held == ValueType::Text => Role::TextValue.ty(),
+                    None if held == ValueType::Math => Role::MathValue.ty(),
                     None => Role::Value.ty(),
                 };
                 let value = component_type.scalar_prop().expect("a value");

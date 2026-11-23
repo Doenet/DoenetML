@@ -106,7 +106,7 @@ fn spelled(ty: ComponentType, texts: &[String]) -> Option<String> {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
-    let pieces = attrs.children;
+    let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ty);
     let kind = Kind::forced(attrs.forceSymbolic, attrs.forceNumeric);

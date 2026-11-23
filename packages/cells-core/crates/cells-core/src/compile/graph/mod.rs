@@ -1532,6 +1532,15 @@ impl<'c> Stamp<'c> {
     /// node of that expression: where its type says ([`ExprOf`](crate::components::ExprOf)), when
     /// the port it names is math.
     fn math_target(&self, n: GraphNode) -> Option<GraphNode> {
+        self.expr_target(n)
+            // A math cell that stands for no prop's expression (an entry
+            // of a math list, ADR 0041) is its own.
+            .or_else(|| (self.value_type(n) == PortType::Math).then_some(n))
+    }
+
+    /// The expression node a prop stands for, by its type's
+    /// [`ExprOf`](crate::components::ExprOf).
+    fn expr_target(&self, n: GraphNode) -> Option<GraphNode> {
         let (c, pi) = self.comp_of(n)?;
         let crate::components::ExprOf { at, when } = self.component_type(c).expr_of(pi)?;
         let when = usize::from(when);

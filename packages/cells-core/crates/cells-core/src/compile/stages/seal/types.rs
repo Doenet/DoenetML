@@ -338,6 +338,11 @@ impl<'s, 'a> Types<'s, 'a> {
         if cells.types.len() != 1 {
             return false;
         }
+        // A math cell that stands for no prop's expression (an entry of a
+        // math list, ADR 0041) is its own.
+        if cells.types[0] == PortType::Math {
+            return true;
+        }
         cells.at.iter().any(|&(ct, ce, pi)| {
             let ty = self.row(ct, ce).component_type;
             ty.expr_of(pi)

@@ -31,6 +31,8 @@
 //!   requests; tuples are points dragged together.
 //! - `dropped(n)`: the last tick dropped `n` requests. A tick not followed
 //!   by `dropped` must drop none.
+//! - `act("name", "action")`: one tick carrying out the component's action
+//!   (a press is `"trigger"`, a submit `"submitAnswer"`, ADR 0040).
 //! - `diagnostics["code", ..]`: every diagnostic's code, in order. A case
 //!   without it must load without any, so a warning cannot appear unseen.
 //!   The accessibility lint's are left out: they are about the document a
@@ -107,6 +109,9 @@ pub enum Op {
     Request(Vec<(&'static str, Value)>),
     /// `dropped(n)`: the last tick dropped this many requests.
     Dropped(usize),
+    /// `act("name", "action")`: one tick carrying out a component's
+    /// action (ADR 0040): a press, a submit.
+    Act(&'static str, &'static str),
     /// `diagnostics[..]`: every diagnostic's code, in order.
     Diagnostics(Vec<&'static str>),
 }
@@ -137,6 +142,9 @@ macro_rules! spec_op {
     };
     (dropped ($n:expr)) => {
         $crate::testing::spec::Op::Dropped($n)
+    };
+    (act ($name:literal, $action:literal)) => {
+        $crate::testing::spec::Op::Act($name, $action)
     };
     (diagnostics [ $($code:literal),* $(,)? ]) => {
         $crate::testing::spec::Op::Diagnostics(vec![$($code),*])
@@ -298,6 +306,23 @@ fn run_case(case: &Case) -> Result<String, String> {
                         tick.dropped.len()
                     ));
                 }
+                check_reference(&doc, &at)?;
+            }
+            Op::Act(name, action) => {
+                for (d, which) in [(&mut doc, ""), (&mut pruned, ", pruned")] {
+                    let c = d
+                        .resolve_path(name)
+                        .ok_or_else(|| format!("{at}{which}: no component {name}"))?;
+                    if d.action(c, action).is_none() {
+                        return Err(format!("{at}: {name} has no action {action}"));
+                    }
+                    let tick = d.act(c, action, &[]);
+                    if let Some(e) = &tick.rebuild_error {
+                        return Err(format!("{at}{which}: the rebuild failed: {e}"));
+                    }
+                }
+                check_reference(&pruned, &format!("{at}, pruned"))?;
+                agree(&doc, &pruned, &at)?;
                 check_reference(&doc, &at)?;
             }
             Op::Dropped(_) => {

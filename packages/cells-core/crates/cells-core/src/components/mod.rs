@@ -116,6 +116,8 @@ component_types! {
     NumberList => values::number_list::DEFINITION,
     TextList => values::text_list::DEFINITION,
     BooleanList => values::boolean_list::DEFINITION,
+    MathList => values::math_list::DEFINITION,
+    MathValue => values::math_value::DEFINITION,
     P => containers::p::DEFINITION,
     ShortDescription => containers::short_description::DEFINITION,
     Error => containers::error::DEFINITION,
@@ -147,8 +149,8 @@ component_types! {
     Row => containers::row::DEFINITION,
     Cell => containers::cell::DEFINITION,
     Legend => containers::legend::DEFINITION,
-    TriggerSet => containers::trigger_set::DEFINITION,
-    UpdateValue => values::update_value::DEFINITION,
+    TriggerSet => inputs::trigger_set::DEFINITION,
+    UpdateValue => inputs::update_value::DEFINITION,
     ClampNumber => values::clamp_number::DEFINITION,
     Tuple => values::tuple::DEFINITION,
     RepeatFor => structure::repeat_for::DEFINITION,
@@ -264,6 +266,7 @@ component_types! {
     EquilibriumLine => geometry::equilibrium_line::DEFINITION,
     Endpoint => geometry::endpoint::DEFINITION,
     Parabola => geometry::parabola::DEFINITION,
+    CallAction => inputs::call_action::DEFINITION,
     FractionInput => inputs::fraction_input::DEFINITION,
     FractionInputPart => inputs::fraction_input::part::DEFINITION,
     ;
@@ -437,6 +440,25 @@ impl ComponentType {
     pub fn list_entry(self) -> Option<EntryKind> {
         match self.list()?.points {
             ListPoints::Given { entry, .. } => Some(entry),
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// The attribute whose literal number cuts a value list's entries
+    /// (`maxNumber`), if the type declares one.
+    pub(crate) fn list_max_attr(self) -> Option<crate::compile::api::Attr> {
+        match self.list()?.points {
+            ListPoints::Given { max_by, .. } => max_by,
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// How many fewer entries the type's list has than its children
+    /// contribute, when its count follows its children's (a value list's,
+    /// a `<sort>`'s, a `<cumulativeSum>`'s, one for a `<differences>`).
+    pub(crate) fn list_from_children(self) -> Option<u8> {
+        match self.list()?.points {
+            ListPoints::Given { from_children, .. } => from_children,
             ListPoints::Table(_) => None,
         }
     }
@@ -1114,11 +1136,11 @@ mod tests {
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
-        // 23: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
-        // `Inner::port`, for the inputs a type owns. 26: ADR 0043 added
-        // `operand_expr`, `piece_math` and `operator_expr`, for operators
-        // over math.
-        const PLAN_CTX_METHODS: usize = 26;
+        // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
+        // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
+        // entries and an entry read as math. 27: ADR 0043 added
+        // `operand_expr` and `operator_expr`, for operators over math.
+        const PLAN_CTX_METHODS: usize = 27;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1283,8 +1305,6 @@ mod tests {
             Row,
             Cell,
             Legend,
-            TriggerSet,
-            UpdateValue,
             ClampNumber,
             RepeatFor,
             FunctionIterates,

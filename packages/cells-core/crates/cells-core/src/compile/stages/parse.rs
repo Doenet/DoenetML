@@ -32,6 +32,18 @@ impl Parsed {
     }
 }
 
+impl Parsed {
+    /// Element `e`'s record, borrowed; none for one whose record did not
+    /// parse or was never parsed.
+    pub(in crate::compile) fn record_ref(
+        &self,
+        t: TemplateId,
+        e: ElemId,
+    ) -> Option<&record::Record> {
+        self.records.get(&(t, e))?.as_ref().ok()
+    }
+}
+
 /// Parse every `<math>`'s text once, as outlining settled its type, and
 /// the record of every element in `to_plan`, each where it sits, appending
 /// their references to `ar`.

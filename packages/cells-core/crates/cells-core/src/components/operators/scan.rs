@@ -26,7 +26,7 @@ component! {
     list {
         names: [numbers, values],
         item: number,
-        values: number of Number,
+        values: number of Number, entries: children,
         rendered: true,
     }
     alternate_names {
@@ -44,7 +44,8 @@ pub(crate) const CUMULATIVE_MIN: ComponentDef = DEFINITION.with_tags(&["cumulati
 pub(crate) const CUMULATIVE_MAX: ComponentDef = DEFINITION.with_tags(&["cumulativeMax"]);
 /// `<differences>`: each operand less the one before it, one fewer than
 /// its operands.
-pub(crate) const DIFFERENCES: ComponentDef = DEFINITION.with_tags(&["differences"]);
+pub(crate) const DIFFERENCES: ComponentDef =
+    DEFINITION.with_tags(&["differences"]).with_entries_less(1);
 
 /// What a type of this table computes over its operands' prefixes.
 fn scan(ty: ComponentType) -> Scan {
@@ -63,7 +64,7 @@ fn scan(ty: ComponentType) -> Scan {
 /// it has no entries.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
-    let pieces = Attrs::of(ctx.record()).children;
+    let pieces = ctx.list_entries(Attrs::of(ctx.record()).children, f64::INFINITY)?;
     let op = VecOp::Scan {
         op: scan(ty),
         n: byte(pieces.len().min(u8::MAX as usize)),

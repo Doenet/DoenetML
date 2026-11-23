@@ -55,9 +55,11 @@ fn census() {
     // Since a `fixed` holds cells rather than rewriting plans (ADR 0022,
     // amended), a literal under a literal `fixed` is an author's value like
     // any other, which the classing makes a constant: five in the golden
-    // set and one in `sir.doenet` count here and not below.
+    // set and one in `sir.doenet` count here and not below. Since a
+    // button has a `hide` (ADR 0042), `sir.doenet`'s `<triggerSet>` and
+    // its seven `<updateValue>`s count one literal default each.
     assert_eq!(golden.0, 241, "the golden set as Context counted it");
-    assert_eq!(sir.0, 630, "sir.doenet as Context counted it");
+    assert_eq!(sir.0, 638, "sir.doenet as Context counted it");
     assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
     assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
 }

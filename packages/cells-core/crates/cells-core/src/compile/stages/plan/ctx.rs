@@ -1,6 +1,7 @@
 //! [`PlanCtx`]: what every component planner is given.
 
-use super::Planning;
+use super::{ListEntry, Planning};
+use crate::compile::ir::record::ListPiece;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
@@ -149,7 +150,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.p.plan_value_children(self.t, scope, v)
+        self.p.plan_value_children(self.t, self.e, scope, v)
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
@@ -275,6 +276,34 @@ impl<'a> PlanCtx<'_, 'a> {
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
 
+    /// The entries the children `pieces` of a list (or an operator)
+    /// contribute, in order, at most `max` (ADR 0041, decision 9): each
+    /// reference or element child naming a static sequence spliced into
+    /// its entries, one naming an entry past such a list's end dropped,
+    /// and math text with references inside its brackets parsed.
+    pub(crate) fn list_entries(
+        &mut self,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<ListEntry>> {
+        self.p.list_entries(self.t, self.e, pieces, max)
+    }
+
+    /// An entry of a list read as math: a piece of text as written
+    /// (`1+1`, `pi`, `x`), none when it is no math; a reference alone, its
+    /// one cell or the expression that cell stands for.
+    pub(crate) fn entry_math(&mut self, entry: &ListEntry) -> Option<ExprId> {
+        match entry {
+            ListEntry::Text(_, text) => self.p.text_math(text),
+            ListEntry::Math(id) => Some(*id),
+            ListEntry::Ref(p) => {
+                let id = self.p.ar.arena.push(Expr::Cell(*p));
+                self.p.ar.sym_text.insert(id, SymText::Leaf(*p));
+                Some(id)
+            }
+        }
+    }
+
     /// Warns that the element cannot be what its attributes ask, with a
     /// diagnostic code and message. What the planner cannot define is
     /// [`Wire::undefined`] of what this returns.
@@ -301,24 +330,6 @@ impl<'a> PlanCtx<'_, 'a> {
             }
             _ => return None,
         })
-    }
-
-    /// A text piece of a list (`2x`, `6/2`) as math text: an expression,
-    /// its text kept for the symbolic engine. A piece has no reference: a
-    /// reference is a piece of its own.
-    pub(crate) fn piece_math(&mut self, text: &str) -> Result<ExprId> {
-        let bad = |reason: String| Error::BadMath {
-            text: text.to_string(),
-            reason,
-        };
-        let mut toks = Vec::new();
-        expr::tokenize(text, &mut toks).map_err(bad)?;
-        let ar = &mut self.p.ar;
-        // A new node, whatever the arena folded it to (`6/2` is 3), so the
-        // text is its own.
-        let id = Parser::parse(&toks, &mut ar.arena).map_err(bad)?;
-        ar.sym_text.insert(id, SymText::Spelled(text.to_string()));
-        Ok(id)
     }
 
     /// An operator over math `args` that only the symbolic engine computes

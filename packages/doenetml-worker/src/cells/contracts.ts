@@ -210,6 +210,21 @@ function valueList(show: (r: Reads, cell: number) => string): Contract {
     };
 }
 
+/** What a cell of a math list's entry holds, as text: its expression (the
+ * blank one for none), or the number an entry aliasing one holds. */
+function heldText(r: Reads, cell: number): string {
+    const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) !== "math") return formatNumber(v, null);
+    return Number.isNaN(v) ? BLANK : r.table.core.expr_text(cell);
+}
+
+/** `heldText` as LaTeX. */
+function heldLatex(r: Reads, cell: number): string {
+    const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) !== "math") return numberLatex(v);
+    return Number.isNaN(v) ? BLANK : r.table.core.expr_latex(cell);
+}
+
 /** A list of numbers, drawn as the text of its entries. */
 const NUMBER_LIST = valueList((r, cell) => formatNumber(r.cell(cell), null));
 
@@ -1196,6 +1211,41 @@ export const CONTRACTS: Record<string, Contract> = {
         name: () => "mathInput",
         props: (r, c, inGraph) => CONTRACTS.mathInput.props!(r, c, inGraph),
     },
+    // A button calling another component's action (ADR 0040), carried out
+    // by the core as the action `trigger`; its `<label>` is its text.
+    callAction: {
+        props: (r, c) => ({
+            clickAction: "callAction",
+            label: label(r.table, c),
+            labelHasLatex: false,
+            disabled: false,
+        }),
+        noChildren: true,
+    },
+    // A button setting another component's value, the same way; inside a
+    // `<triggerSet>` it is what the set does, not what it shows.
+    updateValue: {
+        props: (r, c) => ({
+            clickAction: "updateValue",
+            label: label(r.table, c),
+            labelHasLatex: false,
+            disabled: false,
+        }),
+        noChildren: true,
+    },
+    // A math list (ADR 0041) is drawn as the other value lists are, as the
+    // text of its entries; an entry read by itself (`$ml[2]`) is a math.
+    mathList: valueList((r, cell) => heldText(r, cell)),
+    mathValue: {
+        name: () => "math",
+        props: (r, c) => {
+            const cell = r.table.cell(c, "value");
+            return {
+                latex: cell === undefined ? BLANK : heldLatex(r, cell),
+                renderMode: "inline",
+            };
+        },
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -1284,7 +1334,6 @@ export const OMITTED = new Set([
     "setup",
     "label",
     "shortDescription",
-    "updateValue",
     "mrow",
     // `<xLabel>` and `<yLabel>`: the prototype's graph draws no axis
     // labels.

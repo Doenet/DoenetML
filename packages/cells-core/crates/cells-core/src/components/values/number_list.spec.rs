@@ -72,4 +72,44 @@ spec! {
                   <number name="x">$c[3]</number>"#;
         expect { "c.numbers" = [1, 2, 3], "x.value" = 3 }
     }
+
+    case "a piece that is math reads as the number it is" {
+        doenet r#"<numberList name="l">5 1+1 8/2 pi @</numberList>"#;
+        expect { "l.numbers" = [5.0, 2.0, 4.0, std::f64::consts::PI, f64::NAN] }
+    }
+
+    case "an element child is an entry" {
+        doenet r#"<numberList name="l">-1 <number>5</number> 9 <math>1+1</math></numberList>"#;
+        expect { "l.numbers" = [-1, 5, 9, 2], "l.numComponents" = 4 }
+    }
+
+    case "a nested list's entries are spliced, and a write through one goes to its source" {
+        doenet r#"<numberList name="a">1 2</numberList>
+                  <numberList name="l">$a 3 <numberList>4 5</numberList></numberList>
+                  <mathInput name="mi" bindValueTo="$l[2]"><label>m</label></mathInput>"#;
+        expect { "l.numbers" = [1, 2, 3, 4, 5], "l.numComponents" = 5 }
+        request { "mi.value" = 7 }
+        expect { "a.numbers" = [1, 7], "l.numbers" = [1, 7, 3, 4, 5] }
+    }
+
+    case "maxNumber keeps the whole entries below it" {
+        doenet r#"<numberList name="l" maxNumber="2.5">1 2 3</numberList>
+                  <numberList name="z" maxNumber="-1">1 2</numberList>
+                  <numberList name="m" maxNumber="3">$l 7 8</numberList>"#;
+        expect {
+            "l.numbers" = [1, 2], "z.numComponents" = 0, "m.numbers" = [1, 2, 7],
+        }
+    }
+
+    case "an entry past the end of a list adds none" {
+        doenet r#"<numberList name="a">7 8</numberList>
+                  <numberList name="l">$a[1] $a[5] 9</numberList>"#;
+        expect { "l.numbers" = [7, 9] }
+    }
+
+    case "a reference inside brackets is part of its piece's math" {
+        doenet r#"<number name="a">2</number>
+                  <numberList name="l">($a+1) 5</numberList>"#;
+        expect { "l.numbers" = [3, 5] }
+    }
 }

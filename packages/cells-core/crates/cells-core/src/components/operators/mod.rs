@@ -37,7 +37,7 @@ pub(crate) mod scan;
 pub(crate) mod sort;
 
 use crate::compile::api::{
-    ChildValue, ElemWiring, GivenId, ListPiece, PlanCtx, Port, Source, ValueChildren, Wire,
+    ChildValue, ElemWiring, GivenId, ListEntry, PlanCtx, Port, Source, ValueChildren, Wire,
 };
 use crate::error::{Error, Result};
 use crate::limits::MAX_VEC_IN;
@@ -81,18 +81,20 @@ pub(crate) enum PieceKind {
 }
 
 /// The operands of an operator over its children as a list (ADR 0041): a
-/// hidden port per piece, a text piece a number (or a boolean) and a
-/// reference an alias of what it names, in order. A literal is `given`
-/// (state a request may write) when `given`, else a constant. Text that is
-/// no literal is, for an operator over math ([`PieceKind::Math`]), math
-/// text (`6/2`, `x`): lowered when it is numeric, else no value, as the
-/// element is then symbolic (ADR 0043) and reads it as math
-/// ([`over_math::operand_exprs`]). Otherwise it is refused, as is more
-/// than an instruction reads.
+/// hidden port per entry they contribute ([`PlanCtx::list_entries`]: one
+/// per entry of a list a reference or an element child names, decision
+/// 5), a text piece a number (or a boolean) and a reference an alias of
+/// what it names, in order. A literal is `given` (state a request may
+/// write) when `given`, else a constant. Text that is no literal, and math
+/// with a reference inside its brackets, is, for an operator over math
+/// ([`PieceKind::Math`]), math (`6/2`, `x`): lowered when it is numeric,
+/// else no value, as the element is then symbolic (ADR 0043) and reads it
+/// as math ([`over_math::operand_exprs`]). Otherwise it is refused, as is
+/// more than an instruction reads.
 pub(crate) fn operands(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
-    pieces: Vec<ListPiece>,
+    pieces: Vec<ListEntry>,
     kind: PieceKind,
     given: bool,
 ) -> Result<Vec<Port>> {
@@ -105,11 +107,17 @@ pub(crate) fn operands(
     }
     pieces
         .into_iter()
-        .enumerate()
-        .map(|(k, piece)| {
+        .map(|piece| {
             let wire = match piece {
-                ListPiece::Reference(p) => Source::reference(p).into(),
-                ListPiece::Text(text) => {
+                ListEntry::Ref(p) => Source::reference(p).into(),
+                ListEntry::Math(id) if matches!(kind, PieceKind::Math) => Source::math(id).into(),
+                ListEntry::Math(_) => {
+                    return Err(Error::Unsupported(format!(
+                        "a reference inside brackets among the operands of <{}>",
+                        ctx.component_type().tag()
+                    )));
+                }
+                ListEntry::Text(k, text) => {
                     let v = match kind {
                         PieceKind::Number | PieceKind::Math => {
                             text.parse::<f64>().ok().filter(|v| !v.is_nan())
@@ -122,7 +130,7 @@ pub(crate) fn operands(
                     };
                     let Some(v) = v else {
                         if let PieceKind::Math = kind {
-                            let id = ctx.piece_math(&text)?;
+                            let id = over_math::entry_expr(ctx, &ListEntry::Text(k, text))?;
                             return Ok(wiring.hidden_wire(Source::math(id).into()));
                         }
                         return Err(Error::Unsupported(format!(
@@ -131,7 +139,7 @@ pub(crate) fn operands(
                         )));
                     };
                     if given {
-                        Wire::given(GivenId::Children(k as u32), v)
+                        Wire::given(GivenId::Children(k), v)
                     } else {
                         Wire::constant(v)
                     }

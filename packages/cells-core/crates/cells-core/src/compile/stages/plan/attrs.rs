@@ -120,7 +120,7 @@ impl<'a> Planning<'a> {
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(t, scope, &children)?,
+                    _ => self.plan_value_children(t, e, scope, &children)?,
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
@@ -147,11 +147,20 @@ impl<'a> Planning<'a> {
     pub(super) fn plan_value_children(
         &mut self,
         t: TemplateId,
+        e: ElemId,
         scope: ElemId,
         v: &ValueChildren,
     ) -> Result<Source> {
         Ok(match &v.value {
-            ChildValue::Reference(p) => Source::reference(*p),
+            // A list of no entries, or an entry past a list's end, is
+            // the missing value where one value is read (ADR 0041,
+            // decision 5).
+            ChildValue::Reference(p) => match self.splice(t, e, *p) {
+                super::lists::Splice::Entries(0) | super::lists::Splice::Nothing => {
+                    Source::absent()
+                }
+                _ => Source::reference(*p),
+            },
             ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
                 literal_value(text.trim()).expect("a literal")
             }

@@ -139,8 +139,8 @@ pub use compile::lint::lint;
 pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
-    Built, CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings, NONE,
-    TEXT_BIT,
+    ActionView, Built, CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings,
+    NONE, TEXT_BIT,
 };
 pub use error::{Error, Result};
 pub use program::ValueType;

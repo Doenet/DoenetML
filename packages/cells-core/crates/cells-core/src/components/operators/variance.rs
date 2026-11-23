@@ -72,7 +72,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ty);
-    let pieces = attrs.children;
+    let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
     // Over math, a population written as a literal: the expression's
     // shape depends on it.
     let population = over_math::literal(&attrs.population).map(|v| v != 0.0);
