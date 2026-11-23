@@ -149,6 +149,29 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
 
+/// An author's `<document>` with such an attribute cannot be boxed, since
+/// it is the root: the attribute is a warning and ignored (DIAG-5), and
+/// the document loads with its content (once a panic in the check's and
+/// the build's aggregates).
+#[test]
+fn a_document_with_an_attribute_nothing_reads_warns_and_loads() {
+    let src = r#"<document lang="es"><table name="t"/><answer>x</answer></document>"#;
+    let doc = load(src).unwrap();
+    assert!(
+        errors(doc.diagnostics()).is_empty(),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.code == "cells-unsupported-attribute" && d.message.contains("'lang'")),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
 /// Every element with such an attribute is reported in one load, each on
 /// its own node, and a boxed element's descendants are not reported for
 /// the attributes its planner never ran to read.

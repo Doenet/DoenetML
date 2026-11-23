@@ -306,5 +306,76 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
+    // The inputs the element owns (ADR 0045).
+
+    /// The `k`-th input the element owns, as its type declares them
+    /// (`inner { .. }`): among the element's children of its type, the one
+    /// in its place, the normalizer's or one outlining made.
+    pub(crate) fn inner(&self, k: usize) -> Result<Inner> {
+        let missing = || Error::Internal("an owned input outlining did not make".into());
+        let decls = self.elem().component_type.inner();
+        let decl = decls.get(k).ok_or_else(missing)?;
+        let nth = decls[..k].iter().filter(|i| i.ty == decl.ty).count();
+        self.p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .filter(|&x| self.p.rd.elem(self.t, x).component_type == decl.ty)
+            .nth(nth)
+            .map(Inner)
+            .ok_or_else(missing)
+    }
+
+    /// Plans owned input `inner` with `wiring`: the one plan a planner
+    /// writes besides its element's, since nothing else plans it.
+    pub(crate) fn plan_inner(&mut self, inner: Inner, wiring: ElemWiring) {
+        let (props, list) = wiring.finish();
+        let plan = &mut self.p.tables[self.t.index()].plans[inner.0.index()];
+        plan.props = props;
+        plan.list = list;
+    }
+
+    /// The expression `num / den` over two expressions the owned inputs
+    /// hold (a port each, a math cell): a math cell, never lowered.
+    pub(crate) fn inner_quotient(&mut self, num: (Inner, Port), den: (Inner, Port)) -> Source {
+        let mut leaf = |(inner, port): (Inner, Port)| {
+            let ty = self.p.rd.elem(self.t, inner.0).component_type;
+            let plan = RefPlan {
+                hops: 0,
+                steps: vec![Step::Elem(inner.0)],
+                prop: Some(RefProp::of(
+                    ty,
+                    crate::components::PropSel::At(crate::components::PropAt::Position(
+                        port.index(),
+                    )),
+                )),
+                entries: Vec::new(),
+                display: RefDisplay::Spelled(format!("(owned <{}>)", ty.tag()).into()),
+                node: NodeId::NONE,
+            };
+            let r = self.p.ar.push_ref(plan);
+            (r, self.p.ar.arena.push(Expr::Cell(r)))
+        };
+        let ((ra, a), (rb, b)) = (leaf(num), leaf(den));
+        let id = self.p.ar.arena.push(Expr::Div(a, b));
+        // The engine's text, each leaf written `cellN<plan>`, which it
+        // parses when the element expands.
+        let name = |r: RefId| crate::sym::engine::leaf_name(r.get(), false);
+        let text = format!("( {} ) / ( {} )", name(ra), name(rb));
+        self.p.ar.sym_text.insert(id, SymText::Spelled(text));
+        Source::sym_expr(id, crate::program::Post::None)
+    }
+
     // Machinery several components build on.
+}
+
+/// An input an element owns (ADR 0045), as [`PlanCtx::inner`] finds it.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Inner(ElemId);
+
+impl Inner {
+    /// Its port `port`, read by the owner.
+    pub(crate) fn port(self, port: Port) -> Source {
+        Source::alias(Arg::Elem(self.0, port))
+    }
 }

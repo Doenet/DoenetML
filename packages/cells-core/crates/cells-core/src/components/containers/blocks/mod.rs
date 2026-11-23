@@ -10,10 +10,11 @@
 //! the current core); a proof, a solution or a figure numbers its own
 //! sections from 1 and takes no number among its siblings.
 //!
-//! A figure's number ("Figure 2") and a footnote's (its marker 3) run through the
-//! whole document, apart from the sections, in the current core; the core
-//! here numbers a component only among its sibling sections
-//! ([`Numbered`](crate::components::Numbered)), so neither is numbered.
+//! A figure's number ("Figure 2", shared with the tables) and a footnote's
+//! (its marker 3) run through the whole document, apart from the sections:
+//! each declares the counter it advances
+//! ([`Counted`](crate::components::Counted)), and the document counts
+//! when it is asked (ADR 0044).
 
 use super::super::define::*;
 
@@ -126,10 +127,15 @@ pub(crate) mod figure {
     use super::*;
 
     component! {
-        /// `<figure>`: its content, then its `<caption>` under the word
-        /// "Figure". Unnumbered here (see the module).
+        /// `<figure>`: its content, then its `<caption>` under its name,
+        /// "Figure 2", its number shared with the tables (ADR 0044) unless
+        /// `number="false"`.
         tags: ["figure"],
         flags: [container],
+        counted: Figures(number),
+        props {
+            number: attr(1.0) { rendered },
+        }
         presentation { suppressFigureNameInCaption }
         planner: Props,
     }
@@ -166,10 +172,12 @@ pub(crate) mod footnote {
     use super::*;
 
     component! {
-        /// `<footnote>`: a marker in the text whose content is shown on
-        /// demand. Unnumbered here (see the module).
+        /// `<footnote>`: a marker in the text, its number among the
+        /// document's footnotes (ADR 0044), whose content is shown on
+        /// demand.
         tags: ["footnote"],
         flags: [container],
+        counted: Footnotes,
         planner: Props,
     }
 }

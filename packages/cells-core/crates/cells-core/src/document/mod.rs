@@ -17,6 +17,7 @@ use crate::program::{Program, SymRun, SymState, ValueType};
 use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
+mod counters;
 mod interactive;
 mod load;
 mod outputs;

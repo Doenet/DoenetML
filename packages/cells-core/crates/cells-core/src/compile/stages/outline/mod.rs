@@ -6,6 +6,7 @@
 mod answer;
 mod choice;
 mod copies;
+mod inner;
 
 use crate::compile::*;
 
@@ -117,6 +118,7 @@ impl<'a> Outlining<'a> {
         }
         crate::trace::span("extends").run(|| self.plan_extends());
         crate::trace::span("answer children").run(|| self.add_answer_children());
+        crate::trace::span("inner inputs").run(|| self.add_inner_inputs());
     }
 
     /// What outlining has settled so far, read-only: what the readers read.
@@ -402,13 +404,14 @@ impl<'a> Outlining<'a> {
             // Children the type reads (`children:`, ADR 0034) are parsed
             // into its record, not built: a number's value, a point's
             // constraints. Its presentational children (`<label>`) are
-            // components all the same, for the renderer to read (ADR 0024).
+            // components all the same, for the renderer to read (ADR 0024),
+            // and so are the inputs it owns (ADR 0045), which it plans.
             _ if !component_type.def().children.built() => {
                 let presentational: Vec<NodeId> = d
                     .children(el)
                     .iter()
                     .copied()
-                    .filter(|&n| self.rd().is_presentation_child(n))
+                    .filter(|&n| self.rd().is_presentation_child(n) || self.rd().is_owned_input(n))
                     .collect();
                 if !presentational.is_empty() {
                     let kids = self.add_children(t, Some(e), child_scope, &presentational);

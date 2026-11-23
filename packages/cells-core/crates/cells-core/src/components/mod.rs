@@ -264,6 +264,8 @@ component_types! {
     EquilibriumLine => geometry::equilibrium_line::DEFINITION,
     Endpoint => geometry::endpoint::DEFINITION,
     Parabola => geometry::parabola::DEFINITION,
+    FractionInput => inputs::fraction_input::DEFINITION,
+    FractionInputPart => inputs::fraction_input::part::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -805,6 +807,11 @@ impl ComponentType {
         self.def().response
     }
 
+    /// The inputs a component of the type owns ([`InnerInput`], ADR 0045).
+    pub fn inner(self) -> &'static [InnerInput] {
+        self.def().inner
+    }
+
     /// How a component of the type shows in text; None for its children's
     /// text.
     pub fn text_kind(self) -> Option<TextKind> {
@@ -1107,7 +1114,9 @@ mod tests {
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
-        const PLAN_CTX_METHODS: usize = 19;
+        // 23: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
+        // `Inner::port`, for the inputs a type owns.
+        const PLAN_CTX_METHODS: usize = 23;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1265,7 +1274,6 @@ mod tests {
             InlineMath,
             DisplayMath,
             MathRow,
-            Aside,
             SideBySide,
             Stack,
             Tabular,

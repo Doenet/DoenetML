@@ -254,18 +254,7 @@ pub(crate) mod math_row {
     }
 }
 
-pub(crate) mod aside {
-    use super::*;
-
-    component! {
-        /// `<aside>`: a collapsible block whose `<title>` is the summary.
-        /// The renderer reads `startOpen`; the parser, `postponeRendering`.
-        tags: ["aside"],
-        flags: [container],
-        presentation { startOpen, postponeRendering }
-        planner: Props,
-    }
-}
+pub(crate) mod aside;
 
 pub(crate) mod side_by_side {
     use super::*;
