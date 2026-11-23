@@ -1,6 +1,9 @@
-three points: the angle at the second, following them: cells 16 · essential 10 · constant 4 · instrs 2 · components 7
-the reflex choice: cells 14 · essential 0 · constant 14 · instrs 0 · components 4
-a measure in radians, in degrees, or as children: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
+three points: the angle at the second, following them: cells 17 · essential 10 · constant 5 · instrs 2 · components 7
+the reflex choice: cells 15 · essential 0 · constant 15 · instrs 0 · components 4
+a measure in radians, in degrees, or as children: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
 degrees from a number follow it, and an input on them writes it: cells 6 · essential 1 · constant 4 · instrs 1 · components 4
-fewer than three points and no measure: a right angle: cells 6 · essential 0 · constant 6 · instrs 0 · components 3
+fewer than three points and no measure: a right angle: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
 between lines is not supported: cells 10 · essential 8 · constant 2 · instrs 0 · components 4
+a measure written as math is an expression, kept as written (ADR 0043): cells 17 · essential 0 · constant 17 · instrs 0 · components 6
+a number, or points: no expression: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
+a reference to an expression: one, following it: cells 7 · essential 1 · constant 2 · instrs 4 · components 4
