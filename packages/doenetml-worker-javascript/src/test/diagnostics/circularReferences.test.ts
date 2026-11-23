@@ -1704,6 +1704,84 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
         });
     }
 
+    // The same containers, holding the point `b` itself (written with
+    // `extend` or `copy`) in place of `$b`: what holds `b` holds a's label
+    // (`heldNode`), so `b` and `$q` are each `doenet-e0005`. And with the
+    // label holding an award whose `<when>` reads `$b`, which reads b's
+    // value, not its label: not a cycle.
+    const award =
+        '<answer><mathInput/><award name="w"><when>$b=1</when></award></answer>';
+    for (const [tag, written] of containers) {
+        for (const how of ["extend", "copy"]) {
+            const point = `<point name="b" ${how}="$a"/>`;
+            const held = written
+                .replace("$b", point)
+                .replace(
+                    "GRAPH",
+                    '<graph><point name="a"><label>$q</label></point></graph>',
+                );
+            it(`a ${tag} holding a point written with ${how} whose label holds the ${tag} is an error at load`, async () => {
+                const backstopWas = setLoadCycleBackstop(false);
+                try {
+                    const { core } = await createTestCore({
+                        doenetML: held,
+                    });
+                    expect(errorsAt(core)).eqls(at(held, [point, "$q"]));
+                } finally {
+                    setLoadCycleBackstop(backstopWas);
+                }
+            });
+            const notACycle =
+                award +
+                written
+                    .replace("$b", point)
+                    .replace(
+                        "GRAPH",
+                        '<graph><point name="a"><label>$w</label></point></graph>',
+                    );
+            it(`a ${tag} holding a point written with ${how} read by an award its target's label holds is not a cycle`, async () => {
+                const { core } = await createTestCore({ doenetML: notACycle });
+                expect(errorsAt(core)).eqls([]);
+            });
+        }
+    }
+
+    // A reference to a container written in it holds itself. It was an
+    // error at load before these containers were listed, but in a
+    // `<solution>` or a `<givenAnswer>`, where nothing was reported.
+    for (const [tag, doenetML] of [
+        ["hint", '<hint name="h"><p>$h</p></hint>'],
+        ["solution", '<solution name="h"><p>$h</p></solution>'],
+        ["givenAnswer", '<givenAnswer name="h"><p>$h</p></givenAnswer>'],
+        ["table", '<table name="h"><p>$h</p></table>'],
+        ["stack", '<stack name="h"><p>$h</p></stack>'],
+        ["figure", '<figure name="h"><p>$h</p></figure>'],
+        ["cell", '<tabular><row><cell name="h">$h</cell></row></tabular>'],
+        ["caption", '<figure><caption name="h">$h</caption></figure>'],
+        [
+            "feedback",
+            '<feedback name="h" condition="true"><p>$h</p></feedback>',
+        ],
+        ["sideBySide", '<sideBySide name="h"><p>$h</p></sideBySide>'],
+        [
+            "description",
+            '<mathInput><description name="h"><p>$h</p></description></mathInput>',
+        ],
+        ["asList", '<asList name="h"><text>a</text>$h</asList>'],
+        ["ref", '<ref name="h" to="https://doenet.org">a $h</ref>'],
+    ]) {
+        it(`a reference to a ${tag} written in it is an error at load`, async () => {
+            const backstopWas = setLoadCycleBackstop(false);
+            try {
+                const { errors, rest } = await errorsAndRest(doenetML);
+                expect(errors).eqls(at(doenetML, ["$h"]));
+                expect(rest).eq("rest");
+            } finally {
+                setLoadCycleBackstop(backstopWas);
+            }
+        });
+    }
+
     // Whether a component is fixed, or its location is, reads its own
     // `fixed` (or `fixLocation`) and that of each component it is written
     // in. The load check followed only `hidden`, so the backstop blamed one
@@ -1752,9 +1830,10 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
     // of, and what holds it as content copies it, label and all: `$q` in
     // a's label, with `q` holding `b`, holds itself. Each was an error at
     // load before a tag written with `extend` stopped copying its target's
-    // label by where it is written, which left the `<p>` ones to the
-    // run-time backstop and the `copy` ones hanging the worker; the
-    // `<cell>` and `<hint>` ones with `copy` hung before this PR too.
+    // label by where it is written, which left the `<p>` ones with
+    // `extend` to the check for a shadow of itself when the copy is
+    // expanded and the `copy` ones hanging the worker; the `<cell>` and
+    // `<hint>` ones with `copy` hung before this PR too.
     for (const [container, close] of [
         ['<p name="q">', "</p>"],
         ['<tabular><row><cell name="q">', "</cell></row></tabular>"],
@@ -1814,18 +1893,16 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
             "a number fixed by another's fixed",
             '<number name="m" fixed="$n.fixed">1</number><number name="n" fixed="true">2</number>',
         ],
-        // A graph is not listed among the containers: where a point is read
-        // as a value (`$b` in `<when>`), it reads no label, and an extend of
-        // a point in a graph would hold the point's label.
+        // Where a point is read as a value (`$b` in `<when>`), it reads no
+        // label, wherever the point is written: in a graph,
         [
             "an award reading a point extended in a graph, whose label holds the award",
             '<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>',
         ],
-        // Nor where the extend is written in one of the containers, or in
-        // a paragraph: a tag written with `extend` is the component, its
-        // label held as the component holds it, wherever it is written.
-        // A `<cell>` or a `<stack>` here was a false error at load, as a
-        // `<p>` was before.
+        // or in a paragraph or one of the containers, whose hold on b's
+        // label (`heldNode`) the award does not read. A `<cell>` or a
+        // `<stack>` here was a false error at load, as a `<p>` was before
+        // (each container, above).
         ...["cell", "stack", "p", "hint"].flatMap((tag) =>
             ["extend", "copy"].map((how) => [
                 `an award reading a point made with ${how} in a ${tag}, whose label holds the award`,

@@ -61,6 +61,14 @@
  *   with a math or text value is read as that value, not copied (VAL-10,
  *   Doenet/DoenetML#2643 item 1), so `<label>$b</label>` in `a` reads b's
  *   value, as `<label>$P</label>` in `P` reads P's (#1384);
+ * - a tag whose content is its children (below) holding, as content, a
+ *   graphical component written with `extend`, `copy` or `copyWithState`
+ *   (`<point name="b" extend="$a"/>` in a `<p>`), to the labels of what it
+ *   is of, as a copy of the tag copies that label (`heldNode`): so
+ *   `<p name="q">` holding `b` holds itself when `$q` is in a's label. The
+ *   edges are from a node apart from `b`'s own, as a reference to `b` read
+ *   as a value (`$b` in a `<when>` in what a's label holds) reads no label;
+ *   when that node is on a cycle, `b` is reported;
  * - a reference to the `hidden` of a component (`$n.hidden`), to the
  *   components in its `hide` and in the `hide` of each component it is
  *   written in, as whether it is hidden reads whether they are
@@ -253,11 +261,18 @@ const CONTENT_FROM_CHILDREN = [
     // point that `b` extends): the copies ran away without throwing, so
     // nothing reported them (Doenet/DoenetML#2654 item 1). A `<solution>`
     // can't be held in a label, but a reference to one in it holds itself
-    // the same way. Not a `<graph>`: a reference in one is a copy, label
-    // and all, but where it is read as a value (`<when>$b=1</when>`) it
-    // reads no label, and this list also says where a reference is
-    // written as content (`writtenAsContent`), so every `extend` of a point
-    // in a graph would hold its label, a false `doenet-e0005`.
+    // the same way. Not a `<graph>`, which was left out when listing it
+    // gave a false `doenet-e0005` to `<point name="b" extend="$a"/>` in a
+    // graph whose `a` has a label holding an award reading `$b`: this list
+    // also says where a reference is written as content
+    // (`writtenAsContent`), which then decided whether the `extend` itself
+    // holds its target's label. Now only what holds it does
+    // (`copiesTargetsLabel`, `heldNode`), and that document loads with
+    // `graph` listed, but no cycle through a graph was found that needs
+    // it: a reference in a graph is already a copy, label and all, where
+    // it is not read as a value, and a reference to a graph in a label in
+    // it (`<graph name="g"><point><label>$g</label></point></graph>`) is
+    // already `doenet-e0005` at load.
     "caption",
     "figure",
     "table",
@@ -1395,7 +1410,8 @@ export function breakReferenceCycles({
      * Whether `copy`, a whole reference to the component `target`, makes a
      * copy of it, label and all, rather than reading its value. A tag
      * written with `extend` or `copy` (`<point name="b" extend="$a"/>`) is
-     * not such a reference, wherever it is written. It does when
+     * not such a reference, wherever it is written (what holds it holds
+     * the label instead, `heldNode`). A `$` reference does when
      * it is written as content (`writtenAsContent`: in a `<p>`, an `<em>`),
      * and wherever else the value-reference pass leaves it a copy, but not
      * where a value is read (a `<label>`, a `<text>`, an `<m>`, a `<math>`,

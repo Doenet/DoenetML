@@ -364,6 +364,30 @@ describe("An index after options or cases that hold several, decided at load (Do
         }
     });
 
+    it("a case written as an extend of a group holding several: the warning at load, whichever case is shown", async () => {
+        // read through what it extends (Doenet/DoenetML#2654 item 6), as a
+        // group written in the case is: the case showing the group adds the
+        // info that the index names nothing in it
+        for (const second of [
+            `<group extend="$g2"/>`,
+            `<group copy="$g2"/>`,
+            "<group><math>3</math><math>4</math></group>",
+        ]) {
+            const d =
+                await setup(`<setup><group name="g2"><math>3</math><math>4</math></group></setup><booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><math>(1,2)</math></case><else>${second}</else></conditionalContent>
+<p name="p">[$cc[1][2]]</p>`);
+            expect(d.codes(), second).eqls([
+                "info doenet-w0188",
+                "warning doenet-w0191",
+            ]);
+            expect(await d.text()).eq("[＿]");
+            await d.setBoolean("b", true);
+            expect(await d.text()).eq("[2]");
+            expect(d.codes(), second).eqls(["warning doenet-w0191"]);
+        }
+    });
+
     it("an option written as an extend of a group holding one component passes the index into it", async () => {
         // read through what it extends (Doenet/DoenetML#2654 item 6), as a
         // group written there is
