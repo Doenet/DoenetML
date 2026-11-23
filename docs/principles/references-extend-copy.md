@@ -806,10 +806,12 @@ That is worth doing there, not retrofitting into the JavaScript core.
 - **between value types:**
   - math, number and text among each other, and boolean and text. **A boolean is not a number
     or a math** (D47 decision 3): `<math extend="$b"/>` is an error that suggests
-    `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. **Known
-    violation** (#2582): a boolean is `1` or `0` as a number or a math, also as a child of a
-    `<math>`, `<number>`, list or operator and in a math attribute (#2572), and a number is a
-    boolean (nonzero is `true`), which D47 decision 4 also makes a type mix;
+    `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. A number
+    is not a boolean either (D47 decision 4): `<boolean extend="$n"/>` is an error suggesting
+    `<boolean>$n != 0</boolean>`. **Done by #2651** (closing #2582): `e0065` with the suggestion,
+    and a mix in content or an attribute is a blank with **`doenet-w0203`**. **Left:**
+    `<booleanList extend="$ml"/>` is `w0203` with a blank rather than `e0065`, and an index into
+    a `<conditionalContent>` isn't type-checked at load (PR 50, #2649);
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;

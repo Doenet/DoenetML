@@ -3003,6 +3003,14 @@ Alternatives: `<collection>`, `<items>`.
    - a type change (`<boolean extend="$n"/>`) is a REF-5 error with the same suggestion;
    - `<booleanInput bindValueTo="$n">` is a type mix, with a warning.
 
+   **Decisions 3 and 4 done by #2651** (closing #2582; `W/utils/dast/booleanNumberMixAtLoad.ts`):
+   the adapter is removed; each mix is a blank with **`doenet-w0203`**, also on an `extend` or a
+   `copy`; type changes are `e0065` with the suggestion; `credit` keeps taking a boolean. Left
+   (#2656): a `<boolean>` with a blanked operand is `false` rather than missing, so a boolean
+   answer can credit "false"; `<number convertBoolean>$b + 1</number>` is `NaN` (for a decision:
+   recommended, `convertBoolean` counts every boolean in its expression); `$n = true` and a named
+   boolean inside a `<math>` (blanked everywhere).
+
    A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
 
 ## D48. Decisions from the review of #2591 (November 2026)
@@ -3160,7 +3168,7 @@ repeat it.
 5. A target whose type the DoenetML doesn't decide is TYPE-3's error at the `target` (#2606).
 6. An update that can't be applied gives a diagnostic, never silence or a throw.
 
-## D55. An answer's type comes from its input (decided, Tier 1; November 2026)
+## D55. An answer's type comes from its input (decided, Tier 1; November 2026; done by #2648)
 
 `<answer><textInput/>hello there</answer>` earned no credit without `type="text"`: the answer's
 sugar worked out a type but never gave it to the awards, which read plain text as math (#2608).
@@ -3230,7 +3238,8 @@ works and is unchanged.
 
 **Decided:** ordering a text against a number is a type mix, with a warning at load saying the
 comparison can never be true, as D47's other type mixes are. Nothing is converted. When the text
-is a `sectionNumber`, the warning suggests `ownNumber` (D56). Implemented with PR 28 (#2582).
+is a `sectionNumber`, the warning suggests `ownNumber` (D56). **Done by #2651:** `doenet-w0204`,
+naming each ordering as written.
 
 ## D59. A name or property after a collection is the collection's own (decided, Tier 1; November 2026; done by #2636)
 

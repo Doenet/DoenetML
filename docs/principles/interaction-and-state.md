@@ -426,10 +426,19 @@ answer adds. Authors write `type` only when nothing else decides it.
   `<when>` reads; they don't decide the type. A `<when>` reads its literal text by detection
   (D45 decision 7).
 
-**Known violations** (#2608): plain text in an award is a math unless `type` is written, whatever
-the input. So `<answer><textInput/>hello there</answer>`, `<answer><booleanInput/>true</answer>`
-and the second award above earn no credit. `<answer>$t</answer>` adds a `<mathInput>`. None of the
-warnings are given; each case is a silent 0.
+**Done by #2648** (closing #2608; `W/utils/dast/answerTypesAtLoad.ts`): each example above earns
+credit. A `type` that disagrees with the input is **`doenet-e0092`**; award content of another
+type is **`doenet-w0205`**; an award with content in an answer with several inputs is
+**`doenet-w0206`**, and with a `forAnswer` input **`doenet-w0207`**. A bare reference to a
+`<when>` is a boolean value, so `<answer>$w</answer>` adds a `<booleanInput>`.
+
+**Known violations** (#2657): an `<award copy>` from outside the answer keeps its source's reading
+of plain text and can earn 0 silently; a false `w0206`/`w0207` for an indexed reference to a
+composite holding a `<when>`; content of another type inside a composite gets no `w0205`. Four
+small decisions are open there (whether `videoWatched` is matched exactly, which of two warnings
+yields, naming a reference's value, `w0078`'s position). **A boolean answer credits "false"** for
+plain text whose operand the boolean–number rule blanks (`<award>$b = 1</award>`): a `<boolean>`
+holding a blank is `false`, not missing (VAL-5; #2656).
 
 ### ANS-3: `maxNumAttempts` and `disableAfterCorrect` stop submission (Tier 1)
 See CTX-12. Code: `effectiveMaxNumAttempts`, `invertMaxNumAttempts`, and the `maxNumAttempts` and
