@@ -48,6 +48,7 @@ import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
 import { namesAfterCollectionsDiagnostics } from "./namesAfterCollectionsAtLoad";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
+import { decideAnswerTypesAtLoad } from "./answerTypesAtLoad";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
@@ -55,6 +56,7 @@ import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
+import { checkBooleanNumberMixAtLoad } from "./booleanNumberMixAtLoad";
 import {
     markPropertyTypesAtLoad,
     referencesToUndecidedTypes,
@@ -944,6 +946,18 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
     });
 
+    // An `<answer>`'s type comes from its input, or, with none written in
+    // it, from its awards' typed content, references included (ANS-4, D55):
+    // decided now and written as its `type`, which the sugar of the answer
+    // and of each award reads. After the copied awards are marked, so that
+    // an `<award copy>` is read by what it will hold.
+    diagnostics.push(
+        ...decideAnswerTypesAtLoad({
+            serializedComponents: expandedRoot,
+            componentInfoObjects,
+        }),
+    );
+
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -1234,6 +1248,21 @@ export async function normalizedDastToSerializedComponents(
             componentInfoObjects,
         }),
     );
+
+    // A boolean where a number or a math is wanted, or a number where a
+    // boolean is, is a type mix: a warning at load and a blank in its place
+    // (D47 decisions 3 and 4). So is a text ordered against a number, which
+    // is only warned of (D58). After sugar, which wraps a `<number>`'s
+    // several children in a `<math>`, and before the list forms and value
+    // references, while each reference is still a `_copy`.
+    const booleanNumberMix = checkBooleanNumberMixAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+        nComponents,
+    });
+    diagnostics.push(...booleanNumberMix.diagnostics);
+    nComponents = booleanNumberMix.nComponents;
 
     // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
     // the values it reads, and before the value references, so that a

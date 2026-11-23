@@ -503,6 +503,8 @@ export type MessageKey =
     | "copy-attribute-invalid-for-component"
     | "attribute-name-case"
     | "attribute-written-twice"
+    | "boolean-number-mix"
+    | "text-ordered-against-number"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -652,6 +654,10 @@ export type MessageKey =
     | "sort-by-prop-names-nothing"
     | "answer-responses-of-several-types"
     | "property-type-undecided"
+    | "answer-type-disagrees-with-input"
+    | "award-content-type-mix"
+    | "award-content-several-inputs"
+    | "award-content-for-answer-input"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
@@ -1223,6 +1229,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-attribute-invalid-for-component",
     "attribute-name-case",
     "attribute-written-twice",
+    "boolean-number-mix",
+    "text-ordered-against-number",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
@@ -1372,6 +1380,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sort-by-prop-names-nothing",
     "answer-responses-of-several-types",
     "property-type-undecided",
+    "answer-type-disagrees-with-input",
+    "award-content-type-mix",
+    "award-content-several-inputs",
+    "award-content-for-answer-input",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",

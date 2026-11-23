@@ -300,6 +300,11 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0200": "reference-name-after-collection",
     "doenet-w0201": "attribute-written-twice",
     "doenet-w0202": "content-unused-attributes-give-value",
+    "doenet-w0203": "boolean-number-mix",
+    "doenet-w0204": "text-ordered-against-number",
+    "doenet-w0205": "award-content-type-mix",
+    "doenet-w0206": "award-content-several-inputs",
+    "doenet-w0207": "award-content-for-answer-input",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -392,6 +397,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0089": "attribute-not-a-number",
     "doenet-e0090": "attribute-written-as-reference",
     "doenet-e0091": "property-type-undecided",
+    "doenet-e0092": "answer-type-disagrees-with-input",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

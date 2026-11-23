@@ -15,7 +15,9 @@
 // function evaluated at it (`$$f($n)`) is found when the document loads, in
 // every case, and is an error in place of the reference rather than a stopped
 // document (Doenet/DoenetML#2515). If that check comes to find this one too,
-// this needs another, as `circularReferences.test.ts` does.
+// this needs another, as `circularReferences.test.ts` does. The number has
+// `convertBoolean`, the one way it reads a boolean (D47 decision 3): without
+// it, `$n.hide` would be a blank and no cycle.
 
 const FAIL_TIMEOUT = 20_000;
 
@@ -38,7 +40,7 @@ describe(
             renderDoenetML(`
 <p><booleanInput name="b"/></p>
 <p name="p">before</p>
-<conditionalContent condition="$b"><number name="n">$n.hide</number></conditionalContent>
+<conditionalContent condition="$b"><number name="n" convertBoolean>$n.hide</number></conditionalContent>
 `);
 
             cy.get("#p").should("have.text", "before");

@@ -347,7 +347,8 @@ export default class Answer extends InlineComponent {
                         "Mark correct when the associated video has been watched.",
                 },
             ],
-            description: "Type of input the answer expects.",
+            description:
+                "Type of the answer, needed only when neither an input written inside it nor its awards' typed content decides it.",
         };
 
         attributes.selectMultiple = {
@@ -912,6 +913,8 @@ export default class Answer extends InlineComponent {
                     type = "math";
                 }
             } else {
+                // Only when the type was not decided at load
+                // (`answerTypesAtLoad.ts`), which writes it as `type`.
                 if (foundMath) {
                     type = "math";
                 } else if (foundText) {

@@ -1640,7 +1640,7 @@ describe("Reference cycles not found at load @group2", async () => {
     for (const [description, doenetML, blamed] of [
         [
             "a number reading a property of itself not listed",
-            `<number name="n">$n.hide</number>`,
+            `<number name="n" convertBoolean>$n.hide</number>`,
             "$n.hide",
         ],
         // Doenet/DoenetML#2515's comment: shapes whose points read the shape.
@@ -2237,7 +2237,7 @@ describe("Circular references created after load @group2", async () => {
     it("a number reading its own value switched on stops the document", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><number name="t">$t.hide</number></conditionalContent>`);
+<conditionalContent condition="$b"><number name="t" convertBoolean>$t.hide</number></conditionalContent>`);
         const bIdx = await resolvePathToNodeIdx("b");
 
         const result = await core.requestAction({
@@ -2398,7 +2398,7 @@ describe("Circular references created after load @group2", async () => {
             const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b1"/>
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><number name="t">$t.hide</number></conditionalContent>`);
+<conditionalContent condition="$b"><number name="t" convertBoolean>$t.hide</number></conditionalContent>`);
             const b1Idx = await resolvePathToNodeIdx("b1");
             const bIdx = await resolvePathToNodeIdx("b");
 

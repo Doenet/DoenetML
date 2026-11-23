@@ -203,7 +203,7 @@ const documents: [string, string, string[]][] = [
     [
         "a select in a case with withReplacement written as an expression, which is true",
         inCase(
-            `<select numToSelect="3" withReplacement="1"><option>a</option></select><select numToSelect="3" withReplacement="1>0"><option>a</option></select>`,
+            `<select numToSelect="3" withReplacement="true"><option>a</option></select><select numToSelect="3" withReplacement="1>0"><option>a</option></select>`,
         ),
         [],
     ],
