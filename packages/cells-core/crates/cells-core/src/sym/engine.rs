@@ -139,10 +139,12 @@ impl Engine {
         let mut subs = HashMap::with_capacity(leaves.len());
         for &(cell, math) in leaves.iter() {
             let v = cells[cell as usize];
-            let e = if math && !v.is_nan() {
-                self.exprs[Handle::from_value(v).index()].clone()
-            } else {
-                number(v)
+            // A math cell's NaN is the blank expression (an emptied input),
+            // `＿` as the current core shows it, not the number NaN.
+            let e = match (math, v.is_nan()) {
+                (true, false) => self.exprs[Handle::from_value(v).index()].clone(),
+                (true, true) => Expr::Blank,
+                (false, _) => number(v),
             };
             subs.insert(leaf_name(cell, math), e);
         }
@@ -547,6 +549,27 @@ mod tests {
         assert_eq!(e.evaluate(h, None), f64::INFINITY);
         let h = e.num(f64::NEG_INFINITY);
         assert_eq!(e.evaluate(h, None), f64::NEG_INFINITY);
+    }
+
+    #[test]
+    fn an_empty_math_leaf_is_the_blank_expression() {
+        let mut e = Engine::new();
+        let t = e.import(&Tree::Div(
+            Box::new(Tree::Num(2.0)),
+            Box::new(Tree::Cell {
+                cell: 0u32,
+                math: true,
+            }),
+        ));
+        let h = e.instantiate(t, &[f64::NAN]);
+        assert_eq!(e.text(h), "2/\u{ff3f}");
+        // A numeric leaf's NaN stays a number.
+        let t = e.import(&Tree::Cell {
+            cell: 0u32,
+            math: false,
+        });
+        let h = e.instantiate(t, &[f64::NAN]);
+        assert!(e.evaluate(h, None).is_nan());
     }
 
     #[test]
