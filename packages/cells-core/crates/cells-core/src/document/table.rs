@@ -347,7 +347,8 @@ impl Document {
             .filter(|&k| k != EntryKind::Point || ty.entry_row().is_some())
         {
             let n_table = ty.prop_defs().len();
-            let entries = &cells[n_table.min(cells.len())..];
+            let end = n_table + ty.list_width() * ty.list_len(cells.len());
+            let entries = &cells[n_table.min(cells.len())..end.min(cells.len())];
             // Commas between the entries, unless the list says not.
             let separator = match self.attr_text(c, "asList") {
                 Some(t) if t.trim().eq_ignore_ascii_case("false") => "",

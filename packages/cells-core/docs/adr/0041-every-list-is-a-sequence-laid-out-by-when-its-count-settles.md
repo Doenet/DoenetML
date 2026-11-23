@@ -533,8 +533,9 @@ otherwise.
      width, while a sort's entry type follows its operands. They wait on
      entries as rows (step 3) or a point held as one value (decision 8).
      Booleans are refused likewise.
-   - The order port is hidden: no public prop gives `componentOrder` yet,
-     since a public prop of a count that follows the children is only a
-     list, and the list is the entries.
+   - The order is public as a second named sequence over the element's
+     own ports (decision 1), the list's `companion`: `componentOrder`, one
+     cell per entry after the entries (`PropAt::Companion`). Its entries
+     are rows (step 3), `mathValue` rows of `EntryKind::Any`.
 7. **Glossary.** `CONTEXT.md` gains *sequence*, *entry*, *capped list* and
    *live length*, and *point list* and *tuple* are rewritten as sequences.

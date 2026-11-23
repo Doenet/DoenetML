@@ -99,6 +99,22 @@ concatenation in view.
    branch is `Shown`, a copy that drops a request), which no round trip
    could make stable.
 
+8. **The user's decisions (2026-11-23).** Dropping a write through a
+   sorted entry, and making a value's text in a tick (`<text>$n</text>`,
+   numbers and maths as text in a text sort) the same as a join, are
+   confirmed. The order is public as a **second named sequence** over the
+   element's own ports (ADR 0041 decision 1 allows several): a list may
+   declare a `companion`, one cell per entry after the entries
+   (`ListProp::companion`, `PropAt::Companion`); `<sort>` and `<shuffle>`
+   declare `componentOrder`, and `<choiceInput>` is to declare
+   `choiceOrder`, with `shuffleOrder` making `selectedIndex` the displayed
+   position, a pick by the order for credit, and the choices drawn in the
+   shuffled order. A sort or shuffle of points or vectors is to have its
+   own entry width, its operands' (2 for points), so its rows are points
+   drawn and dragged (a shuffle's; a sort's are read-only), with
+   `sortByComponent`, `sortVectorsBy` and `sortByProp` as far as they fit,
+   and booleans by the same mechanism.
+
 ## Considered options
 
 - **A text whose value is a sequence of strings, shown joined** (ADR 0041
@@ -113,8 +129,9 @@ concatenation in view.
   which fold; not for an entry a student writes.
 - **Writes through a sorted entry land on the operand** (the current
   core's behaviour). Unstable under the round trip (ADR 0026's check):
-  asking again moves the entry. Left as a decision for the maintainers;
-  this core drops it.
+  asking again moves the entry. Rejected by the user: a write through a
+  sorted entry is dropped; one through a shuffled entry lands on its
+  operand.
 
 ## Consequences
 
@@ -130,4 +147,18 @@ concatenation in view.
   width per element; booleans likewise wait on a boolean entry kind for an
   operand-typed list (`EntryKind::Any` reads a number as a number).
 - A sort's entry kind is `EntryKind::Any`: what its operands hold, read as
-  its cell holds it.
+  its cell holds it. Its rows (ADR 0041 step 3) are `mathValue` rows, which
+  the bridge draws as a text when the cell holds one.
+
+## Migration
+
+- *Done:* reading and making strings in the tick, joins, `<sort>` and
+  `<shuffle>` of numbers, texts and maths, and the companion sequence with
+  `componentOrder`.
+- *Left:* a per-element entry width for a sort or shuffle of points (every
+  reader of a list's width, `ComponentType::list_width`, in the compile,
+  the build, the rows and the document, reads the type's today; the
+  element's would come from its plan's `ListLen` and, in a document, from
+  its rows), and `<choiceInput shuffleOrder>` (`choiceOrder` as a
+  companion of a list the choice input does not have yet, a pick by the
+  order in the answer's credit, and the bridge's `choiceOrder`).
