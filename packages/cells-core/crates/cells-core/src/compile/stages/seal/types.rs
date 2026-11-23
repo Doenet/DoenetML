@@ -589,8 +589,9 @@ impl<'s, 'a> Types<'s, 'a> {
                 continue;
             };
             let n_public = self.seal.view(ct).plan(ce).n_public(ty);
-            let n_points = n_public.map(|n| ty.list_len(n));
-            let Some(len) = sel_len(sel, ty.list_width(), n_points) else {
+            let shape = self.seal.view(ct).plan(ce).shape(ty);
+            let n_points = n_public.map(|n| shape.list_len(n));
+            let Some(len) = sel_len(sel, shape.width(), n_points) else {
                 // As many as the referent has: known only when built.
                 cells.known = false;
                 continue;
@@ -612,14 +613,15 @@ impl<'s, 'a> Types<'s, 'a> {
                 // which `Num` already says; a value list's are its ports'.
                 PropSel::At(at) => {
                     let n = n_public.unwrap_or(0);
-                    let w = ty.list_width();
+                    let w = shape.width();
                     let slots: Vec<Option<usize>> = match at {
-                        PropAt::Item(k) => (0..w).map(|j| ty.list_slot(n, k, j)).collect(),
-                        PropAt::Coord(k, j) => vec![ty.list_slot(n, k, j)],
-                        PropAt::List => (1..=ty.list_len(n))
-                            .flat_map(|k| (0..w).map(move |j| ty.list_slot(n, k, j)))
+                        PropAt::Item(k) => (0..w).map(|j| shape.list_slot(n, k, j)).collect(),
+                        PropAt::Coord(k, j) => vec![shape.list_slot(n, k, j)],
+                        PropAt::List => (1..=shape.list_len(n))
+                            .flat_map(|k| (0..w).map(move |j| shape.list_slot(n, k, j)))
                             .collect(),
-                        PropAt::Companion => ty.companion_slots(n).map(Some).collect(),
+                        PropAt::Companion => shape.companion_slots(n).map(Some).collect(),
+
                         PropAt::Position(_) => unreachable!("matched above"),
                     };
                     for (k, pi) in slots.into_iter().enumerate() {

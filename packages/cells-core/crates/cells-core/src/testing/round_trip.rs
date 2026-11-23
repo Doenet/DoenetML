@@ -101,7 +101,9 @@ pub fn targets(doc: &Document) -> Vec<(CompIdx, String, Vec<CellIdx>)> {
         let cells = doc.comp_cells(c);
         let names: Vec<String> = (0..cells.len())
             .map(|pi| {
-                ty.prop_name(cells.len(), pi)
+                doc.components
+                    .shape(c)
+                    .prop_name(cells.len(), pi)
                     .map(|s| s.to_string())
                     .unwrap_or_default()
             })

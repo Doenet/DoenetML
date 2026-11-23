@@ -162,7 +162,7 @@ impl CellOwners {
             s => strings.get(s).trim().to_string(),
         };
         let n_public = components.comp_cells(comp).len();
-        match component_type.prop_name(n_public, pi) {
+        match components.shape(comp).prop_name(n_public, pi) {
             Some(name) => format!("{owner}.{name}"),
             None => format!("{owner}.(hidden slot {pi})"),
         }

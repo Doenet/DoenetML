@@ -366,6 +366,59 @@ describe("renderer actions", () => {
         });
     });
 
+    it("draws a sort or a shuffle of points as points; a drag of a shuffled one moves its operand, of a sorted one nothing (ADR 0053)", async () => {
+        const bridge =
+            await load(`<graph><point name="A">(1,2)</point><point name="B">(-3,4)</point></graph>
+<graph><sort name="s">$A $B</sort></graph>
+<graph><shuffle name="h">$A $B</shuffle></graph>
+<p><number>$A.x</number> <number>$B.x</number></p>`);
+        const root = bridge.flatDast();
+        const points = () =>
+            byName(bridge.flatDast(), "point").map(
+                (e) => (e.data as any).props,
+            );
+        const xs = () =>
+            byName(bridge.flatDast(), "number").map(
+                (e) => (e.data as any).props.text,
+            );
+        // A, B, then the sort's rows in order, then the shuffle's.
+        const drawn = points();
+        expect(drawn).toHaveLength(6);
+        expect(drawn.slice(2, 4)).toEqual([
+            { x: { math_object: "-3" }, y: { math_object: "4" } },
+            { x: { math_object: "1" }, y: { math_object: "2" } },
+        ]);
+        const ids = byName(root, "point").map((e) => e.data.id);
+        const move = (id: number, x: number, y: number) =>
+            bridge.dispatch({
+                component: "point",
+                actionName: "move",
+                componentIdx: id,
+                args: { x, y },
+            });
+        move(ids[2], 7, 7);
+        expect(xs()).toEqual(["1", "-3"]);
+        const shuffled = drawn.slice(4).map((p: any) => p.x.math_object);
+        expect([...shuffled].sort()).toEqual(["-3", "1"]);
+        move(ids[4], 8, 0);
+        expect(xs()).toEqual(shuffled[0] === "1" ? ["8", "-3"] : ["1", "8"]);
+    });
+
+    it("draws a shuffled choice input's choices in the order drawn, the same on every load (ADR 0053)", async () => {
+        const source = `<choiceInput shuffleOrder><choice>a</choice><choice>b</choice><choice>c</choice><choice>d</choice></choiceInput>
+<choiceInput shuffleOrder preserveLastChoice><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>
+<choiceInput><choice>a</choice><choice>b</choice></choiceInput>`;
+        const orders = async () =>
+            byName((await load(source)).flatDast(), "choiceInput").map(
+                (e) => (e.data as any).props.choiceOrder,
+            );
+        const [shuffled, last, plain] = await orders();
+        expect([...shuffled].sort()).toEqual([1, 2, 3, 4]);
+        expect(last[2]).toBe(3);
+        expect(plain).toEqual([1, 2]);
+        expect(await orders()).toEqual([shuffled, last, plain]);
+    });
+
     it("moves an entry of a point list to its source, and a click on it presses what names it (ADR 0041)", async () => {
         const bridge = await load(`<point name="P">(9,10)</point>
 <graph><pointList name="pl">(1,2) $P</pointList></graph>

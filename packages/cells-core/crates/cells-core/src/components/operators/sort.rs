@@ -5,23 +5,30 @@
 //! core's `compareExtractedValues` does) or drawn at load from the seed (a
 //! `Shuffle` of the positions, a constant, ADR 0037); each entry is a
 //! `Choose` over the operands by its position's order, so a write through
-//! an entry lands on the operand it shows.
+//! a shuffled entry lands on the operand it shows.
 //!
 //! The operands hold one kind of value, which the compile decides from the
-//! records (ADR 0053): numbers; else expressions, when one can be math
-//! (each operand then a math cell, compared by value when every one
-//! evaluates to a number, else by its text); else texts, when one is text
-//! (each other operand then its text, made in the tick, compared as
-//! text). Bare text is split at spaces and read as numbers when every
-//! piece is a real number to the engine, else as text, unless `type` says
-//! (`number`, `math`, `text`). Points, vectors and booleans are not
-//! sorted yet: an entry of a point is two cells, and a type's entries have
-//! one width (see ADR 0053).
+//! records (ADR 0053): points, when one is a point or a vector (every
+//! operand then one, its displacement for a vector); else booleans, when
+//! every one is; else texts, when one is text or a boolean (each other
+//! operand then its text, made in the tick, compared as text); else
+//! expressions, when one can be math (each operand then a math cell,
+//! compared by value when every one evaluates to a number, else by its
+//! text); else numbers. Bare text is split at spaces and read as numbers
+//! when every piece is a real number to the engine, else as text, unless
+//! `type` says (`number`, `math`, `text`, `boolean`).
+//!
+//! A sort or shuffle of points or booleans decides its entries' kind
+//! itself (ADR 0053, `ListShape`): an entry of a point is two cells, so
+//! its rows are points, drawn and, a shuffle's, dragged. Points compare by
+//! one coordinate (`sortByComponent`, the tail's for a vector with
+//! `sortVectorsBy="tail"`); any operand by a prop it has
+//! (`sortByProp`, its spelling in any case), the missing value last.
 
 use super::operands;
 use crate::compile::api::*;
-use crate::components::ComponentDef;
 use crate::components::define::*;
+use crate::components::{ComponentDef, EntryKind};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -29,9 +36,11 @@ use crate::program::{OpSpec, Post, SymKind, VecOp};
 component! {
     /// `<sort>5 3 1 $a</sort>`: its operands in increasing order
     /// (`values`, `value1`, ...), numbers by value, texts alphabetically,
-    /// expressions by value when each is a number, else by their text. A
-    /// write to an entry lands on the operand it shows. `asList="false"`
-    /// shows the entries with no separator.
+    /// expressions by value when each is a number, else by their text,
+    /// points by a coordinate (`sortByComponent`, `sortVectorsBy`), or
+    /// anything by a prop (`sortByProp`). A write to a sorted entry is
+    /// dropped (it would move the entry); `asList="false"` shows the
+    /// entries with no separator.
     tags: ["sort"],
     variant: Order::Increasing,
     flags: [copyable],
@@ -50,11 +59,15 @@ component! {
     alternate_names {
         numValues: numComponents,
     }
-    // Whether a renderer shows the entries separated by commas.
-    presentation { asList }
+    // Whether a renderer shows the entries separated by commas, and
+    // whether it hides them.
+    presentation { asList, hide }
     attributes {
         r#type: Text,
         asList: LiteralFlag,
+        sortByComponent: Literal(1.0),
+        sortVectorsBy: Text,
+        sortByProp: Text,
     }
     children: List,
     planner: Plan(plan),
@@ -62,7 +75,8 @@ component! {
 
 /// `<shuffle>`: its operands in an order drawn at load from the document
 /// seed (a seeded permutation, ADR 0041 decision 7), which no student
-/// can change; the values themselves follow their operands.
+/// can change; the values themselves follow their operands, and a write
+/// to an entry lands on the operand it shows.
 pub(crate) const SHUFFLE: ComponentDef = DEFINITION.variant(&["shuffle"], &Order::Drawn);
 
 /// The order a type of this table puts its operands in.
@@ -83,6 +97,8 @@ enum Mode {
     Number,
     Math,
     Text,
+    Boolean,
+    Point,
 }
 
 /// How bare text among the children is read.
@@ -91,6 +107,14 @@ enum Pieces {
     Number,
     Math,
     Text,
+    Boolean,
+}
+
+/// What an operand is, as far as the records tell, and the reference it
+/// is read through when that is not its own (a vector's displacement).
+struct Operand {
+    entry: ListEntry,
+    kind: ValueKind,
 }
 
 /// The order port and an entry per position over the operands: see the
@@ -99,30 +123,138 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
     let as_list = !matches!(attrs.asList, Some(Some(false)));
+    let by_component = attrs.sortByComponent?;
+    let by_tail = attrs
+        .sortVectorsBy
+        .as_deref()
+        .is_some_and(|s| s.trim().eq_ignore_ascii_case("tail"));
+    let by_prop = attrs
+        .sortByProp
+        .as_deref()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
     let entries = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let n = entries.len();
-    // What bare text is read as: `type`, else what every piece looks like.
-    let pieces = match attrs
-        .r#type
-        .as_deref()
-        .map(|t| t.trim().to_ascii_lowercase())
-    {
-        Some(t) if t == "number" => Pieces::Number,
-        Some(t) if t == "math" => Pieces::Math,
-        Some(t) if t == "text" => Pieces::Text,
-        Some(t) if t == "boolean" => {
+    let pieces = pieces_of(ctx, attrs.r#type.as_deref(), &entries);
+    let ops = operands_of(ctx, entries, pieces)?;
+    let has = |k: ValueKind| ops.iter().any(|o| o.kind == k);
+    let mode = if has(ValueKind::Point) {
+        if !ops.iter().all(|o| o.kind == ValueKind::Point) {
             return Err(Error::Unsupported(format!(
-                "<{} type=\"boolean\">: booleans are not sorted or shuffled yet",
+                "points or vectors among other values in a <{}>: its entries are one kind",
                 ty.tag()
             )));
         }
+        Mode::Point
+    } else if n > 0 && ops.iter().all(|o| o.kind == ValueKind::Boolean) {
+        Mode::Boolean
+    } else if has(ValueKind::Text) || has(ValueKind::Boolean) {
+        Mode::Text
+    } else if has(ValueKind::Math) {
+        Mode::Math
+    } else {
+        Mode::Number
+    };
+    let mut wiring = match mode {
+        Mode::Point => ElemWiring::with_entries(ty, n, EntryKind::Point),
+        Mode::Boolean => ElemWiring::with_entries(ty, n, EntryKind::Boolean),
+        _ => ElemWiring::with_list(ty, n),
+    };
+    if n > 0 {
+        if n > crate::limits::MAX_VEC_IN - 1 {
+            return Err(Error::Unsupported(format!(
+                "<{}> of more than {} operands",
+                ty.tag(),
+                crate::limits::MAX_VEC_IN - 1
+            )));
+        }
+        // What the order compares: each operand's prop by `sortByProp`, a
+        // point's coordinate, else the operand itself.
+        let (cells, keys) = match mode {
+            Mode::Point => {
+                let mut cells = Vec::with_capacity(n);
+                let mut keys = Vec::with_capacity(n);
+                for o in &ops {
+                    let ListEntry::Ref(p) = o.entry else {
+                        unreachable!("a point operand is a reference")
+                    };
+                    let xy = [0, 1].map(|j| wiring.hidden(Source::coord(p, j)));
+                    let key = match by_prop {
+                        Some(_) => None,
+                        None => point_key(ctx, &mut wiring, p, &xy, by_component, by_tail),
+                    };
+                    keys.push(key);
+                    cells.push(xy.to_vec());
+                }
+                (cells, keys)
+            }
+            _ => {
+                let ports = operand_ports(ctx, &mut wiring, &ops, mode)?;
+                let keys = ports.iter().map(|&p| Some(p)).collect();
+                (ports.into_iter().map(|p| vec![p]).collect(), keys)
+            }
+        };
+        let keys: Vec<Port> = match &by_prop {
+            Some(name) => ops
+                .iter()
+                .map(|o| prop_key(ctx, &mut wiring, &o.entry, name))
+                .collect(),
+            None => keys
+                .into_iter()
+                .map(|k| k.unwrap_or_else(|| wiring.hidden(Source::constant(NO_VALUE))))
+                .collect(),
+        };
+        let drawn = *ty.variant::<Order>() == Order::Drawn;
+        let order = order_ports(&mut wiring, drawn, &keys);
+        // A sort's entry is chosen by an order the operand it shows
+        // decides, so a write through it would move it: each branch is
+        // shown, and a request on an entry dropped. A shuffle's order is
+        // drawn, and a write lands on the operand.
+        let width = cells[0].len();
+        let mut chosen = Vec::with_capacity(n * width);
+        for &o in &order {
+            for j in 0..width {
+                let mut args = vec![o];
+                for c in &cells {
+                    args.push(if drawn {
+                        c[j]
+                    } else {
+                        wiring.hidden(Source::computed(OpSpec::Shown, vec![c[j]]))
+                    });
+                }
+                chosen
+                    .push(Source::computed(OpSpec::Vec(VecOp::Choose { n: byte(n) }), args).into());
+            }
+        }
+        match mode {
+            Mode::Point => wiring.set_entry_cells(chosen),
+            _ => wiring.set_entries(chosen),
+        }
+        // The order, public as the list's companion sequence (ADR 0053):
+        // a shuffle's `componentOrder`, and a sort's.
+        wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
+    }
+    wiring.set_planned(Planned {
+        asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
+    });
+    Ok(wiring)
+}
+
+/// What bare text among `entries` is read as: `type`, else what every
+/// piece looks like. An invalid `type` is warned of and dropped.
+fn pieces_of(ctx: &mut PlanCtx<'_, '_>, ty: Option<&str>, entries: &[ListEntry]) -> Pieces {
+    match ty.map(|t| t.trim().to_ascii_lowercase()) {
+        Some(t) if t == "number" => Pieces::Number,
+        Some(t) if t == "math" => Pieces::Math,
+        Some(t) if t == "text" => Pieces::Text,
+        Some(t) if t == "boolean" => Pieces::Boolean,
         other => {
             if let Some(t) = other {
+                let tag = ctx.component_type().tag();
                 ctx.warn(
                     INVALID_TYPE,
                     &format!(
-                        "Invalid type {t} for {} component: reading the values as though no type had been given",
-                        ty.tag()
+                        "Invalid type {t} for {tag} component: reading the values as though no type had been given"
                     ),
                 );
             }
@@ -136,99 +268,112 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 Pieces::Text
             }
         }
-    };
-    // What each operand is, as far as the records tell; a reference they
-    // do not tell is read as a number, as it was.
-    let mut kinds = Vec::with_capacity(n);
-    for e in &entries {
-        kinds.push(match e {
+    }
+}
+
+/// Each entry with what it is, as far as the records tell: a piece of
+/// text as `pieces` reads it; a reference as its referent's type says, a
+/// vector its displacement (a point), one they do not tell a number, as
+/// it was.
+fn operands_of(
+    ctx: &mut PlanCtx<'_, '_>,
+    entries: Vec<ListEntry>,
+    pieces: Pieces,
+) -> Result<Vec<Operand>> {
+    let tag = ctx.component_type().tag();
+    let mut ops = Vec::with_capacity(entries.len());
+    for e in entries {
+        let kind = match &e {
             ListEntry::Text(..) => match pieces {
                 Pieces::Number => ValueKind::Number,
                 Pieces::Math => ValueKind::Math,
                 Pieces::Text => ValueKind::Text,
+                Pieces::Boolean => ValueKind::Boolean,
             },
-            _ => match ctx.entry_kind(e) {
-                None => ValueKind::Number,
-                Some(k @ (ValueKind::Number | ValueKind::Math | ValueKind::Text)) => k,
-                Some(ValueKind::Point | ValueKind::List) => {
+            ListEntry::Ref(p) => match ctx.entry_kind(&e) {
+                // A vector, which has no value of its own to a reference:
+                // its displacement, as the current core compares it.
+                None => match ctx.ref_prop(*p, "displacement") {
+                    Some(q) => {
+                        ops.push(Operand {
+                            entry: ListEntry::Ref(q),
+                            kind: ValueKind::Point,
+                        });
+                        continue;
+                    }
+                    None => ValueKind::Number,
+                },
+                Some(ValueKind::List) => {
                     return Err(Error::Unsupported(format!(
-                        "points or vectors in a <{}>: an entry of a point is two cells, which a <{}> of values does not hold yet",
-                        ty.tag(),
-                        ty.tag()
+                        "a whole list as one operand of a <{tag}>: its entries are not spliced"
                     )));
                 }
-                Some(ValueKind::Boolean) => {
-                    return Err(Error::Unsupported(format!(
-                        "booleans in a <{}>: not sorted or shuffled yet",
-                        ty.tag()
-                    )));
-                }
+                Some(k) => k,
             },
-        });
-    }
-    let mode = if kinds.contains(&ValueKind::Text) {
-        Mode::Text
-    } else if kinds.contains(&ValueKind::Math) {
-        Mode::Math
-    } else {
-        Mode::Number
-    };
-    let mut wiring = ElemWiring::with_list(ty, n);
-    if n > 0 {
-        if n > crate::limits::MAX_VEC_IN - 1 {
-            return Err(Error::Unsupported(format!(
-                "<{}> of more than {} operands",
-                ty.tag(),
-                crate::limits::MAX_VEC_IN - 1
-            )));
-        }
-        let ops = operand_ports(ctx, &mut wiring, entries, &kinds, mode)?;
-        let drawn = *ty.variant::<Order>() == Order::Drawn;
-        let order = order_ports(&mut wiring, drawn, &ops);
-        // A sort's entry is chosen by an order the operand it shows
-        // decides, so a write through it would move it: each branch is
-        // shown, and a request on an entry dropped. A shuffle's order is
-        // drawn, and a write lands on the operand.
-        let branches: Vec<Port> = if drawn {
-            ops.clone()
-        } else {
-            ops.iter()
-                .map(|&p| wiring.hidden(Source::computed(OpSpec::Shown, vec![p])))
-                .collect()
+            ListEntry::Math(_) => ValueKind::Math,
         };
-        let chosen = order
-            .iter()
-            .map(|&o| {
-                let mut args = vec![o];
-                args.extend(&branches);
-                Source::computed(OpSpec::Vec(VecOp::Choose { n: byte(n) }), args).into()
-            })
-            .collect();
-        wiring.set_entries(chosen);
-        // The order, public as the list's companion sequence (ADR 0053):
-        // a shuffle's `componentOrder`, and a sort's.
-        wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
+        ops.push(Operand { entry: e, kind });
     }
-    wiring.set_planned(Planned {
-        asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
-    });
-    Ok(wiring)
+    Ok(ops)
+}
+
+/// The cell a point operand `p` (coordinates `xy`) is compared by: its
+/// coordinate `component` (1-based), or its tail's when `tail` and it has
+/// one; None when it has no such coordinate, which compares as the
+/// missing value.
+fn point_key(
+    ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
+    p: RefId,
+    xy: &[Port; 2],
+    component: f64,
+    tail: bool,
+) -> Option<Port> {
+    let j = match component {
+        1.0 => 0,
+        2.0 => 1,
+        _ => return None,
+    };
+    // The reference names the vector's displacement; its tail is the
+    // vector's `tail`.
+    let tail_of = tail
+        .then(|| ctx.ref_of_elem(p))
+        .flatten()
+        .and_then(|v| ctx.ref_prop(v, "tail"));
+    Some(match tail_of {
+        Some(t) => wiring.hidden(Source::coord(t, j)),
+        None => xy[j],
+    })
+}
+
+/// The cell operand `e` is compared by under `sortByProp="name"`: its
+/// prop of that name when it names an element that has one cell so
+/// called, else the missing value.
+fn prop_key(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, e: &ListEntry, name: &str) -> Port {
+    let q = match e {
+        ListEntry::Ref(p) => ctx.ref_of_elem(*p).and_then(|v| ctx.ref_prop(v, name)),
+        _ => None,
+    };
+    match q {
+        Some(q) if ctx.ref_cells(q) == Some(1) => wiring.hidden(Source::reference(q)),
+        _ => wiring.hidden(Source::constant(NO_VALUE)),
+    }
 }
 
 /// A port per operand, holding the kind `mode` reads: a piece of text a
 /// given value a write may change (a number, an expression as written,
-/// or a string, as `mode` reads it), a reference its alias, made a math
-/// cell in math mode and its text in text mode when it is not already
-/// one.
+/// a boolean or a string, as `mode` reads it), a reference its alias,
+/// made a math cell in math mode and its text in text mode when it is not
+/// already one.
 fn operand_ports(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
-    entries: Vec<ListEntry>,
-    kinds: &[ValueKind],
+    ops: &[Operand],
     mode: Mode,
 ) -> Result<Vec<Port>> {
-    let mut ports = Vec::with_capacity(entries.len());
-    for (e, &kind) in entries.into_iter().zip(kinds) {
+    let mut ports = Vec::with_capacity(ops.len());
+    for o in ops {
+        let (e, kind) = (o.entry.clone(), o.kind);
         let port = match e {
             ListEntry::Text(k, text) => {
                 let id = GivenId::Children(k);
@@ -237,7 +382,11 @@ fn operand_ports(
                     Mode::Math => {
                         Wire::given_math(id, crate::sym::Engine::new().parse_tree(text.trim()).ok())
                     }
-                    Mode::Number => match text.parse::<f64>() {
+                    Mode::Boolean => {
+                        let v = text.trim().eq_ignore_ascii_case("true");
+                        Wire::given(id, if v { 1.0 } else { 0.0 })
+                    }
+                    Mode::Number | Mode::Point => match text.parse::<f64>() {
                         Ok(v) if !text.contains(['e', 'E', 'x', 'X', 'b', 'B', 'n', 'N']) => {
                             Wire::given(id, v)
                         }
@@ -253,7 +402,7 @@ fn operand_ports(
             ListEntry::Math(id) => {
                 let m = wiring.hidden(Source::sym_expr(id, Post::None));
                 if mode == Mode::Text {
-                    wiring.hidden(Source::computed(text_of(), vec![m]))
+                    wiring.hidden(Source::computed(text_of(false), vec![m]))
                 } else {
                     m
                 }
@@ -266,11 +415,15 @@ fn operand_ports(
                 (Mode::Text, ValueKind::Math) => {
                     let id = ctx.entry_math(&e).expect("a reference is math");
                     let m = wiring.hidden(Source::sym_expr(id, Post::None));
-                    wiring.hidden(Source::computed(text_of(), vec![m]))
+                    wiring.hidden(Source::computed(text_of(false), vec![m]))
                 }
-                (Mode::Text, ValueKind::Number) => {
+                (Mode::Text, ValueKind::Number | ValueKind::Boolean) => {
                     let p = operands(ctx, wiring, vec![e], super::PieceKind::Number, false)?[0];
-                    wiring.hidden(Source::computed(text_of(), vec![p]))
+                    let booleans = kind == ValueKind::Boolean;
+                    wiring.hidden(Source::computed(text_of(booleans), vec![p]))
+                }
+                (Mode::Boolean, _) => {
+                    operands(ctx, wiring, vec![e], super::PieceKind::Boolean, false)?[0]
                 }
                 _ => operands(ctx, wiring, vec![e], super::PieceKind::Number, false)?[0],
             },
@@ -280,20 +433,21 @@ fn operand_ports(
     Ok(ports)
 }
 
-/// A value's text, made in the tick (ADR 0053): a join of one.
-fn text_of() -> OpSpec {
+/// A value's text, made in the tick (ADR 0053): a join of one, `true` or
+/// `false` for a boolean.
+fn text_of(booleans: bool) -> OpSpec {
     OpSpec::Sym(SymKind::Join {
         n: 1,
         kinds: 0,
-        booleans: false,
+        booleans,
     })
 }
 
 /// The order port: a hidden port per position, holding the 1-based
-/// operand that comes there. A sort compares the operands; a shuffle
-/// shuffles the positions by a draw, a scope constant.
-fn order_ports(wiring: &mut ElemWiring, drawn: bool, ops: &[Port]) -> Vec<Port> {
-    let n = ops.len();
+/// operand that comes there. A sort compares the operands' keys; a
+/// shuffle shuffles the positions by a draw, a scope constant.
+fn order_ports(wiring: &mut ElemWiring, drawn: bool, keys: &[Port]) -> Vec<Port> {
+    let n = keys.len();
     let spec = if drawn {
         let draw = wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)));
         let mut args = vec![draw];
@@ -309,7 +463,7 @@ fn order_ports(wiring: &mut ElemWiring, drawn: bool, ops: &[Port]) -> Vec<Port> 
             kinds: 0,
         })
     };
-    let head = wiring.hidden(Source::computed(spec, ops.to_vec()));
+    let head = wiring.hidden(Source::computed(spec, keys.to_vec()));
     outputs(wiring, head, n)
 }
 

@@ -188,7 +188,15 @@ pub fn inputs(
         let names: Vec<(String, crate::CellIdx)> = (0..cells.len())
             .filter(|&pi| ty.is_input_prop(cells.len(), pi))
             .filter(|&pi| !anchors.contains(&pi) || doc.is_essential(cells[pi]))
-            .filter_map(|pi| Some((ty.prop_name(cells.len(), pi)?.into_owned(), cells[pi])))
+            .filter_map(|pi| {
+                Some((
+                    doc.components
+                        .shape(c)
+                        .prop_name(cells.len(), pi)?
+                        .into_owned(),
+                    cells[pi],
+                ))
+            })
             .collect();
         if names.is_empty() {
             continue;
@@ -281,7 +289,11 @@ pub fn live_cells_agree(full: &crate::Document, pruned: &crate::Document) -> Res
                 return Err(format!(
                     "{}.{} of component {c}: {} unpruned, {} pruned",
                     ty.tag(),
-                    ty.prop_name(pc.len(), pi).unwrap_or_default(),
+                    pruned
+                        .components
+                        .shape(c)
+                        .prop_name(pc.len(), pi)
+                        .unwrap_or_default(),
                     full.cells[f.index()],
                     pruned.cells[p.index()]
                 ));

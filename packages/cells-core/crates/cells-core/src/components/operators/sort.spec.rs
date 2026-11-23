@@ -68,8 +68,117 @@ spec! {
         diagnostics["cells-invalid-type"]
     }
 
-    case "points are not sorted yet" {
-        doenet r#"<point name="A">(1,2)</point><sort name="s">$A</sort>"#;
+    // A sorted point is read-only: the operand it shows decides its place,
+    // so a drag of its row is dropped, which the load notes for each
+    // coordinate of each row (`cells-request-meets-no-inverse`, an info).
+    case "points sort by their first coordinate, each entry a point" {
+        doenet r#"<graph><point name="A">(0,1)</point><point name="B">(-2,1)</point>
+                  <point name="C">(7,1)</point></graph>
+                  <sort name="s">$A$B$C</sort>"#;
+        expect {
+            "s.values" = [-2, 1, 0, 1, 7, 1], "s.numComponents" = 3,
+            "s.math2" = (0, 1), "s.componentOrder" = [2, 1, 3],
+            "s[1].x" = -2, "s[3].y" = 1,
+        }
+        request { "A.coords" = (9, 5) }
+        expect { "s.values" = [-2, 1, 7, 1, 9, 5], "s.componentOrder" = [2, 3, 1] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "points sort by the coordinate sortByComponent names" {
+        doenet r#"<graph><point name="A">(0,5)</point><point name="B">(-2,6)</point>
+                  <point name="C">(7,-3)</point></graph>
+                  <sort name="s" sortByComponent="2">$A $B $C</sort>"#;
+        expect { "s.values" = [7, -3, 0, 5, -2, 6] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "points keep their order by a coordinate they do not have" {
+        doenet r#"<graph><point name="A">(0,5)</point><point name="B">(-2,6)</point></graph>
+                  <sort name="s" sortByComponent="3">$A $B</sort>"#;
+        expect { "s.values" = [0, 5, -2, 6] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "vectors sort by their displacement" {
+        doenet r#"<graph><vector name="A" displacement="(0,5)" tail="(5,2)" />
+                  <vector name="B" displacement="(-2,6)" tail="(3,7)" /></graph>
+                  <sort name="d">$A $B</sort>"#;
+        expect { "d.values" = [-2, 6, 0, 5] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "vectors sort by their tail, by the coordinate sortByComponent names" {
+        doenet r#"<graph><vector name="A" displacement="(0,5)" tail="(5,2)" />
+                  <vector name="B" displacement="(-2,6)" tail="(3,7)" />
+                  <vector name="C" displacement="(7,-3)" tail="(-4,5)" /></graph>
+                  <sort name="t2" sortVectorsBy="tail" sortByComponent="2">$A $B $C</sort>"#;
+        expect { "t2.values" = [0, 5, 7, -3, -2, 6] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "points sort by a prop they have, any spelling" {
+        doenet r#"<graph><point name="A">(0,5)</point><point name="B">(-2,6)</point>
+                  <point name="C">(7,-3)</point></graph>
+                  <sort name="s" sortByProp="Y">$A $B $C</sort>"#;
+        expect { "s.values" = [7, -3, 0, 5, -2, 6] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "a drag of a shuffled point lands on the point it shows" {
+        doenet r#"<graph><point name="A">(1,2)</point><point name="B">(3,4)</point></graph>
+                  <graph><shuffle name="s">$A $B</shuffle></graph>"#;
+        expect { "s.componentOrder" = [1, 2], "s[2].coords" = (3, 4) }
+        request { "s[2].coords" = (-3, -4) }
+        expect { "B.coords" = (-3, -4), "s.values" = [1, 2, -3, -4] }
+    }
+
+    case "a drag of a sorted point is dropped: it would move the point" {
+        doenet r#"<graph><point name="A">(1,2)</point><point name="B">(3,4)</point></graph>
+                  <graph><sort name="s">$A $B</sort></graph>"#;
+        request { "s[1].coords" = (5, 0) }
+        dropped(2)
+        expect { "A.coords" = (1, 2), "s.values" = [1, 2, 3, 4] }
+        diagnostics[
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+            "cells-request-meets-no-inverse", "cells-request-meets-no-inverse",
+        ]
+    }
+
+    case "booleans sort false before true, each entry a boolean" {
+        doenet r#"<boolean name="b">true</boolean>
+                  <sort name="s" type="boolean">true false $b false</sort>
+                  <shuffle name="h" type="boolean">true false</shuffle>"#;
+        expect {
+            "s.values" = [0, 0, 1, 1], "s.componentOrder" = [2, 4, 1, 3],
+            "s[1].value" = 0, "h.numComponents" = 2,
+        }
+    }
+
+    case "a point among other values is refused" {
+        doenet r#"<point name="A">(1,2)</point><sort name="s">$A 3</sort>"#;
         diagnostics["cells-unsupported"]
     }
 }

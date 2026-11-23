@@ -60,6 +60,7 @@ impl<'c> Stamp<'c> {
         let n = self.n_public(referent);
         self.element_ports(t, e, n);
         self.g.list_copies.insert((t, e), n);
+        self.copy_shape(Comp::Elem(t, e), referent);
         for pi in 0..n {
             let (s, target) = (self.g.port(t, e, pi), self.slot(referent, pi));
             self.set(s, Def::Alias(target));
@@ -147,6 +148,7 @@ impl<'c> Stamp<'c> {
                     _ => {
                         let n = self.n_public(referent);
                         self.place_as(m, rt, n);
+                        self.copy_shape(Comp::Made(m), referent);
                         for pi in 0..n {
                             let (s, target) =
                                 (self.slot(Comp::Made(m), pi), self.slot(referent, pi));
@@ -203,6 +205,8 @@ impl<'c> Stamp<'c> {
     fn copy_of(&mut self, c: Comp, t: TemplateId) -> Comp {
         let n = self.n_public(c);
         let m = self.make(self.component_type(c), t, n, MadeKind::Alias);
+        self.copy_shape(Comp::Made(m), c);
+
         for pi in 0..n {
             let (s, target) = (self.slot(Comp::Made(m), pi), self.slot(c, pi));
             self.set(s, Def::Alias(target));

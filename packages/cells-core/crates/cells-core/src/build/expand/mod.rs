@@ -432,8 +432,11 @@ impl Slots<'_> {
             return format!("(anonymous slot {slot})");
         }
         let pi = slot.index() - self.slot_base[comp.index()].index();
-        let component_type = self.components.component_type[comp.index()];
-        match component_type.prop_name(self.n_public(comp), pi) {
+        match self
+            .components
+            .shape(comp)
+            .prop_name(self.n_public(comp), pi)
+        {
             Some(name) => format!("{}.{name}", self.comp_label(comp)),
             None => format!("{}.(hidden slot {pi})", self.comp_label(comp)),
         }
@@ -546,6 +549,7 @@ impl<'c> Builder<'c> {
                 scope: Vec::with_capacity(guess),
                 referent: Vec::with_capacity(guess),
                 links: Vec::new(),
+                own_entries: Default::default(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -623,7 +627,6 @@ impl<'c> Builder<'c> {
         comp: CompIdx,
         sel: PropSel,
     ) -> Option<Vec<SlotId>> {
-        let component_type = self.components.component_type[comp.index()];
         let at = match sel {
             PropSel::Parts { .. } => {
                 return Some(
@@ -637,20 +640,21 @@ impl<'c> Builder<'c> {
             PropSel::At(at) => at,
         };
         let n = self.slots().n_public(comp);
-        let coord = |b: &mut Self, k: usize, j: usize| match component_type.list_slot(n, k, j) {
+        let shape = self.components.shape(comp);
+        let coord = |b: &mut Self, k: usize, j: usize| match shape.list_slot(n, k, j) {
             Some(i) => b.slot(comp, i),
             None => b.missing_slot(),
         };
-        let w = component_type.list_width();
+        let w = shape.width();
         Some(match at {
             PropAt::Position(i) => vec![self.slot(comp, i)],
             PropAt::Item(k) => (0..w).map(|j| coord(self, k, j)).collect(),
             PropAt::Coord(k, j) => vec![coord(self, k, j)],
-            PropAt::List => (1..=component_type.list_len(n))
+            PropAt::List => (1..=shape.list_len(n))
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(self, k, j))
                 .collect(),
-            PropAt::Companion => component_type
+            PropAt::Companion => shape
                 .companion_slots(n)
                 .map(|i| self.slot(comp, i))
                 .collect(),
@@ -820,13 +824,16 @@ impl<'c> Builder<'c> {
             // One slot per port, in the wiring's order (ADR 0032); the
             // public ones end with the list's points.
             let n_public = match plan.list {
-                ListLen::Points(_) => plan.n_public(el.component_type),
+                ListLen::Points(_) | ListLen::Entries(..) => plan.n_public(el.component_type),
                 ListLen::None | ListLen::AsReferent => None,
             };
             let comp =
                 self.new_component(el.component_type, el.name, parent, el.node, scope, n_slots);
             if let Some(n) = n_public {
                 self.n_public[comp.index()] = n as u32;
+            }
+            if let Some(own) = plan.list.own_entry() {
+                self.components.own_entries.insert(comp, own);
             }
             self.scope_comps[scope.index()][e] = comp;
             self.comp_instance[comp.index()] = InstanceId::from_index(self.instances.len());
@@ -1228,6 +1235,9 @@ impl<'c> Builder<'c> {
         self.components.referent[idx.index()] = referent;
         let n = self.slots().n_public(referent);
         self.n_public[idx.index()] = self.n_public[referent.index()];
+        if let Some(own) = self.components.shape(referent).own {
+            self.components.own_entries.insert(idx, own);
+        }
         self.allocate_slots(idx, n);
         for pi in 0..n {
             let s = self.slot(idx, pi);
@@ -1258,9 +1268,10 @@ impl<'c> Builder<'c> {
         let sel = prop.sel_on(component_type);
         if sel == Some(PropSel::At(PropAt::List)) {
             let n = self.slots().n_public(comp);
-            let items = (1..=component_type.list_len(n))
+            let shape = self.components.shape(comp);
+            let items = (1..=shape.list_len(n))
                 .map(|k| {
-                    let at = |j| self.slot(comp, component_type.list_slot(n, k, j).unwrap());
+                    let at = |j| self.slot(comp, shape.list_slot(n, k, j).unwrap());
                     [at(0), at(1)]
                 })
                 .collect();

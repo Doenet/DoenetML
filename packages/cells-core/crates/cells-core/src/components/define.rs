@@ -545,7 +545,7 @@ impl ComponentDef {
         self.combined_props = combined_props;
         self
     }
-    pub(super) const fn list(mut self, list: super::ListProp) -> Self {
+    pub(crate) const fn list(mut self, list: super::ListProp) -> Self {
         self.list = Some(list);
         self
     }
@@ -657,6 +657,30 @@ pub(crate) const fn find(defs: &[PropDef], name: &str) -> Option<usize> {
 
 /// The position of the prop `name` in `defs`, for a type's named
 /// positions. A name not in the table fails to compile.
+/// A type's second public sequence over its own ports with no list of
+/// entries before it (`sequence: name`, ADR 0053): a list of no cells an
+/// entry, whose companion `name` is one cell an entry, as many as the
+/// element's planner makes (a `<choiceInput>`'s `choiceOrder`). It has
+/// no rows and is no text of the element.
+pub(crate) const fn sequence_only(name: &'static str) -> super::ListProp {
+    super::ListProp {
+        names: &[],
+        item: name,
+        points: super::ListPoints::Given {
+            coords: &[],
+            alternate_name: None,
+            attribute: None,
+            max: None,
+            max_by: None,
+            from_children: None,
+            entry: super::EntryKind::Number,
+        },
+        interactive: false,
+        rendered: true,
+        companion: Some(name),
+    }
+}
+
 pub(crate) const fn at(defs: &[PropDef], name: &str) -> usize {
     match find(defs, name) {
         Some(i) => i,
@@ -905,6 +929,7 @@ macro_rules! component {
         $(counted: $cokind:ident $(($cowhen:ident))?,)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
+        $(sequence: $seqname:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),* $(,)?
             $(.. $anch:ident)?
@@ -988,6 +1013,7 @@ macro_rules! component {
                 $(.counted($crate::components::define::component!(@counted $cokind [PROPS] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
+                $(.list($crate::components::define::sequence_only(stringify!($seqname))))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
                     names: &[$(stringify!($lname)),+],

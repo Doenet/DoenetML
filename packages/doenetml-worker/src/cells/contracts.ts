@@ -312,6 +312,16 @@ function inputPresentation(table: CellsTable, c: number) {
     };
 }
 
+/** A choice input's `choiceOrder` (ADR 0053): its cells after its table's,
+ * one per choice, each the position among its choices of the one shown
+ * there; the choices in order when it has none. */
+function choiceOrder(r: Reads, c: number, n: number): number[] {
+    const cells = r.table.listCells(c);
+    return cells.length === n
+        ? cells.map((cell) => r.cell(cell))
+        : Array.from({ length: n }, (_, i) => i + 1);
+}
+
 /** LaTeX of what a cell of a math list's entry holds: its expression (the
  * blank one for none), or the number an entry aliasing one holds; a
  * sort's text entry (ADR 0053) as text. */
@@ -970,7 +980,12 @@ export const CONTRACTS: Record<string, Contract> = {
                         ? [selected]
                         : [],
                 selectMultiple: false,
-                choiceOrder: Array.from({ length: n }, (_, i) => i + 1),
+                inline: flag(r.table, c, "inline"),
+                // Its `choiceOrder`, the cells after its table's (ADR
+                // 0053): the choices' positions as shown, drawn at load
+                // with `shuffleOrder`. `selectedIndices` are places as
+                // shown.
+                choiceOrder: choiceOrder(r, c, n),
                 choicesDisabled: new Array(n).fill(false),
                 choicesHidden: new Array(n).fill(false),
             };

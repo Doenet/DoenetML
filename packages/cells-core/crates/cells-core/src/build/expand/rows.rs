@@ -42,15 +42,15 @@ impl<'c> Builder<'c> {
     /// (0-based) is the component `elems` pairs with it, else a made row
     /// of the list's entry type whose entry ports alias the entry's slots.
     pub(in crate::build) fn rows_of(&mut self, comp: CompIdx, elems: &[(u32, CompIdx)]) {
-        let ty = self.components.component_type[comp.index()];
-        let Some(row) = ty.entry_row() else {
+        let shape = self.components.shape(comp);
+        let Some(row) = shape.entry_row() else {
             return;
         };
         let n = self.slots().n_public(comp);
         let scope = self.components.scope[comp.index()];
         let ports = row.entry_ports();
-        let mut kids = Vec::with_capacity(ty.list_len(n));
-        for k in 1..=ty.list_len(n) {
+        let mut kids = Vec::with_capacity(shape.list_len(n));
+        for k in 1..=shape.list_len(n) {
             if let Some(&(_, c)) = elems.iter().find(|(j, _)| *j as usize + 1 == k) {
                 kids.push(ChildEntry::comp(c));
                 continue;
@@ -64,7 +64,8 @@ impl<'c> Builder<'c> {
                 row.prop_defs().len(),
             );
             for (j, &pi) in ports.iter().enumerate() {
-                let entry = self.slot(comp, ty.list_slot(n, k, j).expect("an entry's slot"));
+                let entry = self.slot(comp, shape.list_slot(n, k, j).expect("an entry's slot"));
+
                 let s = self.slot(m, pi);
                 self.sources[s.index()] = BuiltSource::Alias(entry);
             }

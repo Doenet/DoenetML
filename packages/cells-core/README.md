@@ -23,7 +23,7 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 `booleanList` (from text, references, element children and nested lists,
 literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
-or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
+or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
 pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
@@ -55,7 +55,7 @@ drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
-numbers, texts and maths; not points), `sequence` (numbers, literal parameters), and
+numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers, literal parameters), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
 from the document seed, and the function operators `clampFunction` and
