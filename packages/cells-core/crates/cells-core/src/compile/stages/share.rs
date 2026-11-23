@@ -699,6 +699,8 @@ fn expr_classes<'c>(
                 .map(c)
                 .collect::<Option<Vec<u32>>>()
                 .map(|xs| K::Call(*f as u8, xs)),
+            // Its text says what it is: its own class.
+            Expr::Operator(_) => None,
         };
         let class = match key {
             Some(k) => *seen.entry(k).or_insert(id),

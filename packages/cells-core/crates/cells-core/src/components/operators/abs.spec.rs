@@ -13,9 +13,20 @@ spec! {
         expect { "a.value" = 5.3, "b.value" = 3, "c.value" = 8 }
     }
 
-    case "nothing, or math the lowering cannot evaluate: no value" {
-        doenet r#"<abs name="a"/><abs name="b">-x</abs>"#;
-        expect { "a.value" = f64::NAN, "b.value" = f64::NAN }
+    case "nothing: no value; over math, its absolute value (ADR 0043)" {
+        doenet r#"<abs name="a"/><abs name="b">-x</abs><abs name="c">-log(31)</abs>"#;
+        expect {
+            "a.value" = f64::NAN, "a.expr" = "", "b.expr" = "|-x|", "b.value" = f64::NAN,
+            "c.expr" = "3.4339872044851463", "c.value" = 31f64.ln(),
+        }
+    }
+
+    case "over a math input: an expression, a number when it is one" {
+        doenet r#"<mathInput name="mi" prefill="x"><label>m</label></mathInput>
+                  <abs name="a">$mi</abs>"#;
+        expect { "a.expr" = "|x|" }
+        request { "mi.value" = -3 }
+        expect { "a.expr" = "3", "a.value" = 3 }
     }
 
     case "a request writes the asked value, and 0 for a negative one" {

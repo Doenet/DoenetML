@@ -45,12 +45,11 @@ It found three kinds of gap:
    `hide` beyond a few types, `numItems`, a branch's names seen bare. Each
    is a diagnostic today, so it is a coverage gap, not a wrong answer
    (§4.2).
-3. **Decisions in ADRs that differ from a principle**: a reference that
-   names nothing is an error and boxes its element, where D37 wants a
-   warning and a blank (ADR 0013). An index is not rounded (ADR 0041
-   against NAME-2). Credit regrades (ADR 0017 against ANS-1, D16).
+3. **Decisions in ADRs that differ from a principle**: an index is not
+   rounded (ADR 0041 against NAME-2). Credit regrades (ADR 0017 against ANS-1, D16).
    Comma lists split at spaces only (ADR 0041 against VAL-12). These need
-   a maintainer call before any code (§4.3).
+   a maintainer call before any code (§4.3). The one about references
+   that name nothing was decided for the principle and is done (ADR 0046).
 
 ## 2. Status by principle
 
@@ -63,14 +62,14 @@ not supported, and using it is a diagnostic.
 | id | tier | status |
 |---|---|---|
 | NAME-0 | 1 | Tags, props and names are exact. **Partial**: attribute names match without case and with no warning (`Dast::attr_peek`; D51 wants w0197). Keyword values are fixed here (§3) |
-| NAME-1 | 1 | Nearest scope, a tie never guessed. **Partial**: an ambiguous name is an error box, not a warning and a blank; two siblings with one name box the second even unreferenced |
+| NAME-1 | 1 | Nearest scope, a tie never guessed; an ambiguous name is a warning and a blank (ADR 0046). **Partial**: two siblings with one name box the second even unreferenced |
 | NAME-2 | 1 | Deep paths and live indices (`$r[$i].x`, ADR 0041) hold. **Partial**: no rounding; `$g[2]` through a one-child group is refused; `$r[$k+1]` is refused |
 | NAME-3 | 1 | Holds for extends; `copy` N/A |
 | NAME-4 | 1 | **Partial**: an attribute on an extend does not see children written inside it; a child inside an extend sees the clones' names |
 | NAME-5 | 2 | **Departs**: attributes resolve from the parent's scope, so `<graph xMin="$k"><number name="k"/></graph>` beside an outer `k` is ambiguous |
 | NAME-6 | 1 | N/A, refused |
 | NAME-7 | 1 | Holds, and more strongly than the current core: every count is checked (ADR 0012), and no cycle appears after an update |
-| DIAG-1, DIAG-2 | 2 | Changed by ADR 0013: reference problems are errors; no info comes from a tick |
+| DIAG-1, DIAG-2 | 2 | A reference that names nothing is a warning (ADR 0046); no info comes from a tick (ADR 0013) |
 | DIAG-3 | 2 | **Partial**: a reference is quoted without its indices (`$nope.x[2]` shows as `'$nope'`); the `PathTooDeep` text is out of date |
 | DIAG-4 | 2 | **Partial**: a reader of a box reports again (`cells-boxed-referent`); the bridge drops warnings' nodes and codes |
 | DIAG-5 | 2 | **Fixed (§3)**: a cycle and an unread attribute on the root no longer stop the document |
@@ -80,7 +79,7 @@ not supported, and using it is a diagnostic.
 
 | id | tier | status |
 |---|---|---|
-| REF-0 | 1 | The type is decided at load. **Partial**: a missing referent is an error or NaN, not a blank (§4.3) |
+| REF-0 | 1 | The type is decided at load; a tag whose source names nothing is missing, with a warning (ADR 0046) |
 | REF-1 | 1 | **Partial**: bare `$p`, `$g`, `$r`, `$c` are refused (`cells-uncopyable-type`) while their extends work |
 | REF-1a | 1 | Holds for inputs (`reads_as`, ADR 0025); `$a` of an answer waits on D21 |
 | REF-2 | 1 | Holds |
@@ -104,7 +103,7 @@ not supported, and using it is a diagnostic.
 | TYPE-5 | 2 | **Fixed (§3)**: a type, tag or keyword attribute written with a reference is refused |
 | VAL-3 | 1 | Holds where supported. **Defect**: `<boolean>$P = (1,2)</boolean>` fails the load as an internal error (§4.1) |
 | VAL-4 | 2 | **Departs**: formatting reaches `$n` but not `<number>$n</number>` or `$n.value`; lists and `<math>` ignore `displayDecimals` |
-| VAL-5 | 1 | **Departs**: a missing value shows `NaN`, not `＿` (§4.3). Holds: a missing value equals nothing |
+| VAL-5 | 1 | Holds since ADR 0046: missing is a value of its own, shown as `＿`, propagated by numbers and booleans, held as a blank by a math, false in a comparison, no credit; `NaN` is a computation's; a `<math>` lowered to numbers shows the blank in its expression (`1 + ＿`) |
 | VAL-6 to VAL-8 | 1 | Hold for scalar attributes. A reference in a literal-only attribute and an expression in a flag are **refused now (§3)** |
 | VAL-9, VAL-9a | 1 | N/A |
 | VAL-12 | 1 | **Departs, silently**: `<numberList>1, 2, 3</numberList>` gives `NaN, NaN, 3` (ADR 0041 decision 9; §4.3) |
@@ -167,6 +166,7 @@ Each case is a test in `tests/principles.rs`, or the bridge test named.
 | DIAG-5 | `<document uniqueVariants>` panicked | a warning; the root cannot be boxed (`stages/link/unread.rs`) |
 | DIAG-5, NAME-7 | any value cycle failed the whole load | the component the cycle names is boxed and the rest renders (`compile/graph/cycles.rs`; ADR 0013's amendment) |
 | COMP-2 | `<group asList>` over several lines gave `1,  , 2` | `1, 2` (`doenetml-worker/src/cells/bridge.ts`) |
+| VAL-5, NAME-1, REF-0, D37, D40 | `x="$typo"` boxed the point; `$l[5]` showed `NaN`, like `0/0`; `$l[5] + 3` was NaN; `＿ and true` was true | a warning and the missing value, which the element holds; shown as `＿`, propagated, false in a comparison; `0/0` stays `NaN` (ADR 0046) |
 
 ## 4. What remains
 
@@ -225,13 +225,8 @@ inside an extend naming their counterparts (REF-6, D43), and
 
 ### 4.3 Decisions first
 
-- **A reference that names nothing (VAL-5, REF-0, NAME-1, D37).** ADR
-  0013 makes it an error that boxes the reader, and a missing value is
-  NaN. D37 wants a warning and a blank. The display half is small: the
-  bridge can show `＿` for the shared missing cell, and the engine can
-  print a NaN leaf as `＿`. Propagation (`$l[5] + 3` is blank, `not` of a
-  missing value is missing) needs a missing state apart from NaN in the
-  tick, which is an ADR.
+- **A reference that names nothing (VAL-5, REF-0, NAME-1, D37).**
+  Decided for the principle, and done by ADR 0046.
 - **Comma lists (VAL-12).** ADR 0041's decision 9 splits text lists at
   spaces only, against VAL-12's Tier 1 rule (commas if there is one).
   Porting `splitListItems` from `@doenet/parser` is M once ADR 0041 is

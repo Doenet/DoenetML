@@ -426,6 +426,26 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <math name="c">$ml[1] + $r[$k].q[2]</math>"#,
     ),
+    (
+        // Operators over math (ADR 0043): numeric and symbolic by their
+        // operands, forced, an operand read twice over (a variance's),
+        // element children and a list's entries as operands, and an
+        // angle's measure, inside a repeat whose count a cell sets.
+        "operators-over-math",
+        r#"<numberInput name="k" value="1"/>
+        <mathInput name="mi" prefill="x"/>
+        <numberList name="nl">1 $k</numberList>
+        <sum name="s" simplify>$mi 2x $k <math>y</math> $nl</sum>
+        <variance name="v">$mi $k</variance>
+        <abs name="a">$mi</abs><round name="rd" numDecimals="1">$s</round>
+        <max name="m" forceSymbolic>$k 3</max><mod name="md">$k 3</mod>
+        <angle name="an" radians="$mi"/>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <product name="p">$i $mi $r[$k].c</product>
+          <ceil name="c">$i x</ceil>
+        </repeatForSequence>
+        <number name="n">$s + $r[$k].c</number>"#,
+    ),
 ];
 
 #[test]

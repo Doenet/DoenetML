@@ -58,4 +58,32 @@ spec! {
         doenet r#"<line name="l1"/><line name="l2" through="(0,0) (0,1)"/><angle name="a" betweenLines="$l1 $l2"/>"#;
         diagnostics["cells-unsupported"]
     }
+
+    case "a measure written as math is an expression, kept as written (ADR 0043)" {
+        doenet r#"<angle name="r" radians="pi/2"/><angle name="a">alpha</angle>
+                  <angle name="d" degrees="alpha"/>
+                  <math name="m1" simplify>2$r</math><math name="m2" simplify>2$a.degrees</math>"#;
+        expect {
+            "r.radiansExpr" = "π/2", "r.degreesExpr" = "90", "r.radians" = PI / 2.0,
+            "r.degrees" = 90, "a.radiansExpr" = "α", "a.degreesExpr" = "180 α/π",
+            "a.radians" = f64::NAN, "d.degreesExpr" = "α", "d.radiansExpr" = "α π/180",
+            "m1.expr" = "π", "m2.expr" = "360 α/π",
+        }
+    }
+
+    case "a number, or points: no expression" {
+        doenet r#"<angle name="n" radians="2"/><angle name="t" through="(1,0) (0,0) (0,1)"/>"#;
+        expect {
+            "n.radiansExpr" = "", "n.radians" = 2, "t.radiansExpr" = "",
+            "t.degreesExpr" = "", "t.degrees" = 90,
+        }
+    }
+
+    case "a reference to an expression: one, following it" {
+        doenet r#"<mathInput name="mi" prefill="theta"><label>m</label></mathInput>
+                  <angle name="a" radians="$mi"/>"#;
+        expect { "a.radiansExpr" = "θ", "a.degreesExpr" = "180 θ/π" }
+        request { "mi.value" = 1 }
+        expect { "a.radians" = 1, "a.degrees" = 180.0 / PI }
+    }
 }

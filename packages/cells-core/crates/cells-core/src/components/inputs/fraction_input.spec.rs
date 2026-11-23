@@ -5,8 +5,6 @@
 
 use crate::spec;
 
-const NAN: f64 = f64::NAN;
-
 spec! {
     fraction_input;
 
@@ -16,8 +14,10 @@ spec! {
         expect { "fi.value" = 1.5, "n.value" = 2.5 }
     }
 
+    // Blank inputs make a blank fraction, whose value is missing: a number
+    // cannot hold a blank (D40, ADR 0046).
     case "with no prefill the fraction is blank" {
         doenet r#"<fractionInput name="fi"/>"#;
-        expect { "fi.value" = NAN }
+        expect { "fi.value" = crate::program::MISSING }
     }
 }

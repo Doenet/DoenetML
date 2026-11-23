@@ -108,6 +108,7 @@ impl<'c> Stamp<'c> {
             };
         }
         match step {
+            Step::Nothing => At::Missing,
             Step::Elem(e) => {
                 let in_template = match cur {
                     At::Iter(s) => s,

@@ -216,7 +216,8 @@ fn a_value_list_shows_its_entries() {
     assert_eq!(text(&doc, "index"), "2.5 a false");
     assert_eq!(text(&doc, "byK"), "b false");
     assert_eq!(text(&doc, "pnl2"), "3, 4");
-    assert_eq!(text(&doc, "empty"), "[NaN]");
+    // Past the end is missing, a blank (VAL-5, ADR 0046).
+    assert_eq!(text(&doc, "empty"), "[＿]");
     doc.request(&[req(&doc, "k", "value", 3.0)]);
     assert_eq!(text(&doc, "byK"), "c true");
     assert_eq!(reference::check(&doc), None);

@@ -34,4 +34,15 @@ spec! {
                   <standardDeviation name="s"/>"#;
         expect { "v.value" = f64::NAN, "p.value" = 0, "s.value" = f64::NAN }
     }
+
+    case "over math: its expression, when population is written" {
+        doenet r#"<variance name="v">x y</variance>
+                  <variance name="p" population>x y</variance>
+                  <standardDeviation name="s" population>x 1</standardDeviation>"#;
+        expect {
+            "v.expr" = "(x^2 + y^2 - (x + y)^2/2)/1",
+            "p.expr" = "(x^2 + y^2 - (x + y)^2/2)/2",
+            "s.expr" = "sqrt((x^2 + 1^2 - (x + 1)^2/2)/2)",
+        }
+    }
 }

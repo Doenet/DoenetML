@@ -138,7 +138,13 @@ reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared
 type (`$mi` is a `<math>`, ADR 0025); a prop-level reference (`$p1.x`)
 aliases that one prop. A bare `$name` where a value is read resolves to
-the referent's default prop (`value` for numbers and inputs).
+the referent's default prop (`value` for numbers and inputs). A reference
+that names nothing is a warning and the missing value (ADR 0046).
+
+**Missing** — The value of a reference that names nothing (no referent, an
+ambiguous name, an index past the end) and of what is computed from one:
+`program::MISSING`, a NaN told apart from a computation's NaN by its bits,
+shown as `＿` (ADR 0046). A comparison with it is false.
 
 **Copy** — The component produced by a component-level reference. A copy may
 override individual props with attributes (`<point extend="$p1" y="3"/>`);
@@ -314,7 +320,17 @@ symbolic engine.
 
 **Lowering** — Replacing a `<math>` whose leaves are all number literals or
 number-typed components with numeric operators at build time, so it never
-becomes a math cell. Decided at build time, never from runtime values.
+becomes a math cell. Constant math text that is no number as written
+(`6/2`, `pi/2`) is kept as written instead, a math cell (ADR 0043).
+Decided at build time, never from runtime values.
+
+**Operator over math** — A component type whose value is an operator over
+operands that may be expressions (`<abs>`, `<sum>`, `<round>`; ADR 0043):
+numeric, its operator over numbers, when the type pass proves every
+operand a number, else symbolic, a math cell (`expr`) holding the
+engine's operator over the operands, which its `value` evaluates.
+`forceSymbolic` and `forceNumeric` decide instead. Decided per element
+when compiled, never from runtime values.
 
 **Constant** — A cell whose value depends on the source, the seed and
 the scope it is in alone (ADR 0028): no tick changes it, and no rebuild changes

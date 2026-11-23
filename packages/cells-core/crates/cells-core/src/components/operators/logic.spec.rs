@@ -49,11 +49,13 @@ spec! {
         }
     }
 
-    case "a missing operand is passed over" {
+    // A boolean cannot hold a blank, so one made from a missing operand is
+    // missing, whatever the other operands are (D40, ADR 0046).
+    case "a missing operand makes the value missing" {
         doenet r#"<booleanList name="l">true</booleanList>
                   <and name="a">$l[2] true</and>
-                  <or name="o">$l[2] false</or>"#;
-        expect { "a.value" = 1, "o.value" = 0 }
+                  <or name="o">$l[2] true</or>"#;
+        expect { "a.value" = crate::program::MISSING, "o.value" = crate::program::MISSING }
     }
 
     case "a copy has its value" {

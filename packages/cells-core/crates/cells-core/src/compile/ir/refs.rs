@@ -61,6 +61,11 @@ pub(crate) enum Step {
     /// An interface name of a choice, by its name-table id: `$cc.x`, or
     /// `$s[1].x` after an index into a select's picks.
     Iface(ChoiceId, NameId),
+    /// A reference that names nothing (no referent, an ambiguous name, a
+    /// property the referent's type does not have): it is the missing
+    /// value, with a warning where it is written (ADR 0046). The one step
+    /// of its plan.
+    Nothing,
 }
 
 /// One term of an index: a constant, an iteration's position, or a cell's

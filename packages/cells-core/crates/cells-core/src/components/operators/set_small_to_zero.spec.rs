@@ -27,4 +27,10 @@ spec! {
         request { "mi.value" = 0.001 }
         expect { "n.value" = 0, "s.value" = 0 }
     }
+
+    case "over math: each number in it so treated" {
+        doenet r#"<setSmallToZero name="a">0.0000000000000001 x + y</setSmallToZero>
+                  <setSmallToZero name="b" threshold="0.01">0.001 x + 2</setSmallToZero>"#;
+        expect { "a.expr" = "0 x + y", "b.expr" = "0 x + 2" }
+    }
 }

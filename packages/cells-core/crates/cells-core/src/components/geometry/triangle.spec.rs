@@ -25,7 +25,7 @@ spec! {
                   <number name="past">$t.x4</number>"#;
         expect {
             "t.numVertices" = 3, "t.vertex2" = (3, 5), "t.x3" = -5, "t.y1" = 2,
-            "past.value" = f64::NAN,
+            "past.value" = crate::program::MISSING,
         }
         request { "t.x2" = 4, "t.y2" = 6 }
         expect { "t.vertex2" = (4, 6), "t.vertex1" = (1, 2) }

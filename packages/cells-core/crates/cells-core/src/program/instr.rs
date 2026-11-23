@@ -30,6 +30,20 @@ pub enum SymKind {
         /// What to do to the result.
         post: Post,
     },
+    /// A lowered math's expression, shown while its value is missing (ADR
+    /// 0046): with input 0, the value, missing, the template instantiated
+    /// as [`SymKind::Instantiate`] does (its leaves are inputs 1 on), so a
+    /// missing operand shows as the blank in it (`＿ + 1`); otherwise NaN,
+    /// the numeric math's expression (ADR 0005), at the cost of one check.
+    /// Its cell keeps its port's type, a number: the handle is for the
+    /// math's display alone, which reads it only while the value is
+    /// missing.
+    InstantiateBlank {
+        /// The engine expression whose leaves are inputs 1 on.
+        template: Handle,
+        /// What to do to the result.
+        post: Post,
+    },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -62,7 +76,8 @@ pub enum SymKind {
     SampleQuadratic,
 }
 
-/// What a `<math>` does to its expression after instantiating it.
+/// What a `<math>`, or an operator over math (ADR 0043), does to its
+/// expression after instantiating it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Post {
     /// Nothing: the expression as instantiated.
@@ -74,6 +89,59 @@ pub enum Post {
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
     SimplifyExpand,
+    /// Its absolute value: a number when it evaluates to one, else
+    /// `abs(..)` (`<abs>`).
+    Abs,
+    /// Its sign, likewise (`<sign>`).
+    Sign,
+    /// Rounded down, likewise, a value within roundoff of an integer
+    /// taken as it (`<floor>`).
+    Floor,
+    /// Rounded up, likewise (`<ceil>`).
+    Ceil,
+    /// Every number in it rounded to this many decimal places (`<round>`).
+    RoundDecimals(i32),
+    /// Every number in it rounded to this many significant digits.
+    RoundDigits(i32),
+    /// Every number in it of magnitude below the threshold, these bits of
+    /// an `f64`, made 0 (`<setSmallToZero>`).
+    SmallToZero(u64),
+}
+
+impl Post {
+    /// `h` with this applied, by `engine`.
+    pub fn apply(self, engine: &mut crate::sym::Engine, h: Handle) -> Handle {
+        match self {
+            Post::None => h,
+            Post::Simplify => engine.simplify(h),
+            Post::Expand => engine.expand(h),
+            Post::SimplifyExpand => {
+                let h = engine.simplify(h);
+                engine.expand(h)
+            }
+            Post::Abs => engine.apply_numeric(h, "abs", f64::abs),
+            Post::Sign => engine.apply_numeric(h, "sign", sign),
+            Post::Floor => {
+                engine.apply_numeric(h, "floor", |v| near_integer(v).unwrap_or(v.floor()))
+            }
+            Post::Ceil => engine.apply_numeric(h, "ceil", |v| near_integer(v).unwrap_or(v.ceil())),
+            Post::RoundDecimals(n) => engine.round_decimals(h, n),
+            Post::RoundDigits(n) => engine.round_digits(h, n),
+            Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+        }
+    }
+}
+
+/// -1, 0 or 1 by the sign of `v`, as JavaScript's `Math.sign`.
+fn sign(v: f64) -> f64 {
+    if v == 0.0 { 0.0 } else { v.signum() }
+}
+
+/// The integer `v` is within roundoff of (relative 1e-15), as the current
+/// core's `<floor>` and `<ceil>` take one.
+fn near_integer(v: f64) -> Option<f64> {
+    let r = v.round();
+    ((r - v).abs() < 1e-15 * v.abs()).then_some(r)
 }
 
 impl SymKind {
@@ -211,7 +279,11 @@ impl OpSpec {
         }
         match self {
             OpSpec::Vec(v) => v.n_in(),
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => usize::MAX,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => usize::MAX,
             OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
@@ -226,7 +298,11 @@ impl OpSpec {
     /// for a template's leaves.
     pub const fn accepts(&self, n: usize) -> bool {
         match self {
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => true,
             _ => self.arity() == n,
         }
     }
@@ -345,6 +421,10 @@ mod arity {
                 template: Handle::new(0),
                 post: Post::None,
             }),
+            OpSpec::Sym(SymKind::InstantiateBlank {
+                template: Handle::new(0),
+                post: Post::None,
+            }),
             OpSpec::Sym(SymKind::Evaluate),
             OpSpec::Sym(SymKind::EvalAt),
             OpSpec::Sym(SymKind::Derivative),
@@ -407,12 +487,13 @@ mod arity {
                     SymKind::ClampFunction => 8,
                     SymKind::WrapFunctionPeriodic => 9,
                     SymKind::SampleQuadratic => 10,
+                    SymKind::InstantiateBlank { .. } => 11,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 39;
+    const N_TAGS: usize = 40;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

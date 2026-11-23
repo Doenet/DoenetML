@@ -2,8 +2,9 @@
 //! operator's children contributes, told from the records alone (ADR 0041,
 //! decisions 2, 5 and 9). A reference to a static sequence (a value list
 //! whose count is a fact of the source) contributes its entries, spliced;
-//! a reference to one entry past such a list's end, none; anything else,
-//! one value, as a reference always did.
+//! a reference to one entry past such a list's end, one missing entry (ADR
+//! 0046: a blank in a list, the missing value to an operator); anything
+//! else, one value, as a reference always did.
 
 use super::Planning;
 use crate::compile::ir::record::{ListPiece, PieceFrag};
@@ -14,8 +15,8 @@ use crate::compile::*;
 pub(crate) enum Splice {
     /// One value: the reference itself, as many cells as it names.
     Value,
-    /// No entry: a literal index past the end of a static sequence
-    /// (`$l[9]` of three).
+    /// A literal index past the end of a static sequence (`$l[9]` of
+    /// three): one entry, the missing value the reference reads (ADR 0046).
     Nothing,
     /// The `n` entries of a static sequence, each read as `$p[k]`.
     Entries(usize),
@@ -60,7 +61,10 @@ impl<'a> Planning<'a> {
         for step in &plan.steps {
             match step {
                 Step::Elem(x) => last = Some(*x),
-                Step::Iter(_) | Step::Item(..) | Step::Iface(..) => return Splice::Value,
+                // A reference that names nothing is one missing entry.
+                Step::Iter(_) | Step::Item(..) | Step::Iface(..) | Step::Nothing => {
+                    return Splice::Value;
+                }
             }
         }
         let Some(x) = last else {
@@ -126,8 +130,7 @@ impl<'a> Planning<'a> {
                         ListPiece::Text(_) | ListPiece::Math(_) => 1,
                         ListPiece::Reference(q) | ListPiece::Element(q) => {
                             match self.splice_within(t, *q, visiting, points) {
-                                Splice::Value => 1,
-                                Splice::Nothing => 0,
+                                Splice::Value | Splice::Nothing => 1,
                                 Splice::Entries(k) => k,
                             }
                         }
@@ -164,8 +167,9 @@ impl<'a> Planning<'a> {
                 ListPiece::Text(text) => entries.push(ListEntry::Text(k as u32, text)),
                 ListPiece::Math(frags) => entries.push(ListEntry::Math(self.piece_math(&frags)?)),
                 ListPiece::Reference(p) | ListPiece::Element(p) => match self.splice(t, e, p) {
-                    Splice::Value => entries.push(ListEntry::Ref(p)),
-                    Splice::Nothing => {}
+                    // Past the end, the reference reads the missing value:
+                    // a blank entry (ADR 0046).
+                    Splice::Value | Splice::Nothing => entries.push(ListEntry::Ref(p)),
                     Splice::Entries(n) => {
                         for k in 1..=n {
                             entries.push(ListEntry::Ref(self.entry_ref(t, p, k)));
@@ -204,7 +208,9 @@ impl<'a> Planning<'a> {
                 ListPiece::Text(_) | ListPiece::Math(_) => 1,
                 ListPiece::Reference(q) | ListPiece::Element(q) => {
                     match self.splice_within(t, *q, &mut Vec::new(), row.entry_ports().len() == 2) {
-                        Splice::Nothing => 0,
+                        // An entry past a list's end is one missing entry
+                        // (ADR 0046).
+                        Splice::Nothing => 1,
                         Splice::Entries(m) => m,
                         Splice::Value => {
                             let plan = &self.ar.refs[q.index()];
@@ -234,7 +240,7 @@ impl<'a> Planning<'a> {
     /// text is a pair (`(1,2)`, `($a, 2)`); a reference or an element
     /// child the point it names, a point list's points spliced, a list
     /// prop's points (`$pg.vertices`) one per item, and an entry past such
-    /// a list's end none. At most `max` of them (`maxNumber`).
+    /// a list's end a missing point (ADR 0046). At most `max` of them (`maxNumber`).
     pub(super) fn point_entries(
         &mut self,
         t: TemplateId,
@@ -275,7 +281,8 @@ impl<'a> Planning<'a> {
                     out.push(GivenPoint::Tuple(self.piece_point(&toks, &spelled)?));
                 }
                 ListPiece::Reference(p) | ListPiece::Element(p) => match self.splice(t, e, p) {
-                    Splice::Nothing => {}
+                    // An entry past a list's end: a missing point (ADR 0046).
+                    Splice::Nothing => out.push(GivenPoint::Ref(p)),
                     Splice::Entries(n) => {
                         for k in 1..=n {
                             out.push(GivenPoint::Ref(self.entry_ref(t, p, k)));
