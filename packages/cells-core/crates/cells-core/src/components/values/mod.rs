@@ -242,13 +242,10 @@ pub(crate) mod evaluate {
             None => Wire::absent(),
         };
         let Some(p) = attrs.function else {
-            wiring.set_public(Props {
+            wiring.set_planned(Planned {
                 function: Wire::absent(),
                 input,
                 value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
-                // Planned after this, from the element's `anchor` (`plan_anchor`).
-                anchorX: Wire::absent(),
-                anchorY: Wire::absent(),
             });
             return Ok(wiring);
         };
@@ -281,13 +278,10 @@ pub(crate) mod evaluate {
                 Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
             ),
         };
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             function,
             input,
             value,
-            // Planned after this, from the element's `anchor` (`plan_anchor`).
-            anchorX: Wire::absent(),
-            anchorY: Wire::absent(),
         });
         Ok(wiring)
     }
@@ -420,7 +414,7 @@ pub mod tuple {
             .chain(std::iter::repeat_with(Wire::absent));
         let mut next = || entries.next().expect("an endless supply");
         let mut wiring = ElemWiring::of(ComponentType::Tuple);
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             n,
             x1: next(),
             x2: next(),

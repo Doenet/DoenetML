@@ -390,6 +390,33 @@ impl ElemWiring {
             }
         }
     }
+    /// The table's props from what the type's planner plans of them (its
+    /// `Planned`), each wire with its port and its given leaf. A prop the
+    /// table gives itself and the planner left alone is wired here: a
+    /// computed or an aggregate one as the table says
+    /// ([`Wire::from_table`]), an anchor's coordinate absent, until the
+    /// element's `anchor` is planned.
+    pub(crate) fn set_planned(&mut self, planned: impl IntoIterator<Item = (Port, Wire)>) {
+        for (port, p) in planned {
+            self.props[port.index()] = Some(p.source);
+            if let Some(id) = p.given {
+                self.given.insert(id, port);
+            }
+        }
+        let ty = self.component_type;
+        for (i, def) in ty.prop_defs().iter().enumerate() {
+            if self.props[i].is_some() {
+                continue;
+            }
+            self.props[i] = match def.from {
+                PropFrom::Computed { .. } | PropFrom::Aggregate(_) => {
+                    Some(Wire::from_table(ty, Port::table(i)).source)
+                }
+                PropFrom::Anchor { .. } => Some(Source::absent()),
+                _ => None,
+            };
+        }
+    }
     /// `set_public` for a typed plan of sources that hold no shared state.
     pub(crate) fn set_public_sources(&mut self, props: impl IntoIterator<Item = Source>) {
         self.set_public(props.into_iter().map(Wire::from));

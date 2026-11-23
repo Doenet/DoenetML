@@ -52,7 +52,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         op: Reduction::Between,
         n: 4,
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         operand,
         strict: Wire::scalar(attrs.strict, GivenId::Attr(attr::strict, 0)),
         value: Source::vector(op, vec![at.operand, lim1, lim2, at.strict]).into(),

@@ -58,7 +58,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         None => Wire::absent(),
     };
     let new_value = new_value(ctx, attrs.newValue, attrs.r#type.as_deref(), &mut wiring)?;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         target,
         newValue: new_value,
         triggerWhen: when,

@@ -58,10 +58,9 @@ pub(crate) mod test_shape {
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let attrs = Attrs::of(ctx.record());
         let mut wiring = ElemWiring::of(ComponentType::TestShape);
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             a: a(ctx, &attrs)?,
             b: given(attrs.b, attr::b),
-            sum: Wire::from_table(ComponentType::TestShape, Props::PORTS.sum),
             hide: Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0)),
         });
         Ok(wiring)
@@ -118,7 +117,7 @@ pub(crate) mod test_list {
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let points = Attrs::of(ctx.record()).points;
         let mut wiring = ElemWiring::with_list(ComponentType::TestList, points.len());
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             numPoints: Wire::constant(points.len() as f64),
         });
         wiring.set_list(

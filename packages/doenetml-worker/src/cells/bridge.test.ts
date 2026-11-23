@@ -75,7 +75,11 @@ describe("flat DAST", () => {
             `<p><intervalList>(1, 2) [3, 4]</intervalList></p>`,
         );
         expect(paragraphs(bridge.flatDast())).toEqual([
-            ["<math>(1, 2)", ", ", "<math>[3, 4]"],
+            [
+                "<math>\\left( 1, 2 \\right)",
+                ", ",
+                "<math>\\left[ 3, 4 \\right]",
+            ],
         ]);
     });
 

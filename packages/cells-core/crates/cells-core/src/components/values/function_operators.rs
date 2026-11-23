@@ -6,7 +6,6 @@
 
 use crate::compile::api::*;
 use crate::components::ComponentDef;
-use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::components::values::curve::{FunctionParts, function_curve, referenced_function};
 use crate::error::Result;
@@ -19,6 +18,7 @@ component! {
     /// curve, its `SAMPLES` cells from `samples` on, over the enclosing
     /// graph's x-range, as a `<function>`'s.
     tags: ["clampFunction"],
+    variant: SymKind::ClampFunction,
     flags: [copyable, symbolic],
     renders: InGraph,
     default_prop: expr,
@@ -55,7 +55,7 @@ component! {
 /// `lowerValue` to `upperValue`, `lowerValue + mod(f(x) - lowerValue,
 /// upperValue - lowerValue)`; a clamp's definition under its own tag.
 pub(crate) const WRAP_FUNCTION_PERIODIC: ComponentDef =
-    DEFINITION.with_tags(&["wrapFunctionPeriodic"]);
+    DEFINITION.variant(&["wrapFunctionPeriodic"], &SymKind::WrapFunctionPeriodic);
 
 /// The children's expression, the bounds (literal or computed, else 0 and
 /// 1), the operator over them, and its samples over the x-range of the
@@ -83,11 +83,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         Some(source) => Wire::scalar(source, GivenId::Attr(attr, 0)),
         None => Wire::constant(default),
     };
-    let kind = if component_type == ComponentType::ClampFunction {
-        SymKind::ClampFunction
-    } else {
-        SymKind::WrapFunctionPeriodic
-    };
+    // The engine's operator over the function and the bounds.
+    let kind = *component_type.variant::<SymKind>();
     let domain_ports = [
         at.domainMin,
         at.domainMax,
@@ -103,7 +100,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         [at.xmin, at.xmax],
     );
     let [d0, d1, d2, d3] = parts.domain;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr: Wire::computed(OpSpec::Sym(kind), vec![of, at.lowerValue, at.upperValue]),
         lowerValue: bound(attrs.lowerValue, attr::lowerValue, 0.0),
         upperValue: bound(attrs.upperValue, attr::upperValue, 1.0),

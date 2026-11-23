@@ -328,6 +328,7 @@ pub(super) const fn definition(
         scored: None,
         constrain_target: None,
         params: &[],
+        variant: None,
     }
 }
 
@@ -465,6 +466,24 @@ impl ComponentDef {
     /// `<function>`'s).
     pub(super) const fn with_tags(mut self, tags: &'static [&'static str]) -> Self {
         self.tags = tags;
+        self
+    }
+    /// The same definition under other tags, as the variant `of` it: what
+    /// the planner the two share reads to tell them apart
+    /// ([`ComponentType::variant`](super::ComponentType::variant)), so it
+    /// matches on no type. `<product>` is `<sum>`'s with
+    /// `Reduction::Product`.
+    pub(super) const fn variant<V: std::any::Any + Send + Sync>(
+        self,
+        tags: &'static [&'static str],
+        of: &'static V,
+    ) -> Self {
+        self.with_tags(tags).variant_of(of)
+    }
+    /// What the type is among those sharing its definition; a block's
+    /// `variant: ..` calls this.
+    pub(super) const fn variant_of(mut self, of: &'static super::Variant) -> Self {
+        self.variant = Some(of);
         self
     }
     /// A list whose entries are `less` fewer than its children's
@@ -653,6 +672,12 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// table lacks fails to compile. The sections come in the order below;
 /// only `tags`, `props` and `planner` are required.
 ///
+/// `variant: v`, after `tags`, says what the type is among the types that
+/// share its definition, each of the others made by
+/// `DEFINITION.variant(&["tag"], &v)`: a value of a type the planner they
+/// share chooses and reads back (`ctx.component_type().variant::<V>()`),
+/// so it matches on no type.
+///
 /// `reads_as: T` says a bare reference to a component of this type is a
 /// `T` holding its value, not a copy (`$mi` of a `<mathInput>` is a
 /// `<math>`); its props alias the referent's of the same name.
@@ -696,11 +721,14 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
-/// `Props<T>` has one field per prop of the table, in table order: a
-/// planner fills `Props<Wire>` as a struct literal, so a prop left
-/// unplanned does not compile; `Props::PORTS` holds every prop's port, by
-/// which a planner names it in its wiring; `Props::<usize>::AT` holds
-/// every prop's position.
+/// `Planned` has one field per prop the planner plans, in table order:
+/// every prop but a `computed`, an `aggregate` or an `anchor` one, which
+/// the table gives itself. A planner fills it as a struct literal
+/// (`wiring.set_planned(Planned { .. })`), so a prop left unplanned does
+/// not compile, and one the table gives is not the planner's to write.
+/// `Props<T>` has one field per prop of the table: `Props::PORTS` holds
+/// every prop's port, by which a planner names it in its wiring, and
+/// `Props::<usize>::AT` every prop's position.
 ///
 /// `params { .. }` names the parameters the planner introduces that no
 /// attribute gives: named given leaves with a default (a line's distance
@@ -760,6 +788,7 @@ macro_rules! component {
     (
         $(#[$doc:meta])*
         tags: [$($tag:literal),+ $(,)?],
+        $(variant: $variant:expr,)?
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
@@ -784,6 +813,10 @@ macro_rules! component {
         $(#[$doc])*
         pub(crate) const DEFINITION: $crate::components::ComponentDef =
             $crate::components::define::definition(&[$($tag),+], &[])
+                $(.variant_of({
+                    const VARIANT: &$crate::components::Variant = &$variant;
+                    VARIANT
+                }))?
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
@@ -817,6 +850,7 @@ macro_rules! component {
     (
         $(#[$doc:meta])*
         tags: [$($tag:literal),+ $(,)?],
+        $(variant: $variant:expr,)?
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
@@ -879,6 +913,10 @@ macro_rules! component {
         $(#[$doc])*
         pub(crate) const DEFINITION: $crate::components::ComponentDef =
             $crate::components::define::definition(&[$($tag),+], PROPS)
+                $(.variant_of({
+                    const VARIANT: &$crate::components::Variant = &$variant;
+                    VARIANT
+                }))?
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
@@ -1007,6 +1045,8 @@ macro_rules! component {
             };
         }
 
+        $crate::components::define::component!(@planned [] $($kind $pname)+);
+
         $crate::components::define::component!(@record
             [$($($aname : $akind $(($($akarg)*))?),*)?]
             [$($ckind $([$($gname : [$($gty),*]),*])?)?]
@@ -1031,6 +1071,42 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // `Planned`: a field per prop the table does not give itself. A
+    // `computed`, `aggregate` or `anchor` prop is passed over; any other
+    // is kept, in table order.
+    (@planned [$($acc:ident)*] computed $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] aggregate $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] anchor $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] $kind:ident $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)* $name] $($rest)*);
+    };
+    (@planned [$($name:ident)*]) => {
+        /// What a planner of this type plans: one wire per prop the table
+        /// does not give itself. A `computed` or `aggregate` prop is
+        /// wired as the table says and an `anchor` from the element's
+        /// `anchor`, so none is a field
+        /// ([`ElemWiring::set_planned`](crate::compile::api::ElemWiring::set_planned)).
+        #[allow(non_snake_case, dead_code)]
+        #[derive(Debug, Clone)]
+        pub(crate) struct Planned {
+            $(pub(crate) $name: $crate::compile::api::Wire,)*
+        }
+
+        /// Each planned wire with its port, in table order.
+        impl IntoIterator for Planned {
+            type Item = ($crate::compile::api::Port, $crate::compile::api::Wire);
+            type IntoIter = std::vec::IntoIter<Self::Item>;
+            fn into_iter(self) -> Self::IntoIter {
+                vec![$((Props::PORTS.$name, self.$name)),*].into_iter()
+            }
+        }
     };
     // What a submit does.
     (@submit Copies($response:ident, $submitted:ident)) => {

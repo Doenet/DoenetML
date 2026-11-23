@@ -73,15 +73,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         |x| Wire::computed(op, vec![x, by]),
         post,
         |w, [operand, expr, value]| {
-            w.set_public(Props {
+            w.set_planned(Planned {
                 operand,
                 expr,
                 numDecimals: num_decimals,
                 numDigits: num_digits,
                 value,
-                // Planned after this, from the `anchor` (`plan_anchor`).
-                anchorX: Wire::absent(),
-                anchorY: Wire::absent(),
             })
         },
     )

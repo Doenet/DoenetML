@@ -59,7 +59,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         .map(|(k, p)| Wire::point_given(p, |j| GivenId::Children((2 * k + j) as u32)))
         .collect();
     wiring.set_list(list);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numPoints: Wire::constant(n as f64),
     });
     Ok(wiring)

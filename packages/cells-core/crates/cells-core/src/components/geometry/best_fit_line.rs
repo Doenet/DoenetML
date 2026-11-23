@@ -81,7 +81,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     );
     // The x-intercept is where m x + k = 0.
     let xi = wiring.hidden(Source::computed(OpSpec::Div, vec![at.coeff0, at.coeffvar1]));
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         x1,
         y1,
         x2,

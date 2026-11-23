@@ -64,12 +64,9 @@ fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
 /// math's: an `<interval>`'s.
 pub(crate) fn wiring_of_type(ty: ComponentType, id: ExprId, post: Post) -> ElemWiring {
     let mut wiring = ElemWiring::of(ty);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr: Source::Flow(Flow::MathHandle(id, post)).into(),
         value: Source::Flow(Flow::MathValue(id)).into(),
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     wiring
 }
