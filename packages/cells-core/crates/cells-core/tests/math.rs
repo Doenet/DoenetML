@@ -217,3 +217,24 @@ fn function_call_errors_are_reported() {
         assert_eq!(code, "cells-bad-math", "{text}: {m}");
     }
 }
+
+#[test]
+fn a_math_is_written_in_latex_rounded_as_the_current_core_writes_it() {
+    // math.test.ts, "display digits and decimals": 3 digits and at least 2
+    // decimals by default, the display's only.
+    use cells_core::sym::Display;
+    let doc = load(r#"<math name="m">31.3835205397397634 x + 4pi</math>"#).unwrap();
+    let expr = doc.cell("m", "expr").unwrap();
+    let latex = |d: &Display| doc.display_latex(expr, d).replace(' ', "");
+    assert_eq!(latex(&Display::default()), "31.38x+4\\pi");
+    let five = Display {
+        digits: 5.0,
+        decimals: f64::NEG_INFINITY,
+        ..Display::default()
+    };
+    assert_eq!(latex(&five), "31.384x+4\\pi");
+    assert!(
+        doc.math_text(expr).contains("31.38352"),
+        "the value keeps its digits"
+    );
+}

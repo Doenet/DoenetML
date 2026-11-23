@@ -36,6 +36,13 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "layer",
     "shortDescription",
     "styleNumber",
+    // How a number shows, beside `displayDecimals`: the display's only,
+    // read where the LaTeX is written (`sym::Display`).
+    "displayDigits",
+    "displaySmallAsZero",
+    "padZeros",
+    "avoidScientificNotation",
+    "displayBlanks",
 ];
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits

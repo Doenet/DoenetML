@@ -114,6 +114,37 @@ was numbered among its sibling divisions.
   `initializeCounters` (a division counter's start) is a load option the
   compile does not see yet, and waits too.
 
+## A math's LaTeX, rounded for display
+
+A second decision rides with this ADR, since both make what a reader is
+shown match the current core's (this sweep had one ADR number): a math's
+`latex`, which the bridge sends a renderer and the tests read, is written
+as the current core's `mathDisplayString` writes it.
+
+- **The rounding is the display's, done by the core's engine.**
+  `sym::Display` holds the number-display settings (`displayDigits` 3,
+  `displayDecimals` 2, `displaySmallAsZero` 1e-14, `padZeros`,
+  `avoidScientificNotation`, `displayBlanks`, the current core's
+  defaults) and writes an expression, a number or a point's coordinates
+  as `round_numbers_to_precision_plus_decimals`, `set_small_zero` and
+  `to_latex` with the padding options, the same library calls the current
+  core makes. `Document::display_latex` writes a math cell's expression
+  so; the wasm `Core` exports `display_latex`, `number_display_latex` and
+  `coords_latex`, each taking the settings as six numbers. No cell holds
+  the rounded value: the value keeps every digit.
+- **The settings are presentation.** `displayDigits`,
+  `displaySmallAsZero`, `padZeros`, `avoidScientificNotation` and
+  `displayBlanks` join `displayDecimals` among the attributes any element
+  accepts, and the reader resolves them (`displaySettings` in
+  `cells/contracts.ts`) as `utils/numberDisplay.js` does: digits and
+  decimals from the nearest of the element and its referents that gives
+  either, the other then off. A setting given by a reference
+  (`displayDigits="$n"`) and one taken from a sole child are not followed;
+  those wait for the settings as props.
+- A math shows its expression as written when its cell holds one, else
+  its number; `<m>`'s LaTeX joins its trimmed pieces with spaces, and an
+  `<md>`'s rows each follow `\notag `, as in the current core.
+
 ## Migration
 
 1. Done (2026-11-23): `Numbering`, `passes_divisions`,
@@ -125,3 +156,10 @@ was numbered among its sibling divisions.
    `level` for the divisions, an aside and a proof.
 2. Open: `<cascade>` and `<page>` (pass-throughs of both sequences);
    `initializeCounters`; a section's title and number as references.
+3. Done (2026-11-23): `sym::Display`, `Document::display_latex`, the wasm
+   exports; the bridge's math, `<m>`, `<md>` and point LaTeX; the
+   adapter's `latex` of a math, an interval, an `<m>`, an `<md>` and a
+   point, and an `<m>`'s and `<me>`'s `text` and `renderMode`.
+4. Open: the settings as props (a reference, a sole child's); rounding in
+   a math's `text`; numbered display math (the `equation` counter, ADR
+   0044).

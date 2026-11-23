@@ -527,6 +527,33 @@ impl Core {
         self.doc.math_latex(CellIdx::new(cell))
     }
 
+    /// LaTeX of the expression a math cell holds, rounded and written as
+    /// the current core writes a math's `latex`, by the settings `display`
+    /// (see `display_of`). Empty for a NaN handle.
+    pub fn display_latex(&self, cell: u32, display: &[f64]) -> String {
+        if (cell as usize) >= self.doc.cells.len() {
+            return String::new();
+        }
+        self.doc
+            .display_latex(CellIdx::new(cell), &display_of(display))
+    }
+
+    /// LaTeX of the number `value`, rounded and written as `display_latex`
+    /// writes an expression: what a math holding a number shows.
+    pub fn number_display_latex(&self, value: f64, display: &[f64]) -> String {
+        display_of(display).number_latex(value)
+    }
+
+    /// LaTeX of the tuple of the numbers `cells` hold (a point's
+    /// coordinates), rounded and written as `display_latex` writes them.
+    pub fn coords_latex(&self, cells: &[u32], display: &[f64]) -> String {
+        let values: Vec<f64> = cells
+            .iter()
+            .map(|&c| self.doc.cells.get(c as usize).copied().unwrap_or(f64::NAN))
+            .collect();
+        display_of(display).coords_latex(&values)
+    }
+
     /// What the load reported about the elements it stamped, as a JSON array
     /// of diagnostics: the errors behind the document's `_error` components
     /// and the lint findings and warnings of the rest. Per seed and per count,
@@ -554,6 +581,24 @@ fn raw_cells(cells: Vec<CellIdx>) -> Vec<u32> {
 /// Component indices as the renderer reads them.
 fn raw_comps(comps: Vec<CompIdx>) -> Vec<u32> {
     comps.into_iter().map(CompIdx::get).collect()
+}
+
+/// The number-display settings a reader passes as six numbers:
+/// `displayDigits` (below 1 rounds by decimals only), `displayDecimals`
+/// (not finite rounds by digits only), `displaySmallAsZero`, then
+/// `padZeros`, `avoidScientificNotation` and `displayBlanks` as 0 or 1. A
+/// missing entry keeps the current core's default.
+fn display_of(d: &[f64]) -> cells_core::sym::Display {
+    let base = cells_core::sym::Display::default();
+    let at = |i: usize| d.get(i).copied();
+    cells_core::sym::Display {
+        digits: at(0).unwrap_or(base.digits),
+        decimals: at(1).unwrap_or(base.decimals),
+        small_as_zero: at(2).unwrap_or(base.small_as_zero),
+        pad_zeros: at(3).map_or(base.pad_zeros, |v| v != 0.0),
+        avoid_scientific_notation: at(4).map_or(base.avoid_scientific_notation, |v| v != 0.0),
+        show_blanks: at(5).map_or(base.show_blanks, |v| v != 0.0),
+    }
 }
 
 #[cfg(test)]
