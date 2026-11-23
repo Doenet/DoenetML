@@ -18,7 +18,7 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        numVertices: by_planner { rendered },
+        numVertices: list_len { rendered },
         // The mean of the vertices; a request on it translates them.
         cx: by_planner,
         cy: by_planner,
@@ -213,7 +213,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     ));
     let times = |k: f64| -> Wire { Source::computed_k(OpSpec::Mul, at.circumradius, k).into() };
     wiring.set_planned(Planned {
-        numVertices: Wire::constant(nf),
         cx,
         cy,
         circumradius,

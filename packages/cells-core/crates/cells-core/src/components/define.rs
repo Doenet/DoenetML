@@ -41,6 +41,7 @@ enum DeclaredSource {
     ByPlanner,
     Aggregate(Aggregate),
     Anchor(u8),
+    ListLen,
 }
 
 /// A prop with nothing set: what every prop starts from.
@@ -106,6 +107,12 @@ pub(super) const fn computed(name: &'static str, op: OpSpec, args: &'static [Dec
 /// by one attribute, the children or an operator.
 pub(super) const fn by_planner(name: &'static str) -> Prop {
     prop_from(name, f64::NAN, DeclaredSource::ByPlanner)
+}
+
+/// How many entries the element's list holds ([`PropFrom::ListLen`]): wired
+/// by the wiring, not the planner.
+pub(super) const fn list_len(name: &'static str) -> Prop {
+    prop_from(name, f64::NAN, DeclaredSource::ListLen)
 }
 
 /// Coordinate `coord` of where a value is drawn in a graph, its `anchor`
@@ -237,6 +244,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::Children => PropFrom::Children,
             DeclaredSource::ByPlanner => PropFrom::ByPlanner,
             DeclaredSource::Aggregate(a) => PropFrom::Aggregate(a),
+            DeclaredSource::ListLen => PropFrom::ListLen,
             DeclaredSource::Anchor(coord) => PropFrom::Anchor { coord },
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
@@ -760,8 +768,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// for an expression ([`super::ExprOf`]).
 ///
 /// `Planned` has one field per prop the planner plans, in table order:
-/// every prop but a `computed`, an `aggregate` or an `anchor` one, which
-/// the table gives itself. A planner fills it as a struct literal
+/// every prop but a `computed`, an `aggregate`, an `anchor` or a
+/// `list_len` one, which the table gives itself. A planner fills it as a struct literal
 /// (`wiring.set_planned(Planned { .. })`), so a prop left unplanned does
 /// not compile, and one the table gives is not the planner's to write.
 /// `Props<T>` has one field per prop of the table: `Props::PORTS` holds
@@ -792,13 +800,26 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// misspelling does not compile.
 ///
 /// A prop is `name: source`, the source one of `by_planner`, `children`,
-/// `attr(default)`, `attr_or(other)`, `computed(op, [args])` or
-/// `aggregate(op, collection)`, where an arg is a prop or a literal in
+/// `attr(default)`, `attr_or(other)`, `computed(op, [args])`,
+/// `aggregate(op, collection)`, `anchor(coord)` or `list_len` (how many
+/// entries its list holds), where an arg is a prop or a literal in
 /// parentheses (`[radius, (2.0)]`), optionally followed by `{ attribute:
 /// a, bind: b, ref_prop: p, text, interactive, written_by_action,
 /// rendered, score, read_by_action, sampled: p }`, each as the [`Prop`]
 /// builder of that name. A list ending `interactive: true` or `rendered:
 /// true` marks every point so.
+///
+/// A table ending `..anchor` has, last, the two props of where a value is
+/// drawn in a graph, `anchorX: anchor(0)` and `anchorY: anchor(1)`
+/// ([`PropFrom::Anchor`]).
+///
+/// `value: Number`, `value: Boolean`, `value: Text` or `value: Math(expr)`,
+/// where `text:` would be, says the type holds one value, in its prop
+/// `value`: it shows in text as that kind (`text: Number(value)`, `text:
+/// Math(expr, value)`), `extend="$x.prop"` makes its value of a scalar
+/// (`extend_value: Scalar(value)`), and a bare reference reads it
+/// (`default_prop: value`). A type that is one of the three and not the
+/// others writes them out.
 ///
 /// `renders: Never` or `renders: InGraph`, after `flags`, says where a
 /// component of the type is drawn ([`super::Renders`]); by default
@@ -895,6 +916,7 @@ macro_rules! component {
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(response: $rkind:ident ($rprop:ident),)?
+        $(value: $vkind:ident $(($($vprop:ident),+ $(,)?))?,)?
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
         $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
         $(needs: $needs:ident,)?
@@ -909,7 +931,8 @@ macro_rules! component {
         $(default_prop: $default:ident,)?
         $(sequence: $seqname:ident,)?
         props {
-            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
+            $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),* $(,)?
+            $(.. $anch:ident)?
         }
         $(combined_props { $($cname:ident : [$($cpart:ident),+ $(,)?]),* $(,)? })?
         $(list {
@@ -964,6 +987,16 @@ macro_rules! component {
                 $(.response($crate::components::ResponseKind::$rkind(
                     $crate::components::define::at(PROPS, stringify!($rprop)),
                 )))?
+                $(
+                    .text($crate::components::TextKind::$vkind(
+                        $($($crate::components::define::at(PROPS, stringify!($vprop)),)+)?
+                        $crate::components::define::at(PROPS, "value"),
+                    ))
+                    .extend_value($crate::components::ExtendValue::Scalar(
+                        $crate::components::define::at(PROPS, "value"),
+                    ))
+                    .default_prop("value")
+                )?
                 $(.text($crate::components::TextKind::$tkind(
                     $($crate::components::define::at(PROPS, stringify!($tprop))),+
                 )))?
@@ -1022,8 +1055,12 @@ macro_rules! component {
         const PROPS: &[$crate::components::PropDef] = &$crate::components::define::props([
             $(
                 $crate::components::define::component!(@prop $kind $pname $(($($karg)*))?)
-                    $($(.$opt($(stringify!($oval))?))*)?
-            ),+
+                    $($(.$opt($(stringify!($oval))?))*)?,
+            )*
+            $(
+                $crate::components::define::component!(@anchor $anch anchorX 0),
+                $crate::components::define::component!(@anchor $anch anchorY 1),
+            )?
         ]);
 
         $(
@@ -1043,14 +1080,26 @@ macro_rules! component {
         #[allow(non_snake_case, dead_code)]
         #[derive(Debug, Clone)]
         pub(crate) struct Props<T> {
-            $(pub(crate) $pname: T,)+
+            $(pub(crate) $pname: T,)*
+            $(
+                #[doc = concat!("The x-coordinate of its ", stringify!($anch), ".")]
+                pub(crate) anchorX: T,
+                #[doc = concat!("The y-coordinate of its ", stringify!($anch), ".")]
+                pub(crate) anchorY: T,
+            )?
         }
 
         #[allow(dead_code)]
         impl<T> Props<T> {
             /// The props in table order.
             pub(crate) fn into_vec(self) -> Vec<T> {
-                vec![$(self.$pname),+]
+                vec![
+                    $(self.$pname,)*
+                    $(
+                        $crate::components::define::component!(@with $anch self.anchorX),
+                        $crate::components::define::component!(@with $anch self.anchorY),
+                    )?
+                ]
             }
         }
 
@@ -1062,7 +1111,14 @@ macro_rules! component {
             type Item = T;
             type IntoIter = std::array::IntoIter<T, PROPS_LEN>;
             fn into_iter(self) -> Self::IntoIter {
-                [$(self.$pname),+].into_iter()
+                [
+                    $(self.$pname,)*
+                    $(
+                        $crate::components::define::component!(@with $anch self.anchorX),
+                        $crate::components::define::component!(@with $anch self.anchorY),
+                    )?
+                ]
+                .into_iter()
             }
         }
 
@@ -1070,7 +1126,15 @@ macro_rules! component {
         impl Props<usize> {
             /// Each prop's position in the table.
             pub(crate) const AT: Props<usize> = Props {
-                $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)+
+                $($pname: $crate::components::define::at(PROPS, stringify!($pname)),)*
+                $(
+                    anchorX: $crate::components::define::component!(
+                        @with $anch $crate::components::define::at(PROPS, "anchorX")
+                    ),
+                    anchorY: $crate::components::define::component!(
+                        @with $anch $crate::components::define::at(PROPS, "anchorY")
+                    ),
+                )?
             };
         }
 
@@ -1081,11 +1145,23 @@ macro_rules! component {
             pub(crate) const PORTS: Props<$crate::compile::api::Port> = Props {
                 $($pname: $crate::compile::api::Port::table(
                     $crate::components::define::at(PROPS, stringify!($pname))
-                ),)+
+                ),)*
+                $(
+                    anchorX: $crate::components::define::component!(
+                        @with $anch $crate::compile::api::Port::table(
+                            $crate::components::define::at(PROPS, "anchorX")
+                        )
+                    ),
+                    anchorY: $crate::components::define::component!(
+                        @with $anch $crate::compile::api::Port::table(
+                            $crate::components::define::at(PROPS, "anchorY")
+                        )
+                    ),
+                )?
             };
         }
 
-        $crate::components::define::component!(@planned [] $($kind $pname)+);
+        $crate::components::define::component!(@planned [] $($kind $pname)*);
 
         $crate::components::define::component!(@record
             [$($($aname : $akind $(($($akarg)*))?),*)?]
@@ -1113,8 +1189,8 @@ macro_rules! component {
         )+)*)?
     };
     // `Planned`: a field per prop the table does not give itself. A
-    // `computed`, `aggregate` or `anchor` prop is passed over; any other
-    // is kept, in table order.
+    // `computed`, `aggregate`, `anchor` or `list_len` prop is passed over;
+    // any other is kept, in table order.
     (@planned [$($acc:ident)*] computed $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
@@ -1124,14 +1200,17 @@ macro_rules! component {
     (@planned [$($acc:ident)*] anchor $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
+    (@planned [$($acc:ident)*] list_len $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
     (@planned [$($acc:ident)*] $kind:ident $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)* $name] $($rest)*);
     };
     (@planned [$($name:ident)*]) => {
         /// What a planner of this type plans: one wire per prop the table
         /// does not give itself. A `computed` or `aggregate` prop is
-        /// wired as the table says and an `anchor` from the element's
-        /// `anchor`, so none is a field
+        /// wired as the table says, an `anchor` from the element's
+        /// `anchor` and a `list_len` from the list, so none is a field
         /// ([`ElemWiring::set_planned`](crate::compile::api::ElemWiring::set_planned)).
         #[allow(non_snake_case, dead_code)]
         #[derive(Debug, Clone)]
@@ -1148,6 +1227,17 @@ macro_rules! component {
             }
         }
     };
+    // `..anchor`, ending a table: the anchor's two props, and an
+    // expression there only with it.
+    (@anchor anchor $name:ident $coord:literal) => {
+        $crate::components::define::anchor(stringify!($name), $coord)
+    };
+    (@anchor $other:ident $name:ident $coord:literal) => {
+        compile_error!(concat!(
+            "component!: a table ends `..anchor`, not `..", stringify!($other), "`"
+        ))
+    };
+    (@with $anch:ident $e:expr) => { $e };
     // What a submit does.
     (@submit Copies($response:ident, $submitted:ident)) => {
         $crate::components::Submit {
@@ -1518,6 +1608,7 @@ macro_rules! component {
     (@alternate_name) => { None };
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
+    (@prop list_len $name:ident) => { $crate::components::define::list_len(stringify!($name)) };
     (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
     (@prop attr $name:ident ($default:expr)) => {
         $crate::components::define::attr(stringify!($name), $default)
@@ -1558,7 +1649,7 @@ macro_rules! component {
     (@prop $other:ident $name:ident $($rest:tt)*) => {
         compile_error!(concat!(
             "component!: prop `", stringify!($name), "` has source `", stringify!($other),
-            "`; a source is by_planner, children, attr(default), attr_or(other), computed(op, [args]), aggregate(op, collection) or anchor(coord)"
+            "`; a source is by_planner, children, attr(default), attr_or(other), computed(op, [args]), aggregate(op, collection), anchor(coord) or list_len"
         ))
     };
 }

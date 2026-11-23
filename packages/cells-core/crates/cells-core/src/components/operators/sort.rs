@@ -46,7 +46,7 @@ component! {
     flags: [copyable],
     default_prop: values,
     props {
-        numComponents: by_planner { rendered },
+        numComponents: list_len { rendered },
         asList: by_planner { rendered },
     }
     list {
@@ -235,7 +235,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
     }
     wiring.set_planned(Planned {
-        numComponents: Wire::constant(n as f64),
         asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
     });
     Ok(wiring)

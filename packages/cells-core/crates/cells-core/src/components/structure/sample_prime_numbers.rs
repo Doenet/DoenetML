@@ -19,7 +19,7 @@ component! {
     flags: [copyable],
     default_prop: numbers,
     props {
-        numComponents: by_planner { rendered },
+        numComponents: list_len { rendered },
     }
     list {
         names: [numbers, values],
@@ -48,9 +48,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let n = draw_count("numSamples", attrs.numSamples)?;
     let range = (attrs.from, attrs.to, attrs.exclude);
     let mut wiring = plan_primes(ctx, n, range, true, Order::Unsorted)?;
-    wiring.set_planned(Planned {
-        numComponents: Wire::constant(n as f64),
-    });
+    wiring.set_planned(Planned {});
     Ok(wiring)
 }
 

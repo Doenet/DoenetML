@@ -115,10 +115,9 @@ pub(super) fn plan_as(
             None => [None, None],
         };
         let coord = |name: Attr, source: Option<Source>, inherited: Option<Wire>| -> Wire {
-            match source {
-                Some(source) => Wire::scalar(source, GivenId::Attr(name, 0)),
-                None => inherited.unwrap_or_else(|| Wire::given_by(name, 0.0)),
-            }
+            Wire::attr(name, source)
+                .or(inherited)
+                .unwrap_or_else(|| Wire::given_by(name, 0.0))
         };
         let [cx, cy] = from_children;
         [coord(attr::x, attrs.x, cx), coord(attr::y, attrs.y, cy)]

@@ -3,6 +3,34 @@
 
 use super::define::*;
 
+/// Containers that are only that, as a list: each entry a type in a module
+/// of its own, `name: ["tag", ..];`, a rendered container planned from its
+/// table, with its other flags after `with` (`with [passes_divisions]`)
+/// and what else its block says between braces (`{ structure:
+/// Transparent, presentation { widths } }`, the sections of
+/// [`component!`](crate::components::define::component) that come after
+/// `flags`, in its order). The entry's doc comment is its definition's.
+macro_rules! containers {
+    ($(
+        $(#[$doc:meta])*
+        $module:ident: [$($tag:literal),+ $(,)?]
+            $(with [$($flag:ident),+ $(,)?])?
+            $({ $($more:tt)* })?;
+    )*) => {$(
+        pub(crate) mod $module {
+            use $crate::components::define::*;
+
+            component! {
+                $(#[$doc])*
+                tags: [$($tag),+],
+                flags: [container $($(, $flag)+)?],
+                $($($more)*)?
+                planner: Props,
+            }
+        }
+    )*};
+}
+
 pub(crate) mod layout;
 pub(crate) mod markup;
 pub mod section;
@@ -63,28 +91,15 @@ pub mod graph {
     pub const YMAX: usize = Props::AT.ymax;
 }
 
-pub(crate) mod p {
-    use super::*;
+containers! {
+    /// `<p>`: a rendered container with no props of its own.
+    p: ["p"];
 
-    component! {
-        /// `<p>`: a rendered container with no props of its own.
-        tags: ["p"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod short_description {
-    use super::*;
-
-    component! {
-        /// `<shortDescription>`: the accessible description of its parent (a
-        /// graph, an input); text, not rendered in place.
-        tags: ["shortDescription"],
-        flags: [container],
+    /// `<shortDescription>`: the accessible description of its parent (a
+    /// graph, an input); text, not rendered in place.
+    short_description: ["shortDescription"] {
         renders: Never,
-        planner: Props,
-    }
+    };
 }
 
 pub(crate) mod error {
@@ -100,48 +115,29 @@ pub(crate) mod error {
     }
 }
 
-pub(crate) mod hint {
-    use super::*;
-
-    component! {
-        /// `<hint>`: a container the reader opens; `open` is its own state (0
-        /// or 1).
-        tags: ["hint"],
-        flags: [container],
+containers! {
+    /// `<hint>`: a container the reader opens; `open` is its own state (0
+    /// or 1).
+    hint: ["hint"] {
         props {
             open: attr(0.0) { interactive, rendered },
         }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod setup {
-    use super::*;
-
-    component! {
-        /// `<setup>`: an unrendered container.
-        tags: ["setup"],
-        flags: [container],
+    /// `<setup>`: an unrendered container.
+    setup: ["setup"] {
         renders: Never,
         scored: Skip,
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod group {
-    use super::*;
-
-    component! {
-        /// `<group>`: a rendered container with no props of its own. The
-        /// prototype renders `<label>` the same way.
-        tags: ["group", "label"],
-        flags: [container],
+    /// `<group>`: a rendered container with no props of its own. The
+    /// prototype renders `<label>` the same way.
+    group: ["group", "label"] {
         structure: Transparent,
         // `<group rendered="c">` is a conditional content with one case.
         rewrite { rendered: ConditionalContent }
         presentation { asList }
-        planner: Props,
-    }
+    };
 }
 
 /// `<stickyGroup>`: members that snap to one another when dragged.
@@ -174,174 +170,70 @@ pub mod sticky_group {
 // spreadsheet's height) is presentation, read by the renderer from the
 // element's attributes (`Document::attr_text`), not state.
 
-pub(crate) mod title {
-    use super::*;
+containers! {
+    /// `<title>`: the heading of the document or of the section it sits in.
+    title: ["title"];
 
-    component! {
-        /// `<title>`: the heading of the document or of the section it sits in.
-        tags: ["title"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod reference {
-    use super::*;
-
-    component! {
-        /// `<ref to="...">`: a link around its content. The renderer reads
-        /// `to`.
-        tags: ["ref"],
-        flags: [container],
+    /// `<ref to="...">`: a link around its content. The renderer reads
+    /// `to`.
+    reference: ["ref"] {
         presentation { to }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod list {
-    use super::*;
+    /// `<ul>`.
+    list: ["ul"];
 
-    component! {
-        /// `<ul>`.
-        tags: ["ul"],
-        flags: [container],
-        planner: Props,
-    }
-}
+    /// `<li>`.
+    list_item: ["li"];
 
-pub(crate) mod list_item {
-    use super::*;
-
-    component! {
-        /// `<li>`.
-        tags: ["li"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod inline_math {
-    use super::*;
-
-    component! {
-        /// `<m>`: inline math notation. Its text is LaTeX; a `$ref` inside
-        /// shows the referent's value.
-        tags: ["m"],
-        flags: [container],
+    /// `<m>`: inline math notation. Its text is LaTeX; a `$ref` inside
+    /// shows the referent's value.
+    inline_math: ["m"] {
         props {
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod display_math {
-    use super::*;
-
-    component! {
-        /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
-        tags: ["md", "me"],
-        flags: [container],
+    /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
+    display_math: ["md", "me"] {
         props {
-            anchorX: anchor(0),
-            anchorY: anchor(1),
+            ..anchor
         }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod math_row {
-    use super::*;
-
-    component! {
-        /// `<mrow>`: one line of an `<md>`, LaTeX like an `<m>`.
-        tags: ["mrow"],
-        flags: [container],
-        planner: Props,
-    }
+    /// `<mrow>`: one line of an `<md>`, LaTeX like an `<m>`.
+    math_row: ["mrow"];
 }
 
 pub(crate) mod aside;
 
-pub(crate) mod side_by_side {
-    use super::*;
-
-    component! {
-        /// `<sideBySide>`: its children in columns, `widths` wide.
-        tags: ["sideBySide"],
-        flags: [container],
+containers! {
+    /// `<sideBySide>`: its children in columns, `widths` wide.
+    side_by_side: ["sideBySide"] {
         presentation { widths }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod stack {
-    use super::*;
+    /// `<stack>`: its children one above the other.
+    stack: ["stack"];
 
-    component! {
-        /// `<stack>`: its children one above the other.
-        tags: ["stack"],
-        flags: [container],
-        planner: Props,
-    }
-}
+    /// `<tabular>`: a table of `<row>`s.
+    tabular: ["tabular"];
 
-pub(crate) mod tabular {
-    use super::*;
-
-    component! {
-        /// `<tabular>`: a table of `<row>`s.
-        tags: ["tabular"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod spreadsheet {
-    use super::*;
-
-    component! {
-        /// `<spreadsheet>`: a grid of `<row>`s. The prototype shows the cells'
-        /// values and does not edit them.
-        tags: ["spreadsheet"],
-        flags: [container],
+    /// `<spreadsheet>`: a grid of `<row>`s. The prototype shows the cells'
+    /// values and does not edit them.
+    spreadsheet: ["spreadsheet"] {
         presentation { height }
-        planner: Props,
-    }
-}
+    };
 
-pub(crate) mod row {
-    use super::*;
+    /// `<row>` of a tabular or spreadsheet.
+    row: ["row"];
 
-    component! {
-        /// `<row>` of a tabular or spreadsheet.
-        tags: ["row"],
-        flags: [container],
-        planner: Props,
-    }
-}
+    /// `<cell>` of a row.
+    cell: ["cell"];
 
-pub(crate) mod cell {
-    use super::*;
-
-    component! {
-        /// `<cell>` of a row.
-        tags: ["cell"],
-        flags: [container],
-        planner: Props,
-    }
-}
-
-pub(crate) mod legend {
-    use super::*;
-
-    component! {
-        /// `<legend>` of a graph: one `<label>` per curve, in the order the
-        /// graph's curves appear.
-        tags: ["legend"],
-        flags: [container],
+    /// `<legend>` of a graph: one `<label>` per curve, in the order the
+    /// graph's curves appear.
+    legend: ["legend"] {
         renders: InGraph,
-        planner: Props,
-    }
+    };
 }
