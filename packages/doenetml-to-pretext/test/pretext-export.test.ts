@@ -1852,7 +1852,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row left="major"><cell colspan="2">everything</cell></row></tabular>"`,
+            `"<tabular width="100%" halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row left="major"><cell colspan="2">everything</cell></row></tabular>"`,
         );
     });
 
@@ -1869,7 +1869,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col width="23.17%" top="major"></col><col width="13.9%" halign="right" right="minor"></col><col></col><row><cell><p>Pennsylvania</p></cell><cell><p>19</p></cell><cell>Rust Belt</cell></row></tabular>"`,
+            `"<tabular width="100%"><col width="23.17%" top="major"></col><col width="13.9%" halign="right" right="minor"></col><col></col><row><cell><p>Pennsylvania</p></cell><cell><p>19</p></cell><cell>Rust Belt</cell></row></tabular>"`,
         );
     });
 
@@ -1889,7 +1889,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col width="27.81%"></col><col width="64.89%"></col><col></col><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row><row><cell colspan="2"><p>ab</p></cell><cell>c</cell></row><row><cell><p>a</p></cell><cell colspan="2">bc</cell></row><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row></tabular>"`,
+            `"<tabular width="100%"><col width="27.81%"></col><col width="64.89%"></col><col></col><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row><row><cell colspan="2"><p>ab</p></cell><cell>c</cell></row><row><cell><p>a</p></cell><cell colspan="2">bc</cell></row><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row></tabular>"`,
         );
     });
 
@@ -1916,10 +1916,10 @@ describe("Pretext export", async () => {
 </tabular>`;
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
-          "<tabular width="50%"><col width="42.7%"></col><col width="42.7%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
-          <tabular><col width="61.8%"></col><col width="30.9%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
-          <tabular width="10%"><col></col><col></col><col></col><row><cell>a</cell><cell>b</cell><cell>c</cell></row></tabular>"
-        `);
+              "<tabular width="50%"><col width="42.7%"></col><col width="42.7%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
+              <tabular width="100%"><col width="61.8%"></col><col width="30.9%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
+              <tabular width="10%"><col></col><col></col><col></col><row><cell>a</cell><cell>b</cell><cell>c</cell></row></tabular>"
+            `);
     });
 
     it("a setting a cell only inherited is written once, on the element that set it", async () => {
@@ -1936,7 +1936,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular halign="center"><col halign="right"></col><col></col><row><cell>a</cell><cell>b</cell></row></tabular>"`,
+            `"<tabular width="100%" halign="center"><col halign="right"></col><col></col><row><cell>a</cell><cell>b</cell></row></tabular>"`,
         );
     });
 
@@ -1954,7 +1954,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col halign="center" right="minor"></col><col halign="right" right="major"></col><row><cell colspan="2">A</cell></row></tabular>"`,
+            `"<tabular width="100%"><col halign="center" right="minor"></col><col halign="right" right="major"></col><row><cell colspan="2">A</cell></row></tabular>"`,
         );
     });
 
@@ -1974,7 +1974,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><row><cell>a</cell><cell>b</cell><cell>c</cell><cell colspan="2">d</cell></row></tabular>"`,
+            `"<tabular width="100%"><row><cell>a</cell><cell>b</cell><cell>c</cell><cell colspan="2">d</cell></row></tabular>"`,
         );
     });
 
@@ -1994,10 +1994,12 @@ describe("Pretext export", async () => {
         expect(fragment.match(/<col>|<col /g)?.length).eq(1001);
     });
 
-    it("only a width PreTeXt can express crosses over", async () => {
-        // A percentage is written out; the 100% a `<tabular>` defaults to is
-        // what PreTeXt assumes anyway; and PreTeXt has neither an absolute
-        // width nor a height for a tabular, so those are dropped.
+    it("a tabular's width is always written, as a percentage", async () => {
+        // A percentage is written out, including the 100% a `<tabular>`
+        // defaults to: PreTeXt reads a missing width as a natural-width table
+        // centered on the line. PreTeXt has neither an absolute width nor a
+        // height for a tabular, so an absolute width prints as the full line
+        // and a height is dropped.
         expect(
             await coreRunner.processToFlatDastAsFragment(
                 `<tabular width="50%"><row><cell>a</cell></row></tabular>`,
@@ -2010,14 +2012,14 @@ describe("Pretext export", async () => {
                 `<tabular><row><cell>a</cell></row></tabular>`,
             ),
         ).toMatchInlineSnapshot(
-            `"<tabular><row><cell>a</cell></row></tabular>"`,
+            `"<tabular width="100%"><row><cell>a</cell></row></tabular>"`,
         );
         expect(
             await coreRunner.processToFlatDastAsFragment(
                 `<tabular width="120px" height="200px"><row><cell>a</cell></row></tabular>`,
             ),
         ).toMatchInlineSnapshot(
-            `"<tabular><row><cell>a</cell></row></tabular>"`,
+            `"<tabular width="100%"><row><cell>a</cell></row></tabular>"`,
         );
     });
 
@@ -2033,7 +2035,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><row><cell>hi</cell><cell></cell></row></tabular>"`,
+            `"<tabular width="100%"><row><cell>hi</cell><cell></cell></row></tabular>"`,
         );
     });
 });
