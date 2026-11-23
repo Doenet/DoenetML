@@ -204,6 +204,25 @@ describe("values and lists", () => {
         expect(ps[4]).toEqual(["<number>1", "<number>2"]);
         void vals;
     });
+
+    it("lists the items of a list written over several lines, not the whitespace between them", async () => {
+        const bridge = await load(`<p><group asList>
+    <number>1</number>
+    <number>2</number>
+</group></p>
+<p><repeatForSequence from="1" to="2" valueName="v"> $v </repeatForSequence></p>`);
+        const root = bridge.flatDast();
+        const ps = byName(root, "p").map((e: any) =>
+            e.children.map((c: any) =>
+                typeof c === "string"
+                    ? c
+                    : `<${(root.elements[c.id] as any).name}>`,
+            ),
+        );
+        // COMP-2: commas between the items, and no whitespace item.
+        expect(ps[0]).toEqual(["<number>", ", ", "<number>"]);
+        expect(ps[1]).toEqual(["<number>", ", ", "<number>"]);
+    });
 });
 
 describe("renderer actions", () => {

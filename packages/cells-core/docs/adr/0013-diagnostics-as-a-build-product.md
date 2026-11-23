@@ -1,6 +1,8 @@
 # Diagnostics are a product of one exhaustive build, never of a tick
 
 Status: accepted 2026-10-16.
+Amended 2026-11-23: a cycle boxes the component it names, and the
+document loads (see the amendment at the end).
 
 Every diagnostic the core reports about a document (an error, a warning,
 an info, an accessibility finding) is computed by one pure function of the
@@ -263,3 +265,20 @@ All in `packages/cells-core`, under `cargo test`:
 - `CONTEXT.md`: a diagnostic is a function of the document text alone,
   computed by `diagnose` from the exhaustive build; a tick never produces
   one.
+
+## Amendment: a cycle boxes the component it names, 2026-11-23
+
+A cycle no longer fails the load. The cycle check names a component
+already (the first node in the stamping's order that is a named
+component's port, or the repeat whose count closes the loop); it now
+fails on that component's node, its owner's for a component the
+stamping made, and the compile boxes it as it boxes any element that
+cannot be built. Its readers are boxed in turn, the loop is broken, and
+the rest of the document renders. This is the DoenetML principles'
+DIAG-5 ("an error does not stop the rest of the document") and decision
+D14 ("every cycle is an error on the authored component, and the rest
+renders"). A document with k cycles compiles k + 1 times, as with k
+boxes. Only a cycle through no component the author wrote still fails
+the load, reported with no node. Where the text above says a cycle is
+reported with no node or is the one finding a load cannot proceed past,
+read it as that last case.

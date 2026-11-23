@@ -26,6 +26,8 @@ pub(crate) struct PlanCtx<'c, 'a> {
 /// The `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
+    /// The referent.
+    elem: ElemId,
     /// Where its children are planned.
     scope: ElemId,
     /// Every node under it: what a planner reads from it rather than from
@@ -60,6 +62,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 }
             }
             Base {
+                elem: b,
                 scope: name_scope,
                 subtree,
             }
@@ -283,9 +286,21 @@ impl<'a> PlanCtx<'_, 'a> {
     // The element's wiring.
 
     /// The element's `<math>` text as it was parsed, or the
-    /// error parsing it met.
+    /// error parsing it met. An extend that writes no text of its own reads
+    /// its referent's, whose references were planned where the referent
+    /// sits (REF-3, REF-6): math text is no attribute, so it is not in the
+    /// merged record.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        match self.p.parsed.math(self.t, self.e) {
+        let d = self.p.rd.dast;
+        let own_text = d
+            .children(self.node())
+            .iter()
+            .any(|&n| !self.p.rd.is_not_content(n));
+        let at = match &self.referent {
+            Some(b) if !own_text => b.elem,
+            _ => self.e,
+        };
+        match self.p.parsed.math(self.t, at) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }

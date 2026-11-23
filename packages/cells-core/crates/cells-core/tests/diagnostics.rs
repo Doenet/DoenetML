@@ -149,16 +149,26 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
 
-/// An author's `<document>` with such an attribute is boxed like any other
-/// element, and the document loads as the box, with no credit to
-/// aggregate (once a panic in the check's and the build's aggregates).
+/// An author's `<document>` with such an attribute cannot be boxed, since
+/// it is the root: the attribute is a warning and ignored (DIAG-5), and
+/// the document loads with its content (once a panic in the check's and
+/// the build's aggregates).
 #[test]
-fn a_document_with_an_attribute_nothing_reads_is_boxed() {
+fn a_document_with_an_attribute_nothing_reads_warns_and_loads() {
     let src = r#"<document lang="es"><table name="t"/><answer>x</answer></document>"#;
     let doc = load(src).unwrap();
-    let errs = errors(doc.diagnostics());
-    assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
-    assert!(errs[0].message.contains("'lang'"), "{}", errs[0].message);
+    assert!(
+        errors(doc.diagnostics()).is_empty(),
+        "{:?}",
+        doc.diagnostics()
+    );
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.code == "cells-unsupported-attribute" && d.message.contains("'lang'")),
+        "{:?}",
+        doc.diagnostics()
+    );
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
 
@@ -200,13 +210,16 @@ fn presentation_attributes_and_the_normalizers_elements_are_not_refused() {
 }
 
 #[test]
-fn a_cycle_has_no_element_and_is_reported_on_the_document() {
-    let src = r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#;
-    assert!(load(src).is_err());
+fn a_cycle_is_reported_on_the_component_it_names_and_the_rest_renders() {
+    let src = r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/><number name="ok">3</number>"#;
+    let doc = load(src).expect("a cycle boxes, not fails");
+    assert_eq!(doc.value("ok", "value"), Some(3.0));
     let list = diagnose_src(src);
-    assert_eq!(list.len(), 1, "{list:?}");
-    assert_eq!(list[0].code, "doenet-e0005");
-    assert_eq!(list[0].node, None);
+    let cycle = list
+        .iter()
+        .find(|d| d.code == "doenet-e0005")
+        .unwrap_or_else(|| panic!("{list:?}"));
+    assert!(cycle.node.is_some(), "{cycle:?}");
 }
 
 #[test]

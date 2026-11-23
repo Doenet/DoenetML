@@ -5,8 +5,8 @@
 mod common;
 use common::{set, type_into, v};
 
-use cells_core::testing::test_utils::{dast_json, load, load_with_seed};
-use cells_core::{Document, Error, LoadOptions};
+use cells_core::testing::test_utils::{cycle_of, dast_json, load, load_with_seed};
+use cells_core::{Document, LoadOptions};
 
 /// Load with the cycle check off, so a document the abstract build rejects
 /// reaches its rebuild and fails there.
@@ -24,9 +24,8 @@ fn load_unchecked(src: &str) -> Document {
 
 fn expect_cycle(doc: cells_core::Result<Document>) {
     match doc {
-        Err(Error::Cycle(_)) => {}
-        Err(other) => panic!("expected a cycle at load, got {other}"),
-        Ok(_) => panic!("loaded without a cycle error"),
+        Ok(doc) => assert!(cycle_of(&doc).is_some(), "loaded without a cycle error"),
+        Err(other) => panic!("expected a cycle reported at load, got {other}"),
     }
 }
 

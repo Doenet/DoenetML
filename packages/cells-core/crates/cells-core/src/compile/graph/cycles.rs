@@ -15,10 +15,10 @@
 //! included, is rejected too. Without one, the same graph gives the
 //! document's structural depth.
 //!
-//! A cycle has no element to box (ADR 0013). It is named by the first of
-//! its nodes, in the order the stamping made them, that is a port of a
-//! named component, else of any component: a choice that depends on the
-//! source alone (ADR 0014).
+//! A cycle is named by the first of its nodes, in the order the stamping
+//! made them, that is a port of a named component, else of any component:
+//! a choice that depends on the source alone (ADR 0014). It fails on that
+//! component's node, which the compile boxes (ADR 0013's amendment).
 
 use super::*;
 use crate::diagnostics::Diagnostic;
@@ -35,14 +35,38 @@ pub(crate) struct CycleFindings {
     pub(crate) warnings: Vec<Diagnostic>,
 }
 
-/// The cycle and count checks over `g`, the template graph of `c`.
+/// The cycle and count checks over `g`, the template graph of `c`. A
+/// cycle fails on the node of the component it names, which the compile
+/// boxes so the rest of the document renders (DIAG-5, D14); one with no
+/// component the author wrote fails with no node.
 pub(crate) fn check_cycles(
     g: &TemplateGraph,
     c: CompiledRef<'_>,
-) -> std::result::Result<CycleFindings, Error> {
+) -> std::result::Result<CycleFindings, Failure> {
     let findings = check_counts(g, c)?;
     check_loops(g, c)?;
     Ok(findings)
+}
+
+/// A cycle named by component `k`, failing on the node the author wrote
+/// for it: its own, else its owner's.
+fn cycle_at(c: CompiledRef<'_>, g: &TemplateGraph, k: Option<Comp>, label: String) -> Failure {
+    let mut k = k;
+    let mut node = None;
+    while let Some(comp) = k {
+        match comp {
+            Comp::Elem(t, e) => {
+                let n = c.plans.templates[t.index()].row(e).node;
+                node = (n != NodeId::NONE).then_some(n);
+                break;
+            }
+            Comp::Made(m) => k = g.made[m as usize].owner,
+        }
+    }
+    Failure {
+        error: Error::Cycle(label),
+        node,
+    }
 }
 
 /// A loop on the repeat graph: an edge from repeat `r` to repeat `s` when
@@ -56,7 +80,7 @@ pub(crate) fn check_cycles(
 fn check_counts(
     g: &TemplateGraph,
     c: CompiledRef<'_>,
-) -> std::result::Result<CycleFindings, Error> {
+) -> std::result::Result<CycleFindings, Failure> {
     let tpls = &c.plans.templates;
     let n = g.repeats.len();
     let index_of: FxMap<(TemplateId, ElemId), usize> =
@@ -86,7 +110,10 @@ fn check_counts(
             None => return false,
         }
     };
-    let label = |i: usize| comp_label(c, g, Comp::Elem(g.repeats[i].0, g.repeats[i].1));
+    let label = |i: usize| {
+        let k = Comp::Elem(g.repeats[i].0, g.repeats[i].1);
+        cycle_at(c, g, Some(k), comp_label(c, g, k))
+    };
 
     let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
     let mut seen = vec![false; g.nodes.len()];
@@ -100,7 +127,7 @@ fn check_counts(
             if v == count {
                 // A loop of values through the count (a collect's count
                 // over its own iterations); the repeat names it best.
-                return Err(Error::Cycle(label(ri)));
+                return Err(label(ri));
             }
             if std::mem::replace(&mut seen[v.index()], true) {
                 continue;
@@ -136,7 +163,7 @@ fn check_counts(
                         color[w] = 1;
                         walk.push((w, 0));
                     }
-                    1 => return Err(Error::Cycle(label(w))),
+                    1 => return Err(label(w)),
                     _ => {}
                 }
                 continue;
@@ -184,7 +211,7 @@ fn check_counts(
 
 /// Strongly connected components of the template graph, each tested for
 /// a loop that closes at some count.
-fn check_loops(g: &TemplateGraph, c: CompiledRef<'_>) -> std::result::Result<(), Error> {
+fn check_loops(g: &TemplateGraph, c: CompiledRef<'_>) -> std::result::Result<(), Failure> {
     let n = g.nodes.len();
     let depth: Vec<u32> = g
         .nodes
@@ -267,7 +294,7 @@ fn check_scc(
     scc_of: &[u32],
     depth: &[u32],
     local: &mut [u32],
-) -> std::result::Result<(), Error> {
+) -> std::result::Result<(), Failure> {
     let this = scc_of[members[0].index()];
     for (i, &m) in members.iter().enumerate() {
         local[m.index()] = i as u32;
@@ -320,7 +347,12 @@ fn check_scc(
         .find(named)
         .or_else(|| by_order.iter().find(|n| comp(**n).is_some()))
         .unwrap_or(&by_order[0]);
-    Err(Error::Cycle(node_label(c, g, *at)))
+    Err(cycle_at(
+        c,
+        g,
+        comp_of_node(g, *at).map(|(k, _)| k),
+        node_label(c, g, *at),
+    ))
 }
 
 /// Whether the graph has a cycle whose total of `sign * shift` is at most

@@ -67,6 +67,21 @@
     }
 }
 
+/* The inputs placed in a graph, over its top-left corner. */
+.doenet-document .graph-controls {
+    @apply absolute top-2 left-2 flex flex-col items-start gap-1 text-sm;
+    z-index: 10;
+}
+
+.doenet-document .graph-controls:empty {
+    display: none;
+}
+
+.doenet-document .graph-control {
+    @apply px-1 rounded-sm;
+    background-color: var(--canvas);
+}
+
 .doenet-document .graph-legend {
     @apply absolute top-2 right-2 text-sm px-2 py-1 border rounded-sm;
     background-color: var(--canvas);

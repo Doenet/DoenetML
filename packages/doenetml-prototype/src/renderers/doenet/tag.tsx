@@ -1,7 +1,12 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 
-type TagData = { props: unknown };
+type TagData = {
+    props: {
+        /** Drawn as a self-closing tag, `<name/>` (a `<tage>`). */
+        selfClosed?: boolean;
+    };
+};
 
 export const Tag: BasicComponentWithPassthroughChildren<TagData> = ({
     node,
@@ -10,7 +15,8 @@ export const Tag: BasicComponentWithPassthroughChildren<TagData> = ({
 }) => {
     return (
         <code className="tag" id={htmlId}>
-            &lt;<span className="tag-name">{children}</span>&gt;
+            &lt;<span className="tag-name">{children}</span>
+            {node.data.props?.selfClosed ? "/" : ""}&gt;
         </code>
     );
 };

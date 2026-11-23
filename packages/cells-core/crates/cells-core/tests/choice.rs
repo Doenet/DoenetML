@@ -3,9 +3,9 @@
 
 mod common;
 
+use cells_core::Document;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{dast_json, load, load_error};
-use cells_core::{Document, Error};
+use cells_core::testing::test_utils::{dast_json, load, load_cycle, load_error};
 use common::{set, v};
 
 /// The value of the `<number>` named `probe`, which the document defines to
@@ -202,16 +202,14 @@ fn a_condition_may_read_another_choices_interface() {
 
 #[test]
 fn a_condition_reading_its_own_interface_is_a_cycle() {
-    // A cycle has no element to box, so it still fails the load.
-    let e = load(
+    // A cycle boxes the component it names; the document loads.
+    load_cycle(
         r#"
 <conditionalContent name="cc">
   <case condition="$cc.x > 0"><number name="x">1</number></case>
   <else><number name="x">2</number></else>
 </conditionalContent>"#,
-    )
-    .expect_err("a cycle fails the load");
-    assert!(matches!(e, Error::Cycle(_)), "{e}");
+    );
 }
 
 #[test]

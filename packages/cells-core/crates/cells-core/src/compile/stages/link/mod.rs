@@ -10,14 +10,15 @@ use crate::compile::*;
 /// Link what planning made: box the readers of boxes and the elements
 /// with an attribute nothing read, to a fixpoint, and tie the given leaves
 /// copies share. Writes the boxes, the tables' boxes and shared slots, and
-/// [`Planned`]'s shares.
+/// [`Planned`]'s shares; returns the warnings for what it could not box
+/// (an attribute nothing read on the root).
 pub(in crate::compile) fn link<'l, 'b>(
     rd: Reader<'l>,
     ar: &'l Arenas,
     tables: &'l mut [Tables],
     boxes: &'l mut Boxes<'b>,
     planned: &'l mut Planned,
-) -> std::result::Result<(), Failure> {
+) -> std::result::Result<Vec<Diagnostic>, Failure> {
     crate::trace::span("link").run(|| {
         Linking {
             rd,
@@ -54,17 +55,17 @@ impl Linking<'_, '_> {
     /// Linking: box the readers of boxes, then the elements with an
     /// attribute nothing read and their readers, then tie shared state
     /// between the elements left.
-    fn link(&mut self) -> std::result::Result<(), Failure> {
+    fn link(&mut self) -> std::result::Result<Vec<Diagnostic>, Failure> {
         let box_readers = |l: &mut Self| {
             crate::trace::span("box readers")
                 .run(|| l.box_readers_of_boxes())
                 .map_err(|error| Failure { error, node: None })
         };
         box_readers(self)?;
-        crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
+        let warnings = crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
         box_readers(self)?;
         crate::trace::span("given leaves").run(|| self.link_given_leaves());
-        Ok(())
+        Ok(warnings)
     }
 
     /// Box in place every element whose referent, by a read planning or
