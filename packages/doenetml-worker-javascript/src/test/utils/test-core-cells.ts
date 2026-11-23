@@ -231,6 +231,13 @@ const mathReaders: Record<string, Reader> = {
 
 /** The text a container shows, through active cases only (ADR 0009). */
 const textOf: Reader = (_g, x) => x.cells.core.component_text(x.idx);
+
+/** A choice input's `choiceOrder` (ADR 0053): the position among its
+ * choices of the one shown at each place. */
+const choiceOrderOf = (x: Ctx): number[] =>
+    Array.from(x.cells.propCells(x.idx, "choiceOrder")).map((c) =>
+        x.cells.value(c),
+    );
 const containerReaders: Record<string, Reader> = { text: textOf };
 
 /** A polygon's vertices; a triangle reads as one. */
@@ -848,6 +855,48 @@ const STATE: Record<string, Record<string, Reader>> = {
             } as Record<string, Reader>,
         ]),
     ),
+    // A choice input (ADR 0053): `selectedIndex` is a place as shown, and
+    // `choiceOrder` the second sequence over its own ports, the cells
+    // after its table's.
+    choiceInput: {
+        selectedIndex: (g) => g("selectedIndex"),
+        selectedIndices: (g) => {
+            const k = g("selectedIndex");
+            return Number.isInteger(k) && k >= 1 ? [k] : [];
+        },
+        choiceOrder: (_g, x) => choiceOrderOf(x),
+        // Literal flags, as the document gives them.
+        inline: (_g, x) => attrFlag(x.cells, x.idx, "inline") ?? false,
+        shuffleOrder: (_g, x) =>
+            attrFlag(x.cells, x.idx, "shuffleOrder") ?? false,
+        preserveLastChoice: (_g, x) =>
+            attrFlag(x.cells, x.idx, "preserveLastChoice") ?? false,
+        // The text of each choice, as the core makes it, in the order
+        // shown.
+        choiceTexts: (_g, x) => {
+            // A copy's choices are its referent's.
+            const choicesOf = (c: number): number[] =>
+                x.cells.table
+                    .children(c)
+                    .flatMap((ch) =>
+                        "component" in ch &&
+                        x.cells.table.componentType(ch.component) === "choice"
+                            ? [ch.component]
+                            : [],
+                    );
+            let choices = choicesOf(x.idx);
+            for (
+                let r = x.cells.table.referent(x.idx);
+                choices.length === 0 && r !== null;
+                r = x.cells.table.referent(r)
+            ) {
+                choices = choicesOf(r);
+            }
+            return choiceOrderOf(x).map((k) =>
+                x.cells.core.component_text(choices[k - 1]).trim(),
+            );
+        },
+    },
     intervalList: valueListReaders("intervals", (x, c) => heldMath(x.cells, c)),
     subsetOfReals: {
         ...mathReaders,
@@ -1415,6 +1464,15 @@ export async function createTestCoreCells({
                         [
                             propCells(componentIdx, "value")[0],
                             args.boolean ? 1 : 0,
+                        ],
+                    ]);
+                    return;
+                case "updateSelectedIndices":
+                    // A place as shown (ADR 0053); none chooses none.
+                    request([
+                        [
+                            propCells(componentIdx, "selectedIndex")[0],
+                            Number(args.selectedIndices?.[0] ?? 0),
                         ],
                     ]);
                     return;
