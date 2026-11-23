@@ -556,6 +556,17 @@ export class CellsBridge {
             }
             lastScope = scope;
         }
+        // Whitespace around an item is layout, not an item (COMP-2): a
+        // `<group asList>` written over several lines lists its children.
+        const isSpace = (e: FlatDastElementContent) =>
+            typeof e === "string" && e.trim() === "";
+        for (const item of items) {
+            while (item.length && isSpace(item[0])) item.shift();
+            while (item.length && isSpace(item[item.length - 1])) item.pop();
+        }
+        for (let i = items.length - 1; i >= 0; i--) {
+            if (items[i].length === 0) items.splice(i, 1);
+        }
         const block = items.some((item) =>
             item.some(
                 (e) =>

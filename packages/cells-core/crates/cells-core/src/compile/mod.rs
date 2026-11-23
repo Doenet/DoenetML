@@ -340,13 +340,14 @@ impl Compiler {
         );
         boxes.restart_if_needed()?;
         boxes.enter(Stage::Link);
-        stages::link::link(
+        let root_warnings = stages::link::link(
             Reader::new(dast, &settled),
             &ar,
             &mut tables,
             &mut boxes,
             &mut planned,
         )?;
+        ar.warnings.extend(root_warnings);
         boxes.restart_if_needed()?;
         boxes.enter(Stage::Seal);
         let (sealed, choice_seals, keys) =

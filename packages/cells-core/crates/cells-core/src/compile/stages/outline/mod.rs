@@ -315,6 +315,34 @@ impl<'a> Outlining<'a> {
         if component_type.plays(Role::Case) {
             return Err(Error::Unsupported(component_type.free_owned_refusal()));
         }
+        let machinery = component_type.def().machinery;
+        let repeats = machinery == Some(Machinery::FunctionIterates)
+            || matches!(
+                component_type.structure_kind(),
+                Some(StructureKind::Repeat { .. })
+            );
+        // An extend of a repeat would need its template cloned, which no
+        // stage does; refused rather than built empty (REF-7).
+        if repeats && d.attr(el, "extend").is_some() {
+            return Err(Error::Banned(format!(
+                "extend on a <{tag}>: reference its iterations instead, as $r[2]"
+            )));
+        }
+        // The same name for an iteration's value and its index would make
+        // one of them unreachable (COMP-5).
+        if repeats {
+            let rd = self.rd();
+            if let (Some(v), Some(i)) = (
+                rd.attr_name_str(el, "valueName"),
+                rd.attr_name_str(el, "indexName"),
+            ) && v == i
+            {
+                return Err(Error::BadValue {
+                    attr: "indexName".into(),
+                    text: format!("{}: it is also the valueName", d.strings.get(v)),
+                });
+            }
+        }
         let name = self.rd().attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.work.to_plan.push((t, e));
@@ -323,7 +351,6 @@ impl<'a> Outlining<'a> {
             self.outlined_mut(t).elems[e.index()].clones_pending = true;
         }
         let child_scope = e;
-        let machinery = component_type.def().machinery;
         match component_type.structure_kind() {
             _ if machinery == Some(Machinery::FunctionIterates) => {
                 // One hidden tuple per iteration, planned with the element

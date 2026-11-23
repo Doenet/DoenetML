@@ -664,14 +664,15 @@ impl ComponentType {
     }
 
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
-    /// its value, when `to` takes a value rather than a copy: `value`
-    /// whatever `from` is for a boolean (the coercion of a referent's value
-    /// to a boolean, until ADR 0032's table of coercions lands), else
-    /// `from`'s default prop when `extends_as` relates them. Called with
-    /// `from` and `to` different.
+    /// its value, when `to` takes a value rather than a copy: `value` for a
+    /// boolean of an input that reads as a boolean, else `from`'s default
+    /// prop when `extends_as` relates them. A boolean of any other type is
+    /// refused: reading a number's or a text's cell as a boolean gave a
+    /// wrong value with no diagnostic (REF-5, D47). Called with `from` and
+    /// `to` different.
     pub fn extend_reads(from: ComponentType, to: ComponentType) -> Option<&'static str> {
         if to == ComponentType::Boolean {
-            Some("value")
+            (from.reads_as() == Some(ComponentType::Boolean)).then_some("value")
         } else if ComponentType::extends_as(from, to) {
             from.default_prop()
         } else {
