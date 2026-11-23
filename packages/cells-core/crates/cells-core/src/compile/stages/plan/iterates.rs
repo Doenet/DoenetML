@@ -201,52 +201,6 @@ impl<'a> Planning<'a> {
         )
     }
 
-    /// The hidden iteration elements outlining made in repeat `e`'s body
-    /// for its `valueName` and `indexName`: a `<repeatForSequence>`'s value
-    /// is `from + (k - 1) * step`, its `from` and `step` aliasing the
-    /// repeat's own (one hop up) and `k` the iteration's position; either
-    /// repeat's index is the iteration's position.
-    pub(super) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
-            return;
-        };
-        for i in 0..self.rd.outlined(sub).elems.len() {
-            let el = &self.rd.outlined(sub).elems[i];
-            if el.node != NodeId::NONE {
-                continue;
-            }
-            let ty = el.component_type;
-            let props = if ty.plays(Role::SequenceValue) {
-                let from = self.own_prop_plan(t, e, "from");
-                let step = self.own_prop_plan(t, e, "step");
-                use prop::sequence_value as sv;
-                let ports = sv::Props::PORTS;
-                let table = |port| Wire::from_table(ty, port);
-                let mut wiring = ElemWiring::of(ty);
-                wiring.set_public(sv::Props {
-                    from: Source::reference(from).into(),
-                    step: Source::reference(step).into(),
-                    k: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)).into(),
-                    km1: table(ports.km1),
-                    scaled: table(ports.scaled),
-                    value: table(ports.value),
-                });
-                wiring.finish().0
-            } else if ty.plays(Role::Index) {
-                prop::number::Props {
-                    value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
-                    // An iteration's index is never drawn in a graph.
-                    anchorX: Source::constant(0.0),
-                    anchorY: Source::constant(0.0),
-                }
-                .into_vec()
-            } else {
-                continue;
-            };
-            self.tables[sub.index()].plans[i].props = props;
-        }
-    }
-
     /// `<repeat for="$fi.allIteratesWithInitial">`: `count` aliases the
     /// list's length, and the item `$x` of iteration `k` aliases every
     /// prop of the tuple of iteration `k` of the `<functionIterates>`

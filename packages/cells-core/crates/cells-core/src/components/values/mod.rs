@@ -30,6 +30,7 @@ pub mod text;
 pub(crate) mod text_list;
 
 pub(crate) mod sequence;
+pub(crate) mod structural_sequence;
 pub mod when;
 
 /// Plans a value list's entries from its children (ADR 0041, decision 1:

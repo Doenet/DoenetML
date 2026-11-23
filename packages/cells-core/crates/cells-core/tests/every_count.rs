@@ -446,6 +446,23 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <number name="n">$s + $r[$k].c</number>"#,
     ),
+    (
+        // Structural sequences (ADR 0041, step 4): a sequence whose count
+        // a cell sets, with an exclude a cell sets, one inside a repeat
+        // counting by the iteration's index and value (the item a
+        // `<repeatForSequence>` declares, ADR 0040), an entry by a cell,
+        // by an index and past the count, and a collect of a sequence's
+        // numbers.
+        "structural-sequences",
+        r#"<numberInput name="k" value="2"/>
+        <sequence name="s" from="1" to="$k" exclude="$k"/>
+        <repeatForSequence name="r" length="$k" indexName="i" valueName="v">
+          <sequence name="t" length="$i" step="$v"/>
+          <number name="b">$t[$k] + $s[$i]</number>
+        </repeatForSequence>
+        <collect name="c" from="$s" componentType="number"/>
+        <number name="a">$s[$k] + $s[9] + $r[$k].t[1] + $c[1]</number>"#,
+    ),
 ];
 
 #[test]

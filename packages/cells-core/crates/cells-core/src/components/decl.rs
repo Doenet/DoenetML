@@ -45,6 +45,9 @@ pub struct ComponentDef {
     /// An element of the type carrying this attribute is one of that type
     /// instead: `<group rendered="c">` is a conditional content.
     pub rewrite: Option<(&'static str, ComponentType)>,
+    /// The type an element of the type is when its count follows a value
+    /// (ADR 0041, decision 2): a structural sequence.
+    pub structural: Option<Structural>,
     /// What outlining settles of an element of the type from its own
     /// source, for a reference to it to read: its type, or what it
     /// collects.
@@ -65,6 +68,15 @@ pub struct ComponentDef {
     /// The inputs a component of the type owns, made for it in this order
     /// as its first children and wired by its planner (ADR 0045).
     pub inner: &'static [InnerInput],
+    /// The component a repeat-like type makes per iteration, and how it is
+    /// wired (ADR 0040, decision 3).
+    pub item: Option<ItemDecl>,
+    /// How many entries a static sequence whose planner makes its entries
+    /// has (a `<sequence>`'s, a sampler's), counted from its record alone
+    /// (ADR 0041, decision 2), so a reference to it among a list's
+    /// children contributes its entries; None for a record it cannot
+    /// count.
+    pub(crate) static_count: Option<fn(&crate::compile::api::Record) -> Option<usize>>,
     /// What an answer's response is, for what reads an answer's responses
     /// (not for its submit, which is an action).
     pub submit: Option<Submit>,
@@ -125,6 +137,12 @@ pub enum AttrKind {
     /// spaces as DoenetML writes a list (`exclude="$a 7 $b"`): a source
     /// each.
     Scalars,
+    /// A list of values written as a list's children are (ADR 0041):
+    /// pieces of text split at the spaces outside any bracket pair, and
+    /// each reference a piece (`exclude="$every3 9"`), for the planner to
+    /// read through `PlanCtx::list_entries`, which splices a reference to
+    /// a static sequence into its entries.
+    Entries,
     /// An on/off attribute that may be bound (`hide="$h"`): a 0/1 source,
     /// `default` without one.
     Flag {
@@ -282,8 +300,6 @@ pub enum Role {
     Refused,
     /// A repeat's `indexName`: the iteration's 1-based position.
     Index,
-    /// A `<repeatForSequence>`'s `valueName`: the sequence's value.
-    SequenceValue,
     /// A `<repeat>`'s `valueName`, and a function iteration's hidden
     /// item: a tuple.
     Item,
@@ -329,7 +345,6 @@ impl Role {
         Role::Root,
         Role::Refused,
         Role::Index,
-        Role::SequenceValue,
         Role::Item,
         Role::ListPoint,
         Role::Case,
@@ -604,6 +619,40 @@ pub struct InnerInput {
     pub name: &'static str,
     /// Its type.
     pub ty: ComponentType,
+}
+
+/// When a sequence's count settles (ADR 0041, decision 2), from the leaf
+/// kinds of what its count follows: an element of a type declaring this
+/// whose attributes `when` all hold literal numbers (or are not given) is
+/// a static sequence, of the type itself; one with any of them a
+/// reference or math is of type `is`, a structural sequence, whose count
+/// is a structural cell (`<sequence to="$n">`).
+#[derive(Debug, Clone, Copy)]
+pub struct Structural {
+    /// The attributes the count follows.
+    pub when: &'static [&'static str],
+    /// The type of a structural one.
+    pub is: ComponentType,
+}
+
+/// The component a repeat-like type makes per iteration (ADR 0040,
+/// decision 3): of an ordinary type, wired by a function beside the
+/// repeat over the iteration's position and the repeat's own ports
+/// ([`ItemCtx`](crate::compile::api::ItemCtx)). With `children: None`
+/// (a `<sequence>`) it is the body's one child; with written children it
+/// is the hidden element `valueName` names (a `<repeatForSequence>`).
+#[derive(Clone, Copy)]
+pub struct ItemDecl {
+    /// Its type.
+    pub ty: ComponentType,
+    /// Its wiring: one wire per prop of `ty`'s table, in table order.
+    pub(crate) wire: fn(&mut crate::compile::api::ItemCtx<'_>) -> Vec<crate::compile::api::Wire>,
+}
+
+impl std::fmt::Debug for ItemDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ItemDecl").field("ty", &self.ty).finish()
+    }
 }
 
 /// A document-wide counter (ADR 0044): the components that advance one

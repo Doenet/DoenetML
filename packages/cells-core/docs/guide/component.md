@@ -185,8 +185,15 @@ methods. Rules for planners:
   `counted: Figures(number)` for a document-wide counter it takes a
   number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
   for the inputs it owns, which its planner plans (`ctx.inner(k)`,
-  `ctx.plan_inner`) and wires (ADR 0045); and the prop option
-  `infinite`. A free owned type is refused with what owns it
+  `ctx.plan_inner`) and wires (ADR 0045); `item: Number(item)` on a
+  repeat-like type for the component it makes per iteration, wired by a
+  function beside the type over an
+  [`ItemCtx`](crate::compile::api::ItemCtx) (the iteration's position
+  and the repeat's own ports, ADR 0040); `structural { when: [to, ..],
+  is: T }` for the type an element is when its count follows a value (a
+  structural sequence, ADR 0041); `static_count: f` for how many entries
+  a static sequence's record makes, so a reference to it among a list's
+  children contributes them; and the prop option `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - The core names no type: a unit test in `components/mod.rs`
   (`the_core_names_no_type`) refuses any `ComponentType` variant or
@@ -286,12 +293,12 @@ candidate for a hook, or for removal.
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
 `rewrite`, `settle`, `submit`, `numbered`, `counted`,
-`inner`, `scored: Item(..)`
+`inner`, `item`, `structural`, `static_count`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
 
 The baseline: 5 items for every type, 3 more with a planner, 20
-declarations by what the type is, and 16 beyond a typical component that
+declarations by what the type is, and 19 beyond a typical component that
 sit in the same block, which an author reads past. ADR 0039 (proposed)
 shrinks the last to 5.
 

@@ -332,7 +332,6 @@ const NUMBER_TYPES = new Set([
     "number",
     "clampNumber",
     "evaluate",
-    "sequenceValue",
     "numberInput",
     "slider",
     // The numeric operators.
@@ -723,16 +722,6 @@ export const CONTRACTS: Record<string, Contract> = {
     evaluate: MATH_VALUE,
     function: CURVE,
     derivative: CURVE,
-    sequenceValue: {
-        name: () => "number",
-        props: (r, c) => ({
-            text: r.numText(
-                c,
-                "value",
-                r.table.attrThrough(c, "displayDecimals"),
-            ),
-        }),
-    },
     tuple: {
         props: (r, c) => {
             const n = r.num(c, "n");

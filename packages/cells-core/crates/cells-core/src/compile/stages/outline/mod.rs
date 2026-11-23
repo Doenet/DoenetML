@@ -313,6 +313,16 @@ impl<'a> Outlining<'a> {
             ComponentType::from_tag(tag).ok_or_else(|| Error::UnsupportedTag(tag.to_string()))?;
         // `<group rendered="c">` is a conditional content with one case.
         let component_type = component_type.rewritten(|attr| d.attr(el, attr).is_some());
+        // A sequence whose count follows a value is a structural one (ADR
+        // 0041, decision 2), told from what its attributes hold.
+        let component_type = component_type.laid_out(|attr| {
+            d.attr(el, attr).is_none_or(|a| {
+                self.rd().attr_text(a).is_some_and(|text| {
+                    text.split_whitespace()
+                        .all(|x| x.parse::<f64>().is_ok_and(f64::is_finite))
+                })
+            })
+        });
         // A case is a branch its choice makes, never an element of its own.
         if component_type.plays(Role::Case) {
             return Err(Error::Unsupported(component_type.free_owned_refusal()));
@@ -365,22 +375,26 @@ impl<'a> Outlining<'a> {
             Some(StructureKind::Repeat { .. }) => {
                 let sub = self.push_template(Some((t, e)));
                 // Hidden iteration components first, so `$v` and `$i` resolve
-                // anywhere inside the template; the repeat's planner plans
-                // them (`plan_iteration_names`). A `<repeat>`'s item is a
-                // tuple, element 0 of the body (`plan_repeat_for`).
-                let value_type = if machinery == Some(Machinery::RepeatFor) {
-                    Role::Item.ty()
+                // anywhere inside the template; the repeat plans them
+                // (`plan_iteration_names`). The item is element 0 of the
+                // body: the one its type declares (ADR 0040), or a
+                // `<repeat>`'s tuple (`plan_repeat_for`). A type that reads
+                // no children has its item as its one child.
+                let declared = component_type.def().item.map(|item| item.ty);
+                let value_type = declared.unwrap_or_else(|| Role::Item.ty());
+                if declared.is_some() && !component_type.def().children.built() {
+                    let it = self.add_synthetic(sub, value_type, StrId::NONE);
+                    self.outlined_mut(sub).children = vec![Child::Elem(it)];
                 } else {
-                    Role::SequenceValue.ty()
-                };
-                if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
-                    self.add_synthetic(sub, value_type, vn);
+                    if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
+                        self.add_synthetic(sub, value_type, vn);
+                    }
+                    if let Some(iname) = self.rd().attr_name_str(el, "indexName") {
+                        self.add_synthetic(sub, Role::Index.ty(), iname);
+                    }
+                    let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
+                    self.outlined_mut(sub).children = kids;
                 }
-                if let Some(iname) = self.rd().attr_name_str(el, "indexName") {
-                    self.add_synthetic(sub, Role::Index.ty(), iname);
-                }
-                let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
-                self.outlined_mut(sub).children = kids;
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
             // A collect's children are what it gathers: none are written.

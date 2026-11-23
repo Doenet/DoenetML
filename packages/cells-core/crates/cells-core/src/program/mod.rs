@@ -22,6 +22,7 @@ pub use vector::{
     RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
     sequence_index,
 };
+pub use vector::{MAX_SEQUENCE, sequence_parameters, sequence_values};
 
 /// What a cell's `f64` means: a number, a string id into the document's string
 /// table, or an expression handle in the symbolic engine.

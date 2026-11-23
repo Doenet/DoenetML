@@ -571,6 +571,9 @@ mod arity {
             OpSpec::Vec(VecOp::IntoDomain),
             OpSpec::Vec(VecOp::DomainRange),
             OpSpec::Vec(VecOp::DomainHull { n: 2 }),
+            OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
+            OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
         ]);
         ops
     }
@@ -610,6 +613,9 @@ mod arity {
                 VecOp::IntoDomain => 44,
                 VecOp::DomainRange => 45,
                 VecOp::DomainHull { .. } => 46,
+                VecOp::SequenceParams { .. } => 47,
+                VecOp::SequenceCount { .. } => 48,
+                VecOp::SequenceEntry { .. } => 49,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -634,7 +640,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 47;
+    const N_TAGS: usize = 50;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

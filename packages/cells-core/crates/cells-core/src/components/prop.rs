@@ -9,7 +9,6 @@ pub use super::inputs::{
     boolean_input, choice, choice_input, math_input, text_input, update_value,
 };
 pub use super::structure::{
-    case, collect, conditional_content, function_iterates, repeat_for, select,
-    select_from_sequence, sequence_value,
+    case, collect, conditional_content, function_iterates, repeat_for, select, select_from_sequence,
 };
 pub use super::values::{answer, award, boolean, curve, math, number, response, text, tuple, when};

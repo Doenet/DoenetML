@@ -18,6 +18,8 @@ pub(crate) enum AttrValue {
     Points(Vec<GivenPoint>),
     /// `Scalars`: a source per item.
     Scalars(Vec<Source>),
+    /// `Entries`: the pieces of a list.
+    Entries(Vec<ListPiece>),
     Bool(bool),
     Number(f64),
     /// `Literal`: the number, or the error reading it met, for the
@@ -202,6 +204,14 @@ impl Record {
         }
     }
 
+    /// The pieces of a list written in an attribute, none when absent.
+    pub(crate) fn entries(&self, attr: Attr) -> Vec<ListPiece> {
+        match self.get(attr) {
+            AttrValue::Entries(pieces) => pieces.clone(),
+            _ => Vec::new(),
+        }
+    }
+
     /// A 0/1 flag: its source, `default` when absent.
     pub(crate) fn flag(&self, attr: Attr, default: bool) -> Source {
         match self.get(attr) {
@@ -361,6 +371,21 @@ impl Record {
                     }
                 }
                 AttrValue::Ref(p) => rw.reference(p),
+                AttrValue::Entries(pieces) => {
+                    for piece in pieces {
+                        match piece {
+                            ListPiece::Reference(p) | ListPiece::Element(p) => rw.reference(p),
+                            ListPiece::Math(frags) => {
+                                for frag in frags {
+                                    if let PieceFrag::Ref(p) = frag {
+                                        rw.reference(p);
+                                    }
+                                }
+                            }
+                            ListPiece::Text(_) => {}
+                        }
+                    }
+                }
                 AttrValue::Content(v) => match &mut v.value {
                     ChildValue::Reference(p) => rw.reference(p),
                     // Math text names nodes planned where the referent
@@ -843,6 +868,14 @@ impl Reader<'_> {
                 AttrValue::Points(self.plan_point_list(ar, t, scope, node, a)?)
             }
             AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(ar, t, scope, a)?),
+            AttrKind::Entries => AttrValue::Entries(self.parse_list_children(
+                ar,
+                t,
+                scope,
+                node,
+                d.attr_children(a),
+                Some(false),
+            )?),
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
                 Some(_) => self.plan_scalar(ar, t, scope, d.attr_children(a))?,
