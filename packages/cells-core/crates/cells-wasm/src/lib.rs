@@ -498,6 +498,12 @@ impl Core {
         self.doc.math_text(CellIdx::new(cell))
     }
 
+    /// The expression a math cell holds as the JavaScript math tree, in
+    /// JSON; empty for a NaN handle.
+    pub fn expr_ast(&self, cell: u32) -> String {
+        self.doc.math_ast(CellIdx::new(cell))
+    }
+
     /// LaTeX of the expression a math cell holds, for a renderer that draws
     /// math; empty for a NaN handle.
     pub fn expr_latex(&self, cell: u32) -> String {

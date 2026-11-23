@@ -278,6 +278,7 @@ component_types! {
     BezierControls => geometry::curve::bezier_controls_tag::DEFINITION,
     ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
     EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
+    Interval => values::interval::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

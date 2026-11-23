@@ -197,6 +197,7 @@ impl<'a> PlanCtx<'_, 'a> {
                 Token::RParen => text.push(')'),
                 Token::Comma => text.push(','),
                 Token::Eq => text.push('='),
+                Token::Open(c) | Token::Close(c) => text.push(*c),
             }
         }
         self.p.ar.sym_text.insert(id, SymText::Spelled(text));

@@ -161,6 +161,20 @@ pub enum Post {
     /// Every number in it of magnitude below the threshold, these bits of
     /// an `f64`, made 0 (`<setSmallToZero>`).
     SmallToZero(u64),
+    /// Its tuples made vectors (`createVectors`), then its tuples and
+    /// arrays of two made intervals (`createIntervals`; ADR 0041, decision
+    /// 8), then simplified, then expanded, as the flags say: a `<math>`'s
+    /// post when it creates vectors or intervals.
+    Shapes {
+        /// Tuples made vectors.
+        vectors: bool,
+        /// Tuples and arrays of two made intervals.
+        intervals: bool,
+        /// Simplified after.
+        simplify: bool,
+        /// Expanded after.
+        expand: bool,
+    },
 }
 
 impl Post {
@@ -183,6 +197,42 @@ impl Post {
             Post::RoundDecimals(n) => engine.round_decimals(h, n),
             Post::RoundDigits(n) => engine.round_digits(h, n),
             Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+            Post::Shapes {
+                vectors,
+                intervals,
+                simplify,
+                expand,
+            } => {
+                let mut h = engine.normalize_shapes(h, vectors, intervals);
+                if simplify {
+                    h = engine.simplify(h);
+                }
+                if expand {
+                    h = engine.expand(h);
+                }
+                h
+            }
+        }
+    }
+
+    /// A math's post with its tuples made vectors and its pairs made
+    /// intervals first, as asked (`createVectors`, `createIntervals`); the
+    /// same when neither is.
+    pub fn with_shapes(self, vectors: bool, intervals: bool) -> Post {
+        if !vectors && !intervals {
+            return self;
+        }
+        let (simplify, expand) = match self {
+            Post::Simplify => (true, false),
+            Post::Expand => (false, true),
+            Post::SimplifyExpand => (true, true),
+            _ => (false, false),
+        };
+        Post::Shapes {
+            vectors,
+            intervals,
+            simplify,
+            expand,
         }
     }
 }
