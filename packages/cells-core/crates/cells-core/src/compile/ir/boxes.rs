@@ -128,6 +128,46 @@ impl Boxes<'_> {
         }
     }
 
+    /// Box element `e`, which reads ports of element `x` of its template,
+    /// now a box: `e` reports `x`'s error as its own, since `x` is under
+    /// `e` (an answer's input, a choice input's choice) and reports
+    /// nothing once `e` is boxed. An `x` with no error recorded here (a
+    /// clone, one boxed by an earlier compile) gives a refusal naming it.
+    pub(in crate::compile) fn box_elem_reader(
+        &mut self,
+        templates: &[Outlined],
+        tables: &mut [Tables],
+        t: TemplateId,
+        e: ElemId,
+        x: ElemId,
+    ) {
+        let x_el = &templates[t.index()].elems[x.index()];
+        let found = (x_el.node != NodeId::NONE)
+            .then(|| self.errors.iter().find(|d| d.node == Some(x_el.node)))
+            .flatten()
+            .cloned();
+        let Some(mut diagnostic) = found else {
+            let error = Error::Unsupported(format!(
+                "a <{}> with an error of its own",
+                x_el.component_type.tag()
+            ));
+            self.box_in_place(templates, tables, t, e, error);
+            return;
+        };
+        let Elem { node, cloned, .. } = templates[t.index()].elems[e.index()];
+        if node != NodeId::NONE {
+            diagnostic.node = Some(node);
+            self.errors.push(diagnostic);
+            self.here.insert(node);
+        } else if !cloned {
+            let error = Error::Unsupported(diagnostic.message);
+            self.fail(error, None);
+        }
+        for (dt, de) in subtree(templates, t, e) {
+            self.make_box(templates, tables, dt, de, (dt, de) != (t, e));
+        }
+    }
+
     /// Drop what boxes leave out of the diagnostics, once every stage that
     /// boxes is done: a box reports its error and nothing else, and what is
     /// under a box reports nothing. `warnings` are the planners'.
