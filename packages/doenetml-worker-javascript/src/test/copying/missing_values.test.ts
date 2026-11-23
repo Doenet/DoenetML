@@ -2940,4 +2940,64 @@ describe("Missing values, round 4 (#2596) @group2", () => {
             P0: true,
         });
     });
+
+    it("takes a typed or dragged value in a math holding only a reference that names nothing in a repeat, a case or an option, as outside them", async () => {
+        // A copy made as a shadow (an iteration, a case, an option) in a
+        // `<math>` makes a missing `<math>`, as outside one, not a
+        // `_missing`, which can't be written through (#2596).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence name="r" from="1" to="2" indexName="i">
+        <math name="m">$nothing</math><mathInput name="mi" bindValueTo="$m"/>
+    </repeatForSequence>
+    <repeat name="r2" for="1 2" valueName="i">
+        <math name="m">$nothing</math><mathInput name="mi" bindValueTo="$m"/>
+        <graph><point name="P">($i, $nothing)</point></graph>
+    </repeat>
+    <conditionalContent name="c" condition="true">
+        <math name="m">$nothing</math><mathInput name="mi" bindValueTo="$m"/>
+    </conditionalContent>
+    <math name="m0">$nothing</math><mathInput name="mi0" bindValueTo="$m0"/>
+    <graph><point name="P0">(1, $nothing)</point></graph>
+    `,
+        });
+        const value = async (name: string, variable = "value") => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const x =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues[
+                    variable
+                ];
+            return Array.isArray(x) ? x.map((v) => v.toString()) : x.toString();
+        };
+        for (const [m, mi] of [
+            ["r[1].m", "r[1].mi"],
+            ["r2[1].m", "r2[1].mi"],
+            ["c.m", "c.mi"],
+            ["m0", "mi0"],
+        ]) {
+            expect(await value(m), m).eq("＿");
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx(mi),
+                core,
+            });
+            expect(await value(m), m).eq("7");
+        }
+        // the other iteration is not written to
+        expect(await value("r[2].m")).eq("＿");
+
+        for (const P of ["r2[1].P", "P0"]) {
+            expect(await value(P, "xs"), P).eqls(["1", "＿"]);
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(P),
+                x: 3,
+                y: 6,
+                core,
+            });
+            expect(await value(P, "xs"), P).eqls(["3", "6"]);
+        }
+    });
 });
