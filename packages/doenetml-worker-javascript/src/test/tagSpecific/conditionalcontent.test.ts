@@ -664,8 +664,8 @@ describe("Conditional content tag tests @group2", async () => {
         expect(warnings.map((w) => w.message)).eqls([
             "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            '`$cc.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
-            '`$cc2.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
+            '`$cc.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
+            '`$cc2.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
             "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
         ]);
         expect(errors.map((e) => e.message)).eqls([]);

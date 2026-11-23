@@ -2173,6 +2173,9 @@ export default class BaseComponent {
                     nodesInResolvedPath: deepClone(
                         this.refResolution.nodesInResolvedPath,
                     ),
+                    ...(this.refResolution.standIn
+                        ? { standIn: { ...this.refResolution.standIn } }
+                        : {}),
                 },
             };
         }

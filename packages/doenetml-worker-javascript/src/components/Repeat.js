@@ -1538,6 +1538,16 @@ function remapRefResolutionForIteration(
         entryIdxMapping,
     );
 
+    if (refResolution.standIn) {
+        const remapOrigin = extendIdxMapping[refResolution.standIn.origin];
+        if (remapOrigin != undefined) {
+            newRefResolution.standIn = {
+                ...refResolution.standIn,
+                origin: remapOrigin,
+            };
+        }
+    }
+
     newRefResolution.nodesInResolvedPath =
         refResolution.nodesInResolvedPath.map((idx) => {
             const remapIdx = extendIdxMapping[idx];
