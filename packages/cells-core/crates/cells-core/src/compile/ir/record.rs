@@ -612,6 +612,62 @@ impl Reader<'_> {
         })
     }
 
+    /// An attribute's nodes read as a list's entries ([`ListPiece`]):
+    /// split at the spaces outside any bracket pair, a piece that is one
+    /// reference alone a reference, one of text alone text, and one
+    /// mixing them math text (`exclude="$a $b-$a 7"` is three).
+    fn parse_attr_entries(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+    ) -> Result<Vec<ListPiece>> {
+        let d = self.dast;
+        let mut pieces = Vec::new();
+        let mut frags: Vec<PieceFrag> = Vec::new();
+        let mut piece = String::new();
+        let mut depth = 0i32;
+        fn end(frags: &mut Vec<PieceFrag>, piece: &mut String, pieces: &mut Vec<ListPiece>) {
+            if !piece.is_empty() {
+                frags.push(PieceFrag::Text(std::mem::take(piece)));
+            }
+            match std::mem::take(frags).as_slice() {
+                [] => {}
+                [PieceFrag::Ref(p)] => pieces.push(ListPiece::Reference(*p)),
+                [PieceFrag::Text(text)] => pieces.push(ListPiece::Text(text.clone())),
+                more => pieces.push(ListPiece::Math(more.to_vec())),
+            }
+        }
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Text => {
+                    for c in d.str(n).chars() {
+                        match c {
+                            '(' | '[' | '{' => depth += 1,
+                            ')' | ']' | '}' => depth -= 1,
+                            _ => {}
+                        }
+                        if c.is_whitespace() && depth <= 0 {
+                            end(&mut frags, &mut piece, &mut pieces);
+                        } else {
+                            piece.push(c);
+                        }
+                    }
+                }
+                NodeKind::Macro => {
+                    if !piece.is_empty() {
+                        frags.push(PieceFrag::Text(std::mem::take(&mut piece)));
+                    }
+                    frags.push(PieceFrag::Ref(self.plan_ref(ar, t, scope, n)?));
+                }
+                _ => {}
+            }
+        }
+        end(&mut frags, &mut piece, &mut pieces);
+        Ok(pieces)
+    }
+
     /// Content nodes read as a list's entries ([`ListPiece`]): text split
     /// at the spaces outside any bracket pair (`(1, 2) [3, 4]` is two),
     /// each reference outside brackets one piece, planned here, where it
@@ -868,14 +924,9 @@ impl Reader<'_> {
                 AttrValue::Points(self.plan_point_list(ar, t, scope, node, a)?)
             }
             AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(ar, t, scope, a)?),
-            AttrKind::Entries => AttrValue::Entries(self.parse_list_children(
-                ar,
-                t,
-                scope,
-                node,
-                d.attr_children(a),
-                Some(false),
-            )?),
+            AttrKind::Entries => {
+                AttrValue::Entries(self.parse_attr_entries(ar, t, scope, d.attr_children(a))?)
+            }
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
                 Some(_) => self.plan_scalar(ar, t, scope, d.attr_children(a))?,

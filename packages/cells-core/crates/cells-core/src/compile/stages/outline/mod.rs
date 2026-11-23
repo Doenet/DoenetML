@@ -7,6 +7,7 @@ mod answer;
 mod choice;
 mod copies;
 mod inner;
+mod repeat_items;
 
 use crate::compile::*;
 
@@ -36,6 +37,9 @@ struct Outlining<'a> {
     /// those done: one reached again while it expands is a cycle.
     expanding: HashSet<(TemplateId, ElemId)>,
     expanded: HashSet<(TemplateId, ElemId)>,
+    /// The `<repeat for>`s the walk found, whose items take the type of
+    /// what `for` names once every name is in the table.
+    repeat_items: Vec<(TemplateId, ElemId)>,
 }
 
 /// Outline `dast`, with what boxing records: what it settles, its rows of
@@ -74,6 +78,7 @@ impl<'a> Outlining<'a> {
             container_copies: Vec::new(),
             expanding: HashSet::new(),
             expanded: HashSet::new(),
+            repeat_items: Vec::new(),
         }
     }
 
@@ -117,6 +122,7 @@ impl<'a> Outlining<'a> {
             self.expand_container_copies();
         }
         crate::trace::span("extends").run(|| self.plan_extends());
+        crate::trace::span("repeat items").run(|| self.settle_repeat_items());
         crate::trace::span("answer children").run(|| self.add_answer_children());
         crate::trace::span("inner inputs").run(|| self.add_inner_inputs());
     }
@@ -388,6 +394,9 @@ impl<'a> Outlining<'a> {
                 } else {
                     if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
                         self.add_synthetic(sub, value_type, vn);
+                        if machinery == Some(Machinery::RepeatFor) {
+                            self.repeat_items.push((t, e));
+                        }
                     }
                     if let Some(iname) = self.rd().attr_name_str(el, "indexName") {
                         self.add_synthetic(sub, Role::Index.ty(), iname);

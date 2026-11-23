@@ -23,6 +23,7 @@ component! {
     default_prop: numbers,
     props {
         numComponents: by_planner { rendered },
+        hide: by_planner { rendered },
     }
     list {
         names: [numbers, values],
@@ -42,6 +43,7 @@ component! {
         length: Scalar,
         exclude: Scalars,
         r#type: Text,
+        hide: Flag(false),
     }
     static_count: count,
     children: None,
@@ -99,7 +101,9 @@ fn count(record: &Record) -> Option<usize> {
 
 /// Its entries: constants the planner counts from its literal parameters.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let values = numbers(Attrs::of(ctx.record()))?;
+    let attrs = Attrs::of(ctx.record());
+    let hide = Wire::scalar(attrs.hide.clone(), GivenId::Attr(attr::hide, 0));
+    let values = numbers(attrs)?;
     let n = values.len();
     let mut wiring = ElemWiring::with_list(ctx.component_type(), n);
     wiring.set_entries(
@@ -116,6 +120,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     );
     wiring.set_public(Props {
         numComponents: Wire::constant(n as f64),
+        hide,
     });
     Ok(wiring)
 }

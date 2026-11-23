@@ -39,6 +39,7 @@ component! {
         exclude9: by_planner,
         exclude10: by_planner,
         numComponents: by_planner { rendered },
+        hide: by_planner { rendered },
     }
     alternate_names {
         numValues: numComponents,
@@ -52,6 +53,7 @@ component! {
         length: Scalar,
         exclude: Entries,
         r#type: Text,
+        hide: Flag(false),
     }
     children: None,
     planner: Plan(plan),
@@ -87,6 +89,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             t.trim()
         )));
     }
+    let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
     let given = [attrs.from, attrs.to, attrs.step, attrs.length];
     if given.iter().all(Option::is_some) {
         return Err(Error::Unsupported(
@@ -130,7 +133,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         VecOp::SequenceParams { given: mask },
         inputs,
     );
-    let mut exclude = exclude.into_iter().map(Wire::from);
+    // Each read as a number: a math cell's expression evaluated (a math
+    // list's entry), a number as it is.
+    let mut exclude = exclude.into_iter().map(|source| {
+        let held = wiring.hidden(source);
+        Wire::from(Source::value_of(held, held))
+    });
     let [
         exclude1,
         exclude2,
@@ -165,6 +173,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             }),
             counted,
         ),
+        hide,
     });
     Ok(wiring)
 }

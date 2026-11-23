@@ -2,6 +2,7 @@
 //! planners of types whose contents follow a list.
 
 use super::Planning;
+use super::lists::Splice;
 use crate::compile::*;
 use crate::components::MAX_TUPLE;
 use crate::components::prop::function_iterates;
@@ -218,14 +219,19 @@ impl<'a> Planning<'a> {
         let fp = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
         let unsupported = || {
             Error::Unsupported(
-                "<repeat for> takes a <functionIterates>' allIteratesWithInitial or iterates"
+                "<repeat for> takes a list, a sequence, a sampler or a <functionIterates>' \
+                 allIteratesWithInitial or iterates"
                     .into(),
             )
         };
         let offset = match self.ar.refs[fp.index()].prop {
             Some(p) if p.is("allIteratesWithInitial") => 0,
             Some(p) if p.is("iterates") => 1,
-            _ => return Err(unsupported()),
+            _ => {
+                return self
+                    .plan_repeat_for_sequence(t, e, sub, fp)
+                    .ok_or_else(unsupported);
+            }
         };
         let mut base = self.ar.refs[fp.index()].clone();
         base.prop = None;
@@ -277,5 +283,125 @@ impl<'a> Planning<'a> {
             self.tables[sub.index()].plans[0].props = props;
         }
         Ok(())
+    }
+
+    /// `<repeat for="$l">` over a sequence (ADR 0041, decision 2): one
+    /// iteration per entry. Over a static sequence (a value list, a list
+    /// operator, a `<sequence>` or sampler of literal count) the count is
+    /// a constant and the item's value `$l[i]`, an entry step by the
+    /// iteration's index; over a structural sequence (a `<sequence>` whose
+    /// count follows a value) the count is its count's cell and the item
+    /// aliases each prop of iteration `i`'s item. The item is of the type
+    /// outlining settled from the sequence (`settle_repeat_items`). None
+    /// for anything else.
+    fn plan_repeat_for_sequence(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        sub: TemplateId,
+        fp: RefId,
+    ) -> Option<()> {
+        let (rt, re) = self.rd.static_target(&self.ar, t, fp)?;
+        let ty = self.rd.outlined(rt).elems[re.index()].component_type;
+        let base = self.ar.refs[fp.index()].clone();
+        let item = self
+            .has_item(t, e)
+            .then(|| self.rd.outlined(sub).elems[0].component_type);
+        let spelled = display_of(self.rd.dast, &base);
+        let (count, props) = if let (Some(declared), Some(count)) = (ty.def().item, ty.count_prop())
+        {
+            // A structural sequence: its count's cell, and iteration `i`'s
+            // item, element 0 of its body.
+            if base.prop.is_some() || !base.entries.is_empty() {
+                return None;
+            }
+            let mut counted = base.clone();
+            counted.prop = Some(RefProp::of(ty, PropSel::At(PropAt::Position(count))));
+            let count = Source::reference(self.ar.push_ref(counted));
+            let mut steps = base.steps.clone();
+            steps.push(Step::Iter(IndexPlan {
+                terms: vec![IndexTerm::Iter(0)],
+            }));
+            steps.push(Step::Elem(ElemId::new(0)));
+            let props = item.filter(|&it| it == declared.ty).map(|it| {
+                (0..it.prop_defs().len())
+                    .map(|i| {
+                        let plan = RefPlan {
+                            hops: base.hops + 1,
+                            steps: steps.clone(),
+                            prop: Some(RefProp::of(it, PropSel::At(PropAt::Position(i)))),
+                            entries: Vec::new(),
+                            display: RefDisplay::Spelled(
+                                format!("({spelled}[i]).{}", it.prop_defs()[i].name).into(),
+                            ),
+                            node: NodeId::NONE,
+                        };
+                        Source::reference(self.ar.push_ref(plan))
+                    })
+                    .collect::<Vec<_>>()
+            });
+            (count, props)
+        } else {
+            // A static sequence: as many iterations as it has entries,
+            // the item's value its entry `i`.
+            let Splice::Entries(n) = self.splice(t, e, fp) else {
+                return None;
+            };
+            let props = item.and_then(|it| {
+                let [port] = it.entry_ports()[..] else {
+                    return None;
+                };
+                let mut plan = base.clone();
+                plan.hops += 1;
+                if plan.prop.is_none() {
+                    plan.prop = Some(RefProp::of(ty, PropSel::At(PropAt::List)));
+                }
+                // By the iteration's index, a cell (as `$l[$i]` is): the
+                // index outlining made beside the item.
+                let index = (1..self.rd.outlined(sub).elems.len()).find(|&i| {
+                    let x = &self.rd.outlined(sub).elems[i];
+                    x.node == NodeId::NONE && x.component_type.plays(Role::Index)
+                })?;
+                let index_ty = self.rd.outlined(sub).elems[index].component_type;
+                let index = self.ar.push_ref(RefPlan {
+                    hops: 0,
+                    steps: vec![Step::Elem(ElemId::from_index(index))],
+                    prop: Some(RefProp::of(
+                        index_ty,
+                        PropSel::At(PropAt::Position(index_ty.scalar_prop()?)),
+                    )),
+                    entries: Vec::new(),
+                    display: RefDisplay::Spelled("(iteration index)".into()),
+                    node: NodeId::NONE,
+                });
+                plan.entries.push(EntryIndex {
+                    index: IndexPlan {
+                        terms: vec![IndexTerm::Cell(index)],
+                    },
+                    width: 1,
+                });
+                plan.display = RefDisplay::Spelled(format!("{spelled}[i]").into());
+                plan.node = NodeId::NONE;
+                let entry = Source::reference(self.ar.push_ref(plan));
+                Some(
+                    (0..it.prop_defs().len())
+                        .map(|i| {
+                            if i == port {
+                                entry.clone()
+                            } else {
+                                Source::absent()
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            });
+            (Source::constant(n as f64), props)
+        };
+        self.tables[t.index()].plans[e.index()].props =
+            prop::repeat_for::Props { count }.into_vec();
+        if let Some(props) = props {
+            self.tables[sub.index()].plans[0].props = props;
+        }
+        Some(())
     }
 }

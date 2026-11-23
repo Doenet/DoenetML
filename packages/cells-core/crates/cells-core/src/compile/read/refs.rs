@@ -316,7 +316,7 @@ impl<'a> Reader<'a> {
     }
 
     /// `plan_ref`, failing on a reference that names nothing.
-    fn plan_ref_naming(
+    pub(in crate::compile) fn plan_ref_naming(
         &self,
         ar: &mut Arenas,
         t: TemplateId,

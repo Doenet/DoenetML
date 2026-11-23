@@ -333,6 +333,15 @@ impl Document {
         let cells = self.comp_cells(c);
         let value = |pi: usize| cells.get(pi).map(|cell| self.cells[cell.index()]);
         let ty = self.component_type(c);
+        // A hidden list shows nothing (ADR 0041, decision 9).
+        if (ty.list_entry().is_some() || ty.lists_items())
+            && ty
+                .prop_index("hide")
+                .and_then(value)
+                .is_some_and(|h| h != 0.0 && !h.is_nan())
+        {
+            return;
+        }
         // A value list shows its entries, separated by commas (ADR 0041).
         // A point list's own points (`(1, 2), (3, 4)`) likewise; a shape's
         // vertices are no text of it.

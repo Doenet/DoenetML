@@ -72,7 +72,8 @@ impl Planning<'_> {
             return;
         };
         let owner_ty = self.rd.outlined(t).elems[e.index()].component_type;
-        let item = self.has_item(t, e).then(|| owner_ty.def().item).flatten();
+        let has_item = self.has_item(t, e);
+        let item = has_item.then(|| owner_ty.def().item).flatten();
         for i in 0..self.rd.outlined(sub).elems.len() {
             let el = &self.rd.outlined(sub).elems[i];
             if el.node != NodeId::NONE {
@@ -80,6 +81,9 @@ impl Planning<'_> {
             }
             let ty = el.component_type;
             let props = match item {
+                // An item no declaration wires (a `<repeat for>`'s) is its
+                // machinery's to plan.
+                _ if i == 0 && has_item && item.is_none() => continue,
                 Some(ItemDecl { ty: item_ty, wire }) if i == 0 && ty == item_ty => {
                     let mut ctx = ItemCtx {
                         ar: &mut self.ar,
@@ -105,13 +109,13 @@ impl Planning<'_> {
         }
     }
 
-    /// Whether repeat `e` has an item in its body: its type declares one,
-    /// and it reads no children (the item is its one child) or names it
-    /// (`valueName`).
-    fn has_item(&self, t: TemplateId, e: ElemId) -> bool {
+    /// Whether repeat `e` has an item in its body, element 0: it names
+    /// one (`valueName`), or its type declares one and it reads no
+    /// children (the item is its one child).
+    pub(super) fn has_item(&self, t: TemplateId, e: ElemId) -> bool {
         let el = &self.rd.outlined(t).elems[e.index()];
         let def = el.component_type.def();
-        def.item.is_some()
-            && (!def.children.built() || self.rd.attr_name_str(el.node, "valueName").is_some())
+        self.rd.attr_name_str(el.node, "valueName").is_some()
+            || (def.item.is_some() && !def.children.built())
     }
 }
