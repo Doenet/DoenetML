@@ -36,4 +36,8 @@ pub struct TickOutcome {
     pub rebuild_error: Option<String>,
     /// How many build passes the rebuild took to settle; 0 without one.
     pub rebuild_passes: u32,
+    /// How many follow-up ticks it ran: a button pressed because a
+    /// condition rose or what it waits on acted (ADR 0042), each its own
+    /// tick, folded into this outcome.
+    pub follow_ups: u32,
 }

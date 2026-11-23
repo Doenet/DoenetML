@@ -141,6 +141,10 @@ pub(crate) struct ElemPlan {
     /// What the element is a copy of, if it is wired as one (not when it
     /// is an alias of an extended prop).
     pub(crate) extend: Option<RefId>,
+    /// What its `Component` and `After` attributes name (ADR 0040, 0042),
+    /// each with the attribute's position among its type's declarations,
+    /// in the order written: a build resolves each to a component.
+    pub(crate) links: Vec<(u16, RefId)>,
 }
 
 impl ElemPlan {
@@ -151,6 +155,7 @@ impl ElemPlan {
         hold: Hold::Off,
         from: None,
         extend: None,
+        links: Vec::new(),
     };
 
     /// How many of the element's ports are public, for an element of

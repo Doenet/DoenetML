@@ -39,7 +39,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
     let mut wiring = ElemWiring::of(ty);
-    let args = operands(ctx, &mut wiring, attrs.children, PieceKind::Number, false)?;
+    let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
+    let args = operands(ctx, &mut wiring, pieces, PieceKind::Number, false)?;
     let value = if args.is_empty() {
         Wire::absent()
     } else {

@@ -155,6 +155,14 @@ impl<'c> Builder<'c> {
     /// what it submits is (not for a choice or a text answer); a response's
     /// `submitted` unless its input is a boolean input (`add_response`).
     fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
+        self.expr_target(slot)
+            // A math cell that stands for no prop's expression (an entry
+            // of a math list, ADR 0041) is its own.
+            .or_else(|| (self.value_type(slot) == ValueType::Math).then_some(slot))
+    }
+
+    /// The expression slot a prop stands for, by its type's [`ExprOf`](crate::components::ExprOf).
+    fn expr_target(&mut self, slot: SlotId) -> Option<SlotId> {
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return None;

@@ -3,10 +3,46 @@
 
 use super::define::*;
 
+pub(crate) mod call_action;
 pub mod choice_input;
 pub(crate) mod fraction_input;
 pub mod math_input;
 pub mod text_input;
+pub(crate) mod trigger_set;
+pub mod update_value;
+
+/// What presses a button besides a student (ADR 0042): its `triggerWhen`,
+/// read as a `<boolean>`'s content is (a literal, one reference, or a
+/// condition), in a port of `wiring`; 0 when not given.
+pub(crate) fn trigger_when(
+    ctx: &mut crate::compile::api::PlanCtx<'_, '_>,
+    when: Option<crate::compile::api::ValueChildren>,
+    wiring: &mut crate::compile::api::ElemWiring,
+) -> crate::error::Result<crate::compile::api::Wire> {
+    use crate::compile::api::{ChildValue, Source, Wire};
+    let Some(when) = when else {
+        return Ok(Wire::constant(0.0));
+    };
+    if let Some(tag) = &when.element {
+        return Err(crate::error::Error::Unsupported(format!(
+            "a <{tag}> in triggerWhen"
+        )));
+    }
+    let literal = match &when.value {
+        ChildValue::Blank => Some(0.0),
+        ChildValue::Text { text, .. } => match text.trim().to_ascii_lowercase().as_str() {
+            "true" => Some(1.0),
+            "false" => Some(0.0),
+            s => s.parse::<f64>().ok().map(|v| f64::from(v == 1.0)),
+        },
+        _ => None,
+    };
+    Ok(match (literal, when.value) {
+        (Some(v), _) => Wire::constant(v),
+        (None, ChildValue::Reference(p)) => Source::reference(p).into(),
+        (None, _) => Wire::own(ctx.condition(&when.nodes, wiring)?),
+    })
+}
 
 /// The slider's spec: `slider` is an inline module below, so its spec file
 /// sits beside this one.

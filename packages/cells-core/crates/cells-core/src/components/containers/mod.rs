@@ -337,16 +337,3 @@ pub(crate) mod legend {
         planner: Props,
     }
 }
-
-pub(crate) mod trigger_set {
-    use super::*;
-
-    component! {
-        /// `<triggerSet>`: a button that, when pressed, performs every
-        /// `<updateValue>` inside it at once. Its `<label>` is the button's
-        /// text.
-        tags: ["triggerSet"],
-        flags: [container],
-        planner: Props,
-    }
-}

@@ -52,7 +52,7 @@ fn reduction(ty: ComponentType) -> Reduction {
 /// ([`operands`]); with none, what the connective gives of none.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
-    let pieces = Attrs::of(ctx.record()).children;
+    let pieces = ctx.list_entries(Attrs::of(ctx.record()).children, f64::INFINITY)?;
     let mut wiring = ElemWiring::of(ty);
     let args = operands(ctx, &mut wiring, pieces, PieceKind::Boolean, false)?;
     let op = reduction(ty);

@@ -308,6 +308,30 @@ function numberListReaders(valuesVariable?: string): Record<string, Reader> {
     if (valuesVariable) readers[valuesVariable] = listNumbers;
     return readers;
 }
+/** What a cell of a math list's entry holds, as the current core's math:
+ * its expression (the blank one for none), or the number an entry
+ * aliasing one holds (ADR 0041). */
+function heldMath(cells: Cells, cell: number): unknown {
+    return cells.core.cell_holds(cell) === "math"
+        ? exprOf(cells, cell)
+        : M(cells.value(cell));
+}
+/** A value list (ADR 0041): its entries `entries`, each as `read` reads
+ * its cell, and how many there are. */
+function valueListReaders(
+    entries: string,
+    read: (x: Ctx, cell: number) => unknown,
+): Record<string, Reader> {
+    return {
+        [entries]: (_g, x) =>
+            Array.from(x.cells.propCells(x.idx, entries)).map((c) =>
+                read(x, c),
+            ),
+        numComponents: (g) => g("numComponents"),
+        numValues: (g) => g("numComponents"),
+        text: textOf,
+    };
+}
 /** A list operator's results are maths in the current core. */
 const mathListOperatorReaders: Record<string, Reader> = {
     maths: (g, x) => (listNumbers(g, x) as number[]).map(M),
@@ -609,6 +633,20 @@ const STATE: Record<string, Record<string, Reader>> = {
             "exercises",
         ].map((t) => [t, sectionReaders]),
     ),
+    // The buttons (ADR 0040): a press is the core's action `trigger`; one
+    // something else presses (ADR 0042) is hidden.
+    callAction: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    updateValue: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    triggerSet: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
     // The document-wide counters (ADR 0044), and an aside, numbered among
     // the divisions.
     figure: counterNameReaders("figure", "Figure", "caption"),
@@ -637,6 +675,12 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
         immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
     },
+    // The value lists (ADR 0041): their entries as the current core holds
+    // them, and how many there are.
+    numberList: numberListReaders(),
+    textList: valueListReaders("texts", (x, c) => x.cells.text(c)),
+    booleanList: valueListReaders("booleans", (x, c) => x.cells.value(c) === 1),
+    mathList: valueListReaders("maths", (x, c) => heldMath(x.cells, c)),
 };
 
 /** The component fields the harness answers for some types: a fraction
@@ -660,6 +704,14 @@ const FIELDS: Record<
                     : [],
             ),
     },
+};
+
+/** The current core's name of each button's press, carried out as the
+ * cells core's action `trigger` (ADR 0040). */
+const PRESSES: Record<string, string> = {
+    callAction: "callAction",
+    updateValue: "updateValue",
+    triggerSet: "triggerActions",
 };
 
 /** Actions the bridge's renderer table resolves (`cells/actions.ts`) whose
@@ -966,6 +1018,20 @@ export async function createTestCoreCells({
                 );
                 if (effect?.kind === "request") request(effect.pairs);
                 else if (effect?.kind === "points") request(effect.pairs, true);
+                return;
+            }
+            if (PRESSES[componentType] === actionName) {
+                core.trigger(componentIdx);
+                table.reload();
+                return;
+            }
+            // A click or a focus, which a button may wait on (ADR 0042).
+            if (
+                componentType === "point" &&
+                (actionName === "pointClicked" || actionName === "pointFocused")
+            ) {
+                core.act_by_name(componentIdx, actionName);
+                table.reload();
                 return;
             }
             switch (actionName) {

@@ -7,3 +7,4 @@ a min or max of one operand writes it: cells 4 · essential 1 · constant 3 · i
 of several operands, and a sum, a request cannot change it: cells 7 · essential 0 · constant 7 · instrs 0 · components 8
 a copy has its value: cells 5 · essential 0 · constant 5 · instrs 0 · components 4
 a piece that is no number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+one operand per entry of a list, and per element child: cells 14 · essential 0 · constant 13 · instrs 1 · components 10
