@@ -25,6 +25,17 @@ export default class Missing extends InlineComponent {
             definition: () => ({ setValue: { valueMissing: true } }),
         };
 
+        // It names nothing, as a missing component made for a reference
+        // does (`BaseComponent`, `doenetAttributes.missing`), so a point,
+        // vector or shape holding it alone is missing
+        // (`contentNamesNothingDefinition`): an iteration of a `<repeat>`
+        // copies `<point>$nothing</point>` with this in it, not a missing
+        // point (D49, #2596).
+        stateVariableDefinitions.namesNothing = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { namesNothing: true } }),
+        };
+
         stateVariableDefinitions.text = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { text: MISSING_TEXT } }),

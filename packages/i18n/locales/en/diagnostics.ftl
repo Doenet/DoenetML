@@ -1088,6 +1088,19 @@ action-target-not-one-value = { $container ->
 # $latex is the LaTeX as written. The tags stay in English.
 latex-not-read-as-math = The LaTeX of this `<{ $component }>`, `{ $latex }`, can't be read as math, so the math made from it is a blank.
 
+# The content of a `<point>` or `<vector>` ($componentType) that its
+# attributes override entirely, so it isn't used (D49). A point takes each
+# coordinate from `x`, `y` or `z` first, then from `coords`, then from its
+# content. $reason is `coords` when `coords` is written, `displacement` when a
+# vector's `displacement` is written, and `coordinates` when the attributes
+# $attributes (a list such as "`x`, `y`") give every coordinate the content
+# would. Tag and attribute names stay in English.
+content-unused-attributes-give-value = { $reason ->
+        [coords] `coords` gives every coordinate of this `<{ $componentType }>`, so its content isn't used. Remove the content or `coords`.
+        [displacement] `displacement` gives this `<{ $componentType }>` its whole value, so its content isn't used. Remove the content or `displacement`.
+       *[coordinates] Every coordinate of this `<{ $componentType }>` is given by { $attributes }, so its content isn't used. Remove the content or { $attributes }.
+    }
+
 # A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
 # matrix uses one `<math>` child, the last one written. $reason is `several`
 # when more than one `<math>` is written, so the earlier ones are ignored, and
