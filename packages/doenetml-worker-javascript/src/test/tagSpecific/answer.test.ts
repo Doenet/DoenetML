@@ -4493,6 +4493,38 @@ Enter any letter:
         expect(await creditFor(5, true)).eq(1);
     });
 
+    // A credit is a `<number convertBoolean>`, so a missing one is a blank,
+    // which counts as 0 (VAL-5, #2656): before, `$nothing` counted as true,
+    // full credit.
+    it("a credit computed from a missing value gives no credit", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="bm">not $nothing</boolean>
+    <answer name="a1"><award credit="$nothing"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$bm"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$b"><when>true</when></award></answer>
+    `,
+        });
+
+        for (const [name, credit] of [
+            ["a1", 0],
+            ["a2", 0],
+            ["a3", 1],
+        ] as const) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.creditAchieved,
+                name,
+            ).eq(credit);
+        }
+    });
+
     it("award credit from boolean", async () => {
         let options = ["meow", "woof", "squeak", "blub"];
         for (let ind = 1; ind <= 4; ind++) {

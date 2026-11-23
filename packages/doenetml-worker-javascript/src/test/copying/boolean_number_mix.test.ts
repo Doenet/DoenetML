@@ -584,6 +584,8 @@ describe("Booleans and numbers kept apart @group2", () => {
     <number name="n8" convertBoolean>($b and true) + 1</number>
     <number name="n9" convertBoolean>(1 < 2) + 1</number>
     <number name="n10" convertBoolean>false + 2</number>
+    <number name="n11" convertBoolean>$b + t r u e</number>
+    <number name="n12" convertBoolean>$b + True</number>
     <p name="p">$n6 $n7</p>
     `,
         });
@@ -604,6 +606,8 @@ describe("Booleans and numbers kept apart @group2", () => {
                 "n8",
                 "n9",
                 "n10",
+                "n11",
+                "n12",
             ]) {
                 const stateValues =
                     stateVariables[await resolvePathToNodeIdx(name)]
@@ -630,6 +634,9 @@ describe("Booleans and numbers kept apart @group2", () => {
             n8: 2,
             n9: 2,
             n10: 2,
+            // letters written apart are a product of unknowns, not the word
+            n11: NaN,
+            n12: 2,
             p: "＿ ＿",
         });
 
@@ -649,6 +656,8 @@ describe("Booleans and numbers kept apart @group2", () => {
             n8: 1,
             n9: 2,
             n10: 2,
+            n11: NaN,
+            n12: 1,
             p: "＿ ＿",
         });
 

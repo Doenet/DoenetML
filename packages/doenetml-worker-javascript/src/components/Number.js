@@ -61,13 +61,31 @@ const LOGIC_OPERATORS = new Set([
 ]);
 
 /**
- * `tree` with the words `true` and `false` whole again. Inside arithmetic
- * the parse splits a word into its letters (`($b and true) + 1` holds
- * `["*", "t", "r", "u", "e"]`), which would make the word a product of
- * unknowns rather than a boolean to count.
+ * The words `true` and `false` that `strings`, the text written in the
+ * content, holds as words.
  */
-function withBooleanWords(tree) {
-    if (!Array.isArray(tree)) {
+function booleanWordsWritten(strings) {
+    const text = strings.join(" ");
+    const words = new Set();
+    if (/\btrue\b/i.test(text)) {
+        words.add("true");
+    }
+    if (/\bfalse\b/i.test(text)) {
+        words.add("false");
+    }
+    return words;
+}
+
+/**
+ * `tree` with the words `true` and `false` whole again, those of `words`,
+ * the ones written as words. Inside arithmetic the parse splits a word into
+ * its letters (`($b and true) + 1` holds `["*", "t", "r", "u", "e"]`), which
+ * would make the word a product of unknowns rather than a boolean to count.
+ * Letters written apart (`t r u e`, `t*r*u*e`) parse the same, so only a
+ * word written is rejoined: those stay a product of unknowns.
+ */
+function withBooleanWords(tree, words) {
+    if (!Array.isArray(tree) || words.size === 0) {
         return tree;
     }
     const [operator, ...operands] = tree;
@@ -76,11 +94,11 @@ function withBooleanWords(tree) {
         operands.every((x) => typeof x === "string" && x.length === 1)
     ) {
         const word = operands.join("").toLowerCase();
-        if (word === "true" || word === "false") {
+        if (words.has(word)) {
             return word;
         }
     }
-    return [operator, ...operands.map(withBooleanWords)];
+    return [operator, ...operands.map((x) => withBooleanWords(x, words))];
 }
 
 /** Stands for a missing operand in `numberCountingBooleans`. */
@@ -170,7 +188,14 @@ function numberCountingBooleans(dependencyValues) {
     }
 
     const tree = counted(
-        withBooleanWords(dependencyValues.parsedExpression.tree),
+        withBooleanWords(
+            dependencyValues.parsedExpression.tree,
+            booleanWordsWritten(
+                dependencyValues.allChildren.filter(
+                    (child) => typeof child === "string",
+                ),
+            ),
+        ),
     );
     if (tree === MISSING_OPERAND) {
         return valueOnNaN;
@@ -773,6 +798,7 @@ export default class NumberComponent extends InlineComponent {
                                             ? dependencyValues.valueOnNaN
                                             : numberCountingBooleans({
                                                   parsedExpression,
+                                                  allChildren: [text],
                                                   mathChildrenByCode: {},
                                                   numberChildrenByCode: {},
                                                   booleanChildrenByCode: {},
