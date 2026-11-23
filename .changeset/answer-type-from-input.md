@@ -18,4 +18,4 @@ An `<answer>`'s type comes from its input (D55), so `type` is needed only when n
   - an award with content and no `<when>` in an answer with more than one input, which is compared with none of them, `doenet-w0204`;
   - an award with content and no `<when>` in an answer whose input is written outside it with `forAnswer`, which is compared with an input the answer adds, `doenet-w0205`.
 
-  An award whose content is one `<when>` (also a `<when>` written directly in the answer, which its sugar wraps in an award) compares in the `<when>`, so it is not warned of.
+  An award whose content is one `<when>` (also a `<when>` written directly in the answer, which its sugar wraps in an award, or one inside a composite such as a `<group>`) compares in the `<when>`, so it is not warned of. A reference to a `<when>` (`$w`) is its value, a boolean compared with the input: `<answer>$w</answer>` adds a `<booleanInput>`.

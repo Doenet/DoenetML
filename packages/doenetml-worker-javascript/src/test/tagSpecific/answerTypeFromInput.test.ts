@@ -568,6 +568,82 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         ]);
     });
 
+    it("a when inside a composite is its award's condition, not content", async () => {
+        // the award's sugar keeps one composite unwrapped, and the `<when>`
+        // it expands to is the award's condition
+        for (const doenetML of [
+            `<answer name="a"><mathInput name="in"/><mathInput/><award><group><when>$in = x</when></group></award></answer>`,
+            `<answer name="a"><mathInput name="in"/><mathInput/><group><when>$in = x</when></group></answer>`,
+            `<answer name="a"><mathInput name="in"/><mathInput/><award><conditionalContent condition="true"><when>$in = x</when></conditionalContent></award></answer>`,
+            `<group name="g"><when>$in = x</when></group><answer name="a"><mathInput name="in"/><mathInput/><award>$g</award></answer>`,
+            `<mathInput name="in" forAnswer="$a"/><answer name="a"><award><group><when>$in = x</when></group></award></answer>`,
+        ]) {
+            const { credit, core } = await creditFor({
+                doenetML,
+                kind: "math",
+                value: "x",
+            });
+            expect(credit, doenetML).eq(1);
+            expect(coded(core, "warnings"), doenetML).eqls([]);
+        }
+
+        // a composite with no `<when>` is still content
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><mathInput name="in"/><mathInput/><award><group><math>x</math></group></award></answer>`,
+            kind: "math",
+            value: "x",
+        });
+        expect(credit).eq(0);
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0204: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+        ]);
+    });
+
+    it("a reference to a when is its value, a boolean compared with the input", async () => {
+        const when = `<number name="n">1</number><when name="w">$n = 1</when>`;
+
+        // with no input, it decides a boolean, so a `<booleanInput>` is added
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `${when}<answer name="a">$w</answer>`,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("booleanInput");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: inputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+
+        // beside a text input, it can never earn credit
+        const { credit, core: core2 } = await creditFor({
+            doenetML: `${when}<answer name="a"><textInput name="in"/><award>$w</award></answer>`,
+            kind: "text",
+            value: "true",
+        });
+        expect(credit).eq(0);
+        expect(coded(core2, "warnings")).eqls([
+            "doenet-w0203: This `<when>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
+        ]);
+
+        // with two inputs, it is compared with neither
+        const { credit: credit3, core: core3 } = await creditFor({
+            doenetML: `${when}<answer name="a"><mathInput name="in"/><mathInput/><award>$w</award></answer>`,
+            kind: "math",
+            value: "x",
+        });
+        expect(credit3).eq(0);
+        expect(coded(core3, "warnings")).eqls([
+            "doenet-w0204: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+        ]);
+    });
+
     it("a when comparing a text input is unchanged", async () => {
         const { credit, core } = await creditFor({
             doenetML: `<answer name="a"><textInput name="in"/><award><when>$in = hello</when></award></answer>`,

@@ -141,7 +141,7 @@ export function decideAnswerTypesAtLoad({
         componentInfoObjects,
         typeRepeatValues: true,
     });
-    const { responseRead, tagOfComponent, inputsForAnswer } =
+    const { responseRead, tagOfComponent, nodeOf, inputsForAnswer } =
         propertyTypeReader({ componentInfoObjects, referents });
 
     function inherits(componentType: string, base: string) {
@@ -210,6 +210,11 @@ export function decideAnswerTypesAtLoad({
         if (tag === undefined) {
             return undefined;
         }
+        if (isReference && inherits(tag, "when")) {
+            // a bare `$w` is the `<when>`'s value, a boolean, compared with
+            // the input, not a condition
+            return { type: "boolean", tag };
+        }
         const type = tagComparedAs(tag);
         return type === undefined ? undefined : { type, tag };
     }
@@ -237,15 +242,54 @@ export function decideAnswerTypesAtLoad({
     /**
      * Whether `content` is one `<when>`, which an award reads as its
      * condition. With other content, the award's sugar wraps it with the
-     * rest in the answer's type, and it is compared as that.
+     * rest in the answer's type, and it is compared as that. A composite
+     * that may hold a `<when>` is kept unwrapped too, and the `<when>` it
+     * expands to is the award's condition (`<award><group><when>…</when>
+     * </group></award>`). A bare `$w` naming a `<when>` is its value, a
+     * boolean compared with the input.
      */
     function isWhen(content: (SerializedComponent | string)[]) {
         const c = content[0];
-        return (
-            content.length === 1 &&
-            typeof c === "object" &&
-            tagOfComponent(c) !== undefined &&
-            inherits(tagOfComponent(c)!, "when")
+        if (content.length !== 1 || typeof c !== "object") {
+            return false;
+        }
+        const tag = tagOfComponent(c);
+        if (tag === undefined) {
+            return false;
+        }
+        if (isBareReference(c)) {
+            // `$g`, naming a composite, expands to what it holds
+            if (!inherits(tag, "_composite")) {
+                return false;
+            }
+            const node = nodeOf(c);
+            return node === undefined || node === c || mayHoldWhen(node);
+        }
+        if (inherits(tag, "when")) {
+            return true;
+        }
+        return inherits(tag, "_composite") && mayHoldWhen(c);
+    }
+
+    /**
+     * Whether the composite `c` may expand to a `<when>`: one written in
+     * it, at any depth, or one it copies, whose content isn't read here.
+     */
+    function mayHoldWhen(c: SerializedComponent): boolean {
+        if (c.componentType === "_copy") {
+            const tag = tagOfComponent(c);
+            return (
+                tag !== undefined &&
+                (inherits(tag, "when")
+                    ? !isBareReference(c)
+                    : inherits(tag, "_composite"))
+            );
+        }
+        if (inherits(c.componentType, "when")) {
+            return true;
+        }
+        return (c.children ?? []).some(
+            (child) => typeof child === "object" && mayHoldWhen(child),
         );
     }
 

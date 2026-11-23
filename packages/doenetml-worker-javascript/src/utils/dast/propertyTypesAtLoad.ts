@@ -1683,6 +1683,7 @@ export function propertyTypeReader({
         propertyTypeOf,
         tagOf,
         tagOfComponent,
+        nodeOf,
         propertyOfReference,
         decidingClass,
         responseRead,
