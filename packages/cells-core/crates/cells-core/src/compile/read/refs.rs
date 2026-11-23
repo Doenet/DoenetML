@@ -80,7 +80,7 @@ impl<'a> Reader<'a> {
         for step in &plan.steps {
             match step {
                 Step::Elem(e) => last = Some(*e),
-                Step::Iter(_) | Step::Item(..) | Step::Iface(..) => return None,
+                Step::Iter(_) | Step::Item(..) | Step::Iface(..) | Step::Nothing => return None,
             }
         }
         last.map(|e| (self.template_up(t, plan.hops), e))
@@ -135,6 +135,8 @@ impl<'a> Reader<'a> {
         let mut ty = None;
         for i in 0..ar.refs[p.index()].steps.len() {
             match ar.refs[p.index()].steps[i].clone() {
+                // Names nothing: no type (ADR 0046).
+                Step::Nothing => return Ok((None, None)),
                 Step::Elem(e) => {
                     cur = Some(e);
                     last = Some((t, e));
@@ -288,6 +290,33 @@ impl<'a> Reader<'a> {
     }
 
     pub(in crate::compile) fn plan_ref(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        m: NodeId,
+    ) -> Result<RefId> {
+        match self.plan_ref_naming(ar, t, scope, m) {
+            // A reference that names nothing is missing, with a warning
+            // where it is written, and the element it is in still builds
+            // (VAL-5, NAME-1, D37; ADR 0046).
+            Err(e) if is_names_nothing(&e) => {
+                ar.warn(m, e.code(), &e.to_string());
+                Ok(ar.push_ref(RefPlan {
+                    hops: 0,
+                    steps: vec![Step::Nothing],
+                    prop: None,
+                    entries: Vec::new(),
+                    display: RefDisplay::Written,
+                    node: m,
+                }))
+            }
+            other => other,
+        }
+    }
+
+    /// `plan_ref`, failing on a reference that names nothing.
+    fn plan_ref_naming(
         &self,
         ar: &mut Arenas,
         t: TemplateId,
@@ -1003,6 +1032,21 @@ impl<'a> Reader<'a> {
         let id = self.names().id(name).expect("a name a branch carries");
         Ok((Step::Iface(cid, id), tpl, elem))
     }
+}
+
+/// Whether planning a reference failed because it names nothing, which is a
+/// warning and the missing value rather than an error (ADR 0046): a name no
+/// component has or several share, a property or an index the referent
+/// does not have.
+fn is_names_nothing(e: &Error) -> bool {
+    matches!(
+        e,
+        Error::UnknownName(_)
+            | Error::AmbiguousName(_)
+            | Error::UnknownProp { .. }
+            | Error::NotIndexable(_)
+            | Error::PathTooDeep(_)
+    )
 }
 
 #[cfg(test)]

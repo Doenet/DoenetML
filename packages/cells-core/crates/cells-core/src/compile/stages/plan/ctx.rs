@@ -1,6 +1,7 @@
 //! [`PlanCtx`]: what every component planner is given.
 
-use super::Planning;
+use super::{ListEntry, Planning};
+use crate::compile::ir::record::ListPiece;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
@@ -149,7 +150,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.p.plan_value_children(self.t, scope, v)
+        self.p.plan_value_children(self.t, self.e, scope, v)
     }
 
     /// Math text written as one interval, `[a, b)`: its endpoints and
@@ -325,12 +326,88 @@ impl<'a> PlanCtx<'_, 'a> {
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
 
+    /// The entries the children `pieces` of a list (or an operator)
+    /// contribute, in order, at most `max` (ADR 0041, decision 9): each
+    /// reference or element child naming a static sequence spliced into
+    /// its entries, one naming an entry past such a list's end dropped,
+    /// and math text with references inside its brackets parsed.
+    pub(crate) fn list_entries(
+        &mut self,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<ListEntry>> {
+        self.p.list_entries(self.t, self.e, pieces, max)
+    }
+
+    /// An entry of a list read as math: a piece of text as written
+    /// (`1+1`, `pi`, `x`), none when it is no math; a reference alone, its
+    /// one cell or the expression that cell stands for.
+    pub(crate) fn entry_math(&mut self, entry: &ListEntry) -> Option<ExprId> {
+        match entry {
+            ListEntry::Text(_, text) => self.p.text_math(text),
+            ListEntry::Math(id) => Some(*id),
+            ListEntry::Ref(p) => {
+                let id = self.p.ar.arena.push(Expr::Cell(*p));
+                self.p.ar.sym_text.insert(id, SymText::Leaf(*p));
+                Some(id)
+            }
+        }
+    }
+
     /// Warns that the element cannot be what its attributes ask, with a
     /// diagnostic code and message. What the planner cannot define is
     /// [`Wire::undefined`] of what this returns.
     pub(crate) fn warn(&mut self, code: &'static str, message: &str) -> Warned {
         let node = self.node();
         self.p.ar.warn(node, code, message)
+    }
+
+    // Operators over math (ADR 0043).
+
+    /// An operand planned from the record (a literal, a reference, math
+    /// text, as [`PlanCtx::value_of`] plans one) as an expression the
+    /// symbolic engine reads: the number, the reference's leaf, or the math
+    /// text. `None` for a source that is none of these.
+    pub(crate) fn operand_expr(&mut self, source: &Source) -> Option<ExprId> {
+        let ar = &mut self.p.ar;
+        Some(match source {
+            Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => ar.arena.push(Expr::Num(*v)),
+            Source::Flow(Flow::Math(id)) => *id,
+            Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) => {
+                let id = ar.arena.push(Expr::Cell(*p));
+                ar.sym_text.insert(id, SymText::Leaf(*p));
+                id
+            }
+            _ => return None,
+        })
+    }
+
+    /// An operator over math `args` that only the symbolic engine computes
+    /// (`Expr::Operator`): its text is `spell` of the operands' texts, each
+    /// in parentheses, as the engine reads them (a number as written, a
+    /// reference as its leaf).
+    pub(crate) fn operator_expr(
+        &mut self,
+        args: &[ExprId],
+        spell: impl FnOnce(&[String]) -> String,
+    ) -> ExprId {
+        let dast = self.p.rd.dast;
+        let ar = &mut self.p.ar;
+        let texts: Vec<String> = args
+            .iter()
+            .map(|id| {
+                let text = match (ar.sym_text.get(id), ar.arena.get(*id)) {
+                    (Some(sym), _) => sym.spell(dast),
+                    (None, Expr::Num(v)) => crate::sym::engine::number_text(*v),
+                    (None, other) => unreachable!("an operand with no text: {other:?}"),
+                };
+                format!("({text})")
+            })
+            .collect();
+        let text = spell(&texts);
+        let id = ar.arena.push(Expr::Operator(args.to_vec()));
+        ar.sym_text.insert(id, SymText::Spelled(text));
+        id
     }
 
     // The element's wiring.

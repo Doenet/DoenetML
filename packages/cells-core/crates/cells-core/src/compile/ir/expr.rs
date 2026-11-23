@@ -29,6 +29,12 @@ pub(crate) enum Expr<L> {
     /// `round(x)`, `min(a, b)`: a function the lowering knows. A clamp's
     /// bounds are always numbers.
     Call(Func, Vec<ExprId>),
+    /// An operator over math that only the symbolic engine computes (ADR
+    /// 0043), over these operands: a `<sum>`'s or an `<abs>`'s. Its text
+    /// (`SymText`) says what it does with them; here it stands for their
+    /// symbols and leaves, which decide whether it is symbolic, and is
+    /// never numeric.
+    Operator(Vec<ExprId>),
 }
 
 /// The functions numeric math text can call, each lowered to its operator.
@@ -153,6 +159,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.is_numeric(*a) && self.is_numeric(*b),
             Expr::Neg(a) => self.is_numeric(*a),
             Expr::Call(_, args) => args.iter().all(|&a| self.is_numeric(a)),
+            Expr::Operator(_) => false,
         }
     }
 
@@ -174,7 +181,9 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.symbols(*b, out);
             }
             Expr::Neg(a) => self.symbols(*a, out),
-            Expr::Call(_, args) => args.iter().for_each(|&a| self.symbols(a, out)),
+            Expr::Call(_, args) | Expr::Operator(args) => {
+                args.iter().for_each(|&a| self.symbols(a, out))
+            }
         }
     }
 
@@ -196,7 +205,9 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.cell_leaves(*b, out);
             }
             Expr::Neg(a) => self.cell_leaves(*a, out),
-            Expr::Call(_, args) => args.iter().for_each(|&a| self.cell_leaves(a, out)),
+            Expr::Call(_, args) | Expr::Operator(args) => {
+                args.iter().for_each(|&a| self.cell_leaves(a, out))
+            }
         }
     }
 
@@ -211,6 +222,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.has_call(*a) || self.has_call(*b),
             Expr::Neg(a) => self.has_call(*a),
             Expr::Call(..) => true,
+            Expr::Operator(args) => args.iter().any(|&a| self.has_call(a)),
         }
     }
 }
@@ -612,6 +624,8 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 }
                 [zero, zero, id]
             }
+            // Never numeric, so no coefficient.
+            Expr::Operator(_) => return None,
             Expr::Pow(x, y) => {
                 let l = go(a, x, vx, vy)?;
                 let r = go(a, y, vx, vy)?;

@@ -369,12 +369,18 @@ impl Emit<'_> {
             // A planned template's leaves were slots; they are cells now.
             let mut spec = match planned {
                 PlannedOp::Spec(spec) => spec,
-                PlannedOp::Template { template, post } => {
+                PlannedOp::Template {
+                    template,
+                    post,
+                    blank,
+                } => {
                     let tree = rebind(&self.x.sym_templates[template.index()], &slot_to_cell);
-                    OpSpec::Sym(SymKind::Instantiate {
-                        template: self.x.engine.import(&tree),
-                        post,
-                    })
+                    let template = self.x.engine.import(&tree);
+                    if blank {
+                        OpSpec::Sym(SymKind::InstantiateBlank { template, post })
+                    } else {
+                        OpSpec::Sym(SymKind::Instantiate { template, post })
+                    }
                 }
             };
             if let OpSpec::Sym(kind) = spec {
@@ -670,7 +676,15 @@ impl Emit<'_> {
         }
         let h = match self.x.sources[root.index()] {
             BuiltSource::Const(h) if !h.is_nan() => Some(Handle::from_value(h)),
-            BuiltSource::Op(PlannedOp::Template { template, .. }, _, _) => {
+            BuiltSource::Op(
+                PlannedOp::Template {
+                    template,
+                    blank: false,
+                    ..
+                },
+                _,
+                _,
+            ) => {
                 let tree = rebind(&self.x.sym_templates[template.index()], slot_to_cell);
                 if has_math_leaf(&tree) {
                     None
@@ -836,7 +850,7 @@ fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
         Tree::Num(_) | Tree::Sym(_) => false,
-        Tree::Add(ts) | Tree::Mul(ts) => ts.iter().any(has_math_leaf),
+        Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) => ts.iter().any(has_math_leaf),
         Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => has_math_leaf(a) || has_math_leaf(b),
         Tree::Neg(a) | Tree::Apply(_, a) => has_math_leaf(a),
     }

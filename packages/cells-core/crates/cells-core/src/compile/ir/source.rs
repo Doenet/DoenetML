@@ -119,6 +119,10 @@ pub(crate) enum Flow {
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
+    /// The value of an operator whose kind the type pass decides (ADR
+    /// 0043): an `Evaluate` of its own port `expr` when that port is math,
+    /// else an alias of its own port `numeric`, the operator over numbers.
+    ValueOf(Port, Port),
     /// An operator over a collection of components around the element:
     /// credit over the scored items, a section's number among its
     /// siblings, a collect's count of what it gathers.
@@ -233,6 +237,16 @@ impl Source {
     /// the next `n_out - 1` ports are `VecOut`.
     pub(crate) fn vector(op: VecOp, args: Vec<Port>) -> Self {
         Source::computed(OpSpec::Vec(op), args)
+    }
+    /// The value of an operator over `expr` or, numerically, `numeric`
+    /// ([`Flow::ValueOf`]).
+    pub(crate) fn value_of(expr: Port, numeric: Port) -> Self {
+        Source::Flow(Flow::ValueOf(expr, numeric))
+    }
+    /// A math cell when math text `id` is symbolic, else no value
+    /// ([`Flow::MathHandle`]).
+    pub(crate) fn math_handle(id: ExprId, post: Post) -> Self {
+        Source::Flow(Flow::MathHandle(id, post))
     }
     /// A math cell from math text ([`Flow::SymExpr`]).
     pub(crate) fn sym_expr(id: ExprId, post: Post) -> Self {

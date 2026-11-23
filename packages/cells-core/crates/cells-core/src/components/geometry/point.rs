@@ -32,10 +32,18 @@ component! {
         y: Scalar,
         hide: Flag(false),
     }
+    // A click or a focus changes nothing of it; a button may wait on one
+    // (`triggerWhenObjectsClicked`, ADR 0042).
+    actions { pointClicked: nothing [Click], pointFocused: nothing [Focus] }
     children: Math {
         constraints: [ConstrainTo, ConstrainToGrid],
     },
     planner: Plan(plan),
+}
+
+/// `pointClicked` and `pointFocused`: no request; what waits on it acts.
+fn nothing(_view: &crate::document::ActionView<'_>, _args: &[f64]) -> Vec<crate::tick::Request> {
+    Vec::new()
 }
 
 /// The position of `x`: the point's first coordinate.

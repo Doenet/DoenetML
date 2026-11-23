@@ -117,6 +117,14 @@ impl Wire {
             given: Some(id),
         }
     }
+    /// A given math value, given by `id`, initially the expression
+    /// `tree`, or blank.
+    pub(crate) fn given_math(id: GivenId, tree: Option<Tree<RefId>>) -> Self {
+        Wire {
+            source: Source::Leaf(Leaf::GivenMath(tree)),
+            given: Some(id),
+        }
+    }
     /// A constant, not NaN: a value not given is
     /// `absent`, one the element cannot have `undefined`.
     pub(crate) fn constant(v: f64) -> Self {

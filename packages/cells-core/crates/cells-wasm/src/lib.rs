@@ -333,6 +333,17 @@ impl Core {
         self.act(|doc| doc.trigger(CompIdx::new(comp)))
     }
 
+    /// Carry out a component's action by name (ADR 0040), as one tick
+    /// with its follow-ups (ADR 0042): a click on a point
+    /// (`pointClicked`) that a button waits on. Nothing happens when its
+    /// type lists no such action. Returns the changed cells.
+    pub fn act_by_name(&mut self, comp: u32, name: &str) -> Vec<u32> {
+        if (comp as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.act(|doc| doc.act(CompIdx::new(comp), name, &[]))
+    }
+
     /// The inputs an answer's responses read.
     pub fn answer_inputs(&self, answer: u32) -> Vec<u32> {
         if (answer as usize) >= self.doc.n_components() {
@@ -409,6 +420,17 @@ impl Core {
             "constant".into()
         } else {
             "derived".into()
+        }
+    }
+
+    /// What a cell's value means: "number", "text" (a string id) or
+    /// "math" (an expression handle). An entry of a math list may hold
+    /// either a number or an expression (ADR 0041).
+    pub fn cell_holds(&self, cell: u32) -> String {
+        match self.doc.value_types.get(cell as usize) {
+            Some(cells_core::ValueType::Text) => "text".into(),
+            Some(cells_core::ValueType::Math) => "math".into(),
+            _ => "number".into(),
         }
     }
 
@@ -529,7 +551,8 @@ mod tests {
         assert_eq!(a11y["args"]["component"], "graph");
         assert!(a11y["node"].is_number());
         let err = &list[1];
-        assert_eq!(err["kind"], "error");
+        // A reference that names nothing is a warning (ADR 0046).
+        assert_eq!(err["kind"], "warning");
         assert_eq!(err["code"], "doenet-w0104");
         assert!(err["message"].as_str().unwrap().contains("nope"));
         assert!(err.get("level").is_none() && err.get("args").is_none());

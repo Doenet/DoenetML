@@ -112,7 +112,9 @@ methods. Rules for planners:
   written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
   one reference or math text: a `<number>`'s, a `<text>`'s), `List` (a
   list's entries: pieces of text split at the spaces outside any bracket
-  pair, and each reference one, a `<numberList>`'s; ADR 0041), or, the
+  pair, each reference and each element child, a component of the
+  list, the entries of the sequence it names, a `<numberList>`'s; ADR
+  0041, read through `PlanCtx::list_entries`), or, the
   default, `Rendered` (built as components). Groups of element children
   follow the kind (`children: Math { constraints: [ConstrainTo,
   ConstrainToGrid] }`): each member is parsed into a record of its own, as
@@ -178,7 +180,7 @@ methods. Rules for planners:
   `Collects(Point)` or `CollectsByAttr(componentType)` for what outlining
   settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
   `Expr(f)` or `List` for what `extend="$x.prop"` makes of a value;
-  `triggered: Sets(target, newValue)` for a trigger; `numbered:
+  `numbered:
   Titled(include, label, f)` for a section's number and title;
   `counted: Figures(number)` for a document-wide counter it takes a
   number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
@@ -191,6 +193,18 @@ methods. Rules for planners:
   `components::prop` position outside `components/`. What the core needs
   of a type is one of the declarations above, a role, or a `Machinery`
   variant.
+- A type a student acts on lists its actions (`actions { submitAnswer:
+  submit }`, ADR 0040): each a function beside the type over a read-only
+  [`ActionView`](crate::ActionView) (a prop's value, a request on a prop of
+  its own, its children, its target, another component's action) that
+  returns requests. [`Document::act`](crate::Document::act) carries one out
+  as a tick; a press is the action `trigger` and a submit `submitAnswer`. An
+  action requests only props marked `written_by_action` or `interactive`
+  (ADR 0018), and a spec reaches one with `act("name", "trigger")`. A
+  button the document presses declares the 0/1 prop whose rise presses it
+  (`triggers { when: triggerWhen }`) and the components it waits on as
+  attributes (`triggerWith: After(Act)`, ADR 0042); an action that is a
+  click or a focus says so (`pointClicked: nothing [Click]`).
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The
@@ -270,7 +284,7 @@ candidate for a hook, or for removal.
 
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
-`rewrite`, `settle`, `submit`, `triggered`, `numbered`, `counted`,
+`rewrite`, `settle`, `submit`, `numbered`, `counted`,
 `inner`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
@@ -299,6 +313,13 @@ in `program/vector.rs`, checked by the `writes` tests there.
 A document reaches an operator through a component's prop table or planner,
 or through math lowering (`build/expand/math.rs`). Operators over several
 cells are `VecOp`s in `program/vector.rs`.
+
+A component type that is an operator over operands that may be
+expressions (`<abs>`, `<sum>`) is numeric or symbolic by its operands'
+types (ADR 0043): its planner wires an `expr` and a `value` through
+`components/operators/over_math.rs`, the operator over numbers for the one
+and the engine's operator, spelled as text over the operands
+(`PlanCtx::operator_expr`) and finished by a `Post`, for the other.
 
 ## Change how a request inverts
 

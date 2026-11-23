@@ -43,6 +43,19 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws a math list as the text of its entries, and an entry as a math (ADR 0041)", async () => {
+        const bridge =
+            await load(`<mathList name="ml">x y+1 <number>3</number></mathList>
+<p>$ml[2]</p>`);
+        const root = bridge.flatDast();
+        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
+            { value: "x, y + 1, 3" },
+        ]);
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["y + 1"]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>
@@ -222,6 +235,33 @@ describe("values and lists", () => {
         // COMP-2: commas between the items, and no whitespace item.
         expect(ps[0]).toEqual(["<number>", ", ", "<number>"]);
         expect(ps[1]).toEqual(["<number>", ", ", "<number>"]);
+    });
+});
+
+describe("missing values", () => {
+    it("shows a reference that names nothing, and what is made from it, as a blank, and keeps NaN for a computation", async () => {
+        const bridge = await load(`<numberList name="l">1 2</numberList>
+<p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
+<booleanList name="bl">true</booleanList>
+<p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
+<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
+<p><numberList>$l[5] 2</numberList></p>`);
+        const root = bridge.flatDast();
+        const props = (name: string) =>
+            byName(root, name).map((e) => (e.data as any).props);
+        // VAL-5, D40: missing is the blank; NaN stays for 0/0 (ADR 0046).
+        expect(props("number").map((p) => p.text)).toEqual(["＿", "＿", "NaN"]);
+        expect(props("text").map((p) => p.value)).toContain("＿");
+        // A missing boolean is the blank; a comparison with a missing side
+        // is false, since a blank never equals anything (D37, D40).
+        expect(props("boolean").map((p) => p.value)).toEqual(["＿", false]);
+        // A lowered math (ADR 0005) shows the blank in its expression.
+        expect(props("math").map((p) => p.latex)).toEqual(["x + ＿", "1 + ＿"]);
+        expect(props("point")).toEqual([
+            { coordsLatex: "\\left( ＿, 1 \\right)" },
+        ]);
+        // The element that names nothing still builds: a warning, no box.
+        expect(byName(root, "_error")).toEqual([]);
     });
 });
 
@@ -562,6 +602,51 @@ describe("step 3 components", () => {
         });
     });
 
+    it("presses a call action, which submits the answer it names", async () => {
+        const { props, send, changed } = await open(`
+<answer name="a"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+<callAction target="$a" actionName="submitAnswer"><label>Check it</label></callAction>`);
+        expect(props("callAction")).toEqual({
+            clickAction: "callAction",
+            label: "Check it",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        send("mathInput", "updateValue", { text: "x" });
+        const payload = send("callAction", "callAction", {});
+        expect(changed(payload, "answer")).toEqual({
+            creditAchieved: 1,
+            numSubmissions: 1,
+        });
+    });
+
+    it("presses an update value, and one waiting on a click or a condition", async () => {
+        const { all, props, send, changed } = await open(`
+<graph><point name="P">(1,2)</point></graph>
+<number name="n">0</number><number name="n1">$n + 1</number>
+<number name="m">0</number><number name="m1">$m + 1</number>
+<updateValue target="$n" newValue="$n1"><label>Add</label></updateValue>
+<updateValue target="$m" newValue="$m1" triggerWhenObjectsClicked="$P"/>
+<updateValue target="$m" newValue="$m1" triggerWhen="$n > 1"/>
+<p name="out">$n $m</p>`);
+        // The two pressed otherwise are hidden: one button is sent.
+        expect(all("updateValue")).toHaveLength(1);
+        expect(props("updateValue")).toEqual({
+            clickAction: "updateValue",
+            label: "Add",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        let payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "1" });
+        payload = send("point", "pointClicked", {});
+        expect(changed(payload, "number", 2)).toEqual({ text: "1" });
+        // `n` rises past 1: the condition's button presses as a follow-up.
+        payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "2" });
+        expect(changed(payload, "number", 2)).toEqual({ text: "2" });
+    });
+
     it("draws operators as math notation and booleans, without their operands", async () => {
         const { all, props, send, changed } = await open(`
 <numberInput name="n" value="-4"/>
@@ -589,6 +674,30 @@ describe("step 3 components", () => {
         expect(changed(payload, "abs")).toEqual({ latex: "6" });
         expect(changed(payload, "sum")).toEqual({ latex: "9" });
         expect(changed(payload, "max")).toEqual({ latex: "6" });
+    });
+
+    it("draws an operator over math as its expression, which follows its operands", async () => {
+        const { all, props, send, changed } = await open(`
+<mathInput name="mi" prefill="x"/>
+<abs>$mi</abs> <sum name="s" simplify>$mi 2x</sum> <sum forceSymbolic>1 2</sum>
+<angle radians="alpha" inDegrees/> <angle>pi/2</angle>
+<m>k = $s</m>`);
+        expect(props("abs")).toEqual({
+            latex: "\\left|x\\right|",
+            renderMode: "inline",
+        });
+        expect(props("sum").latex).toBe("3 x");
+        expect((all("sum")[1].data as any).props.latex).toBe("1 + 2");
+        expect(all("angle").map((e) => (e.data as any).props.latex)).toEqual([
+            "\\frac{180 \\alpha}{\\pi}^\\circ",
+            "\\frac{\\pi}{2}",
+        ]);
+        // Math notation refers to an operator by its expression.
+        expect(props("m").latex).toBe("k = 3 x");
+
+        const payload = send("mathInput", "updateValue", { text: "-2" });
+        expect(changed(payload, "abs")).toEqual({ latex: "2" });
+        expect(changed(payload, "sum")).toEqual({ latex: "2 x - 2" });
     });
 
     it("writes math notation with the values it refers to", async () => {

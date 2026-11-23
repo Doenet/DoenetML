@@ -19,7 +19,11 @@ const CELLS_CORE = path.resolve(__dirname, "../../../cells-core");
 /** The arguments each renderer action is carried out with: what its
  * renderer would send. */
 const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
-    point: { move: [{ x: 2, y: 3 }] },
+    point: {
+        move: [{ x: 2, y: 3 }],
+        pointClicked: [{}],
+        pointFocused: [{}],
+    },
     graph: {
         changeBoundingBox: [{ xMin: -9, xMax: 9, yMin: -8, yMax: 8 }],
     },
@@ -90,6 +94,8 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
         moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
         switchLine: [{}],
     },
+    callAction: { callAction: [{}] },
+    updateValue: { updateValue: [{}] },
     _fractionInputComponent: { updateValue: [{ text: "3" }] },
     curve: {
         moveThroughPoint: [{ throughPointInd: 1, throughPoint: [2, 3] }],
@@ -152,6 +158,10 @@ const DOC = `
 <boolean name="k"/>
 <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>
 <answer name="a">2x</answer>
+<callAction name="ca" target="$a" actionName="submitAnswer"><label>Check</label></callAction>
+<number name="clicks">0</number><number name="clicks1">$clicks + 1</number>
+<updateValue name="uv" target="$clicks" newValue="$clicks1"><label>Count</label></updateValue>
+<updateValue target="$clicks" newValue="$clicks1" triggerWhenObjectsClicked="$p" triggerWhen="$n > 5"/>
 <number name="num">$n + 1</number>
 <clampNumber name="cl">5</clampNumber>
 <math name="mm">x + $n</math>
@@ -258,6 +268,9 @@ const EXPECTED_READS = [
     "equilibriumPoint.stable",
     "endpoint.open",
     "equilibriumLine.stable",
+    "callAction.hide",
+    "updateValue.hide",
+    "triggerSet.hide",
     "_fractionInputComponent.expr",
 ];
 

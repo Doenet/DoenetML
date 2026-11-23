@@ -10,6 +10,10 @@
 //!   applied with `d` in the written input;
 //! - `drops`: no request passes.
 //!
+//! An entry may say `missing: reads` before its evaluation: a missing input
+//! is then read as the NaN it is, where otherwise a missing input makes the
+//! output missing (ADR 0046). Comparisons, tests and selections read.
+//!
 //! In both expressions the inputs are their cells' values; an inverse names
 //! the input it writes by position, `A` for the first. A literal an
 //! operator reads is a constant input. From the entries the macro makes `Op`
@@ -64,9 +68,13 @@ macro_rules! scalar_ops {
         $(#[allow(unused_variables)] let $in: Range = it.next().unwrap_or(Range::Top);)+
         $range
     }};
+    // Whether a missing input makes the output missing: yes unless the
+    // entry says `missing: reads` (ADR 0046).
+    (@strict) => { true };
+    (@strict reads) => { false };
     ($(
         $(#[$m:meta])* $name:ident ($($in:ident),+)
-        { eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(, range: $range:expr)? $(,)? }
+        { $(missing: $miss:ident,)? eval: $eval:expr, $kind:ident $(|$d:ident| $inv:expr)? $(, range: $range:expr)? $(,)? }
     )*) => {
         /// An operator bound to its input cells: a scalar one names them,
         /// a vector or symbolic one parks them in the program's operands.
@@ -94,12 +102,19 @@ macro_rules! scalar_ops {
         }
 
         impl Op {
-            /// A scalar operator's value over its input cells in `cells`.
+            /// A scalar operator's value over its input cells in `cells`:
+            /// missing when an input is, unless the operator reads a
+            /// missing input as it reads a NaN (ADR 0046).
             #[inline(always)]
             pub fn eval(&self, cells: &[f64]) -> f64 {
                 match *self {
                     $(Op::$name($($in),+) => {
                         $(let $in = cells[$in.index()];)+
+                        if scalar_ops!(@strict $($miss)?)
+                            && ($(crate::program::is_missing($in))||+)
+                        {
+                            return crate::program::MISSING;
+                        }
                         $eval
                     })*
                     Op::Vec(..) => unreachable!("vector operators are evaluated with eval_vec"),

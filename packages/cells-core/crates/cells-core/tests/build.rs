@@ -195,7 +195,24 @@ fn error_cases() {
     // An element that cannot be built is an `_error` component carrying
     // its diagnostic; the rest of the document loads (ADR 0013).
     let code = |src: &str| load_error(src).0;
-    assert_eq!(code(r#"<point x="$nope"/>"#), "doenet-w0104");
+    // A reference that names nothing is a warning, and the missing value
+    // (ADR 0046): the element builds.
+    let warning = |src: &str| {
+        let doc = load(src).unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|d| d.kind != cells_core::DiagnosticKind::Error),
+            "{src}: {:?}",
+            doc.diagnostics()
+        );
+        doc.diagnostics()
+            .iter()
+            .find(|d| d.kind == cells_core::DiagnosticKind::Warning)
+            .map(|d| d.code)
+            .unwrap_or_else(|| panic!("{src}: no warning"))
+    };
+    assert_eq!(warning(r#"<point x="$nope"/>"#), "doenet-w0104");
     assert_eq!(
         code(r#"<point name="a"/><point name="a"/>"#),
         "cells-duplicate-name"
@@ -215,7 +232,7 @@ fn error_cases() {
         code(r#"<point name="p"/><number extend="$p"/>"#),
         "cells-extend-type-mismatch"
     );
-    assert_eq!(code(r#"<point name="p"/>$p.x.y"#), "cells-path-too-deep");
+    assert_eq!(warning(r#"<point name="p"/>$p.x.y"#), "cells-path-too-deep");
     assert_eq!(code(r#"<graph name="g"/>$g"#), "cells-uncopyable-type");
     assert_eq!(code(r#"<codeEditor/>"#), "doenet-e0002");
 }

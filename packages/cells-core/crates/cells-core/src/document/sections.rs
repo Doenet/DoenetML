@@ -7,37 +7,12 @@ use crate::components::{AggOp, Collection};
 /// Answers and sections, as a reader sees them: submitting an answer, its
 /// responses and inputs, a section's number and title.
 impl Document {
-    /// Submit an answer, an action: one tick copying each live
-    /// response handle into its `submitted` cell and counting the
-    /// submission. Those cells are not interactive: no renderer sets them.
+    /// Submit an answer, an action: its type's action `submitAnswer`, one
+    /// tick copying each live response into its `submitted` cell and
+    /// counting the submission. Those cells are not interactive: no
+    /// renderer sets them.
     pub fn submit(&mut self, answer: CompIdx) -> TickOutcome {
-        let requests = self.submit_requests(answer);
-        self.tick_unchecked(&requests, &[])
-    }
-
-    /// The writes a submit makes, as requests.
-    pub(crate) fn submit_requests(&self, answer: CompIdx) -> Vec<Request> {
-        let mut requests: Vec<Request> = self
-            .answer_responses(answer)
-            .into_iter()
-            .map(|(response, submitted)| Request {
-                cell: submitted,
-                value: self.cells[response.index()],
-            })
-            .collect();
-        if let Some(count) = self
-            .component_type(answer)
-            .def()
-            .submit
-            .and_then(|s| s.count)
-        {
-            let n = self.comp_cells(answer)[count];
-            requests.push(Request {
-                cell: n,
-                value: self.cells[n.index()] + 1.0,
-            });
-        }
-        requests
+        self.act(answer, "submitAnswer", &[])
     }
 
     /// An answer's responses as (live cell, submitted cell): its own pair,

@@ -19,8 +19,9 @@ inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
 Tags the core understands: `document`, `graph`, `point`, `number`,
 `numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
-(and `triangle`), `pointList`, `numberList`, `textList` and `booleanList`
-(from text and references), `p`, `setup`, `stickyGroup`, `mathInput`,
+(and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
+`booleanList` (from text, references, element children and nested lists,
+literal `maxNumber` and `mergeMathLists`), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
@@ -43,7 +44,7 @@ numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
-from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
+from text, references and element children, one per entry of a list) and the boolean ones `and`, `or`, `xor`, `iff`,
 `implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the shapes
 `ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
 vertices) and `angle` (by points or a measure), the formatted values
@@ -62,8 +63,13 @@ from the document seed, and the function operators `clampFunction` and
 geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
-`endpoint`, and `fractionInput` (its numerator and denominator boxes, a
-prefill each; no bound value), a function's `domain` (one interval) and
+`endpoint`, `callAction` (a button calling another component's
+action: `submitAnswer`, a button's press; not one that adds, deletes or
+redraws components). A `callAction`, `updateValue` or `triggerSet` may be
+pressed by the document instead of a student: `triggerWhen`, `triggerWith`
+and `triggerWhenObjectsClicked` or `...Focused` on a point, each press a
+follow-up tick (ADR 0042). The input `fractionInput` (its numerator and denominator boxes, a
+prefill each; no bound value). A function's `domain` (one interval) and
 `variables` (one), `piecewiseFunction` (of `function` children), `curve`
 (a function's graph, a parametric curve, or a spline through points with
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).

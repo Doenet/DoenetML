@@ -1,6 +1,7 @@
 //! The request entry points: one tick, from a renderer's requests to the
 //! cells that changed. A renderer may request only an input's cell; a submit
-//! and a trigger are actions, each carried out as one tick of its own. A
+//! and a trigger are actions (`document/act.rs`), each carried out as one
+//! tick of its own. A
 //! tick runs the sticky pre-pass, inversion and recompute, then a rebuild if
 //! a structural cell changed.
 
@@ -35,16 +36,17 @@ impl Document {
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(requests, groups, true)
+        self.tick_and_follow(requests, groups, true, &[])
     }
 
     /// A tick on any cell, without the check that it is an input's.
+    #[cfg_attr(not(feature = "testing"), allow(dead_code))]
     pub(crate) fn tick_unchecked(
         &mut self,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(requests, groups, false)
+        self.tick_and_follow(requests, groups, false, &[])
     }
 
     /// Choose how ticks recompute: "full" or "dirty-closure" (the
@@ -64,7 +66,8 @@ impl Document {
         self.recompute.name()
     }
 
-    fn tick(
+    /// One tick, no follow-ups.
+    pub(super) fn tick(
         &mut self,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
@@ -199,31 +202,12 @@ impl Document {
 /// Actions and presentation: a trigger carried out as a tick of its own; an
 /// element's literal attributes, which the core does not keep as state.
 impl Document {
-    /// Press a `<triggerSet>` (or a lone `<updateValue>`), an action: every
-    /// `<updateValue>` under it requests its `newValue`'s
-    /// current value on its target's cell, all in one tick, in document
-    /// order. A target is not interactive: only the press writes it.
+    /// Press a button, an action: its type's action `trigger` (a
+    /// `<triggerSet>` presses each child, an `<updateValue>` requests its
+    /// `newValue`'s current value on its target), as one tick. A target is
+    /// not interactive: only the press writes it.
     pub fn trigger(&mut self, comp: crate::document::CompIdx) -> TickOutcome {
-        let mut requests = Vec::new();
-        let mut stack = vec![comp];
-        while let Some(c) = stack.pop() {
-            if let Some(t) = self.component_type(c).def().triggered {
-                let cells = self.comp_cells(c);
-                requests.push(Request {
-                    cell: cells[t.target],
-                    value: self.cells[cells[t.value].index()],
-                });
-            }
-            let kids: Vec<_> = self
-                .children(c)
-                .filter_map(|k| match k {
-                    crate::document::Child::Component(k) => Some(k),
-                    _ => None,
-                })
-                .collect();
-            stack.extend(kids.into_iter().rev());
-        }
-        self.tick_unchecked(&requests, &[])
+        self.act(comp, "trigger", &[])
     }
 
     /// The text of a literal attribute of the element a component was made

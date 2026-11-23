@@ -208,7 +208,7 @@ spec! {
                   <number name="past">$c.throughX3</number>"#;
         expect {
             "c.throughPoint2" = (4, 0), "c.throughX1" = 0, "q.coords" = (4, 0),
-            "alternate.value" = 4, "past.value" = f64::NAN,
+            "alternate.value" = 4, "past.value" = crate::program::MISSING,
         }
         request { "q.x" = 6 }
         expect { "p2.x" = 6, "c.throughX2" = 6, "c.radius" = 3 }
@@ -245,7 +245,7 @@ spec! {
                   <number name="x3">$cc.c.throughX3</number>"#;
         expect { "x3.value" = 2 }
         request { "b.value" = 1 }
-        expect { "x3.value" = f64::NAN }
+        expect { "x3.value" = crate::program::MISSING }
     }
 
     // A circle its attributes over-determine has no center or radius, and

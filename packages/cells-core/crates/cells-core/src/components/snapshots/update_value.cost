@@ -1,0 +1,8 @@
+a press sets its target to its new value: cells 6 · essential 1 · constant 4 · instrs 1 · components 5
+its new value may be math, or a condition: cells 12 · essential 2 · constant 5 · instrs 5 · components 13
+a condition that becomes true presses it, once per rise: cells 15 · essential 7 · constant 4 · instrs 4 · components 6
+one waiting on another is pressed after it, in a tick of its own: cells 9 · essential 2 · constant 5 · instrs 2 · components 8
+a condition given, it waits on nothing else: cells 8 · essential 2 · constant 4 · instrs 2 · components 8
+a click on what it names presses it; a focus does not: cells 16 · essential 10 · constant 4 · instrs 2 · components 10
+two waiting on each other stop after the cap on follow-ups: cells 6 · essential 1 · constant 4 · instrs 1 · components 5
+inside a trigger set, only the set presses it: cells 7 · essential 2 · constant 4 · instrs 1 · components 8
