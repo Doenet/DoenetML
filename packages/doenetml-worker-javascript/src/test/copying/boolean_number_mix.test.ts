@@ -581,6 +581,9 @@ describe("Booleans and numbers kept apart @group2", () => {
     <number name="n5" convertBoolean>$b</number>
     <number name="n6" convertBoolean>$nothing</number>
     <number name="n7" convertBoolean>$nothing + $b</number>
+    <number name="n8" convertBoolean>($b and true) + 1</number>
+    <number name="n9" convertBoolean>(1 < 2) + 1</number>
+    <number name="n10" convertBoolean>false + 2</number>
     <p name="p">$n6 $n7</p>
     `,
         });
@@ -590,7 +593,18 @@ describe("Booleans and numbers kept apart @group2", () => {
                 true,
             );
             const result: Record<string, any> = {};
-            for (const name of ["n1", "n2", "n3", "n4", "n5", "n6", "n7"]) {
+            for (const name of [
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6",
+                "n7",
+                "n8",
+                "n9",
+                "n10",
+            ]) {
                 const stateValues =
                     stateVariables[await resolvePathToNodeIdx(name)]
                         .stateValues;
@@ -613,6 +627,9 @@ describe("Booleans and numbers kept apart @group2", () => {
             n5: 1,
             n6: "＿",
             n7: "＿",
+            n8: 2,
+            n9: 2,
+            n10: 2,
             p: "＿ ＿",
         });
 
@@ -629,6 +646,9 @@ describe("Booleans and numbers kept apart @group2", () => {
             n5: 0,
             n6: "＿",
             n7: "＿",
+            n8: 1,
+            n9: 2,
+            n10: 2,
             p: "＿ ＿",
         });
 

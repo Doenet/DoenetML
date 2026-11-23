@@ -60,6 +60,29 @@ const LOGIC_OPERATORS = new Set([
     "notsuperset",
 ]);
 
+/**
+ * `tree` with the words `true` and `false` whole again. Inside arithmetic
+ * the parse splits a word into its letters (`($b and true) + 1` holds
+ * `["*", "t", "r", "u", "e"]`), which would make the word a product of
+ * unknowns rather than a boolean to count.
+ */
+function withBooleanWords(tree) {
+    if (!Array.isArray(tree)) {
+        return tree;
+    }
+    const [operator, ...operands] = tree;
+    if (
+        operator === "*" &&
+        operands.every((x) => typeof x === "string" && x.length === 1)
+    ) {
+        const word = operands.join("").toLowerCase();
+        if (word === "true" || word === "false") {
+            return word;
+        }
+    }
+    return [operator, ...operands.map(withBooleanWords)];
+}
+
 /** Stands for a missing operand in `numberCountingBooleans`. */
 const MISSING_OPERAND = Symbol("missing operand");
 
@@ -115,6 +138,10 @@ function numberCountingBooleans(dependencyValues) {
                     valueOnInvalid: NaN,
                 });
             }
+            const word = tree.toLowerCase();
+            if (word === "true" || word === "false") {
+                return word === "true" ? 1 : 0;
+            }
             return tree;
         }
         if (!Array.isArray(tree)) {
@@ -142,7 +169,9 @@ function numberCountingBooleans(dependencyValues) {
         return [operator, ...countedOperands];
     }
 
-    const tree = counted(dependencyValues.parsedExpression.tree);
+    const tree = counted(
+        withBooleanWords(dependencyValues.parsedExpression.tree),
+    );
     if (tree === MISSING_OPERAND) {
         return valueOnNaN;
     }
@@ -717,14 +746,47 @@ export default class NumberComponent extends InlineComponent {
                                 },
                             };
                         }
-                        const number = numberFromString(
-                            dependencyValues.stringChild[0],
-                            {
-                                convertBoolean: dependencyValues.convertBoolean,
-                                valueOnNaN: dependencyValues.valueOnNaN,
+                        const text = dependencyValues.stringChild[0];
+                        if (dependencyValues.convertBoolean) {
+                            // content all literal (`(1 < 2) + 1`, `true + 1`)
+                            // counts its booleans as an expression does
+                            const number = numberFromString(text, {
+                                valueOnNaN: NaN,
                                 componentInfoObjects,
-                            },
-                        );
+                            });
+                            if (!Number.isNaN(number)) {
+                                return {
+                                    setValue: { value: plainComplex(number) },
+                                };
+                            }
+                            const { parsedExpression } = buildParsedExpression({
+                                dependencyValues: {
+                                    stringChildren: [text],
+                                    allChildren: [text],
+                                },
+                                componentInfoObjects,
+                            }).setValue;
+                            return {
+                                setValue: {
+                                    value:
+                                        parsedExpression === null
+                                            ? dependencyValues.valueOnNaN
+                                            : numberCountingBooleans({
+                                                  parsedExpression,
+                                                  mathChildrenByCode: {},
+                                                  numberChildrenByCode: {},
+                                                  booleanChildrenByCode: {},
+                                                  textChildrenByCode: {},
+                                                  valueOnNaN:
+                                                      dependencyValues.valueOnNaN,
+                                              }),
+                                },
+                            };
+                        }
+                        const number = numberFromString(text, {
+                            valueOnNaN: dependencyValues.valueOnNaN,
+                            componentInfoObjects,
+                        });
                         return { setValue: { value: plainComplex(number) } };
                     } else {
                         let number =
