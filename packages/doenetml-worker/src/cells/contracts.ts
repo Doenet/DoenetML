@@ -252,7 +252,7 @@ function flag(table: CellsTable, c: number, name: string): boolean {
 
 /** A section's tag and the word its title shows, by its `label` cell: the
  * core's `SECTION_TAGS`, in order. */
-const SECTION_KINDS: [tag: string, word: string][] = [
+export const SECTION_KINDS: [tag: string, word: string][] = [
     ["section", "Section"],
     ["subsection", "Section"],
     ["subsubsection", "Section"],
@@ -279,18 +279,17 @@ const BOXED_BY_DEFAULT = new Set(["objectives"]);
  * that declare `numbered`. */
 const NUMBERED_TYPES = new Set(["section", "aside"]);
 
-/** A section's full number ("2.1"): its own, after its nearest section
- * ancestor's when it includes it. */
+/** A section's full number ("2.1"), as the core composes it: its own,
+ * after its nearest section ancestor's when it includes it and is no list
+ * item (ADR 0054). The `number` cells of it and its numbered ancestors are
+ * read, so a count that changes recomputes it. */
 function sectionNumber(r: Reads, c: number): string {
-    const own = r.num(c, "number");
-    if (r.num(c, "includeParentNumber") !== 0) {
-        for (let p = r.table.parent(c); p !== null; p = r.table.parent(p)) {
-            if (NUMBERED_TYPES.has(r.table.componentType(p))) {
-                return `${sectionNumber(r, p)}.${own}`;
-            }
+    for (let p: number | null = c; p !== null; p = r.table.parent(p)) {
+        if (NUMBERED_TYPES.has(r.table.componentType(p))) {
+            r.num(p, "number");
         }
     }
-    return String(own);
+    return r.table.core.section_number(c) ?? String(r.num(c, "number"));
 }
 
 function sectionDepth(table: CellsTable, c: number): number {

@@ -1011,6 +1011,16 @@ describe("sectioning and document-structure blocks", () => {
         expect(all("introduction")).toHaveLength(1);
     });
 
+    it("numbers the divisions through a div, and the parts among the list items (ADR 0054)", async () => {
+        const { all } =
+            await open(`<section><subsection/><div><subsection/></div>
+<problem><part><p>a</p></part><proof><p>Clear.</p></proof><part includeParentNumber><p>b</p></part></problem>
+</section><div><section/></div>`);
+        expect(
+            all("division").map((e) => (e.data as any).props.codeNumber),
+        ).toEqual(["1", "1.1", "1.2", "3", "1", "3", "2"]);
+    });
+
     it("draws a proof as an unnumbered division that starts closed", async () => {
         const { props, ids, childIds } = await open(`<theorem/>
 <proof><p>Clear.</p></proof>
