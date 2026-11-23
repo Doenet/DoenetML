@@ -312,9 +312,8 @@ is missing too. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
-`<math>$nothing + 1</math>{:dn}` is `＿ + 1`, `<text>x $nothing y</text>{:dn}`
-is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
-or other container shows the blank inline.
+`<math>$nothing + 1</math>{:dn}` is `＿ + 1` and `<text>x $nothing y</text>{:dn}`
+is `x ＿ y`. A `<p>{:dn}` or other container shows the blank inline.
 
 What is computed from a missing value depends on the type of the result. A math
 can hold a blank, so it holds it, as above. A number or a boolean can't, so one
@@ -322,9 +321,15 @@ computed from a missing value is missing too, whatever else it is computed
 from: `<number>$nothing + 1</number>{:dn}`, `<sum>{:dn}` or `<mean>{:dn}` of a
 `<numberList>{:dn}` with a blank entry, a function evaluated numerically at a
 blank (with `symbolic="false"` or `forceNumeric`), `<boolean>not $nothing</boolean>{:dn}` and
-`<boolean>$nothing or true</boolean>{:dn}` all show `＿`. A comparison is not
-such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
-blank never equals anything. Only a number computed from values that are all
+`<boolean>$nothing or true</boolean>{:dn}` all show `＿`. So does a comparison:
+`<boolean>$nothing = 1</boolean>{:dn}` and `<boolean>$nothing != 1</boolean>{:dn}`
+are `＿`, neither true nor false, since a blank never equals anything; an
+`<answer>{:dn}` gives no credit for one, even for the response `false`. So are
+`<isNumber>$nothing</isNumber>{:dn}` and the other tests of a value. Wherever a
+missing boolean decides something, as a `hide`, a `<case>{:dn}`'s `condition` or
+an `<award>{:dn}`, it counts as false. An input
+left blank is not missing, though: it is a value, which a comparison compares.
+Only a number computed from values that are all
 there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A
 property that has no value, such as an `<award>{:dn}`'s `feedbackText` when it
 has none, is missing too, and so is a tag of it while it has none, though it

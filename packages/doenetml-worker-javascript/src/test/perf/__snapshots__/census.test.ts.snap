@@ -13,10 +13,10 @@ exports[`component census of the micro-documents > answer when $mi=x 1`] = `
   },
   "components": 6,
   "copies": 0,
-  "dependencies": 516,
+  "dependencies": 527,
   "shadows": 0,
-  "stateVariables": 402,
-  "stateVariablesResolved": 263,
+  "stateVariables": 403,
+  "stateVariablesResolved": 267,
 }
 `;
 
@@ -35,7 +35,7 @@ exports[`component census of the micro-documents > boolean $P=(1,2) 1`] = `
   },
   "components": 9,
   "copies": 0,
-  "dependencies": 574,
+  "dependencies": 576,
   "shadows": 0,
   "stateVariables": 554,
   "stateVariablesResolved": 265,
@@ -408,7 +408,7 @@ exports[`component census of the micro-documents > text hide=$b, graph xMin=$n 1
   },
   "components": 8,
   "copies": 0,
-  "dependencies": 432,
+  "dependencies": 434,
   "shadows": 0,
   "stateVariables": 325,
   "stateVariablesResolved": 216,

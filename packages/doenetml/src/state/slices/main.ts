@@ -77,6 +77,61 @@ export function clearPendingValuesForAction(
     }
 }
 
+/**
+ * An update for a component that `updateRendererSVs` left off the screen
+ * because one of that component's own actions was still in flight, kept so it
+ * can be put on screen if that action turns out to change nothing.
+ */
+export type HeldRendererUpdate = {
+    coreId: string;
+    componentIdx: number;
+    stateValues: Record<string, any>;
+    childrenInstructions?: Record<string, any>[];
+    sourceOfUpdate?: Record<string, any>;
+    baseStateVariable?: string;
+    prefixForIds: string;
+};
+
+/**
+ * The latest held update of each component, by component index. An entry is
+ * dropped as soon as a later update for the same component is processed:
+ * updates reach the viewer in the order core sent them, so the held one is
+ * core's latest word on the component only while nothing has followed it.
+ */
+export type HeldRendererUpdates = Map<number, HeldRendererUpdate>;
+
+/**
+ * Take out the held updates of components with no action of their own still
+ * in flight, to be put on screen.
+ *
+ * An update is held when it arrives while the component's own action is in
+ * flight: core built it before handling that action, so its base value can be
+ * older than what the renderer shows (a `focusChanged` answered before the
+ * click it came with). Usually the action's own update follows and replaces
+ * it. But an action that changes nothing, such as a bare Enter in an input
+ * whose value is already committed, gets no update. The held one is then
+ * core's latest, and it can carry a value the renderer does not show, as
+ * when another action changed the input meanwhile. The viewer calls this once
+ * the pending values of an action are dropped.
+ */
+export function takeHeldUpdatesNoLongerInFlight(
+    updatesToIgnore: UpdatesToIgnore,
+    heldUpdates: HeldRendererUpdates,
+    coreId: string,
+): HeldRendererUpdate[] {
+    const ready: HeldRendererUpdate[] = [];
+    for (let [componentIdx, held] of heldUpdates) {
+        if (held.coreId !== coreId) {
+            // from a core that has since been replaced
+            heldUpdates.delete(componentIdx);
+        } else if (!actionInFlightFor(updatesToIgnore, componentIdx)) {
+            heldUpdates.delete(componentIdx);
+            ready.push(held);
+        }
+    }
+    return ready;
+}
+
 function sameBaseValue(valueFromRenderer: any, valueFromCore: any) {
     return (
         valueFromRenderer === valueFromCore ||
@@ -139,6 +194,7 @@ export const mainThunks = {
                 baseStateVariable,
                 actionId,
                 updatesToIgnoreRef,
+                heldUpdatesRef,
                 prefixForIds = "",
             }: {
                 coreId: string;
@@ -149,6 +205,13 @@ export const mainThunks = {
                 baseStateVariable?: string;
                 actionId?: string;
                 updatesToIgnoreRef: React.RefObject<UpdatesToIgnore>;
+                /**
+                 * Where an update left off the screen while the component's
+                 * own action is in flight is kept, so the viewer can put it on
+                 * screen if that action changes nothing (see
+                 * `takeHeldUpdatesNoLongerInFlight`).
+                 */
+                heldUpdatesRef?: React.RefObject<HeldRendererUpdates>;
                 prefixForIds: string;
             },
             { dispatch, getState },
@@ -159,6 +222,10 @@ export const mainThunks = {
 
             if (baseStateVariable) {
                 const updatesToIgnore = updatesToIgnoreRef.current;
+                const heldUpdates = heldUpdatesRef?.current;
+                // This update is newer than any held for the component. It
+                // replaces that one below if it is held too.
+                heldUpdates?.delete(componentIdx);
 
                 if (updatesToIgnore.size > 0) {
                     const identifier = actionIdentifier(
@@ -181,6 +248,10 @@ export const mainThunks = {
                             // don't ignore the remaining pending changes in updatesToIgnore
                             // as we changed the state used to determine they could be ignored
                             updatesToIgnore.clear();
+                            // Nothing is in flight any more, so no update is
+                            // held off the screen either: the components'
+                            // own updates are taken as they come.
+                            heldUpdates?.clear();
                         }
                     } else if (
                         actionInFlightFor(updatesToIgnore, componentIdx)
@@ -193,6 +264,15 @@ export const mainThunks = {
                         // Letting it through would take the eager value back off the
                         // screen until core answers, which the reader sees as a flash.
                         ignoreUpdate = true;
+                        heldUpdates?.set(componentIdx, {
+                            coreId,
+                            componentIdx,
+                            stateValues,
+                            childrenInstructions,
+                            sourceOfUpdate,
+                            baseStateVariable,
+                            prefixForIds,
+                        });
                     }
                 }
             }

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
@@ -97,8 +98,9 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("s")).value.tree).eqls(["+", "＿", 2]);
         expect((await sv("mbl")).value.tree).eq("＿");
         expect((await sv("Q")).xs.map((x: any) => x.tree)).eqls(["＿", 3]);
-        // (a blank in a repeat's template of maths is dropped, as
-        // `$nothing` is there: #2596)
+        // a blank in a repeat's template of maths takes part, as `$nothing`
+        // does there (#2656)
+        expect((await sv("pr")).text).eq("＿ + 1, ＿ + 1");
         // where a text is wanted, it is still the word
         expect((await sv("t")).value).eq("true");
         expect((await sv("p")).text).eq("true");
@@ -528,6 +530,540 @@ describe("Booleans and numbers kept apart @group2", () => {
             [
                 7,
                 "`$t` is a text, so ordering it against a number with `<=` is never true.",
+            ],
+        ]);
+    });
+    // A mix in logic is a blank, and logic made from a blank is missing, not
+    // false: a missing value never equals anything (VAL-5), so an answer
+    // can't credit the response "false" for it (#2656).
+    it("logic holding a mix is missing, not false", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">2</number>
+    <boolean name="c1">$b = 1</boolean>
+    <boolean name="c2">$n + 0</boolean>
+    <boolean name="c3">$b = 1 or true</boolean>
+    <boolean name="c4">not ($b = 1)</boolean>
+    <boolean name="r1">$c1</boolean>
+    <boolean name="r2" extend="$c1"/>
+    <boolean name="r3" copy="$c1"/>
+    <p name="p">$c1</p>
+    <text name="t" hide="not ($b = 1)">hi</text>
+    <boolean name="c5">$nothing = 1</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        for (const name of ["c1", "c2", "c3", "c4", "r1", "r2", "r3"]) {
+            expect((await sv(name)).valueMissing, name).eq(true);
+        }
+        expect((await sv("p")).text).eq("＿");
+        expect((await sv("t")).hidden).eq(false);
+        // a comparison with a missing operand is missing too (VAL-5)
+        expect((await sv("c5")).valueMissing).eq(true);
+    });
+
+    // A missing value never equals anything (VAL-5), so a comparison with
+    // one is neither true nor false: it is missing, `!=` included. An input
+    // left blank is a value, which it compares (#2656).
+    it("a comparison with a missing operand is missing, not one with a blank input", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi"><label>mi</label></mathInput>
+    <boolean name="c1">$nothing = 1</boolean>
+    <boolean name="c2">$nothing != 1</boolean>
+    <boolean name="c3">$nothing + 1 > 2</boolean>
+    <boolean name="c4">($nothing = 1) or true</boolean>
+    <boolean name="c5">$mi != x</boolean>
+    <boolean name="c6">$mi = x</boolean>
+    <answer name="a1"><award><when>$nothing != 1</when></award></answer>
+    <answer name="a2"><mathInput name="mi2"><label>mi2</label></mathInput><award><when>$mi2 != 5</when></award></answer>
+    <number name="n1" convertBoolean>$mi != x</number>
+    <number name="n2" convertBoolean>$nothing != x</number>
+    <answer name="a3"><mathInput name="mi3"><label>mi3</label></mathInput><award credit="$mi3 != 5"><when>true</when></award></answer>
+    <answer name="a4"><choiceInput name="ci"><label>ci</label><choice>a</choice><choice>b</choice></choiceInput><award><when>$ci.selectedIndex != 1</when></award></answer>
+    `,
+        });
+        for (const name of ["a1", "a2", "a3", "a4"]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        for (const name of ["c1", "c2", "c3", "c4"]) {
+            expect((await sv(name)).valueMissing, name).eq(true);
+        }
+        expect((await sv("c5")).value).eq(true);
+        expect((await sv("c5")).valueMissing).eq(false);
+        expect((await sv("c6")).value).eq(false);
+        expect((await sv("c6")).valueMissing).eq(false);
+        expect((await sv("a1")).creditAchieved).eq(0);
+        expect((await sv("a2")).creditAchieved).eq(1);
+        // the same in a `<number convertBoolean>`, and so in a `credit`
+        expect((await sv("n1")).value).eq(1);
+        expect((await sv("n2")).valueMissing).eq(true);
+        expect((await sv("a3")).creditAchieved).eq(1);
+        // a value with nothing to read yet is missing as well: no choice
+        expect((await sv("a4")).creditAchieved).eq(0);
+    });
+
+    // In a `<number convertBoolean>`, also a `credit`, every boolean counts
+    // as 1 or 0 (D67 decision 1), compared with a number too, which works
+    // but is hard to read: `doenet-w0208` suggests the plainer form (#2656).
+    it("convertBoolean, credit included, compares a boolean with a number as 1 or 0, with a warning", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="f">false</boolean>
+    <number name="n">2</number>
+    <number name="n1" convertBoolean>$b = 1</number>
+    <number name="n2" convertBoolean>$f = 1</number>
+    <number name="n3" convertBoolean>$n = true</number>
+    <number name="n4" convertBoolean>($b = 1) and true</number>
+    <number name="n5" convertBoolean>$b + 1 = 2</number>
+    <number name="n6" convertBoolean>$b = true</number>
+    <number name="n7" convertBoolean>$nothing = 1</number>
+    <answer name="a1"><award credit="$b = 1"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$n != true"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$f = 1"><when>true</when></award></answer>
+    <number name="n8" convertBoolean>$n != true</number>
+    <number name="n9" convertBoolean>$b = 0</number>
+    <number name="n10" convertBoolean>$b > 0</number>
+    <number name="n11" convertBoolean>($n > 1) = 1</number>
+    `,
+        });
+        for (const name of ["a1", "a2", "a3"]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        const values: Record<string, any> = {};
+        for (const name of [
+            "n1",
+            "n2",
+            "n3",
+            "n4",
+            "n5",
+            "n6",
+            "n7",
+            "n8",
+            "n9",
+            "n10",
+            "n11",
+        ]) {
+            const stateValues = await sv(name);
+            values[name] = stateValues.valueMissing ? "＿" : stateValues.value;
+        }
+        expect(values).eqls({
+            n1: 1,
+            n2: 0,
+            n3: 0,
+            n4: 1,
+            n5: 1,
+            n6: 1,
+            n7: "＿",
+            n8: 1,
+            n9: 0,
+            n10: 1,
+            n11: 1,
+        });
+        expect((await sv("a1")).creditAchieved).eq(1);
+        expect((await sv("a2")).creditAchieved).eq(1);
+        expect((await sv("a3")).creditAchieved).eq(0);
+
+        const booleanMessage = (source: string) =>
+            `Here \`${source}\` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, write \`${source}\` or \`${source} = true\`.`;
+        const literalMessage = (rewritten: string) =>
+            `Here \`true\` counts as 1, so this compares \`$n\` with 1. To say so, write \`${rewritten}\`, or, to test a number, a comparison such as \`$n != 0\`.`;
+        // the form suggested means the same as the comparison written
+        expect(diagnosticsOf(core, ["doenet-w0208"])).eqls([
+            [5, booleanMessage("$b")],
+            [6, booleanMessage("$f")],
+            [7, literalMessage("$n = 1")],
+            [8, booleanMessage("$b")],
+            [12, booleanMessage("$b")],
+            [13, literalMessage("$n != 1")],
+            [14, booleanMessage("$f")],
+            [15, literalMessage("$n != 1")],
+            [
+                16,
+                "Here `$b` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test that it is false, write `not $b` or `$b = false`.",
+            ],
+            [
+                17,
+                "Here `$b` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, compare it with `true` or `false` instead, such as `$b = true`.",
+            ],
+            // logic compared with a number, too
+            [18, booleanMessage("($n > 1)")],
+        ]);
+        // none is a mix
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([]);
+    });
+
+    // D70: any logic with a missing operand is missing, and a missing
+    // boolean is false wherever it is read as a condition, through one shared
+    // rule (`valueFalseWhileMissing`), with no tag or attribute of its own.
+    it("a missing boolean is false wherever it is read as a condition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi"><label>mi</label></mathInput>
+    <text name="t1" hide="$nothing != 1">t1</text>
+    <text name="t2" hide="not ($nothing = 1)">t2</text>
+    <text name="t3" hide="$mi != x">t3</text>
+    <conditionalContent><case condition="$nothing != 1"><text name="ca">A</text></case><else><text name="cb">B</text></else></conditionalContent>
+    <isNumber name="i1">$nothing</isNumber>
+    <isInteger name="i2">$nothing</isInteger>
+    <isBetween name="i3" limits="(0,2)">$nothing</isBetween>
+    <hasSameFactoring name="h1">$nothing (x+1)</hasSameFactoring>
+    <matchesPattern name="m1" pattern="()^2">$nothing</matchesPattern>
+    <or name="o1">$nothing true</or>
+    <not name="nt">$nothing</not>
+    <boolean name="b1">$nothing != 1</boolean>
+    <answer name="a1"><award><when>not $i1</when></award></answer>
+    `,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("a1"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)]?.stateValues;
+
+        // a missing `hide` hides nothing; a blank input is a value, compared
+        expect((await sv("t1")).hidden).eq(false);
+        expect((await sv("t2")).hidden).eq(false);
+        expect((await sv("t3")).hidden).eq(true);
+        // a missing `condition` is not met: the `<else>` is shown
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+        for (const name of ["i1", "i2", "i3", "h1", "m1", "o1", "nt", "b1"]) {
+            const stateValues = await sv(name);
+            expect(stateValues.valueMissing, name).eq(true);
+            expect(stateValues.value, name).eq(false);
+        }
+        expect((await sv("a1")).creditAchieved).eq(0);
+    });
+
+    // The same rule where a `hide` or a `condition` refers to a component
+    // that is missing (an attribute held as an expression, with no attribute
+    // component, `utils/expressionAttribute.js`), and as a list index starts
+    // and stops naming an entry.
+    it("a reference to a missing boolean is false as a condition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b0">$nothing</boolean>
+    <boolean name="e" extend="$nothing"/>
+    <booleanInput name="bie" bindValueTo="$e"><label>e</label></booleanInput>
+    <isNumber name="inm">$nothing</isNumber>
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="mi" prefill="5"><label>i</label></mathInput>
+    <boolean name="bli" extend="$bl[$mi]"/>
+    <mathInput name="mx"><label>mx</label></mathInput>
+    <text name="t1" hide="not $b0">t1</text>
+    <text name="t2" hide="$b0 != true">t2</text>
+    <text name="t3" hide="$b0 or true">t3</text>
+    <text name="t4" hide="not $inm">t4</text>
+    <text name="t5" hide="not $bl[5]">t5</text>
+    <text name="t6" hide="not $e">t6</text>
+    <text name="t7" hide="$e">t7</text>
+    <text name="t8" hide="not ($mx = x)">t8</text>
+    <conditionalContent><case condition="not $bli"><text name="ca">A</text></case><else><text name="cb">B</text></else></conditionalContent>
+    `,
+        });
+        const sv = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ]?.stateValues;
+
+        // writing `true` to a missing boolean leaves it false
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bie"),
+            core,
+        });
+        expect((await sv("e")).valueMissing).eq(true);
+        expect((await sv("e")).value).eq(false);
+
+        for (const name of ["t1", "t2", "t3", "t4", "t5", "t6", "t7"]) {
+            expect((await sv(name)).hidden, name).eq(false);
+        }
+        // a blank input is a value, compared
+        expect((await sv("t8")).hidden).eq(true);
+
+        // `$bl[5]` names nothing: the `<else>`
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+        // `$bl[2]` is false: the case
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect((await sv("ca")).value).eq("A");
+        expect(await sv("cb")).eq(undefined);
+        // `$bl[7]` names nothing again
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+    });
+
+    // D67 decision 1 (#2656 item 2)
+    it("convertBoolean counts every boolean in its expression", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi" prefill="true"><label>b</label></booleanInput>
+    <boolean name="b">$bi</boolean>
+    <number name="n">2</number>
+    <number name="n1" convertBoolean>$b + 1</number>
+    <number name="n2" convertBoolean>($n > 1) + $b</number>
+    <number name="n3" convertBoolean>2$b</number>
+    <number name="n4" convertBoolean>$b and not $b</number>
+    <number name="n5" convertBoolean>$b</number>
+    <number name="n6" convertBoolean>$nothing</number>
+    <number name="n7" convertBoolean>$nothing + $b</number>
+    <number name="n8" convertBoolean>($b and true) + 1</number>
+    <number name="n9" convertBoolean>(1 < 2) + 1</number>
+    <number name="n10" convertBoolean>false + 2</number>
+    <number name="n11" convertBoolean>$b + t r u e</number>
+    <number name="n12" convertBoolean>$b + True</number>
+    <p name="p">$n6 $n7</p>
+    `,
+        });
+        const values = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, any> = {};
+            for (const name of [
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6",
+                "n7",
+                "n8",
+                "n9",
+                "n10",
+                "n11",
+                "n12",
+            ]) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                result[name] = stateValues.valueMissing
+                    ? "＿"
+                    : stateValues.value;
+            }
+            result.p =
+                stateVariables[
+                    await resolvePathToNodeIdx("p")
+                ].stateValues.text;
+            return result;
+        };
+
+        expect(await values()).eqls({
+            n1: 2,
+            n2: 2,
+            n3: 2,
+            n4: 0,
+            n5: 1,
+            n6: "＿",
+            n7: "＿",
+            n8: 2,
+            n9: 2,
+            n10: 2,
+            // letters written apart are a product of unknowns, not the word
+            n11: NaN,
+            n12: 2,
+            p: "＿ ＿",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await values()).eqls({
+            n1: 1,
+            n2: 1,
+            n3: 0,
+            n4: 0,
+            n5: 0,
+            n6: "＿",
+            n7: "＿",
+            n8: 1,
+            n9: 2,
+            n10: 2,
+            n11: NaN,
+            n12: 1,
+            p: "＿ ＿",
+        });
+
+        // the author asked for the conversion, so none is a mix
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([]);
+    });
+
+    it("a number compared with true or false, and a boolean in arithmetic compared, are mixes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">1</number>
+    <boolean name="c1">$n = true</boolean>
+    <boolean name="c2">1 = true</boolean>
+    <boolean name="c3">$b + 1 = 2</boolean>
+    <boolean name="c4">$b = not ($b = 1)</boolean>
+    <boolean name="c5">$b = true</boolean>
+    <boolean name="c6"><number>1</number> = false</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["c1", "c2", "c3", "c4", "c6"]) {
+            expect((await sv(name)).valueMissing, name).eq(true);
+        }
+        expect((await sv("c5")).value).eq(true);
+        expect((await sv("c5")).valueMissing).eq(false);
+
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [
+                4,
+                "`$n` is a number, not true or false, so comparing it with `true` is a blank. To test it, write a comparison such as `$n != 0`.",
+            ],
+            [
+                5,
+                "`1` is a number, not true or false, so comparing it with `true` is a blank. Write `true` or `false` instead.",
+            ],
+            [6, booleanAsNumber("$b")],
+            [
+                7,
+                "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>`.",
+            ],
+            [
+                9,
+                "This `<number>` is a number, not true or false, so comparing it with `false` is a blank. To test it, write a comparison, such as one with `!= 0`.",
+            ],
+        ]);
+    });
+
+    // A mix is a blank in its place only (VAL-5): a tag written there is
+    // still a component of its own, which a reference elsewhere reads
+    // (#2656 item 5).
+    it("a tag written where a mix is keeps its value elsewhere", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1"><boolean name="q">true</boolean> + 1</math>
+    <boolean name="q2">$q</boolean>
+    <boolean name="c1"><number name="z">2</number> = true</boolean>
+    <number name="z2">$z</number>
+    <boolean name="c2"><math name="w">x</math> = x and 3</boolean>
+    <math name="w2">$w</math>
+    <p name="p"><math><boolean name="h">true</boolean></math></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("m1")).value.tree).eqls(["+", "＿", 1]);
+        expect((await sv("q")).value).eq(true);
+        expect((await sv("q2")).value).eq(true);
+        expect((await sv("q2")).valueMissing).eq(false);
+        expect((await sv("c1")).valueMissing).eq(true);
+        expect((await sv("z2")).value).eq(2);
+        expect((await sv("c2")).valueMissing).eq(true);
+        expect((await sv("w2")).value.tree).eq("x");
+        // kept, it shows nothing where the mix was
+        expect((await sv("p")).text).eq("＿");
+
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [
+                2,
+                "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+            [
+                4,
+                "This `<number>` is a number, not true or false, so comparing it with `true` is a blank. To test it, write a comparison, such as one with `!= 0`.",
+            ],
+            [6, literalAsBoolean("3")],
+            [
+                8,
+                "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+        ]);
+        expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
+    });
+
+    // #2656 item 4
+    it("a group holding a boolean beside other values in a math is judged at load", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1"><group><boolean name="g">true</boolean><math>x</math></group></math>
+    <boolean name="g2">$g</boolean>
+    <math name="m2"><group><group><boolean>false</boolean> <math>y</math></group></group> + 1</math>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("m1")).value.tree).eqls(["*", "＿", "x"]);
+        expect((await sv("g2")).value).eq(true);
+        expect((await sv("m2")).value.tree).eqls(["+", ["*", "＿", "y"], 1]);
+        const tagMessage =
+            "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.";
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [2, tagMessage],
+            [4, tagMessage],
+        ]);
+        // no longer dropped at run time
+        expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
+    });
+
+    // #2656 item 6: REF-5 makes a boolean only from a text; a label stands
+    // in as its text only where a text is wanted (D26)
+    it("a boolean can't be made from a label", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <label name="l1">true</label>
+    <boolean name="b1" extend="$l1"/>
+    <boolean name="b2" copy="$l1"/>
+    <text name="t1" extend="$l1"/>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)]?.stateValues;
+
+        // a label is still made a text
+        expect((await sv("t1")).value).eq("true");
+        expect(diagnosticsOf(core, ["doenet-e0065"])).eqls([
+            [
+                3,
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
+            ],
+            [
+                4,
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
             ],
         ]);
     });

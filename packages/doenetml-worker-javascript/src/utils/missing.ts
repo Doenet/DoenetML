@@ -714,3 +714,97 @@ export function isMissingInput(child: any): boolean {
     const stateValues = child.stateValues ?? {};
     return Boolean(stateValues.valueMissing) || holdsBlank(stateValues.value);
 }
+
+/**
+ * The definition of `computedFromMissing` for a component that computes its
+ * boolean from its children of `childGroups` (`<and>`, `<isNumber>`,
+ * `<matchesPattern>`): it is computed from a missing value while one of them
+ * is missing (D70: any logic with a missing operand is missing).
+ */
+export function anyChildMissingDefinition(childGroups: string[]) {
+    return {
+        returnDependencies: () => ({
+            children: {
+                dependencyType: "child",
+                childGroups,
+                variableNames: ["valueMissing"],
+                variablesOptional: true,
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { children: any[] };
+        }) {
+            return {
+                setValue: {
+                    computedFromMissing: dependencyValues.children.some(
+                        (child) => Boolean(child.stateValues?.valueMissing),
+                    ),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * `definition`, the `value` of a component whose value is a boolean
+ * (`BaseComponent.valueFalseWhileMissing`), made `false` while the component
+ * is missing (D70). A missing boolean shows as `＿` and equals nothing, a
+ * response "false" included (`valueMissing`); everything that reads it as a
+ * condition (`hide`, a `<case>`'s `condition`, an award) reads it as false,
+ * all through this one definition, with no case of its own.
+ */
+export function valueFalseWhileMissing(definition: any) {
+    return {
+        ...definition,
+        returnDependencies(args: any) {
+            return {
+                ...definition.returnDependencies(args),
+                __valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                },
+            };
+        },
+        definition(args: any) {
+            const { __valueMissing, ...dependencyValues } =
+                args.dependencyValues;
+            const result = definition.definition({
+                ...args,
+                dependencyValues,
+            });
+            if (!__valueMissing || !result) {
+                return result;
+            }
+            if (result.setValue && "value" in result.setValue) {
+                return {
+                    ...result,
+                    setValue: { ...result.setValue, value: false },
+                };
+            }
+            // A missing `<boolean>` with no children, such as
+            // `<boolean extend="$nothing"/>`, is false even after a
+            // `<booleanInput>` bound to it wrote `true` to its essential value.
+            if (
+                result.useEssentialOrDefaultValue &&
+                "value" in result.useEssentialOrDefaultValue
+            ) {
+                const { value: _value, ...useEssentialOrDefaultValue } =
+                    result.useEssentialOrDefaultValue;
+                const adjusted = {
+                    ...result,
+                    setValue: { ...result.setValue, value: false },
+                };
+                if (Object.keys(useEssentialOrDefaultValue).length > 0) {
+                    adjusted.useEssentialOrDefaultValue =
+                        useEssentialOrDefaultValue;
+                } else {
+                    delete adjusted.useEssentialOrDefaultValue;
+                }
+                return adjusted;
+            }
+            return result;
+        },
+    };
+}

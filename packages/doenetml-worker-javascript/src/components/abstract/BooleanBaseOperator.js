@@ -1,4 +1,5 @@
 import BooleanComponent from "../Boolean";
+import { anyChildMissingDefinition } from "../../utils/missing";
 import { returnGroupIntoListEntriesOfComponentType } from "../commonsugar/lists";
 
 export default class BooleanOperator extends BooleanComponent {
@@ -74,26 +75,8 @@ export default class BooleanOperator extends BooleanComponent {
         // Whether an operand is missing (D40, VAL-5, #2460): a boolean can't
         // hold a blank, so `<and>$nothing true</and>` and `<or>$nothing
         // true</or>` are missing, whatever the other operands.
-        stateVariableDefinitions.computedFromMissing = {
-            returnDependencies: () => ({
-                booleanChildren: {
-                    dependencyType: "child",
-                    childGroups: ["booleans"],
-                    variableNames: ["valueMissing"],
-                    variablesOptional: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        computedFromMissing:
-                            dependencyValues.booleanChildren.some(
-                                (child) => child.stateValues.valueMissing,
-                            ),
-                    },
-                };
-            },
-        };
+        stateVariableDefinitions.computedFromMissing =
+            anyChildMissingDefinition(["booleans"]);
 
         stateVariableDefinitions.value = {
             description:

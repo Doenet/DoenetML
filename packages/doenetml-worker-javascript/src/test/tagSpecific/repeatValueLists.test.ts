@@ -132,7 +132,7 @@ describe("Repeats whose template is one value @group4", () => {
         // A number computed from an entry past the end is missing
         // (`<number>$l[3] + 1</number>`, D40, #2460), and so is the list's
         // entry (`entriesMissing`, #2544), so the list shows a blank there,
-        // as the composite does.
+        // as the composite does. A comparison with it is missing too (D70).
         const computed = await compare({
             doenetML: `
 <numberList name="l">10 20</numberList>
@@ -141,7 +141,7 @@ describe("Repeats whose template is one value @group4", () => {
 `,
             names: ["pn", "pr"],
         });
-        expect(computed).toEqual({ pn: "11, 21, ＿", pr: "[＿][false]" });
+        expect(computed).toEqual({ pn: "11, 21, ＿", pr: "[＿][＿]" });
         // the list's entry itself is missing
         const asList = await load(
             `

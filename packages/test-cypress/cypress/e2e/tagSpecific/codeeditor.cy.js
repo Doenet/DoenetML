@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { controlCoreMessages } from "../../support/coreMessages";
 describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -2128,5 +2129,70 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(
             "#editor2 .diagnostics-response-tabs-container table tbody tr",
         ).should("not.exist");
+    });
+    it("keeps every key when core replies before the renderer update", () => {
+        // As in textinput.cy.js: core's replies to the first two keys reach
+        // the viewer before their renderer updates, and the first key's late
+        // update must not put "9" back in the editor.
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage(
+                {
+                    doenetML: `<codeEditor name="editor" />
+<p name="iv">$editor.immediateValue</p>`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#editor .cm-content").should("exist");
+        cy.get("#editor .cm-content").focus();
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#editor .cm-content").type("90");
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter(
+                    (u) => u.actionName === "updateImmediateValue",
+                ),
+            ).to.have.length(2);
+        });
+
+        cy.window().then(() => {
+            const firstKey = control.held.findIndex(
+                (u) => u.actionName === "updateImmediateValue",
+            );
+            control.release(firstKey + 1);
+        });
+
+        // The paragraph shows that the first key's update has been drawn; the
+        // editor must still hold what was typed. CodeMirror holds back a value
+        // given to it while the reader is typing, until the last key is 200
+        // ticks old (`@uiw/react-codemirror`'s typing latch, ticked by a 1 ms
+        // interval that the browser stretches to 4 ms or more), so a stale
+        // value lands late: wait past that, then check once, as something can
+        // put the typed text back later and a retried check would wait for
+        // that.
+        cy.get("#iv").should("have.text", "9");
+        cy.wait(1500);
+        cy.get("#editor .cm-content").then(($e) => {
+            expect($e.text()).eq("90");
+        });
+
+        cy.get("#editor .cm-content").type("8");
+        cy.window().then(() => {
+            control.hold = false;
+            control.release();
+        });
+
+        cy.get("#iv").should("have.text", "908");
+        cy.wait(1500);
+        cy.get("#editor .cm-content").then(($e) => {
+            expect($e.text()).eq("908");
+        });
     });
 });

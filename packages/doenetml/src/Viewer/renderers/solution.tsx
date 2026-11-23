@@ -8,6 +8,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useChromeLangDir, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
+import { DisclosureButton } from "./utils/DisclosureButton";
 import "./solution.css";
 
 interface SolutionSVs {
@@ -42,13 +43,15 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
         return null;
     }
 
+    const contentId = id + "_content";
+    const cannotBeClosed = SVs.open && !SVs.canBeClosed;
+
     let icon;
     let childrenToRender = null;
     let infoBlockStyle: React.CSSProperties = { display: "none" };
 
     let onClickFunction;
     let cursorStyle;
-    let onKeyPressFunction;
 
     if (SVs.open) {
         if (SVs._compositeReplacementActiveRange) {
@@ -77,14 +80,6 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
             borderBottomRightRadius: "5px",
             backgroundColor: "var(--canvas)",
         };
-        onKeyPressFunction = (e: React.KeyboardEvent) => {
-            if (e.key === "Enter") {
-                callAction({
-                    action: actions.closeSolution,
-                });
-            }
-        };
-
         if (SVs.canBeClosed) {
             cursorStyle = "pointer";
             onClickFunction = () => {
@@ -103,13 +98,6 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
                 action: actions.revealSolution,
             });
         };
-        onKeyPressFunction = (e: React.KeyboardEvent) => {
-            if (e.key === "Enter") {
-                callAction({
-                    action: actions.revealSolution,
-                });
-            }
-        };
     }
 
     return (
@@ -119,7 +107,13 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
             ref={ref}
             className="solution"
         >
-            <span
+            {/* A native button (`DisclosureButton`): Enter and Space fire its `click`, and
+                `aria-expanded` carries the state, so the "(click to open)"
+                words are hidden from its accessible name. An open solution
+                that cannot be closed keeps its button but marks it disabled;
+                its click does nothing, for the keyboard as for the mouse. */}
+            <DisclosureButton
+                className="solution-button"
                 style={{
                     display: "block",
                     margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
@@ -132,15 +126,20 @@ export default React.memo(function Solution(props: UseDoenetRendererProps) {
                     backgroundColor: "var(--revealButtonSurface)",
                     cursor: "pointer",
                 }}
-                tabIndex={0}
                 id={id + "_button"}
+                open={SVs.open}
+                contentId={contentId}
+                aria-disabled={cannotBeClosed ? "true" : undefined}
                 onClick={onClickFunction}
-                onKeyDown={onKeyPressFunction}
             >
                 {icon} {SVs.sectionName} {SVs.message}{" "}
-                <span {...chromeLangDir}>{openCloseText}</span>
+                <span {...chromeLangDir} aria-hidden="true">
+                    {openCloseText}
+                </span>
+            </DisclosureButton>
+            <span id={contentId} style={infoBlockStyle}>
+                {childrenToRender}
             </span>
-            <span style={infoBlockStyle}>{childrenToRender}</span>
         </aside>
     );
 });

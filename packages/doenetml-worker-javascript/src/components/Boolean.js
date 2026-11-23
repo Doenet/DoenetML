@@ -26,6 +26,11 @@ export default class BooleanComponent extends InlineComponent {
     // `BaseComponent.missingWhenComputedFromMissing`)
     static missingWhenComputedFromMissing = true;
 
+    // false while missing, for whatever reads it as a condition (D70,
+    // `BaseComponent.valueFalseWhileMissing`), here and in every tag that
+    // extends this one
+    static valueFalseWhileMissing = true;
+
     static componentDocs = {
         summary: "A boolean value",
     };
@@ -255,7 +260,11 @@ export default class BooleanComponent extends InlineComponent {
             // Whether an operand of its logic is missing (`logicTreeMissing`,
             // D40, VAL-5, #2460): `<boolean>not $nothing</boolean>` and
             // `<boolean>$nothing and true</boolean>` are missing, shown as
-            // `＿`, while `<boolean>$nothing = 1</boolean>` is false.
+            // `＿`, and so is `<boolean>$nothing = 1</boolean>` (D70). Logic
+            // holding a type mix (D47 decisions 3 and 4) is missing, decided
+            // at load (`typeMixInLogic`, `booleanNumberMixAtLoad.ts`):
+            // `<boolean>$b = 1</boolean>` and `<boolean>$n + 0</boolean>`, so
+            // that it never equals a response "false" (#2656).
             stateVariableDefinitions.computedFromMissing = {
                 // Read from the children's `valueMissing` and the structure
                 // of the logic alone, not the children's values: an
@@ -276,10 +285,17 @@ export default class BooleanComponent extends InlineComponent {
                         variableNames: ["valueMissing"],
                         variablesOptional: true,
                     },
+                    typeMixInLogic: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "typeMixInLogic",
+                    },
                 }),
                 definition({ dependencyValues }) {
                     const { parsedExpression, codePre, children } =
                         dependencyValues;
+                    if (dependencyValues.typeMixInLogic) {
+                        return { setValue: { computedFromMissing: true } };
+                    }
                     // the codes are those `mathChildrenByCode` gives the
                     // children, in order
                     const missingCodes = new Set(

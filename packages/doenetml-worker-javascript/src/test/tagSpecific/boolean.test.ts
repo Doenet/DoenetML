@@ -98,8 +98,9 @@ describe("Boolean tag tests @group1", async () => {
 
         // A number or a math where true or false is wanted is a type mix (D47
         // decision 4, #2582): the boolean is missing, with a warning at load.
-        // A `<boolean>` written in one compares as missing, so `!= true` is
-        // true. `true` and `false`, or a comparison, are the way to write them.
+        // A `<boolean>` written in one is missing, so a comparison with it is
+        // missing, which is false (D70). `true` and `false`, or a comparison,
+        // are the way to write them.
         const mixes: Record<string, boolean> = {
             t3: false, // 1
             t4: false, // 10
@@ -112,8 +113,8 @@ describe("Boolean tag tests @group1", async () => {
             f5: false, // 0
             f19: false, // not 1
             f21: false, // <math>2 > 1</math>
-            f24: true, // <boolean>1</boolean> != true
-            f25: true, // <boolean>0</boolean> != false
+            f24: false, // <boolean>1</boolean> != true
+            f25: false, // <boolean>0</boolean> != false
             f27: false, // <math>true</math>
         };
 
@@ -1294,14 +1295,16 @@ describe("Boolean tag tests @group1", async () => {
     <boolean name="t2"><math>/</math> != <math>-</math></boolean>
 
     <boolean name="f3">$invalid = $invalid</boolean>
-    <boolean name="t3">$invalid != $invalid</boolean>
+    <boolean name="f5">$invalid != $invalid</boolean>
     <boolean name="f4">$nothing = $nada</boolean>
-    <boolean name="t4">$nothing != $nada</boolean>
+    <boolean name="f6">$nothing != $nada</boolean>
     
     `,
         });
-        let nTrues = 4,
-            nFalses = 4;
+        // A comparison with something that names nothing is missing, and so
+        // false, `!=` included (D70).
+        let nTrues = 2,
+            nFalses = 6;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {

@@ -1,10 +1,11 @@
 import BooleanComponent from "../Boolean";
+import { anyChildMissingDefinition } from "../../utils/missing";
 
 export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static componentType = "_booleanOperatorOfMath";
 
-    // not missing for a missing operand: a test of a math (`<isNumber>`, `<isInteger>`) is not a computation on the value, so a blank fails it (D40, VAL-5)
-    static missingWhenComputedFromMissing = false;
+    // missing while an operand is (D70: any logic with a missing operand is
+    // missing; `computedFromMissing` below), and so false as a condition
 
     // Its children are operands, among which a missing one is a blank
     // (D37), so it is not missing for one
@@ -83,6 +84,9 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
+
+        stateVariableDefinitions.computedFromMissing =
+            anyChildMissingDefinition(["maths"]);
 
         stateVariableDefinitions.booleanOperator = {
             returnDependencies: () => ({}),
