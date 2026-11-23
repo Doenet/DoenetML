@@ -364,6 +364,9 @@ impl ResponseKind {
 pub enum TextKind {
     /// A number, formatted.
     Number(usize),
+    /// A number, formatted with its integer digits in groups of three,
+    /// separated by commas (`25,236,501.35`): an `<intComma>`'s.
+    Grouped(usize),
     /// A string id's text.
     Text(usize),
     /// `true` when the value is 1, else `false`.
@@ -371,6 +374,13 @@ pub enum TextKind {
     /// The expression's text (`expr`, the first), or the number (`value`)
     /// when there is no expression.
     Math(usize, usize),
+    /// The children's text between two fixed strings: a `<q>`'s quotes, a
+    /// `<tag>`'s angle brackets, or, with no children, a single character
+    /// (`<mdash/>` is `Delimited("—", "")`).
+    Delimited(&'static str, &'static str),
+    /// Each child's text, trimmed, the empty ones left out, joined by a
+    /// separator: an `<asList>`'s, its children separated by commas.
+    Separated(&'static str),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):

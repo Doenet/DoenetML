@@ -7,10 +7,13 @@ use crate::error::{Error, Result};
 
 component! {
     /// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
-    /// `<exercise>`, `<example>`: a rendered container that is numbered among
-    /// its sibling sections and, when it aggregates scores, holds the weighted
-    /// credit of the answers and sections inside it, both aggregates. The
-    /// parser writes `<section>` as `<division type="section">`.
+    /// `<exercise>`, `<example>` and the other divisions [`SECTION_TAGS`]
+    /// lists (`<theorem>`, `<part>`, `<problems>`, ...): a rendered container
+    /// that is numbered among its sibling sections, whatever their tag, and,
+    /// when it aggregates scores, holds the weighted credit of the answers
+    /// and sections inside it, both aggregates. The parser writes
+    /// `<section>` as `<division type="section">` (and `<part>` and
+    /// `<paragraphs>` the same way).
     tags: [
         "section",
         "division",
@@ -19,6 +22,17 @@ component! {
         "problem",
         "exercise",
         "example",
+        "question",
+        "activity",
+        "definition",
+        "note",
+        "theorem",
+        "paragraphs",
+        "objectives",
+        "part",
+        "task",
+        "problems",
+        "exercises",
     ],
     flags: [container],
     scored: Aggregates(weight, aggregateScores),
@@ -35,6 +49,7 @@ component! {
         includeParentNumber: by_planner { rendered },
         label: by_planner { rendered },
     }
+    presentation { boxed }
     attributes {
         weight: Value,
         r#type: Text,
@@ -63,8 +78,11 @@ pub struct SectionTag {
     pub includes_parent_number: bool,
 }
 
-/// The tags that make a `Section`, in the order of its `label` cell.
-pub const SECTION_TAGS: [SectionTag; 6] = [
+/// The tags that make a `Section`, in the order of its `label` cell, which
+/// renderers read by position, so a new tag goes at the end. The defaults
+/// are the current core's (`Sectioning.js`): a section at any depth shows
+/// its parent's number, and the scored divisions aggregate scores.
+pub const SECTION_TAGS: [SectionTag; 17] = [
     SectionTag {
         tag: "section",
         title: "Section",
@@ -98,6 +116,75 @@ pub const SECTION_TAGS: [SectionTag; 6] = [
     SectionTag {
         tag: "example",
         title: "Example",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "question",
+        title: "Question",
+        aggregates_scores: true,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "activity",
+        title: "Activity",
+        aggregates_scores: true,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "definition",
+        title: "Definition",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "note",
+        title: "Note",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "theorem",
+        title: "Theorem",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "paragraphs",
+        title: "Paragraphs",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "objectives",
+        title: "Objectives",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    // The current core numbers a part or a task among its parent's list
+    // items, apart from the divisions; here it is counted among its sibling
+    // sections, the same number while its siblings are parts.
+    SectionTag {
+        tag: "part",
+        title: "Part",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "task",
+        title: "Task",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "problems",
+        title: "Problems",
+        aggregates_scores: false,
+        includes_parent_number: false,
+    },
+    SectionTag {
+        tag: "exercises",
+        title: "Exercises",
         aggregates_scores: false,
         includes_parent_number: false,
     },
@@ -170,3 +257,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     });
     Ok(wiring)
 }
+
+#[cfg(all(test, feature = "testing"))]
+#[path = "section.spec.rs"]
+mod spec;

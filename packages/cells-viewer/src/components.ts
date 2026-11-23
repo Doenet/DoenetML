@@ -8,7 +8,7 @@ export interface ComponentColumns {
     nEssential: number;
     typeTags: string[];
     typeProps: string[][];
-    componentType: Uint8Array;
+    componentType: Uint16Array;
     name: Uint32Array;
     parent: Uint32Array;
     propBase: Uint32Array;
@@ -217,7 +217,7 @@ export function columnsFromCore(
         nEssential: core.n_essential(),
         typeTags: JSON.parse(core.type_tags()),
         typeProps: JSON.parse(core.type_props()),
-        componentType: u8(core.comp_type_ptr(), n),
+        componentType: new Uint16Array(memory.buffer, core.comp_type_ptr(), n),
         name: u32(core.comp_name_ptr(), n),
         parent: u32(core.comp_parent_ptr(), n),
         propBase: u32(core.comp_prop_base_ptr(), n),

@@ -69,8 +69,16 @@ export const look = {
 
     /** A point of its own. */
     point: () => ({
-        name: "test",
+        name: "",
+        withLabel: false,
         ...stroke(POINT_COLOR),
         layer: LAYER_OFFSETS.line,
+    }),
+
+    /** How a point is filled when it is drawn hollow (an open endpoint, an
+     * unstable equilibrium): with the board's background. */
+    hollow: () => ({
+        fillColor: "var(--canvas)",
+        highlightFillColor: "var(--canvas)",
     }),
 };

@@ -1,16 +1,32 @@
-//! Point, circle, line, line segment, polygon, triangle, polyline and point
-//! list, with what they share: the default points of a line and a segment,
-//! and the limits on a polygon's vertices.
+//! Point, circle, line, line segment, ray, vector, polygon, triangle,
+//! rectangle, polyline and point list, and what is derived from them (a
+//! best-fit line, an intersection, a parabola, an equilibrium point or
+//! line, an endpoint), with what they share: the default
+//! points of a line and a segment, a ray's and a vector's two points and
+//! offset (`pair`), and the limits on a polygon's vertices.
 
 use super::define::*;
 
+pub(crate) mod angle;
 pub mod circle;
 pub mod line;
+mod pair;
 pub mod point;
 pub mod polygon;
 pub mod polyline;
+pub(crate) mod ray;
+pub(crate) mod rectangle;
+pub(crate) mod regular_polygon;
 pub mod segment;
 pub(crate) mod triangle;
+pub(crate) mod vector;
+
+pub(crate) mod best_fit_line;
+pub(crate) mod endpoint;
+pub(crate) mod equilibrium_line;
+pub(crate) mod equilibrium_point;
+pub(crate) mod intersection;
+pub(crate) mod parabola;
 
 /// The most vertices of a polygon, and of a rigid one.
 pub use crate::limits::{MAX_RIGID_VERTICES, MAX_VERTICES};

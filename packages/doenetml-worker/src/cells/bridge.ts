@@ -549,6 +549,14 @@ export class CellsBridge {
             const part: FlatDastElementContent[] = [];
             this._child(reads, child, part, owner);
             if (part.length === 0) continue;
+            // The space between two gathered or grouped children (an
+            // `<asList>`'s) is no item.
+            if (
+                !byScope &&
+                part.every((e) => typeof e === "string" && !e.trim())
+            ) {
+                continue;
+            }
             if (scope !== null && scope === lastScope && items.length) {
                 items[items.length - 1].push(...part);
             } else {

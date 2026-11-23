@@ -16,6 +16,7 @@ mod decl;
 pub(crate) mod define;
 pub(crate) mod geometry;
 pub(crate) mod inputs;
+pub(crate) mod operators;
 pub mod prop;
 pub(crate) mod structure;
 #[cfg(test)]
@@ -50,10 +51,11 @@ macro_rules! component_types {
             $($(#[$tdoc:meta])* $tvariant:ident => $tdef:expr,)*
         }
     ) => {
-        /// `repr(u8)` so the renderer can read the type column as a byte
-        /// array; the discriminants follow the list in `component_types!`.
+        /// `repr(u16)` so the renderer can read the type column as a
+        /// 16-bit array; the discriminants follow the list in
+        /// `component_types!`.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        #[repr(u8)]
+        #[repr(u16)]
         pub enum ComponentType {
             $(
                 $(#[$doc])*
@@ -160,6 +162,108 @@ component_types! {
     Triangle => geometry::triangle::DEFINITION,
     ConstrainTo => geometry::constrain_to::DEFINITION,
     ConstrainToGrid => geometry::constrain_to_grid::DEFINITION,
+    Em => containers::markup::EM,
+    Alert => containers::markup::ALERT,
+    Term => containers::markup::TERM,
+    Q => containers::markup::Q,
+    Sq => containers::markup::SQ,
+    C => containers::markup::C,
+    Attr => containers::markup::ATTR,
+    Span => containers::markup::SPAN,
+    Tag => containers::markup::TAG,
+    Tagc => containers::markup::TAGC,
+    Tage => containers::markup::TAGE,
+    Ndash => containers::markup::NDASH,
+    Mdash => containers::markup::MDASH,
+    Nbsp => containers::markup::NBSP,
+    Ellipsis => containers::markup::ELLIPSIS,
+    Lq => containers::markup::LQ,
+    Rq => containers::markup::RQ,
+    Lsq => containers::markup::LSQ,
+    Rsq => containers::markup::RSQ,
+    Br => containers::markup::BR,
+    Hr => containers::markup::HR,
+    Div => containers::markup::DIV,
+    Pre => containers::markup::PRE,
+    BlockQuote => containers::markup::BLOCK_QUOTE,
+    Ol => containers::markup::OL,
+    Proof => containers::blocks::proof::DEFINITION,
+    Solution => containers::blocks::solution::DEFINITION,
+    Introduction => containers::blocks::introduction::DEFINITION,
+    Conclusion => containers::blocks::conclusion::DEFINITION,
+    Statement => containers::blocks::statement::DEFINITION,
+    Figure => containers::blocks::figure::DEFINITION,
+    Caption => containers::blocks::caption::DEFINITION,
+    Footnote => containers::blocks::footnote::DEFINITION,
+    PostponeRenderContainer => containers::blocks::postpone_render_container::DEFINITION,
+    Abs => operators::abs::DEFINITION,
+    Sign => operators::sign::DEFINITION,
+    Floor => operators::floor::DEFINITION,
+    Ceil => operators::ceil::DEFINITION,
+    Round => operators::round::DEFINITION,
+    SetSmallToZero => operators::set_small_to_zero::DEFINITION,
+    WrapNumberPeriodic => operators::wrap_number_periodic::DEFINITION,
+    Sum => operators::fold::DEFINITION,
+    Product => operators::fold::PRODUCT,
+    Mean => operators::fold::MEAN,
+    Median => operators::fold::MEDIAN,
+    Min => operators::fold::MIN,
+    Max => operators::fold::MAX,
+    Mod => operators::fold::MOD,
+    Gcd => operators::fold::GCD,
+    Lcm => operators::fold::LCM,
+    Count => operators::fold::COUNT,
+    Variance => operators::variance::DEFINITION,
+    StandardDeviation => operators::variance::STANDARD_DEVIATION,
+    And => operators::logic::DEFINITION,
+    Or => operators::logic::OR,
+    Xor => operators::logic::XOR,
+    Iff => operators::logic::IFF,
+    Implies => operators::logic::IMPLIES,
+    Not => operators::not::DEFINITION,
+    IsInteger => operators::is_integer::DEFINITION,
+    IsNumber => operators::is_number::DEFINITION,
+    IsBetween => operators::is_between::DEFINITION,
+    Ray => geometry::ray::DEFINITION,
+    Vector => geometry::vector::DEFINITION,
+    Rectangle => geometry::rectangle::DEFINITION,
+    RegularPolygon => geometry::regular_polygon::DEFINITION,
+    Angle => geometry::angle::DEFINITION,
+    Integer => values::formatted::INTEGER,
+    IntComma => values::formatted::INT_COMMA,
+    Pluralize => values::pluralize::DEFINITION,
+    Table => containers::layout::TABLE,
+    SbsGroup => containers::layout::SBS_GROUP,
+    AsList => containers::layout::AS_LIST,
+    Latex => containers::layout::LATEX,
+    Pretext => containers::layout::PRETEXT,
+    Article => containers::layout::ARTICLE,
+    Book => containers::layout::BOOK,
+    AxisLabel => containers::layout::AXIS_LABEL,
+    CumulativeSum => operators::scan::DEFINITION,
+    CumulativeProduct => operators::scan::CUMULATIVE_PRODUCT,
+    CumulativeMin => operators::scan::CUMULATIVE_MIN,
+    CumulativeMax => operators::scan::CUMULATIVE_MAX,
+    Differences => operators::scan::DIFFERENCES,
+    ArgMin => operators::index_of::DEFINITION,
+    ArgMax => operators::index_of::ARG_MAX,
+    IndexOf => operators::index_of::INDEX_OF,
+    SearchSorted => operators::index_of::SEARCH_SORTED,
+    Sort => operators::sort::DEFINITION,
+    Shuffle => operators::sort::SHUFFLE,
+    Sequence => values::sequence::DEFINITION,
+    SelectRandomNumbers => structure::select_random_numbers::DEFINITION,
+    SampleRandomNumbers => structure::sample_random_numbers::DEFINITION,
+    SelectPrimeNumbers => structure::select_prime_numbers::DEFINITION,
+    SamplePrimeNumbers => structure::sample_prime_numbers::DEFINITION,
+    ClampFunction => values::function_operators::DEFINITION,
+    WrapFunctionPeriodic => values::function_operators::WRAP_FUNCTION_PERIODIC,
+    BestFitLine => geometry::best_fit_line::DEFINITION,
+    Intersection => geometry::intersection::DEFINITION,
+    EquilibriumPoint => geometry::equilibrium_point::DEFINITION,
+    EquilibriumLine => geometry::equilibrium_line::DEFINITION,
+    Endpoint => geometry::endpoint::DEFINITION,
+    Parabola => geometry::parabola::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1154,7 +1258,6 @@ mod tests {
             Select,
             SelectFromSequence,
             Group,
-            Section,
             Title,
             Ref,
             List,

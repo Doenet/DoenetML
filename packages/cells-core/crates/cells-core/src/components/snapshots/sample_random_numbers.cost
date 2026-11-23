@@ -1,0 +1,3 @@
+samples of a discrete uniform: cells 11 · essential 0 · constant 11 · instrs 0 · components 2
+one sample by default: cells 8 · essential 0 · constant 8 · instrs 0 · components 3
+a sample count that is no whole number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

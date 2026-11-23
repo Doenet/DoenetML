@@ -1,9 +1,13 @@
-//! Document, graph, p, setup, group, sticky group, section, and the text
-//! and layout containers: types that hold other components. Document and section also hold credit.
+//! Document, graph, p, setup, group, sticky group, section, the text
+//! and layout containers, and the text markup: types that hold other components. Document and section also hold credit.
 
 use super::define::*;
 
+pub(crate) mod layout;
+pub(crate) mod markup;
 pub mod section;
+
+pub(crate) mod blocks;
 
 pub use section::SECTION_TAGS;
 
@@ -255,8 +259,10 @@ pub(crate) mod aside {
 
     component! {
         /// `<aside>`: a collapsible block whose `<title>` is the summary.
+        /// The renderer reads `startOpen`; the parser, `postponeRendering`.
         tags: ["aside"],
         flags: [container],
+        presentation { startOpen, postponeRendering }
         planner: Props,
     }
 }

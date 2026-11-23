@@ -343,6 +343,17 @@ impl ElemWiring {
         }
         port
     }
+    /// Hidden ports holding the outputs of a vector instruction over own
+    /// ports, consecutive, in order: what a type uses and does not show (a
+    /// rectangle's two opposite corners).
+    pub(crate) fn hidden_vector(&mut self, op: VecOp, args: Vec<Port>) -> Vec<Port> {
+        let head = self.hidden(Source::vector(op, args));
+        let mut ports = vec![head];
+        for k in 1..op.n_out() {
+            ports.push(self.hidden(Source::Flow(Flow::VecOut(head, byte(k)))));
+        }
+        ports
+    }
     /// A hidden port holding parameter `param` at `value`.
     pub(crate) fn param(&mut self, param: Param, value: f64) -> Port {
         self.hidden_wire(Wire::param(param, value))

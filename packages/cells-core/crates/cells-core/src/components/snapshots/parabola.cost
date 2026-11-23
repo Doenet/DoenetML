@@ -1,0 +1,10 @@
+nothing given: y = x², each coefficient its own: cells 216 · essential 7 · constant 4 · instrs 2 · components 5
+through one point: its vertex: cells 217 · essential 7 · constant 5 · instrs 2 · components 5
+through two points, with `a` free: cells 219 · essential 9 · constant 5 · instrs 2 · components 7
+through three points: cells 221 · essential 11 · constant 5 · instrs 2 · components 7
+a vertex, and a point dragged onto it: cells 217 · essential 7 · constant 5 · instrs 2 · components 5
+a vertex and a point: cells 219 · essential 9 · constant 5 · instrs 2 · components 6
+a copy overwrites what it gives: cells 627 · essential 4 · constant 23 · instrs 3 · components 5
+too many points: a warning: cells 208 · essential 4 · constant 4 · instrs 1 · components 3
+a vertex and two points: a warning: cells 208 · essential 4 · constant 4 · instrs 1 · components 3
+its curve spans the graph: cells 213 · essential 4 · constant 9 · instrs 1 · components 3

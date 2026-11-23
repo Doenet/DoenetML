@@ -67,6 +67,98 @@ fn choice_index_range(a: Range, n: Range) -> Range {
     }
 }
 
+/// `a` rounded by `f` (`floor` or `ceil`), except that a value within a
+/// relative 1e-15 of an integer is that integer, as the current core's
+/// `<floor>` and `<ceil>` take it, so roundoff does not drop a whole unit.
+#[inline]
+fn snap_to_integer(a: f64, f: fn(f64) -> f64) -> f64 {
+    let rounded = js_round(a);
+    if ((rounded - a) / a).abs() < 1e-15 {
+        rounded
+    } else {
+        f(a)
+    }
+}
+
+/// `a` with every magnitude below `|t|` taken as 0, as `set_small_zero`.
+#[inline]
+fn small_to_zero(a: f64, t: f64) -> f64 {
+    if a.abs() < t.abs() { 0.0 } else { a }
+}
+
+/// `a` rounded to `d` decimal places (a negative `d` to tens, hundreds,
+/// ...), halves away from zero, through the number's shortest decimal
+/// spelling, as the math engine's `round_numbers_to_decimals`: `0.5555` to
+/// three places is `0.556`. `d` is truncated to an integer.
+pub(super) fn round_to_decimals(a: f64, d: f64) -> f64 {
+    if !a.is_finite() {
+        return a;
+    }
+    math_expressions::Number::from_f64(a)
+        .round_to_decimals(d as i32)
+        .to_f64()
+}
+
+/// `a` rounded to `digits` significant digits, as the math engine's
+/// `round_numbers_to_precision`: unchanged when `digits` is below 1 or `a`
+/// is 0. `digits` is truncated to an integer.
+pub(super) fn round_to_digits(a: f64, digits: f64) -> f64 {
+    let digits = digits as i32;
+    if !a.is_finite() || a == 0.0 || digits < 1 {
+        return a;
+    }
+    let k = a.abs().log10().floor() as i64;
+    let d = (i64::from(digits) - 1 - k).clamp(i64::from(i32::MIN), i64::from(i32::MAX));
+    round_to_decimals(a, d as f64)
+}
+
+/// `a mod b`, as the math library's `mod`: `a - b * floor(a / b)`, the
+/// quotient taken as the integer it is within a relative 1e-12 of, and `a`
+/// when `b` is 0.
+pub(super) fn modulo(a: f64, b: f64) -> f64 {
+    if b == 0.0 {
+        return a;
+    }
+    let q = a / b;
+    let r = q.round();
+    let q = if q == r || (q - r).abs() <= 1e-12 * q.abs().max(r.abs()) {
+        r
+    } else {
+        q.floor()
+    };
+    a - b * q
+}
+
+/// The sign of `a`: -1, 0 or 1, and NaN for NaN (unlike `f64::signum`,
+/// which is 1 at 0).
+#[inline]
+fn sign(a: f64) -> f64 {
+    if a > 0.0 {
+        1.0
+    } else if a < 0.0 {
+        -1.0
+    } else {
+        a
+    }
+}
+
+/// The range of `|a|` over `a`.
+fn abs_range(a: Range) -> Range {
+    match a {
+        Range::Span(lo, hi) => {
+            let least = if lo >= 0.0 {
+                lo
+            } else if hi <= 0.0 {
+                -hi
+            } else {
+                0.0
+            };
+            Range::span(least, lo.abs().max(hi.abs()))
+        }
+        Range::Top => Range::Top,
+    }
+}
+
 /// The input an inverse writes: every scalar operator writes its first.
 const A: usize = 0;
 
@@ -163,6 +255,13 @@ scalar_ops! {
         eval: a.powf(b),
         drops,
     }
+    /// The square root of `a`, NaN below 0: a regular polygon's
+    /// circumradius from its area. A request writes its square; a
+    /// negative one is dropped.
+    Sqrt(a) {
+        eval: a.sqrt(),
+        exact |d| (d >= 0.0).then_some((A, d * d)),
+    }
     /// `a`: a held element's own cell for a value it reads from another
     /// element's, so the hold is on its cell and not on the other's.
     Copy(a) {
@@ -198,6 +297,66 @@ scalar_ops! {
     /// 1 when `a` does not hold.
     Not(a) {
         eval: bit(!holds(a)),
+        drops,
+        range: Range::UNIT,
+    }
+    /// `|a|`. An ask below zero, which no input gives, writes 0, the
+    /// nearest value it gives, as the current core's `<abs>` does.
+    Abs(a) {
+        eval: a.abs(),
+        exact |d| (!d.is_nan()).then_some((A, d.max(0.0))),
+        range: abs_range(a),
+    }
+    /// -1, 0 or 1 by the sign of `a`. A request cannot change it, as in
+    /// the current core.
+    Sign(a) {
+        eval: sign(a),
+        drops,
+        range: Range::span(-1.0, 1.0),
+    }
+    /// `a` rounded down, a value within roundoff of an integer being that
+    /// integer (`snap_to_integer`), as the current core's `<floor>`.
+    SnapFloor(a) {
+        eval: snap_to_integer(a, f64::floor),
+        projection |d| d.is_finite().then(|| (A, snap_to_integer(d, f64::floor))),
+        range: a.monotone(|x| snap_to_integer(x, f64::floor)),
+    }
+    /// `a` rounded up, as [`Op::SnapFloor`] rounds down.
+    SnapCeil(a) {
+        eval: snap_to_integer(a, f64::ceil),
+        projection |d| d.is_finite().then(|| (A, snap_to_integer(d, f64::ceil))),
+        range: a.monotone(|x| snap_to_integer(x, f64::ceil)),
+    }
+    /// `a` rounded to `b` decimal places (`round_to_decimals`).
+    RoundDecimals(a, b) {
+        eval: round_to_decimals(a, b),
+        projection |d| d.is_finite().then(|| (A, round_to_decimals(d, b))),
+    }
+    /// `a` rounded to `b` significant digits (`round_to_digits`).
+    RoundDigits(a, b) {
+        eval: round_to_digits(a, b),
+        projection |d| d.is_finite().then(|| (A, round_to_digits(d, b))),
+    }
+    /// `a`, or 0 when its magnitude is below `|b|` (`small_to_zero`).
+    SmallToZero(a, b) {
+        eval: small_to_zero(a, b),
+        projection |d| (!d.is_nan()).then(|| (A, small_to_zero(d, b))),
+    }
+    /// `a mod b` (`modulo`). A request cannot change it.
+    Mod(a, b) {
+        eval: modulo(a, b),
+        drops,
+    }
+    /// 1 when `a` is a finite integer, within a relative 1e-15 (the current
+    /// core's `<isInteger>`), else 0.
+    IsInteger(a) {
+        eval: bit(a.is_finite() && (js_round(a) - a).abs() <= 1e-15 * a.abs()),
+        drops,
+        range: Range::UNIT,
+    }
+    /// 1 when `a` is a finite number, else 0.
+    IsFinite(a) {
+        eval: bit(a.is_finite()),
         drops,
         range: Range::UNIT,
     }

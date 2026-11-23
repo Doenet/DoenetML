@@ -18,7 +18,8 @@ pub use instr::{
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{
-    MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp, fewest_in_sequence, sequence_count,
+    Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
+    RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
     sequence_index,
 };
 
@@ -565,7 +566,32 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::ClampFunction | SymKind::WrapFunctionPeriodic => {
+            out[0] = match handle(v(0)) {
+                Some(h) if v(1).is_finite() && v(2).is_finite() => {
+                    let h = if kind == SymKind::ClampFunction {
+                        engine.clamp(h, v(1), v(2))
+                    } else {
+                        engine.wrap_periodic(h, v(1), v(2))
+                    };
+                    h.to_value()
+                }
+                _ => f64::NAN,
+            }
+        }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
+        SymKind::SampleQuadratic => {
+            let (a, b, c, lo, hi) = (v(0), v(1), v(2), v(3), v(4));
+            if lo.is_finite() && hi.is_finite() {
+                let step = (hi - lo) / (SAMPLES - 1) as f64;
+                for (i, o) in out.iter_mut().enumerate() {
+                    let x = lo + step * i as f64;
+                    *o = (a * x + b) * x + c;
+                }
+            } else {
+                out.fill(f64::NAN);
+            }
+        }
         SymKind::Sample => {
             let (lo, hi) = (v(1), v(2));
             match handle(v(0)) {

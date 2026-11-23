@@ -69,7 +69,19 @@ pub(crate) fn wiring_of(x: Source, y: Source) -> ElemWiring {
 /// Plans a point: coordinates from `coords`, from `x`/`y`, or from
 /// `(a, b)` children; a constraint child wraps them in a projection.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let mut wiring = ElemWiring::of(ComponentType::Point);
+    plan_as(ctx, ComponentType::Point, [])
+}
+
+/// Plans an element of `component_type`, whose table starts as a point's
+/// and whose attributes and children start as a point's declare them (an
+/// `<equilibriumPoint>`, an `<endpoint>`), as a point; `extra` plans the
+/// props its table has after a point's.
+pub(super) fn plan_as(
+    ctx: &mut PlanCtx<'_, '_>,
+    component_type: ComponentType,
+    extra: impl IntoIterator<Item = Wire>,
+) -> Result<ElemWiring> {
+    let mut wiring = ElemWiring::of(component_type);
     let attrs = Attrs::of(ctx.record());
     // A coordinate the children give is a given leaf of the children,
     // the element's own or its referent's, which a copy then shares.
@@ -116,7 +128,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ));
         }
     };
-    wiring.set_public(Props { x, y, hide });
+    wiring.set_public(Props { x, y, hide }.into_iter().chain(extra));
     Ok(wiring)
 }
 

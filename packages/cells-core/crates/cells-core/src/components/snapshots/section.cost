@@ -1,0 +1,10 @@
+sections show their parent's number: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
+the divisions of every tag share one counter: cells 28 · essential 0 · constant 28 · instrs 0 · components 9
+each tag's label names its title: cells 41 · essential 0 · constant 41 · instrs 0 · components 13
+boxed is the renderer's: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
+a division given by its type: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
+only a section shows its parent's number by default: cells 27 · essential 0 · constant 27 · instrs 0 · components 9
+questions and activities aggregate scores; theorems do not: cells 35 · essential 6 · constant 17 · instrs 9 · components 10
+problems and exercises are numbered among the divisions, their problems among themselves: cells 20 · essential 0 · constant 20 · instrs 0 · components 7
+problems and exercises take includeParentNumber: cells 23 · essential 0 · constant 23 · instrs 0 · components 8
+the parts of a problem count from 1: cells 22 · essential 0 · constant 22 · instrs 0 · components 8
