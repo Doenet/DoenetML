@@ -92,12 +92,12 @@ spec! {
                   <mean name="m">x y</mean>
                   <max name="hi">x y 3</max>
                   <mod name="md">x 3</mod>
-                  <mod name="blank">x 3 4</mod>
+                  <mod name="three">x 3 4</mod>
                   <median name="med">x 3</median>"#;
         expect {
             "s.expr" = "x + 2 x", "s.value" = f64::NAN, "simp.expr" = "3 x + y",
             "m.expr" = "(x + y)/2", "hi.expr" = "max(x, y, 3)", "md.expr" = "mod(x, 3)",
-            "blank.expr" = "\u{ff3f}", "med.expr" = "", "med.value" = f64::NAN,
+            "three.expr" = "", "three.value" = f64::NAN, "med.expr" = "", "med.value" = f64::NAN,
         }
     }
 

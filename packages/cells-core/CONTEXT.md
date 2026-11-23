@@ -316,6 +316,14 @@ symbolic engine.
 number-typed components with numeric operators at build time, so it never
 becomes a math cell. Decided at build time, never from runtime values.
 
+**Operator over math** — A component type whose value is an operator over
+operands that may be expressions (`<abs>`, `<sum>`, `<round>`; ADR 0043):
+numeric, its operator over numbers, when the type pass proves every
+operand a number, else symbolic, a math cell (`expr`) holding the
+engine's operator over the operands, which its `value` evaluates.
+`forceSymbolic` and `forceNumeric` decide instead. Decided per element
+when compiled, never from runtime values.
+
 **Constant** — A cell whose value depends on the source, the seed and
 the scope it is in alone (ADR 0028): no tick changes it, and no rebuild changes
 it for a scope that still exists. Every given value no student's action can

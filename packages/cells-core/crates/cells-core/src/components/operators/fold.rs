@@ -77,7 +77,9 @@ fn reduction(ty: ComponentType) -> Reduction {
 
 /// What a type of this table is over math, as the engine reads it, from
 /// its operands' texts (each in parentheses), as the current core builds
-/// it; `None` for one the current core computes over numbers only.
+/// it. `None` for one the current core computes over numbers only, and
+/// for a `<mod>` of other than two operands, which has no value either
+/// way (the current core's is the blank expression).
 fn spelled(ty: ComponentType, texts: &[String]) -> Option<String> {
     let n = texts.len();
     let call = |f: &str| format!("{f}({})", texts.join(", "));
@@ -89,9 +91,7 @@ fn spelled(ty: ComponentType, texts: &[String]) -> Option<String> {
         ComponentType::Max => call("max"),
         ComponentType::Gcd => call("gcd"),
         ComponentType::Lcm => call("lcm"),
-        // Of other than two operands, the blank expression.
         ComponentType::Mod if n == 2 => call("mod"),
-        ComponentType::Mod => String::new(),
         _ => return None,
     })
 }
@@ -109,11 +109,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let pieces = attrs.children;
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ty);
-    let kind = match ty {
-        ComponentType::Median | ComponentType::Count => Kind::Numeric,
-        _ => Kind::forced(attrs.forceSymbolic, attrs.forceNumeric),
-    };
-    let expr = if pieces.is_empty() || kind == Kind::Numeric {
+    let kind = Kind::forced(attrs.forceSymbolic, attrs.forceNumeric);
+    // Only the shape of the text matters here: whether there is one.
+    let over_math = spelled(ty, &vec![String::new(); pieces.len()]).is_some();
+    let expr = if pieces.is_empty() || kind == Kind::Numeric || !over_math {
         Wire::absent()
     } else {
         let args = over_math::operand_exprs(ctx, &pieces)?;

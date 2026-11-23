@@ -44,14 +44,17 @@ pub(crate) const STANDARD_DEVIATION: ComponentDef = DEFINITION.with_tags(&["stan
 
 /// The variance of operands spelled `texts` (each in parentheses), as the
 /// current core builds it: a population's when `population`, and its
-/// square root for a standard deviation.
+/// square root for a standard deviation. `texts` are the operands twice
+/// over, once for the squares and once for the sum, in the order the text
+/// spells them, so the operator expression's leaves are the text's.
 fn spelled(ty: ComponentType, population: bool, texts: &[String]) -> String {
-    let n = texts.len();
-    let squares: Vec<String> = texts.iter().map(|t| format!("{t}^2")).collect();
+    let (squared, summed) = texts.split_at(texts.len() / 2);
+    let n = squared.len();
+    let squares: Vec<String> = squared.iter().map(|t| format!("{t}^2")).collect();
     let spread = format!(
         "(({}) - ({})^2 / {n}) / {}",
         squares.join(" + "),
-        texts.join(" + "),
+        summed.join(" + "),
         if population { n } else { n - 1 }
     );
     if ty == ComponentType::Variance {
@@ -77,7 +80,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let expr = match population {
         Some(population) if !pieces.is_empty() && kind != Kind::Numeric => {
             let args = over_math::operand_exprs(ctx, &pieces)?;
-            let id = ctx.operator_expr(&args, |texts| spelled(ty, population, texts));
+            let twice = [args.as_slice(), args.as_slice()].concat();
+            let id = ctx.operator_expr(&twice, |texts| spelled(ty, population, texts));
             let post = over_math::simplify_post(attrs.simplify, attrs.expand);
             kind.expr(Some(id), post)
         }

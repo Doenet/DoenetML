@@ -118,7 +118,9 @@ fn list_operators_over_math() {
     assert_eq!(expr(&doc, "lo").as_deref(), Some("min(x, 3)"));
     assert_eq!(expr(&doc, "hi").as_deref(), Some("max(x, y, 3)"));
     assert_eq!(expr(&doc, "md").as_deref(), Some("mod(x, 3)"));
-    assert_eq!(expr(&doc, "m3").as_deref(), Some("\u{ff3f}"));
+    // Of three operands, no value, as the current core's blank.
+    assert_eq!(expr(&doc, "m3"), None);
+    assert!(value(&doc, "m3").is_nan());
     assert_eq!(expr(&doc, "g").as_deref(), Some("gcd(x, 12)"));
     assert_eq!(expr(&doc, "l").as_deref(), Some("lcm(x, 12)"));
     assert_eq!(
@@ -184,4 +186,29 @@ fn a_copy_is_its_kind() {
     assert_eq!(expr(&doc, "c").as_deref(), Some("x + y"));
     assert_eq!(expr(&doc, "b"), None);
     assert_eq!(value(&doc, "b"), 3.0);
+}
+
+/// The input signature (ADR 0017) is made over operators over math, whose
+/// templates' leaves are their texts' (a variance's operands twice over),
+/// and an edit to what reads the inputs harms none.
+#[test]
+fn the_input_signature_reads_an_operator_over_math() {
+    use cells_core::dast::Dast;
+    use cells_core::testing::test_utils::dast_json;
+    use cells_core::{compare_signatures, input_signature};
+    let signature = |op: &str| {
+        let src = format!(
+            r#"<mathInput name="a" prefill="x"><label>a</label></mathInput>
+               <mathInput name="b" prefill="y"><label>b</label></mathInput>
+               {op}"#
+        );
+        input_signature(&Dast::from_json(&dast_json(&src)).unwrap()).unwrap()
+    };
+    let one = signature(
+        r#"<variance>$a $b</variance><abs>$a</abs><angle radians="$b"/>
+           <mod>$a $b 3</mod><max>$a $b 3</max>"#,
+    );
+    let other = signature(r#"<standardDeviation population>$a $b</standardDeviation>"#);
+    assert!(compare_signatures(&one, &one).safe());
+    assert!(compare_signatures(&one, &other).safe());
 }
