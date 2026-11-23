@@ -232,11 +232,24 @@ impl<'s, 'a> Types<'s, 'a> {
                     PortType::Math
                 }
                 Flow::Op(spec, args) => {
-                    for a in args {
+                    // A join and an order read text (ADR 0053).
+                    let reads_text = matches!(spec, OpSpec::Sym(kind) if kind.reads_text());
+                    // A choose over own ports holds what its branches hold
+                    // (a sort's entry, ADR 0041 decision 7).
+                    let chooses = matches!(spec, OpSpec::Vec(VecOp::Choose { .. }));
+                    // A value shown as it is holds what it reads.
+                    let shown = matches!(spec, OpSpec::Shown);
+                    let mut branches = PortType::Num;
+                    for (i, a) in args.iter().enumerate() {
                         let ty = self.arg_type(t, e, pi, *a, check)?;
+                        if (chooses && i > 0) || shown {
+                            branches = branches.join(ty);
+                            continue;
+                        }
                         // A reference read by an operator is a number: text
                         // compares only through the planned `Eq` of own ports.
                         if check
+                            && !reads_text
                             && ty == PortType::Text
                             && let Arg::Ref(p, _) = a
                         {
@@ -252,6 +265,8 @@ impl<'s, 'a> Types<'s, 'a> {
                     }
                     match spec {
                         OpSpec::Sym(kind) if kind.makes_math() => PortType::Math,
+                        OpSpec::Sym(kind) if kind.makes_text() => PortType::Text,
+                        _ if chooses || shown => branches,
                         _ => PortType::Num,
                     }
                 }

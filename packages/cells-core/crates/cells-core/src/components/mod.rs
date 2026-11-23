@@ -1146,8 +1146,10 @@ mod tests {
         // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
         // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
         // entries and an entry read as math. 27: ADR 0043 added
-        // `operand_expr` and `operator_expr`, for operators over math.
-        const PLAN_CTX_METHODS: usize = 27;
+        // `operand_expr` and `operator_expr`, for operators over math. 29:
+        // ADR 0053 added `entry_kind` and `reference_entries`, for what a
+        // sort compares and what a text joins.
+        const PLAN_CTX_METHODS: usize = 29;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

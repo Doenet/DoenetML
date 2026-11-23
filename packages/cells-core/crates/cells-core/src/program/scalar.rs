@@ -286,6 +286,14 @@ scalar_ops! {
         exact |d| Some((A, d)),
         range: a,
     }
+    /// `a`, shown where a request cannot reach back to it: an operand as a
+    /// `<sort>`'s entry shows it, whose place a write would move, so a
+    /// request on the entry is dropped (ADR 0053).
+    Shown(a) {
+        missing: reads,
+        eval: a,
+        drops,
+    }
     /// `a < b`, for conditions: 1 or 0, and 0 when either side is NaN. A
     /// request cannot change a condition.
     Lt(a, b) {

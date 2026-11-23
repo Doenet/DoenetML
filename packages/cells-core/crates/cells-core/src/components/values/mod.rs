@@ -87,13 +87,53 @@ pub(crate) fn plan_list(
                     EntryKind::Math => {
                         Wire::given_math(id, crate::sym::Engine::new().parse_tree(text.trim()).ok())
                     }
-                    EntryKind::Point => unreachable!("a value list's entries are values"),
+                    EntryKind::Point | EntryKind::Any => {
+                        unreachable!("a value list's entries are values of a kind")
+                    }
                 }
             }
         })
         .collect();
     wiring.set_entries(entries);
     Ok((wiring, n))
+}
+
+/// The text of `entries` joined with commas, each as it reads (a `Join`,
+/// ADR 0053): a hidden port per entry, a reference's alias. A string made
+/// in the tick when an entry is not constant.
+pub(crate) fn joined(wiring: &mut ElemWiring, entries: Vec<ListEntry>, booleans: bool) -> Source {
+    let ports: Vec<_> = entries
+        .into_iter()
+        .filter_map(|e| match e {
+            ListEntry::Ref(p) => Some(wiring.hidden(Source::reference(p))),
+            _ => None,
+        })
+        .collect();
+    if ports.is_empty() {
+        return Source::constant(crate::program::MISSING);
+    }
+    let op = crate::program::OpSpec::Sym(SymKind::Join {
+        n: crate::limits::byte(ports.len()),
+        kinds: 0,
+        booleans,
+    });
+    Source::computed(op, ports)
+}
+
+/// A value list's `text`: its `n` entries joined, as [`joined`] joins
+/// them (the current core's `text` of a list).
+pub(crate) fn joined_entries(wiring: &ElemWiring, n: usize, booleans: bool) -> Source {
+    if n == 0 {
+        // No entries: the missing value (ADR 0041 decision 5).
+        return Source::constant(crate::program::MISSING);
+    }
+    let ports: Vec<_> = (0..n).map(|k| wiring.entry(k)).collect();
+    let op = crate::program::OpSpec::Sym(SymKind::Join {
+        n: crate::limits::byte(n),
+        kinds: 0,
+        booleans,
+    });
+    Source::computed(op, ports)
 }
 
 /// `<number>`: a numeric value.

@@ -55,7 +55,7 @@ drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
-numbers), `sequence` (numbers, literal parameters), and
+numbers, texts and maths; not points), `sequence` (numbers, literal parameters), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
 from the document seed, and the function operators `clampFunction` and

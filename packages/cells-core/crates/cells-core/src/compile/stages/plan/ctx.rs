@@ -1,6 +1,6 @@
 //! [`PlanCtx`]: what every component planner is given.
 
-use super::{ListEntry, Planning};
+use super::{ListEntry, Planning, Splice};
 use crate::compile::ir::record::ListPiece;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
@@ -301,6 +301,31 @@ impl<'a> PlanCtx<'_, 'a> {
                 self.p.ar.sym_text.insert(id, SymText::Leaf(*p));
                 Some(id)
             }
+        }
+    }
+
+    /// What an entry of a list reads, as far as the records tell (a
+    /// reference's referent's type, ADR 0053): math text is math, a piece
+    /// of text none (its reader decides).
+    pub(crate) fn entry_kind(&self, entry: &ListEntry) -> Option<ValueKind> {
+        match entry {
+            ListEntry::Text(..) => None,
+            ListEntry::Math(_) => Some(ValueKind::Math),
+            ListEntry::Ref(p) => self.p.rd.ref_value_kind(&self.p.ar, self.t, *p),
+        }
+    }
+
+    /// The entries reference `p` contributes when it names a static
+    /// sequence (ADR 0041, decision 5): one reference per entry (`$p[k]`);
+    /// None when it names one value.
+    pub(crate) fn reference_entries(&mut self, p: RefId) -> Option<Vec<ListEntry>> {
+        match self.p.splice(self.t, self.e, p) {
+            Splice::Entries(n) => Some(
+                (1..=n)
+                    .map(|k| ListEntry::Ref(self.p.entry_ref(self.t, p, k)))
+                    .collect(),
+            ),
+            Splice::Value | Splice::Nothing => None,
         }
     }
 

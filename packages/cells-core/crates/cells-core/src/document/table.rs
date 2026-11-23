@@ -332,16 +332,21 @@ impl Document {
         // A value list shows its entries, separated by commas (ADR 0041).
         if let Some(kind) = ty.list_entry().filter(|&k| k != EntryKind::Point) {
             let n_table = ty.prop_defs().len();
+            // `asList="false"`: no separator (a `<sort>`'s, a `<shuffle>`'s).
+            let separator = match ty.prop_index("asList").and_then(value) {
+                Some(0.0) => "",
+                _ => ", ",
+            };
             for (k, cell) in cells.iter().skip(n_table).enumerate() {
                 if k > 0 {
-                    out.push_str(", ");
+                    out.push_str(separator);
                 }
                 let v = self.cells[cell.index()];
                 match kind {
                     EntryKind::Number => out.push_str(&format_number(v)),
                     EntryKind::Text => out.push_str(&self.text_value(*cell)),
                     EntryKind::Boolean => out.push_str(boolean_text(v)),
-                    EntryKind::Math => out.push_str(&self.held_text(*cell)),
+                    EntryKind::Math | EntryKind::Any => out.push_str(&self.held_text(*cell)),
                     EntryKind::Point => unreachable!("filtered above"),
                 }
             }
@@ -483,7 +488,7 @@ fn boolean_text(v: f64) -> &'static str {
 
 /// A number as text, as the current core formats one; the missing value is
 /// the blank and the NaN of a computation with no value `NaN`.
-fn format_number(v: f64) -> String {
+pub(crate) fn format_number(v: f64) -> String {
     if crate::program::is_missing(v) {
         return BLANK.into();
     }

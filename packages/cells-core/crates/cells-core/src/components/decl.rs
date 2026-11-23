@@ -736,6 +736,10 @@ pub enum EntryKind {
     Boolean,
     /// An expression handle, or a number where an entry aliases one.
     Math,
+    /// What its operands hold, one kind for all, which the compile
+    /// decides per element (a `<sort>`'s, ADR 0053): read as its cell
+    /// holds it.
+    Any,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
