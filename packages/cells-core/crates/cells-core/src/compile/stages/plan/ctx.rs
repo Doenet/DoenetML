@@ -19,16 +19,18 @@ pub(crate) struct PlanCtx<'c, 'a> {
     /// The element's record: its own, merged under its `extend` referent's
     /// for a copy with overrides.
     record: record::Record,
-    /// The `extend` referent of a copy with overrides, in this template,
-    /// whose math text in the record is planned where it sits.
-    referent: Option<Base>,
+    /// The `extend` referents of a copy with overrides in this template,
+    /// the chain it stands on, nearest first: what the record holds from
+    /// each is planned where it sits.
+    referents: Vec<Base>,
+    /// For a `<math>` that writes no text, its referents' nearest text
+    /// (`Planning::inherit`).
+    inherited_math: Option<ParsedMath>,
 }
 
-/// The `extend` referent of a `Plan` type planned with overrides: an
+/// An `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
-    /// The referent.
-    elem: ElemId,
     /// Where its children are planned.
     scope: ElemId,
     /// Every node under it: what a planner reads from it rather than from
@@ -42,9 +44,10 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         t: TemplateId,
         e: ElemId,
         record: record::Record,
-        referent: Option<ElemId>,
+        referents: Vec<ElemId>,
+        inherited_math: Option<ParsedMath>,
     ) -> Self {
-        let referent = referent.map(|b| {
+        let referents = referents.into_iter().map(|b| {
             let Elem {
                 node, name_scope, ..
             } = *p.rd.referent_row(t, b);
@@ -63,17 +66,18 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 }
             }
             Base {
-                elem: b,
                 scope: name_scope,
                 subtree,
             }
         });
+        let referents = referents.collect();
         PlanCtx {
             p,
             t,
             e,
             record,
-            referent,
+            referents,
+            inherited_math,
         }
     }
 }
@@ -87,13 +91,13 @@ impl<'a> PlanCtx<'_, 'a> {
         self.elem().name_scope
     }
 
-    /// Where nodes are planned: the referent's scope for nodes under the
+    /// Where nodes are planned: a referent's scope for nodes under that
     /// referent (its children), else the element's.
     fn scope_for(&self, nodes: &[NodeId]) -> ElemId {
-        match (&self.referent, nodes.first()) {
-            (Some(b), Some(n)) if b.subtree.contains(n) => b.scope,
-            _ => self.scope(),
-        }
+        nodes
+            .first()
+            .and_then(|n| self.referents.iter().find(|b| b.subtree.contains(n)))
+            .map_or_else(|| self.scope(), |b| b.scope)
     }
 
     /// The element's record: every attribute its type declares and its
@@ -523,20 +527,14 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The element's `<math>` text as it was parsed, or the
     /// error parsing it met. An extend that writes no text of its own reads
-    /// its referent's, whose references were planned where the referent
-    /// sits (REF-3, REF-6): math text is no attribute, so it is not in the
-    /// merged record.
+    /// the nearest text along the chain of referents it stands on, whose
+    /// references were planned where that referent sits (REF-3, REF-6):
+    /// math text is no attribute, so it is not in the merged record.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        let d = self.p.rd.dast;
-        let own_text = d
-            .children(self.node())
-            .iter()
-            .any(|&n| !self.p.rd.is_not_content(n));
-        let at = match &self.referent {
-            Some(b) if !own_text => b.elem,
-            _ => self.e,
-        };
-        match self.p.parsed.math(self.t, at) {
+        if let Some(math) = &self.inherited_math {
+            return Ok(math.clone());
+        }
+        match self.p.parsed.math(self.t, self.e) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }
@@ -633,5 +631,83 @@ impl Inner {
     /// Its port `port`, read by the owner.
     pub(crate) fn port(self, port: Port) -> Source {
         Source::alias(Arg::Elem(self.0, port))
+    }
+}
+
+/// What a section reads of the tree around it (ADR 0058): an ancestor's
+/// prop, and its `<title>` child's text.
+impl PlanCtx<'_, '_> {
+    /// Prop `name` of the nearest ancestor of the element whose type
+    /// `which` accepts, as a reference up the tree read where the element
+    /// sits (ADR 0050: a dependency in the tree), through the repeats and
+    /// choices around its template. None when no ancestor is one; `Some(None)`
+    /// when the nearest one's type has no prop so named.
+    pub(crate) fn ancestor_prop(
+        &mut self,
+        which: impl Fn(ComponentType) -> bool,
+        name: &str,
+    ) -> Option<Option<Source>> {
+        let (mut t, mut e, mut hops) = (self.t, self.e, 0u32);
+        loop {
+            let (at, ae, row) = self.p.rd.enclosing_row(t, e)?;
+            hops += u32::from(at != t);
+            (t, e) = (at, ae);
+            let ty = row.component_type;
+            if !which(ty) {
+                continue;
+            }
+            let Some(prop) = RefProp::named(ty, name) else {
+                return Some(None);
+            };
+            let plan = RefPlan {
+                hops,
+                steps: vec![Step::Elem(ae)],
+                prop: Some(prop),
+                entries: Vec::new(),
+                display: RefDisplay::Spelled(
+                    format!("(the {name} of the enclosing <{}>)", ty.tag()).into(),
+                ),
+                node: NodeId::NONE,
+            };
+            return Some(Some(Source::reference(self.p.ar.push_ref(plan))));
+        }
+    }
+
+    /// The text of the element's last child of type `ty` (a section's
+    /// `<title>`, the one the current core reads): `Some(Some(text))` when
+    /// it holds literal text alone, `Some(None)` when it holds anything
+    /// else, None when the element has no such child. A clone (a child of
+    /// a container copy) holds its original's.
+    pub(crate) fn last_child_text(&self, ty: ComponentType) -> Option<Option<String>> {
+        let d = self.p.rd.dast;
+        let x = self
+            .p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .rfind(|&x| self.p.rd.owned_row(self.t, self.e, x).component_type == ty)?;
+        let mut row = self.p.rd.owned_row(self.t, self.e, x);
+        while row.node == NodeId::NONE {
+            let original = row.extend.and_then(|p| match &self.p.ar.refs[p.index()] {
+                RefPlan { hops: 0, steps, .. } => match steps[..] {
+                    [Step::Elem(o)] => Some(o),
+                    _ => None,
+                },
+                _ => None,
+            });
+            let Some(o) = original else {
+                return Some(None);
+            };
+            row = self.p.rd.referent_row(self.t, o);
+        }
+        let mut text = String::new();
+        for &n in d.children(row.node) {
+            match d.kind(n) {
+                NodeKind::Text => text.push_str(d.str(n)),
+                NodeKind::Other => {}
+                _ => return Some(None),
+            }
+        }
+        Some(Some(text))
     }
 }

@@ -293,6 +293,7 @@ component_types! {
     Matrix => values::matrix::DEFINITION,
     MatrixRow => values::matrix::row::DEFINITION,
     MatrixColumn => values::matrix::column::DEFINITION,
+    Page => containers::blocks::page::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -950,6 +951,14 @@ impl ComponentType {
         self.def().numbering
     }
 
+    /// Whether the list items' sequence passes through it (ADR 0054, ADR
+    /// 0058): a structure, or a type both sequences pass through (a
+    /// `<page>`). A section's parent, whose `asList` makes it a list item,
+    /// is its nearest ancestor that is neither.
+    pub fn passes_list_items(self) -> bool {
+        self.structure_kind().is_some() || self.numbering() == Some(Numbering::PassesBoth)
+    }
+
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
     /// its value, when `to` takes a value rather than a copy: `value` for a
     /// boolean of an input that reads as a boolean, else `from`'s default
@@ -1316,7 +1325,9 @@ mod tests {
         // sort compares and what a text joins. 38: ADR 0053 added
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
-        const PLAN_CTX_METHODS: usize = 38;
+        // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
+        // section's full number and title as text.
+        const PLAN_CTX_METHODS: usize = 40;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

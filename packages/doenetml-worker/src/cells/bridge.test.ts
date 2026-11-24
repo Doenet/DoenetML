@@ -1780,3 +1780,45 @@ describe("a line in text", () => {
         expect((updates[l].changedState as any).latex).toBe("0 = -5 x + 3 y");
     });
 });
+
+describe("a page", () => {
+    it("is a block around its children, and the sections in it are numbered as beside it", async () => {
+        const bridge = await load(
+            `<page><section><title>A</title></section></page><section><title>B</title></section>`,
+        );
+        const root = bridge.flatDast();
+        const [page] = byName(root, "div");
+        const divisions = byName(root, "division");
+        expect(page.children).toContainEqual(
+            expect.objectContaining({ id: divisions[0].data.id }),
+        );
+        expect(divisions.map((d) => (d.data as any).props.codeNumber)).toEqual([
+            "1",
+            "2",
+        ]);
+    });
+});
+
+describe("number display settings", () => {
+    it("follow a setting given by a reference", async () => {
+        const bridge = await load(
+            `<booleanInput name="b" label="b"/><number name="n">2</number>
+<p><math displayDecimals="3" padZeros="$b">1.5</math> <number displayDecimals="$n">1.23456</number></p>`,
+        );
+        const root = bridge.flatDast();
+        const [math] = byName(root, "math");
+        const numbers = byName(root, "number");
+        expect((math.data as any).props.latex).toBe("1.5");
+        expect((numbers[1].data as any).props.text).toBe("1.23");
+        const [b] = byName(root, "booleanInput");
+        const payload = bridge.dispatch({
+            component: "booleanInput",
+            actionName: "updateBoolean",
+            componentIdx: b.data.id,
+            args: { boolean: true },
+        }).payload as Record<number, ElementUpdate>;
+        expect((payload[math.data.id]?.changedState as any).latex).toBe(
+            "1.500",
+        );
+    });
+});

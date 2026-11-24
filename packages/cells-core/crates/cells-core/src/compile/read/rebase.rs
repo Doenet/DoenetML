@@ -51,6 +51,26 @@ impl<'a> SourceReader<'a> {
         record
     }
 
+    /// A `<math>`'s parsed text `math`, the referent's, as read from the
+    /// template the extend `path` is planned from: each expression's
+    /// references composed with `path` (`rebase_expr`).
+    pub(in crate::compile) fn rebase_math(
+        &self,
+        ar: &mut Arenas,
+        path: RefId,
+        math: ParsedMath,
+    ) -> ParsedMath {
+        let down = self.levels_entered(ar, path);
+        match math {
+            ParsedMath::Expr(id) => ParsedMath::Expr(self.rebase_expr(ar, path, down, id)),
+            ParsedMath::Entries(ids) => ParsedMath::Entries(
+                ids.into_iter()
+                    .map(|id| self.rebase_expr(ar, path, down, id))
+                    .collect(),
+            ),
+        }
+    }
+
     /// How many templates the steps of `path` enter: an index into a
     /// repeat or a select, an interface name into a branch.
     fn levels_entered(&self, ar: &Arenas, path: RefId) -> u32 {

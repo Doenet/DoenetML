@@ -39,7 +39,8 @@ and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `theorem`, `paragraphs`, `objectives`, `part`, `task`, `problems`,
 `exercises`, numbered with the sections) and the unnumbered `proof`, the
 blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
-`caption`) and `footnote`, numbered through the document (ADR 0044), the
+`caption`) and `footnote`, numbered through the document (ADR 0044),
+`page` (both numbering sequences pass through it, ADR 0058), the
 numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,

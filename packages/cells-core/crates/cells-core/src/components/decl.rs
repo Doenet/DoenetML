@@ -736,6 +736,11 @@ pub enum Numbering {
     /// a place among its parent's list items, none among the divisions,
     /// and bounds both.
     Unnumbered,
+    /// Both sequences pass through it (a `<page>`; ADR 0058): a division
+    /// and a list item inside it are numbered among those around it, and
+    /// its parent's `asList` reaches the sections inside it, as through a
+    /// structure. It is no structure otherwise: its children are its own.
+    PassesBoth,
 }
 
 /// A group of element children of given types (`constraints:
@@ -1009,6 +1014,14 @@ pub enum PropFrom {
         /// 0 for x, 1 for y.
         coord: u8,
     },
+    /// A number display setting of the same name (`displayDigits`,
+    /// `displayDecimals`, `displaySmallAsZero`, `padZeros`,
+    /// `avoidScientificNotation`, `displayBlanks`): the element's own
+    /// attribute, a literal or a reference a tick may change, planned by
+    /// the compile for every type that has one, whatever its planner, after
+    /// the planner runs (ADR 0058). Without the attribute, not given (NaN):
+    /// the reader takes it from the nearest referent that gives it.
+    Display,
 }
 
 /// A set of components around an element, described at compile time and

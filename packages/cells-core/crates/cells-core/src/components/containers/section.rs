@@ -4,6 +4,7 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
+use crate::program::{OpSpec, SymKind, VecOp, texts::Sep};
 
 component! {
     /// `<section>`, `<subsection>`, `<subsubsection>`, `<problem>`,
@@ -53,15 +54,15 @@ component! {
         // 0054): literals, since they decide how it is numbered.
         listItem: by_planner { rendered },
         asList: by_planner { rendered },
+        // Its full number ("2.1") and its title, as text a reference
+        // reads (`$sec.title`), made as a join is when a count changes
+        // (ADR 0058). The renderer composes the heading itself.
+        sectionNumber: by_planner { text },
+        title: by_planner { text },
     }
     // How its heading reads: the renderer's, from its number and title.
     presentation {
         boxed,
-        includeAutoName,
-        includeAutoNumber,
-        includeAutoNameIfNoTitle,
-        includeAutoNumberIfNoTitle,
-        noAutoTitle,
     }
     attributes {
         weight: Value,
@@ -70,6 +71,13 @@ component! {
         includeParentNumber: LiteralFlag,
         asList: LiteralFlag,
         renameTo: Text,
+        // Which words its title shows (ADR 0058); the renderer reads them
+        // for its heading too.
+        includeAutoName: LiteralFlag,
+        includeAutoNumber: LiteralFlag,
+        includeAutoNameIfNoTitle: LiteralFlag,
+        includeAutoNumberIfNoTitle: LiteralFlag,
+        noAutoTitle: LiteralFlag,
     }
     planner: Plan(plan),
 }
@@ -263,6 +271,10 @@ pub const LABEL: usize = Props::AT.label;
 pub const LIST_ITEM: usize = Props::AT.listItem;
 /// The position of `asList`: 1 when its sectioning children are its list's items.
 pub const AS_LIST: usize = Props::AT.asList;
+/// The position of `sectionNumber`: the string id of its full number ("2.1").
+pub const SECTION_NUMBER: usize = Props::AT.sectionNumber;
+/// The position of `title`: the string id of its title.
+pub const TITLE: usize = Props::AT.title;
 
 /// A section's `aggregateScores`, `includeParentNumber` and `label`:
 /// literals, defaulted by tag.
@@ -310,6 +322,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         )));
     }
     let mut wiring = ElemWiring::of(ComponentType::Section);
+    let section_number = section_number(ctx, &mut wiring, include != 0.0 && !section_tag.list_item);
+    let word = match &attrs.renameTo {
+        Some(word) => word.trim().to_string(),
+        None => section_tag.title.to_string(),
+    };
+    let title = title(ctx, &mut wiring, &attrs, &word);
     wiring.set_planned(Planned {
         weight: attrs.weight.unwrap_or(Source::given(1.0)).into(),
         aggregateScores: Wire::constant(aggregate),
@@ -317,8 +335,94 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         label: Wire::constant(label as f64),
         listItem: Wire::constant(f64::from(section_tag.list_item)),
         asList: Wire::constant(as_list),
+        sectionNumber: section_number.into(),
+        title: title.into(),
     });
     Ok(wiring)
+}
+
+/// A text-valued join of `n` inputs with `sep` between them (ADR 0058).
+fn join_with(n: usize, sep: Sep) -> OpSpec {
+    OpSpec::Sym(SymKind::JoinWith {
+        n: crate::limits::byte(n),
+        kinds: 0,
+        sep,
+    })
+}
+
+/// A section's full number as text, as `Document::section_number` composes
+/// it: its `number`, after its nearest numbered ancestor's full number when
+/// it includes it and is no item of its parent's list (`include`, from its
+/// own literals, and its parent's `asList`, ADR 0054). Each part is a cell
+/// a tick may change, so the text is made as a join is (ADR 0058).
+fn section_number(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, include: bool) -> Source {
+    let at = Props::PORTS;
+    let own = Source::computed(join_with(1, Sep::Dot), vec![at.number]);
+    if !include {
+        return own;
+    }
+    let parent = match ctx.ancestor_prop(|ty| ty.def().numbered.is_some(), "sectionNumber") {
+        None => return own,
+        Some(Some(parent)) => wiring.hidden(parent),
+        // A numbered ancestor that keeps no full number of its own (an
+        // `<aside>`): the number is not one this core composes.
+        Some(None) => return Source::absent(),
+    };
+    let with_parent = Source::computed(join_with(2, Sep::Dot), vec![parent, at.number]);
+    // Its parent (the nearest ancestor the list items do not pass through)
+    // may make it a list item, which shows no parent's number.
+    match ctx.ancestor_prop(|ty| !ty.passes_list_items(), "asList") {
+        Some(Some(as_list)) => {
+            let as_list = wiring.hidden(as_list);
+            let pick = wiring.hidden(Source::computed_k(OpSpec::Add, as_list, 1.0));
+            let with_parent = wiring.hidden(with_parent);
+            let own = wiring.hidden(own);
+            Source::vector(VecOp::Choose { n: 2 }, vec![pick, with_parent, own])
+        }
+        _ => with_parent,
+    }
+}
+
+/// A section's title as the current core's `title` reads it: its last
+/// `<title>` child's text, else its automatic title, `word` and its number
+/// as its heading flags ask ("Section 2.1"), in English. A title child
+/// that holds more than literal text, or a flag given by a reference,
+/// makes no text here (the missing value), which ADR 0058 leaves open.
+fn title(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, attrs: &Attrs, word: &str) -> Source {
+    let at = Props::PORTS;
+    let text =
+        |ctx: &mut PlanCtx<'_, '_>, s: &str| Source::Leaf(Leaf::GivenText(Some(ctx.intern(s))));
+    match ctx.last_child_text(ComponentType::Title) {
+        Some(Some(child)) => return text(ctx, &child),
+        Some(None) => return Source::absent(),
+        None => {}
+    }
+    let flags = [
+        attrs.includeAutoName,
+        attrs.includeAutoNumber,
+        attrs.includeAutoNameIfNoTitle,
+        attrs.includeAutoNumberIfNoTitle,
+        attrs.noAutoTitle,
+    ];
+    if flags.contains(&Some(None)) {
+        return Source::absent();
+    }
+    let flag = |f: Option<Option<bool>>, default: bool| f.flatten().unwrap_or(default);
+    let no_auto = flag(attrs.noAutoTitle, false);
+    let with_name = (flag(attrs.includeAutoName, false)
+        || (flag(attrs.includeAutoNameIfNoTitle, true) && !no_auto))
+        && !word.is_empty();
+    let with_number = flag(attrs.includeAutoNumber, false)
+        || (flag(attrs.includeAutoNumberIfNoTitle, true) && !no_auto);
+    match (with_name, with_number) {
+        (false, false) => text(ctx, ""),
+        (true, false) => text(ctx, word),
+        (false, true) => Source::own(at.sectionNumber),
+        (true, true) => {
+            let word = wiring.hidden(text(ctx, word));
+            Source::computed(join_with(2, Sep::Space), vec![word, at.sectionNumber])
+        }
+    }
 }
 
 #[cfg(all(test, feature = "testing"))]

@@ -263,10 +263,7 @@ impl<'c> Builder<'c> {
     /// list item (a `<part>`).
     fn has_list_item(&self, c: CompIdx) -> bool {
         self.component_children(c).into_iter().any(|k| {
-            if self.components.component_type[k.index()]
-                .structure_kind()
-                .is_some()
-            {
+            if self.components.component_type[k.index()].passes_list_items() {
                 self.has_list_item(k)
             } else {
                 self.numbered_flag(k, |n| n.list_item)
@@ -305,6 +302,10 @@ impl<'c> Builder<'c> {
                     self.number_through_repeat(k, gate, seq)
                 }
                 Some(StructureKind::Transparent { .. }) => self.number_sections(k, gate, seq),
+                // A page: both sequences continue through it (ADR 0058).
+                None if ty.numbering() == Some(Numbering::PassesBoth) => {
+                    self.number_sections(k, gate, seq)
+                }
                 None if ty.numbering() == Some(Numbering::PassesDivisions) => {
                     // The divisions inside continue the sequence; the list
                     // items inside are counted among themselves.

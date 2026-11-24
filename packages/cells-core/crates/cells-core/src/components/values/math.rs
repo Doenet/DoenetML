@@ -24,6 +24,13 @@ component! {
         value: children { rendered, expr_of: expr },
         // How many entries its value holds (ADR 0041, inside the handle).
         numDimensions: computed(OpSpec::Sym(SymKind::Count), [expr]),
+        // How its value shows (ADR 0058).
+        displayDigits: display,
+        displayDecimals: display,
+        displaySmallAsZero: display,
+        padZeros: display,
+        avoidScientificNotation: display,
+        displayBlanks: display,
         ..anchor
     }
     attributes {

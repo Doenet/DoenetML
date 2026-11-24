@@ -459,7 +459,7 @@ impl ElemWiring {
                 PropFrom::Computed { .. } | PropFrom::Aggregate(_) => {
                     Some(Wire::from_table(ty, Port::table(i)).source)
                 }
-                PropFrom::Anchor { .. } => Some(Source::absent()),
+                PropFrom::Anchor { .. } | PropFrom::Display => Some(Source::absent()),
                 PropFrom::ListLen => Some(Source::constant(self.n_points as f64)),
                 _ => None,
             };
