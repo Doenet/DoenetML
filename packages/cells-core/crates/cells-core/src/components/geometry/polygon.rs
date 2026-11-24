@@ -23,7 +23,7 @@ component! {
         // list.
         cx: by_planner { interactive },
         cy: by_planner { interactive },
-        // Whether a whole drag, and a vertex's, may move it (ADR 0064).
+        // Whether a whole drag, and a vertex's, may move it (ADR 0070).
         draggable: by_planner { rendered },
         verticesDraggable: by_planner { rendered },
     }

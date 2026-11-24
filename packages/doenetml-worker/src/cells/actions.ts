@@ -141,7 +141,7 @@ function switchFlag(prop: string): Resolver {
     };
 }
 
-/** Whether `c`'s 0/1 prop `prop` lets a drag move it (ADR 0064): the core
+/** Whether `c`'s 0/1 prop `prop` lets a drag move it (ADR 0070): the core
  * computes the flag and holds nothing by it; a type without the prop is
  * draggable. */
 function allows(t: CellsTable, c: number, prop: string): boolean {

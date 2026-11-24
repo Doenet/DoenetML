@@ -1,4 +1,4 @@
-//! What a drag of a shape may move (ADR 0064): its `draggable`, and the
+//! What a drag of a shape may move (ADR 0070): its `draggable`, and the
 //! flag of its parts (`verticesDraggable`, `endpointsDraggable`), each a
 //! 0/1 cell the renderer reads and the bridge checks before it turns a
 //! drag into requests. Nothing in the core holds by them: an input bound

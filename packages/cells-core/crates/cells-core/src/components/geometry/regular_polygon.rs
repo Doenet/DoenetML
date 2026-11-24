@@ -27,7 +27,7 @@ component! {
         sideLength: by_planner,
         perimeter: by_planner,
         area: by_planner,
-        // Whether a whole drag, and a vertex's, may move it (ADR 0064).
+        // Whether a whole drag, and a vertex's, may move it (ADR 0070).
         draggable: by_planner { rendered },
         verticesDraggable: by_planner { rendered },
     }

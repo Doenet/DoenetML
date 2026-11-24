@@ -770,7 +770,7 @@ function pointProps(r: Reads, c: number, inGraph: boolean) {
 
 /** A polygon's, a triangle's, a rectangle's and a regular polygon's
  * props, drawn only in a graph: its vertices, and what a drag may move
- * (ADR 0064), which the bridge's actions check. */
+ * (ADR 0070), which the bridge's actions check. */
 const POLYGON: Contract = {
     props: (r, c, inGraph) =>
         inGraph

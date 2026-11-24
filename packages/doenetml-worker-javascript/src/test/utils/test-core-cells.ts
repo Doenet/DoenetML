@@ -287,7 +287,7 @@ const polygonReaders: Record<string, Reader> = {
     numericalVertices: (g) =>
         items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
     center: (g) => pt(g, "cx", "cy"),
-    // What a drag may move (ADR 0064), 0/1 cells.
+    // What a drag may move (ADR 0070), 0/1 cells.
     draggable: (g) => g("draggable") !== 0,
     verticesDraggable: (g) => g("verticesDraggable") !== 0,
 };

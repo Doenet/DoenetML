@@ -669,7 +669,7 @@ describe("step 3 components", () => {
         });
     });
 
-    it("drags a polygon only as far as its draggable flags allow (ADR 0064)", async () => {
+    it("drags a polygon only as far as its draggable flags allow (ADR 0070)", async () => {
         const { props, send, changed } = await open(`<booleanInput name="d"/>
 <graph>
 <rectangle vertices="(0,0) (2,1)" draggable="$d" verticesDraggable="true"/>

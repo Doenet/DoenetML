@@ -106,7 +106,7 @@ spec! {
         request { "d.value" = 1 }
         expect { "r.draggable" = 1, "r.verticesDraggable" = 1 }
         // An input bound to the rectangle still writes it when not draggable:
-        // only a drag reads the flags (ADR 0064).
+        // only a drag reads the flags (ADR 0070).
         request { "d.value" = 0 }
         request { "w.value" = 3 }
         expect { "r.width" = 3 }
