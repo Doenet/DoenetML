@@ -23,6 +23,9 @@ component! {
         // list.
         cx: by_planner { interactive },
         cy: by_planner { interactive },
+        // Whether a whole drag, and a vertex's, may move it (ADR 0064).
+        draggable: by_planner { rendered },
+        verticesDraggable: by_planner { rendered },
     }
     combined_props {
         center: [cx, cy],
@@ -54,6 +57,8 @@ component! {
         allowDilation: Bool(true),
         allowRotation: Bool(true),
         allowTranslation: Bool(true),
+        draggable: Flag(true),
+        verticesDraggable: OptFlag,
     }
     children: None,
     planner: Plan(plan),
@@ -65,6 +70,11 @@ pub const NUM_VERTICES: usize = Props::AT.numVertices;
 pub const CX: usize = Props::AT.cx;
 /// The position of `cy`: the y-coordinate of the mean of the vertices.
 pub const CY: usize = Props::AT.cy;
+
+/// The position of `draggable`: whether a whole drag may move it.
+pub const DRAGGABLE: usize = Props::AT.draggable;
+/// The position of `verticesDraggable`: whether a vertex's drag may.
+pub const VERTICES_DRAGGABLE: usize = Props::AT.verticesDraggable;
 
 /// Plans a polygon from its `vertices` and, when it is `rigid` or
 /// `preserveSimilarity`, how a drag may move it.
@@ -214,8 +224,20 @@ pub(super) fn plan_vertices(
             vertices,
         )
     };
+    let [draggable, vertices_draggable] = super::drag::flags(
+        attrs.draggable,
+        attr::draggable,
+        attrs.verticesDraggable,
+        attr::verticesDraggable,
+        Props::PORTS.draggable,
+    );
     // A triangle's table is laid out as this one (`triangle.rs`).
-    wiring.set_planned(Planned { cx, cy });
+    wiring.set_planned(Planned {
+        cx,
+        cy,
+        draggable,
+        verticesDraggable: vertices_draggable,
+    });
     wiring.set_list(points);
     Ok(wiring)
 }

@@ -768,6 +768,20 @@ function pointProps(r: Reads, c: number, inGraph: boolean) {
         : { coordsLatex: pointLatex(r, c) };
 }
 
+/** A polygon's, a triangle's, a rectangle's and a regular polygon's
+ * props, drawn only in a graph: its vertices, and what a drag may move
+ * (ADR 0064), which the bridge's actions check. */
+const POLYGON: Contract = {
+    props: (r, c, inGraph) =>
+        inGraph
+            ? {
+                  numericalVertices: pairs(r, r.table.listCells(c)),
+                  draggable: r.bool(c, "draggable"),
+                  verticesDraggable: r.bool(c, "verticesDraggable"),
+              }
+            : {},
+};
+
 /** A line's props: two points it passes through. */
 function lineProps(r: Reads, c: number) {
     return {
@@ -956,11 +970,7 @@ export const CONTRACTS: Record<string, Contract> = {
             numericalRadius: r.num(c, "radius"),
         }),
     }),
-    polygon: inGraphOnly({
-        props: (r, c) => ({
-            numericalVertices: pairs(r, r.table.listCells(c)),
-        }),
-    }),
+    polygon: POLYGON,
     // Its vertices are the points it gathered, which it draws itself.
     polyline: inGraphOnly({
         props: (r, c) => ({
@@ -1362,18 +1372,8 @@ export const CONTRACTS: Record<string, Contract> = {
             };
         },
     },
-    rectangle: {
-        props: (r, c, inGraph) =>
-            inGraph
-                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
-                : {},
-    },
-    regularPolygon: {
-        props: (r, c, inGraph) =>
-            inGraph
-                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
-                : {},
-    },
+    rectangle: POLYGON,
+    regularPolygon: POLYGON,
     // In a graph an arc at its vertex, from the ray through its first
     // point, turning counterclockwise by its measure. In text its measure,
     // in radians or, with `inDegrees`, in degrees: the expression when the
@@ -1473,12 +1473,7 @@ export const CONTRACTS: Record<string, Contract> = {
     // drawn as a polygon of its three vertices only in a graph.
     clampFunction: CURVE,
     wrapFunctionPeriodic: CURVE,
-    triangle: {
-        props: (r, c, inGraph) =>
-            inGraph
-                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
-                : {},
-    },
+    triangle: POLYGON,
     // Derived geometry, each drawn by the renderer of the shape it is: a
     // best-fit line as a line; a parabola as a function's curve (an
     // intersection stands as its rows, each a point, ADR 0041). An

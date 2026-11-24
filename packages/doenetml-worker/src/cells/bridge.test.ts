@@ -669,6 +669,34 @@ describe("step 3 components", () => {
         });
     });
 
+    it("drags a polygon only as far as its draggable flags allow (ADR 0064)", async () => {
+        const { props, send, changed } = await open(`<booleanInput name="d"/>
+<graph>
+<rectangle vertices="(0,0) (2,1)" draggable="$d" verticesDraggable="true"/>
+</graph>`);
+        expect(props("rectangle")).toMatchObject({
+            draggable: false,
+            verticesDraggable: true,
+        });
+        // A whole drag needs `draggable`: refused, nothing changes.
+        let payload = send("rectangle", "movePolygon", {
+            pointCoords: { 0: [1, 1], 1: [3, 1], 2: [3, 2], 3: [1, 2] },
+        });
+        expect(changed(payload, "rectangle")).toBeUndefined();
+        // A vertex's drag needs `verticesDraggable`.
+        payload = send("rectangle", "movePolygon", {
+            pointCoords: { 2: [4, 3] },
+        });
+        expect(changed(payload, "rectangle")).toEqual({
+            numericalVertices: [
+                [0, 0],
+                [4, 0],
+                [4, 3],
+                [0, 3],
+            ],
+        });
+    });
+
     it("draws a polyline through the points it gathered, and a legend", async () => {
         const { all, props } = await open(`<graph>
 <collect name="ps" componentType="point" from="$g2"/>
@@ -1588,6 +1616,8 @@ describe("function operators and triangles", () => {
                 [3, 1],
                 [0, 0],
             ],
+            draggable: true,
+            verticesDraggable: true,
         });
         let payload = send("triangle", "movePolygon", {
             pointCoords: { 2: [2, 4] },

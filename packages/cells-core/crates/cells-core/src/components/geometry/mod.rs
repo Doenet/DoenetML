@@ -9,6 +9,7 @@ use super::define::*;
 
 pub(crate) mod angle;
 pub mod circle;
+mod drag;
 pub mod line;
 mod pair;
 pub mod point;

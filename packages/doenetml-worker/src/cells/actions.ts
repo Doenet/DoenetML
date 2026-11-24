@@ -141,6 +141,38 @@ function switchFlag(prop: string): Resolver {
     };
 }
 
+/** Whether `c`'s 0/1 prop `prop` lets a drag move it (ADR 0064): the core
+ * computes the flag and holds nothing by it; a type without the prop is
+ * draggable. */
+function allows(t: CellsTable, c: number, prop: string): boolean {
+    const cell = t.cell(c, prop);
+    return cell === undefined || t.value(cell) !== 0;
+}
+
+/** A shape's drag, gated as the current core's move actions gate it: one
+ * part dragged (a vertex) needs `parts` (`verticesDraggable`), more than
+ * one (the whole shape) `draggable`; a drag the flag forbids changes
+ * nothing. `count` is how many parts the drag moves. */
+function gated(
+    parts: string,
+    count: (args: Record<string, any>) => number,
+    resolver: Resolver,
+): Resolver {
+    return (t, c, args) =>
+        allows(t, c, count(args) === 1 ? parts : "draggable")
+            ? resolver(t, c, args)
+            : { kind: "none" };
+}
+
+/** A polygon's drag: as many parts as `pointCoords` names. */
+function polygonDrag(resolver: Resolver): Resolver {
+    return gated(
+        "verticesDraggable",
+        ({ pointCoords }) => Object.keys(pointCoords ?? {}).length,
+        resolver,
+    );
+}
+
 /** What follows other components and does not move, as in the current
  * core (a best-fit line): a drag changes nothing. */
 const fixed: Resolver = () => ({ kind: "none" });
@@ -221,14 +253,9 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
             movePoints([[[cellOf(t, c, "cx"), cellOf(t, c, "cy")], center]]),
     },
     polygon: {
-        movePolygon: (t, c, { pointCoords }) => {
-            const cells = t.listCells(c);
-            const vertices: Point[] = [];
-            for (let i = 0; i + 1 < cells.length; i += 2) {
-                vertices.push([cells[i], cells[i + 1]]);
-            }
-            return movePoints(vertexMoves(vertices, pointCoords));
-        },
+        movePolygon: polygonDrag((t, c, { pointCoords }) =>
+            movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+        ),
     },
     // A ray's and a vector's drag asks for both points, the one not dragged
     // where it is, as the current core's moveRay and moveVector keep it.
@@ -253,7 +280,7 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     // A rectangle's corner drag holds the opposite corner, as the current
     // core's movePolygon does; a whole drag moves every vertex.
     rectangle: {
-        movePolygon: (t, c, { pointCoords }) => {
+        movePolygon: polygonDrag((t, c, { pointCoords }) => {
             const vertices = listPoints(t, c);
             const moves = vertexMoves(vertices, pointCoords);
             const dragged = Object.keys(pointCoords).map(Number);
@@ -265,19 +292,21 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
                 ]);
             }
             return movePoints(moves);
-        },
+        }),
     },
     // A vertex drag turns and scales it about its center (the core's
     // inverse); a whole drag moves it.
     regularPolygon: {
-        movePolygon: (t, c, { pointCoords }) =>
+        movePolygon: polygonDrag((t, c, { pointCoords }) =>
             movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+        ),
     },
     // A vertex drag moves that vertex; a whole drag moves all three, as a
     // polygon's.
     triangle: {
-        movePolygon: (t, c, { pointCoords }) =>
+        movePolygon: polygonDrag((t, c, { pointCoords }) =>
             movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+        ),
     },
     // The core snaps and clamps (ADR 0003).
     slider: {

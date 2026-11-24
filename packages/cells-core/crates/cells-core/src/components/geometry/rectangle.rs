@@ -25,6 +25,9 @@ component! {
         height: by_planner,
         area: computed(OpSpec::Mul, [width, height]),
         perimeter: by_planner,
+        // Whether a whole drag, and a vertex's, may move it (ADR 0064).
+        draggable: by_planner { rendered },
+        verticesDraggable: by_planner { rendered },
     }
     combined_props {
         center: [cx, cy],
@@ -49,6 +52,8 @@ component! {
         center: Point,
         width: Scalar,
         height: Scalar,
+        draggable: Flag(true),
+        verticesDraggable: OptFlag,
     }
     params {
         // The first vertex when neither it nor the center is given.
@@ -118,6 +123,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let [cx, cy] = ElemWiring::vector([at.cx, at.cy], VecOp::Centroid { n: 2 }, corners.to_vec());
     let [width] = ElemWiring::vector([at.width], VecOp::Extent, vec![px, qx]);
     let [height] = ElemWiring::vector([at.height], VecOp::Extent, vec![py, qy]);
+    let [draggable, vertices_draggable] = super::drag::flags(
+        attrs.draggable.clone(),
+        attr::draggable,
+        attrs.verticesDraggable.clone(),
+        attr::verticesDraggable,
+        at.draggable,
+    );
     let half_perimeter = wiring.hidden(Source::computed(OpSpec::Add, vec![at.width, at.height]));
     wiring.set_planned(Planned {
         cx,
@@ -125,6 +137,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         width,
         height,
         perimeter: Source::computed_k(OpSpec::Mul, half_perimeter, 2.0).into(),
+        draggable,
+        verticesDraggable: vertices_draggable,
     });
     let corner = |x: Port, y: Port| [Wire::own(x), Wire::own(y)];
     wiring.set_list(vec![
