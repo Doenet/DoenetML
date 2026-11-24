@@ -10,6 +10,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { test_in_graph } from "../utils/in-graph";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -491,7 +492,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g2" name="collect1" />
-    <pointList extend="$collect1.anchor" name="tacoords" />
+    <pointList name="tacoords">$collect1[1].anchor $collect1[2].anchor</pointList>
 
     <graph name="g3">
       <text extend="$t1.value" name="t1b" />
@@ -499,7 +500,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g3" name="collect2" />
-    <pointList extend="$collect2.anchor" name="tbcoords" />
+    <pointList name="tbcoords">$collect2[1].anchor $collect2[2].anchor</pointList>
 
     <p name="p1"><text extend="$t1" name="t1c"/> <text extend="$t2" name="t2c"/></p>
 
@@ -868,5 +869,113 @@ describe("Text tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("tl")].stateValues.texts,
         ).eqls(["Hello there", "friend!"]);
+    });
+
+    it("a `$` written as a reference is a `$` in the value", async () => {
+        // The parser keeps a `$` written as a reference from starting a
+        // reference with a zero-width space after it; the value has none
+        // (#2637 item 3), in an attribute and in content.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<textInput name="paren" prefill="&#36;(x)"/>
+<textInput name="letter" prefill="&dollar;x"/>
+<textInput name="reference" prefill="&#36;&#36;&#102;"/>
+<textInput name="between" prefill="a &#36;y b"/>
+<textInput name="beforeDigit" prefill="&#36;1"/>
+<text name="t1">&dollar;x</text>
+<text name="t2">&#36;(x)</text>
+<p name="p">&dollar;p and &#36;q</p>
+<text name="t3" extend="$t1"/>
+<math name="m">&dollar;x</math>
+<mathInput name="mi" prefill="&#36;x"/>
+<text name="ownSpace">$&#x200B;q</text>
+<textInput name="ownSpaceAttr" prefill="$&#x200B;q"/>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value;
+        expect(await value("paren")).eq("$(x)");
+        expect(await value("letter")).eq("$x");
+        expect(await value("reference")).eq("$$f");
+        expect(await value("between")).eq("a $y b");
+        expect(await value("beforeDigit")).eq("$1");
+        expect(await value("t1")).eq("$x");
+        expect(await value("t2")).eq("$(x)");
+        expect(await value("t3")).eq("$x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("$p and $q");
+        // math reads it as written, where the space was blank
+        expect((await value("m")).tree).eqls(["unit", "$", "x"]);
+        expect((await value("mi")).tree).eqls(["unit", "$", "x"]);
+        // Incidental: a zero-width space the author writes right after a
+        // `$` is removed too, as the worker can't tell it from the parser's.
+        expect(await value("ownSpace")).eq("$q");
+        expect(await value("ownSpaceAttr")).eq("$q");
+    });
+
+    it("a `$` written as a reference in an attribute read as text at load", async () => {
+        // The parser hands a `$` written as a reference over as a piece of
+        // text of its own, which the pieces beside it are joined to: no
+        // `doenet-e0090` (Doenet/DoenetML#2643 items 6 and 7). Through an
+        // extend too, which stopped the document from loading.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<codeEditor name="ce0" staticName="a&#36;1"/>
+<codeEditor name="ce1" staticName="a&dollar;b"/>
+<codeEditor name="ce2" staticName="&#36;"/>
+<codeEditor name="ce4" staticName="&#36;(x)"/>
+<codeEditor name="ce3" extend="$ce0" staticName="b&#36;2"/>
+<p name="p" permid="p&#36;1">hi</p>
+`,
+        });
+        const primitive = async (name: string, attribute: string) =>
+            (core as any).core._components[await resolvePathToNodeIdx(name)]
+                .attributes[attribute].primitive.value;
+        expect(await primitive("ce0", "staticName")).eq("a$1");
+        expect(await primitive("ce1", "staticName")).eq("a$b");
+        expect(await primitive("ce2", "staticName")).eq("$");
+        expect(await primitive("ce3", "staticName")).eq("b$2");
+        // the zero-width space keeping `$(x)` text is removed
+        expect(await primitive("ce4", "staticName")).eq("$(x)");
+        expect(await primitive("p", "permid")).eq("p$1");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("hi");
+    });
+
+    it("a `$` written out that starts no reference, in an attribute read as text at load", async () => {
+        // handed over in pieces too, so joined: text, not `doenet-e0090`
+        const written = ["a$1", "x$", "$ x", "a$$", "$1", "a$(1"];
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: written
+                .map(
+                    (value, i) =>
+                        `<codeEditor name="ce${i}" staticName="${value}"/>`,
+                )
+                .join("\n"),
+        });
+        for (const [i, value] of written.entries()) {
+            expect(
+                (core as any).core._components[
+                    await resolvePathToNodeIdx(`ce${i}`)
+                ].attributes.staticName.primitive.value,
+            ).eq(value);
+        }
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        // a reference there is still an error
+        for (const value of ["a$t", "&#36;$t"]) {
+            const { core } = await createTestCore({
+                doenetML: `<text name="t">q</text><codeEditor staticName="${value}"/>`,
+            });
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => e.code),
+                value,
+            ).eqls(["doenet-e0090"]);
+        }
     });
 });

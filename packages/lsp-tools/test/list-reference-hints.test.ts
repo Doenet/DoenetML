@@ -129,9 +129,9 @@ describe("list reference hints", () => {
     });
 
     it("reads the tag name as the worker does", async () => {
-        expect(await hintedText(`${A}<MathList>2$a 3</MathList>`)).toEqual([
-            "2$a",
-        ]);
+        // Matched exactly (NAME-0, D51): `<MathList>` is no component
+        // (`doenet-e0002`), so it splits no list.
+        expect(await hintedText(`${A}<MathList>2$a 3</MathList>`)).toEqual([]);
     });
 
     it("points into a list written over several lines", async () => {

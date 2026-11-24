@@ -5,11 +5,10 @@
  * - a wrapper holding one component stands for it, at any depth: `$g` of a
  *   `<group>` holding one input, `$r[1]` of an iteration holding one
  *   `<number>`, `$s` of a `<select>` picking one option holding one math;
- * - a name after a collection reaches each item's component of that name
- *   (`$r.mi`), and what is left of the path is read from each
- *   (`$r.mi.value`);
- * - a property after a collection applies to each item, then through the
- *   wrapper (`$r.value` of iterations holding one `<number>` each);
+ * - a name or a property after a collection names nothing (D59): it is
+ *   reported when the document loads (`doenet-w0200`,
+ *   `namesAfterCollectionsAtLoad.ts`), which leaves the action no target;
+ *   `target="$r[1].mi"` names one item's;
  * - a wrapper holding several components is only a container (COLL-3): it
  *   is kept as the target, which has no value (`doenet-w0044`, or
  *   `doenet-w0195` at load when it is written as the target);
@@ -20,7 +19,8 @@
  * of iterations, which `doenet-w0195` reports at load: its iterations are
  * the targets, as before, and are not passed through, so it does nothing.
  */
-import { COLLECTIONS_OF_NAMED_ITEMS } from "./wrappers";
+import type { ComponentInfoObjects } from "./componentInfoObjects";
+import { propertyDifferingOnlyInCase, suggestionArgs } from "./dast/nameCase";
 
 /** The tags that make an item for each iteration. */
 const REPEATS = new Set(["repeat", "repeatForSequence"]);
@@ -70,14 +70,10 @@ export function compositeTargetsDependency({
         stopAtWrappersOfSeveral: true,
         // a property of the composite's own (`$g.hide`)
         stopIfHaveProp: firstName,
-        // a name in each item (`$r.mi`, COLL-2), as a reference reads it
-        // (`Copy.js`); the resolver leaves it unresolved (`names_per_item`)
-        namePerItem:
-            firstName &&
-            (COLLECTIONS_OF_NAMED_ITEMS.has(componentType) ||
-                componentType === "group")
-                ? unresolvedPath
-                : undefined,
+        // a property of the collection a group holding only it stands for
+        // (`$g.numItems`, COLL-3)
+        ownPropertyThroughGroups:
+            firstName && componentType === "group" ? firstName : undefined,
     };
 }
 
@@ -99,20 +95,41 @@ export function targetsAmongReplacements(identities: any[]) {
 }
 
 /**
- * The path to read from the target `target`: what is left of `unresolvedPath`
- * once a name was resolved in its item (`remainingPath`, `$r.mi.value` gives
- * `.value` of each `mi`), or else `unresolvedPath` itself. `null` when
- * nothing is left, so that the target's value is changed.
+ * The path to read from a target: `unresolvedPath`, or `null` when nothing
+ * is left, so that the target's value is changed.
  */
 export function pathOfTarget(
-    target: { remainingPath?: any[] | null },
+    _target: unknown,
     unresolvedPath: any[] | null | undefined,
 ) {
-    const path =
-        target.remainingPath !== undefined
-            ? target.remainingPath
-            : unresolvedPath;
-    return path && path.length > 0 ? path : null;
+    return unresolvedPath && unresolvedPath.length > 0 ? unresolvedPath : null;
+}
+
+/**
+ * The arguments of `doenet-w0044` that suggest the property `pathPart`
+ * names in another case on a `componentType` (D51, DIAG-3): `Value` on a
+ * `<number>` suggests `value`, and an array entry the index form (`X1` on a
+ * `<point>` suggests `xs[1]`), with the indices written after it.
+ */
+export function propertyCaseSuggestionArgs({
+    pathPart,
+    componentType,
+    componentInfoObjects,
+}: {
+    pathPart: { name: string; index?: { value?: unknown[] }[] };
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const corrected = propertyDifferingOnlyInCase({
+        propName: pathPart.name,
+        componentTypes: [componentType],
+        componentInfoObjects,
+    });
+    return suggestionArgs(
+        corrected === undefined
+            ? undefined
+            : propertyWithIndices({ ...pathPart, name: corrected }),
+    );
 }
 
 /**

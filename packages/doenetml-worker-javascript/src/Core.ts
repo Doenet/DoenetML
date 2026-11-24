@@ -273,6 +273,19 @@ export default class Core {
      */
     componentBeingEdited: number | null = null;
     /**
+     * Called each time a change an action asks for is refused because a
+     * component, or a source it shadows, is `fixed` or has `fixLocation`. Not
+     * called for a change asked for by an action that action set off (one
+     * triggered by a change, or chained to it). Unset in a viewer, where a
+     * refused change is only logged; the headless core sets it to reject the
+     * action that asked for the change.
+     */
+    onChangeRefused?: (refusal: {
+        componentIdx: ComponentIdx;
+        stateVariable: string;
+        reason: "fixed" | "fixLocation";
+    }) => void;
+    /**
      * Inputs made, or shown again, since unentered edits were last committed
      * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
      * deleted while edited extends (`inputNoLongerFocused`), and the input
@@ -1210,8 +1223,39 @@ export default class Core {
 
     // → processQueue
 
-    requestAction(args: any): any {
-        return this.processQueue.requestAction(args);
+    /**
+     * Run an action, and say in the reply whether a renderer batch was sent
+     * for it (`rendererUpdateSent`). The reply and the batch reach the viewer
+     * on different message channels, so the reply can arrive first; the
+     * viewer then keeps the value an input showed ahead of core until the
+     * batch arrives, and when no batch was sent it lets go of the value at
+     * once instead of waiting for one that is not coming.
+     */
+    async requestAction(args: any): Promise<any> {
+        const actionId: string | undefined = args?.args?.actionId;
+        try {
+            const result = await this.processQueue.requestAction(args);
+            if (
+                actionId !== undefined &&
+                result !== null &&
+                typeof result === "object"
+            ) {
+                return {
+                    ...result,
+                    rendererUpdateSent:
+                        this.rendererInstructionBuilder.actionsWithRendererUpdate.has(
+                            actionId,
+                        ),
+                };
+            }
+            return result;
+        } finally {
+            if (actionId !== undefined) {
+                this.rendererInstructionBuilder.actionsWithRendererUpdate.delete(
+                    actionId,
+                );
+            }
+        }
     }
 
     async requestUpdate(args: any): Promise<any> {

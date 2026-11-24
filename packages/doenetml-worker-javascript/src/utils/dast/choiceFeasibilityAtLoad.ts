@@ -319,8 +319,8 @@ type Expr =
      * (`choiceValuesAsRunTime.ts`). `tree` is the same value as arithmetic
      * of the atoms, in a form the bounds can be found of, or `null` when it
      * isn't arithmetic (a `<boolean>`, a `<text>`, or content with a
-     * `<boolean>` in it, which a `<number>` or a `<math>` reads as `1` or
-     * `0`). `caveat` is set when the component has an attribute that
+     * `<boolean>` in it, which a `<number>` or a `<math>` doesn't read as a
+     * number). `caveat` is set when the component has an attribute that
      * changes how it computes its value (`valueCaveatOf`).
      */
     | {
@@ -377,18 +377,18 @@ type Caveat = "unknown" | "number";
  * its value, and what each does to the value computed with the defaults.
  */
 const VALUE_ATTRIBUTES: Record<string, Record<string, Caveat>> = {
-    number: { convertboolean: "unknown", valueonnan: "number" },
-    integer: { convertboolean: "unknown", valueonnan: "number" },
+    number: { convertBoolean: "unknown", valueOnNaN: "number" },
+    integer: { convertBoolean: "unknown", valueOnNaN: "number" },
     math: {
         format: "unknown",
-        functionsymbols: "unknown",
-        referencesarefunctionsymbols: "unknown",
-        splitsymbols: "unknown",
-        parsescientificnotation: "unknown",
+        functionSymbols: "unknown",
+        referencesAreFunctionSymbols: "unknown",
+        splitSymbols: "unknown",
+        parseScientificNotation: "unknown",
         simplify: "number",
         expand: "number",
-        createvectors: "number",
-        createintervals: "number",
+        createVectors: "number",
+        createIntervals: "number",
         assumptions: "number",
     },
     boolean: Object.fromEntries(
@@ -405,9 +405,9 @@ const VALUE_ATTRIBUTES: Record<string, Record<string, Caveat>> = {
             "numPeriodicSetMatchesRequired",
             "caseInsensitiveMatch",
             "matchBlanks",
-        ].map((name) => [name.toLowerCase(), "unknown" as Caveat]),
+        ].map((name) => [name, "unknown" as Caveat]),
     ),
-    text: { islatex: "unknown" },
+    text: { isLatex: "unknown" },
 };
 
 /**
@@ -422,7 +422,9 @@ function valueCaveatOf(
     const caveats = VALUE_ATTRIBUTES[componentType] ?? {};
     let found: Caveat | undefined;
     for (const name of Object.keys(component?.attributes ?? {})) {
-        const caveat = caveats[name.toLowerCase()];
+        // Matched exactly (NAME-0, D51), as the attributes were given the
+        // component's spelling before the document loads.
+        const caveat = Object.hasOwn(caveats, name) ? caveats[name] : undefined;
         if (caveat === "unknown") {
             return caveat;
         }
@@ -432,8 +434,8 @@ function valueCaveatOf(
 }
 
 /**
- * Whether `expr` is a boolean, which a `<number>` or a `<math>` reads as `1`
- * or `0` (REF-5), so not as the arithmetic of its atoms.
+ * Whether `expr` is a boolean, which a `<number>` or a `<math>` doesn't read
+ * as a number.
  */
 function isBooleanExpr(expr: Expr): boolean {
     if (expr.k === "named") {
@@ -1542,8 +1544,8 @@ export function checkChoiceFeasibilityAtLoad({
         }
         if (caveat || componentExprs.some(isBooleanExpr)) {
             // its arithmetic may not be its value: an attribute may change
-            // it, and a `<boolean>` in a `<number>` or a `<math>` is `1` or
-            // `0` (REF-5), not the arithmetic of its atoms
+            // it, and a `<boolean>` in a `<number>` or a `<math>` is no
+            // number (`NaN` alone, and no part of what it is with more)
             return held;
         }
         // an `<integer>` rounds what it holds
@@ -1762,6 +1764,18 @@ export function checkChoiceFeasibilityAtLoad({
         }
         const target = nodeByIdx.get(ref.nodeIdx);
         if (!target) {
+            if (node.doenetAttributes?.typeMixAtLoad && type !== "boolean") {
+                // A boolean where a number is wanted, a blank with
+                // `doenet-w0203` (D47 decision 3): it is no number, so not
+                // analysable (SEL-6). `<number convertBoolean>` is the one
+                // way to ask for `1` or `0`. A number where a boolean is
+                // wanted (`withReplacement="$n"`, decision 4) is a blank
+                // boolean, false in every variant, as `$nothing` is.
+                throw new NotAnalysable(
+                    node.doenetAttributes.typeMixSource ??
+                        textOfChildren([node]),
+                );
+            }
             if (node.doenetAttributes?.noReferent) {
                 // A name that names nothing in the DoenetML (`$nothing`,
                 // `$nothing.x`, `doenet-w0104` at load) names nothing in
@@ -1816,7 +1830,7 @@ export function checkChoiceFeasibilityAtLoad({
         // a property `value` is the value itself
         if (
             path.length === 1 &&
-            path[0]?.name?.toLowerCase() === "value" &&
+            path[0]?.name === "value" &&
             (path[0].index ?? []).length === 0
         ) {
             path = [];
@@ -5589,13 +5603,9 @@ export function checkChoiceFeasibilityAtLoad({
                 choice.componentType
             ],
         );
-        const lower = name.toLowerCase();
-        for (const [key, spec] of Object.entries(attributes)) {
-            if (key.toLowerCase() === lower) {
-                return (spec as any).createComponentOfType;
-            }
-        }
-        return undefined;
+        return Object.hasOwn(attributes, name)
+            ? (attributes[name] as any).createComponentOfType
+            : undefined;
     }
 
     /**

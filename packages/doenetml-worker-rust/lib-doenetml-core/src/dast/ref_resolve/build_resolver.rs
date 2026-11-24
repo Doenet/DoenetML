@@ -623,7 +623,7 @@ fn node_branch_kind(
     }
 }
 
-/// Whether a name after `node` reaches into each of its items (see [`names_per_item`]).
+/// Whether a name after `node` is left unresolved there (see [`names_per_item`]).
 fn node_names_per_item(flat_root_or_fragment: &FlatRootOrFragment, node: &FlatNode) -> bool {
     match node {
         FlatNode::Element(element) => names_per_item(element, |attr| {
@@ -633,8 +633,8 @@ fn node_names_per_item(flat_root_or_fragment: &FlatRootOrFragment, node: &FlatNo
     }
 }
 
-/// Whether a name after `node` that is ambiguous among what it holds reaches into each of
-/// its items (see [`names_per_item_if_ambiguous`]).
+/// Whether a name after `node` that is ambiguous among what it holds is left unresolved
+/// there (see [`names_per_item_if_ambiguous`]).
 fn node_names_per_item_if_ambiguous(node: &FlatNode) -> bool {
     match node {
         FlatNode::Element(element) => names_per_item_if_ambiguous(element),

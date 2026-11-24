@@ -5,6 +5,7 @@ import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
+import { setLoadCycleBackstop } from "../../utils/loadCycleBlame";
 import {
     ATTRIBUTES_READ,
     INPUTS,
@@ -672,9 +673,17 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         _inlineRenderInlineChildren: "em",
         _textOrInline: "title",
     };
+    // A list's text and LaTeX were each entry's, read together; they are not
+    // properties of its own, so a name after the list names nothing, with no
+    // cycle (D59, below).
+    const notOwnOfList = (tag: string, property: string) =>
+        tag.endsWith("List") && ["text", "latex"].includes(property);
     for (const [base, properties] of PROPERTIES_READ) {
         const tag = tagOf[base] ?? base;
         for (const property of properties) {
+            if (notOwnOfList(tag, property)) {
+                continue;
+            }
             const doenetML = `<${tag} name="x">${contentOf[tag] ?? "a"} $x.${property}</${tag}>`;
             it(`a property made from what is written: ${doenetML}`, async () => {
                 const { errors, rest } = await errorsAndRest(doenetML);
@@ -684,6 +693,22 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
             });
         }
     }
+
+    it("a list's text or LaTeX in what is written names nothing, rather than a cycle (D59)", async () => {
+        for (const doenetML of [
+            `<mathList name="x">1 2 $x.latex</mathList>`,
+            `<mathList name="x">1 2 $x.text</mathList>`,
+            `<textList name="x">a b $x.text</textList>`,
+        ]) {
+            const { errors, rest, core } = await errorsAndRest(doenetML);
+            expect(errors, doenetML).eqls([]);
+            expect(rest).eq("rest");
+            expect(
+                getDiagnosticsByType(core).warnings.map((w: any) => w.code),
+                doenetML,
+            ).eqls(["doenet-w0200"]);
+        }
+    });
 
     // Every property of an input listed as made from where its value starts
     // (`INPUTS`), and the input as a whole, in each such attribute.
@@ -1135,6 +1160,48 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             '<point name="a"><label><p>$b</p></label></point><point name="b" extend="$a"/>',
             ["doenet-e0005 1:27-29"],
         ],
+        // A line, a vector or a circle has no math or text value to read
+        // where a value is read, so a reference to one in a label is a copy
+        // of it, label and all; through an extend of it in its own label it
+        // held itself, and the worker hung (Doenet/DoenetML#2643 item 1)
+        [
+            "2643",
+            "an extend of a line, as the line's label",
+            '<line name="a" through="(1,2) (3,4)"><label>$b</label></line><line name="b" extend="$a"/>',
+            ["doenet-e0005 1:45-47"],
+        ],
+        [
+            "2643",
+            "an extend of a circle, as the circle's label",
+            '<circle name="a"><label>$b</label></circle><circle name="b" extend="$a"/>',
+            ["doenet-e0005 1:25-27"],
+        ],
+        // whether a component is hidden reads its own `hide` and the
+        // `hide` of what it is written in (Doenet/DoenetML#2643 item 10)
+        [
+            "2643",
+            "a group and a number in it, each hidden by its own hidden",
+            '<group name="g" hide="$g.hidden"><number name="n" hide="$n.hidden">1</number></group>',
+            ["doenet-e0005 1:23-32", "doenet-e0005 1:57-66"],
+        ],
+        [
+            "2643",
+            "a group hidden by its own hidden",
+            '<group name="g" hide="$g.hidden"><number>1</number></group>',
+            ["doenet-e0005 1:23-32"],
+        ],
+        [
+            "2643",
+            "a group hidden by whether a number in it is hidden",
+            '<group name="g" hide="$n.hidden"><number name="n">1</number></group>',
+            ["doenet-e0005 1:23-32"],
+        ],
+        [
+            "2643",
+            "two numbers, each hidden by whether the other is",
+            '<number name="n" hide="$m.hidden">1</number><number name="m" hide="$n.hidden">1</number>',
+            ["doenet-e0005 1:24-33", "doenet-e0005 1:68-77"],
+        ],
         [
             "3",
             "a line, in a paragraph in its label",
@@ -1266,6 +1333,86 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
 
     // Valid DoenetML beside each: what these read is not the reference.
     const notCycles: [string, string, string][] = [
+        // what is hidden by something else may read whether it is hidden
+        [
+            "2643",
+            "whether a number in a group is hidden, read outside the group",
+            '<boolean name="b">true</boolean><group hide="$b"><number name="n">1</number></group><boolean>$n.hidden</boolean>',
+        ],
+        [
+            "2643",
+            "a boolean hidden by whether a number beside it is hidden",
+            '<number name="n">1</number><boolean hide="$n.hidden">$n.hidden</boolean>',
+        ],
+        [
+            "2643",
+            "a curve's control vectors, always hidden, hidden by whether a vector in them is",
+            '<graph><curve through="(1,2) (3,4)"><bezierControls><controlVectors hide="$v.hidden"><vector name="v">(1,0)</vector></controlVectors></bezierControls></curve></graph>',
+        ],
+        // where a value is read (a label, a text, an m, a math, a number,
+        // through a group), a point is read as its value, not copied with its
+        // label, so an extend of a point in the point's label holds nothing
+        // of itself (VAL-10, Doenet/DoenetML#2643 item 1); it hung the worker
+        [
+            "2643",
+            "an extend of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, beside text in the point's label, in a graph",
+            '<graph><point name="a"><label>x $b</label></point><point name="b" extend="$a"/></graph>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a text in the point's label",
+            '<point name="a"><label><text>$b</text></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in an m in the point's label",
+            '<point name="a"><label><m>$b</m></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a group in the point's label",
+            '<point name="a"><label><group>$b</group></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "two points, each the other's label",
+            '<point name="a"><label>$b</label></point><point name="b"><label>$a</label></point>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a math in the point's label",
+            '<point name="a"><label><math>$b</math></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a number in the point's label",
+            '<point name="a"><label><number>$b.x</number></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "a property of an extend of a point, as the point's label",
+            '<point name="a"><label>$b.x</label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "another point, as a point's label",
+            '<point name="a"><label>$b</label></point><point name="b"><label>B</label></point>',
+        ],
+        [
+            "2643",
+            "a point that is another's label, holding that point",
+            '<point name="a"><label>$b</label></point><point name="b">$a</point>',
+        ],
+        [
+            "2643",
+            "an extend of an input, as the input's label",
+            '<mathInput name="a"><label>$b</label></mathInput><mathInput name="b" extend="$a"/>',
+        ],
         [
             "1",
             "an attribute of a math that only shows it",
@@ -1468,43 +1615,370 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
 });
 
 /**
- * Doenet/DoenetML#2521 item 5, found, not fixed: a group whose one
- * component is an index into a list (`$ls[$i]`), shown through a reference
- * to the group, is reported circular after load once the index goes past
- * the end of the list, and stays blank when it comes back. The reference
- * and the copy of it that `$s` makes keep queuing each other to be updated,
- * which #2425's loop check stops. No cycle is written, so it is not an error
- * at load; it is a known violation of DIAG-7, pinned here.
+ * Doenet/DoenetML#2654 items 1–3, decided at load (D14, NAME-7, DIAG-5,
+ * DIAG-7).
  */
-describe("An index past the end in a group shown by a reference @group2", async () => {
-    it("is reported circular after load, and stays blank", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<mathInput name="mi" prefill="1"/><number name="i">$mi</number>
-<mathList name="ls">a b c</mathList>
-<group name="s">$ls[$i]</group>
-<p name="out">$s</p>`,
+describe("Cycles through what a container holds, through fixed, and a copy in its own label @group2", async () => {
+    // A reference to a container whose content is its children copies them,
+    // so `$q` in the label of a point `b` extends holds itself when `q`
+    // holds `$b`: `b` copies the label too. Before these containers were
+    // followed, the copies ran away without throwing and the worker hung
+    // (item 1). The `$b` in the container and the `$q` in the label are each
+    // `doenet-e0005`; the rest renders.
+    const graph =
+        '<graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>';
+    const containers: [string, string][] = [
+        [
+            "caption",
+            '<figure><caption name="q"><span>$b</span></caption>GRAPH</figure>',
+        ],
+        [
+            "caption, holding the reference bare",
+            '<figure><caption name="q">$b</caption>GRAPH</figure>',
+        ],
+        ["figure", '<figure name="q"><p>$b</p></figure>GRAPH'],
+        ["table", '<table name="q"><p>$b</p></table>GRAPH'],
+        [
+            "tabular",
+            '<tabular name="q"><row><cell>$b</cell></row></tabular>GRAPH',
+        ],
+        ["row", '<tabular><row name="q"><cell>$b</cell></row></tabular>GRAPH'],
+        [
+            "column",
+            '<spreadsheet><column name="q"><cell>$b</cell></column></spreadsheet>GRAPH',
+        ],
+        ["cell", '<tabular><row><cell name="q">$b</cell></row></tabular>GRAPH'],
+        [
+            "cellBlock",
+            '<spreadsheet><cellBlock name="q"><cell>$b</cell></cellBlock></spreadsheet>GRAPH',
+        ],
+        [
+            "spreadsheet",
+            '<spreadsheet name="q"><cell>$b</cell></spreadsheet>GRAPH',
+        ],
+        ["chart", '<chart name="q"><title>$b</title></chart>GRAPH'],
+        ["sideBySide", '<sideBySide name="q"><p>$b</p></sideBySide>GRAPH'],
+        [
+            "sbsGroup",
+            '<sbsGroup name="q"><sideBySide><p>$b</p></sideBySide></sbsGroup>GRAPH',
+        ],
+        ["stack", '<stack name="q"><p>$b</p></stack>GRAPH'],
+        ["panel", '<panel name="q"><p>$b</p></panel>GRAPH'],
+        ["page", '<paginator><page name="q"><p>$b</p></page></paginator>GRAPH'],
+        ["cascade", '<cascade name="q"><p>$b</p></cascade>GRAPH'],
+        ["hint", '<hint name="q"><p>$b</p></hint>GRAPH'],
+        [
+            "feedback",
+            '<feedback name="q" condition="true"><p>$b</p></feedback>GRAPH',
+        ],
+        ["solution", '<solution name="q"><p>$b</p></solution>GRAPH'],
+        ["givenAnswer", '<givenAnswer name="q"><p>$b</p></givenAnswer>GRAPH'],
+        [
+            "description",
+            '<mathInput><description name="q"><p>$b</p></description></mathInput>GRAPH',
+        ],
+        ["asList", '<asList name="q"><text>a</text>$b</asList>GRAPH'],
+        ["ref", '<ref name="q" to="https://doenet.org">a $b</ref>GRAPH'],
+    ];
+    /** Where each of `references` is written in `doenetML`, as `errorsAt` gives it. */
+    function at(doenetML: string, references: string[]) {
+        return references.map((reference) => {
+            const start = doenetML.indexOf(reference) + 1;
+            return `doenet-e0005 1:${start}-${start + reference.length}`;
         });
-        const miIdx = await resolvePathToNodeIdx("mi");
-        async function shown() {
+    }
+    for (const [tag, written] of containers) {
+        const doenetML = written.replace("GRAPH", graph);
+        it(`a ${tag} holding an extend of a point whose label holds it is an error at load`, async () => {
+            if (tag === "panel") {
+                // Reading the state of a `<p>` in a `<panel>` throws
+                // ("Unknown state variable width"), cycle or not, so only
+                // what is reported at load is read.
+                const { core } = await createTestCore({ doenetML });
+                expect(errorsAt(core)).eqls(at(doenetML, ["$b", "$q"]));
+                return;
+            }
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls(at(doenetML, ["$b", "$q"]));
+            expect(rest).eq("rest");
+        });
+    }
+
+    // The same containers, holding the point `b` itself (written with
+    // `extend` or `copy`) in place of `$b`: what holds `b` holds a's label
+    // (`heldNode`), so `b` and `$q` are each `doenet-e0005`. And with the
+    // label holding an award whose `<when>` reads `$b`, which reads b's
+    // value, not its label: not a cycle.
+    const award =
+        '<answer><mathInput/><award name="w"><when>$b=1</when></award></answer>';
+    for (const [tag, written] of containers) {
+        for (const how of ["extend", "copy"]) {
+            const point = `<point name="b" ${how}="$a"/>`;
+            const held = written
+                .replace("$b", point)
+                .replace(
+                    "GRAPH",
+                    '<graph><point name="a"><label>$q</label></point></graph>',
+                );
+            it(`a ${tag} holding a point written with ${how} whose label holds the ${tag} is an error at load`, async () => {
+                const backstopWas = setLoadCycleBackstop(false);
+                try {
+                    const { core } = await createTestCore({
+                        doenetML: held,
+                    });
+                    expect(errorsAt(core)).eqls(at(held, [point, "$q"]));
+                } finally {
+                    setLoadCycleBackstop(backstopWas);
+                }
+            });
+            const notACycle =
+                award +
+                written
+                    .replace("$b", point)
+                    .replace(
+                        "GRAPH",
+                        '<graph><point name="a"><label>$w</label></point></graph>',
+                    );
+            it(`a ${tag} holding a point written with ${how} read by an award its target's label holds is not a cycle`, async () => {
+                const { core } = await createTestCore({ doenetML: notACycle });
+                expect(errorsAt(core)).eqls([]);
+            });
+        }
+    }
+
+    // A reference to a container written in it holds itself. It was an
+    // error at load before these containers were listed, but in a
+    // `<solution>` or a `<givenAnswer>`, where nothing was reported, and in
+    // a `<graph>`, where it was found only when the document ran.
+    for (const [tag, doenetML] of [
+        ["hint", '<hint name="h"><p>$h</p></hint>'],
+        ["solution", '<solution name="h"><p>$h</p></solution>'],
+        ["givenAnswer", '<givenAnswer name="h"><p>$h</p></givenAnswer>'],
+        ["table", '<table name="h"><p>$h</p></table>'],
+        ["stack", '<stack name="h"><p>$h</p></stack>'],
+        ["figure", '<figure name="h"><p>$h</p></figure>'],
+        ["cell", '<tabular><row><cell name="h">$h</cell></row></tabular>'],
+        ["caption", '<figure><caption name="h">$h</caption></figure>'],
+        [
+            "feedback",
+            '<feedback name="h" condition="true"><p>$h</p></feedback>',
+        ],
+        ["sideBySide", '<sideBySide name="h"><p>$h</p></sideBySide>'],
+        [
+            "description",
+            '<mathInput><description name="h"><p>$h</p></description></mathInput>',
+        ],
+        ["asList", '<asList name="h"><text>a</text>$h</asList>'],
+        ["ref", '<ref name="h" to="https://doenet.org">a $h</ref>'],
+        ["graph", '<graph name="h"><text>$h</text></graph>'],
+    ]) {
+        it(`a reference to a ${tag} written in it is an error at load`, async () => {
+            const backstopWas = setLoadCycleBackstop(false);
+            try {
+                const { core, errors, rest } = await errorsAndRest(doenetML);
+                expect(errors).eqls(at(doenetML, ["$h"]));
+                // The load check names the container; the check when the
+                // document runs, which caught a `<graph>`'s before it was
+                // listed, names no tag ("Circular dependency detected.").
+                expect(
+                    getDiagnosticsByType(core).errors.map((e) => e.message),
+                ).eqls([
+                    `Circular dependency detected involving \`<${tag}>\` component.`,
+                ]);
+                expect(rest).eq("rest");
+            } finally {
+                setLoadCycleBackstop(backstopWas);
+            }
+        });
+    }
+
+    // Whether a component is fixed, or its location is, reads its own
+    // `fixed` (or `fixLocation`) and that of each component it is written
+    // in. The load check followed only `hidden`, so the backstop blamed one
+    // of these cycles and the other was gone from the rebuilt document
+    // (item 2).
+    for (const [description, doenetML, references] of [
+        [
+            "a group and a number in it, each fixed by its own fixed",
+            '<group name="g" fixed="$g.fixed"><number name="n" fixed="$n.fixed">1</number></group>',
+            ["$g.fixed", "$n.fixed"],
+        ],
+        [
+            "a number fixed by its own fixed",
+            '<number name="n" fixed="$n.fixed">1</number>',
+            ["$n.fixed"],
+        ],
+        [
+            "a paragraph fixed by whether a number in it is",
+            '<p name="q" fixed="$n.fixed"><number name="n">1</number></p>',
+            ["$n.fixed"],
+        ],
+        [
+            "two points fixed by each other's fixed",
+            '<graph><point name="P" fixed="$Q.fixed">(1,2)</point><point name="Q" fixed="$P.fixed">(3,4)</point></graph>',
+            ["$Q.fixed", "$P.fixed"],
+        ],
+        [
+            "a point whose location is fixed by its own fixLocation",
+            '<graph><point name="P" fixLocation="$P.fixLocation">(1,2)</point></graph>',
+            ["$P.fixLocation"],
+        ],
+        [
+            "a graph whose location is fixed by whether a point in it is",
+            '<graph name="G" fixLocation="$P.fixLocation"><point name="P">(1,2)</point></graph>',
+            ["$P.fixLocation"],
+        ],
+    ] as [string, string, string[]][]) {
+        it(`${description} is an error at load`, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls(at(doenetML, references));
+            expect(rest).eq("rest");
+        });
+    }
+
+    // A tag written with `extend` or `copy` holds the label of what it is
+    // of, and what holds it as content copies it, label and all: `$q` in
+    // a's label, with `q` holding `b`, holds itself. Each was an error at
+    // load before a tag written with `extend` stopped copying its target's
+    // label by where it is written, which left the `<p>` ones with
+    // `extend` to the check for a shadow of itself when the copy is
+    // expanded and the `copy` ones hanging the worker; the `<cell>` and
+    // `<hint>` ones with `copy` hung before this PR too.
+    for (const [container, close] of [
+        ['<p name="q">', "</p>"],
+        ['<tabular><row><cell name="q">', "</cell></row></tabular>"],
+        ['<figure><caption name="q">', "</caption></figure>"],
+        ['<hint name="q">', "</hint>"],
+        ['<section name="q"><p>', "</p></section>"],
+    ]) {
+        for (const [shape, attributes] of [
+            ["point", ""],
+            ["line", ' through="(1,2) (3,4)"'],
+            ["circle", ""],
+        ]) {
+            for (const how of ["extend", "copy", "copyWithState"]) {
+                const tag = `<${shape} name="b" ${how}="$a"/>`;
+                const doenetML = `${container}${tag}${close}<graph><${shape} name="a"${attributes}><label>$q</label></${shape}></graph>`;
+                it(`a ${shape} written with ${how} in ${container} holding its target's label holding the container is an error at load`, async () => {
+                    // Found by the load check, not by the run-time backstop
+                    // nor by the check for a shadow of itself when the copy
+                    // is expanded, which names no component type and warns
+                    // of what the label then holds: each error names the
+                    // type of the component in error, and nothing warns.
+                    const backstopWas = setLoadCycleBackstop(false);
+                    try {
+                        const { core, errors, rest } =
+                            await errorsAndRest(doenetML);
+                        expect(errors).eqls(at(doenetML, [tag, "$q"]));
+                        expect(rest).eq("rest");
+                        expect(
+                            getDiagnosticsByType(core).errors.map(
+                                (error) => error.message,
+                            ),
+                        ).eqls([
+                            `Circular dependency detected involving \`<${shape}>\` component.`,
+                            `Circular dependency detected involving \`<${container.match(/<(\w+) name="q"/)![1]}>\` component.`,
+                        ]);
+                        expect(getDiagnosticsByType(core).warnings).eqls([]);
+                    } finally {
+                        setLoadCycleBackstop(backstopWas);
+                    }
+                });
+            }
+        }
+    }
+
+    for (const [description, doenetML] of [
+        // `fixed` changes no value, so a value is read as ever
+        [
+            "a number fixed by its own value",
+            '<number name="n" fixed="$n.value > 0">1</number>',
+        ],
+        // what a component is written in does not read it
+        [
+            "a number fixed by the paragraph it is in",
+            '<p name="q"><number name="n" fixed="$q.fixed">1</number></p>',
+        ],
+        [
+            "a number fixed by another's fixed",
+            '<number name="m" fixed="$n.fixed">1</number><number name="n" fixed="true">2</number>',
+        ],
+        // Where a point is read as a value (`$b` in `<when>`), it reads no
+        // label, wherever the point is written: in a graph,
+        [
+            "an award reading a point extended in a graph, whose label holds the award",
+            '<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point><point name="b" extend="$a"/></graph>',
+        ],
+        // or in a paragraph or one of the containers, whose hold on b's
+        // label (`heldNode`) the award does not read. A `<cell>` or a
+        // `<stack>` here was a false error at load, as a `<p>` was before
+        // (each container, above).
+        ...["cell", "stack", "p", "hint"].flatMap((tag) =>
+            ["extend", "copy"].map((how) => [
+                `an award reading a point made with ${how} in a ${tag}, whose label holds the award`,
+                `<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point></graph><${tag}><point name="b" ${how}="$a"/></${tag}>`,
+            ]),
+        ),
+        // A point made with `copy` or `copyWithState` pastes the DoenetML of
+        // what it copies, the reference to itself in its label included,
+        // which reads its value (VAL-10), as with `extend` (item 3). It
+        // stopped the document when it was made ("Found a duplicate
+        // componentIdx"), so it was an error at load.
+        [
+            "a copy of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" copy="$a"/>',
+        ],
+        [
+            "a copy of a point with its state, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" copyWithState="$a"/>',
+        ],
+    ]) {
+        it(`${description} is not a cycle`, async () => {
+            const { errors, rest } = await errorsAndRest(doenetML);
+            expect(errors).eqls([]);
+            expect(rest).eq("rest");
+        });
+    }
+
+    it("a copy of a point read in the point's label shows the copy's coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph>
+<point name="a">(1,2)<label>$b</label></point>
+<point name="b" copy="$a"/>
+</graph>`,
+        });
+        async function labels() {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            return stateVariables[await resolvePathToNodeIdx("out")].stateValues
-                .text;
+            return Promise.all(
+                ["a", "b"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.label,
+                ),
+            );
         }
-        expect(await shown()).eq("a");
         expect(getDiagnosticsByType(core).errors).eqls([]);
-
-        await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
-        expect(await shown()).eq("＿");
-        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
-            "doenet-e0005",
-        ]);
-
-        // what it should show again
-        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
-        expect(await shown()).eq("＿");
+        const start = "\\(\\left( 1, 2 \\right)\\)";
+        expect(await labels()).eqls([start, start]);
+        // unlinked: each moves alone, and both labels read `b`
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("b"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        const moved = "\\(\\left( 5, 6 \\right)\\)";
+        expect(await labels()).eqls([moved, moved]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(await labels()).eqls([moved, moved]);
     });
 });
 
@@ -1524,7 +1998,7 @@ describe("Reference cycles not found at load @group2", async () => {
     for (const [description, doenetML, blamed] of [
         [
             "a number reading a property of itself not listed",
-            `<number name="n">$n.hide</number>`,
+            `<number name="n" convertBoolean>$n.hide</number>`,
             "$n.hide",
         ],
         // Doenet/DoenetML#2515's comment: shapes whose points read the shape.
@@ -2121,7 +2595,7 @@ describe("Circular references created after load @group2", async () => {
     it("a number reading its own value switched on stops the document", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><number name="t">$t.hide</number></conditionalContent>`);
+<conditionalContent condition="$b"><number name="t" convertBoolean>$t.hide</number></conditionalContent>`);
         const bIdx = await resolvePathToNodeIdx("b");
 
         const result = await core.requestAction({
@@ -2282,7 +2756,7 @@ describe("Circular references created after load @group2", async () => {
             const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b1"/>
 <booleanInput name="b"/>
-<conditionalContent condition="$b"><number name="t">$t.hide</number></conditionalContent>`);
+<conditionalContent condition="$b"><number name="t" convertBoolean>$t.hide</number></conditionalContent>`);
             const b1Idx = await resolvePathToNodeIdx("b1");
             const bIdx = await resolvePathToNodeIdx("b");
 
@@ -2873,5 +3347,105 @@ describe("Composites in a loop that none can be singled out of @group2", async (
         expect(logged).toContain(
             "Error: Seem to have an infinite loop while calculating replacement changes. Circular dependency involving these components: <conditionalContent> (line 2).",
         );
+    });
+});
+
+/**
+ * Where a value is read (a `<label>`, a `<text>`, an `<m>`), a reference to
+ * a point reads its value, as in a `<math>` (VAL-10), rather than copying the
+ * point, label and all. A reference in a point's label to an extend of the
+ * point copied the label holding it, without end, and hung the worker
+ * (Doenet/DoenetML#2643 item 1).
+ */
+describe("A point read where a value is read, in its own label through an extend @group2", async () => {
+    it("shows the point's coordinates, and follows them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph>
+<point name="a">(1,2)<label>$b</label></point>
+<point name="b" extend="$a"/>
+<point name="c">(3,4)<label>at <text>$d</text></label></point>
+<point name="d" extend="$c"/>
+</graph>`,
+        });
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return Promise.all(
+                ["a", "b", "c", "d"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.label,
+                ),
+            );
+        }
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        expect(await labels()).eqls([
+            "\\(\\left( 1, 2 \\right)\\)",
+            "\\(\\left( 1, 2 \\right)\\)",
+            "at (3, 4)",
+            "at (3, 4)",
+        ]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("b"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("c"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(await labels()).eqls([
+            "\\(\\left( 5, 6 \\right)\\)",
+            "\\(\\left( 5, 6 \\right)\\)",
+            "at (7, 8)",
+            "at (7, 8)",
+        ]);
+    });
+
+    it("in a label, is hidden with the point; in a text, is not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<booleanInput name="h"/>
+<graph>
+<point name="P" hide="$h">(1,2)</point>
+<point name="Q"><label>a $P b</label></point>
+</graph>
+<text name="t">$P</text>`,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolvePathToNodeIdx("Q")].stateValues
+                    .label,
+                stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                    .text,
+            ];
+        }
+        expect(await shown()).eqls([
+            "a \\(\\left( 1, 2 \\right)\\) b",
+            "(1, 2)",
+        ]);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await shown()).eqls(["a  b", "(1, 2)"]);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await shown()).eqls([
+            "a \\(\\left( 1, 2 \\right)\\) b",
+            "(1, 2)",
+        ]);
     });
 });

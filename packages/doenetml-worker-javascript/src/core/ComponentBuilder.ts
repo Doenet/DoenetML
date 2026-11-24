@@ -2,6 +2,7 @@ import { LIST_ENTRY_ARRAY_PREFIX } from "../utils/listEntryReference";
 import {
     missingWhileListEntryMissingDefinition,
     missingWhileSourceMissingDefinition,
+    namesNothingWhileSourceDoesDefinition,
 } from "../utils/missing";
 import {
     describeReferentVariable,
@@ -753,6 +754,9 @@ export async function createChildrenThenComponent({
             unresolvedPath: refResolution.unresolvedPath,
             originalPath,
             nodesInResolvedPath: refResolution.nodesInResolvedPath,
+            ...(refResolution.standIn
+                ? { standIn: refResolution.standIn }
+                : {}),
         };
     }
 
@@ -939,6 +943,23 @@ export async function createChildrenThenComponent({
                                 ? shadowInfo.propVariable
                                 : undefined,
                         );
+                    if (shadowedComponent.canBecomeMissing) {
+                        // It names nothing while its source holds only
+                        // missing content, so a shape whose point it is is
+                        // missing (`<circle center="$(c.center)"/>` of
+                        // `<circle name="c">$nothing</circle>`, #2596),
+                        // without reading whether its source is missing,
+                        // which for a vector whose `head` is its own
+                        // `tail` would read the vector again.
+                        newComponent.state.namesNothing =
+                            namesNothingWhileSourceDoesDefinition(
+                                idx,
+                                Boolean(
+                                    shadowedComponent.constructor
+                                        .missingWhenContentMissing,
+                                ),
+                            );
+                    }
                 } else if (
                     shadowInfo.propVariable !== undefined &&
                     shadowedComponent.state.entriesMissing &&

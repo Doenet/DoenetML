@@ -3014,8 +3014,11 @@ describe("Sectioning tag tests @group3", async () => {
     // waits for it to expand. One that reads that number to expand is a
     // genuine cycle. Not waiting would number the section before the
     // sections the composite makes, and the count would run away. It stopped
-    // the document; it is found at load and is `doenet-e0005` at the
-    // reference, and the rest renders (#2614 item 2, NAME-7, D14).
+    // the document; it is `doenet-e0005` at the reference, and the rest
+    // renders (#2614 item 2, NAME-7, D14). A cycle through what a composite
+    // counts is found at load; one through a `condition`, which can only
+    // flip a case, is left to the run time, and the load backstop blames the
+    // reference when it throws (D61 decision 1, D57).
     it("a composite before a section that reads the section's number and may make a section: an error at the reference", async () => {
         for (const [doenetML, reference] of [
             [
@@ -3048,7 +3051,7 @@ describe("Sectioning tag tests @group3", async () => {
             ],
             // in a group: the group waits for what it holds to expand
             [
-                `<group><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>
+                `<group><repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence></group>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
@@ -3090,8 +3093,10 @@ describe("Sectioning tag tests @group3", async () => {
 <conditionalContent name="cc" condition="$s.sectionNumber = 1"><p/></conditionalContent>`,
                 "$s.sectionNumber",
             ],
+            // (was `$r.numIterations`, which names nothing since D59: a
+            // property after a repeat is its own)
             [
-                `$r.numIterations<section name="s"><p name="p">hi</p></section>
+                `$r.numItems<section name="s"><p name="p">hi</p></section>
 <repeatForSequence name="r" to="$s.sectionNumber"><p/></repeatForSequence>`,
                 "$s.sectionNumber",
             ],
@@ -3106,6 +3111,25 @@ describe("Sectioning tag tests @group3", async () => {
             [
                 `<problems><repeatForSequence to="$b.sectionNumber"><problem/></repeatForSequence><problem name="b"><p name="p">hi</p></problem></problems>`,
                 "$b.sectionNumber",
+            ],
+            // a section's own number reads the same numbering (D56)
+            [
+                `<repeatForSequence to="$s.ownNumber"><section/></repeatForSequence>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
+            [
+                `<conditionalContent condition="$s.ownNumber = 2"><section/></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
+            // only the load-time numbering check sees this one: without
+            // `ownnumber` among its properties, the choice check gives
+            // e0074 instead
+            [
+                `<select numToSelect="$s.ownNumber"><option><section/></option><option><section/></option></select>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
             ],
         ] as const) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -3134,6 +3158,206 @@ describe("Sectioning tag tests @group3", async () => {
                 doenetML,
             ).eq(reference);
         }
+    });
+
+    // A cycle through the `condition` of a case can only flip the case, so
+    // the load check has no edge for it (D61 decision 1): the run time
+    // settles, or reports the loop at the composite, and the rest renders.
+    // Before D61, each was `doenet-e0005` at the reference, found at load,
+    // which was false where the run time settles.
+    it("a case before a section whose condition reads the section's number: left to the run time", async () => {
+        for (const [doenetML, sectionNumber, errorAt] of [
+            // settles with the condition false: no section, `s` is 1
+            [
+                `<group><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                undefined,
+            ],
+            // never settles: the loop is reported at the composite
+            [
+                `<group><conditionalContent condition="$s.sectionNumber = 1"><section/></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                `<conditionalContent condition="$s.sectionNumber = 1"><section/></conditionalContent>`,
+            ],
+            // the same with the condition on a `<case>`
+            [
+                `<group><conditionalContent><case condition="$s.sectionNumber = 2"><section/></case></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                undefined,
+            ],
+            [
+                `<group><conditionalContent><case condition="$s.sectionNumber = 1"><section/></case></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                `<conditionalContent><case condition="$s.sectionNumber = 1"><section/></case></conditionalContent>`,
+            ],
+            // an `<option>`'s `selectWeight` only weighs which option is
+            // chosen: the one option is, and `s` is 2
+            [
+                `<group><select><option selectWeight="$s.sectionNumber"><section/></option></select></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "2",
+                undefined,
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                doenetML,
+            ).eq("hi");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .sectionNumber,
+                doenetML,
+            ).eq(sectionNumber);
+            const { errors } = getDiagnosticsByType(core);
+            const lines = doenetML.split("\n");
+            expect(
+                errors.map((error: any) => {
+                    const { start, end } = error.position;
+                    return [
+                        error.code,
+                        lines[start.line - 1].slice(
+                            start.column - 1,
+                            end.column - 1,
+                        ),
+                    ];
+                }),
+                doenetML,
+            ).eqls(errorAt === undefined ? [] : [["doenet-e0005", errorAt]]);
+        }
+    });
+
+    // `sectionNumber` is the number shown, a text ("2.3"); `ownNumber` is
+    // the section's own place, a number (3), missing for a section with no
+    // number (D56, #2623 item 9).
+    describe("ownNumber", () => {
+        it("a section's own place, as a number", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="a"/>
+<section name="b">
+  <section name="b1"/>
+  <section name="b2"/>
+  <section name="b3" includeParentNumber="false"/>
+  <proof name="pr"/>
+</section>
+<example name="e"/>
+<p name="p">$a.ownNumber, $b.ownNumber, $b1.ownNumber, $b2.ownNumber, $b3.ownNumber, $e.ownNumber</p>
+<p name="shown">$b2.sectionNumber, $b3.sectionNumber</p>
+<p name="unnumbered">$pr.ownNumber</p>
+<number name="n" extend="$b2.ownNumber"/>
+<boolean name="later">$b3.ownNumber > 2</boolean>
+`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("p")).text).eq("1, 2, 1, 2, 3, 3");
+            expect((await sv("shown")).text).eq("2.2, 3");
+            expect((await sv("unnumbered")).text).eq("＿");
+            expect((await sv("pr")).ownNumber).eq(null);
+            expect((await sv("b2")).ownNumber).eq(2);
+            expect((await sv("n")).value).eq(2);
+            expect((await sv("later")).value).eq(true);
+            expect(getDiagnosticsByType(core).warnings).eqls([]);
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+        });
+
+        it("a sectioning component numbered as a list item", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="sec" asList>
+  <problem name="p1"/>
+  <problem name="p2"/>
+</section>
+<p name="p">$p2.ownNumber, $p2.sectionNumber</p>
+`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .isListItem,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("2, 2");
+        });
+
+        it("two references that a repeat's count reads are each e0005", async () => {
+            // Without `ownnumber` among the numbering check's properties,
+            // the load backstop can't blame these and the document stops.
+            const doenetML = `<repeat for="$s.ownNumber $s.ownNumber" valueName="v"><section/></repeat>
+<section name="s"><p name="p">hi</p></section>`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("hi");
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(warnings).eqls([]);
+            expect(errors.map((error: any) => error.code)).eqls([
+                "doenet-e0005",
+                "doenet-e0005",
+            ]);
+            expect(
+                errors.map((error: any) =>
+                    doenetML.slice(
+                        error.position.start.offset,
+                        error.position.end.offset,
+                    ),
+                ),
+            ).eqls(["$s.ownNumber", "$s.ownNumber"]);
+        });
+
+        it("follows the count as it changes", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<booleanInput name="bi"/>
+<conditionalContent condition="$bi"><section/></conditionalContent>
+<section name="s"/>
+<p name="p">$s.ownNumber</p>
+`,
+            });
+            async function text() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text;
+            }
+            expect(await text()).eq("1");
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("bi"),
+                core,
+            });
+            expect(await text()).eq("2");
+        });
     });
 
     // A composite that the DoenetML shows can make no section is not waited
@@ -3268,7 +3492,7 @@ describe("Sectioning tag tests @group3", async () => {
     <section name="first"/>
     $r[1]
     $r[2].q
-    $r.q
+    $r[1].q $r[2].q
     $sel[1]
     <section name="s"/>
     <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent><case condition="$s.sectionNumber = 3"><p>three</p></case></conditionalContent></group></repeatForSequence>

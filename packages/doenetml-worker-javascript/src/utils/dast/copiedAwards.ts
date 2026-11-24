@@ -108,8 +108,9 @@ export function markCopiedAwards({
     }
 
     function hasReferencesAreResponses(component: SerializedComponent) {
-        return Object.keys(component.attributes ?? {}).some(
-            (name) => name.toLowerCase() === "referencesareresponses",
+        return Object.hasOwn(
+            component.attributes ?? {},
+            "referencesAreResponses",
         );
     }
 

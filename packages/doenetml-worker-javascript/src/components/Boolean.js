@@ -1,5 +1,4 @@
 import InlineComponent from "./abstract/InlineComponent";
-import me from "math-expressions";
 import {
     buildParsedExpression,
     logicTreeMissing,
@@ -26,6 +25,11 @@ export default class BooleanComponent extends InlineComponent {
     // boolean can't hold a blank (D40,
     // `BaseComponent.missingWhenComputedFromMissing`)
     static missingWhenComputedFromMissing = true;
+
+    // false while missing, for whatever reads it as a condition (D70,
+    // `BaseComponent.valueFalseWhileMissing`), here and in every tag that
+    // extends this one
+    static valueFalseWhileMissing = true;
 
     static componentDocs = {
         summary: "A boolean value",
@@ -256,7 +260,11 @@ export default class BooleanComponent extends InlineComponent {
             // Whether an operand of its logic is missing (`logicTreeMissing`,
             // D40, VAL-5, #2460): `<boolean>not $nothing</boolean>` and
             // `<boolean>$nothing and true</boolean>` are missing, shown as
-            // `＿`, while `<boolean>$nothing = 1</boolean>` is false.
+            // `＿`, and so is `<boolean>$nothing = 1</boolean>` (D70). Logic
+            // holding a type mix (D47 decisions 3 and 4) is missing, decided
+            // at load (`typeMixInLogic`, `booleanNumberMixAtLoad.ts`):
+            // `<boolean>$b = 1</boolean>` and `<boolean>$n + 0</boolean>`, so
+            // that it never equals a response "false" (#2656).
             stateVariableDefinitions.computedFromMissing = {
                 // Read from the children's `valueMissing` and the structure
                 // of the logic alone, not the children's values: an
@@ -277,10 +285,17 @@ export default class BooleanComponent extends InlineComponent {
                         variableNames: ["valueMissing"],
                         variablesOptional: true,
                     },
+                    typeMixInLogic: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "typeMixInLogic",
+                    },
                 }),
                 definition({ dependencyValues }) {
                     const { parsedExpression, codePre, children } =
                         dependencyValues;
+                    if (dependencyValues.typeMixInLogic) {
+                        return { setValue: { computedFromMissing: true } };
+                    }
                     // the codes are those `mathChildrenByCode` gives the
                     // children, in order
                     const missingCodes = new Set(
@@ -555,58 +570,8 @@ export default class BooleanComponent extends InlineComponent {
             },
         };
 
-        // The boolean as `1` or `0`, where a math is wanted (REF-5): the
-        // math a boolean adapts to as the child of a `<math>`, a `<point>`, a
-        // `<mathList>` or anything else that takes maths but not booleans or
-        // texts, so `<math>$b+1</math>` is `1+1`. Not a property: `$b` in such
-        // a place reads it, a missing boolean as a blank. Writing `1` or `0` back sets `true` or `false`.
-        stateVariableDefinitions.math = {
-            returnDependencies: () => ({
-                value: {
-                    dependencyType: "stateVariable",
-                    variableName: "value",
-                },
-                // not every type of boolean can be missing (`<isInteger>`)
-                valueMissing: {
-                    dependencyType: "stateVariable",
-                    variableName: "valueMissing",
-                    variablesOptional: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                // a missing boolean is a blank in the math (D40)
-                const math = dependencyValues.valueMissing
-                    ? me.fromAst("\uff3f")
-                    : me.fromAst(dependencyValues.value ? 1 : 0);
-                return { setValue: { math } };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                let desired = desiredStateVariableValues.math;
-                if (desired instanceof me.class) {
-                    desired = desired.evaluate_to_constant();
-                }
-                if (desired === 0 || desired === 1) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "value",
-                                desiredValue: desired === 1,
-                            },
-                        ],
-                    };
-                }
-                return { success: false };
-            },
-        };
-
         return stateVariableDefinitions;
     }
 
-    // As a text where a text is wanted, otherwise as `1` or `0` where a math
-    // is (REF-5)
-    static adapters = [
-        "text",
-        { stateVariable: "math", componentType: "math" },
-    ];
+    static adapters = ["text"];
 }

@@ -110,9 +110,9 @@ An `<updateValue>{:dn}` is used to set the `tail` property of a `<vector>{:dn}`,
 
 
 
-When the `target` is a list component such as a `<numberList>{:dn}`, `<mathList>{:dn}`, `<textList>{:dn}`, or `<pointList>{:dn}`, the `<updateValue>{:dn}` sets every entry of the list to `newValue`, and the list keeps the same number of entries. An index such as `$scores[2]` picks out a single entry instead. A property of a list, such as `$points.x` for a `<pointList>{:dn}` named `points`, sets that property of every entry.
+When the `target` is a list component such as a `<numberList>{:dn}`, `<mathList>{:dn}`, `<textList>{:dn}`, or `<pointList>{:dn}`, the `<updateValue>{:dn}` sets every entry of the list to `newValue`, and the list keeps the same number of entries. An index such as `$scores[2]` picks out a single entry instead. A property after a list is the list's own, not each entry's: `target="$points.x"` for a `<pointList>{:dn}` named `points` names nothing, with a warning suggesting an index, such as `$points[1].x`.
 
-The `target` names the component to change. A `<group>{:dn}` holding one component stands for it, so `target="$g"` changes that component, as does `target="$r[1]"` when each iteration of a repeat named `r` holds one component. A name after a repeat or a select reaches the component of that name in each item, so `target="$r.x"` changes `x` in every iteration.
+The `target` names the component to change. A `<group>{:dn}` holding one component stands for it, so `target="$g"` changes that component, as does `target="$r[1]"` when each iteration of a repeat named `r` holds one component. A name after a repeat, or after a select that picks several, names nothing, with a warning when the document loads: give the index of the item, as `target="$r[1].x"` changes `x` in the first iteration.
 
 A `<group>{:dn}` of several components, a `<repeat>{:dn}` or a `<repeatForSequence>{:dn}` has no one value, so an `<updateValue>{:dn}` whose `target` is one of them changes nothing; name the component inside it instead, as `$g.a` for a component named `a` in a group named `g`, or `$r[1].x` for a component named `x` in the first iteration of a repeat named `r`. The editor warns about a group of several components, a `<repeat>{:dn}` or a `<repeatForSequence>{:dn}` when the document loads.
 

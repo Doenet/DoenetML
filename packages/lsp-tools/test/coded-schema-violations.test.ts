@@ -80,9 +80,10 @@ const BROKEN_DOENETML: Record<string, string> = {
     "an element that cannot stand at the root": `<li>an item</li>`,
     "an element in a parent that does not accept it": `<p><section /></p>`,
     "an attribute the element does not have": `<p bogus="1">hi</p>`,
+    "an attribute written in another case than the element's": `<graph XMIN="-5" />`,
     "a name that does not start with a letter": `<p name="1st">hi</p>`,
     "a value outside the attribute's enumeration": `<p hide="maybe">hi</p>`,
-    "a list value outside the attribute's enumeration": `<sideBySide valigns="top sideways" />`,
+    "a list value outside the attribute's enumeration": `<sideBySide vAligns="top sideways" />`,
     "a reference joined to the text beside it in a list": `<math name="a">y</math><mathList>2$a</mathList>`,
 };
 
@@ -121,6 +122,12 @@ describe("Coded schema violations render to the English the checker wrote", () =
         expectRoundTrip(
             await violations(`<p thisIsNotAnAttributeAnywhere="1">hi</p>`),
         );
+    });
+
+    it("a tag written in another case than an element's", async () => {
+        // `schema-element-unrecognized` with the suggestion of the tag it
+        // differs from only in case, as the core's `component-type-invalid`.
+        expectRoundTrip(await violations(`<MATH>x</MATH>`));
     });
 
     it("exercises every code the checker can raise", () => {

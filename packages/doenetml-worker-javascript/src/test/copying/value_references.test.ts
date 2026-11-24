@@ -10,6 +10,7 @@ import {
 } from "../utils/actions";
 import { censusOfCore } from "../perf/census";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { responseTypes } from "../utils/responseTypes";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2187,10 +2188,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ];
                 expect(censusOfCore(core).copies).eq(0);
 
-                // `=` is false for every missing value, and `!=` true between
-                // two of them, except that `matchBlanks` matches a blank to a
-                // blank input. A blank math and a text are not comparable, so
-                // `!=` with a text is false too.
+                // A comparison with a missing value is missing (D70), and a
+                // missing boolean is false wherever it is read: `=`, `!=`,
+                // `not`, `matchBlanks` against a blank input, all false.
                 expect(
                     await values(core, resolvePathToNodeIdx, [
                         ...comparisons,
@@ -2200,20 +2200,20 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     ]),
                 ).eqls({
                     numEq: false,
-                    numNe: true,
+                    numNe: false,
                     numNaN: false,
-                    numBlank: true,
+                    numBlank: false,
                     textEq: false,
-                    textNe: true,
+                    textNe: false,
                     textNeText: false,
                     textEmpty: false,
                     textInput: false,
                     boolEq: false,
-                    boolNotEq: true,
+                    boolNotEq: false,
                     boolFalse: false,
                     boolInput: false,
                     choiceEq: false,
-                    choiceNe: true,
+                    choiceNe: false,
                     // a number and a boolean hold the empty value of their
                     // type, and a text reads a missing value as a blank (D37)
                     num: NaN,
@@ -2533,8 +2533,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
                 // A boolean can't hold a blank, so an operator with a missing
                 // operand is missing, whatever its other operands (D40,
-                // #2460). The value it holds meanwhile takes the operand as
-                // not true.
+                // #2460), and a missing boolean is false (D70).
                 const names = ["and", "andOnly", "andNone", "iff", "implies"];
                 expect(censusOfCore(core).copies).eq(0);
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
@@ -2542,7 +2541,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     andOnly: false,
                     andNone: false,
                     iff: false,
-                    implies: true,
+                    implies: false,
                 });
                 const stateVariables = await core.returnAllStateVariables(
                     false,
@@ -2594,7 +2593,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // false. Inside a composite the copy made nothing, which
                 // made it true there and false at document level. A missing
                 // number makes a sum of numbers missing (D40).
-                const expected = [false, true, false, false, "＿", false];
+                // A comparison with a missing value is missing, so false
+                // (D70).
+                const expected = [false, false, false, false, "＿", false];
                 for (const name of [
                     (n: string) => "d" + n,
                     (n: string) => "r[1]." + n,
@@ -2726,7 +2727,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // a missing number among numbers makes the sum missing (D40)
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
                     eq: false,
-                    ne: true,
+                    ne: false,
                     sum: "＿",
                     count: 2,
                     num: NaN,
@@ -2790,13 +2791,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     false,
                     true,
                 );
-                const { submittedResponses, submittedResponsesComponentType } =
+                const { submittedResponses } =
                     stateVariables[ansIdx].stateValues;
                 return {
                     responses: submittedResponses.map((r: any) =>
                         r?.tree !== undefined ? r.tree : r,
                     ),
-                    types: submittedResponsesComponentType,
+                    // decided at load (TYPE-2)
+                    types: await responseTypes(core, ansIdx),
                     credit: stateVariables[ansIdx].stateValues.creditAchieved,
                     numResponses:
                         stateVariables[ansIdx].stateValues.numResponses,
@@ -2912,9 +2914,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             it("a missing entry is recorded and compared as an empty response", async () => {
                 // Before a choice is made, and while the index is blank or
                 // past the end of the list, a reference reads an entry that
-                // is not there. It is recorded as an empty math, and no two
-                // of them are equal. Once an entry is there, it is recorded
-                // and compared by its value.
+                // is not there. It is recorded as a missing value of its
+                // type (D52 decision 1), a number's `NaN` here, and no two of
+                // them are equal. Once an entry is there, it is recorded and
+                // compared by its value.
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <choiceInput name="c1"><choice>a</choice><choice>b</choice></choiceInput>
@@ -2935,8 +2938,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 await submitAnswer({ componentIdx: ans1Idx, core });
                 await submitAnswer({ componentIdx: ans2Idx, core });
                 const empty = {
-                    responses: ["＿", "＿"],
-                    types: ["math", "math"],
+                    responses: [NaN, NaN],
+                    types: ["number", "number"],
                     credit: 0,
                     numResponses: 2,
                 };
@@ -2968,7 +2971,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 for (const [i, responses, types, credit] of [
                     ["1", [1, 2], ["number", "number"], 0],
                     ["2", [2, 2], ["number", "number"], 1],
-                    ["3", [2, "＿"], ["number", "math"], 0],
+                    ["3", [2, NaN], ["number", "number"], 0],
                 ] as const) {
                     await updateMathInputValue({
                         latex: i,
@@ -2989,8 +2992,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // What the reference presents does not decide what is
                 // recorded: `$n` inside a `<math>` or a `<floor>` presents
                 // as a math, and is recorded as the number. A `selectedIndex`
-                // is recorded as a number once there is one, and as a blank
-                // math before.
+                // is a number, also before there is one, when it is a missing
+                // number, `NaN` (D52 decision 1).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <mathInput name="mi" />
@@ -3007,8 +3010,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
                 await submitAnswer({ componentIdx: ansIdx, core });
                 expect(await submitted(core, ansIdx)).eqls({
-                    responses: ["＿", 3, 3, 2, "＿"],
-                    types: ["math", "number", "number", "number", "math"],
+                    responses: ["＿", 3, 3, 2, NaN],
+                    types: ["math", "number", "number", "number", "number"],
                     credit: 0,
                     numResponses: 5,
                 });
@@ -3064,9 +3067,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         (ref) => ref.doenetAttributes.fixedReferent,
                     ),
                 ).toHaveLength(1);
+                // The type of `$mc.values[1]` is known only once the module
+                // is made, so the answer's types aren't decided, and a
+                // reference to them would be an error at load (TYPE-3).
                 expect(await submitted(core, directIdx)).eqls({
                     responses: [1, 1],
-                    types: ["number", "math"],
+                    types: undefined,
                     credit: 1,
                     numResponses: 2,
                 });
@@ -3074,7 +3080,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // as the number it reads
                 expect(await submitted(core, inMathIdx)).eqls({
                     responses: [2, 1],
-                    types: ["number", "math"],
+                    types: undefined,
                     credit: 1,
                     numResponses: 2,
                 });
@@ -3082,9 +3088,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             it("a function's missing global minimum is an empty response", async () => {
                 // Neither function has a global minimum, so each reference
-                // has nothing to read: an empty response, unequal to the
-                // other (#2153 makes them missing; the copy made a `NaN`
-                // number for each, and the answer gave credit).
+                // has nothing to read: a missing number, `NaN`, unequal to
+                // the other (#2153 makes them missing, D52 decision 1; the
+                // copy made a `NaN` number for each, and the answer gave
+                // credit).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <function name="f">x</function>
@@ -3095,8 +3102,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 const ansIdx = await resolvePathToNodeIdx("ans");
                 await submitAnswer({ componentIdx: ansIdx, core });
                 expect(await submitted(core, ansIdx)).eqls({
-                    responses: ["＿", "＿"],
-                    types: ["math", "math"],
+                    responses: [NaN, NaN],
+                    types: ["number", "number"],
                     credit: 0,
                     numResponses: 2,
                 });
@@ -3110,8 +3117,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // is: submitting it fails. A variable that holds `null` has no
                 // value, as an attribute with no default (an `<award>`'s
                 // `feedbackText`) and `maxNumber` of a `<collect>` with no
-                // limit, so it is missing and recorded as a blank math, as a
-                // missing reference is (D40, #2416, #2460).
+                // limit, so it is missing and recorded as a missing value of
+                // its type, as a missing reference is (D40, #2416, #2460,
+                // D52 decision 1).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <boolean name="b">true</boolean>
@@ -3134,8 +3142,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 const nullsIdx = await resolvePathToNodeIdx("nulls");
                 await submitAnswer({ componentIdx: nullsIdx, core });
                 expect(await submitted(core, nullsIdx)).eqls({
-                    responses: ["＿", "＿"],
-                    types: ["math", "math"],
+                    responses: ["＿", NaN],
+                    types: ["text", "number"],
                     credit: 0,
                     numResponses: 2,
                 });
@@ -3166,7 +3174,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // The copy made nothing for a missing entry directly in an
                 // `<award>` or in an operator such as `<sum>` or `<and>`, and
                 // an empty text in a `<text>`, at the top of the document
-                // too. A reference is one empty math in each.
+                // too. A reference is one missing value of the entry's type
+                // in each (D52 decision 1): a number's `NaN`, a boolean's
+                // `false` (a boolean has no blank) and a text's `＿`.
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">5 6</numberList>
@@ -3186,19 +3196,19 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     await submitAnswer({ componentIdx: ansIdx, core });
                     results[name] = await submitted(core, ansIdx);
                 }
-                const missingAndBlank = {
-                    responses: ["＿", "＿"],
-                    types: ["math", "math"],
+                const missingAndBlank = (missing: unknown, type: string) => ({
+                    responses: [missing, "＿"],
+                    types: [type, "math"],
                     credit: 0,
                     numResponses: 2,
-                };
+                });
                 expect(results).eqls({
-                    inSum: missingAndBlank,
-                    inAnd: missingAndBlank,
-                    inText: missingAndBlank,
+                    inSum: missingAndBlank(NaN, "number"),
+                    inAnd: missingAndBlank(false, "boolean"),
+                    inText: missingAndBlank("＿", "text"),
                     inAward: {
                         responses: ["", "＿"],
-                        types: ["text", "math"],
+                        types: ["text", "text"],
                         credit: 0,
                         numResponses: 2,
                     },
@@ -3208,7 +3218,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             it("a run-time reference to a missing component is one empty response", async () => {
                 // `$r[1].m.value` is a reference a copy makes at run time
                 // (`fixedReferent`); its referent `m` is missing (D37), so it
-                // is recorded as a blank math, not as `<boolean/>`'s `false`.
+                // is recorded as a missing boolean, `false`, as `<boolean/>`
+                // is (D52 decision 1). What it names is known only as the
+                // document runs, so the answer's types aren't decided
+                // (TYPE-3).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <number name="n">3</number>
@@ -3219,8 +3232,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 const ansIdx = await resolvePathToNodeIdx("ans");
                 await submitAnswer({ componentIdx: ansIdx, core });
                 expect(await submitted(core, ansIdx)).eqls({
-                    responses: [3, "＿"],
-                    types: ["number", "math"],
+                    responses: [3, false],
+                    types: undefined,
                     credit: 1,
                     numResponses: 2,
                 });
@@ -3228,8 +3241,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             it("a missing tag is one blank response, whether it is a considerAsResponses's child, in an award or the answer's input", async () => {
                 // A missing tag (D37) holds `<T/>`'s value (`false` for a
-                // `<boolean>`), but is recorded as a blank math, as a value
-                // reference with nothing to read is.
+                // `<boolean>`), and is recorded as a missing value of its
+                // type (D52 decision 1), as a value reference with nothing to
+                // read is: `false` for a boolean, which has no blank, a blank
+                // math for a `<mathInput>`, and a blank text for a
+                // `<choiceInput>` with no choices, whose values are texts.
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <number name="n">3</number>
@@ -3245,8 +3261,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     [
                         "consider",
                         {
-                            responses: ["＿", 3],
-                            types: ["math", "number"],
+                            responses: [false, 3],
+                            types: ["boolean", "number"],
                             credit: 1,
                             numResponses: 2,
                         },
@@ -3254,8 +3270,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     [
                         "award",
                         {
-                            responses: ["＿"],
-                            types: ["math"],
+                            responses: [false],
+                            types: ["boolean"],
                             credit: 0,
                             numResponses: 1,
                         },
@@ -3275,7 +3291,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         "choices",
                         {
                             responses: ["＿", 3],
-                            types: ["math", "number"],
+                            types: ["text", "number"],
                             credit: 1,
                             numResponses: 2,
                         },
@@ -3284,7 +3300,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         "choiceInput",
                         {
                             responses: ["＿"],
-                            types: ["math"],
+                            types: ["text"],
                             credit: 1,
                             numResponses: 1,
                         },
@@ -3298,9 +3314,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             it("a missing entry among a considerAsResponses's children is one empty response", async () => {
                 // A `<considerAsResponses>` child that is a reference is
-                // recorded from its referent too: an empty math when there
-                // is nothing to read, at the top of the document and inside
-                // a `<group>` alike. (The reference used to record what it
+                // recorded from its referent too: a missing value of its type
+                // when there is nothing to read (D52 decision 1), a number's
+                // `NaN` here, at the top of the document and inside a
+                // `<group>` alike. (The reference used to record what it
                 // presents, a `NaN` number; the copy before it made nothing,
                 // so nothing was recorded.)
                 const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -3321,14 +3338,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 await submitAnswer({ componentIdx: docIdx, core });
                 await submitAnswer({ componentIdx: groupIdx, core });
                 expect(await submitted(core, docIdx)).eqls({
-                    responses: [3, "＿", "＿"],
-                    types: ["number", "math", "math"],
+                    responses: [3, NaN, NaN],
+                    types: ["number", "number", "number"],
                     credit: 1,
                     numResponses: 3,
                 });
                 expect(await submitted(core, groupIdx)).eqls({
-                    responses: [3, "＿"],
-                    types: ["number", "math"],
+                    responses: [3, NaN],
+                    types: ["number", "number"],
                     credit: 1,
                     numResponses: 2,
                 });
@@ -3375,8 +3392,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
                 await submitAnswer({ componentIdx: ansIdx, core });
                 expect(await submitted(core, ansIdx)).eqls({
-                    responses: ["＿", 3, 2, "＿"],
-                    types: ["math", "number", "number", "math"],
+                    responses: ["＿", 3, 2, NaN],
+                    types: ["math", "number", "number", "number"],
                     credit: 0,
                     numResponses: 4,
                 });
@@ -3403,7 +3420,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             it("a missing entry of a number or math list is one empty response wherever the answer is", async () => {
                 // At the top of the document, and inside a repeat iteration,
                 // a group, or a copy, a reference to a missing entry is one
-                // response, an empty math. The copy it replaced made nothing
+                // response, a missing value of the entry's type (D52
+                // decision 1). The copy it replaced made nothing
                 // inside those, and the answer counted no response there. (A
                 // reference into a `<pointList>`, a `<split>`, a `<sequence>`,
                 // a `<collect>` or a list in a copied `<module>` is still a
@@ -3453,18 +3471,23 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     );
                 }
                 const missingAndBlank = {
-                    responses: ["＿", "＿"],
-                    types: ["math", "math"],
+                    responses: [NaN, "＿"],
+                    types: ["number", "math"],
                     credit: 0,
                     numResponses: 2,
                 };
                 expect(results).eqls({
                     doc: missingAndBlank,
                     "r[3].numbers": missingAndBlank,
-                    "r[3].maths": missingAndBlank,
+                    "r[3].maths": {
+                        responses: ["＿", "＿"],
+                        types: ["math", "math"],
+                        credit: 0,
+                        numResponses: 2,
+                    },
                     "r2[1].fixed": {
-                        responses: ["＿"],
-                        types: ["math"],
+                        responses: [NaN],
+                        types: ["number"],
                         credit: 0,
                         numResponses: 1,
                     },

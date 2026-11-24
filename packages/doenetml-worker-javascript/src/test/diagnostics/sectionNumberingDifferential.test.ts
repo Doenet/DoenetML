@@ -36,22 +36,6 @@ vi.mock("hyperformula");
 const SAMPLE_SIZE = Number(process.env.DOENET_SECTION_DIFFERENTIAL_SIZE ?? 150);
 const FULL_SIZE = 1000;
 const SEED = 2623;
-/**
- * The documents of the sample, by index, where the load check reports an
- * `e0005` the run time alone doesn't have: false errors, left by #2618's
- * edges, not by the backstop. Each holds a `<conditionalContent>` whose
- * condition reads the number and whose case may make a section, before the
- * section, and the run time settles where the condition is false, with no
- * cycle: in a repeat in a `<div>` holding a section after it (4), in the
- * case of what a `<collect>` of sections collects from (33), in a
- * `<select>`'s options (80), in an option of a `<select>` after the section
- * that a reference before it reads (111). The check finds an edge through
- * the condition, as the case may make a section. D57 leaves these to be
- * removed, erring toward a missing edge, which the backstop catches. Each
- * is asserted to still be one, so that a fix shows here. The indices hold
- * for this `SEED` and this grammar only.
- */
-const KNOWN_FALSE_ERRORS = new Set([4, 33, 80, 111]);
 /** A section number past this has run away. */
 const RUNAWAY = 30;
 
@@ -369,12 +353,11 @@ describe("Cycles through a section's number, against the run time @group4", () =
             } else {
                 tally.loads++;
                 for (const [v, outcome] of shipped.entries()) {
-                    // no false `e0005`, but those known, and the same number
-                    if (KNOWN_FALSE_ERRORS.has(i)) {
-                        expect(outcome.e0005, doenetML).toBeGreaterThan(0);
-                    } else {
-                        expect(outcome.e0005, doenetML).eq(0);
-                    }
+                    // no false `e0005` (D61 decision 1: a `<conditionalContent>`
+                    // whose condition reads the number and whose case may make
+                    // a section was one, before the edges went only to what
+                    // a composite counts), and the same number
+                    expect(outcome.e0005, doenetML).eq(0);
                     expect(outcome.sectionNumber, doenetML).eq(
                         oracles[v].sectionNumber,
                     );

@@ -749,7 +749,7 @@ function childGroupAccepts(
 
 /**
  * The attributes by which an `<answer>` records what a reference in its
- * awards reads as a response, lower-cased: the `isPotentialResponse` an
+ * awards reads as a response, matched exactly: the `isPotentialResponse` an
  * answer with no input of its own gives every reference in its awards
  * (`Answer.js`), and the `isResponse` an `<award referencesAreResponses>`
  * gives the references it names (`Award.js`; `utils/dast/valueReferences.ts`
@@ -757,7 +757,7 @@ function childGroupAccepts(
  * as primitives in its `attributes`, and the `isResponse` and
  * `isPotentialResponse` it makes on demand read them (`ValueRef.js`).
  */
-export const RESPONSE_MARKS = new Set(["isresponse", "ispotentialresponse"]);
+export const RESPONSE_MARKS = new Set(["isResponse", "isPotentialResponse"]);
 
 /**
  * Split `attributes` into the response marks among them and the rest.
@@ -769,7 +769,7 @@ export function separateResponseMarks<T>(attributes: Record<string, T>): {
     const responseMarks: Record<string, T> = {};
     const otherAttributes: Record<string, T> = {};
     for (const name in attributes) {
-        if (RESPONSE_MARKS.has(name.toLowerCase())) {
+        if (RESPONSE_MARKS.has(name)) {
             responseMarks[name] = attributes[name];
         } else {
             otherAttributes[name] = attributes[name];

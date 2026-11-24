@@ -336,7 +336,7 @@ math in the definition counts as 1 item when lists are not merged, and 3 items i
 
 ---
 
-### Property Example: latex
+### Property Example: an entry's properties
 
 
 ```doenet-editor-horiz
@@ -347,36 +347,14 @@ math in the definition counts as 1 item when lists are not merged, and 3 items i
     <math>sin(pi/2)</math>
   </mathList>
 
-<p><c>latex</c> = $mL1.latex</p>
 <p><c>mL1[3].latex</c> = $mL1[3].latex</p>
-```
-
-
-
-The `latex` property returns the LaTeX code required to render the maths in an array. The 
-LaTeX code for individual items can be accessed using array notation and then appending the `latex` property.
-
-
-
----
-
-### Property Example: text
-
-
-```doenet-editor-horiz
-
-  <mathList name="mL1">
-    <math>(a, b)</math>
-    <math>3/4</math>
-    <math>sin(pi/2)</math>
-  </mathList>
-
-<p><c>text</c> = $mL1.text</p>
 <p><c>mL1[3].text</c> = $mL1[3].text</p>
 ```
 
 
 
-The `text` property returns the maths in text format in an array. The text for individual 
-items can be accessed using array notation and then appending the `text` property.
+A property of an entry, such as its `latex` or `text`, is read with its index, as
+`$mL1[3].latex`. A property right after the `<mathList>{:dn}` is the list's own, such as
+`numComponents` above: `$mL1.latex` and `$mL1.text` name nothing, with a warning
+suggesting an index.
 

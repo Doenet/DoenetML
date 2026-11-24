@@ -24,24 +24,24 @@ Rather than listing out all of the possible attributes and values, documentation
 ```doenet-example
  <tabular topBorder="minor" bottomBorder="minor">
     <row>
-      <cell halign="end"><c>xMin=</c></cell>
-      <cell halign="start"><mathInput name="xMin" prefill="-1" /></cell>
-      <cell halign="end"><c>xMax</c></cell>
-      <cell halign="start"><mathInput name="xMax" prefill="6" /></cell>
-      <cell halign="end"><c>grid</c></cell>
-      <cell halign="start"><booleanInput name="showGrid" /></cell>
+      <cell hAlign="end"><c>xMin=</c></cell>
+      <cell hAlign="start"><mathInput name="xMin" prefill="-1" /></cell>
+      <cell hAlign="end"><c>xMax</c></cell>
+      <cell hAlign="start"><mathInput name="xMax" prefill="6" /></cell>
+      <cell hAlign="end"><c>grid</c></cell>
+      <cell hAlign="start"><booleanInput name="showGrid" /></cell>
     </row>
     <row>
-      <cell halign="end"><c>yMin=</c></cell>
-      <cell halign="start"><mathInput name="yMin" prefill="-2" /></cell>
-      <cell halign="end"><c>yMax</c></cell>
-      <cell halign="start"><mathInput name="yMax" prefill="10" /></cell>
-      <cell halign="end"><c>fix axes</c></cell>
-      <cell halign="start"><booleanInput name="fixAxes" prefill="false" /></cell>
+      <cell hAlign="end"><c>yMin=</c></cell>
+      <cell hAlign="start"><mathInput name="yMin" prefill="-2" /></cell>
+      <cell hAlign="end"><c>yMax</c></cell>
+      <cell hAlign="start"><mathInput name="yMax" prefill="10" /></cell>
+      <cell hAlign="end"><c>fix axes</c></cell>
+      <cell hAlign="start"><booleanInput name="fixAxes" prefill="false" /></cell>
     </row>
     <row>
-      <cell halign="end"><c>size</c></cell>
-      <cell halign="start">
+      <cell hAlign="end"><c>size</c></cell>
+      <cell hAlign="start">
         <choiceInput name="sizeChoice" inline preselectChoice="3">
           <choice>tiny</choice>
           <choice>small</choice>
@@ -50,16 +50,16 @@ Rather than listing out all of the possible attributes and values, documentation
           <choice>full</choice>
         </choiceInput>
       </cell> 
-      <cell halign="end"><c>align</c></cell>
-      <cell halign="start">
+      <cell hAlign="end"><c>align</c></cell>
+      <cell hAlign="start">
         <choiceInput name="alignChoice" inline preselectChoice="2">
           <choice>left</choice>
           <choice>center</choice>
           <choice>right</choice>
         </choiceInput>
       </cell> 
-      <cell halign="end"><c>border</c></cell>
-      <cell halign="start"><booleanInput name="showBorder" prefill="true" /></cell>  
+      <cell hAlign="end"><c>border</c></cell>
+      <cell hAlign="start"><booleanInput name="showBorder" prefill="true" /></cell>  
     </row>
   </tabular>
   <p><alert>Resulting <tag>graph</tag><tag>/graph</tag> tag and graph</alert>:</p>
@@ -75,7 +75,7 @@ Rather than listing out all of the possible attributes and values, documentation
       border="$showBorder"
     </conditionalContent>
     <conditionalContent condition="$alignChoice != center">
-      halign="$alignChoice"
+      hAlign="$alignChoice"
     </conditionalContent>
    </tag><tag>/graph</tag></c></p>
   

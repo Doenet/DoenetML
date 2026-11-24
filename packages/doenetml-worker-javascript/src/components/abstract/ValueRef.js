@@ -5,6 +5,7 @@ import {
     pathHasIndexComponents,
     referenceSlotDefinitions,
     emptyValueOfType,
+    missingResponseValue,
     referentOrFallback,
     unorderedDefinition,
     valueMissingDefinition,
@@ -355,11 +356,14 @@ export default class ValueRef extends BaseComponent {
         // referent: `<math>$n+1</math>` uses the value of a hidden `n`. One
         // that is drawn is hidden, when it stands for a copy of its referent
         // (`copiesReferent`), with the referent's `hide`, which that copy
-        // shadowed (`$t` of `<text hide>`; not `$t.value`). One that has
-        // nothing to read (`valueMissing`) is not hidden but drawn as a blank
-        // (D37); `hidden` reads it so that a change to it updates the
-        // children its parent renders (`markStale`), which then draws it as
-        // a blank or as its type (`RendererInstructionBuilder`).
+        // shadowed (`$t` of `<text hide>`; not `$t.value`), and when it
+        // reads the value of a graphical component in place of a copy of it
+        // (`hiddenWithReferent`: `$P` in a `<label>`, `valueInPlaceOfCopy`
+        // in `Copy.js`). One that has nothing to read (`valueMissing`) is
+        // not hidden but drawn as a blank (D37); `hidden` reads it so that a
+        // change to it updates the children its parent renders
+        // (`markStale`), which then draws it as a blank or as its type
+        // (`RendererInstructionBuilder`).
         stateVariableDefinitions.hidden = {
             stateVariablesDeterminingDependencies: ["referentInfo"],
             returnDependencies({ stateValues = {} }) {
@@ -383,7 +387,11 @@ export default class ValueRef extends BaseComponent {
                 };
                 const referentInfo =
                     component.fixedReferent ?? stateValues.referentInfo;
-                if (component.doenetAttributes.copiesReferent && referentInfo) {
+                if (
+                    (component.doenetAttributes.copiesReferent ||
+                        component.doenetAttributes.hiddenWithReferent) &&
+                    referentInfo
+                ) {
                     dependencies.referentHide = {
                         dependencyType: "stateVariable",
                         componentIdx: referentInfo.componentIdx,
@@ -674,7 +682,9 @@ export default class ValueRef extends BaseComponent {
      * made at run time is missing only when its referent is a missing
      * component (`fixedReferentMissingDefinition`).
      * `pastEndOfList` (`pastEndOfListDefinition`), which a list asks of its
-     * children, is likewise the reference's own.
+     * children, is likewise the reference's own. So is `namesNothing`
+     * (`namesNothingDefinition`), which a `<point>` or `<vector>` asks of
+     * what it holds (`contentNamesNothingDefinition`, #2596).
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -687,6 +697,17 @@ export default class ValueRef extends BaseComponent {
                     this.fixedReferent
                         ? fixedReferentMissingDefinition(this.fixedReferent)
                         : valueMissingDefinition(),
+                ],
+            ];
+        }
+        if (stateVariable === "namesNothing") {
+            return [
+                [
+                    stateVariable,
+                    namesNothingDefinition(
+                        this.fixedReferent,
+                        this.componentInfoObjects,
+                    ),
                 ],
             ];
         }
@@ -854,6 +875,7 @@ const VALUE_REFERENCE_DOENET_ATTRIBUTES = [
     "adapterVariable",
     "fixedReferent",
     "copiesReferent",
+    "hiddenWithReferent",
     "listEntryAdapterProperty",
     "readsReferentAdapter",
 ];
@@ -1069,7 +1091,18 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
         },
         definition({ dependencyValues, componentInfoObjects }) {
             if (dependencyValues.valueMissing) {
-                return { setValue: { valueAsResponse: me.fromAst("\uff3f") } };
+                // a missing value of its type (D52 decision 1)
+                return {
+                    setValue: {
+                        valueAsResponse: missingResponseValue(
+                            missingResponseType(
+                                dependencyValues,
+                                referencedComponentType,
+                            ),
+                            componentInfoObjects,
+                        ),
+                    },
+                };
             }
             if (dependencyValues.wholeReferent) {
                 return {
@@ -1127,7 +1160,10 @@ function componentTypeAsResponseDefinition(
         definition({ dependencyValues }) {
             let componentTypeAsResponse = referencedComponentType;
             if (dependencyValues.valueMissing) {
-                componentTypeAsResponse = "math";
+                componentTypeAsResponse = missingResponseType(
+                    dependencyValues,
+                    referencedComponentType,
+                );
             } else if (dependencyValues.wholeReferent) {
                 componentTypeAsResponse = wholeReferentResponse(
                     dependencyValues.wholeReferent,
@@ -1140,6 +1176,28 @@ function componentTypeAsResponseDefinition(
         definition.stateVariablesDeterminingDependencies = ["referentInfo"];
     }
     return definition;
+}
+
+/**
+ * The type a reference with nothing to read is recorded as by an `<answer>`
+ * (D52 decision 1: a missing response has its entry's type): the type of
+ * what it reads (`referencedComponentType`), or, for a reference to a whole
+ * component, the type that component is recorded as. A blank math when no
+ * type is known (a reference that names nothing).
+ */
+function missingResponseType(dependencyValues, referencedComponentType) {
+    if (dependencyValues.wholeReferent) {
+        return (
+            dependencyValues.wholeReferent.stateValues?.componentType ??
+            dependencyValues.wholeReferent.componentType ??
+            "math"
+        );
+    }
+    // `_missing` is what a reference that names nothing is made as
+    return referencedComponentType === undefined ||
+        referencedComponentType === "_missing"
+        ? "math"
+        : referencedComponentType;
 }
 
 /**
@@ -1216,6 +1274,113 @@ function fixedReferentMissingDefinition(fixedReferent) {
                     valueMissing:
                         Boolean(dependencyValues.targetMissing) ||
                         Boolean(dependencyValues.entryMissing),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `namesNothing` of a value reference: whether it names
+ * nothing now, which makes a `<point>` or `<vector>` holding only it missing
+ * (`contentNamesNothingDefinition` in `utils/missing.ts`, D40, D49, #2596).
+ * It does so with no referent, at an entry of a list past its end or blank
+ * (`<point>$ml[3]</point>` of a two-entry `<mathList>`, `$mb[2]` of
+ * `<mathList name="mb">1 $nothing</mathList>`), and, as a reference to a
+ * whole component (`$Q`), while that component is made for a reference that
+ * names nothing, or holds only such references, itself
+ * (`<point name="Q">$nothing</point>`).
+ *
+ * Unlike `valueMissing`, it never reads whether its referent is missing
+ * (`valueMissing`): a vector's `valueMissing` reads its `head` and `tail`,
+ * so reading it here would make a cycle of a point and a vector defined
+ * from each other (`head="$(v1.tail)"`). Of a property (`$(v.tail)`), it
+ * reads only whether the referent names nothing, or holds only missing
+ * content where that makes its type missing (`contentMissing`), never what a
+ * point or vector holds (`contentNamesNothing`), which of a vector whose
+ * `displacement` is its own `head` would read itself. What a whole
+ * component holds is read only through its content, which is a cycle only
+ * where its value is too.
+ */
+function namesNothingDefinition(fixedReferent, componentInfoObjects) {
+    return {
+        ...(fixedReferent
+            ? {}
+            : { stateVariablesDeterminingDependencies: ["referentInfo"] }),
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            if (!referentInfo) {
+                return {};
+            }
+            const dependencies = {
+                hasReferent: { dependencyType: "value", value: true },
+            };
+            if (referentInfo.listEntryPosition !== undefined) {
+                // past the end, the entry holds no value; blank, it is
+                // marked missing (`entryMissing2`)
+                dependencies.entry = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: referentInfo.variableName,
+                    variablesOptional: true,
+                };
+                dependencies.entryMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: `entryMissing${referentInfo.listEntryPosition}`,
+                    variablesOptional: true,
+                };
+            } else {
+                // A component made for a reference that names nothing
+                // (`namesNothing`), or one missing while its content is only
+                // missing children (`contentMissing`, a
+                // `<circle>$nothing</circle>`), whatever is read of it
+                // (`center="$(c.center)"`); of the whole component (`$Q`),
+                // also one missing while it holds only references that name
+                // nothing (`contentNamesNothing`, a
+                // `<point>$nothing</point>`). Each is read only of a type it
+                // makes missing: a `<math>` holds the blank, and reading what
+                // an `<evaluate>` holds would read a `<math>` written in it
+                // that holds this reference. Never a point's or vector's
+                // `contentNamesNothing` through a property of it: a vector
+                // whose `displacement` is its own `head` would read itself.
+                const referentClass =
+                    componentInfoObjects.allComponentClasses[
+                        referentInfo.componentType
+                    ];
+                const variableNames = ["namesNothing"];
+                if (referentClass?.missingWhenContentMissing) {
+                    variableNames.push("contentMissing");
+                }
+                if (
+                    referentClass?.missingWhenContentNamesNothing &&
+                    (referentInfo.referencedWholeComponent ||
+                        referentInfo.referencedPrimaryValue)
+                ) {
+                    variableNames.push("contentNamesNothing");
+                }
+                for (const variableName of variableNames) {
+                    dependencies[variableName] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName,
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    namesNothing:
+                        !dependencyValues.hasReferent ||
+                        ("entry" in dependencyValues &&
+                            dependencyValues.entry == null) ||
+                        Boolean(dependencyValues.entryMissing) ||
+                        Boolean(dependencyValues.namesNothing) ||
+                        Boolean(dependencyValues.contentMissing) ||
+                        Boolean(dependencyValues.contentNamesNothing),
                 },
             };
         },

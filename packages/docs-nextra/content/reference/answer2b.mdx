@@ -188,10 +188,34 @@ then that input's box coloring will be determined by the answer's `colorCorrectn
 
 
 
-The `type` attribute of `<answer>{:dn}` is needed in a few cases to switch the answer to text mode 
-when it cannot be inferred. In text mode, the response must match 
+An answer's type comes from the input written inside it: a `<textInput>{:dn}` makes it a text answer,
+a `<booleanInput>{:dn}` a boolean answer. With no input inside, the typed content of its awards decides it,
+references included, and so decides the input the answer adds. Plain text in every award of the answer
+is read as that type. The `type` attribute is needed only when nothing else decides the type, as above,
+where plain text would otherwise be read as math. A `type` that disagrees with the input written inside
+is an error, and the input's type is used.
+
+In text mode, the response must match 
 exactly with only whitespace difference at the beginning or end. See `caseInsensitiveMatch` for one 
 way to relax this requirement.
+
+---
+
+### Example: the type comes from the input
+```doenet-example
+<p><answer><label>Enter <em>hello</em></label><textInput/>hello</answer></p>
+<p><text name="greeting">hello</text></p>
+<p><answer><label>Enter <em>hello</em> again</label>$greeting</answer></p>
+<p><answer><label>Check the box</label><booleanInput/>true</answer></p>
+```
+
+No `type` is needed: the `<textInput>{:dn}` makes the first answer a text answer, the reference to a `<text>{:dn}`
+makes the second add a `<textInput>{:dn}`, and the `<booleanInput>{:dn}` makes the third a boolean answer.
+
+Content of another type than the input, such as a `<math>{:dn}` in an answer with a `<textInput>{:dn}`, can never
+earn credit, and is warned of. So is content in an award with no `<when>{:dn}` in an answer with more than one input,
+which is compared with none of them, and in an answer whose input is written outside it with `forAnswer`,
+which is compared with an input the answer adds: compare those inputs in a `<when>{:dn}`.
 
 
 

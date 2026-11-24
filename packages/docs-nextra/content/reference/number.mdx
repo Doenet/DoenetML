@@ -64,14 +64,19 @@ as shown in the last paragraph of the example above.
 
 ```doenet-editor-horiz
 <p><number convertBoolean>2 = 1 + 1</number></p>
-<p><number convertBoolean>1 + 1 = 1</number></p>      
+<p><number convertBoolean>1 + 1 = 1</number></p>
+<p><boolean name="b">true</boolean></p>
+<p><number convertBoolean>$b</number></p>
+<p><number convertBoolean>$b + 1</number></p>
 ```
 
 
 
-The `convertBoolean` attribute reads the content as a boolean expression, such as a comparison, and gives 1 when it is `true` and 0 when it is `false`. Texts are compared as texts rather than read as numbers. A boolean on its own is 1 or 0 in a `<number>{:dn}` with or without `convertBoolean`.
+The `convertBoolean` attribute counts every boolean in the content, such as a comparison or a boolean, as 1 when it is `true` and 0 when it is `false`. When the whole content is a boolean, the number is 1 or 0; a boolean in arithmetic counts the same way, so `<number convertBoolean>$b + 1</number>{:dn}` is 2 when `b` is `true`.
 
-A number whose only child is one boolean can be changed, such as through a `<mathInput>{:dn}` bound to it: `1` sets the boolean to `true` and `0` sets it to `false`. Any other value is refused.
+It is the one place a boolean counts as a number. Without it, a boolean where a number or a math is wanted, such as `<number>$b</number>{:dn}` or `<math>$b + 1</math>{:dn}`, is a blank, with a warning that suggests `convertBoolean`.
+
+A number whose only child is one boolean, read this way, can be changed, such as through a `<mathInput>{:dn}` bound to it: `1` sets the boolean to `true` and `0` sets it to `false`. Any other value is refused.
 
 
 

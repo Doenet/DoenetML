@@ -26,6 +26,13 @@ import {
     returnStickyGroupDefinitions,
 } from "../utils/constraints";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
+import {
+    COORDINATE_ATTRIBUTES,
+    contentGivesACoordinate,
+    contentHoldsMoreThanErrors,
+    contentUnusedDiagnostic,
+    unusedContentAttribute,
+} from "../utils/coordinateContent";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -97,6 +104,12 @@ export default class Point extends GraphicalComponent {
         attributes.coords = {
             createComponentOfType: "coords",
             description: "The point's coordinates as a single math expression.",
+        };
+        // Set by sugar, not by authors: content that `coords` overrides
+        // entirely, made but not read (D49, `doenet-w0202`).
+        attributes._unusedContent = {
+            createComponentOfType: "coords",
+            excludeFromSchema: true,
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -216,9 +229,19 @@ export default class Point extends GraphicalComponent {
             componentInfoObjects,
             nComponents,
             stateIdInfo,
+            writtenAttributeNames = [],
         }) {
             let componentIsSpecifiedType =
                 componentInfoObjects.componentIsSpecifiedType;
+
+            // The value takes `x`/`y`/`z` first, then `coords`, then the
+            // content (D49). Content the attributes override entirely is
+            // unused, with a warning.
+            const coordsWritten = writtenAttributeNames.includes("coords");
+            const coordinatesWritten = COORDINATE_ATTRIBUTES.map((name) =>
+                writtenAttributeNames.includes(name),
+            );
+            const diagnostics = [];
 
             let foundConstraintsChildren = false;
 
@@ -272,6 +295,18 @@ export default class Point extends GraphicalComponent {
                 }
             }
 
+            if (
+                coordsWritten &&
+                contentHoldsMoreThanErrors(componentChildren)
+            ) {
+                diagnostics.push(
+                    contentUnusedDiagnostic({
+                        componentType: "point",
+                        reason: "coords",
+                    }),
+                );
+            }
+
             if (componentChildren.length === 1) {
                 let child = componentChildren[0];
 
@@ -280,17 +315,39 @@ export default class Point extends GraphicalComponent {
                     componentIsSpecifiedType(child, "vector")
                 ) {
                     // if have an isolated point or vector, don't use sugar
-                    // and that child will picked up by the point or vector child group
+                    // and that child will picked up by the point or vector
+                    // child group, which `coords` overrides
                     if (foundConstraintsChildren) {
                         return {
                             success: true,
                             newChildren: childrenMovedConstraints,
                             nComponents,
+                            diagnostics,
                         };
                     } else {
-                        return { success: false };
+                        return { success: false, diagnostics };
                     }
                 }
+            }
+
+            if (coordsWritten) {
+                // `coords` gives every coordinate: the content is made, so
+                // its references report what they do, but isn't read
+                const result = unusedContentAttribute({
+                    children: componentChildren,
+                    nComponents,
+                    stateIdInfo,
+                });
+                return {
+                    success: true,
+                    newAttributes: { _unusedContent: result.attribute },
+                    newChildren: [
+                        ...nonComponentChildrenBegin,
+                        ...nonComponentChildrenEnd,
+                    ],
+                    nComponents: result.nComponents,
+                    diagnostics,
+                };
             }
 
             let nCompChildren = componentChildren.length;
@@ -322,6 +379,21 @@ export default class Point extends GraphicalComponent {
                 });
 
                 if (breakResult.success) {
+                    if (
+                        !contentGivesACoordinate(
+                            coordinatesWritten,
+                            breakResult.pieces.length,
+                        )
+                    ) {
+                        // `<point x="3" y="4">(5,6)</point>`
+                        diagnostics.push(
+                            contentUnusedDiagnostic({
+                                componentType: "point",
+                                reason: "coordinates",
+                                written: coordinatesWritten,
+                            }),
+                        );
+                    }
                     // wrap maths around each piece, wrap whole thing in mathList
                     // and use for xs attribute
                     const newAttributes = {
@@ -363,6 +435,7 @@ export default class Point extends GraphicalComponent {
                             ...nonComponentChildrenEnd,
                         ],
                         nComponents,
+                        diagnostics,
                     };
                 }
             }
@@ -429,9 +502,13 @@ export default class Point extends GraphicalComponent {
         // children or its `coords` (`center="$nothing"`), which makes a shape
         // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
         // D40), and makes the point itself missing
-        // (`BaseComponent.missingWhenContentNamesNothing`, #2544).
+        // (`BaseComponent.missingWhenContentNamesNothing`, #2544). Only
+        // where they give a coordinate `x`, `y` and `z` don't: the point is
+        // missing only when a coordinate it uses is (D49, #2596).
         stateVariableDefinitions.contentNamesNothing =
-            contentNamesNothingDefinition("coords");
+            contentNamesNothingDefinition("coords", {
+                coordinateAttributes: COORDINATE_ATTRIBUTES,
+            });
 
         Object.assign(
             stateVariableDefinitions,

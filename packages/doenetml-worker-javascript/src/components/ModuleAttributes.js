@@ -7,6 +7,7 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { applySugar } from "../utils/dast/sugar";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { setUnflattenedReferenceOrigins } from "../utils/componentIndices";
+import { moduleAttributesWritten } from "../utils/moduleAttributeNames";
 
 export default class ModuleAttributes extends CompositeComponent {
     static componentType = "moduleAttributes";
@@ -113,12 +114,6 @@ export default class ModuleAttributes extends CompositeComponent {
 
         const module = components[moduleIdx];
 
-        const attributeLowerCaseMapping = {};
-
-        for (let attrName in module.attributes) {
-            attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-        }
-
         const existingModuleAttrNames = Object.keys(
             module.constructor.createAttributesObject(),
         ).map((x) => x.toLowerCase());
@@ -129,6 +124,41 @@ export default class ModuleAttributes extends CompositeComponent {
         const children = deepClone(
             await component.state.serializedChildren.value,
         );
+
+        // Matched exactly (NAME-0, D51): an attribute written on the
+        // `<module>` sets the module attribute of its name. For one release,
+        // one written in another case (`A` for a declared `a`) still sets it,
+        // with `doenet-w0197`, as for any other attribute. A declared name
+        // that is one of the `<module>`'s own attributes (`hide`) is
+        // `doenet-w0075` below instead.
+        const { writtenFor, corrections } = moduleAttributesWritten({
+            written: Object.keys(module.attributes),
+            declared: children
+                .map((child) => child.attributes.name?.primitive?.value)
+                .filter(Boolean),
+        });
+        for (const { written, corrected } of corrections) {
+            const attribute = module.attributes[written];
+            if (
+                attribute.type !== "unresolved" ||
+                existingModuleAttrNames.includes(corrected.toLowerCase())
+            ) {
+                continue;
+            }
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        attribute: written,
+                        suggestion: corrected,
+                        componentType: "module",
+                    },
+                    position: attribute.position ?? module.position,
+                    sourceDoc: attribute.sourceDoc ?? module.sourceDoc,
+                }),
+            );
+        }
 
         for (const child of children) {
             const childName = child.attributes.name?.primitive?.value;
@@ -149,9 +179,11 @@ export default class ModuleAttributes extends CompositeComponent {
                 continue;
             }
 
-            let attributeName =
-                attributeLowerCaseMapping[childName.toLowerCase()];
-            let attributeFromModule = module.attributes[attributeName];
+            const attributeName = writtenFor.get(childName);
+            let attributeFromModule =
+                attributeName === undefined
+                    ? undefined
+                    : module.attributes[attributeName];
 
             // If the attribute corresponding to the child's name is not present in the `<module>`,
             // then the child is used as is
@@ -162,9 +194,9 @@ export default class ModuleAttributes extends CompositeComponent {
 
             // check if the attribute name is already defined in a module
             // in which case it won't work to use it as a custom module attribute
-            // (compared lowercased, as `existingModuleAttrNames` is, so that
-            // a camel-cased one such as `asList` is caught too)
-            if (existingModuleAttrNames.includes(attributeName.toLowerCase())) {
+            // (compared without case: one written in another case is given
+            // the `<module>`'s own spelling for now, with `doenet-w0197`)
+            if (existingModuleAttrNames.includes(childName.toLowerCase())) {
                 diagnostics.push(
                     codedDiagnostic({
                         type: "warning",

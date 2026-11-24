@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import {
     submitAnswer,
     updateBooleanInputValue,
@@ -195,7 +196,10 @@ describe("A bare reference and the extend written out @group4", () => {
                 responses: ans.stateValues.submittedResponses.map((r: any) =>
                     r?.tree !== undefined ? r.tree : r,
                 ),
-                responseTypes: ans.stateValues.submittedResponsesComponentType,
+                responseTypes: await responseTypes(
+                    core,
+                    await resolvePathToNodeIdx(name),
+                ),
                 credit: ans.stateValues.creditAchieved,
             };
         }

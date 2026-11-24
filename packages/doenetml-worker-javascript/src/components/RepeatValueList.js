@@ -9,7 +9,11 @@ import {
 } from "./abstract/repeatList";
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
 import { templateCanBeModified } from "../utils/repeatTemplate";
-import { holdsBlank, isMissingInput } from "../utils/missing";
+import {
+    entriesMissingDefinition,
+    holdsBlank,
+    isMissingInput,
+} from "../utils/missing";
 import {
     addEntryOwnDisplayArrays,
     entryOwnDisplayArrays,
@@ -438,23 +442,7 @@ export default class RepeatValueList extends ValueListComponent {
         // template holds the blank instead (`＿ + 1`), so a list of maths has
         // no `entriesMissing`.
         if (this.listEntriesCanBeMissing) {
-            stateVariableDefinitions.entriesMissing = {
-                isArray: true,
-                entryPrefixes: ["entryMissing"],
-                // A reference to the whole list reads the list's.
-                shadowVariable: true,
-                // an entry is drawn as a blank while it is missing
-                // (`RendererInstructionBuilder.childrenToRenderOf`)
-                markStale: () => ({ updateParentRenderedChildren: true }),
-                returnArraySizeDependencies: () => ({
-                    numEntries: {
-                        dependencyType: "stateVariable",
-                        variableName: "numEntries",
-                    },
-                }),
-                returnArraySize({ dependencyValues }) {
-                    return [dependencyValues.numEntries];
-                },
+            stateVariableDefinitions.entriesMissing = entriesMissingDefinition({
                 stateVariablesDeterminingDependencies: [
                     "templateAnalysis",
                     "entryListPrefixes",
@@ -520,8 +508,8 @@ export default class RepeatValueList extends ValueListComponent {
                     for (const arrayKey of arrayKeys) {
                         const dependencyValues =
                             dependencyValuesByKey[arrayKey];
+                        // no template (`top`), no dependencies by key
                         if (
-                            !top ||
                             !dependencyValues ||
                             !Number.isNaN(dependencyValues.value)
                         ) {
@@ -546,7 +534,7 @@ export default class RepeatValueList extends ValueListComponent {
                     }
                     return { setValue: { entriesMissing } };
                 },
-            };
+            });
         }
 
         if (entryType === "math") {

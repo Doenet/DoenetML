@@ -52,10 +52,29 @@
  *   these is an edge, but for a reference written as a tag that names the
  *   tag itself, whatever its path (`<group name="g" extend="$g.x"/>`);
  * - a whole reference to a graphical component (a `<point>`, a `<line>`, …)
- *   written as content (in a `<p>`, a `<span>`, an `<em>`), which copies the
- *   component, label and all, to its `<label>`, and those of what it extends
- *   (`$P` in a `<p>` in the label of `P` holds itself; as the label's value,
- *   `<label>$P</label>`, it does not, #1384);
+ *   that copies the component, label and all, to its `<label>`, and those of
+ *   what it extends: one written as content (in a `<p>`, a `<span>`, an
+ *   `<em>`), so that `$b` in a `<p>` in the label of `a` holds itself when
+ *   `b` extends or copies `a`, and a `$` reference anywhere else the
+ *   value-reference pass leaves it a copy. Where a value is read (a
+ *   `<label>`, a `<text>`, an `<m>`, a `<math>`, through a `<group>`), one
+ *   with a math or text value is read as that value, not copied (VAL-10,
+ *   Doenet/DoenetML#2643 item 1), so `<label>$b</label>` in `a` reads b's
+ *   value, as `<label>$P</label>` in `P` reads P's (#1384);
+ * - a tag whose content is its children (below) holding, as content, a
+ *   graphical component written with `extend`, `copy` or `copyWithState`
+ *   (`<point name="b" extend="$a"/>` in a `<p>`), to the labels of what it
+ *   is of, as a copy of the tag copies that label (`heldNode`): so
+ *   `<p name="q">` holding `b` holds itself when `$q` is in a's label. The
+ *   edges are from a node apart from `b`'s own, as a reference to `b` read
+ *   as a value (`$b` in a `<when>` in what a's label holds) reads no label;
+ *   when that node is on a cycle, `b` is reported;
+ * - a reference to the `hidden` of a component (`$n.hidden`), to the
+ *   components in its `hide` and in the `hide` of each component it is
+ *   written in, as whether it is hidden reads whether they are
+ *   (Doenet/DoenetML#2643 item 10), and likewise a reference to its
+ *   `fixed` or `fixLocation`, to the components in that attribute of it
+ *   and of each component it is written in (Doenet/DoenetML#2654 item 2);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
@@ -83,8 +102,9 @@
  *   `<math>`, a `<text>`, a `<label>`, an `<em>`, …, which takes children, so
  *   not an `<evaluate>`), a tag whose content is its children
  *   (`CONTENT_FROM_CHILDREN`: a `<p>`, a `<section>`, a `<div>`, a `<li>`,
- *   …, a copy of which copies them, so that a reference to it in it holds
- *   itself), or a reference written as one, to each child;
+ *   a `<caption>`, a `<table>`, a `<cell>`, a `<hint>`, …, a copy of which
+ *   copies them, so that a reference to it in it holds itself), or a
+ *   reference written as one, to each child;
  * - an input, to the components in the attributes its value starts from
  *   (`INPUTS`: `prefill`, `bindValueTo`, …), but not to its children;
  * - a tag that is neither a composite nor an input, to the components in
@@ -96,7 +116,10 @@
  *   (`NUMBER_PROPERTIES`: `$s.sectionNumber`, `$s.title`, …), to the
  *   expansion of each composite before it that its numbering waits for
  *   (`compositesNumberingWaitsFor`, #2614 item 2). The expansion of a
- *   composite (`expansionEdges`) is to what it is made from, to the index
+ *   composite (`expansionEdges`) is to what its count is made from
+ *   (`countEdges`: what it is made from but what only chooses a case, the
+ *   `condition` of a `<conditionalContent>` or a `<case>` and the
+ *   `selectWeight` of an `<option>`, D61 decision 1), to the index
  *   of a reference and the expansion of what it is of (and, for an item of
  *   a repeat or a select, `$r[1]`, of the composites written in the item,
  *   though not to its values), to the expansion of
@@ -140,11 +163,15 @@
  * The edges from a reference to a section's number are a prediction of what
  * the run time waits for. D57 makes it an optimization: a cycle it misses is
  * caught by the backstop, so it should err toward a missing edge rather than
- * an extra one, which is a false `doenet-e0005`. A generated test checks it
- * against the run time (`T/diagnostics/sectionNumberingDifferential.test.ts`,
- * with `setSectionNumberEdges`).
+ * an extra one, which is a false `doenet-e0005`. A cycle through what a
+ * composite counts (`<repeatForSequence to="$s.sectionNumber">`) runs away
+ * without throwing, so only the edge stops it; a cycle through what chooses
+ * a case can only flip it, so it has no edge, and the run time settles,
+ * reports a loop at the composite, or throws and the backstop catches it
+ * (D61 decision 1). A generated test checks it against the run time
+ * (`T/diagnostics/sectionNumberingDifferential.test.ts`, with
+ * `setSectionNumberEdges`).
  */
-import { COLLECTIONS_OF_NAMED_ITEMS } from "../wrappers";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
 import type { BranchRead } from "./typeChangeAtLoad";
@@ -152,6 +179,12 @@ import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
+import { getSelfReferentialFallbackPropName } from "../copy";
+import {
+    planReferentAdapterReference,
+    planValueReference,
+    staticValueReferenceTarget,
+} from "../valueReference";
 import {
     compositesExpandedIn,
     compositesNumberingWaitsFor,
@@ -222,6 +255,41 @@ const CONTENT_FROM_CHILDREN = [
     "_sectioningComponent",
     // `<title>`, `<shortDescription>`
     "_textOrInline",
+    // The containers below hung the worker before they were listed, when
+    // the reference to one ran through a label a copy copies (`<caption
+    // name="ca"><span>$b</span></caption>` with `<label>$ca</label>` in a
+    // point that `b` extends): the copies ran away without throwing, so
+    // nothing reported them (Doenet/DoenetML#2654 item 1). A `<solution>`
+    // can't be held in a label, but a reference to one in it holds itself
+    // the same way. So is a `<graph>`, whose copy copies what is in it;
+    // cycles through one were caught only when the document ran. It was
+    // first left out because this list also said where an `extend` holds
+    // its target's label (`writtenAsContent`), which gave a false
+    // `doenet-e0005` to an `extend` of a point in a graph; now only what
+    // holds the `extend` does (`copiesTargetsLabel`, `heldNode`).
+    "caption",
+    "figure",
+    "table",
+    "tabular",
+    "row",
+    "column",
+    "cell",
+    "cellBlock",
+    "spreadsheet",
+    "chart",
+    "graph",
+    "sideBySide",
+    "sbsGroup",
+    "stack",
+    "panel",
+    "page",
+    "cascade",
+    "hint",
+    "feedback",
+    "solution",
+    "description",
+    "asList",
+    "ref",
 ];
 
 /**
@@ -306,8 +374,8 @@ export const PROPERTIES_READ: [string, string[]][] = [
     [
         "mathList",
         [
-            "latex",
-            "text",
+            // (its `text` and `latex` are its entries', which name nothing
+            // after it, D59)
             "numComponents",
             "mergeMathLists",
             "displayDigits",
@@ -327,7 +395,7 @@ export const PROPERTIES_READ: [string, string[]][] = [
             "avoidScientificNotation",
         ],
     ],
-    ["textList", ["text", "numComponents"]],
+    ["textList", ["numComponents"]],
     ["booleanList", ["numComponents"]],
     ["_inlineRenderInlineChildren", ["text"]],
     ["_textOrInline", ["value", "text"]],
@@ -615,6 +683,18 @@ const BRANCH_ATTRIBUTES_READ: Record<string, string[]> = {
     select: ["selectweight"],
 };
 
+/**
+ * The attributes of a composite of `MADE_FROM_ATTRIBUTES` that only choose
+ * which of its cases is shown, never how many components it makes from
+ * them: the `condition` of a `<conditionalContent>` (the sugar for one
+ * case). Lower case. With the attributes of its branches
+ * (`BRANCH_ATTRIBUTES_READ`), they are not read by its count (`countEdges`,
+ * D61 decision 1).
+ */
+const CASE_CHOICE_ATTRIBUTES: Record<string, string[]> = {
+    conditionalContent: ["condition"],
+};
+
 /** The serialized components the attribute `attribute` holds. */
 function componentsOfAttribute(attribute: any): SerializedComponent[] {
     const found: SerializedComponent[] = [];
@@ -696,17 +776,18 @@ export function breakReferenceCycles({
     serializedComponents,
     componentInfoObjects,
     branchReads = new Map(),
-    loadCycle,
+    loadCycles = [],
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
     branchReads?: Map<SerializedComponent, BranchRead>;
     /**
-     * What a load that stopped on a circular dependency blamed, when it is
-     * rebuilt (D57, `blameLoadCycle`), made `doenet-e0005` as though found
-     * on a cycle, whatever its type.
+     * What each load that stopped on a circular dependency blamed, when it
+     * is rebuilt (D57, D61 decision 2, `blameLoadCycle`), in the order
+     * blamed, each made `doenet-e0005` as though found on a cycle, whatever
+     * its type.
      */
-    loadCycle?: LoadCycle;
+    loadCycles?: LoadCycle[];
 }): DiagnosticRecord[] {
     const componentsByIdx = new Map<number, SerializedComponent>();
     // The same component can be written twice in a reference: an index is in
@@ -946,6 +1027,27 @@ export function breakReferenceCycles({
                 ) {
                     continue;
                 }
+                // the references of an expression attribute the cycle runs
+                // through, when the run time names them (`__a_ref0_value`):
+                // in `hide="$s.hidden and $s.sectionNumber=1"`, on a cycle
+                // through `$s.hidden`, not `$s.sectionNumber`
+                const slotsOnCycle = new Set<number>();
+                for (const variable of variables ?? []) {
+                    const match = /^__(.*)_ref(\d+)_/.exec(variable);
+                    if (match?.[1] === lower) {
+                        slotsOnCycle.add(Number(match[2]));
+                    }
+                }
+                const slots =
+                    slotsOnCycle.size > 0
+                        ? slotReferencesOf(attribute)
+                        : undefined;
+                if (slots) {
+                    references.push(
+                        ...slots.filter((_, slot) => slotsOnCycle.has(slot)),
+                    );
+                    continue;
+                }
                 for (const one of componentsOfAttribute(attribute)) {
                     if (one.componentType === "_copy") {
                         references.push(one);
@@ -974,6 +1076,39 @@ export function breakReferenceCycles({
                 (a, b) =>
                     order.get(a.componentIdx)! - order.get(b.componentIdx)!,
             )[0];
+    }
+
+    /**
+     * The references of the attribute `attribute`, in the order of the slots
+     * of the expression attribute it is made (`expressionAttributes.ts`): the
+     * references written in its component (a `hide`'s `<boolean>`), or in
+     * each coordinate of a `<mathList>` (a point's `xs`), in order. Or
+     * `undefined` where that is not what it holds, so the slots can't be
+     * told apart.
+     */
+    function slotReferencesOf(
+        attribute: any,
+    ): SerializedComponent[] | undefined {
+        const component = attribute?.component;
+        if (typeof component !== "object" || component === null) {
+            return undefined;
+        }
+        const pieces =
+            component.componentType === "mathList"
+                ? (component.children ?? []).flatMap((child: any) =>
+                      typeof child === "object" && child !== null
+                          ? (child.children ?? [])
+                          : [],
+                  )
+                : (component.children ?? []);
+        const references = pieces.filter(
+            (piece: any) => typeof piece === "object" && piece !== null,
+        );
+        return references.every(
+            (piece: SerializedComponent) => piece.componentType === "_copy",
+        )
+            ? references
+            : undefined;
     }
 
     /** The component the graph has for what `copy` is of, if resolved. */
@@ -1022,6 +1157,16 @@ export function breakReferenceCycles({
                 continue;
             }
             edges.push(child.componentIdx);
+            if (
+                child.componentType === "_copy" &&
+                child.extending &&
+                !("Ref" in child.extending) &&
+                writtenAsContent(child)
+            ) {
+                // a tag written with `extend` or `copy` holds the label of
+                // what it is of, as what holds it copies it (`heldNode`)
+                edges.push(heldNode(child.componentIdx));
+            }
         }
         return edges;
     }
@@ -1057,6 +1202,29 @@ export function breakReferenceCycles({
     const EXPANSION = 2 * RESPONSES;
     function expansionNode(idx: number) {
         return -EXPANSION - idx;
+    }
+
+    /**
+     * The node for what the count of the composite `idx` is made from
+     * (`countEdges`): how many components its expansion makes, which the
+     * number of a section after it waits for, apart from which of its cases
+     * is shown (D61 decision 1). Negative, apart from the other nodes.
+     */
+    const COUNT = 3 * RESPONSES;
+    function countNode(idx: number) {
+        return -COUNT - idx;
+    }
+
+    /**
+     * The node for the tag `idx` written with `extend` or `copy` as content
+     * (`<point name="b" extend="$a"/>` in a `<p>`), as what holds it copies
+     * it (`heldEdges`): with the label of what it is of. Apart from the tag,
+     * which a reference to it as a value (`$b` in a `<when>`) reads without
+     * that label. Negative, apart from the other nodes.
+     */
+    const HELD = 4 * RESPONSES;
+    function heldNode(idx: number) {
+        return -HELD - idx;
     }
 
     /**
@@ -1234,6 +1402,176 @@ export function breakReferenceCycles({
     }
 
     /**
+     * Whether `copy`, a whole reference to the component `target`, makes a
+     * copy of it, label and all, rather than reading its value. A tag
+     * written with `extend` or `copy` (`<point name="b" extend="$a"/>`) is
+     * not such a reference, wherever it is written (what holds it holds
+     * the label instead, `heldNode`). A `$` reference does when
+     * it is written as content (`writtenAsContent`: in a `<p>`, an `<em>`),
+     * and wherever else the value-reference pass leaves it a copy, but not
+     * where a value is read (a `<label>`, a `<text>`, an `<m>`, a `<math>`,
+     * through a `<group>`: `getSelfReferentialFallbackPropName`) of a
+     * graphical component with a math or text value, which is read as that
+     * value (`valueInPlaceOfCopy` in `Copy.js`, VAL-10), and not inside what
+     * it names: `<label>$P</label>` in the label of `P` reads P's value
+     * (#1384).
+     */
+    function copiesTargetsLabel(
+        copy: SerializedComponent,
+        target: SerializedComponent,
+    ) {
+        if (!copy.extending || !("Ref" in copy.extending)) {
+            // a tag written with `extend` or `copy` is the component, and
+            // holds its label as the component does, wherever it is
+            // written: in a `<p>`, a `<cell>` or a `<stack>` too, where
+            // `$b` in a `<when>` in what its label holds reads its value,
+            // not its label (Doenet/DoenetML#2654, review). What holds it
+            // as content holds that label (`heldNode`).
+            return false;
+        }
+        if (writtenAsContent(copy)) {
+            return true;
+        }
+        for (
+            let ancestor = parentOf.get(copy.componentIdx);
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            if (ancestor === target) {
+                return false;
+            }
+        }
+        const parent = parentOf.get(copy.componentIdx);
+        const targetType = typeOf(target);
+        if (!parent || targetType === undefined) {
+            return false;
+        }
+        const ancestors: { componentClass: any }[] = [];
+        for (
+            let ancestor: SerializedComponent | undefined = parent;
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            const ancestorClass =
+                componentInfoObjects.allComponentClasses[
+                    ancestor.componentType
+                ];
+            if (!ancestorClass) {
+                break;
+            }
+            ancestors.push({ componentClass: ancestorClass });
+        }
+        if (
+            inherits(targetType, "_graphical") &&
+            getSelfReferentialFallbackPropName({
+                componentAncestors: ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType: targetType,
+            }) !== undefined
+        ) {
+            // where a value is read, a graphical component with a math or a
+            // text value is read as its value, not copied (`Copy.js`,
+            // `valueInPlaceOfCopy`). Also one made with `copy` or
+            // `copyWithState`, which pastes the DoenetML of what it copies,
+            // the reference to itself in its label included: that reference
+            // reads the copy's value too (Doenet/DoenetML#2654 item 3).
+            return false;
+        }
+        const parentClass =
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent?.(parent) ??
+            componentInfoObjects.allComponentClasses[parent.componentType];
+        if (!parentClass) {
+            return false;
+        }
+        const value = staticValueReferenceTarget({
+            targetComponentType: targetType,
+            unresolvedPath: null,
+            componentInfoObjects,
+        });
+        const readsValue = value
+            ? planValueReference({
+                  parentClass,
+                  targetComponentType: value.referentComponentType,
+                  valueComponentType: value.valueComponentType,
+                  fromImplicitProp: value.fromImplicitProp,
+                  hasAttributes: false,
+                  allowDrawn: true,
+                  componentInfoObjects,
+              })
+            : planReferentAdapterReference({
+                  parentClass,
+                  targetComponentType: targetType,
+                  componentInfoObjects,
+              });
+        return readsValue === undefined;
+    }
+
+    /**
+     * The edges to the labels `target` has: its own, and, if it is a
+     * reference, those of what it is of, which a copy of it holds too.
+     */
+    function labelEdges(target: SerializedComponent) {
+        const edges: number[] = [];
+        const seen = new Set<SerializedComponent>();
+        let labelled: SerializedComponent | undefined = target;
+        while (labelled && !seen.has(labelled)) {
+            seen.add(labelled);
+            for (const child of labelled.children ?? []) {
+                if (
+                    typeof child === "object" &&
+                    inherits(child.componentType, "label")
+                ) {
+                    edges.push(child.componentIdx);
+                }
+            }
+            labelled =
+                labelled.componentType === "_copy" &&
+                !referenceOf(labelled)?.unresolvedPath?.length
+                    ? targetOf(labelled)
+                    : undefined;
+        }
+        return edges;
+    }
+
+    /**
+     * The edges from the tag `held`, written with `extend` or `copy` as
+     * content (`heldNode`), as what holds it copies it: to the labels of the
+     * graphical component it is of, which it holds as that component does
+     * (`<p name="q"><point name="b" extend="$a"/></p>` with `$q` in a's
+     * label holds itself). Not from the tag itself, which a reference to it
+     * as a value (`$b` in a `<when>` in what a's label holds) reads without
+     * its label (Doenet/DoenetML#2654, review).
+     */
+    function heldEdges(held: SerializedComponent): number[] {
+        if (typeof held.doenetAttributes?.typeChangeAtLoad === "object") {
+            // an error already, which holds nothing
+            return [];
+        }
+        const reference = referenceOf(held);
+        if (
+            !reference ||
+            reference.unresolvedPath?.length ||
+            branchReads.has(held) ||
+            indexThroughCopy(reference)
+        ) {
+            return [];
+        }
+        const target = targetOf(held);
+        const targetType = target ? typeOf(target) : undefined;
+        if (
+            !target ||
+            target === held ||
+            targetType === undefined ||
+            !inherits(targetType, "_graphical")
+        ) {
+            return [];
+        }
+        return labelEdges(target);
+    }
+
+    /**
      * Whether `copy` is written in what holds it as content, in a `<p>`, a
      * `<span>` or an `<em>`, where a reference to a component is a copy of
      * it, label and all, not its value, as in a `<text>`, a `<math>` or a
@@ -1258,17 +1596,58 @@ export function breakReferenceCycles({
      * shown (`BRANCH_ATTRIBUTES_READ`).
      */
     function madeFromEdges(composite: SerializedComponent) {
+        return attributesReadEdges(composite, false);
+    }
+
+    /**
+     * The edges from what the count of the composite `composite` is made
+     * from (`countNode`): those of what it is made from (`madeFromEdges`)
+     * but the attributes that only choose which of its cases is shown, the
+     * `condition` of a `<conditionalContent>` and of each `<case>`, and the
+     * `selectWeight` of each `<option>` of a `<select>`
+     * (`CASE_CHOICE_ATTRIBUTES`, `BRANCH_ATTRIBUTES_READ`). A cycle through
+     * one of them can only flip a case, so the number of a section waiting
+     * for the composite has no edge to it: the run time settles, reports a
+     * loop at the composite, or throws, and the load backstop catches it
+     * (D61 decision 1). A cycle through a count (a `<repeatForSequence>`'s
+     * `to`, a `<repeat>`'s `for`, a `<select>`'s `numToSelect`) can run away
+     * without throwing, so only this edge stops it.
+     */
+    function countEdges(composite: SerializedComponent) {
+        return attributesReadEdges(composite, true);
+    }
+
+    /**
+     * The edges of `madeFromEdges`, or, with `countOnly`, of `countEdges`.
+     */
+    function attributesReadEdges(
+        composite: SerializedComponent,
+        countOnly: boolean,
+    ) {
         const edges: number[] = [];
+        const caseChoice = countOnly
+            ? (entryFor(
+                  Object.entries(CASE_CHOICE_ATTRIBUTES),
+                  typeOf(composite),
+              ) ?? [])
+            : [];
         for (const [name, attribute] of Object.entries(
             composite.attributes ?? {},
         )) {
-            if (!ATTRIBUTES_NOT_READ.has(name.toLowerCase())) {
+            const lower = name.toLowerCase();
+            if (
+                !ATTRIBUTES_NOT_READ.has(lower) &&
+                !caseChoice.includes(lower)
+            ) {
                 edges.push(
                     ...componentsOfAttribute(attribute).map(
                         (component) => component.componentIdx,
                     ),
                 );
             }
+        }
+        if (countOnly) {
+            return edges;
         }
         const branchAttributes =
             BRANCH_ATTRIBUTES_READ[composite.componentType] ?? [];
@@ -1525,7 +1904,11 @@ export function breakReferenceCycles({
                 // what the name names in what is written in it, the item
                 // being made from it (`$r[1].m` in `m` in the template of
                 // `<repeat name="r">`).
-                const edges = [madeFromNode(target.componentIdx)];
+                const edges = [
+                    forExpansion
+                        ? countNode(target.componentIdx)
+                        : madeFromNode(target.componentIdx),
+                ];
                 const [namePart, ...rest] = path.slice(numIndices);
                 const named =
                     literal && typeof namePart?.name === "string"
@@ -1546,34 +1929,6 @@ export function breakReferenceCycles({
                 return edges;
             }
             return [];
-        }
-        if (
-            target.componentType !== "_copy" &&
-            COLLECTIONS_OF_NAMED_ITEMS.has(targetType) &&
-            typeof path[0]?.name === "string" &&
-            path[0].name !== ""
-        ) {
-            // A name in each item (`$r.m`, D41 decision 1): what it names in
-            // what is written in it, as for `$r[1].m`, from which each item
-            // is made, so `$r.m` in `m` in the template is a cycle.
-            const [namePart, ...rest] = path;
-            const named = namedIn(target, namePart.name);
-            if (named.length > 0) {
-                const edges = [madeFromNode(target.componentIdx)];
-                for (const component of named) {
-                    edges.push(
-                        ...readEdges(
-                            from,
-                            component,
-                            namePart.index?.length > 0
-                                ? [{ name: "", index: namePart.index }, ...rest]
-                                : rest,
-                            forExpansion,
-                        ),
-                    );
-                }
-                return edges;
-            }
         }
         const [first, ...rest] = path;
         if (
@@ -1599,6 +1954,61 @@ export function breakReferenceCycles({
                 parentOf,
                 componentInfoObjects,
             }).map((composite) => expansionNode(composite.componentIdx));
+        }
+        const settingAttribute =
+            property === "hidden"
+                ? "hide"
+                : property === "fixed" || property === "fixLocation"
+                  ? property
+                  : undefined;
+        if (settingAttribute !== undefined && !forExpansion) {
+            // whether it is hidden: its own `hide`, and whether what it is
+            // written in is hidden, so the `hide` of each component it is
+            // in (`hidden` in `BaseComponent.js`). `<group name="g"
+            // hide="$g.hidden">` and `<number name="n" hide="$n.hidden">` in
+            // it are each a cycle (Doenet/DoenetML#2643 item 10). Whether it
+            // is fixed, or its location is, the same way: its own `fixed`
+            // (or `fixLocation`) and that of each component it is written in
+            // (`addContextAttributeDefinitions` in `contextAttribute.js`),
+            // so `<group name="g" fixed="$g.fixed">` and `<number name="n"
+            // fixed="$n.fixed">` in it are each a cycle too
+            // (Doenet/DoenetML#2654 item 2).
+            const edges: number[] = [];
+            for (
+                let hiding: SerializedComponent | undefined = target;
+                hiding;
+                hiding = parentOf.get(hiding.componentIdx)
+            ) {
+                const hidingType = typeOf(hiding);
+                if (
+                    hidingType !== undefined &&
+                    !isComposite(hidingType) &&
+                    componentInfoObjects.publicStateVariableInfo[hidingType]
+                        ?.stateVariableDescriptions &&
+                    !(
+                        property in
+                        componentInfoObjects.publicStateVariableInfo[hidingType]
+                            .stateVariableDescriptions
+                    )
+                ) {
+                    // one whose `hidden` is its own, reading neither its
+                    // `hide` nor what it is in (a `<controlVectors>`, always
+                    // hidden): what is in it reads no further
+                    break;
+                }
+                for (const [name, attribute] of Object.entries(
+                    hiding.attributes ?? {},
+                )) {
+                    if (name.toLowerCase() === settingAttribute.toLowerCase()) {
+                        edges.push(
+                            ...componentsOfAttribute(attribute).map(
+                                (component) => component.componentIdx,
+                            ),
+                        );
+                    }
+                }
+            }
+            return edges;
         }
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||
@@ -1676,31 +2086,14 @@ export function breakReferenceCycles({
                     !reference!.unresolvedPath?.length &&
                     targetType !== undefined &&
                     inherits(targetType, "_graphical") &&
-                    writtenAsContent(component)
+                    copiesTargetsLabel(component, target)
                 ) {
-                    // A copy of the component, its label too, as content:
-                    // `$P` in a `<p>` in the `<label>` of `P` holds itself,
-                    // though as the value of the label it does not (#1384).
-                    // An extend of a component holds its label too
-                    // (`<point name="b" extend="$a"/>`, `$b` in a's label).
-                    const seen = new Set<SerializedComponent>();
-                    let labelled: SerializedComponent | undefined = target;
-                    while (labelled && !seen.has(labelled)) {
-                        seen.add(labelled);
-                        for (const child of labelled.children ?? []) {
-                            if (
-                                typeof child === "object" &&
-                                inherits(child.componentType, "label")
-                            ) {
-                                edges.push(child.componentIdx);
-                            }
-                        }
-                        labelled =
-                            labelled.componentType === "_copy" &&
-                            !referenceOf(labelled)?.unresolvedPath?.length
-                                ? targetOf(labelled)
-                                : undefined;
-                    }
+                    // A copy of the component, its label too: `$P` in a
+                    // `<p>` in the `<label>` of `P` holds itself, though as
+                    // the value of the label it does not (#1384). An extend
+                    // of a component holds its label too (`<point name="b"
+                    // extend="$a"/>`, `$b` in a `<p>` in a's label).
+                    edges.push(...labelEdges(target));
                 }
             }
             const written = writtenType(component);
@@ -1780,7 +2173,7 @@ export function breakReferenceCycles({
     /**
      * The edges from the expansion of the composite (or the reference
      * written as a container a numbering passes through) `composite`
-     * (`expansionNode`): to what it is made from (`madeFromNode`), to the
+     * (`expansionNode`): to what its count is made from (`countNode`), to the
      * components in the index of a reference and to the expansion of what it
      * is of, and to the expansion of each composite written in it that a
      * numbering would wait for (`compositesWaitedForIn`); for a `<collect>`,
@@ -1870,10 +2263,10 @@ export function breakReferenceCycles({
             }
             const written = writtenType(composite);
             if (written !== undefined && madeFromAttributes(written)) {
-                edges.push(madeFromNode(composite.componentIdx));
+                edges.push(countNode(composite.componentIdx));
             }
         } else if (madeFromAttributes(type)) {
-            edges.push(madeFromNode(composite.componentIdx));
+            edges.push(countNode(composite.componentIdx));
         } else if (
             collectIsListFormAsWritten(composite, componentInfoObjects)
         ) {
@@ -1920,7 +2313,13 @@ export function breakReferenceCycles({
     function edges(idx: number) {
         let result = edgesByIdx.get(idx);
         if (result === undefined) {
-            if (idx <= -EXPANSION) {
+            if (idx <= -HELD) {
+                const held = componentsByIdx.get(-idx - HELD);
+                result = held ? heldEdges(held) : [];
+            } else if (idx <= -COUNT) {
+                const composite = componentsByIdx.get(-idx - COUNT);
+                result = composite ? countEdges(composite) : [];
+            } else if (idx <= -EXPANSION) {
                 const composite = componentsByIdx.get(-idx - EXPANSION);
                 result = composite ? expansionEdges(composite) : [];
             } else if (idx <= -RESPONSES) {
@@ -2035,6 +2434,13 @@ export function breakReferenceCycles({
         // is (`prefill="$l[2]"` of `<mathList name="l">1 $mi</mathList>`)
         findCycles(listIndexEdges, listEntryEdges);
     }
+    // a tag written with `extend` or `copy` is on a cycle through what it
+    // holds as what holds it copies it (`heldNode`)
+    for (const idx of [...onCycle]) {
+        if (idx <= -HELD) {
+            onCycle.add(-idx - HELD);
+        }
+    }
 
     // What a load that stopped on a circular dependency blamed (D57). First,
     // a reference to the number of a section on the cycle, itself on the
@@ -2051,7 +2457,7 @@ export function breakReferenceCycles({
     // point but not on the cycle, and making it the error would leave the
     // cycle unbroken.
     const forcedCycleMembers = new Set<number>();
-    if (loadCycle) {
+    for (const loadCycle of loadCycles) {
         const blamed = componentsByIdx.get(loadCycle.blamed);
         const toNumber = referenceToNumberOnCycle(
             loadCycle.onCycle,

@@ -1708,7 +1708,7 @@ describe("Displayed math tag tests @group1", async () => {
         
 
             <collect componentType="m" from="$g2" name="collect1" />
-            <pointList extend="$collect1.anchor" name="macoords" />
+            <pointList name="macoords">$collect1[1].anchor $collect1[2].anchor</pointList>
         
             <graph name="g3">
               <text extend="$m1.latex" name="m1b" />
@@ -1716,7 +1716,7 @@ describe("Displayed math tag tests @group1", async () => {
             </graph>
         
             <collect componentType="text" from="$g3" name="collect2" />
-            <pointList extend="$collect2.anchor" name="mbcoords" />
+            <pointList name="mbcoords">$collect2[1].anchor $collect2[2].anchor</pointList>
         
             <p name="p1"><m extend="$m1" name="m1c" /> <m extend="$m2" name="m2c" /></p>
         

@@ -39,6 +39,7 @@ import {
 import AuthoredValueList from "./AuthoredValueList";
 import {
     madeFromInputValue,
+    typeChangeChecksValue,
     typeChangeRule,
     valueAllowsTypeChange,
 } from "../../utils/typeChange";
@@ -78,7 +79,6 @@ import {
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
-    COLLECTIONS_OF_NAMED_ITEMS,
     componentsOfWrapper,
     isWrapperOfSeveral,
     ownSettingOfWrapper,
@@ -88,6 +88,10 @@ import {
     referenceWithPropertyCase,
     suggestionArgs,
 } from "../../utils/dast/nameCase";
+import {
+    declaredModuleAttributeNames,
+    moduleAttributesWritten,
+} from "../../utils/moduleAttributeNames";
 import {
     branchCanChange,
     pathHasIndexThatCanChange,
@@ -101,7 +105,44 @@ import {
     valueReferenceDiffers,
 } from "../../utils/valueReference";
 
+/**
+ * The collections built as composites whose `asList` a `<group>` holding only
+ * one of them shows them with (COMP-2, COLL-3).
+ */
+const COLLECTIONS_SHOWN_AS_LISTS = new Set([
+    "repeat",
+    "repeatForSequence",
+    "select",
+    "collect",
+]);
+
 export default class Copy extends CompositeComponent {
+    constructor(args) {
+        super(args);
+
+        // A copy made as a shadow (in an iteration of a `<repeat>`, a case
+        // of a `<conditionalContent>`, an option of a `<select>` or a
+        // `<group extend>`) inherits no `compositesMustHaveAReplacement`
+        // from its parent (`ComponentBuilder`), since a shadow usually
+        // copies the replacements its source already made. A copy that
+        // makes its own in a parent whose class needs one
+        // (`descendantCompositesMustHaveAReplacement`: a `<math>`, `<text>`
+        // or `<boolean>`, and those made from them, such as `<not>`, `<abs>`
+        // or `<latex>`) makes them as it would outside a shadow:
+        // `<math>$nothing</math>` there holds a missing `<math>` that takes
+        // a written value, not a `_missing` that can't (#2596).
+        const parentClass = this.ancestors?.[0]?.componentClass;
+        if (
+            args.shadow &&
+            parentClass?.descendantCompositesMustHaveAReplacement === true &&
+            !this.sharedParameters.compositesMustHaveAReplacement
+        ) {
+            this.sharedParameters.compositesMustHaveAReplacement = true;
+            this.sharedParameters.compositesDefaultReplacementType =
+                parentClass.descendantCompositesDefaultReplacementType;
+        }
+    }
+
     static componentType = "_copy";
 
     static excludeFromSchema = true;
@@ -443,18 +484,14 @@ export default class Copy extends CompositeComponent {
                             stopAtWrappersOfSeveral: Boolean(
                                 firstPropNameFromPath,
                             ),
-                            // A name after a repeat or a select that picks
-                            // several is resolved in each item (`$r.P`,
-                            // D41 decision 1); the resolver leaves it
-                            // unresolved there (`names_per_item`).
-                            namePerItem:
+                            // A property a collection that a group holding
+                            // only it stands for has of its own
+                            // (`$g.numItems`, COLL-3) is read of it.
+                            ownPropertyThroughGroups:
                                 firstPropNameFromPath &&
-                                (COLLECTIONS_OF_NAMED_ITEMS.has(
-                                    stateValues.extendedComponent.componentType,
-                                ) ||
-                                    stateValues.extendedComponent
-                                        .componentType === "group")
-                                    ? stateValues.unresolvedPath
+                                stateValues.extendedComponent.componentType ===
+                                    "group"
+                                    ? firstPropNameFromPath
                                     : undefined,
                         };
                     }
@@ -585,7 +622,7 @@ export default class Copy extends CompositeComponent {
                     usedDefault.asListPreliminary &&
                     groupContent.length === 1 &&
                     (groupContent[0].componentType === "_copy" ||
-                        COLLECTIONS_OF_NAMED_ITEMS.has(
+                        COLLECTIONS_SHOWN_AS_LISTS.has(
                             groupContent[0].componentType,
                         )) &&
                     typeof groupContent[0]?.stateValues?.asList === "boolean"
@@ -779,15 +816,6 @@ export default class Copy extends CompositeComponent {
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
                         let thisUnresolvedPath = stateValues.unresolvedPath;
-                        // What a name resolved in the source's item left of
-                        // the path (`namePerItem`): `null` when the source
-                        // is the component the name names, copied whole.
-                        if (
-                            typeof source === "object" &&
-                            source.remainingPath !== undefined
-                        ) {
-                            thisUnresolvedPath = source.remainingPath;
-                        }
 
                         if (stateValues.implicitProp) {
                             thisUnresolvedPath = [
@@ -810,6 +838,11 @@ export default class Copy extends CompositeComponent {
 
                             if (
                                 typeof source === "string" ||
+                                // a component in error has no properties,
+                                // and its error is reported where it is
+                                // (DIAG-5): `$r[1].hidden` of an error in
+                                // place of an iteration is a blank
+                                source.componentType === "_error" ||
                                 indexPastConditional ||
                                 (indexPastComposite &&
                                     componentInfoObjects.allComponentClasses[
@@ -844,10 +877,7 @@ export default class Copy extends CompositeComponent {
                             };
                             dependencies["withheld" + ind] = {
                                 dependencyType: "stateVariable",
-                                // A component a name named in an item is
-                                // withheld with its item (`namePerItem`).
-                                componentIdx:
-                                    source.namedInItem ?? source.componentIdx,
+                                componentIdx: source.componentIdx,
                                 variableName: "isInactiveCompositeReplacement",
                                 variablesOptional: true,
                             };
@@ -956,16 +986,11 @@ export default class Copy extends CompositeComponent {
                             componentInfoObjects.allComponentClasses
                         )
                     ) {
-                        return {
-                            setValue: { numComponentsSpecified: null },
-                            sendDiagnostics: [
-                                codedDiagnostic({
-                                    type: "warning",
-                                    code: "doenet-w0065",
-                                    args: { type: dependencyValues.typeAttr },
-                                }),
-                            ],
-                        };
+                        // Not reached from authored DoenetML: a tag that is
+                        // no component type, written with `copy` or
+                        // `extend`, is `doenet-e0002` before a copy is made
+                        // (D51), so `doenet-w0065` is retired.
+                        return { setValue: { numComponentsSpecified: null } };
                     }
                     numComponentsSpecified = 1;
                 } else {
@@ -1372,17 +1397,17 @@ export default class Copy extends CompositeComponent {
                     writtenClass.listEntryComponentType === undefined &&
                     writtenType !== "group"
                 ) {
-                    // A property whose type is that of its value, as the
-                    // `selectedValues` of a `<choiceInput>`, the type of the
-                    // selected choice: checked against its value as a math's
-                    // is, and decided again as it changes (#2488).
+                    // A property whose class declares no type, as the
+                    // `selectedValues` of a `<choiceInput>`, which the
+                    // DoenetML decides at load: one a tag can be made from
+                    // is checked at load, and against its value as a math's
+                    // is, checked again as the value changes (#2488).
                     return {
                         setValue: {
-                            typeChangeValueCheck: typeChangeRule({
+                            typeChangeValueCheck: typeChangeChecksValue({
                                 writtenType,
-                                sourceType: "math",
                                 componentInfoObjects,
-                            }).valueCheck
+                            })
                                 ? "value"
                                 : null,
                         },
@@ -1420,11 +1445,10 @@ export default class Copy extends CompositeComponent {
                             componentType: writtenType,
                         })
                     ) {
-                        typeChangeValueCheck = typeChangeRule({
+                        typeChangeValueCheck = typeChangeChecksValue({
                             writtenType,
-                            sourceType: "math",
                             componentInfoObjects,
-                        }).valueCheck
+                        })
                             ? "contentValue"
                             : "content";
                     }
@@ -1438,11 +1462,10 @@ export default class Copy extends CompositeComponent {
                     // against its value, as a math is.
                     let typeChangeValueCheck = null;
                     if (listIsDecided(sourceType, { componentInfoObjects })) {
-                        typeChangeValueCheck = typeChangeRule({
+                        typeChangeValueCheck = typeChangeChecksValue({
                             writtenType,
-                            sourceType: "math",
                             componentInfoObjects,
-                        }).valueCheck
+                        })
                             ? "numEntriesValue"
                             : "numEntries";
                     }
@@ -1513,13 +1536,6 @@ export default class Copy extends CompositeComponent {
 
                             dependencies["sourceArraySize" + ind] = {
                                 dependencyType: "stateVariableArraySize",
-                                componentIdx: source.componentIdx,
-                                variableName: propName,
-                                variablesOptional: true,
-                            };
-
-                            dependencies["sourceComponentType" + ind] = {
-                                dependencyType: "stateVariableComponentType",
                                 componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
@@ -2581,6 +2597,88 @@ export default class Copy extends CompositeComponent {
         // Therefore, we copy the primary state variable
         // and copy the essential state of the source.
 
+        /**
+         * The value of the source in place of a copy of it, where the copy
+         * is in a context that reads a value (a `<label>`, a `<text>`, an
+         * `<m>`, a `<math>`, …, `getSelfReferentialFallbackPropName`) and
+         * the source has a math or text `value`; `undefined` otherwise.
+         */
+        async function valueInPlaceOfCopy() {
+            const fallbackPropName = getSelfReferentialFallbackPropName({
+                componentAncestors: component.ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType:
+                    replacementSourceComponent.componentType,
+            });
+            if (!fallbackPropName) {
+                return undefined;
+            }
+            const fallbackResults = await replacementFromProp({
+                component,
+                components,
+                nComponents,
+                stateIdInfo,
+                replacementSource: replacementSourceComponent,
+                propName: fallbackPropName,
+                allDoenetMLs,
+                compositeAttributesObj,
+                componentInfoObjects,
+                numComponentsForSource,
+                publicAliasSubstitutions,
+            });
+            diagnostics.push(...fallbackResults.diagnostics);
+            nComponents = fallbackResults.nComponents;
+            return {
+                serializedReplacements: fallbackResults.serializedReplacements,
+                propVariablesCopiedByReplacement:
+                    fallbackResults.propVariablesCopiedByReplacement,
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // A `$` reference to a graphical component (a `<point>`, …) where a
+        // value is read (`<label>$P</label>`, `<text>$P</text>`) reads its
+        // value, as it does in a `<math>` (VAL-10). A copy of the component
+        // would hold its label too, which, for a label holding a reference to
+        // an extend of the component, holds the copy again, without end
+        // (Doenet/DoenetML#2643 item 1). A reference written as content (in a
+        // `<p>`) is still a copy of the component, label and all.
+        if (
+            link &&
+            !heldCase &&
+            sourceToSerialize === replacementSourceComponent &&
+            component.componentType === "_copy" &&
+            component.attributes._createComponentOfType === undefined &&
+            // an answer records the component itself as a response
+            !component.attributes.isResponse &&
+            !component.attributes.isPotentialResponse &&
+            // an attribute takes what it can hold of a component, not its
+            // value (`grid="$P"`)
+            !writtenInAnAttribute(component, components) &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType:
+                    replacementSourceComponent.componentType,
+                baseComponentType: "_graphical",
+            })
+        ) {
+            const asValue = await valueInPlaceOfCopy();
+            if (asValue) {
+                // Drawn, as in a `<label>`, it is hidden with the component, as
+                // a copy of it is and as a reference to a hidden `<math>` is;
+                // where a value is read (a `<text>`, an `<m>`), `hide` is
+                // ignored (`hiddenWithReferent` in `ValueRef.js`)
+                for (const repl of asValue.serializedReplacements) {
+                    if (repl?.componentType === "_ref") {
+                        repl.doenetAttributes.hiddenWithReferent = true;
+                    }
+                }
+                // made again only when the source is another component, as
+                // for a copy inside its source (`sourceContainsCopy`)
+                return { ...asValue, sourceContainsCopy: true };
+            }
+        }
+
         let serializedReplacements;
         // Where the copy was made from, when that is a component named in a
         // case of a `<conditionalContent>` (`sourceCaseOf`)
@@ -2666,43 +2764,14 @@ export default class Copy extends CompositeComponent {
                 // unchanged. Any other component (e.g. <point>, <math>) establishes its own
                 // context, so we stop there. For example, `$a` inside
                 // `<label><math>$a</math></label>` uses math's context rather than label's.
-                const fallbackPropName = getSelfReferentialFallbackPropName({
-                    componentAncestors: component.ancestors,
-                    componentInfoObjects,
-                    replacementSourceComponentType:
-                        replacementSourceComponent.componentType,
-                });
-
-                if (fallbackPropName) {
-                    try {
-                        let fallbackResults = await replacementFromProp({
-                            component,
-                            components,
-                            nComponents,
-                            stateIdInfo,
-                            replacementSource: replacementSourceComponent,
-                            propName: fallbackPropName,
-                            allDoenetMLs,
-                            compositeAttributesObj,
-                            componentInfoObjects,
-                            numComponentsForSource,
-                            publicAliasSubstitutions,
-                        });
-                        diagnostics.push(...fallbackResults.diagnostics);
-                        nComponents = fallbackResults.nComponents;
-                        return {
-                            serializedReplacements:
-                                fallbackResults.serializedReplacements,
-                            propVariablesCopiedByReplacement:
-                                fallbackResults.propVariablesCopiedByReplacement,
-                            diagnostics,
-                            nComponents,
-                            sourceContainsCopy: true,
-                        };
-                    } catch (innerError) {
-                        // Fall through to the circular dependency handler below
-                        // so this still reports as the original self-reference.
+                try {
+                    const fallback = await valueInPlaceOfCopy();
+                    if (fallback) {
+                        return { ...fallback, sourceContainsCopy: true };
                     }
+                } catch (innerError) {
+                    // Fall through to the circular dependency handler below
+                    // so this still reports as the original self-reference.
                 }
             }
 
@@ -3694,6 +3763,8 @@ export default class Copy extends CompositeComponent {
             // in a copy `S2` of `S`, which names `S2`) is replaced by the
             // circular-dependency error, or by the source's value
             // (`replacementForSource`), neither of which shadows the source.
+            // So is a reference to a graphical component where a value is
+            // read (`<label>$P</label>`, `valueInPlaceOfCopy`).
             // The copy stays inside the source while the source is the same
             // component, so it would be made the same way again. Remaking it
             // would change the source's descendants, which would mark the
@@ -4350,6 +4421,8 @@ async function componentInPlaceOfProp({
 function isNumItemsOfReorderError(target, propName) {
     return (
         Boolean(target?.doenetAttributes?.reorderErrorAtLoad) &&
+        // in any case: a reference to a component in error reports
+        // nothing more (DIAG-4), so not that `$s.NumItems` names nothing
         propName?.toLowerCase() === "numitems"
     );
 }
@@ -4462,6 +4535,15 @@ export async function replacementFromProp({
         if (propName === "__no_target_found") {
             // find name of prop from unresolvedPath position and doenetML
             const unresolvedPath = await component.stateValues.unresolvedPath;
+
+            if (replacementSource?.componentType === "_error") {
+                // A component in error has no properties and nothing an
+                // index selects, and its error is reported where it is
+                // (DIAG-5): `$r[1].hidden` of a `<repeat>` in `doenet-e0005`
+                // reports nothing more: a blank, as a reference to a
+                // component in error is (VAL-5).
+                return blankReplacement();
+            }
 
             if (unresolvedPath[0].name === "") {
                 // An index was left over: what the reference reached produces
@@ -4582,16 +4664,37 @@ export async function replacementFromProp({
             arrayKeys = await stateVarObj.arrayKeys;
         }
 
-        if (arrayStateVarObj.shadowingInstructions?.hasVariableComponentType) {
-            await component.stateValues.replacementSources;
-            if (!arrayStateVarObj.shadowingInstructions.createComponentOfType) {
-                return {
-                    serializedReplacements: [],
-                    propVariablesCopiedByReplacement: [],
-                    diagnostics,
-                    nComponents,
-                };
-            }
+        if (
+            arrayStateVarObj.public &&
+            arrayStateVarObj.shadowingInstructions &&
+            !arrayStateVarObj.shadowingInstructions.createComponentOfType
+        ) {
+            // A type the DoenetML doesn't decide (TYPE-3): a reference that
+            // reads it is an error at load (`doenet-e0091`), so one only the
+            // run time finds makes nothing.
+            return {
+                serializedReplacements: [],
+                propVariablesCopiedByReplacement: [],
+                diagnostics,
+                nComponents,
+            };
+        }
+        if (
+            arrayStateVarObj.typeDecidedAtLoad &&
+            stateVarObj.isArray &&
+            arraySize.some((v) => v === 0)
+        ) {
+            // A property whose type the DoenetML decides
+            // (`propertyTypesAtLoad.ts`) holding no entries, as the values of
+            // a `<choiceInput>` with nothing selected, makes nothing, so a
+            // reference to it is missing, shown as a blank (VAL-5, D37), as
+            // before its type was decided at load.
+            return {
+                serializedReplacements: [],
+                propVariablesCopiedByReplacement: [],
+                diagnostics,
+                nComponents,
+            };
         }
 
         // See description of returnWrappingComponents in Core.js.
@@ -5963,11 +6066,6 @@ export async function replacementFromProp({
     } else {
         // not an array or array entry
 
-        if (stateVarObj.shadowingInstructions?.hasVariableComponentType) {
-            // evaluate stateVarObj to make sure createComponentOfType is calculated and up-to-date
-            await stateVarObj.value;
-        }
-
         // A variable that holds `null` for having no value
         // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
         // limit or an `<award>`'s `feedbackText` with none, has nothing to
@@ -6641,10 +6739,30 @@ function propComponentType({ source, propName }, componentInfoObjects) {
 }
 
 /**
- * Whether the property `propName` of `source` (`propOfTypeChange`) makes a
- * component of the type of its value, which can change, rather than of one
- * type: the `selectedValues` of a `<choiceInput>`, a math or a text as the
- * selected choice is (`hasVariableComponentType`).
+ * The type of the property `propName` of `source`, of which `propVariable`
+ * is the variable (if made): the one its class declares
+ * (`propComponentType`), or else the one the DoenetML decides when the
+ * document loads (`propertyTypesAtLoad.ts`, set on the variable by
+ * `StateVariableInitializer.ts`), when it is one type. `undefined` when
+ * neither gives one: a type is never worked out from a value (TYPE).
+ */
+function propTypeAtLoad(propVariable, source, propName, componentInfoObjects) {
+    const declared = propComponentType(
+        { source, propName },
+        componentInfoObjects,
+    );
+    if (declared) {
+        return declared;
+    }
+    const atLoad = propVariable?.shadowingInstructions?.createComponentOfType;
+    return typeof atLoad === "string" ? atLoad : undefined;
+}
+
+/**
+ * Whether the property `propName` of `source` (`propOfTypeChange`) is one
+ * whose class declares no type, which the DoenetML decides when the
+ * document loads (`propertyTypesAtLoad.ts`): the `selectedValues` of a
+ * `<choiceInput>`, a math or a text as its choices are.
  */
 function propTypeVaries({ source, propName }, componentInfoObjects) {
     const description =
@@ -6653,22 +6771,6 @@ function propTypeVaries({ source, propName }, componentInfoObjects) {
     return Boolean(
         description?.public && description.createComponentOfType === undefined,
     );
-}
-
-/**
- * The component type a value is held in: a math expression in a `<math>`,
- * and a string, number or boolean in a `<text>`, `<number>` or `<boolean>`.
- * `undefined` for anything else, such as an array of several entries.
- */
-function componentTypeOfValue(value) {
-    if (value instanceof me.class) {
-        return "math";
-    }
-    return {
-        string: "text",
-        number: "number",
-        boolean: "boolean",
-    }[typeof value];
 }
 
 /** Whether a `typeChangeValueCheck` is of what a composite holds. */
@@ -7547,10 +7649,12 @@ async function wrapperOfSeveralDiagnostics({
     const severalAtLoad = component.doenetAttributes?.severalAtLoad;
     if (
         severalAtLoad === "every" ||
-        // a tag in error at load reports that error only
+        // a tag in error at load reports that error only, and one after a
+        // collection, which names nothing, its warning only (D59)
         component.doenetAttributes?.typeChangeAtLoad?.code?.startsWith(
             "doenet-e",
-        )
+        ) ||
+        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0200"
     ) {
         return [];
     }
@@ -7635,8 +7739,8 @@ async function wrapperOfSeveralDiagnostics({
         pathEnd != undefined &&
         propStart > pathStart
     ) {
-        // After a repeat, or a select that picked several, with no index
-        // (`$r.x`), `$r.P.x` reads `P` in each item (D41 decision 1).
+        // after the wrapper's reference and any index: `$r[1].x` becomes
+        // `$r[1].P.x`
         const before = source.substring(pathStart, propStart);
         suggestion = `${doenetMLDollarsForReference(
             originalPath,
@@ -7950,6 +8054,30 @@ async function isBareReferenceToOneThing(
 }
 
 /**
+ * Whether `component` is written in an attribute of one of its ancestors
+ * (`grid="$P"` of a `<graph>`), rather than among their children.
+ */
+function writtenInAnAttribute(component, components) {
+    let child = component;
+    for (const ancestor of component.ancestors ?? []) {
+        const parent = components[ancestor.componentIdx];
+        if (!parent) {
+            return false;
+        }
+        if (
+            Object.values(parent.attributes ?? {}).some(
+                (attribute) =>
+                    attribute?.component?.componentIdx === child.componentIdx,
+            )
+        ) {
+            return true;
+        }
+        child = parent;
+    }
+    return false;
+}
+
+/**
  * Make the changes `result` that leave the bare reference to one thing
  * `component` (`isBareReferenceToOneThing`) showing no component leave it
  * showing a blank instead (D37), whatever path decided them: an index that
@@ -8036,6 +8164,34 @@ async function blankInPlaceOfNothing({
     if (shown.some(Boolean) || !oneThing) {
         return;
     }
+    /** What the workspace records for a copy showing only the blank. */
+    function setBlankWorkspace() {
+        workspace.numReplacementsBySource = [1];
+        workspace.numNonStringReplacementsBySource = [1];
+        workspace.sourceIndices = [];
+        workspace.propVariablesCopiedBySource = [];
+        workspace.sourceContainsCopyBySource = [];
+    }
+    if (
+        (component.replacementsToWithhold ?? 0) === 0 &&
+        component.replacements.length === 1 &&
+        component.replacements[0].componentType === "_missing"
+    ) {
+        // It shows the blank already: keep it, rather than replace it with
+        // a new one, which queues the copy, and what shows it, to be updated
+        // again, without end (`$ls[$i]` with `i` past the end, shown by a
+        // group's copy, Doenet/DoenetML#2643 item 2).
+        result.replacementChanges = (result.replacementChanges ?? []).filter(
+            (change) =>
+                !(
+                    change.changeTopLevelReplacements &&
+                    (change.changeType === "add" ||
+                        change.changeType === "delete")
+                ) && change.changeType !== "changeReplacementsToWithhold",
+        );
+        setBlankWorkspace();
+        return;
+    }
     const stateIdInfo = {
         prefix: `${component.stateId}|`,
         num: workspace.replacementsCreated,
@@ -8063,11 +8219,7 @@ async function blankInPlaceOfNothing({
             serializedReplacements: [missing],
         },
     ];
-    workspace.numReplacementsBySource = [1];
-    workspace.numNonStringReplacementsBySource = [1];
-    workspace.sourceIndices = [];
-    workspace.propVariablesCopiedBySource = [];
-    workspace.sourceContainsCopyBySource = [];
+    setBlankWorkspace();
 }
 
 /**
@@ -8910,7 +9062,10 @@ async function typeChangeStatus({
             return mismatch({
                 level,
                 code: "doenet-e0065",
-                args: { sourceType },
+                args:
+                    rule.kind === "booleanNumber"
+                        ? { sourceType, mix: rule.mix }
+                        : { sourceType },
             });
         }
         if (rule.valueCheck && readValue) {
@@ -8992,33 +9147,17 @@ async function typeChangeStatus({
             if (Array.isArray(value) && value.length !== 1) {
                 // What its type decides comes first: with a text among the
                 // choices, a `<point>` is `doenet-e0065` whatever is
-                // selected, also when nothing is (D36).
-                // The type its entries are made of, set as its value is
-                // (`hasVariableComponentType`): a `<choiceInput>`'s
-                // `componentType`, which is a text when any choice is one.
-                // With no entries it is not set, and is read from the
-                // source's `componentType`.
-                const variableType =
-                    propVariable.shadowingInstructions?.createComponentOfType ??
-                    (propSource.state.componentType
-                        ? await propSource.stateValues.componentType
-                        : undefined);
-                const propType =
-                    typeof variableType === "string"
-                        ? variableType
-                        : propComponentType(
-                              { source: propSource, propName },
-                              componentInfoObjects,
-                          );
-                // A `<choiceInput>` with no choices yet (made later, as by a
-                // `<repeat>` with no iterations yet) has a text
-                // `componentType` by default, not because a choice is one,
-                // so its type decides nothing yet.
-                const noChoicesYet =
-                    propSource.state.numChoices !== undefined &&
-                    (await propSource.stateValues.numChoices) === 0;
+                // selected, also when nothing is (D36). The type its entries
+                // are made of is decided when the document loads (TYPE,
+                // `propertyTypesAtLoad.ts`): a `<choiceInput>`'s is a text
+                // when any choice is one.
+                const propType = propTypeAtLoad(
+                    propVariable,
+                    propSource,
+                    propName,
+                    componentInfoObjects,
+                );
                 const byType =
-                    !noChoicesYet &&
                     propType &&
                     !componentInfoObjects.isCompositeComponent({
                         componentType: propType,
@@ -9042,26 +9181,16 @@ async function typeChangeStatus({
             // Decided again as the document runs, from the type of the
             // property, when it is checked against its value
             // (`typeChangeValueCheck` "value").
-            let propType =
+            // of the type its class declares, or that the DoenetML decides
+            // when the document loads (TYPE), never of its value now
+            const propType =
                 propSource &&
-                propComponentType(
-                    { source: propSource, propName },
+                propTypeAtLoad(
+                    propVariable,
+                    propSource,
+                    propName,
                     componentInfoObjects,
                 );
-            if (
-                !propType &&
-                propVariable &&
-                propTypeVaries(
-                    { source: propSource, propName },
-                    componentInfoObjects,
-                )
-            ) {
-                // of the type of its value now, as the selected choice of a
-                // `<choiceInput>` is (#2488)
-                propType = componentTypeOfValue(
-                    await readTypeChangeValue(component, readValue),
-                );
-            }
             if (
                 !propVariable ||
                 !propType ||
@@ -9541,17 +9670,19 @@ async function keepChoicesReachedByModuleAttributes({
     }
     // The module attributes written on the copy, by the index of the
     // component in the copy's `<moduleAttributes>` that declares each
+    // (matched as `<moduleAttributes>` matches them: exactly, or, for one
+    // release, in another case, `moduleAttributesWritten`)
     const writtenByIdx = new Map();
-    const writtenNames = new Map(
-        attributeNames.map((name) => [name.toLowerCase(), name]),
-    );
+    const { writtenFor } = moduleAttributesWritten({
+        written: attributeNames,
+        declared: declaredModuleAttributeNames(replacement.children),
+    });
     for (const declaration of (replacement.children ?? [])
         .filter((child) => child?.componentType === "moduleAttributes")
         .flatMap((child) => child.children ?? [])) {
-        const name =
-            declaration?.attributes?.name?.primitive?.value?.toLowerCase();
-        if (name && writtenNames.has(name)) {
-            writtenByIdx.set(declaration.componentIdx, writtenNames.get(name));
+        const name = declaration?.attributes?.name?.primitive?.value;
+        if (name && writtenFor.has(name)) {
+            writtenByIdx.set(declaration.componentIdx, writtenFor.get(name));
         }
     }
     if (writtenByIdx.size === 0) {
@@ -9668,16 +9799,16 @@ async function keepChoicesReachedByModuleAttributes({
             ? (componentInfoObjects.componentTypeAsWritten(writtenType) ??
               writtenType)
             : component.componentType;
+        // Matched exactly (D51): one written in another case was given its
+        // spelling before the core read it (`attribute-name-case.ts`).
         const choiceAttributes = new Set(
-            (
-                componentInfoObjects.allComponentClasses[choosingType]
-                    ?.attributesDeterminingChoices ?? []
-            ).map((name) => name.toLowerCase()),
+            componentInfoObjects.allComponentClasses[choosingType]
+                ?.attributesDeterminingChoices ?? [],
         );
         for (const [attrName, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
-            if (!choiceAttributes.has(attrName.toLowerCase())) {
+            if (!choiceAttributes.has(attrName)) {
                 continue;
             }
             if (isWrapper && attribute?.type === "unresolved") {
@@ -9691,11 +9822,8 @@ async function keepChoicesReachedByModuleAttributes({
                 // the value the source's wrapper gave what it made
                 const madeBySource =
                     components[component.originalIdx]?.replacements?.[0];
-                const sourceAttribute = Object.entries(
-                    madeBySource?.attributes ?? {},
-                ).find(
-                    ([name]) => name.toLowerCase() === attrName.toLowerCase(),
-                )?.[1]?.component;
+                const sourceAttribute =
+                    madeBySource?.attributes?.[attrName]?.component;
                 if (madeBySource === undefined && inTemplate) {
                     // held at the value of the source's iteration, as
                     // below
@@ -9813,12 +9941,10 @@ async function copyWithStateChangesChoicesErrors({
     }
     const errors = [];
     const choiceAttributes = new Set(
-        (replacementClass.attributesDeterminingChoices ?? []).map((name) =>
-            name.toLowerCase(),
-        ),
+        replacementClass.attributesDeterminingChoices ?? [],
     );
     for (const attribute of attributeNames) {
-        if (choiceAttributes.has(attribute.toLowerCase())) {
+        if (choiceAttributes.has(attribute)) {
             errors.push(
                 codedDiagnostic({
                     type: "error",
@@ -9893,35 +10019,33 @@ async function copyWithStateChangesChoicesErrors({
  * changes how it looks or behaves for the reader (`showCorrectness`,
  * `submitLabel`, `inline`, …), as `hide` or `disabled` does.
  */
-const ANSWER_GRADING_ATTRIBUTES = new Set(
-    [
-        "type",
-        "weight",
-        "handGraded",
-        "matchPartial",
-        "maxNumAttempts",
-        "creditByAttempt",
-        "symbolicEquality",
-        "simplifyOnCompare",
-        "expandOnCompare",
-        "unorderedCompare",
-        "matchByExactPositions",
-        "numAwardsCredited",
-        "allowedErrorInNumbers",
-        "includeErrorInNumberExponents",
-        "allowedErrorIsAbsolute",
-        "numSignErrorsMatched",
-        "numPeriodicSetMatchesRequired",
-        "caseInsensitiveMatch",
-        "matchBlanks",
-        "selectMultiple",
-        "shuffleOrder",
-        "preserveLastChoice",
-        "splitSymbols",
-        "parseScientificNotation",
-        "video",
-    ].map((name) => name.toLowerCase()),
-);
+const ANSWER_GRADING_ATTRIBUTES = new Set([
+    "type",
+    "weight",
+    "handGraded",
+    "matchPartial",
+    "maxNumAttempts",
+    "creditByAttempt",
+    "symbolicEquality",
+    "simplifyOnCompare",
+    "expandOnCompare",
+    "unorderedCompare",
+    "matchByExactPositions",
+    "numAwardsCredited",
+    "allowedErrorInNumbers",
+    "includeErrorInNumberExponents",
+    "allowedErrorIsAbsolute",
+    "numSignErrorsMatched",
+    "numPeriodicSetMatchesRequired",
+    "caseInsensitiveMatch",
+    "matchBlanks",
+    "selectMultiple",
+    "shuffleOrder",
+    "preserveLastChoice",
+    "splitSymbols",
+    "parseScientificNotation",
+    "video",
+]);
 
 /**
  * The children an `extend` of an `<answer>` may write: what labels or
@@ -9945,7 +10069,7 @@ const ANSWER_DESCRIBING_CHILDREN = new Set([
 function extendAnswerErrors({ attributeNames, children, source }) {
     const errors = [];
     for (const attribute of attributeNames) {
-        if (ANSWER_GRADING_ATTRIBUTES.has(attribute.toLowerCase())) {
+        if (ANSWER_GRADING_ATTRIBUTES.has(attribute)) {
             errors.push(
                 codedDiagnostic({
                     type: "error",
@@ -10115,18 +10239,15 @@ export function extendChangesContentErrors({
 
     if (isModule) {
         // Only an attribute its `<moduleAttributes>` declares is a module
-        // attribute, matched ignoring case, as `<moduleAttributes>` does.
-        const declared = new Set(
-            (sourceChildren ?? [])
-                .filter((child) => child?.componentType === "moduleAttributes")
-                .flatMap((child) => child.children ?? [])
-                .map((child) =>
-                    child?.attributes?.name?.primitive?.value?.toLowerCase(),
-                )
-                .filter(Boolean),
-        );
+        // attribute, matched as `<moduleAttributes>` matches them: exactly,
+        // or, for one release, in another case (`moduleAttributesWritten`).
+        const { writtenFor } = moduleAttributesWritten({
+            written: changingAttributes,
+            declared: declaredModuleAttributeNames(sourceChildren),
+        });
+        const setsOne = new Set(writtenFor.values());
         changingAttributes = changingAttributes.filter((attrName) =>
-            declared.has(attrName.toLowerCase()),
+            setsOne.has(attrName),
         );
     }
 

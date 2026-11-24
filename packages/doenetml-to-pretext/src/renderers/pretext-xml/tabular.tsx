@@ -19,7 +19,7 @@ import { printedColumnWidths } from "./column-widths";
  *    PreTeXt names them physically (`top`, `bottom`, `left`, `right`). The
  *    weights (`none`/`minor`/`medium`/`major`) are shared, having been
  *    borrowed from PreTeXt in the first place.
- *  - **Alignment.** `halign="start"`/`"end"` become `"left"`/`"right"`.
+ *  - **Alignment.** `hAlign="start"`/`"end"` become `"left"`/`"right"`.
  *    PreTeXt has no writing-direction-relative alignment, so this assumes a
  *    left-to-right document — the same assumption the rest of the PreTeXt
  *    export already makes.
@@ -31,7 +31,7 @@ import { printedColumnWidths } from "./column-widths";
  *    applies them (see `Tabular` and `Cell`).
  *
  * `TableSettingsContext` exists because the props are *resolved* values: a
- * `<tabular halign="center">` leaves every cell reporting `"center"`, so
+ * `<tabular hAlign="center">` leaves every cell reporting `"center"`, so
  * writing each prop out unconditionally would bury one authored attribute
  * under dozens of redundant ones. Each level instead emits a setting only
  * where it differs from what it inherits, which stays close to the author's
@@ -73,7 +73,7 @@ const HALIGN_TO_PRETEXT: Record<string, string> = {
 
 export type ColumnSpec = {
     width: { size: number; isAbsolute: boolean } | null;
-    halign: string | null;
+    hAlign: string | null;
     topBorder: string | null;
     endBorder: string | null;
 };
@@ -118,9 +118,9 @@ const TableSettingsContext = React.createContext<TableSettings>(
 
 /**
  * A `componentSize` as a PreTeXt width, or `undefined` when there is nothing
- * PreTeXt can say. PreTeXt expresses a tabular's and a column's width as a
- * percentage only, so an absolute size (`width="120px"`) has no equivalent
- * and is dropped rather than mistranslated.
+ * PreTeXt can say. PreTeXt expresses a tabular's width as a percentage only,
+ * so an absolute size (`width="120px"`) has no equivalent and yields
+ * `undefined`, leaving the caller to choose what to write instead.
  */
 function componentSizeToPretextWidth(
     size: { size: number; isAbsolute: boolean } | null | undefined,
@@ -151,8 +151,8 @@ function halignIfChanged(
 type TabularData = {
     props: {
         width?: { size: number; isAbsolute: boolean } | null;
-        halign?: string;
-        valign?: string;
+        hAlign?: string;
+        vAlign?: string;
         topBorder?: string;
         startBorder?: string;
         bottomBorder?: string;
@@ -176,8 +176,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
     // own: PreTeXt sets the table in a box that wide, and reads the column
     // widths as shares of the box. The padding is a larger share of a
     // narrower box, though, which is what `lineFraction` accounts for. A
-    // width in pixels is not written out (see below), so it counts as the
-    // full line.
+    // width in pixels is written as the full line (see below), so it counts
+    // as the full line here too.
     const percents = columnSpecs.map(({ width }) =>
         width && !width.isAbsolute && width.size > 0 ? width.size : null,
     );
@@ -190,8 +190,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
         : percents;
 
     const settings: TableSettings = {
-        halign: props.halign ?? DEFAULT_TABLE_SETTINGS.halign,
-        valign: props.valign ?? DEFAULT_TABLE_SETTINGS.valign,
+        halign: props.hAlign ?? DEFAULT_TABLE_SETTINGS.halign,
+        valign: props.vAlign ?? DEFAULT_TABLE_SETTINGS.valign,
         bottomBorder: props.bottomBorder ?? DEFAULT_TABLE_SETTINGS.bottomBorder,
         startBorder: props.startBorder ?? DEFAULT_TABLE_SETTINGS.startBorder,
         endBorder: props.endBorder ?? DEFAULT_TABLE_SETTINGS.endBorder,
@@ -200,14 +200,17 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
         rowOverridesColumnHalign: false,
     };
 
-    // A `<tabular>` is 100% wide unless the author says otherwise, and PreTeXt
-    // reads a missing `width` the same way, so the default stays unwritten.
-    // `height` has no PreTeXt counterpart at all and is dropped.
-    const width = componentSizeToPretextWidth(props.width);
+    // A `<tabular>` is 100% wide unless the author says otherwise, so its
+    // width is always written. PreTeXt reads a missing `width` differently:
+    // as a table of its natural width, centered on the line, which shifts
+    // each table by its own width. A width in pixels, which PreTeXt cannot
+    // express, is written as the full line, as `lineFraction` above counts
+    // it. `height` has no PreTeXt counterpart at all and is dropped.
+    const width = componentSizeToPretextWidth(props.width) ?? "100%";
 
     return (
         <tabular
-            width={width === "100%" ? undefined : width}
+            width={width}
             halign={halignIfChanged(
                 settings.halign,
                 DEFAULT_TABLE_SETTINGS.halign,
@@ -229,9 +232,9 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
                         ? `${printedWidths[index]}%`
                         : undefined,
                     halign:
-                        spec.halign == null
+                        spec.hAlign == null
                             ? undefined
-                            : HALIGN_TO_PRETEXT[spec.halign],
+                            : HALIGN_TO_PRETEXT[spec.hAlign],
                     top: spec.topBorder ?? undefined,
                     right: spec.endBorder ?? undefined,
                 }),
@@ -246,8 +249,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
 type RowData = {
     props: {
         header?: boolean;
-        halign?: string;
-        valign?: string;
+        hAlign?: string;
+        vAlign?: string;
         startBorder?: string;
         bottomBorder?: string;
     };
@@ -260,11 +263,11 @@ export const Row: BasicComponentWithPassthroughChildren<RowData> = ({
     const props = node.data.props;
     const inherited = React.useContext(TableSettingsContext);
 
-    const halign = halignIfChanged(props.halign, inherited.halign);
+    const halign = halignIfChanged(props.hAlign, inherited.halign);
     const settings: TableSettings = {
         ...inherited,
-        halign: props.halign ?? inherited.halign,
-        valign: props.valign ?? inherited.valign,
+        halign: props.hAlign ?? inherited.halign,
+        valign: props.vAlign ?? inherited.valign,
         startBorder: props.startBorder ?? inherited.startBorder,
         bottomBorder: props.bottomBorder ?? inherited.bottomBorder,
         rowOverridesColumnHalign: halign !== undefined,
@@ -289,7 +292,7 @@ type CellData = {
     props: {
         colSpan?: number;
         columnIndex?: number | null;
-        halign?: string;
+        hAlign?: string;
         bottomBorder?: string;
         endBorder?: string;
         text?: string;
@@ -324,7 +327,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             ? undefined
             : inherited.columnSpecs[lastColumnIndex];
     const inheritedHalign =
-        (inherited.rowOverridesColumnHalign ? null : halignColumn?.halign) ??
+        (inherited.rowOverridesColumnHalign ? null : halignColumn?.hAlign) ??
         inherited.halign;
     const inheritedEndBorder =
         endBorderColumn?.endBorder ?? inherited.endBorder;
@@ -387,7 +390,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
                     ? String(effectiveColSpan(props.colSpan))
                     : undefined
             }
-            halign={halignIfChanged(props.halign, inheritedHalign)}
+            halign={halignIfChanged(props.hAlign, inheritedHalign)}
             bottom={ifChanged(props.bottomBorder, inherited.bottomBorder)}
             right={ifChanged(props.endBorder, inheritedEndBorder)}
         >

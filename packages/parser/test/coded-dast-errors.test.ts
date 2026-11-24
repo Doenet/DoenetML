@@ -175,6 +175,18 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("an attribute written twice in the same case (D62)", () => {
+        const errors = parseErrors(
+            `<math simplify="full" simplify="none" simplify="expand">x</math>`,
+        );
+        // one for each written after the first
+        expect(codedErrors(errors).map((e) => e.code)).toEqual([
+            "doenet-w0201",
+            "doenet-w0201",
+        ]);
+        expectRoundTrip(errors);
+    });
+
     it("answer sugar", () => {
         const errors = [
             ...normalizedErrors(`<answer type="videoWatched" />`),

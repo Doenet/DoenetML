@@ -40,7 +40,7 @@ import {
     unorderedDefinition,
     valueMissingDefinition,
 } from "../components/abstract/referenceSlotDefinitions";
-import { buildParsedExpression } from "./booleanLogic";
+import { buildParsedExpression, logicTreeMissing } from "./booleanLogic";
 import { convertValueToType } from "./selectableType";
 import { booleanValueFromCodes } from "./valueFunctions/boolean";
 import { normalizeArrayStateVariableDefaults } from "../core/StateVariableInitializer";
@@ -770,12 +770,17 @@ function addBooleanDefinitions(definitions, name, numSlots) {
                 booleanChildrenByCode: {},
                 otherChildrenByCode: {},
             };
+            // the codes of the references that are missing
+            const missingCodes = new Set();
             let k = 0;
             for (const child of template.children) {
                 if (typeof child === "string") {
                     continue;
                 }
                 const code = codePre + k;
+                if (dependencyValues[`slot${k}_valueMissing`]) {
+                    missingCodes.add(code);
+                }
                 const stateValues = {
                     value: dependencyValues[`slot${k}_value`],
                     unordered: dependencyValues[`slot${k}_unordered`],
@@ -795,6 +800,21 @@ function addBooleanDefinitions(definitions, name, numSlots) {
                       }
                     : { componentType: child.componentType, stateValues };
                 k++;
+            }
+            // Logic with a missing operand is missing, as an attribute
+            // component's `<boolean>` is (`computedFromMissing`), and a
+            // missing boolean is false where it decides something (D70,
+            // `valueFalseWhileMissing`): `hide="not $b"` and
+            // `condition="$b != true"` while `b` is missing.
+            if (
+                parsedExpression &&
+                missingCodes.size > 0 &&
+                logicTreeMissing({
+                    logicTree: parsedExpression.tree,
+                    isMissingCode: (code) => missingCodes.has(code),
+                })
+            ) {
+                return { setValue: { [`${prefix}value`]: false } };
             }
             return {
                 setValue: {

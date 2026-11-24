@@ -175,6 +175,20 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 <p>$(a)b is the value of a followed by the letter b.</p>
 ```
 
+### Writing a literal `$`
+
+A `$` followed by a letter, an underscore, or `(` starts a reference, and so
+does `$$` followed by one of those, as in `$$f(2)`, which evaluates a function.
+To show a dollar sign there instead, write it as `&dollar;` or `&#36;`. This
+works in text and in attribute values alike. A `$` followed by anything else,
+such as a space or a digit, is already plain text.
+
+```doenet-editor-horiz
+<p name="price">The fee is $5, written in code as &dollar;fee.</p>
+
+<p>Show &#36;(x) as text: <text>&#36;(x)</text></p>
+```
+
 ### Writing a reference as a different tag
 
 A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
@@ -186,9 +200,13 @@ nothing.
 When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
 only between related types:
 
-* `<math>`, `<number>`, `<text>` and `<boolean>`, from one another, by value.
-  A boolean is `1` or `0` as a `<number>` or a `<math>`, and a text is a
-  `<boolean>` while it is the word `true` or `false`;
+* `<math>`, `<number>` and `<text>`, from one another, by value, and
+  `<boolean>` and `<text>`: a text is a `<boolean>` while it is the word
+  `true` or `false`. A boolean is not a number, nor a number a boolean:
+  `<number extend="$b"/>{:dn}` of a `<boolean>` is an error, which suggests
+  `<number convertBoolean>$b</number>{:dn}`, the one way to count a boolean
+  as `1` or `0`, and `<boolean extend="$n"/>{:dn}` of a number suggests a
+  comparison, such as `<boolean>$n != 0</boolean>{:dn}`;
 * `<point>`, `<vector>` and `<coords>`, from one another;
 * a `<math>` from a point, vector or coords, as the tuple of its coordinates,
   and a point, vector or coords from a math whose value is a tuple;
@@ -202,8 +220,8 @@ A `<group>` can be made from anything, and holds it.
 
 Made by value, the tag follows the value, and writing to the tag writes it
 back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`
-edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
-`b` to false.
+edits `mi`, and a `<text extend="$b"/>{:dn}` of a `<boolean>` set to `false`
+sets `b` to false.
 
 ```doenet-editor-horiz
 <point name="P">(3,4)</point>
@@ -212,7 +230,7 @@ edits `mi`, and a `<math extend="$b"/>{:dn}` of a `<boolean>` set to `0` sets
 
 <p>As a math: <math extend="$P"/></p>
 <p>As a math: <math extend="$g"/></p>
-<p>As a number: <number extend="$bi"/></p>
+<p>As a text: <text extend="$bi"/></p>
 ```
 
 #### Made from a composite
@@ -277,15 +295,25 @@ A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or
 shape whose content is only a missing reference is missing in the same way:
 `<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
 and a `<circle>$nothing</circle>{:dn}` isn't drawn. So is a `<point>{:dn}` or
-`<vector>{:dn}` whose content is only a reference that names nothing, such as
-`<point>$nothing</point>{:dn}` or `<point>$pl[$i]</point>{:dn}` past the end of
-a `<pointList name="pl">{:dn}`, or a blank entry of a `<pointList>{:dn}`. An `<award>{:dn}` whose
+`<vector>{:dn}` whose content is a reference that names nothing, such as
+`<point>$nothing</point>{:dn}`, `<point>$pl[$i]</point>{:dn}` past the end of
+a `<pointList name="pl">{:dn}` or `<point>$ml[3]</point>{:dn}` of a two-entry
+`<mathList name="ml">{:dn}`, a blank entry of a list, or a missing point
+(`<point>$Q</point>{:dn}` of a missing `Q`), and so is one holding such a
+reference beside other content (`<ray through="(1,2) $nothing"/>{:dn}`). A
+blank inside one coordinate takes part in it: `<point>($nothing, 2)</point>{:dn}`
+is `(＿, 2)`. A point is missing only when a coordinate it uses is: its `x`, `y`
+and `z` come before its content, so `<point x="3" y="4">$nothing</point>{:dn}` is
+`(3, 4)`. A vector is missing when its content, or a `head` or `tail` it uses,
+names nothing: `<vector tail="$pl[$i]" head="(5,5)"/>{:dn}` past the end of
+`pl`. A shape whose center is a property of a missing shape, such as
+`<circle center="$c.center"/>{:dn}` of `<circle name="c">$nothing</circle>{:dn}`,
+is missing too. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
-`<math>$nothing + 1</math>{:dn}` is `＿ + 1`, `<text>x $nothing y</text>{:dn}`
-is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
-or other container shows the blank inline.
+`<math>$nothing + 1</math>{:dn}` is `＿ + 1` and `<text>x $nothing y</text>{:dn}`
+is `x ＿ y`. A `<p>{:dn}` or other container shows the blank inline.
 
 What is computed from a missing value depends on the type of the result. A math
 can hold a blank, so it holds it, as above. A number or a boolean can't, so one
@@ -293,9 +321,15 @@ computed from a missing value is missing too, whatever else it is computed
 from: `<number>$nothing + 1</number>{:dn}`, `<sum>{:dn}` or `<mean>{:dn}` of a
 `<numberList>{:dn}` with a blank entry, a function evaluated numerically at a
 blank (with `symbolic="false"` or `forceNumeric`), `<boolean>not $nothing</boolean>{:dn}` and
-`<boolean>$nothing or true</boolean>{:dn}` all show `＿`. A comparison is not
-such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
-blank never equals anything. Only a number computed from values that are all
+`<boolean>$nothing or true</boolean>{:dn}` all show `＿`. So does a comparison:
+`<boolean>$nothing = 1</boolean>{:dn}` and `<boolean>$nothing != 1</boolean>{:dn}`
+are `＿`, neither true nor false, since a blank never equals anything; an
+`<answer>{:dn}` gives no credit for one, even for the response `false`. So are
+`<isNumber>$nothing</isNumber>{:dn}` and the other tests of a value. Wherever a
+missing boolean decides something, as a `hide`, a `<case>{:dn}`'s `condition` or
+an `<award>{:dn}`, it counts as false. An input
+left blank is not missing, though: it is a value, which a comparison compares.
+Only a number computed from values that are all
 there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A
 property that has no value, such as an `<award>{:dn}`'s `feedbackText` when it
 has none, is missing too, and so is a tag of it while it has none, though it

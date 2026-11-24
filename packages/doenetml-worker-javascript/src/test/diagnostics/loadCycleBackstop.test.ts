@@ -74,9 +74,18 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
-            // `numIterations` of a repeat whose iteration reads the number
+            // a section's own number reads the same numbering (D56)
             [
-                `$r.numIterations
+                `$cc.hidden
+<conditionalContent name="cc" hide="$s.ownNumber=1"><p>a</p></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
+            // an iteration of a repeat whose iteration reads the number (was
+            // `$r.numIterations`, each iteration's, which names nothing since
+            // D59)
+            [
+                `$r[1]
 <repeatForSequence name="r" to="2"><conditionalContent condition="$s.sectionNumber=1"><p>a</p></conditionalContent></repeatForSequence>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
@@ -193,48 +202,107 @@ $cc.hidden
         // the cycle is blamed, not it
         await expectBlamed(
             `<p name="p">hi</p>
-<section name="s" hide="$n.hidden"/>
-<number name="n" hide="$s.hidden" displayDigits="$s.sectionNumber">1</number>`,
-            "$n.hidden",
+<section name="s" disabled="$n.disabled"/>
+<number name="n" disabled="$s.disabled" displayDigits="$s.sectionNumber">1</number>`,
+            "$n.disabled",
         );
         await expectBlamed(
             `<p name="p">hi</p>
-<section name="s" hide="$r[1].n.hidden"/>
-<repeatForSequence name="r" to="1"><number name="n" hide="$s.hidden" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
-            "$r[1].n.hidden",
+<section name="s" disabled="$r[1].n.disabled"/>
+<repeatForSequence name="r" to="1"><number name="n" disabled="$s.disabled" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
+            "$r[1].n.disabled",
         );
         // a copy that writes the attribute the cycle runs through: the
-        // variable is the copy's (`m`'s `hide`), not that of what it copies,
+        // variable is the copy's (`m`'s `disabled`), not that of what it copies,
         // so the number read in `n`'s `hide`, off the cycle, is not blamed
         // (that stopped the document: the rebuild met the same cycle)
         for (const copy of [
-            `<number extend="$n" name="m" hide="$s.hidden"/>`,
-            `<number copy="$n" name="m" hide="$s.hidden"/>`,
+            `<number extend="$n" name="m" disabled="$s.disabled"/>`,
+            `<number copy="$n" name="m" disabled="$s.disabled"/>`,
         ]) {
             await expectBlamed(
                 `<p name="p">hi</p>
-<section name="s" hide="$m.hidden"/>
+<section name="s" disabled="$m.disabled"/>
 <number name="n" hide="$s.sectionNumber=5">1</number>
 ${copy}
 <section/>`,
-                "$m.hidden",
+                "$m.disabled",
             );
         }
         // the same with the copy in a repeat's template: the reference that
         // made it is an instance of the one written
         for (const copy of [
-            `<number extend="$n" name="m" hide="$s.hidden"/>`,
-            `<number copy="$n" name="m" hide="$s.hidden"/>`,
+            `<number extend="$n" name="m" disabled="$s.disabled"/>`,
+            `<number copy="$n" name="m" disabled="$s.disabled"/>`,
         ]) {
             await expectBlamed(
                 `<p name="p">hi</p>
-<section name="s" hide="$r[1].m.hidden"/>
+<section name="s" disabled="$r[1].m.disabled"/>
 <number name="n" hide="$s.sectionNumber=5">1</number>
 <repeatForSequence name="r" to="1">${copy}</repeatForSequence>
 <section/>`,
-                "$r[1].m.hidden",
+                "$r[1].m.disabled",
             );
         }
+    });
+
+    // In a chain of copies, the reference that writes the attribute the
+    // cycle runs through is blamed, not one in the middle of the chain,
+    // which doesn't break the cycle (#2633 item 3). Blaming `n` stopped the
+    // document; with the backstop repeating (D61 decision 2), `n` and `j`
+    // were false errors beside `m`.
+    it("in a chain of copies, blames the copy that writes the attribute", async () => {
+        for (const kind of ["extend", "copy"]) {
+            for (const chain of [
+                `<number ${kind}="$k" name="m" disabled="$m.disabled"/>`,
+                `<number ${kind}="$k" name="n"/>
+<number ${kind}="$n" name="m" disabled="$m.disabled"/>`,
+                `<number ${kind}="$k" name="j"/>
+<number ${kind}="$j" name="n"/>
+<number ${kind}="$n" name="m" disabled="$m.disabled"/>`,
+            ]) {
+                await expectBlamed(
+                    `<p name="p">hi</p>
+<number name="k">1</number>
+${chain}`,
+                    chain.split("\n").at(-1)!,
+                );
+            }
+        }
+    });
+
+    // Of the references in one attribute, the one the cycle runs through is
+    // blamed, not a reference to a section's number beside it, off the
+    // cycle (#2633 item 4).
+    it("blames the reference in an attribute that is on the cycle", async () => {
+        await expectBlamed(
+            `<p name="p">hi</p>
+<section name="s" hide="$n.hide"/>
+<number name="n" hide="$s.hide and $s.sectionNumber=1">1</number>`,
+            "$n.hide",
+        );
+        // the reference to the number, when it is the one on the cycle, is
+        // still blamed first
+        await expectBlamed(
+            `$cc.hidden
+<conditionalContent name="cc" hide="$t.hidden and $s.sectionNumber=1"><p>a</p></conditionalContent>
+<section name="t"/>
+<section name="s"><p name="p">hi</p></section>`,
+            "$s.sectionNumber",
+        );
+    });
+
+    // A reference to the number written in an index is made the error too:
+    // the rebuild looks for it there, and stopped the document when it didn't
+    // find it (DIAG-5).
+    it("blames a reference to the number in an index", async () => {
+        await expectBlamed(
+            `<mathList name="l">1 2 3</mathList>
+$cc.hidden
+<conditionalContent name="cc" hide="$l[$s.sectionNumber] > 1"><p>a</p></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+            "$s.sectionNumber",
+        );
     });
 
     // With no reference among the components the cycle reports, the first
@@ -282,8 +350,8 @@ ${copy}
             ],
             [
                 `<p name="p">hi</p>
-<repeatForSequence to="1"><p>$n</p><number name="n" hide="$n.hidden">1</number></repeatForSequence>`,
-                "$n.hidden",
+<repeatForSequence to="1"><p>$n</p><number name="n" disabled="$n.disabled">1</number></repeatForSequence>`,
+                "$n.disabled",
             ],
         ]) {
             await expectBlamed(doenetML, blamed);
@@ -367,13 +435,68 @@ $r2[2].q
         ).eqls([["doenet-e0005", 2, 37, 53]]);
     });
 
-    // The load is rebuilt once (D57): a document whose rebuild stops on a
-    // second cycle still stops.
-    it("a second cycle still stops the document", async () => {
+    /**
+     * Load `doenetML`, check that the `<p name="p">` renders `hi`, and return
+     * the `doenet-e0005`s, each as the text it covers.
+     */
+    async function blamedTexts(doenetML: string) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+            doenetML,
+        ).eq("hi");
+        const { errors } = getDiagnosticsByType(core);
+        const lines = doenetML.split("\n");
+        return errors.map((error) => {
+            expect(error.code, doenetML).eq("doenet-e0005");
+            const { start, end } = error.position!;
+            expect(start.line, doenetML).eq(end.line);
+            return lines[start.line - 1].slice(
+                start.column - 1,
+                end.column - 1,
+            );
+        });
+    }
+
+    // The load is rebuilt again for each cycle it meets, keeping the nodes
+    // already blamed (D61 decision 2): independent cycles are each
+    // `doenet-e0005`, and the rest renders.
+    it("two and three independent cycles are each blamed", async () => {
+        expect(
+            await blamedTexts(`<p name="p">hi</p>
+<number name="n" disabled="$n.disabled">1</number>
+<number name="m" disabled="$m.disabled">2</number>`),
+        ).eqls(["$n.disabled", "$m.disabled"]);
+        expect(
+            await blamedTexts(`<number name="n" disabled="$n.disabled">1</number>
+<point name="P">($P.x+1, 2)</point>
+<p name="p">hi</p>
+$cc.hidden
+<conditionalContent name="cc" hide="$s.sectionNumber=1"><p>a</p></conditionalContent>
+<section name="s"/>`),
+        ).eqls(["$n.disabled", "$P.x", "$s.sectionNumber"]);
+    });
+
+    // Five rebuilds, so five independent cycles load; a sixth stops the
+    // document, as before the backstop (D61 decision 2).
+    it("past five rebuilds, the document stops", async () => {
+        const cycles = (count: number) =>
+            Array.from(
+                { length: count },
+                (_, i) =>
+                    `<number name="n${i}" disabled="$n${i}.disabled">${i}</number>`,
+            ).join("\n");
+        expect(
+            await blamedTexts(`<p name="p">hi</p>
+${cycles(5)}`),
+        ).eqls(Array.from({ length: 5 }, (_, i) => `$n${i}.disabled`));
         await expect(
             createTestCore({
-                doenetML: `<number name="n" hide="$n.hidden">1</number>
-<number name="m" hide="$m.hidden">2</number>`,
+                doenetML: `<p name="p">hi</p>
+${cycles(6)}`,
             }),
         ).rejects.toThrow("Circular dependency");
     });
@@ -385,7 +508,7 @@ $r2[2].q
         for (const resolverSave of ["none", "restoreFails"] as const) {
             await expect(
                 createTestCore({
-                    doenetML: `<p name="p">hi</p><number name="n" hide="$n.hidden">1</number>`,
+                    doenetML: `<p name="p">hi</p><number name="n" disabled="$n.disabled">1</number>`,
                     resolverSave,
                 }),
                 resolverSave,
@@ -400,7 +523,7 @@ $r2[2].q
         try {
             await expect(
                 createTestCore({
-                    doenetML: `<p name="p">hi</p><number name="n" hide="$n.hidden">1</number>`,
+                    doenetML: `<p name="p">hi</p><number name="n" disabled="$n.disabled">1</number>`,
                 }),
             ).rejects.toThrow("Circular dependency");
         } finally {

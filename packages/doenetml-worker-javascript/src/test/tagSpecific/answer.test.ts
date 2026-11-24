@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import { cleanLatex } from "../utils/math";
 import {
     focusChanged,
@@ -3982,7 +3983,8 @@ Enter any letter:
                     submitted: stateValues.submittedResponses.map((x: any) =>
                         x instanceof me.class ? x.tree : x,
                     ),
-                    types: stateValues.submittedResponsesComponentType,
+                    // decided at load (TYPE-2)
+                    types: await responseTypes(core, a2),
                 };
             }
 
@@ -4149,6 +4151,9 @@ Enter any letter:
         });
 
         it("copies made at run time, before and after one is remade", async () => {
+            // What each reference names is known only as the document runs,
+            // so the response's type isn't decided (TYPE-3): a reference to
+            // the answer's responses would be an error at load.
             const runTimeDefinitions = `
             <mathInput name="i" prefill="1" />
             <repeatForSequence name="r" length="3" valueName="v"><point name="q">($v,2)</point></repeatForSequence>
@@ -4163,7 +4168,7 @@ Enter any letter:
                             credit: 1,
                             numResponses: 1,
                             submitted: [1],
-                            types: ["math"],
+                            types: undefined,
                         },
                     },
                 });
@@ -4178,13 +4183,13 @@ Enter any letter:
                         credit: 1,
                         numResponses: 1,
                         submitted: [1],
-                        types: ["math"],
+                        types: undefined,
                     },
                     afterUpdate: {
                         credit: 0,
                         numResponses: 1,
                         submitted: [2],
-                        types: ["math"],
+                        types: undefined,
                     },
                 },
             });
@@ -4202,26 +4207,34 @@ Enter any letter:
             <group name="g"><text>a</text><point name="gp">(1,2)</point></group>
             <group name="g2" extend="$g" />
             <select name="s"><option><math>x</math></option></select>`;
-            const math = (submitted: any) => ({
+            // A path the document resolves when it loads (`$g.gp.x`) is
+            // typed then; one through an extend (`$g2.gp.x`), or the math a
+            // `<select>` picks, is known only as the document runs, so the
+            // response's type isn't decided (TYPE-3).
+            const math = (submitted: any, decided: boolean) => ({
                 atLoad: {
                     credit: 1,
                     numResponses: 1,
                     submitted: [submitted],
-                    types: ["math"],
+                    types: decided ? ["math"] : undefined,
                 },
             });
             for (const a1HasInput of [true, false]) {
                 for (const [when, refs, expected] of [
-                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1)],
-                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1)],
+                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1, true)],
+                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1, false)],
                     [
                         "<math>$g.gp.x + 1</math> = 2 and $n = 3",
                         "$g.gp.x",
-                        math(1),
+                        math(1, true),
                     ],
-                    ["$s = x and $n = 3", "$s", math("x")],
-                    ["<math>$s</math> = x and $n = 3", "$s", math("x")],
-                    ["<math>$s + 1</math> = x + 1 and $n = 3", "$s", math("x")],
+                    ["$s = x and $n = 3", "$s", math("x", false)],
+                    ["<math>$s</math> = x and $n = 3", "$s", math("x", false)],
+                    [
+                        "<math>$s + 1</math> = x + 1 and $n = 3",
+                        "$s",
+                        math("x", false),
+                    ],
                 ] as const) {
                     await checkAgainstWrittenOut({
                         a1HasInput,
@@ -4365,6 +4378,158 @@ Enter any letter:
                     ).eq(0);
                 }
             }
+        }
+    });
+
+    // `credit` on an award or a choice takes a boolean, as in 0.7: true is
+    // full credit and false none. It is made as a `<number convertBoolean>`,
+    // the author asking for 1 or 0, so it is no type mix (D47 decision 3,
+    // #2582).
+    it("credit takes a boolean, a boolean expression, true, or a booleanInput", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="t">true</boolean>
+    <boolean name="f">false</boolean>
+    <number name="n">3</number>
+    <booleanInput name="bi" prefill="true"><label>bi</label></booleanInput>
+    <answer name="a1"><award credit="$t"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$f"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$n > 2"><when>true</when></award></answer>
+    <answer name="a4"><award credit="$t and not $f"><when>true</when></award></answer>
+    <answer name="a5"><award credit="true"><when>true</when></award></answer>
+    <answer name="a6"><award credit="$bi"><when>true</when></award></answer>
+    <answer name="a7">
+        <choiceInput name="ci"><label>ci</label>
+            <choice credit="$t">yes</choice>
+            <choice credit="$f">no</choice>
+        </choiceInput>
+    </answer>
+    `,
+        });
+
+        async function creditOf(name: string) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[answerIdx].stateValues.creditAchieved;
+        }
+
+        expect(await creditOf("a1")).eq(1);
+        expect(await creditOf("a2")).eq(0);
+        expect(await creditOf("a3")).eq(1);
+        expect(await creditOf("a4")).eq(1);
+        expect(await creditOf("a5")).eq(1);
+        expect(await creditOf("a6")).eq(1);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await creditOf("a6")).eq(0);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [1],
+            core,
+        });
+        expect(await creditOf("a7")).eq(1);
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core,
+        });
+        expect(await creditOf("a7")).eq(0);
+
+        // none of them is a type mix
+        expect(
+            core.core!.diagnostics.filter((d: any) =>
+                ["doenet-w0203", "doenet-e0065"].includes(d.code),
+            ),
+        ).eqls([]);
+    });
+
+    // A mix in an award's condition is a blank, and a condition made from a
+    // blank is missing, so it equals no response, "false" included (VAL-5,
+    // #2656): before, `$b = 1` was false, which a `<booleanInput>` answer
+    // credited for "false".
+    it("a boolean answer whose award holds a type mix credits no response", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">2</number>
+    <answer name="a1"><booleanInput name="bi1"><label>1</label></booleanInput><award>$b = 1</award></answer>
+    <answer name="a2"><booleanInput name="bi2"><label>2</label></booleanInput><award>$n + 0</award></answer>
+    <answer name="a3"><booleanInput name="bi3"><label>3</label></booleanInput><award><boolean>$n + 0</boolean></award></answer>
+    <answer name="a4"><booleanInput name="bi4"><label>4</label></booleanInput><award><when>$bi4 = not ($b = 1)</when></award></answer>
+    <answer name="a5"><booleanInput name="bi5"><label>5</label></booleanInput><award>$b = true</award></answer>
+    <answer name="a6"><award><when>not ($b = 1)</when></award></answer>
+    `,
+        });
+
+        async function creditFor(ind: number, response: boolean) {
+            await updateBooleanInputValue({
+                boolean: response,
+                componentIdx: await resolvePathToNodeIdx(`bi${ind}`),
+                core,
+            });
+            const answerIdx = await resolvePathToNodeIdx(`a${ind}`);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[answerIdx].stateValues.creditAchieved;
+        }
+
+        for (const ind of [1, 2, 3, 4]) {
+            expect(await creditFor(ind, false), `a${ind} false`).eq(0);
+            expect(await creditFor(ind, true), `a${ind} true`).eq(0);
+        }
+        // what the warning suggests works
+        expect(await creditFor(5, false)).eq(0);
+        expect(await creditFor(5, true)).eq(1);
+
+        // a `<when>` holding a mix is never satisfied: `not ($b = 1)` would
+        // otherwise be `not false`
+        const a6Idx = await resolvePathToNodeIdx("a6");
+        await submitAnswer({ componentIdx: a6Idx, core });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[a6Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    // A credit is a `<number convertBoolean>`, so a missing one is a blank,
+    // which counts as 0 (VAL-5, #2656): before, `$nothing` counted as true,
+    // full credit.
+    it("a credit computed from a missing value gives no credit", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="bm">not $nothing</boolean>
+    <answer name="a1"><award credit="$nothing"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$bm"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$b"><when>true</when></award></answer>
+    `,
+        });
+
+        for (const [name, credit] of [
+            ["a1", 0],
+            ["a2", 0],
+            ["a3", 1],
+        ] as const) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[answerIdx].stateValues.creditAchieved,
+                name,
+            ).eq(credit);
         }
     });
 
@@ -10792,6 +10957,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             core,
         });
         const before = await core.returnAllStateVariables(false, true);
+        const coreBefore = core;
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -10799,7 +10965,19 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             initialState: scoreState.state,
         }));
         const after = await core.returnAllStateVariables(false, true);
-        return { before, after, resolvePathToNodeIdx };
+        const coreAfter = core;
+        /**
+         * The types of the submitted responses of `name`, before the reload
+         * and after it: those the DoenetML decides (TYPE-2, TYPE-4).
+         */
+        async function typesOf(name: string) {
+            const idx = await resolvePathToNodeIdx(name);
+            return [
+                await responseTypes(coreBefore, idx),
+                await responseTypes(coreAfter, idx),
+            ];
+        }
+        return { before, after, resolvePathToNodeIdx, typesOf };
     }
 
     it("a math response is read as a math by expressions outside the answer", async () => {
@@ -10850,38 +11028,34 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await updateMathInputValue({
-                    latex: "3",
-                    componentIdx: await resolvePathToNodeIdx("mi"),
-                    core,
-                });
-                await updateTextInputValue({
-                    text: "hello",
-                    componentIdx: await resolvePathToNodeIdx("ti"),
-                    core,
-                });
-                await updateBooleanInputValue({
-                    boolean: true,
-                    componentIdx: await resolvePathToNodeIdx("bi"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    await updateTextInputValue({
+                        text: "hello",
+                        componentIdx: await resolvePathToNodeIdx("ti"),
+                        core,
+                    });
+                    await updateBooleanInputValue({
+                        boolean: true,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["math", "text", "boolean", "number", "point"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "math",
-                "text",
-                "boolean",
-                "number",
-                "point",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0].tree).eq(3);
             expect(submittedResponses[1]).eq("hello");
             expect(submittedResponses[2]).eq(true);
@@ -10902,27 +11076,24 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await core.requestAction({
-                    componentIdx: await resolvePathToNodeIdx("S"),
-                    actionName: "setToR",
-                    args: {},
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await core.requestAction({
+                        componentIdx: await resolvePathToNodeIdx("S"),
+                        actionName: "setToR",
+                        args: {},
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["label", "subsetOfReals", "matrix", "angle"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "label",
-                "subsetOfReals",
-                "matrix",
-                "angle",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).eq("hello");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[1].toString()).eq("ℝ");
@@ -10953,26 +11124,27 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await submitAnswer({
-                    componentIdx: await resolvePathToNodeIdx("ans2"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await submitAnswer({
+                        componentIdx: await resolvePathToNodeIdx("ans2"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
         const ans2Idx = await resolvePathToNodeIdx("ans2");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["subsetOfReals", "subsetOfReals", "math"]);
+        }
+        for (const types of await typesOf("ans2")) {
+            expect(types).eqls(["subsetOfReals"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "subsetOfReals",
-                "subsetOfReals",
-                "math",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[0].toString()).eq("(2,3) U {2}");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
@@ -10984,9 +11156,6 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             ]);
 
             expect(sv[ans2Idx].stateValues.creditAchieved).eq(1);
-            expect(
-                sv[ans2Idx].stateValues.submittedResponsesComponentType,
-            ).eqls(["subsetOfReals"]);
             expect(
                 sv[ans2Idx].stateValues.submittedResponses[0],
             ).not.toBeInstanceOf(me.class);

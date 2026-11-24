@@ -38,7 +38,9 @@ import { Remote } from "comlink";
 import {
     actionIdentifier,
     clearPendingValuesForAction,
+    HeldRendererUpdates,
     mainThunks,
+    takeHeldUpdatesNoLongerInFlight,
     UpdatesToIgnore,
     useAppDispatch,
 } from "../state";
@@ -405,6 +407,13 @@ export function DocViewer({
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
     const updatesToIgnoreRef = useRef<UpdatesToIgnore>(new Map());
+    // Updates left off the screen while the component's own action was in
+    // flight, put on screen if that action turns out to change nothing.
+    const heldUpdatesRef = useRef<HeldRendererUpdates>(new Map());
+    // The actions sent to core that it has not settled yet: no reply, or a
+    // reply saying a renderer update follows. When a new core is built, their
+    // pending values are dropped (see `startCore`).
+    const actionsSentToCoreRef = useRef(new Set<string>());
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1870,6 +1879,9 @@ export function DocViewer({
         // answered, so the math this action changes on screen goes first.
         const releaseIdleTypesets = holdIdleTypesets();
         idleTypesetHolds.current.add(releaseIdleTypesets);
+        if (actionArgs.args?.actionId) {
+            actionsSentToCoreRef.current.add(actionArgs.args.actionId);
+        }
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
@@ -1886,7 +1898,16 @@ export function DocViewer({
         }
 
         if (actionResult) {
-            resolveAction(actionResult);
+            // Core sends an action's renderer update before replying, but on
+            // a different channel, so the reply can arrive first. Settle the
+            // action by the id it was sent with: some replies carry none (an
+            // action on a component that is gone). An action core failed
+            // replies `success: false`, which its caller is told.
+            resolveAction({
+                actionId: actionArgs.args?.actionId,
+                success: actionResult.success !== false,
+                rendererUpdateFollows: actionResult.rendererUpdateSent === true,
+            });
         } else {
             // coreWorker.current was null/undefined — optional chaining returned
             // undefined, which is not a throw. Settle the callback as false so the
@@ -2242,6 +2263,7 @@ export function DocViewer({
                             actionId,
                             prefixForIds,
                             updatesToIgnoreRef,
+                            heldUpdatesRef,
                         }),
                     );
                 }
@@ -2262,17 +2284,31 @@ export function DocViewer({
     function resolveAction({
         actionId,
         success = true,
+        rendererUpdateFollows = false,
     }: {
         actionId?: string;
         success?: boolean;
+        /**
+         * This is core's reply, and core sent a renderer update for the
+         * action that may not have been processed yet: the two come over
+         * different channels. The value the renderer showed ahead of the
+         * action is kept to recognize that update, which drops it when it
+         * arrives. Dropping it on the reply would let the update put an older
+         * value back on screen (keys typed since would be lost).
+         */
+        rendererUpdateFollows?: boolean;
     }) {
         if (!actionId) {
             return;
         }
 
-        // This action is being settled, so the value the renderer showed ahead
-        // of it is no longer waiting on an answer.
-        clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+        if (!rendererUpdateFollows) {
+            // This action is being settled, so the value the renderer showed
+            // ahead of it is no longer waiting on an answer.
+            actionsSentToCoreRef.current.delete(actionId);
+            clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+            applyHeldUpdates();
+        }
 
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
@@ -2287,6 +2323,28 @@ export function DocViewer({
             let actionToCall = lastSkippableAction.current;
             lastSkippableAction.current = null;
             callAction(actionToCall);
+        }
+    }
+
+    /**
+     * Put on screen the updates held while a component's own action was in
+     * flight, for components with none in flight any more. An action whose
+     * update has arrived replaced any update held before it, so what is left
+     * was held for an action that changed nothing, and is core's latest.
+     */
+    function applyHeldUpdates() {
+        for (const held of takeHeldUpdatesNoLongerInFlight(
+            updatesToIgnoreRef.current,
+            heldUpdatesRef.current,
+            coreId.current,
+        )) {
+            dispatch(
+                mainThunks.updateRendererSVs({
+                    ...held,
+                    updatesToIgnoreRef,
+                    heldUpdatesRef,
+                }),
+            );
         }
     }
 
@@ -3274,6 +3332,16 @@ export function DocViewer({
         // here is what made complex documents unloadable (they time out before
         // core finishes), so we let it run to completion however long it takes.
         onActionCallbacks.current.clear();
+        // An action core has not settled keeps the value its renderer showed
+        // ahead of core until core's update for it arrives. Every action sent
+        // so far went to a core this one replaces, whose updates are no longer
+        // delivered, so drop those values: left behind, they would keep the
+        // component's updates from this core off the screen. (Actions queued
+        // for this core have not been sent and keep theirs.)
+        for (const actionId of actionsSentToCoreRef.current) {
+            clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+        }
+        actionsSentToCoreRef.current.clear();
         coreCreationInProgress.current = true;
 
         // The worker keeps the proxies below for the life of its core and

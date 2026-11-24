@@ -1307,8 +1307,13 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["+", "＿", "＿"]);
+        // a comparison with a missing value is missing, and so false (D70)
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b1")].stateValues
+                .valueMissing,
         ).eq(true);
     });
 
@@ -4729,36 +4734,16 @@ describe("Extend and references tests @group2", async () => {
                 true,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
-                    .text,
-            ).eq(`(${P11}, ${P12}), (${P21}, ${P22})`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .text,
-            ).eq(`${P11}, ${P21}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .text,
-            ).eq(`${P12}, ${P22}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p4")].stateValues
-                    .text,
-            ).eq(`＿`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p5")].stateValues
-                    .text,
-            ).eq(`${P11}, ${P21}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p6")].stateValues
-                    .text,
-            ).eq(`${P12}, ${P22}`);
-            // A coordinate past the points' dimensions is blank in each
-            // point of the list, as for a math list's entries.
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p7")].stateValues
-                    .text,
-            ).eq(`＿, ＿`);
+            // A property after the point list is the list's own (D59), so
+            // a point's property after it names nothing, a blank (it was
+            // each point's): `$pl.coords`, `$pl.x`, `$pl.y`, `$pl.xs[1]`, …
+            for (const name of ["p1", "p2", "p3", "p4", "p5", "p6", "p7"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .text,
+                    name,
+                ).eq(`＿`);
+            }
 
             // XXX: restore this assertion
             // expect(
@@ -6551,9 +6536,7 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("sec3")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq(
-            "Reference $\u200Bp does not add ability to reference names: (＿, ＿).",
-        );
+        ).eq("Reference $p does not add ability to reference names: (＿, ＿).");
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec4")]

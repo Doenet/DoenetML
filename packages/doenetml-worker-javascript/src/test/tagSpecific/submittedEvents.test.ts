@@ -544,3 +544,36 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(new Date(event.timestamp).toISOString()).eq(event.timestamp);
     });
 });
+
+describe("Submitted event response types @group1", async () => {
+    it("names the type of each response, one per entry, which a host reads to show them", async () => {
+        // The editor's responses tab shows a submission only when
+        // `componentTypes` has one type per response.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <answer name="shared"><mathInput name="mi1" /><mathInput name="mi2" /><award><when>$mi1 = x and $mi2 = y</when></award></answer>
+    <answer name="each"><mathInput name="mi3" /><textInput name="ti" /><award><when>$mi3 = x and $ti = a</when></award></answer>
+    <group name="g" hide><math>x</math><math>y</math></group>
+    <answer name="undecided"><award><when><collect isResponse componentType="math" from="$g"/> = (x,y) and <text isResponse>a</text> = a</when></award></answer>
+    `);
+        for (const name of ["shared", "each", "undecided"]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const events = await submittedEvents();
+        expect(events.map((e) => e.result.componentTypes)).eqls([
+            // decided at load: one type, given for each entry
+            ["math", "math"],
+            ["math", "text"],
+            // not decided (TYPE-3): each named by the value it holds
+            ["math", "math", "text"],
+        ]);
+        for (const event of events) {
+            expect(event.result.componentTypes.length).eq(
+                event.result.response.length,
+            );
+        }
+    });
+});

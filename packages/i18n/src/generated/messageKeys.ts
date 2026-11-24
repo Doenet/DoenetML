@@ -340,6 +340,7 @@ export type MessageKey =
     | "variant-name-repeated"
     | "variants-all-excluded"
     | "variant-control-made-from"
+    | "reference-to-variant-control"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -421,6 +422,7 @@ export type MessageKey =
     | "reference-branches-hold-several"
     | "reference-property-partly-held"
     | "reference-property-after-several"
+    | "reference-name-after-collection"
     | "component-action-unavailable"
     | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
@@ -496,9 +498,14 @@ export type MessageKey =
     | "copy-children-ignored"
     | "action-target-not-one-value"
     | "latex-not-read-as-math"
+    | "content-unused-attributes-give-value"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "attribute-name-case"
+    | "attribute-written-twice"
+    | "boolean-number-mix"
+    | "counted-boolean-compared-with-number"
+    | "text-ordered-against-number"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -522,6 +529,7 @@ export type MessageKey =
     | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
     | "attribute-empty"
+    | "attribute-not-a-number"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -643,7 +651,14 @@ export type MessageKey =
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
     | "sort-needs-sort-by-prop"
+    | "attribute-written-as-reference"
+    | "sort-by-prop-names-nothing"
     | "answer-responses-of-several-types"
+    | "property-type-undecided"
+    | "answer-type-disagrees-with-input"
+    | "award-content-type-mix"
+    | "award-content-several-inputs"
+    | "award-content-for-answer-input"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
@@ -1052,6 +1067,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-name-repeated",
     "variants-all-excluded",
     "variant-control-made-from",
+    "reference-to-variant-control",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
@@ -1133,6 +1149,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-branches-hold-several",
     "reference-property-partly-held",
     "reference-property-after-several",
+    "reference-name-after-collection",
     "component-action-unavailable",
     "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",
@@ -1208,9 +1225,14 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-children-ignored",
     "action-target-not-one-value",
     "latex-not-read-as-math",
+    "content-unused-attributes-give-value",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "attribute-name-case",
+    "attribute-written-twice",
+    "boolean-number-mix",
+    "counted-boolean-compared-with-number",
+    "text-ordered-against-number",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
@@ -1234,6 +1256,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-property-not-one-value",
     "type-change-value-not-convertible",
     "attribute-empty",
+    "attribute-not-a-number",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
@@ -1355,7 +1378,14 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
     "sort-needs-sort-by-prop",
+    "attribute-written-as-reference",
+    "sort-by-prop-names-nothing",
     "answer-responses-of-several-types",
+    "property-type-undecided",
+    "answer-type-disagrees-with-input",
+    "award-content-type-mix",
+    "award-content-several-inputs",
+    "award-content-for-answer-input",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",

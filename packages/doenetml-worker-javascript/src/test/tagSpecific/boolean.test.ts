@@ -96,68 +96,101 @@ describe("Boolean tag tests @group1", async () => {
         let nTrues = 37,
             nFalses = 31;
 
+        // A number or a math where true or false is wanted is a type mix (D47
+        // decision 4, #2582): the boolean is missing, with a warning at load.
+        // A `<boolean>` written in one is missing, so a comparison with it is
+        // missing, which is false (D70). `true` and `false`, or a comparison,
+        // are the way to write them.
+        const mixes: Record<string, boolean> = {
+            t3: false, // 1
+            t4: false, // 10
+            t17: false, // not 0
+            t20: false, // <math>1</math>
+            t21: false, // x-x+1
+            t22: false, // <math>x-x+1</math>
+            t26: false, // <boolean>1</boolean> = true
+            t27: false, // <boolean>0</boolean> = false
+            f5: false, // 0
+            f19: false, // not 1
+            f21: false, // <math>2 > 1</math>
+            f24: false, // <boolean>1</boolean> != true
+            f25: false, // <boolean>0</boolean> != false
+            f27: false, // <math>true</math>
+        };
+
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`t${i}`)].stateValues
                     .value,
                 `expected t${i} to be true`,
-            ).to.be.true;
+            ).eq(mixes[`t${i}`] ?? true);
         }
         for (let i = 1; i <= nFalses; i++) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`f${i}`)].stateValues
                     .value,
                 `expected f${i} to be false`,
-            ).to.be.false;
+            ).eq(mixes[`f${i}`] ?? false);
         }
+        expect(
+            core.core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
+                .length,
+        ).eq(Object.keys(mixes).length);
     });
 
-    it("boolean based on math", async () => {
+    // A math is not true or false: `<boolean>$mi</boolean>` is a type mix,
+    // missing whatever `mi` holds, with a warning at load that suggests a
+    // comparison (D47 decision 4, #2582). Before, a nonzero number was true.
+    it("boolean based on math is a type mix", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="mi" prefill="0" />
 
     <boolean name="b">$mi</boolean>
-      Hello there!
-    </text>
+    <boolean name="c">$mi != 0</boolean>
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        async function check(c: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const b = stateVariables[await resolvePathToNodeIdx(`b`)];
+            expect(b.stateValues.valueMissing).eq(true);
+            expect(b.stateValues.value).eq(false);
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`c`)].stateValues
+                    .value,
+            ).eq(c);
+        }
+
+        await check(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx(`b`)].stateValues.value,
-        ).to.be.false;
+            core
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0203")
+                .map((d: any) => [d.position.start.line, d.message]),
+        ).eqls([
+            [
+                4,
+                "`$mi` is a number, not true or false, so it is a blank here. To test it, write a comparison such as `$mi != 0`.",
+            ],
+        ]);
 
         await updateMathInputValue({
             latex: "3",
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx(`b`)].stateValues.value,
-        ).to.be.true;
+        await check(true);
 
         await updateMathInputValue({
             latex: "2x",
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx(`b`)].stateValues.value,
-        ).to.be.false;
-
-        await updateMathInputValue({
-            latex: "2x-x-x",
-            componentIdx: await resolvePathToNodeIdx("mi"),
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx(`b`)].stateValues.value,
-        ).to.be.false;
+        await check(true);
     });
 
     it("boolean based on complex numbers", async () => {
@@ -1262,14 +1295,16 @@ describe("Boolean tag tests @group1", async () => {
     <boolean name="t2"><math>/</math> != <math>-</math></boolean>
 
     <boolean name="f3">$invalid = $invalid</boolean>
-    <boolean name="t3">$invalid != $invalid</boolean>
+    <boolean name="f5">$invalid != $invalid</boolean>
     <boolean name="f4">$nothing = $nada</boolean>
-    <boolean name="t4">$nothing != $nada</boolean>
+    <boolean name="f6">$nothing != $nada</boolean>
     
     `,
         });
-        let nTrues = 4,
-            nFalses = 4;
+        // A comparison with something that names nothing is missing, and so
+        // false, `!=` included (D70).
+        let nTrues = 2,
+            nFalses = 6;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let i = 1; i <= nTrues; i++) {

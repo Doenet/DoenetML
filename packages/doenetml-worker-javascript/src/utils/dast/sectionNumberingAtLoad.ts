@@ -27,6 +27,11 @@
  *   before `s` makes is no cycle, while
  *   `<repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>`
  *   before `s` is `doenet-e0005` at the reference, and the rest renders.
+ *   Of what a composite reads to expand, only what decides how many
+ *   components it makes is an edge, not what chooses which case it shows
+ *   (a `condition`): such a cycle can only flip a case, so it is left to
+ *   the run time and the load backstop (D61 decision 1, `countEdges` in
+ *   `referenceCycles.ts`).
  *
  * Both read the one mark, so what the numbering waits for when the document
  * runs is what the cycle check finds an edge to.
@@ -64,6 +69,7 @@ const BRANCH_TYPES = ["case", "else", "option"];
  */
 export const NUMBER_PROPERTIES = new Set([
     "sectionnumber",
+    "ownnumber",
     "enumeration",
     "title",
     "titleprefix",
@@ -326,10 +332,11 @@ export function markCompositesMakingNoSectioning({
         ) {
             return true;
         }
-        const collected =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                (written.children as string[]).join("").trim().toLowerCase()
-            ];
+        // a tag name, matched exactly (D62): one in another case was given
+        // the tag's spelling before the document loads
+        const collected = componentInfoObjects.componentTypeAsWritten(
+            (written.children as string[]).join("").trim(),
+        );
         if (collected === undefined) {
             return true;
         }

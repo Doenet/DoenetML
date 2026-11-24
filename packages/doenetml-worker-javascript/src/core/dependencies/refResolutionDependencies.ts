@@ -642,6 +642,14 @@ export class RefResolutionDependency extends Dependency {
             this.addUpdateTriggersForCompositeReplacements([
                 compositeCreating.componentIdx,
             ]);
+            // The composite making `nodeIdx` can itself be made again, in
+            // the same update as this resolution, after it (a `$cc.x` in
+            // the iteration `<math name="e2" extend="$r[1]"/>` copies,
+            // when the case changes), so the triggers just above are on one
+            // that is about to be deleted. Resolve again when `nodeIdx` is
+            // made anew (Doenet/DoenetML#2654 item 4), so `$e2[2]` doesn't
+            // keep the blank it found while `nodeIdx` was gone.
+            this.addUpdateTriggerForMissingComponent(nodeIdx);
         }
 
         // A list made by a `copy` or `extend` (`convertToCopy.ts`) has its
@@ -787,9 +795,20 @@ export class RefResolutionDependency extends Dependency {
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
+        // A name written inside the collection a `<group>` or a reference
+        // stands for (`$g.P` of `<group name="g">$pl</group>`), decided at
+        // load (`standInAsWritten` in `namesAfterCollectionsAtLoad.ts`): the
+        // rest of the path is resolved from that collection, as for `$pl.P`.
+        const standIn = this.refResolutionOf(composite).standIn as
+            { origin: number; from: number } | undefined;
+        const pathToResolve = standIn
+            ? resolveComponentResult.path.slice(standIn.from)
+            : resolveComponentResult.path;
+
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat
-        const skip_parent_search = resolveComponentResult.path[0].name === "";
+        const skip_parent_search =
+            standIn !== undefined || pathToResolve[0].name === "";
 
         // console.log(
         //     "resolve path",
@@ -813,11 +832,13 @@ export class RefResolutionDependency extends Dependency {
         let firstResolutionError:
             "NonUniqueReferent" | "NoReferent" | undefined;
 
-        for (const origin of this.originsToResolveFrom(composite)) {
+        for (const origin of standIn
+            ? [standIn.origin]
+            : this.originsToResolveFrom(composite)) {
             try {
                 const candidateResolution = this.dependencyHandler.core
                     .resolvePath!(
-                    { path: resolveComponentResult.path },
+                    { path: pathToResolve },
                     origin,
                     skip_parent_search,
                 );
@@ -844,6 +865,12 @@ export class RefResolutionDependency extends Dependency {
         refResolution ??= selfReferentialResolution;
 
         if (refResolution === undefined) {
+            // A component in error is reported where it is, and a reference
+            // into it reports nothing more (DIAG-5): `$r[1].hidden` of a
+            // `<repeat>` in `doenet-e0005`.
+            const inError =
+                this.dependencyHandler._components[nodeIdx]?.componentType ===
+                "_error";
             // A reference written as a tag whose index is not a positive
             // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
             // 0) names nothing, and says so itself, as an info that lasts
@@ -863,7 +890,9 @@ export class RefResolutionDependency extends Dependency {
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
             // we could make sure that `ref_resolve` formats the messages in this case, too.
-            if (
+            if (inError) {
+                // nothing more
+            } else if (
                 !reportedByCopy &&
                 firstResolutionError === "NoReferent" &&
                 this.indexFromValue(composite)
@@ -1443,7 +1472,17 @@ export class RefResolutionDependency extends Dependency {
         // a case shown by an input, an info while it lasts (DIAG-2, #2506)
         const container =
             this.dependencyHandler._components[childIndex.containerIdx];
+        // After a `<select>` or `<conditionalContent>` whose every option or
+        // case holds several, it was reported at load (`doenet-w0191`); when
+        // only some do, which is picked or shown now is a value: an info
+        // (`severalAtLoad`, `checkCollectionItems` in `typeChangeAtLoad.ts`,
+        // DIAG-7)
+        const severalAtLoad = composite.doenetAttributes?.severalAtLoad;
+        if (severalAtLoad === "every") {
+            return;
+        }
         const decidedByDoenetML =
+            severalAtLoad !== "some" &&
             !this.indexFromValue(composite) &&
             !(container && branchCanChange(container, changeContext(core)));
 

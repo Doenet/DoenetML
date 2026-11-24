@@ -741,4 +741,67 @@ describe("FractionInput tag tests @group3", async () => {
             expect(getDiagnosticsByType(core).warnings).eqls([]);
         });
     });
+
+    // A `<fractionInput>` made from a property of another, a math, had no
+    // boxes and showed `＿` (#2623 item 4). It is what the same tag made from
+    // any math gives, as for `<mathInput extend="$g.value"/>`: an input isn't
+    // the same thing as its value, an error that says how to edit the value
+    // (`doenet-e0062`, REF-5).
+    describe("made from a property of another fraction input", () => {
+        for (const [tag, written] of [
+            ["fractionInput", `extend="$g.value"`],
+            ["fractionInput", `copy="$g.numerator"`],
+            ["fractionInput", `copyWithState="$g.denominator"`],
+            ["mathInput", `extend="$g.value"`],
+        ]) {
+            it(`<${tag} ${written}/> is an error, as from a math`, async () => {
+                const source = written.split('"')[1];
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+<fractionInput name="g"/>
+<${tag} name="f" ${written}/>
+<math name="m">1/2</math>
+<${tag} name="fm" extend="$m"/>
+`,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("f")]
+                        .componentType,
+                ).eq("_error");
+                const { errors, warnings } = getDiagnosticsByType(core);
+                expect(warnings).eqls([]);
+                expect(errors.map((e) => e.code)).eqls([
+                    "doenet-e0062",
+                    "doenet-e0062",
+                ]);
+                expect(errors[0].message).contains(
+                    `A \`<${tag}>\` can't be made from \`${source}\`, a \`<math>\`: an input isn't the same thing as its value. To edit \`${source}\`, write \`<${tag} bindValueTo="${source}"/>\`.`,
+                );
+                expect(errors[0].position?.start.line).eq(3);
+            });
+        }
+
+        it("from the fraction input itself it has its two boxes", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<fractionInput name="g"/>
+<fractionInput name="f" extend="$g"/>
+`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("f")
+                ].activeChildren.map((child: any) => child.componentType),
+            ).eqls(["_fractionInputComponent", "_fractionInputComponent"]);
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+        });
+    });
 });

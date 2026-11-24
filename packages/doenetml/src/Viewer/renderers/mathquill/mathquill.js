@@ -3099,11 +3099,161 @@ var saneKeyboardEvents = (function () {
             // before checkTextarea), then never again ('cos it's been munged)
             everyTick.trigger();
             everyTick.clearListener();
+            // DOENET (#2557): rewriting the textarea would cut short a
+            // composition the field follows; it is emptied when that ends.
+            if (composition) {
+                shouldBeSelected = false;
+                return;
+            }
             if (textarea instanceof HTMLTextAreaElement) textarea.value = text;
             if (text) guardedTextareaSelect();
             shouldBeSelected = !!text;
         }
         var shouldBeSelected = false;
+        // DOENET: local patch to this vendored bundle -- preserve it when
+        // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+        // The last `input` event since the last keydown (see `typedText`).
+        var lastInput = null;
+        // An Android keyboard's backspace, held back until the next keydown
+        // or a short timer (see `onKeyup`): { event, timeoutId } or null.
+        var pendingBackspace = null;
+        // How long a bare 229 keydown and keyup wait before they count as
+        // Backspace. Chrome sends the same bare pair for its own empty commit
+        // just before an on-screen keyboard's Enter; the Enter keydown came
+        // 1 to 10 ms after it on an Android 15 emulator with Gboard. 100 ms
+        // is ten times that, for slower phones, and short enough that a
+        // single deletion still looks immediate. A held backspace repeats
+        // about every 50 ms (measured, Gboard), but each
+        // repeat's keydown applies the one before it, so the timer only
+        // delays the last deletion.
+        var PENDING_BACKSPACE_MS = 100;
+        function applyPendingBackspace() {
+            if (!pendingBackspace) return;
+            var e = pendingBackspace.event;
+            clearTimeout(pendingBackspace.timeoutId);
+            pendingBackspace = null;
+            // The field may have been removed while the timer ran.
+            if (textarea.isConnected === false) return;
+            if (controller.options && controller.options.overrideKeystroke) {
+                controller.options.overrideKeystroke("Backspace", e);
+            } else {
+                controller.keystroke("Backspace", e);
+            }
+        }
+        function dropPendingBackspace() {
+            if (!pendingBackspace) return;
+            clearTimeout(pendingBackspace.timeoutId);
+            pendingBackspace = null;
+        }
+        // An `input` event that `typedText` will take as typed by an Android
+        // on-screen keyboard: text the browser named, not composed, that is
+        // all the textarea holds, after a keydown with no modifiers named
+        // "Unidentified" (Chrome) or "Process" (Firefox for Android).
+        function isOnScreenKeyboardInsert(input) {
+            return (
+                !!keydown &&
+                (keydown.key === "Unidentified" || keydown.key === "Process") &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                !!input &&
+                input.type === "input" &&
+                input.inputType === "insertText" &&
+                !input.isComposing &&
+                textarea instanceof HTMLTextAreaElement &&
+                input.data === textarea.value
+            );
+        }
+        // An Android keyboard's composition that is being typed into the
+        // field as it changes. Samsung Keyboard composes every letter, even
+        // with autocorrect and spellcheck off, and finishes the composition
+        // only at the next symbol, space or Enter.
+        //   shown: the text already typed for it.
+        //   parent, left: where MathQuill's cursor was after that typing.
+        //   floor: how much of `shown` is out of reach of Backspace, because
+        //     the cursor has moved since it was typed (a tap in the field, or
+        //     a key of the Doenet keyboard).
+        var composition = null;
+        // Set when such a composition ends, until the next keyup or input:
+        // Samsung Keyboard may follow it with a bare 229 keydown and keyup
+        // that is not a backspace (see `onKeyup`).
+        var compositionJustEnded = false;
+        function typeCharacter(ch) {
+            if (controller.options && controller.options.overrideTypedText) {
+                controller.options.overrideTypedText(ch);
+            } else {
+                controller.typedText(ch);
+            }
+        }
+        function pressBackspace(e) {
+            if (controller.options && controller.options.overrideKeystroke) {
+                controller.options.overrideKeystroke("Backspace", e);
+            } else {
+                controller.keystroke("Backspace", e);
+            }
+        }
+        function recordCursor() {
+            var cursor = controller.cursor;
+            composition.parent = cursor && cursor.parent;
+            composition.left = cursor && cursor[L];
+        }
+        // Make the field follow the composition: delete what it no longer
+        // has, then type what it added. Once the cursor has moved, what was
+        // typed before the move stays, and the composition's later changes
+        // are typed at the cursor.
+        function followComposition(text, e) {
+            var shown = composition.shown;
+            var cursor = controller.cursor;
+            if (
+                cursor &&
+                (cursor.parent !== composition.parent ||
+                    cursor[L] !== composition.left)
+            )
+                composition.floor = shown.length;
+            var common = 0;
+            while (
+                common < shown.length &&
+                common < text.length &&
+                shown[common] === text[common]
+            )
+                common++;
+            var keep = Math.max(common, composition.floor);
+            for (var k = shown.length; k > keep; k--) pressBackspace(e);
+            for (var j = keep; j < text.length; j++) typeCharacter(text[j]);
+            composition.shown = text;
+            composition.floor = Math.min(composition.floor, text.length);
+            recordCursor();
+        }
+        function onCompositionStart() {
+            // Only a composition an Android on-screen keyboard starts, on a
+            // textarea that holds nothing else for it to take back. A
+            // desktop input method's keydown is named "Process"; its
+            // compositions are not followed, and `typedText` reads what it
+            // commits from the textarea.
+            composition = null;
+            if (
+                keydown &&
+                keydown.key === "Unidentified" &&
+                keydown.keyCode === 229 &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                textarea instanceof HTMLTextAreaElement &&
+                (textarea.value === "" ||
+                    (textarea.selectionStart === 0 &&
+                        textarea.selectionEnd === textarea.value.length))
+            ) {
+                composition = { shown: "", floor: 0 };
+                recordCursor();
+            }
+        }
+        function onCompositionEnd(e) {
+            if (!composition) return;
+            followComposition(e.data || "", e);
+            composition = null;
+            compositionJustEnded = true;
+            if (textarea instanceof HTMLTextAreaElement) textarea.value = "";
+        }
         // -*- helper subroutines -*- //
         // Determine whether there's a selection in the textarea.
         // This will always return false in IE < 9, which don't support
@@ -3125,12 +3275,35 @@ var saneKeyboardEvents = (function () {
         }
         // -*- event handlers -*- //
         function onKeydown(e) {
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // A held-back Android backspace (see `onKeyup`) is Chrome's empty
+            // commit before an on-screen keyboard's Enter if this key is
+            // Enter: drop it. Otherwise it was a backspace: apply it before
+            // this key.
+            if (pendingBackspace) {
+                if (e.key === "Enter" || e.keyCode === 13) {
+                    dropPendingBackspace();
+                } else {
+                    applyPendingBackspace();
+                }
+            }
             everyTick.trigger(e);
             if (e.target !== textarea) return;
             keydown = e;
             keypress = null;
+            lastInput = null;
             if (shouldBeSelected)
                 everyTick.listenOnce(function (e) {
+                    // DOENET (#2557): an Android keyboard's character has
+                    // replaced the selected text in the textarea; selecting
+                    // it would make `typedText` take it for a selection.
+                    if (isOnScreenKeyboardInsert(e)) {
+                        everyTick.listen(typedText);
+                        return;
+                    }
+                    // Nor select the text of a composition the field follows.
+                    if (composition) return;
                     if (!(e && e.type === "focusout")) {
                         // re-select textarea in case it's an unrecognized key that clears
                         // the selection, then never again, 'cos next thing might be blur
@@ -3161,6 +3334,51 @@ var saneKeyboardEvents = (function () {
         function onKeyup(e) {
             everyTick.trigger(e);
             if (e.target !== textarea) return;
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // On Android the on-screen keyboard's backspace is a keydown and
+            // keyup of "Unidentified" (keyCode 229) and nothing else when
+            // there is nothing in the textarea for it to delete, which is the
+            // usual case, since typed text is taken out of it at once.
+            // A key that typed or composed anything raised an `input` event
+            // in between; one that did neither, on an empty textarea, is
+            // taken for the backspace. Chrome sends the same bare pair for an
+            // IME's empty commit or forward delete; it commits an empty string
+            // itself before an on-screen keyboard's Enter (seen with Gboard
+            // on every Enter), and then sends the Enter key. So the
+            // backspace is held back and dropped if the next keydown is Enter
+            // (`onKeydown`).
+            // Only keyCode 229, the code Chrome gives on-screen keyboard
+            // events, on both keydown and keyup: a desktop key the browser
+            // cannot name is also "Unidentified", with another keyCode, and
+            // must not delete.
+            if (
+                keydown &&
+                keydown.key === "Unidentified" &&
+                keydown.keyCode === 229 &&
+                e.key === "Unidentified" &&
+                e.keyCode === 229 &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                !keypress &&
+                !lastInput &&
+                !compositionJustEnded &&
+                textarea instanceof HTMLTextAreaElement &&
+                textarea.value === ""
+            ) {
+                keydown = null;
+                applyPendingBackspace();
+                pendingBackspace = {
+                    event: e,
+                    timeoutId: setTimeout(
+                        applyPendingBackspace,
+                        PENDING_BACKSPACE_MS,
+                    ),
+                };
+                return;
+            }
+            compositionJustEnded = false;
             // Handle case of no keypress event being sent
             if (!!keydown && !keypress) {
                 // only check for typed text if this key can type text. Otherwise
@@ -3202,8 +3420,23 @@ var saneKeyboardEvents = (function () {
             // Furthermore, an input event with the value "u" is still processed in Linux and Chrome OS due to the down/up mismatch.
             // The end result is that a spurious "u" is sent followed by the intended character.
             // Due to how this feature works, it's vital to completely ignore Ctrl-Shift-U no matter how the input event appears to Mathquill as clearing the textarea by mistake breaks the expected input flow.
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // Chrome on Android reports every key of an on-screen keyboard
+            // as a keydown of "Unidentified" (keyCode 229), then says
+            // exactly what it typed in an `input` event of type
+            // `insertText`. When the browser has named the text inserted,
+            // outside a composition, and it is all the textarea holds, it is
+            // taken and the guard below is skipped. The Ctrl-Shift-U
+            // keydowns described above carry modifiers, so the guard still
+            // applies to them. The ChromeOS case without modifiers has not
+            // been reproduced; if it names its character in a plain
+            // `insertText`, that character is typed.
+            var insertedByOnScreenKeyboard =
+                isOnScreenKeyboardInsert(lastInput);
             if (
                 keydown &&
+                !insertedByOnScreenKeyboard &&
                 (keydown.key === "Unidentified" ||
                     (!keydown.altKey &&
                         keydown.ctrlKey &&
@@ -3222,6 +3455,26 @@ var saneKeyboardEvents = (function () {
                 } else {
                     controller.typedText(text);
                 }
+            } else if (insertedByOnScreenKeyboard && text.length > 1) {
+                // DOENET (#2557): text an on-screen keyboard inserted whole:
+                // a tapped suggestion, a swiped word, an emoji, or a formula
+                // from the keyboard's clipboard. Typed character by
+                // character, as if each key had been pressed, so that a word
+                // such as `theta` becomes θ. Text with LaTeX structure in it
+                // (`^`, `_`, `\`, braces) that parses is pasted instead, so
+                // that `x^2+1` keeps its exponent.
+                textarea.value = "";
+                if (
+                    /[\\^_{}]/.test(text) &&
+                    latexMathParser
+                        .skip(Parser.eof)
+                        .or(Parser.all.result(false))
+                        .parse(text)
+                ) {
+                    controller.paste(text);
+                } else {
+                    Array.from(text).forEach(typeCharacter);
+                }
             } // in Firefox, keys that don't type text, just clear seln, fire keypress
             // https://github.com/mathquill/mathquill/issues/293#issuecomment-40997668
             else maybeReselect(); // re-select if that's why we're here
@@ -3233,12 +3486,19 @@ var saneKeyboardEvents = (function () {
             }
         }
         function onBlur() {
+            // DOENET (#2557): a backspace pressed just before leaving the
+            // field still counts.
+            applyPendingBackspace();
             keydown = null;
             keypress = null;
+            lastInput = null;
+            composition = null;
+            compositionJustEnded = false;
             everyTick.clearListener();
             if (textarea instanceof HTMLTextAreaElement) textarea.value = "";
         }
         function onPaste(e) {
+            applyPendingBackspace(); // DOENET (#2557)
             everyTick.trigger();
             if (e.target !== textarea) return;
             // browsers are dumb.
@@ -3264,6 +3524,11 @@ var saneKeyboardEvents = (function () {
             });
         }
         function onInput(e) {
+            // Recorded before the tick runs: `typedText` may read it.
+            lastInput = e;
+            compositionJustEnded = false;
+            if (composition && e.inputType === "insertCompositionText")
+                followComposition(e.data || "", e);
             everyTick.trigger(e);
         }
         if (controller.KIND_OF_MQ === "StaticMath") {
@@ -3297,6 +3562,9 @@ var saneKeyboardEvents = (function () {
                     e.preventDefault();
                 },
                 input: onInput,
+                // DOENET (#2557)
+                compositionstart: onCompositionStart,
+                compositionend: onCompositionEnd,
             });
         } else {
             controller.addTextareaEventListeners({
@@ -3316,6 +3584,9 @@ var saneKeyboardEvents = (function () {
                 },
                 paste: onPaste,
                 input: onInput,
+                // DOENET (#2557)
+                compositionstart: onCompositionStart,
+                compositionend: onCompositionEnd,
             });
         }
         // -*- export public methods -*- //
