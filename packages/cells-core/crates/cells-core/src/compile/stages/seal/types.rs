@@ -303,7 +303,28 @@ impl<'s, 'a> Types<'s, 'a> {
                         _ => PortType::Num,
                     }
                 }
-                Flow::Alias(arg) => self.arg_type(t, e, pi, *arg, check)?,
+                Flow::Alias(arg) => {
+                    let ty = self.arg_type(t, e, pi, *arg, check)?;
+                    // A text aliased into a port the type shows as a number
+                    // or a boolean (`<number>$t</number>`) would read the
+                    // string id as the number: refused, never a wrong value
+                    // (TYPE; VAL-3 converts it once the tick can parse text).
+                    if check
+                        && ty == PortType::Text
+                        && let Arg::Ref(p, _) = arg
+                        && self.shows_as_number(t, e, pi)
+                    {
+                        return Err(self.fail(
+                            t,
+                            e,
+                            Error::Unsupported(format!(
+                                "a text value (${}) used as a number",
+                                self.seal.ar.ref_display(self.seal.dast, *p)
+                            )),
+                        ));
+                    }
+                    ty
+                }
             },
             Source::Specialize(_, first, rest) => self
                 .source_type(t, e, pi, first, check)?
@@ -354,6 +375,20 @@ impl<'s, 'a> Types<'s, 'a> {
                 })
             }
         })
+    }
+
+    /// Whether port `pi` of element `e` is what its type shows as a number
+    /// or a boolean (a `<number>`'s or `<boolean>`'s `value`).
+    fn shows_as_number(&self, t: TemplateId, e: ElemId, pi: usize) -> bool {
+        use crate::components::TextKind;
+        // An extend's type change is the extend check's to report.
+        if e == ElemId::NONE || self.seal.view(t).plan(e).extend.is_some() {
+            return false;
+        }
+        matches!(
+            self.row(t, e).component_type.text_kind(),
+            Some(TextKind::Number(p) | TextKind::Grouped(p) | TextKind::Boolean(p)) if p == pi
+        )
     }
 
     /// Whether the handle of a `<math>` of template `t` with expression
@@ -411,6 +446,16 @@ impl<'s, 'a> Types<'s, 'a> {
     ) -> std::result::Result<(), Failure> {
         let mut leaves = Vec::new();
         self.seal.ar.arena.cell_leaves(id, &mut leaves);
+        // A condition's operand is spelled text the engine parses at the
+        // build: its leaves are checked here all the same, so the build
+        // never finds what the load did not report.
+        if let Some(text) = self.seal.ar.sym_text.get(&id) {
+            for p in text.plans() {
+                if !leaves.contains(&p) {
+                    leaves.push(p);
+                }
+            }
+        }
         for p in leaves {
             let ty = self.one_cell(t, e, p, ArityOf::MathLeaf)?;
             if ty == PortType::Text {

@@ -319,3 +319,43 @@ fn val_5_a_lowered_math_shows_the_blank_in_its_expression() {
     set(&mut doc, "k", "value", 2.0);
     assert_eq!(text(&doc, "c"), "1");
 }
+
+/// TYPE, VAL-3: a text read where a number or a boolean is wanted never
+/// reads its string id as the number; until the tick can convert text, it
+/// is refused.
+#[test]
+fn type_a_text_is_never_read_as_its_string_id() {
+    for src in [
+        r#"<text name="t">hi</text><number name="n">$t</number>"#,
+        r#"<text name="t">3</text><number name="n">$t</number>"#,
+        r#"<text name="t">true</text><boolean name="n">$t</boolean>"#,
+    ] {
+        let (code, message) = load_error(src);
+        assert_eq!(code, "cells-unsupported", "{src}");
+        assert!(message.contains("text value"), "{src}: {message}");
+    }
+}
+
+/// D36, TYPE: a tuple with a free symbol is a math, not a point whose
+/// coordinate is a NaN.
+#[test]
+fn type_a_tuple_with_a_symbol_is_a_math() {
+    let doc = load(r#"<math name="m">(x, 1)</math><math name="m3">(x, 1, 2)</math>"#).unwrap();
+    assert_eq!(text(&doc, "m"), "(x, 1)");
+    assert_eq!(text(&doc, "m3"), "(x, 1, 2)");
+}
+
+/// DIAG-1: a reference to a point compared in a condition is checked at
+/// load like any reference inside math, so the document loads with a
+/// located diagnostic instead of a build finding an error the load missed.
+/// (VAL-3 asks that it compare the coordinates: ADR 0056.)
+#[test]
+fn diag_1_a_point_in_a_condition_is_checked_at_load() {
+    for src in [
+        r#"<point name="P">(1,2)</point><boolean name="b">$P = (1,2)</boolean>"#,
+        r#"<math name="m">(1,2)</math><boolean name="b">$m = (1,2)</boolean>"#,
+    ] {
+        let (code, _) = load_error(src);
+        assert_eq!(code, "cells-bad-math", "{src}");
+    }
+}
