@@ -10,6 +10,7 @@ import {
     isPoints,
     refresh,
     setCoords,
+    setFixed,
     setVisible,
     useGraphObjects,
     xy,
@@ -20,12 +21,18 @@ type LineSegmentData = {
     props: {
         /** The segment's two endpoints. */
         numericalEndpoints: [[number, number], [number, number]];
+        /** Whether a drag may move the whole segment (ADR 0070); true
+         * when a core does not say. */
+        draggable?: boolean;
+        /** Whether a drag may move one endpoint; true when a core does
+         * not say. */
+        endpointsDraggable?: boolean;
     };
 };
 
 /**
  * A line segment. Dragging the segment moves both endpoints; dragging an
- * endpoint moves that one.
+ * endpoint moves that one, each only where the core's flags allow it.
  */
 export const LineSegmentInGraph: BasicComponent<LineSegmentData> = ({
     node,
@@ -77,8 +84,15 @@ export const LineSegmentInGraph: BasicComponent<LineSegmentData> = ({
         },
         update: (
             { segment, point1, point2 },
-            { numericalEndpoints: [[x1, y1], [x2, y2]] },
+            {
+                numericalEndpoints: [[x1, y1], [x2, y2]],
+                draggable,
+                endpointsDraggable,
+            },
         ) => {
+            setFixed(segment, draggable === false);
+            setFixed(point1, endpointsDraggable === false);
+            setFixed(point2, endpointsDraggable === false);
             const ok = finite(x1, y1, x2, y2);
             for (const o of [segment, point1, point2]) {
                 setVisible(o, ok);

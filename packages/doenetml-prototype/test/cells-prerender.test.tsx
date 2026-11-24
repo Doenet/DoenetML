@@ -59,6 +59,7 @@ const NOT_PLACED = new Set([
     "_error",
     "constrainTo",
     "constrainToGrid",
+    "attractTo",
     "bezierControls",
     "controlVectors",
 ]);

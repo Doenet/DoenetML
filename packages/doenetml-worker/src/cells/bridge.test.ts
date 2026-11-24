@@ -2126,3 +2126,18 @@ describe("sequences of letters and math, a literal repeat, a point list of an en
         expect(byName(root, "point")).toHaveLength(0);
     });
 });
+
+describe("summary statistics", () => {
+    it("sends the statistics it shows, by name, in the core's order", async () => {
+        const bridge = await load(
+            `<summaryStatistics statisticsToDisplay="median mean count">2 4 9</summaryStatistics>`,
+        );
+        const [table] = byName(bridge.flatDast(), "summaryStatistics");
+        const { summaryStatistics } = (table.data as any).props;
+        expect(Object.entries(summaryStatistics)).toEqual([
+            ["mean", "5"],
+            ["count", "3"],
+            ["median", "4"],
+        ]);
+    });
+});

@@ -63,6 +63,7 @@ import {
     ValueInGraph,
     FractionInput,
     MatrixInput,
+    SummaryStatistics,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -338,6 +339,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     subsubsection: Section,
     subsetOfReals: { component: M },
     sum: { component: M },
+    summaryStatistics: { component: SummaryStatistics },
     tag: { component: Tag, passthroughChildren: true },
     tagc: { component: TagC, passthroughChildren: true },
     text: { component: Text },
