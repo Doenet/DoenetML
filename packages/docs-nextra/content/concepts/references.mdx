@@ -218,7 +218,8 @@ only between related types:
 
 A `<group>` can be made from another `<group>`, an iteration (`$r[1]`), a
 pick, a `<conditionalContent>` or a `<select>` that picks one, and holds what
-it holds. Anything else keeps its kind:
+it holds. Two kinds of source keep their kind, and a group made from one is an
+error:
 
 * one component that isn't a composite, whether a value, an input, a
   `<point>` or a container such as a `<p>` or a `<section>`:

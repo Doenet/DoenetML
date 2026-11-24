@@ -3962,9 +3962,11 @@ export function checkTypeChangesAtLoad({
      * (`<math copy="$x"/>` is a `<math>`) or a bare reference (`$x`) to what
      * it names, when that is one component that is not a composite (see
      * `groupSourceError`); otherwise `undefined`: a composite, a list (a
-     * collection), anything made for the document (`_`), a part of a
-     * choosing tag, a component holding an error, or a reference whose
-     * target the DoenetML does not give (a property, `$P.x`).
+     * collection), anything made for the document (`_`, such as the
+     * `_placeholder` of a repeat's `valueName`, so `$v` and `$r[1].v` are
+     * left as they are), a part of a choosing tag, a component holding an
+     * error, or a reference whose target the DoenetML does not give (a
+     * property, `$P.x`).
      */
     function oneComponentTagAsWritten(
         node: SerializedComponent,
