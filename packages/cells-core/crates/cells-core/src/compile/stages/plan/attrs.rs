@@ -185,16 +185,30 @@ impl<'a> Planning<'a> {
 
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression, as parsed, when it has free
-    /// symbols.
-    pub(super) fn inline_symbolic_maths(&mut self, t: TemplateId, id: ExprId) -> ExprId {
-        self.inline_maths(t, id, &mut Vec::new())
+    /// symbols, for element `e`'s plan. The reference is then in no source
+    /// of the plan, so each math inlined is a recorded read of `e`'s (ADR
+    /// 0050, decision 2's third row): a math that is a box boxes `e`, the
+    /// math its cause.
+    pub(super) fn inline_symbolic_maths(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        id: ExprId,
+    ) -> Result<ExprId> {
+        self.inline_maths(t, e, id, &mut Vec::new())
     }
 
     /// `inline_symbolic_maths`, with the maths being inlined around `id`:
     /// one reached again (two maths naming each other) is left a cell.
-    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
-        let e = self.ar.arena.get(id).clone();
-        match e {
+    fn inline_maths(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        id: ExprId,
+        inlining: &mut Vec<ElemId>,
+    ) -> Result<ExprId> {
+        let expr = self.ar.arena.get(id).clone();
+        Ok(match expr {
             Expr::Cell(p) => {
                 let plan = &self.ar.refs[p.index()];
                 let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
@@ -202,38 +216,48 @@ impl<'a> Planning<'a> {
                     .then(|| self.rd.plan_elem_target(&self.ar, t, p))
                     .flatten()
                 else {
-                    return id;
+                    return Ok(id);
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
                 let Some(Ok(ParsedMath::Expr(inner))) = self.parsed.math(t, target) else {
-                    return id;
+                    return Ok(id);
                 };
                 let inner = *inner;
                 if inlining.contains(&target) {
-                    return id;
+                    return Ok(id);
                 }
                 let mut syms = Vec::new();
                 self.ar.arena.symbols(inner, &mut syms);
                 if syms.is_empty() {
-                    return id;
+                    return Ok(id);
                 }
+                // Its expression stands where the reference stood: the
+                // read the plan no longer shows.
+                self.rd.referent_type(
+                    &self.ar,
+                    self.boxes.visible(&self.tables),
+                    &mut self.planned.reads,
+                    t,
+                    e,
+                    p,
+                )?;
                 inlining.push(target);
-                let inlined = self.inline_maths(t, inner, inlining);
+                let inlined = self.inline_maths(t, e, inner, inlining);
                 inlining.pop();
-                inlined
+                inlined?
             }
             // An operator's text is its own: nothing inlines into it.
             Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_maths(t, a, inlining);
+                let a = self.inline_maths(t, e, a, inlining)?;
                 self.ar.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_maths(t, a, inlining))
-                    .collect();
+                    .map(|a| self.inline_maths(t, e, a, inlining))
+                    .collect::<Result<_>>()?;
                 self.ar.arena.push(Expr::Call(f, args))
             }
             Expr::Add(a, b)
@@ -242,12 +266,12 @@ impl<'a> Planning<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_maths(t, a, inlining),
-                    self.inline_maths(t, b, inlining),
+                    self.inline_maths(t, e, a, inlining)?,
+                    self.inline_maths(t, e, b, inlining)?,
                 );
-                self.ar.arena.push(e.with_operands(na, nb))
+                self.ar.arena.push(expr.with_operands(na, nb))
             }
-        }
+        })
     }
 }
 

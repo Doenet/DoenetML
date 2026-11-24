@@ -796,6 +796,12 @@ pub struct ListProp {
     /// per entry, after the entries, by this name (ADR 0041 decision 1,
     /// ADR 0053): a `<shuffle>`'s `componentOrder`.
     pub companion: Option<&'static str>,
+    /// A capped list (ADR 0041, decision 2, a dynamic sequence): the table
+    /// prop holding its live length. Its entries are as many as its cap,
+    /// those past the live length the missing value; an entry's row hides
+    /// as its companion's entry says (1 past the live length), a path
+    /// (`$int[3]`) names no entry past it, and its text stops at it.
+    pub live: Option<&'static str>,
 }
 
 /// Where a component of a type is drawn, and so whether the props a renderer

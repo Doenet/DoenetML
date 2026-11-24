@@ -760,6 +760,24 @@ impl ComponentType {
         usize::from(self.list().is_some_and(|l| l.companion.is_some()))
     }
 
+    /// The prop a bare `$x[k]` reads entries inside the expression of
+    /// (ADR 0041, decision 2): its default prop, when that is one cell that
+    /// stands for an expression (`expr_of`) and the type has no list (a
+    /// `<math>`'s, a `<mathInput>`'s `value`).
+    pub fn handle_sel(self) -> Option<PropSel> {
+        let sel = self.default_sel()?;
+        let PropSel::At(PropAt::Position(pi)) = sel else {
+            return None;
+        };
+        (self.list().is_none() && self.expr_of(pi).is_some()).then_some(sel)
+    }
+
+    /// The table position of a capped list's live length
+    /// ([`ListProp::live`], ADR 0041 decision 2), if the type's list is one.
+    pub fn live_len(self) -> Option<usize> {
+        self.prop_index(self.list()?.live?)
+    }
+
     /// How many public props an element with `n` list entries has after
     /// its table's: the entries' cells, then the companion sequence's
     /// ([`ListShape::list_props`]).

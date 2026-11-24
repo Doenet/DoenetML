@@ -62,7 +62,10 @@ impl<'c> Stamp<'c> {
                 }
                 let s = self.slot(Comp::Made(m), pi);
                 let def = if Some(pi) == row.prop_index("hide") {
-                    Def::Const(Some(0.0))
+                    match shape.row_hide_slot(n, k) {
+                        Some(h) => Def::Alias(self.slot(c, h)),
+                        None => Def::Const(Some(0.0)),
+                    }
                 } else {
                     Def::Alias(self.missing())
                 };

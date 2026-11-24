@@ -275,11 +275,13 @@ after step 2, and from 0.96 to 1.05 after step 4; the 1.05, `poly` at
      row. The reference is then in no source and the read is not
      recorded, so `<math name="b" bogus="1">2x + 1</math>` is boxed and
      `<line>y = $b</line>` still has slope 2, where every other
-     reference to a box reads the missing value. Not changed here,
-     since the step changes no behaviour. The remedy is one line,
-     `record_read` of the reference inlined, which makes it the third
-     row; whether the line should then be boxed with its cause or read
-     the box as missing is the decision that line needs.
+     reference to a box reads the missing value. Not changed by the
+     step, which changes no behaviour, and closed after it: each math
+     `inline_maths` inlines is read through `referent_type` for the
+     element being planned, so it is the third row, and the line is
+     boxed with the math as its cause (`cells-boxed-referent`), in one
+     compile, whichever is written first. Test:
+     `a_line_that_inlines_a_boxed_math_is_boxed_with_it`.
 3. **The rule in the code's own words.** Done. The module docs of
    `stages/link/mod.rs`, `ir/boxes.rs` and `stages/plan/rows.rs` carry
    decision 2's table, and `docs/guide/compile.md` ("Boxing") says which
@@ -301,9 +303,9 @@ after step 2, and from 0.96 to 1.05 after step 4; the 1.05, `poly` at
 
 - Answered by step 2: no site under `stages/plan/` reads an element
   under it to decide its plan and puts no port of that element in the
-  plan. The one read found in none of decision 2's rows is of a
-  referent's parsed math (`inline_maths`), listed under step 2 and left
-  to be decided.
+  plan. The one read found in none of decision 2's rows was of a
+  referent's parsed math (`inline_maths`), listed under step 2 and now
+  recorded.
 - Answered by step 2: the raw index is kept out of the planners' files
   by splitting `Reader`, not by forwarding its methods. The readers are
   `SourceReader`'s, with row access private to `compile/read/`; `Reader`

@@ -277,7 +277,7 @@ impl<'a> PlanCtx<'_, 'a> {
         vx: &str,
         vy: &str,
     ) -> Result<Option<[Source; 3]>> {
-        let t = self.t;
+        let (t, e) = (self.t, self.e);
         let (toks, src) = self.math_tokens(nodes)?;
         let c = &mut *self.p;
         let sides = super::expr::split_top(&toks, &Token::Eq);
@@ -292,7 +292,7 @@ impl<'a> PlanCtx<'_, 'a> {
             c.rd.parse_tokens(&mut c.ar, &sides[1], src)?,
         );
         let diff = c.ar.arena.push(Expr::Sub(lhs, rhs));
-        let diff = c.inline_symbolic_maths(t, diff);
+        let diff = c.inline_symbolic_maths(t, e, diff)?;
         Ok(
             super::expr::linear_coeffs(&mut c.ar.arena, diff, vx, vy).map(|[a, b, k]| {
                 [

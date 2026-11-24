@@ -248,6 +248,73 @@ impl Engine {
         self.push(e)
     }
 
+    /// The entries of the value `e` (ADR 0041, decision 8): a list's,
+    /// tuple's, vector's or array's; a scalar is its one entry, the blank
+    /// expression none.
+    fn entries_of(e: &Expr) -> Option<&[Expr]> {
+        use me::expr::SeqKind;
+        match e {
+            Expr::Seq(
+                SeqKind::List
+                | SeqKind::Tuple
+                | SeqKind::Vector
+                | SeqKind::AltVector
+                | SeqKind::Array,
+                xs,
+            ) => Some(xs),
+            _ => None,
+        }
+    }
+
+    /// How many entries `h` holds: a list's, tuple's, vector's or
+    /// array's; 1 for a scalar or the blank expression, as the current
+    /// core counts a math's dimensions.
+    pub fn count(&self, h: Handle) -> usize {
+        Self::entries_of(&self.exprs[h.index()]).map_or(1, <[_]>::len)
+    }
+
+    /// The position (0-based) entry `k` (1-based) of `n` names: none for
+    /// an index that is no integer from 1 to `n` (ADR 0041, decision 3).
+    fn entry_at(k: f64, n: usize) -> Option<usize> {
+        (k.fract() == 0.0 && k >= 1.0 && k <= n as f64).then(|| k as usize - 1)
+    }
+
+    /// Entry `k` (1-based) of the value `h` holds, a projection inside
+    /// the handle (ADR 0041, decision 2): a scalar's first entry is
+    /// itself; none past the count or for an index that is no integer.
+    pub fn entry(&mut self, h: Handle, k: f64) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        match Self::entries_of(e) {
+            Some(xs) => {
+                let x = xs[Self::entry_at(k, xs.len())?].clone();
+                Some(self.push(x))
+            }
+            None => Self::entry_at(k, 1).map(|_| h),
+        }
+    }
+
+    /// `h` with entry `k` (1-based) replaced by `d`, its head kept; a
+    /// scalar's first entry is `d` itself. None for an index that names
+    /// no entry.
+    pub fn with_entry(&mut self, h: Handle, k: f64, d: Handle) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        let Expr::Seq(kind, xs) = e else {
+            return Self::entry_at(k, 1).map(|_| d);
+        };
+        Self::entries_of(e)?;
+        let i = Self::entry_at(k, xs.len())?;
+        let mut xs = xs.clone();
+        xs[i] = self.exprs[d.index()].clone();
+        let out = Expr::Seq(*kind, xs);
+        Some(self.push(out))
+    }
+
     /// `h` simplified.
     pub fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h.index()]);

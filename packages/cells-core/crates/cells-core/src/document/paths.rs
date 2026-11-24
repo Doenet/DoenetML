@@ -70,6 +70,17 @@ impl Built {
                         }
                         iteration = Some(*picks.get(k.checked_sub(1)?)?);
                     }
+                    // A capped list names no entry past its live length
+                    // (ADR 0041, decision 2).
+                    ct if ct
+                        .live_len()
+                        .and_then(|pi| self.comp_cells(c).get(pi).copied())
+                        .is_some_and(|cell| {
+                            self.cells[cell.index()].is_nan() || k as f64 > self.cells[cell.index()]
+                        }) =>
+                    {
+                        return None;
+                    }
                     _ => {
                         cur = self
                             .children(c)

@@ -57,9 +57,13 @@ impl Outlining<'_> {
             if !names_list {
                 continue;
             }
+            // Over the value a math or a math input holds, a math value
+            // per entry (ADR 0041, decision 2: inside the handle).
             let item = match ty.def().item {
                 Some(item) => Some(item.ty),
-                None => ty.entry_row(),
+                None => ty
+                    .entry_row()
+                    .or_else(|| ty.handle_sel().map(|_| Role::MathValue.ty())),
             };
             if let Some(item) = item {
                 crate::compile::read::record_read(&mut self.work.reads, t, e, p);

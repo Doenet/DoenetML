@@ -75,7 +75,10 @@ impl<'c> Builder<'c> {
                 let s = self.slot(m, pi);
                 if matches!(self.sources[s.index()], BuiltSource::Unset) {
                     self.sources[s.index()] = if Some(pi) == row.prop_index("hide") {
-                        BuiltSource::Const(0.0)
+                        match shape.row_hide_slot(n, k) {
+                            Some(h) => BuiltSource::Alias(self.slot(comp, h)),
+                            None => BuiltSource::Const(0.0),
+                        }
                     } else {
                         BuiltSource::Alias(self.missing_slot())
                     };

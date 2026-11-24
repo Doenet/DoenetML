@@ -373,7 +373,12 @@ impl Document {
                 Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
                 _ => ", ",
             };
-            for (k, entry) in entries.chunks(shape.width().max(1)).enumerate() {
+            // A capped list's entries stop at its live length (ADR 0041).
+            let live = ty
+                .live_len()
+                .and_then(value)
+                .map_or(usize::MAX, |l| if l > 0.0 { l as usize } else { 0 });
+            for (k, entry) in entries.chunks(shape.width().max(1)).take(live).enumerate() {
                 if k > 0 {
                     out.push_str(separator);
                 }

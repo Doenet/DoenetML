@@ -213,7 +213,7 @@ impl<'c> Builder<'c> {
     /// slot it names holds math. An answer's response is one only when
     /// what it submits is (not for a choice or a text answer); a response's
     /// `submitted` unless its input is a boolean input (`add_response`).
-    fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
+    pub(in crate::build) fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
         self.expr_target(slot)
             // A math cell that stands for no prop's expression (an entry
             // of a math list, ADR 0041) is its own.
@@ -251,6 +251,12 @@ impl<'c> Builder<'c> {
         }
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
             return self.value_type_within(t, depth - 1);
+        }
+        // An entry inside a math handle is math (ADR 0041).
+        if let BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::Entry)), ..) =
+            &self.sources[slot.index()]
+        {
+            return ValueType::Math;
         }
         // A choose holds what its branches hold: text or math when one
         // does (`$tl[$k]`, `$r[$k].t`; ADR 0041).

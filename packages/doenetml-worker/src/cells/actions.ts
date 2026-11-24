@@ -142,7 +142,7 @@ function switchFlag(prop: string): Resolver {
 }
 
 /** What follows other components and does not move, as in the current
- * core (a best-fit line, an intersection): a drag changes nothing. */
+ * core (a best-fit line): a drag changes nothing. */
 const fixed: Resolver = () => ({ kind: "none" });
 
 /** Keyed by component type, then action name. */
@@ -349,7 +349,6 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     // or a line does, and switch their flag on the current core's switch
     // actions, which the prototype's renderers do not send yet.
     bestFitLine: { moveLine: fixed },
-    intersection: { move: fixed },
     equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
     endpoint: { move: movePoint, switchPoint: switchFlag("open") },
     equilibriumLine: { moveLine, switchLine: switchFlag("stable") },

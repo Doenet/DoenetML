@@ -508,6 +508,21 @@ impl<'s, 'a> Types<'s, 'a> {
         // the entries they may be, and no port of the table, since it may
         // be the missing value.
         for entry in entries {
+            // Inside the value one cell holds: math when it stands for an
+            // expression, else the cell as a sequence of one.
+            if entry.in_handle() {
+                let math = cells.types.len() == 1
+                    && (cells.types[0] == PortType::Math
+                        || cells.at.iter().any(|&(ct, ce, pi)| {
+                            let ty = self.row(ct, ce).component_type;
+                            ty.expr_of(pi).is_some_and(|x| {
+                                self.port(ct, ce, usize::from(x.when)) == PortType::Math
+                            })
+                        }));
+                let one = cells.types.first().copied().unwrap_or_default();
+                cells.types = vec![if math { PortType::Math } else { one }];
+                continue;
+            }
             let width = usize::from(entry.width);
             let n = cells.types.len() / width;
             cells.types = match entry.index.entry_in(n) {

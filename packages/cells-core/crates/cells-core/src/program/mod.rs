@@ -20,8 +20,8 @@ pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
 pub use vector::{
-    Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
-    RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
+    Dist, Figure, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction,
+    Reflex, RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
     sequence_index,
 };
 pub use vector::{MAX_SEQUENCE, sequence_parameters, sequence_values};
@@ -358,18 +358,20 @@ impl Program {
             let SymEntry { kind, memo } = self.syms[s.index()];
             self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
-            // Most vector operators write a few cells; a draw of many
-            // values or a shuffle of many operands writes more.
-            let n = ins.op.n_out();
             let mut small = [0.0f64; 16];
+            let n = ins.op.n_out();
+            // A capped list of many points (an intersection's), a draw of
+            // many values and a shuffle of many operands write more; they
+            // take the heap.
             let mut large = Vec::new();
             let buf: &mut [f64] = if n <= small.len() {
-                &mut small[..n]
+                &mut small
             } else {
                 large.resize(n, 0.0);
                 &mut large
             };
-            ins.op.eval_vec(cells, &self.operands, &self.vecs, buf);
+            ins.op
+                .eval_vec(cells, &self.operands, &self.vecs, &mut buf[..n]);
             match changed {
                 Some(changed) => {
                     for k in 0..n {
@@ -591,6 +593,12 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::Entry => {
+            out[0] = handle(v(0))
+                .and_then(|h| engine.entry(h, v(1)))
+                .map_or(MISSING, Handle::to_value)
+        }
+        SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
         SymKind::Compare { opts } => {
             out[0] = match (handle(v(0)), handle(v(1))) {
                 (Some(a), Some(b)) => engine.compare(a, b, opts),
