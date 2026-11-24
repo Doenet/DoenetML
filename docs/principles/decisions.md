@@ -3495,7 +3495,8 @@ each following the recommendation except where noted:
     `<example>`, `<problem>`, …) **share one counter within their section**, as PreTeXt does
     (#1490, #1262).
 17. **An angle can be made from a math** (#478), the reverse of the allowed angle-as-math: a
-    related pair for REF-5.
+    related pair for REF-5. Only from a value (math, number, text), not a point or vector (D69
+    decision 3).
 18. **A `<module>`'s declared boolean written with no value is `true`** (#2013), as for a built-in
     attribute, and a declared number left empty is `e0072` (COMP-13).
 
@@ -3575,8 +3576,12 @@ adapters a class declares (#2659).
 2. **The same holds where such a component is content of a value tag** (`<number>$line</number>`,
    `<text>$line</text>`, which give `NaN` and a blank with `w0107` today): a blank in its place with
    a warning naming the property, as for a type mix (D47).
-3. **An `<angle>` is the one non-value treated as a value type:** its measure, a math, so it follows
-   math's pairs (`<number extend="$a"/>`), and a math can be made into an angle (D66 decision 17).
+3. **An `<angle>` is the one non-value treated as a value type:** its measure, a math, so it is read
+   as math's pairs allow (`<number extend="$a"/>`, `<text extend="$a"/>`). It is **made only from a
+   value**: a math, a number or a text (D66 decision 17). From a point or a vector it is `e0065`
+   (`<angle extend="$P"/>` gave the radians `(1,2)` through math's pairs), and from a math holding
+   a tuple it is missing with an info, as a point from a non-tuple is. (Decided after #2672's
+   review.)
    **An input is its value** (REF-1a, D46; #2484), so it is a value type here too and follows its
    value's pairs: `<number extend="$mi"/>` and `<point extend="$mi"/>` of a `<mathInput>` holding
    `(1,2)` stay allowed, and `<boolean extend="$ti"/>` of a `<textInput>` is `e0065` (D68).
@@ -3631,8 +3636,10 @@ fine and the other isn't.
 4. **So a container's properties that describe how it presents itself** (`.title`, `.text`, a
    problem's credit over what it holds) **are the extend's own**, as `hide` is. They may differ
    from the source's; its state never does.
-5. On any tag, a `<label>`, `<shortDescription>` or `<description>` written inside an extend is
-   allowed: it changes only how it is presented.
+5. A `<label>`, `<shortDescription>` or `<description>` written inside an extend is allowed **on a
+   tag that takes one**: it changes only how it is presented. On a tag that takes none
+   (`<number extend="$n"><label>L</label></number>`, a silent `NaN` before) it is a child like any
+   other: the error above (`e0057`). (Narrowed after #2672's review.)
 
 6. **Why the line falls there: a value or object has an equivalent written form; a container
    doesn't.** A new tag holding the reference and the children (`<math>$m+1</math>`,

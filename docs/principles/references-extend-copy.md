@@ -1073,7 +1073,8 @@ the document renders.
 
 - **Allowed on any extend:** a bare extend (the same as `$x`, REF-1), a name, and attributes that
   only change appearance (`hide`, `styleNumber`, display settings, `asList`, `disabled`,
-  `fixed`), and a `<label>`, `<shortDescription>` or `<description>` written inside.
+  `fixed`), and a `<label>`, `<shortDescription>` or `<description>` written inside a tag that
+  takes one (D71).
 - **A container's extend can present more** (D71). A value or an object *is* what it holds, so an
   extend can't change that: children written inside one are an error that suggests a new tag
   (`<math>$m+1</math>`) or `copy`. A container (`<section>`, `<p>`, `<graph>`, `<group>`,
