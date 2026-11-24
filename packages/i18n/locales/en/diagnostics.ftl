@@ -1327,7 +1327,9 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # (D64), a list, a `<repeat>`, a `<collect>`, a `<select>` of several and so
 # on, which is many things and keeps its kind; `one` for one component that
 # isn't a composite, such as a `<math>`, an input, a `<point>` or a `<p>`,
-# which keeps its kind too. The message names the two forms that work, a
+# which keeps its kind too. A property or an entry of a list counts as the
+# component it gives: `$m.value` and `$ml[1]` as a `<math>`, a property of
+# several values (`$P.xs`) as a `<mathList>`. The message names the two forms that work, a
 # group holding it, and the same component again, written with $how
 # (`extend`, `copy` or `copyWithState`, as the author wrote it).
 type-change-unrelated =
