@@ -389,7 +389,7 @@ describe("Repeat iteration values and indices @group3", async () => {
     <repeatForSequence name="r" from="1" to="$mi" valueName="v">
       <math name="m">$v^2</math>
     </repeatForSequence>
-    <p name="p">[<group extend="$r[2]"/>][<group extend="$r[2].m"/>]</p>
+    <p name="p">[<group extend="$r[2]"/>][<group>$r[2].m</group>]</p>
     `,
         });
         const texts: string[] = [];
@@ -403,7 +403,9 @@ describe("Repeat iteration values and indices @group3", async () => {
             }
             texts.push(await textOf(core, resolvePathToNodeIdx, "p"));
         }
-        expect(texts).eqls(["[2²][2²]", "[][]", "[2²][2²]"]);
+        // `$r[2].m` past the iterations is missing (＿); a `<group>` made
+        // from the `<math>` itself would be `doenet-e0065`
+        expect(texts).eqls(["[2²][2²]", "[][＿]", "[2²][2²]"]);
         expect(
             core.core!.diagnostics.filter((d: any) => d.type === "error"),
         ).eqls([]);

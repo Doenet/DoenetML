@@ -46,6 +46,13 @@ const sameTypeCases = `<conditionalContent name="cc">
     <else><math name="x">2</math></else>
 </conditionalContent>`;
 
+// The same, with each name on a `<group>`, which a `<group>` tag can be made
+// from (a `<group>` made from a `<math>` is `doenet-e0065`).
+const sameTypeGroupCases = `<conditionalContent name="cc">
+    <case condition="$b"><group name="x"><math>1</math></group></case>
+    <else><group name="x"><math>2</math></group></else>
+</conditionalContent>`;
+
 describe("Names in the branches of a conditionalContent or a one-pick select @group3", async () => {
     it("finds the active case's name from outside, as $cc.x does", async () => {
         const { text, toggle, diagnostics } = await setUp(
@@ -322,7 +329,7 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
 
     it("on a group tag or a list tag, a name every case has with one type is made", async () => {
         const { text, toggle, diagnostics } = await setUp(
-            `${sameTypeCases}<p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>][<mathList extend="$x"/>]</p>`,
+            `${sameTypeGroupCases}<p name="p">[<group extend="$x"/>][<group extend="$cc.x"/>][<mathList extend="$x"/>]</p>`,
         );
         expect(await text()).eq("[2][2][2]");
         expect([...diagnostics.warnings, ...diagnostics.errors]).eqls([]);
@@ -336,7 +343,7 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     // left empty.
     it("on a group tag, a name every case has with one type follows the case both ways", async () => {
         const { text, toggle, diagnostics } = await setUp(
-            `${sameTypeCases}<p name="p">[<group extend="$cc.x"/>][<group extend="$x"/>][<math extend="$cc.x"/>][$cc.x]</p>`,
+            `${sameTypeGroupCases}<p name="p">[<group extend="$cc.x"/>][<group extend="$x"/>][<math extend="$cc.x"/>][$cc.x]</p>`,
         );
         expect(await text()).eq("[2][2][2][2]");
         await toggle(true);

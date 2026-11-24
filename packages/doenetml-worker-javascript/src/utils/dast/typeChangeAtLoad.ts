@@ -3448,7 +3448,7 @@ export function checkTypeChangesAtLoad({
         const isList = copy.doenetAttributes?.forList !== undefined;
         if (!isList && !isScalarTag(copy)) {
             return (
-                groupFromCollectionError(copy) ??
+                groupSourceError(copy) ??
                 ownKindError(copy) ??
                 moduleTypeError(copy)
             );
@@ -3846,21 +3846,33 @@ export function checkTypeChangesAtLoad({
 
     /**
      * The error for a `<group>` made with `extend`, `copy` or
-     * `copyWithState` from a collection (`<group extend="$r"/>` of a
-     * `<repeat>`, a list, a `<collect>`, a select of several, …), decided by
-     * the tag as written (COLL-1, `collectionTagAsWritten`): a collection
-     * keeps its kind, and a `<group>` of it would be neither the same
-     * component (REF-7) nor one of D26's pairs (D64). The message names the
-     * forms that work: `<group>$r</group>`, a group holding it, and
-     * `<repeat extend="$r"/>`, the same collection again. A group made from
-     * a group, an iteration or a pick (`$r[1]`), or a tag that shows one
-     * thing (a `<conditionalContent>`, a one-pick `<select>`) is not one,
-     * and is left as it is. The reference is followed through names in what
-     * it names (`$cc.r`, `$sec.r`), also after one index into picks, a shown
-     * case or iterations (`$s[1].r`, `$outer[1].r`), but not through a
-     * property or an index after a name.
+     * `copyWithState` from anything but a composite that holds one thing or
+     * a group of things (D64, and the decision of November 24, 2026 on
+     * Doenet/DoenetML#2670), decided by the tag as written:
+     *
+     * - from a collection (`<group extend="$r"/>` of a `<repeat>`, a list,
+     *   a `<collect>`, a select of several, …; COLL-1,
+     *   `collectionTagAsWritten`): a collection keeps its kind, and a
+     *   `<group>` of it would be neither the same component (REF-7) nor one
+     *   of D26's pairs;
+     * - from a component that is not a composite (a value such as a
+     *   `<math>` or an input, an object such as a `<point>`, or a container
+     *   such as a `<p>` or a `<section>`; `oneComponentTagAsWritten`): it is
+     *   one component, not a group, and keeps its kind too.
+     *
+     * The message names the forms that work: `<group>$m</group>`, a group
+     * holding it, and `<math extend="$m"/>`, the same component again. A
+     * group made from a group (or a `<module>`, built on one), an iteration
+     * or a pick (`$r[1]`), a tag that shows one thing (a
+     * `<conditionalContent>`, a one-pick `<select>`), or another composite
+     * (an `<intersection>`, a `<substitute>`) is left as it is, as are a
+     * property, an entry of a list, a part of a choosing tag (`doenet-e0061`)
+     * and a component holding an error. The reference is followed through
+     * names in what it names (`$cc.r`, `$sec.m`), also after one index into
+     * picks, a shown case or iterations (`$s[1].r`, `$outer[1].m`), but not
+     * through a property or an index after a name.
      */
-    function groupFromCollectionError(
+    function groupSourceError(
         copy: SerializedComponent,
     ): TypeChangeAtLoadError | undefined {
         if (
@@ -3909,12 +3921,13 @@ export function checkTypeChangesAtLoad({
                   )
                 : descendantsNamed(ref.nodeIdx, path);
         }
+        const componentAt = (idx: number) =>
+            referents.componentsByIdx.get(idx) ??
+            referents.copiesByCreatedIdx.get(idx);
         for (const node of named ?? []) {
             const sourceType = collectionTagAsWritten(
                 node,
-                (idx) =>
-                    referents.componentsByIdx.get(idx) ??
-                    referents.copiesByCreatedIdx.get(idx),
+                componentAt,
                 componentInfoObjects,
             );
             if (sourceType !== undefined) {
@@ -3922,13 +3935,77 @@ export function checkTypeChangesAtLoad({
                     code: "doenet-e0065",
                     args: {
                         sourceType,
-                        collection: "true",
+                        groupFrom: "collection",
                         how: howWritten(copy),
                     },
                 };
             }
         }
+        // One component, not a composite, in every place the reference may
+        // name (each case of a `<conditionalContent>`): one tag, so that
+        // the message can name it.
+        const oneTypes = new Set(
+            (named ?? []).map((node) => oneComponentTagAsWritten(node)),
+        );
+        const [sourceType] = oneTypes;
+        if (oneTypes.size === 1 && sourceType !== undefined) {
+            return {
+                code: "doenet-e0065",
+                args: { sourceType, groupFrom: "one", how: howWritten(copy) },
+            };
+        }
         return undefined;
+    }
+
+    /**
+     * The tag of `node` as written, following a reference written as a tag
+     * (`<math copy="$x"/>` is a `<math>`) or a bare reference (`$x`) to what
+     * it names, when that is one component that is not a composite (see
+     * `groupSourceError`); otherwise `undefined`: a composite, a list (a
+     * collection), anything made for the document (`_`), a part of a
+     * choosing tag, a component holding an error, or a reference whose
+     * target the DoenetML does not give (a property, `$P.x`).
+     */
+    function oneComponentTagAsWritten(
+        node: SerializedComponent,
+        seen = new Set<number>(),
+    ): string | undefined {
+        if (seen.has(node.componentIdx)) {
+            return undefined;
+        }
+        seen.add(node.componentIdx);
+        let type: string | undefined = node.componentType;
+        if (type === "_copy") {
+            type = canonicalType(
+                literalText(node.attributes?._createComponentOfType),
+            );
+            if (type === undefined) {
+                const ref = refOf(node);
+                const target =
+                    ref &&
+                    ref.nodeIdx >= 0 &&
+                    (ref.unresolvedPath ?? []).length === 0
+                        ? (referents.componentsByIdx.get(ref.nodeIdx) ??
+                          referents.copiesByCreatedIdx.get(ref.nodeIdx))
+                        : undefined;
+                return target
+                    ? oneComponentTagAsWritten(target, seen)
+                    : undefined;
+            }
+        } else if (holdsError(node)) {
+            return undefined;
+        }
+        if (
+            type === undefined ||
+            type.startsWith("_") ||
+            !allClasses[type] ||
+            isComposite(type) ||
+            allClasses[type].listEntryComponentType !== undefined ||
+            ["case", "else", "option"].includes(type)
+        ) {
+            return undefined;
+        }
+        return type;
     }
 
     /**

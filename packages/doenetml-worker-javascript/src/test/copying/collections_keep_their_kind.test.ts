@@ -202,8 +202,8 @@ describe("A <group> made from a collection is an error at load (D64, #2649) @gro
         ],
         ["an iteration", `${repeat}<group name="g" extend="$r[1]"/>`],
         [
-            "a math named in an iteration",
-            `<repeat name="outer" for="1 2" valueName="i"><math name="m">$i</math></repeat><group name="g" extend="$outer[1].m"/>`,
+            "a group named in an iteration",
+            `<repeat name="outer" for="1 2" valueName="i"><group name="h"><math>$i</math></group></repeat><group name="g" extend="$outer[1].h"/>`,
         ],
         [
             "a pick",
@@ -238,6 +238,157 @@ describe("A <group> made from a collection is an error at load (D64, #2649) @gro
         expect((await d.stateValue("Q", "xs")).map((x: any) => x.tree)).eqls([
             1, 2,
         ]);
+    });
+});
+
+describe("A <group> made from one component that isn't a composite is an error at load (decided on #2670) @group4", () => {
+    const components: [string, string, string][] = [
+        ["a math", `<math name="m">x+1</math>`, "math"],
+        ["a number", `<number name="m">3</number>`, "number"],
+        ["a text", `<text name="m">hi</text>`, "text"],
+        ["a boolean", `<boolean name="m">true</boolean>`, "boolean"],
+        ["a point", `<graph><point name="m">(1,2)</point></graph>`, "point"],
+        ["a mathInput", `<mathInput name="m" prefill="y"/>`, "mathInput"],
+        [
+            "a choiceInput",
+            `<choiceInput name="m"><choice>a</choice><choice>b</choice></choiceInput>`,
+            "choiceInput",
+        ],
+        ["an answer", `<answer name="m">x</answer>`, "answer"],
+        ["a p", `<p name="m">hello <math>z</math></p>`, "p"],
+        [
+            "a section",
+            `<section name="m"><title>T</title><p>in it</p></section>`,
+            "section",
+        ],
+        [
+            "a copy of a math",
+            `<math name="x">5</math><math name="m" copy="$x"/>`,
+            "math",
+        ],
+    ];
+
+    for (const [label, source, tag] of components) {
+        for (const how of ["extend", "copy", "copyWithState"]) {
+            it(`a group made with ${how} from ${label}`, async () => {
+                const d = await load(
+                    `${source}<p name="before">before</p><group name="g" ${how}="$m"/><p name="after">after</p>`,
+                );
+                const expected = [
+                    `doenet-e0065: A \`<group>\` can't be made from \`$m\`, a \`<${tag}>\`: a \`<${tag}>\` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write \`<group>$m</group>\`, with anything else the group holds beside it. To show the same \`<${tag}>\` again, write \`<${tag} ${how}="$m"/>\`.`,
+                ];
+                expect(
+                    d.diagnostics().filter((x) => x.startsWith("doenet-e")),
+                ).eqls(expected);
+                expect(await d.typeOf("g")).eq("_error");
+                // the rest of the document renders (DIAG-5)
+                expect(await d.text("after")).eq("after");
+
+                await d.reload();
+                expect(
+                    d.diagnostics().filter((x) => x.startsWith("doenet-e")),
+                ).eqls(expected);
+                expect(await d.typeOf("g")).eq("_error");
+            });
+        }
+    }
+
+    it("the forms the message suggests work", async () => {
+        const d = await load(
+            `<math name="m">x+1</math><group name="g">$m</group><math name="m2" extend="$m"/><p name="p">$g $m2</p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        expect(await d.typeOf("g")).eq("group");
+        expect(await d.text("p")).eq("x + 1 x + 1");
+    });
+
+    it("an error even with children written inside", async () => {
+        const d = await load(
+            `<math name="m">x</math><group name="g" extend="$m"><text>more</text></group>`,
+        );
+        expect(d.errorCodes()).eqls(["doenet-e0065"]);
+        expect(await d.typeOf("g")).eq("_error");
+    });
+
+    it("a component named inside a section, a group, an iteration or a pick", async () => {
+        for (const [doenetML, source] of [
+            [
+                `<section name="sec"><math name="m">q</math></section><group name="g" extend="$sec.m"/>`,
+                "$sec.m",
+            ],
+            [
+                `<group name="h"><math name="m">1</math></group><group name="g" extend="$h.m"/>`,
+                "$h.m",
+            ],
+            [
+                `<repeat name="r" for="1 2" valueName="v"><math name="m">$v</math></repeat><group name="g" extend="$r[1].m"/>`,
+                "$r[1].m",
+            ],
+            [
+                `<select name="s"><option><math name="m">1</math></option><option><math name="m">2</math></option></select><group name="g" extend="$s[1].m"/>`,
+                "$s[1].m",
+            ],
+        ]) {
+            const d = await load(doenetML);
+            expect(d.diagnostics()).eqls([
+                `doenet-e0065: A \`<group>\` can't be made from \`${source}\`, a \`<math>\`: a \`<math>\` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write \`<group>${source}</group>\`, with anything else the group holds beside it. To show the same \`<math>\` again, write \`<math extend="${source}"/>\`.`,
+            ]);
+            expect(await d.typeOf("g")).eq("_error");
+        }
+    });
+
+    it("is reported at load in a case that is not true yet (DIAG-7)", async () => {
+        const d = await load(
+            `<booleanInput name="b"/><math name="m">x</math><conditionalContent><case condition="$b"><group name="g" extend="$m"/></case></conditionalContent>`,
+        );
+        expect(d.errorCodes()).eqls(["doenet-e0065"]);
+        await d.reload();
+        expect(d.errorCodes()).eqls(["doenet-e0065"]);
+        await d.setBoolean("b", true);
+        expect(d.errorCodes()).eqls(["doenet-e0065"]);
+        expect(await d.typeOf("g")).eq("_error");
+    });
+
+    // Left as they were: another composite, a property, an entry of a list,
+    // and a reference that names nothing or an error, each reported by
+    // its own message if at all.
+    const unchanged: [string, string, string[]][] = [
+        [
+            "a module",
+            `<module name="mod"><math>1</math></module><group name="g" extend="$mod"/>`,
+            [],
+        ],
+        [
+            "a substitute",
+            `<substitute name="sub" match="x" replacement="y"><math>x+1</math></substitute><group name="g" extend="$sub"/>`,
+            [],
+        ],
+        [
+            "a property",
+            `<math name="m">x</math><group name="g" extend="$m.value"/>`,
+            [],
+        ],
+        [
+            "an entry of a list",
+            `<mathList name="ml">a b</mathList><group name="g" extend="$ml[1]"/>`,
+            [],
+        ],
+    ];
+    for (const [label, doenetML, codes] of unchanged) {
+        it(`a group made from ${label} is unchanged`, async () => {
+            const d = await load(doenetML);
+            expect(d.errorCodes()).eqls(codes);
+            expect(await d.typeOf("g")).eq("group");
+        });
+    }
+
+    it("a group made from a group with children written inside is unchanged (D71)", async () => {
+        const d = await load(
+            `<group name="h"><math>1</math></group><group name="g" extend="$h"><math>2</math></group><p name="p">$g</p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        expect(await d.typeOf("g")).eq("group");
+        expect(await d.text("p")).eq("12");
     });
 });
 

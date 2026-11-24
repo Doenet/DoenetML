@@ -8963,10 +8963,12 @@ async function typeChangeStatus({
         return undefined;
     }
     if (writtenType === "group") {
-        // A `<group>` made from a collection is an error decided when the
-        // document loads, from the tag the collection is written as (D64,
-        // `typeChangeAtLoad`, above), so that it is the same live and after
-        // a reload; made from anything else, it holds what it is made from.
+        // A `<group>` made from a collection, or from one component that
+        // isn't a composite (a `<math>`, a `<p>`), is an error decided when
+        // the document loads, from the tag the source is written as (D64,
+        // `groupSourceError` in `typeChangeAtLoad`), so that it is the same
+        // live and after a reload; made from anything else (a group, an
+        // iteration, a pick, a property), it holds what it is made from.
         return undefined;
     }
 
