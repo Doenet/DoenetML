@@ -2849,7 +2849,7 @@ its tag, so the categories are text throughout. `<number extend="$t.categories[1
 first value is the text `x²`, and `<math extend>` of it is blank. That follows from the type
 rule; the lost math is a display question for #2568 (a choice's value could keep its LaTeX).
 
-## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (part 2 decided, part 1 open; Tier 1)
+## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (decided, except part 1's default type; Tier 1)
 
 **Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
 COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599**, and for a repeat's
@@ -2923,35 +2923,66 @@ compares kinds, and a tag or a property after `$sh[1]` still follows the every-i
 - a wrapper of several mixes with content;
 - a `<sort>` of objects or content without `sortByProp` is an error (#2569 item 10).
 
-### 1. A tag for a list of components (open)
+### 1. One `<list>` for every list (decided, November 2026, except the default type)
 
-**Why.** A `<group>` is a wrapper (COLL-3): holding several components, it is one item, so a
-`<sort>` of it is `e0077` and a `<shuffle>` moves it whole. Authors who wrote a
-`<group asList>` of components to sort or index as a list have no tag for that. The typed lists
-(`<mathList>` … `<pointList>`) are for values written as text, not components with no typed list
-(`<atom>`s, `<p>`s, groups kept whole). The workaround, `<collect componentType="atom"
-from="$g"/>`, names one tag, so it gathers only some of a group of a `<number>` and a `<math>`.
+**Why.** A `<group>` is a wrapper (COLL-3): holding several components, it is one item, so authors
+who wrote a `<group asList>` of components to sort or index as a list have no tag for that. The
+typed lists (`<mathList>` … `<pointList>`) cover only values written as text, and are already one
+class (`AuthoredValueList`) whose attributes depend on its entry type (the number display
+attributes are removed for texts and booleans): one component spread over eight tags, which
+drift apart (#2649's `<booleanList>` leftover). The earlier proposal kept them, because with a
+`type` attribute "which attributes are valid and which properties exist would depend on an
+attribute's value". Since D63.4 (a type named in an attribute is a literal tag name), TYPE-3 and
+D45 (types decided at load), D75 (a missing property is an error at load) and D76 (an invalid
+attribute is an error), that is checkable: the list's entry type is fixed at load.
 
-**Proposed:**
-- **A tag that is a collection of the components written in it** (COLL-1's many things). An index
-  picks an item, `numItems` counts them, a property or a name applies to each item (COLL-2), a
-  `<sort>` or `<shuffle>` flattens it, and it shows its items with commas.
-- **Its items have one type, decided at load,** with part 2's kinds. A `<group>` in it is one
-  item (content) when it holds several components and stands for its component when it holds
-  one, so a list of groups is how to shuffle records.
-- **No `type` attribute and no detection from text alone.** Text beside its components is read
-  as their type, as for `<sort>`. Text alone gives a warning naming the typed lists. Detection
-  from text is D45 decision 7's job.
-- **The typed lists stay** as the tags for a list written as text, not folded into one tag with
-  a `type`: which attributes are valid and which properties exist (`$pl.x`) would then depend on
-  an attribute's value, which the schema and the language server can't check.
-- **`<group asList>` stays a wrapper;** `asList` only sets commas. The converter (#2457)
-  rewrites a `<group asList>` that is sorted, shuffled or indexed as a list to the new tag, and
-  reports a mix.
+1. **`<list>` replaces the typed lists** (`<mathList>`, `<numberList>`, `<textList>`,
+   `<booleanList>`, `<pointList>`, `<vectorList>`, …) and is also the tag for a list of
+   components with no typed list (`<atom>`s, `<p>`s, `<group>`s kept whole as records). It is a
+   collection (COLL-1's many things): an index picks an item, `numItems` counts them, a property
+   or a name applies to each item (COLL-2), a `<sort>` or `<shuffle>` flattens it, and it shows
+   its items with commas. A `<list>` inside a `<list>` is flattened (COLL-4).
+2. **Its entry type is decided at load**, with part 2's kinds: from `type` when written (a
+   literal tag name, D63.4: `type="text"`, `type="point"`), else from the components in it
+   (`<list><point/>…</list>`, `<list>$P $Q</list>`), with text beside components read as their
+   type (as for `<sort>`). Kinds that don't match are `e0076` (COLL-4). An attribute valid only
+   for another type (`displayDigits` on a text list) is `e0004` (D76), and a property of another
+   type (`$l.xs` of a math list) is an error at load (D75).
+3. **A list-valued attribute decides its own type:** `xs="1 2"` is a list of maths and
+   `vertices="(1,2),(3,4)"` a list of points, as the attribute declares. So is a property:
+   `$P.xs` is a list of maths, `$poly.vertices` a list of points, and messages name
+   `<list extend="$P.xs"/>`.
+4. **`<ol>` and `<ul>` stay, and are not folded into `<list>`.** They are content (part 2): one
+   block, moved whole by a `<shuffle>`, holding `<li>`s with blocks, answers and nested lists.
+   `<shuffle><p/><ol>…</ol></shuffle>` moves the `<ol>` whole; were it a `<list>`, its items would
+   mix with the `<p>`. An `<li>` directly in a `<list>` gets a misplaced-tag warning suggesting
+   `<ul>` or `<ol>`. There is no `numbered` attribute on `<list>`. A list shown as bullets is
+   written with a repeat: `<ul><repeat for="$l" valueName="v"><li>$v</li></repeat></ul>`;
+   `<ul>$l</ul>` does not make an item of each entry (DoenetML has no such vectorized forms).
+5. **Hints, not detection rules:** an info when the pieces of a math list are runs of several
+   letters that math reads as products (`<list>red, green, blue</list>` is `r·e·d, …`),
+   suggesting `type="text"`; and one for a math list of tuples in a `<graph>`, which draws
+   nothing, suggesting `type="point"`. Where a list sits never changes its type (TYPE-1).
+6. **Migration:** the converter (#2457) rewrites each typed list to `<list>`, writing `type` only
+   where the default differs, and the typed tags are removed. In the code, the typed lists first
+   become one `<list>` class, so behavior is unified before the author-facing change.
+7. **`<group asList>` stays a wrapper;** `asList` only sets commas. The converter rewrites a
+   `<group asList>` that is sorted, shuffled or indexed as a list to `<list>`.
 
-**Open: the name.** `<list>` is the obvious one, but authors will try `<list>1 2 3</list>`, and
-DoenetML's `<ol>`, `<ul>` and `<li>` already make "list" mean a bulleted or numbered list.
-Alternatives: `<collection>`, `<items>`.
+**Not now: PreTeXt's `<list>`.** In PreTeXt, `<list>` is a titled, numbered block wrapping an
+`<ol>`/`<ul>` (with `<title>`, `<introduction>`, `<conclusion>`) that can be cross-referenced.
+It is not supported initially. If authors ask for it, it could be added where the context makes
+it clear; that needs a decision then, since COLL-1 decides a tag's kind from the tag as written,
+and that `<list>` would be content, not a collection.
+
+**Open: the default type of pieces of text.** Either:
+- **(a) math unless `type` says otherwise** (recommended): the rule a `<repeat>`'s `for`,
+  `<select>`'s and `<answer>`'s sugar use (D45 decision 7). `<list>1, 2, 3</list>` is a math list
+  showing `1, 2, 3`. Integer, number and math are one type (D44.3), so detecting a number changes
+  only display, and would flip it (`1/2, 3` shows `0.5, 3`, then `1/2, 3, x` once an `x` is
+  added).
+- **(b) numbers if every piece is a number, math otherwise:** a third rule beside D45.7's two,
+  unless the `for`/`select`/`answer` sugar switches to it as well.
 
 ## D47. Decisions from the review of #2571–#2576 (November 2026)
 
@@ -3448,7 +3479,8 @@ Each follows the recommendation in #2509, except where noted.
     `categories` and a sampler's `mean`, `variance`, … stay as the collection's own properties
     (since D59 they can't collide with an item's).
 
-Still open: #2127 item 9 (the `_copy` name and role), D46 part 1's tag name, #2581 item 4
+Still open: #2127 item 9 (the `_copy` name and role), D46 part 1's default type (the tag is
+`<list>`, decided later), #2581 item 4
 (`$slider.items` of a `from`/`to`/`step` slider).
 
 ## D66. Decisions from the sweep of older issues (decided, November 2026)

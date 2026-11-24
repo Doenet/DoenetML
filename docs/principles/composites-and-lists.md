@@ -335,7 +335,8 @@ so a `<choiceInput>` of text choices beside a `<number>` is `e0076` at load (it 
 - `e0077`'s suggested `<collect>` names one tag, so for a group of a `<number>` and a `<math>`
   it collects only some;
 - `<sort sortByProp="atomicNumber">$g</sort>` of a `<group asList>` of atoms is now `e0077`.
-  The fix is `<collect componentType="atom" from="$g"/>`; D46 proposes a `<list>` tag.
+  The fix is `<collect componentType="atom" from="$g"/>`; under D46 part 1 it becomes a
+  `<list>` of the atoms, one tag that also replaces the typed lists.
 - points of different dimensions in a sort are `(1, 2, 0)` as a list and `(1, 2)` as a
   composite. Decided (D53): each point keeps its own dimension, since a sort only reorders.
 
