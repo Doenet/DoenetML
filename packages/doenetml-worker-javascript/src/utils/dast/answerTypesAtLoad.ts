@@ -49,6 +49,9 @@ import { documentReferents } from "./valueReferences";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
 import { codedDiagnostic } from "../diagnostics";
 import { unwrapSource } from "./convertNormalizedDast";
+import { doenetMLReferenceAsWritten } from "../sourceLocation";
+import { answerContentType } from "../answerContentType";
+import { allComponents } from "./copiedAwards";
 
 /** The types an award compares its content as. */
 type AnswerType = "math" | "text" | "boolean";
@@ -102,35 +105,18 @@ function comparedAs(type: string | undefined): AnswerType | undefined {
 export function decideAnswerTypesAtLoad({
     serializedComponents,
     componentInfoObjects,
+    sources,
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
+    /** The DoenetML, to quote a reference as written (DIAG-3). */
+    sources?: readonly string[];
 }) {
     const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
 
-    const answers: SerializedComponent[] = [];
-    const seen = new Set<SerializedComponent>();
-    function visit(components: (SerializedComponent | string)[]) {
-        for (const component of components) {
-            if (typeof component !== "object" || seen.has(component)) {
-                continue;
-            }
-            seen.add(component);
-            if (component.componentType === "answer") {
-                answers.push(component);
-            }
-            for (const attribute of Object.values(component.attributes ?? {})) {
-                const attr: any = attribute;
-                if (attr.type === "component" && attr.component) {
-                    visit([attr.component]);
-                } else if (Array.isArray(attr.children)) {
-                    visit(attr.children);
-                }
-            }
-            visit(component.children ?? []);
-        }
-    }
-    visit(serializedComponents);
+    const answers = allComponents(serializedComponents).filter(
+        (component) => component.componentType === "answer",
+    );
 
     if (answers.length === 0) {
         return diagnostics;
@@ -141,7 +127,7 @@ export function decideAnswerTypesAtLoad({
         componentInfoObjects,
         typeRepeatValues: true,
     });
-    const { responseRead, tagOfComponent, nodeOf, inputsForAnswer } =
+    const { responseRead, tagOfComponent, inputsForAnswer } =
         propertyTypeReader({ componentInfoObjects, referents });
 
     function inherits(componentType: string, base: string) {
@@ -153,29 +139,18 @@ export function decideAnswerTypesAtLoad({
 
     /**
      * The type a component of `tag` is compared as by an award, by its tag,
-     * as the answer's sugar reads it: a math or number (or a list of them)
-     * is a math, a text (or list) a text, a boolean (or list) a boolean.
-     * `undefined` for any other (an `<m>`, a `<point>`), which an award
-     * may adapt.
+     * as the sugar reads it (`answerContentType`): a math or number (or a
+     * list of them) is a math, a text (or list) a text, a boolean (or list)
+     * a boolean. `undefined` for any other (an `<m>`, a `<point>`, a
+     * `<when>`), which an award may adapt.
      */
     function tagComparedAs(tag: string): AnswerType | undefined {
-        if (
-            ["math", "number", "mathList", "numberList"].some((t) =>
-                inherits(tag, t),
-            )
-        ) {
-            return "math";
-        }
-        if (["text", "textList"].some((t) => inherits(tag, t))) {
-            return "text";
-        }
-        if (
-            !inherits(tag, "when") &&
-            ["boolean", "booleanList"].some((t) => inherits(tag, t))
-        ) {
-            return "boolean";
-        }
-        return undefined;
+        const type = answerContentType((t: string) => inherits(tag, t));
+        return type === "booleanList"
+            ? "boolean"
+            : type === "when"
+              ? undefined
+              : type;
     }
 
     /**
@@ -219,6 +194,18 @@ export function decideAnswerTypesAtLoad({
         return type === undefined ? undefined : { type, tag };
     }
 
+    /**
+     * A bare reference `c` as the author wrote it (`$ti`, DIAG-3), or `""`
+     * for anything else.
+     */
+    function referenceAsWritten(c: SerializedComponent) {
+        if (!isBareReference(c) || !c.extending) {
+            return "";
+        }
+        const ref: any = unwrapSource(c.extending as any);
+        return doenetMLReferenceAsWritten(ref?.originalPath, sources);
+    }
+
     /** A `$x` written alone (not `<tag copy="$x"/>`). */
     function isBareReference(c: SerializedComponent) {
         return (
@@ -245,8 +232,9 @@ export function decideAnswerTypesAtLoad({
      * rest in the answer's type, and it is compared as that. A composite
      * that may hold a `<when>` is kept unwrapped too, and the `<when>` it
      * expands to is the award's condition (`<award><group><when>…</when>
-     * </group></award>`). A bare `$w` naming a `<when>` is its value, a
-     * boolean compared with the input.
+     * </group></award>`); so is a reference to one, also with an index
+     * (`$r[1]` of a repeat of `<when>`s, #2657 item 6). A bare `$w` naming a
+     * `<when>` is its value, a boolean compared with the input.
      */
     function isWhen(content: (SerializedComponent | string)[]) {
         const c = content[0];
@@ -254,16 +242,20 @@ export function decideAnswerTypesAtLoad({
             return false;
         }
         const tag = tagOfComponent(c);
+        if (isBareReference(c)) {
+            // `$g`, naming a composite, expands to what it holds; `$r[1]`
+            // to what one of its items holds
+            const source = sourceOf(c, true);
+            if (source === undefined) {
+                return tag !== undefined && inherits(tag, "_composite");
+            }
+            return (
+                inherits(tagOfComponent(source) ?? "", "_composite") &&
+                mayHoldWhen(source)
+            );
+        }
         if (tag === undefined) {
             return false;
-        }
-        if (isBareReference(c)) {
-            // `$g`, naming a composite, expands to what it holds
-            if (!inherits(tag, "_composite")) {
-                return false;
-            }
-            const node = nodeOf(c);
-            return node === undefined || node === c || mayHoldWhen(node);
         }
         if (inherits(tag, "when")) {
             return true;
@@ -272,25 +264,191 @@ export function decideAnswerTypesAtLoad({
     }
 
     /**
-     * Whether the composite `c` may expand to a `<when>`: one written in
-     * it, at any depth, or one it copies, whose content isn't read here.
+     * The component the reference or copy `c` names, as written: with
+     * `allowPath`, also when a path is left after it (an index or a
+     * property). `undefined` when the DoenetML doesn't give it.
      */
-    function mayHoldWhen(c: SerializedComponent): boolean {
+    function sourceOf(
+        c: SerializedComponent,
+        allowPath = false,
+    ): SerializedComponent | undefined {
+        if (c.componentType !== "_copy" || !c.extending) {
+            return undefined;
+        }
+        const ref: any = unwrapSource(c.extending as any);
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            (!allowPath && (ref.unresolvedPath ?? []).length > 0)
+        ) {
+            return undefined;
+        }
+        return (
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx)
+        );
+    }
+
+    /**
+     * Whether the composite `c` may expand to a `<when>`: one written in it,
+     * at any depth through composites and the options and cases of a
+     * `<select>` or `<conditionalContent>` (not one inside a `<p>`, which
+     * the composite doesn't expand to, #2657 item 10), or one its source
+     * holds, for a composite made with `copy` or `extend`; or one it copies
+     * whose content isn't known here.
+     */
+    function mayHoldWhen(
+        c: SerializedComponent,
+        visiting = new Set<SerializedComponent>(),
+    ): boolean {
+        if (visiting.has(c)) {
+            return false;
+        }
+        visiting.add(c);
         if (c.componentType === "_copy") {
             const tag = tagOfComponent(c);
+            if (tag === undefined) {
+                return true;
+            }
+            if (inherits(tag, "when")) {
+                return !isBareReference(c);
+            }
+            if (!inherits(tag, "_composite")) {
+                return false;
+            }
+            const source = sourceOf(c);
             return (
-                tag !== undefined &&
-                (inherits(tag, "when")
-                    ? !isBareReference(c)
-                    : inherits(tag, "_composite"))
+                source === undefined ||
+                mayHoldWhen(source, visiting) ||
+                childrenMayHoldWhen(c, visiting)
             );
         }
         if (inherits(c.componentType, "when")) {
             return true;
         }
+        return childrenMayHoldWhen(c, visiting);
+    }
+
+    function childrenMayHoldWhen(
+        c: SerializedComponent,
+        visiting: Set<SerializedComponent>,
+    ): boolean {
         return (c.children ?? []).some(
-            (child) => typeof child === "object" && mayHoldWhen(child),
+            (child) =>
+                typeof child === "object" &&
+                (child.componentType === "_copy" ||
+                    inherits(child.componentType, "when") ||
+                    inherits(child.componentType, "_composite") ||
+                    ["option", "case", "else"].some((tag) =>
+                        isTag(child, tag),
+                    )) &&
+                mayHoldWhen(child, visiting),
         );
+    }
+
+    /** Whether `c` is a composite written out (not a reference or a copy). */
+    function isWrittenComposite(c: SerializedComponent) {
+        return (
+            c.componentType !== "_copy" &&
+            inherits(c.componentType, "_composite")
+        );
+    }
+
+    /**
+     * What the composite `c` written in an answer expands to, as written:
+     * its content at any depth through composites and the options and cases
+     * of a `<select>` or `<conditionalContent>`. A composite's content is
+     * shown as if written in its place (COMP-1, #1874). A `<setup>` shows
+     * nothing. (`awardsInComposite` in `Answer.js` reads the same awards.)
+     */
+    function contentOfComposite(
+        c: SerializedComponent,
+    ): (SerializedComponent | string)[] {
+        if (!isWrittenComposite(c) || isTag(c, "setup")) {
+            return [];
+        }
+        const found: (SerializedComponent | string)[] = [];
+        function visit(components: (SerializedComponent | string)[]) {
+            for (const child of components) {
+                if (typeof child !== "object") {
+                    found.push(child);
+                } else if (isTag(child, "setup")) {
+                    continue;
+                } else if (
+                    isWrittenComposite(child) ||
+                    ["option", "case", "else"].some((tag) => isTag(child, tag))
+                ) {
+                    visit(child.children ?? []);
+                } else {
+                    found.push(child);
+                }
+            }
+        }
+        visit(c.children ?? []);
+        return found;
+    }
+
+    /** The awards the composite `c` written in an answer holds. */
+    function awardsInComposite(c: SerializedComponent) {
+        return contentOfComposite(c).filter(
+            (child): child is SerializedComponent =>
+                typeof child === "object" && isTag(child, "award"),
+        );
+    }
+
+    /**
+     * An `<answer>`'s `<label>` labels its one input when the input is
+     * written out and has no label of its own (D66 decision 2, #1674), as it
+     * labels an input its sugar adds. The input is marked
+     * (`doenetAttributes.labelFromAnswer`, read in `label.ts`). Otherwise the
+     * answer's label would not label the input, so a warning
+     * (`doenet-w0209`): with more than one input it is shown with the
+     * answer's check-work button and labels none of them; with one input
+     * that has a label of its own, it is not shown at all.
+     */
+    function labelTheAnswersInput(answer: SerializedComponent) {
+        const found: ReturnType<typeof codedDiagnostic>[] = [];
+        const children = answer.children ?? [];
+        const label = children.find(
+            (child): child is SerializedComponent =>
+                typeof child === "object" && isTag(child, "label"),
+        );
+        if (label === undefined) {
+            return found;
+        }
+        const inputs = children.filter(
+            (child): child is SerializedComponent =>
+                typeof child === "object" && isTag(child, "_input"),
+        );
+        if (inputs.length === 0) {
+            return found;
+        }
+        if (inputs.length === 1) {
+            const input = inputs[0];
+            const ownLabel = (input.children ?? []).some(
+                (child) => typeof child === "object" && isTag(child, "label"),
+            );
+            if (!ownLabel) {
+                input.doenetAttributes = {
+                    ...input.doenetAttributes,
+                    labelFromAnswer: true,
+                };
+                return found;
+            }
+        }
+        found.push({
+            ...codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0209",
+                args: {
+                    numInputs: inputs.length,
+                    input: tagOfComponent(inputs[0]) ?? "",
+                },
+            }),
+            position: label.position ?? answer.position,
+            sourceDoc: label.sourceDoc ?? answer.sourceDoc,
+        });
+        return found;
     }
 
     function isBlank(child: SerializedComponent | string) {
@@ -298,6 +456,8 @@ export function decideAnswerTypesAtLoad({
     }
 
     for (const answer of answers) {
+        diagnostics.push(...labelTheAnswersInput(answer));
+
         const writtenAttribute: SerializedAttribute | undefined =
             answer.attributes?.type;
         // As written, and as the type it names (`type` declares
@@ -311,8 +471,9 @@ export function decideAnswerTypesAtLoad({
                 : undefined;
         const writtenValue = writtenRaw?.trim().toLowerCase();
         // `videoWatched` is made by the parser's sugar, which reads it
-        // without case but untrimmed, as the answer's sugar does.
-        if (writtenRaw?.toLowerCase() === "videowatched") {
+        // without case and trimmed (D67 decision 2), as the answer's sugar
+        // does.
+        if (writtenValue === "videowatched") {
             continue;
         }
         const written: AnswerType | undefined =
@@ -321,6 +482,21 @@ export function decideAnswerTypesAtLoad({
             writtenValue === "boolean"
                 ? writtenValue
                 : undefined;
+        if (writtenRaw !== undefined && written === undefined) {
+            // A `type` that names no type, reported here for every answer,
+            // at the attribute (D67 decision 5, DIAG-4). The answer's sugar
+            // reads it as a math and reports nothing more.
+            diagnostics.push({
+                ...codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0078",
+                    args: { type: writtenRaw },
+                }),
+                position:
+                    (writtenAttribute as any)?.position ?? answer.position,
+                sourceDoc: answer.sourceDoc,
+            });
+        }
 
         // The answer's children as its sugar reads them (`Answer.js`): by
         // tag, a bare reference (`$x`) being content whatever it names;
@@ -364,14 +540,37 @@ export function decideAnswerTypesAtLoad({
             at: SerializedComponent;
         }[] = [];
 
-        /** Whether the sugar wraps `child` in an award of its own. */
+        /**
+         * Whether the sugar wraps `child` in an award of its own: not an
+         * input, an award, a `<considerAsResponses>`, a `<setup>` (which
+         * shows nothing) or a composite holding awards (which expands to
+         * them, #1874).
+         */
         function isContent(child: SerializedComponent | string) {
             return (
                 typeof child !== "object" ||
-                !["_input", "award", "considerAsResponses"].some((tag) =>
-                    isTag(child, tag),
+                !(
+                    ["_input", "award", "considerAsResponses", "setup"].some(
+                        (tag) => isTag(child, tag),
+                    ) || awardsInComposite(child).length > 0
                 )
             );
+        }
+
+        // Every award of the answer: written in it, or held by a composite
+        // written in it.
+        const awards: SerializedComponent[] = [];
+
+        function readAward(award: SerializedComponent) {
+            awards.push(award);
+            const awardChildren: (SerializedComponent | string)[] =
+                award.doenetAttributes?.copiedAward?.children ??
+                (award.componentType === "award" ? award.children : []) ??
+                [];
+            const content = awardChildren.filter((c) => !isBlank(c));
+            if (content.length > 0 && !isWhen(content)) {
+                comparedContents.push({ content, at: award });
+            }
         }
 
         for (const child of sugarChildren) {
@@ -381,14 +580,9 @@ export function decideAnswerTypesAtLoad({
             if (isTag(child, "_input")) {
                 inputs.push(child);
             } else if (isTag(child, "award")) {
-                const awardChildren: (SerializedComponent | string)[] =
-                    child.doenetAttributes?.copiedAward?.children ??
-                    (child.componentType === "award" ? child.children : []) ??
-                    [];
-                const content = awardChildren.filter((c) => !isBlank(c));
-                if (content.length > 0 && !isWhen(content)) {
-                    comparedContents.push({ content, at: child });
-                }
+                readAward(child);
+            } else {
+                awardsInComposite(child).forEach(readAward);
             }
             // a `<considerAsResponses>` is what is recorded, not what is
             // compared
@@ -413,6 +607,21 @@ export function decideAnswerTypesAtLoad({
             }
         }
 
+        /**
+         * `content` with each composite written in it replaced by what it
+         * expands to (COMP-1), so that content inside a `<group>` is
+         * compared as if written in its place (#2657 item 8).
+         */
+        function expandComposites(
+            content: (SerializedComponent | string)[],
+        ): (SerializedComponent | string)[] {
+            return content.flatMap((c) =>
+                typeof c === "object" && isWrittenComposite(c)
+                    ? contentOfComposite(c).filter((x) => !isBlank(x))
+                    : [c],
+            );
+        }
+
         /** The type each typed component of `content` is compared as. */
         function typedContent(content: (SerializedComponent | string)[]) {
             const typed: {
@@ -420,7 +629,7 @@ export function decideAnswerTypesAtLoad({
                 tag: string;
                 component: SerializedComponent;
             }[] = [];
-            for (const c of content) {
+            for (const c of expandComposites(content)) {
                 if (typeof c !== "object") {
                     continue;
                 }
@@ -430,6 +639,57 @@ export function decideAnswerTypesAtLoad({
                 }
             }
             return typed;
+        }
+
+        /**
+         * Whether the answer's sugar adds an input, with none written in the
+         * answer (`mayNeedInput` in `Answer.js`): not with a
+         * `<considerAsResponses>`, and only for content that needs one, not
+         * a `<booleanList>` (nor an award's `<when>` or `<orbitalDiagram>`),
+         * or for an award whose content isn't known. With none added, an
+         * award's content is compared with no input.
+         */
+        function sugarAddsInput() {
+            if (
+                sugarChildren.some(
+                    (child) =>
+                        typeof child === "object" &&
+                        isTag(child, "considerAsResponses"),
+                )
+            ) {
+                return false;
+            }
+            const needsInput = (
+                content: (SerializedComponent | string)[],
+                inAward: boolean,
+            ) =>
+                content.some((c) =>
+                    typeof c === "string"
+                        ? c.trim() !== ""
+                        : !(
+                              isTag(c, "booleanList") ||
+                              (inAward &&
+                                  (isTag(c, "when") ||
+                                      isTag(c, "orbitalDiagram")))
+                          ),
+                );
+            return (
+                comparedContents.some(({ content, at }) =>
+                    needsInput(content, at !== answer),
+                ) ||
+                awards.some(
+                    (award) =>
+                        (
+                            award.doenetAttributes?.copiedAward?.children ??
+                            (award.componentType === "award"
+                                ? award.children
+                                : undefined) ??
+                            []
+                        ).filter(
+                            (c: SerializedComponent | string) => !isBlank(c),
+                        ).length === 0,
+                )
+            );
         }
 
         let decided: AnswerType | undefined;
@@ -450,6 +710,9 @@ export function decideAnswerTypesAtLoad({
                             type: "error",
                             code: "doenet-e0092",
                             args: {
+                                // quoted as written, trimmed: another case
+                                // is not the type (D63 decision 4)
+                                typeWritten: writtenRaw!.trim(),
                                 type: written,
                                 input: tag,
                                 inputType,
@@ -479,7 +742,7 @@ export function decideAnswerTypesAtLoad({
                         ? "boolean"
                         : undefined;
             }
-            if (comparedContents.length > 0) {
+            if (comparedContents.length > 0 && sugarAddsInput()) {
                 const type = decided ?? "math";
                 comparedWith = { tag: ADDED_INPUT[type], type };
             }
@@ -490,20 +753,6 @@ export function decideAnswerTypesAtLoad({
         // than one input), a written `type` is still written as its keyword.
         const toWrite = decided ?? written;
         if (toWrite !== undefined && toWrite !== writtenRaw) {
-            if (writtenRaw !== undefined && written === undefined) {
-                // A `type` that names no type, replaced: reported here, as
-                // the answer's sugar would have, since it no longer sees it.
-                diagnostics.push({
-                    ...codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0078",
-                        args: { type: writtenRaw },
-                    }),
-                    position:
-                        (writtenAttribute as any)?.position ?? answer.position,
-                    sourceDoc: answer.sourceDoc,
-                });
-            }
             answer.attributes = {
                 ...answer.attributes,
                 type: {
@@ -514,6 +763,30 @@ export function decideAnswerTypesAtLoad({
             };
         }
 
+        // Every award of the answer that isn't its child as written (one held
+        // by a composite in it, or an `<award copy>`, whose content is its
+        // source's) reads its plain text as the answer's type, as one
+        // written in it does through the answer's `type` (#1874, #2657 item
+        // 5; `Award.js`).
+        if (toWrite !== undefined) {
+            for (const award of awards) {
+                if (
+                    award.componentType === "award" &&
+                    (answer.children ?? []).includes(award)
+                ) {
+                    continue;
+                }
+                award.attributes = {
+                    ...award.attributes,
+                    _answerType: {
+                        type: "primitive",
+                        name: "_answerType",
+                        primitive: { type: "string", value: toWrite },
+                    } as SerializedAttribute,
+                };
+            }
+        }
+
         // D55 decision 5: content of another type than the input can never
         // earn credit. Only content that is one component is compared as it
         // is: an award's sugar wraps content of more than one child in the
@@ -521,17 +794,32 @@ export function decideAnswerTypesAtLoad({
         // a math answer), so its typed components are read as that type.
         if (comparedWith !== undefined) {
             for (const { content } of comparedContents) {
-                if (content.length !== 1) {
+                if (expandComposites(content).length !== 1) {
                     continue;
                 }
                 for (const { type, tag, component } of typedContent(content)) {
                     if (type !== comparedWith.type) {
+                        // Its advice resolves a boolean–number mix inside it
+                        // too, so that is not also reported (`doenet-w0203`;
+                        // D67 decision 3, `booleanNumberMixAtLoad.ts`).
+                        component.doenetAttributes = {
+                            ...component.doenetAttributes,
+                            typeMixReportedAtLoad: true,
+                        };
                         diagnostics.push({
                             ...codedDiagnostic({
                                 type: "warning",
                                 code: "doenet-w0205",
                                 args: {
                                     contentType: tag,
+                                    // a reference is named by its value
+                                    // (D67 decision 4): "`$ti` gives a
+                                    // text"
+                                    isReference: referenceAsWritten(component)
+                                        ? "true"
+                                        : "false",
+                                    reference: referenceAsWritten(component),
+                                    type,
                                     input: comparedWith.tag,
                                     inputType: comparedWith.type,
                                 },
@@ -576,7 +864,10 @@ export function decideAnswerTypesAtLoad({
                         type: "warning",
                         code: "doenet-w0207",
                         args: {
-                            input: comparedWith?.tag ?? "mathInput",
+                            // the input the answer adds, or none (#2657
+                            // item 7)
+                            inputAdded: comparedWith ? "true" : "false",
+                            input: comparedWith?.tag ?? "",
                             ownContent: at === answer ? "true" : "false",
                         },
                     }),

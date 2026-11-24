@@ -111,9 +111,13 @@ function compareIndexComponents(
         : null;
 
     if (extending1 || extending2) {
+        // A reference that names nothing (`nodeIdx` -1, the placeholder every
+        // unresolvable reference is given) is a blank, and a blank equals
+        // nothing, another blank included (VAL-5, D37; #1853).
         if (
             !extending1 ||
             !extending2 ||
+            extending1.nodeIdx < 0 ||
             extending1.nodeIdx !== extending2.nodeIdx ||
             !comparePathsIgnorePosition(
                 extending1.unresolvedPath,

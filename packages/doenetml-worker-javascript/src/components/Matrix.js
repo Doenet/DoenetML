@@ -105,10 +105,12 @@ export default class Matrix extends MathComponent {
 
             let foundRowsOrColumns = false;
 
-            for (let child of matchedChildren) {
-                if (typeof child === "string") {
-                    continue;
-                }
+            /**
+             * Make a `<row>` or `<column>` (written, or made with `copy` or
+             * `extend`) a row or column of the matrix. Returns whether it
+             * was one.
+             */
+            function renameRowOrColumn(child) {
                 if (!child.doenetAttributes) {
                     child.doenetAttributes = {};
                 }
@@ -116,11 +118,11 @@ export default class Matrix extends MathComponent {
                     child.doenetAttributes.createNameFromComponentType =
                         "column";
                     child.componentType = "matrixColumn";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (child.componentType === "row") {
                     child.doenetAttributes.createNameFromComponentType = "row";
                     child.componentType = "matrixRow";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (
                     child.attributes?._createComponentOfType?.primitive
                         .value === "column"
@@ -129,7 +131,7 @@ export default class Matrix extends MathComponent {
                         "column";
                     child.attributes._createComponentOfType.primitive.value =
                         "matrixColumn";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (
                     child.attributes?._createComponentOfType?.primitive
                         .value === "row"
@@ -137,6 +139,62 @@ export default class Matrix extends MathComponent {
                     child.doenetAttributes.createNameFromComponentType = "row";
                     child.attributes._createComponentOfType.primitive.value =
                         "matrixRow";
+                    return true;
+                }
+                return false;
+            }
+
+            /**
+             * Rows and columns a composite written in the matrix expands to
+             * are the matrix's rows and columns, as if written in its place
+             * (COMP-1, #1873): a `<repeat>` of rows, a `<group>`, a case or
+             * an option holding them. Each is renamed, at any depth through
+             * composites and the options and cases of a `<select>` or
+             * `<conditionalContent>`. Returns whether any was found.
+             */
+            function renameRowsAndColumnsInComposite(composite) {
+                let found = false;
+                for (const child of composite.children ?? []) {
+                    if (typeof child !== "object") {
+                        continue;
+                    }
+                    if (renameRowOrColumn(child)) {
+                        found = true;
+                    } else if (
+                        isWrittenComposite(child) ||
+                        ["option", "case", "else"].some((type) =>
+                            componentInfoObjects.componentIsSpecifiedType(
+                                child,
+                                type,
+                            ),
+                        )
+                    ) {
+                        found = renameRowsAndColumnsInComposite(child) || found;
+                    }
+                }
+                return found;
+            }
+
+            function isWrittenComposite(child) {
+                return (
+                    child.componentType !== "_copy" &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "_composite",
+                    })
+                );
+            }
+
+            for (let child of matchedChildren) {
+                if (typeof child === "string") {
+                    continue;
+                }
+                if (renameRowOrColumn(child)) {
+                    foundRowsOrColumns = true;
+                } else if (
+                    isWrittenComposite(child) &&
+                    renameRowsAndColumnsInComposite(child)
+                ) {
                     foundRowsOrColumns = true;
                 }
 

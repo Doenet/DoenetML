@@ -49,6 +49,7 @@ import { namesAfterCollectionsDiagnostics } from "./namesAfterCollectionsAtLoad"
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { decideAnswerTypesAtLoad } from "./answerTypesAtLoad";
+import { markChoiceReferencesInChoiceInputs } from "./choiceReferencesAtLoad";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
@@ -955,6 +956,17 @@ export async function normalizedDastToSerializedComponents(
         ...decideAnswerTypesAtLoad({
             serializedComponents: expandedRoot,
             componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
+    // A bare `$choice` in a `<choiceInput>` is whether the choice was
+    // submitted, not the choice: it adds none (#2097).
+    diagnostics.push(
+        ...markChoiceReferencesInChoiceInputs({
+            serializedComponents: expandedRoot,
+            componentInfoObjects,
+            sources: normalized_root.sources,
         }),
     );
 
@@ -1228,7 +1240,8 @@ export async function normalizedDastToSerializedComponents(
 
     // An `<updateValue>` whose target is a container of several things,
     // which has no one value (COLL-3), is a warning at load (DIAG-1), not
-    // only once it acts. After sugar, which makes a `<repeat>`'s template.
+    // only once it acts; so is a `<callAction>` whose target names a
+    // property (#1565). After sugar, which makes a `<repeat>`'s template.
     diagnostics.push(
         ...checkActionTargetsAtLoad({
             serializedComponents: sugarResult.components,

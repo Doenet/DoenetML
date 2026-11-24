@@ -13,6 +13,9 @@
  * reports when it acts (`doenet-w0043`). Only what the DoenetML says is
  * read (DIAG-7): a container made by a reference or a copy is not checked.
  *
+ * Also a `<callAction>` whose `target` names a property (`doenet-w0211`,
+ * #1565; `callActionTargetDiagnostics`).
+ *
  * An `<updateValue>` warned about is marked
  * (`doenetAttributes.targetNotOneValueAtLoad`), so that acting does not
  * report again that its target has no value (`doenet-w0044`).
@@ -40,12 +43,75 @@ export function checkActionTargetsAtLoad({
     sources: string[];
 }) {
     const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
-    const { componentsByIdx } = documentReferents({
+    const { componentsByIdx, referentType } = documentReferents({
         serializedComponents,
         componentInfoObjects,
     });
 
+    /**
+     * A `<callAction>` acts on the component its `target` names, so a
+     * `target` with a property after that component (`$p.x`,
+     * `$p.styleDescription[1]`) names nothing, and the action does nothing
+     * (NAME-2; #1565): `doenet-w0211`, at load (DIAG-7). Only a referent
+     * that is not a composite is checked, since what is after a composite
+     * may name what it makes, decided when it expands; and only a property,
+     * since an index alone may name an entry of a list (`$pl[2]`), which is
+     * a target.
+     */
+    function callActionTargetDiagnostics(
+        component: SerializedComponent,
+        typeOfReferent: (nodeIdx: number) => string | undefined,
+    ) {
+        const attribute: any = component.attributes?.target;
+        const references = attribute?.references ?? [];
+        if (references.length !== 1 || !references[0]?.extending) {
+            return [];
+        }
+        const ref: any = unwrapSource(references[0].extending);
+        const firstUnresolved = ref?.unresolvedPath?.[0];
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            typeof firstUnresolved?.name !== "string" ||
+            firstUnresolved.name === ""
+        ) {
+            return [];
+        }
+        const type = typeOfReferent(ref.nodeIdx);
+        if (
+            type === undefined ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: type,
+                baseComponentType: "_composite",
+            })
+        ) {
+            return [];
+        }
+        const reference = doenetMLReferenceAsWritten(ref.originalPath, sources);
+        if (reference === "") {
+            return [];
+        }
+        return [
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0211",
+                args: {
+                    component: component.componentType,
+                    reference,
+                },
+                position: component.position,
+                sourceDoc: component.sourceDoc,
+            }),
+        ];
+    }
+
     for (const component of componentsByIdx.values()) {
+        if (component.componentType === "callAction") {
+            diagnostics.push(
+                ...callActionTargetDiagnostics(component, referentType),
+            );
+            continue;
+        }
         if (!ACTIONS.has(component.componentType)) {
             continue;
         }

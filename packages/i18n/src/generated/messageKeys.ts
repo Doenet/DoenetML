@@ -659,6 +659,9 @@ export type MessageKey =
     | "award-content-type-mix"
     | "award-content-several-inputs"
     | "award-content-for-answer-input"
+    | "answer-label-not-on-input"
+    | "choice-reference-in-choice-input"
+    | "action-target-not-a-component"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
@@ -1386,6 +1389,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "award-content-type-mix",
     "award-content-several-inputs",
     "award-content-for-answer-input",
+    "answer-label-not-on-input",
+    "choice-reference-in-choice-input",
+    "action-target-not-a-component",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",

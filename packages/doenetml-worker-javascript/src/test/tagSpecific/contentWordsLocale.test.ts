@@ -175,8 +175,9 @@ describe("content words follow the document locale @group4", () => {
     describe("default submit labels", () => {
         const doenetML = `
         <answer name="a">42</answer>
+        <answer name="b" showCorrectness="false">42</answer>
         <text name="withCorrectness" extend="$a.submitLabel" />
-        <text name="withoutCorrectness" extend="$a.submitLabelNoCorrectness" />
+        <text name="withoutCorrectness" extend="$b.submitLabel" />
         `;
         const names = ["withCorrectness", "withoutCorrectness"];
 
@@ -198,9 +199,10 @@ describe("content words follow the document locale @group4", () => {
             // The author chose these words for their document. Translating
             // them would be Doenet overwriting content it did not write.
             const authored = `
-            <answer name="a" submitLabel="¿Listo?" submitLabelNoCorrectness="Entregar">42</answer>
+            <answer name="a" submitLabel="¿Listo?">42</answer>
+            <answer name="b" submitLabel="Entregar" showCorrectness="false">42</answer>
             <text name="withCorrectness" extend="$a.submitLabel" />
-            <text name="withoutCorrectness" extend="$a.submitLabelNoCorrectness" />
+            <text name="withoutCorrectness" extend="$b.submitLabel" />
             `;
             const expected = {
                 withCorrectness: "¿Listo?",

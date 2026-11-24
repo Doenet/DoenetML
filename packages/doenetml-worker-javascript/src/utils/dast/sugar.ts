@@ -32,6 +32,7 @@ export function applySugar({
     isAttributeComponent = false,
     nComponents,
     stateIdInfo,
+    childrenFromSource,
 }: {
     serializedComponents: (string | SerializedComponent)[];
     parentParametersFromSugar?: Record<string, any>;
@@ -49,6 +50,15 @@ export function applySugar({
     isAttributeComponent?: boolean;
     nComponents: number;
     stateIdInfo?: { prefix: string; num: number };
+    /**
+     * For the children written on a copy (`addChildrenFromComposite` in
+     * `Copy.js`), the children its replacement has from its source, which
+     * their own sugar has read, so that the sugar of the replacement's type
+     * can see them beside the copy's (an `<answer copy>` with an `<award>`
+     * of its own adds no input when its source has one, #2657 item 9). Only
+     * for the components in `serializedComponents`, not what they hold.
+     */
+    childrenFromSource?: (string | SerializedComponent)[];
 }): {
     components: (string | SerializedComponent)[];
     diagnostics: DiagnosticRecord[];
@@ -135,6 +145,7 @@ export function applySugar({
                         isAttributeComponent,
                         nComponents,
                         stateIdInfo,
+                        childrenFromSource,
                     });
 
                     if (sugarResults.diagnostics) {

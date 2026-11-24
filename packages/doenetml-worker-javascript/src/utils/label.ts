@@ -443,6 +443,14 @@ export function returnLabelStateVariableDefinitions({
                     dependencyType: "doenetAttribute",
                     attributeName: "createdFromSugar",
                 };
+                // An input written as the one input of an `<answer>` with a
+                // `<label>`, and no label of its own, is labeled by the
+                // answer's, as one the answer adds is (D66 decision 2,
+                // `answerTypesAtLoad.ts`).
+                dependencies.labelFromAnswer = {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "labelFromAnswer",
+                };
                 dependencies.parentLabel = {
                     dependencyType: "parentStateVariable",
                     variableName: "label",
@@ -629,7 +637,8 @@ export function returnLabelStateVariableDefinitions({
                 };
             } else if (
                 dependencyValues.getLabelFromParentIfSugared &&
-                dependencyValues.createdFromSugar &&
+                (dependencyValues.createdFromSugar ||
+                    dependencyValues.labelFromAnswer) &&
                 dependencyValues.parentLabel
             ) {
                 return {

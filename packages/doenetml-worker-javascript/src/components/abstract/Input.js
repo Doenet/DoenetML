@@ -119,7 +119,6 @@ export default class Input extends InlineComponent {
                         "showCorrectness",
                         "colorCorrectness",
                         "submitLabel",
-                        "submitLabelNoCorrectness",
                         "numAttemptsLeft",
                         "creditIsReducedByAttempt",
                         "numIncorrectSubmissions",
@@ -586,27 +585,6 @@ export default class Input extends InlineComponent {
                     submitLabel = "";
                 }
                 return { setValue: { submitLabel } };
-            },
-        };
-
-        stateVariableDefinitions.submitLabelNoCorrectness = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                answerAncestor: {
-                    dependencyType: "stateVariable",
-                    variableName: "answerAncestor",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let submitLabelNoCorrectness;
-                if (dependencyValues.answerAncestor) {
-                    submitLabelNoCorrectness =
-                        dependencyValues.answerAncestor.stateValues
-                            .submitLabelNoCorrectness;
-                } else {
-                    submitLabelNoCorrectness = "";
-                }
-                return { setValue: { submitLabelNoCorrectness } };
             },
         };
 

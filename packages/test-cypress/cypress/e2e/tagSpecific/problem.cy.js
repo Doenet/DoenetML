@@ -928,9 +928,11 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
 
+            // One `submitLabel`, used whether or not correctness is shown;
+            // `submitLabelNoCorrectness` is read as it (D66 decision 15).
             cy.get("#prob1_button").should("contain.text", "Check Work");
             cy.get("#prob2_button").should("contain.text", "Hit it!");
-            cy.get("#prob3_button").should("contain.text", "Check Work");
+            cy.get("#prob3_button").should("contain.text", "Guess");
             cy.get("#prob4_button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
@@ -954,14 +956,14 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get("#testRunner_toggleControls").click();
 
             cy.get("#prob1_button").should("contain.text", "Submit Response");
-            cy.get("#prob2_button").should("contain.text", "Submit Response");
+            cy.get("#prob2_button").should("contain.text", "Hit it!");
             cy.get("#prob3_button").should("contain.text", "Guess");
-            cy.get("#prob4_button").should("contain.text", "Guess");
+            cy.get("#prob4_button").should("contain.text", "Hit it!");
 
             cy.get("#prob1_button").should("contain.text", "Submit Response");
-            cy.get("#prob2_button").should("contain.text", "Submit Response");
+            cy.get("#prob2_button").should("contain.text", "Hit it!");
             cy.get("#prob3_button").should("contain.text", "Guess");
-            cy.get("#prob4_button").should("contain.text", "Guess");
+            cy.get("#prob4_button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -1019,9 +1021,11 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.wait(100);
             cy.get("#testRunner_toggleControls").click();
 
-            cy.get("#doc_button").should("contain.text", "Guess");
+            // `submitLabel` is written, so the retired
+            // `submitLabelNoCorrectness` is dropped (D66 decision 15)
+            cy.get("#doc_button").should("contain.text", "Hit it!");
 
-            cy.get("#doc_button").should("contain.text", "Guess");
+            cy.get("#doc_button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
 

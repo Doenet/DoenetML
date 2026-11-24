@@ -250,18 +250,55 @@ const SCORED_SECTION_COLORING_RENAMES = renamedScoredSectionAttribute(
     "colorAnswersSeparately",
 );
 
+/**
+ * `submitLabelNoCorrectness` is retired (D66 decision 15, #349): one
+ * `submitLabel`, whose default depends on `showCorrectness`, labels the button
+ * whether or not correctness is shown. On `<answer>` and on every scored
+ * section, which take the same pair of attributes.
+ */
+const SUBMIT_LABEL_RENAMES: Record<
+    string,
+    Record<string, AttributeRenameRule>
+> = {
+    ...renamedScoredSectionAttribute("submitLabelNoCorrectness", "submitLabel"),
+    answer: {
+        submitLabelNoCorrectness: {
+            from: "submitLabelNoCorrectness",
+            to: "submitLabel",
+        },
+    },
+};
+
+/** Merge per-component rename rules; a later map's rules win on conflict. */
+function mergeRenames(
+    ...maps: Record<string, Record<string, AttributeRenameRule>>[]
+): Record<string, Record<string, AttributeRenameRule>> {
+    const merged: Record<string, Record<string, AttributeRenameRule>> = {};
+    for (const map of maps) {
+        for (const [component, rules] of Object.entries(map)) {
+            merged[component] = { ...merged[component], ...rules };
+        }
+    }
+    return merged;
+}
+
+const SCORED_SECTION_RENAMES = mergeRenames(
+    SCORED_SECTION_COLORING_RENAMES,
+    SUBMIT_LABEL_RENAMES,
+);
+
 const TABULAR_BORDER_ATTRIBUTE_RENAMES = tabularBorderRenames();
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
         // Merge per-component rules, spreading scored-section rename rules
         // first so component-specific rules take precedence on conflict.
-        ...SCORED_SECTION_COLORING_RENAMES,
+        ...SCORED_SECTION_RENAMES,
         ...TABULAR_BORDER_ATTRIBUTE_RENAMES,
         document: {
-            // document already has a scored-section rename (spread above) plus
-            // its own documentWideCheckWork rename.
-            ...SCORED_SECTION_COLORING_RENAMES["document"],
+            // document already has the scored-section renames (spread above)
+            // plus its own documentWideCheckWork rename.
+            ...SCORED_SECTION_RENAMES["document"],
             documentWideCheckWork: {
                 from: "documentWideCheckWork",
                 to: "sectionWideCheckWork",

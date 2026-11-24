@@ -13,6 +13,7 @@ import {
     returnLabelStateVariableDefinitions,
     returnLabelChildIndDefinition,
 } from "../utils/label";
+import { answerContentType } from "../utils/answerContentType";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { missingResponseValue } from "./abstract/referenceSlotDefinitions";
 import {
@@ -112,6 +113,43 @@ function responseTypesForEvent(atLoad, responses) {
                 ? "boolean"
                 : "text",
     );
+}
+
+/**
+ * The position of the content the `<answer>`'s sugar wraps in an award of its
+ * own (`wrapped`), as `{ position, sourceDoc }`, or `{}` when it can't be
+ * told: from the first to the last component in it that has a position, or,
+ * for text alone, which keeps no position, from the end of the component
+ * before it to the start of the one after it.
+ */
+function wrappedContentPosition(before, wrapped, after) {
+    const positioned = wrapped.filter(
+        (child) => typeof child === "object" && child.position,
+    );
+    if (positioned.length > 0) {
+        const first = positioned[0];
+        const last = positioned[positioned.length - 1];
+        return {
+            position: { start: first.position.start, end: last.position.end },
+            sourceDoc: first.sourceDoc,
+        };
+    }
+    const previous = before.findLast(
+        (child) => typeof child === "object" && child.position,
+    );
+    const next = after.find(
+        (child) => typeof child === "object" && child.position,
+    );
+    if (previous && next && previous.sourceDoc === next.sourceDoc) {
+        return {
+            position: {
+                start: previous.position.end,
+                end: next.position.start,
+            },
+            sourceDoc: previous.sourceDoc,
+        };
+    }
+    return {};
 }
 
 export default class Answer extends InlineComponent {
@@ -478,6 +516,7 @@ export default class Answer extends InlineComponent {
             componentInfoObjects,
             nComponents,
             stateIdInfo,
+            childrenFromSource,
         }) {
             // if children are strings and macros
             // wrap with award
@@ -532,6 +571,72 @@ export default class Answer extends InlineComponent {
                     child.doenetAttributes?.copiedAward?.children ??
                     child.children ??
                     []
+                );
+            }
+
+            /**
+             * Whether `child` is a composite written out (not a reference or
+             * a tag made with `copy` or `extend`, which name their type).
+             */
+            function isWrittenComposite(child) {
+                return (
+                    typeof child === "object" &&
+                    child.componentType !== "_copy" &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "_composite",
+                    }) &&
+                    !child.attributes?._createComponentOfType?.primitive
+                );
+            }
+
+            /**
+             * The awards a composite written in the answer holds: those it
+             * expands to, written in it, at any depth through composites and
+             * the options and cases of a `<select>` or
+             * `<conditionalContent>`. A composite's content is shown as if
+             * written in its place (COMP-1, #1874), so these are the
+             * answer's awards. A `<setup>` shows nothing, so holds none.
+             * (`answerTypesAtLoad.ts` reads the same awards, by tag.)
+             */
+            function awardsInComposite(child) {
+                const found = [];
+                function visit(components) {
+                    for (const c of components) {
+                        if (typeof c !== "object") {
+                            continue;
+                        }
+                        if (componentIsSpecifiedType(c, "award")) {
+                            found.push(c);
+                        } else if (
+                            (isWrittenComposite(c) &&
+                                !componentIsSpecifiedType(c, "setup")) ||
+                            ["option", "case", "else"].some((type) =>
+                                componentIsSpecifiedType(c, type),
+                            )
+                        ) {
+                            visit(c.children ?? []);
+                        }
+                    }
+                }
+                if (
+                    isWrittenComposite(child) &&
+                    !componentIsSpecifiedType(child, "setup")
+                ) {
+                    visit(child.children ?? []);
+                }
+                return found;
+            }
+
+            /**
+             * The awards of the answer: each written in it, and each held by
+             * a composite written in it.
+             */
+            function answerAwards(children) {
+                return children.flatMap((child) =>
+                    componentIsSpecifiedType(child, "award")
+                        ? [child]
+                        : awardsInComposite(child),
                 );
             }
 
@@ -595,34 +700,111 @@ export default class Answer extends InlineComponent {
                 lastNonBlankInd + 1,
             );
 
+            /**
+             * Read the award `award` (written in the answer, or held by a
+             * composite written in it) for whether the answer needs an
+             * input, and of which type.
+             */
+            function examineAward(award) {
+                foundAward = true;
+                // An `<award copy>` is decided as its source written
+                // out (CPY-1), from the children it will hold
+                // (`copiedAwards.ts`).
+                const copiedAward = award.doenetAttributes?.copiedAward;
+                if (
+                    award.attributes?.referencesAreResponses ||
+                    copiedAward?.referencesAreResponses
+                ) {
+                    foundResponse = true;
+                }
+                const awardChildren = awardChildrenOf(award);
+                if (awardChildren.length > 0) {
+                    for (let grandChild of awardChildren) {
+                        const contentType =
+                            typeof grandChild === "object"
+                                ? answerContentType((tag) =>
+                                      componentIsSpecifiedType(grandChild, tag),
+                                  )
+                                : undefined;
+                        if (typeof grandChild !== "object") {
+                            if (grandChild.trim()) {
+                                mayNeedInput = true;
+                            }
+                        } else if (contentType === "when") {
+                            // a condition, which needs no input
+                        } else if (contentType === "math") {
+                            foundMath = true;
+                            mayNeedInput = true;
+                        } else if (contentType === "text") {
+                            foundText = true;
+                            mayNeedInput = true;
+                        } else if (contentType === "boolean") {
+                            foundBoolean = true;
+                            mayNeedInput = true;
+                        } else if (contentType === "booleanList") {
+                            // TODO: what should we do with a booleanList,
+                            // as don't have a booleanList input?
+                            foundBoolean = true;
+                        } else if (
+                            componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType:
+                                    grandChild.componentType,
+                                baseComponentType: "_composite",
+                            }) &&
+                            !grandChild.attributes?._createComponentOfType
+                                ?.primitive
+                        ) {
+                            mayNeedInput = true;
+                        } else if (
+                            componentIsSpecifiedType(
+                                grandChild,
+                                "orbitalDiagram",
+                            )
+                        ) {
+                            // Note: should add componentTypes as create more comparable types in award
+                        } else {
+                            // could be a component that could adapt into a math/text/boolean
+                            mayNeedInput = true;
+                        }
+                    }
+                } else {
+                    // No children, or a copy whose source the DoenetML
+                    // does not give, so it is not known what it holds.
+                    mayNeedInput = true;
+                }
+            }
+
             let childIsWrappable = [];
             for (let child of matchedChildren) {
+                const contentType =
+                    typeof child === "object"
+                        ? answerContentType((tag) =>
+                              componentIsSpecifiedType(child, tag),
+                          )
+                        : undefined;
                 if (typeof child !== "object") {
                     childIsWrappable.push(true);
                     if (child.trim()) {
                         mayNeedInput = true;
                     }
-                } else if (
-                    componentIsSpecifiedType(child, "math") ||
-                    componentIsSpecifiedType(child, "number") ||
-                    componentIsSpecifiedType(child, "mathList") ||
-                    componentIsSpecifiedType(child, "numberList")
-                ) {
+                } else if (contentType === "math") {
                     childIsWrappable.push(true);
                     mayNeedInput = true;
                     foundMath = true;
-                } else if (
-                    componentIsSpecifiedType(child, "text") ||
-                    componentIsSpecifiedType(child, "textList")
-                ) {
+                } else if (contentType === "text") {
                     childIsWrappable.push(true);
                     foundText = true;
                     mayNeedInput = true;
-                } else if (componentIsSpecifiedType(child, "boolean")) {
+                } else if (
+                    contentType === "boolean" ||
+                    contentType === "when"
+                ) {
+                    // a `<when>` written in the answer is wrapped in an award
+                    // as its condition
                     childIsWrappable.push(true);
                     foundBoolean = true;
                     mayNeedInput = true;
-                } else if (componentIsSpecifiedType(child, "booleanList")) {
+                } else if (contentType === "booleanList") {
                     // TODO: what should we do with a booleanList,
                     // as don't have a booleanList input?
                     childIsWrappable.push(true);
@@ -631,92 +813,18 @@ export default class Answer extends InlineComponent {
                     childIsWrappable.push(true);
                     nChoicesFound++;
                 } else if (componentIsSpecifiedType(child, "award")) {
-                    foundAward = true;
                     childIsWrappable.push(false);
-                    // An `<award copy>` is decided as its source written
-                    // out (CPY-1), from the children it will hold
-                    // (`copiedAwards.ts`).
-                    const copiedAward = child.doenetAttributes?.copiedAward;
-                    if (
-                        child.attributes?.referencesAreResponses ||
-                        copiedAward?.referencesAreResponses
-                    ) {
-                        foundResponse = true;
-                    }
-                    const awardChildren = awardChildrenOf(child);
-                    if (awardChildren.length > 0) {
-                        for (let grandChild of awardChildren) {
-                            if (typeof grandChild !== "object") {
-                                if (grandChild.trim()) {
-                                    mayNeedInput = true;
-                                }
-                            } else if (
-                                componentIsSpecifiedType(grandChild, "when")
-                            ) {
-                                // have to test for `when` before `boolean`, since `when` is derived from `boolean`!
-                            } else if (
-                                componentIsSpecifiedType(grandChild, "math") ||
-                                componentIsSpecifiedType(
-                                    grandChild,
-                                    "number",
-                                ) ||
-                                componentIsSpecifiedType(
-                                    grandChild,
-                                    "mathList",
-                                ) ||
-                                componentIsSpecifiedType(
-                                    grandChild,
-                                    "numberList",
-                                )
-                            ) {
-                                foundMath = true;
-                                mayNeedInput = true;
-                            } else if (
-                                componentIsSpecifiedType(grandChild, "text") ||
-                                componentIsSpecifiedType(grandChild, "textList")
-                            ) {
-                                foundText = true;
-                                mayNeedInput = true;
-                            } else if (
-                                componentIsSpecifiedType(grandChild, "boolean")
-                            ) {
-                                foundBoolean = true;
-                                mayNeedInput = true;
-                            } else if (
-                                componentIsSpecifiedType(
-                                    grandChild,
-                                    "booleanList",
-                                )
-                            ) {
-                                // TODO: what should we do with a booleanList,
-                                // as don't have a booleanList input?
-                                foundBoolean = true;
-                            } else if (
-                                componentInfoObjects.isInheritedComponentType({
-                                    inheritedComponentType:
-                                        grandChild.componentType,
-                                    baseComponentType: "_composite",
-                                }) &&
-                                !grandChild.attributes?._createComponentOfType
-                                    ?.primitive
-                            ) {
-                                mayNeedInput = true;
-                            } else if (
-                                componentIsSpecifiedType(
-                                    grandChild,
-                                    "orbitalDiagram",
-                                )
-                            ) {
-                                // Note: should add componentTypes as create more comparable types in award
-                            } else {
-                                // could be a component that could adapt into a math/text/boolean
-                                mayNeedInput = true;
-                            }
-                        }
-                    } else {
-                        // No children, or a copy whose source the DoenetML
-                        // does not give, so it is not known what it holds.
-                        mayNeedInput = true;
+                    examineAward(child);
+                } else if (componentIsSpecifiedType(child, "setup")) {
+                    // A `<setup>` shows nothing, so it is neither content to
+                    // wrap in an award nor an award (#1874).
+                    childIsWrappable.push(false);
+                } else if (awardsInComposite(child).length > 0) {
+                    // A composite holding awards expands to them (COMP-1,
+                    // #1874): they are the answer's awards, not content.
+                    childIsWrappable.push(false);
+                    for (const award of awardsInComposite(child)) {
+                        examineAward(award);
                     }
                 } else if (componentIsSpecifiedType(child, "mathInput")) {
                     childIsWrappable.push(false);
@@ -749,6 +857,18 @@ export default class Answer extends InlineComponent {
                     childIsWrappable.push(true);
                     mayNeedInput = true;
                 }
+            }
+
+            // The children written on an `<answer copy>` are sugared beside
+            // those it has from its source (`childrenFromSource`): an input
+            // from the source is its input, so none is added (#2657 item 9).
+            const inputFromSource = childrenFromSource?.find(
+                (child) =>
+                    typeof child === "object" &&
+                    componentIsSpecifiedType(child, "_input"),
+            );
+            if (inputFromSource) {
+                definitelyDoNotAddInput = true;
             }
 
             if (definitelyDoNotAddInput) {
@@ -804,14 +924,12 @@ export default class Answer extends InlineComponent {
 
             if (!mayNeedInput && !foundResponse) {
                 // recurse to all descendants of awards to see if have a response
-                for (let child of matchedChildren) {
-                    if (componentIsSpecifiedType(child, "award")) {
-                        const awardChildren = awardChildrenOf(child);
-                        if (awardChildren.length > 0) {
-                            if (checkForResponseDescendant(awardChildren)) {
-                                foundResponse = true;
-                                break;
-                            }
+                for (const award of answerAwards(matchedChildren)) {
+                    const awardChildren = awardChildrenOf(award);
+                    if (awardChildren.length > 0) {
+                        if (checkForResponseDescendant(awardChildren)) {
+                            foundResponse = true;
+                            break;
                         }
                     }
                 }
@@ -819,7 +937,7 @@ export default class Answer extends InlineComponent {
                 if (!foundResponse) {
                     // definitely have a case where there is not a response
                     // look inside each award and add isPotentialResponse to any reference
-                    for (let child of matchedChildren) {
+                    for (const child of answerAwards(matchedChildren)) {
                         if (child.doenetAttributes?.copiedAward) {
                             // Its references are made from its source's
                             // when it is made, and marked then (`Award.js`).
@@ -900,18 +1018,24 @@ export default class Answer extends InlineComponent {
             if (componentAttributes.type) {
                 type = componentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
-                    if (type.toLowerCase() === "videowatched") {
+                    if (type.trim().toLowerCase() === "videowatched") {
                         return { success: false };
                     }
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0078",
-                            args: { type },
-                        }),
-                    );
+                    // A `type` that names no type is reported at load, at
+                    // the attribute (`doenet-w0078`, `answerTypesAtLoad.ts`;
+                    // D67 decision 5).
                     type = "math";
                 }
+            } else if (
+                inputFromSource &&
+                ["textInput", "booleanInput"].some((inputType) =>
+                    componentIsSpecifiedType(inputFromSource, inputType),
+                )
+            ) {
+                // An `<answer copy>`'s type is its source's input's (ANS-4).
+                type = componentIsSpecifiedType(inputFromSource, "textInput")
+                    ? "text"
+                    : "boolean";
             } else {
                 // Only when the type was not decided at load
                 // (`answerTypesAtLoad.ts`), which writes it as `type`.
@@ -926,6 +1050,27 @@ export default class Answer extends InlineComponent {
                     type = "boolean";
                 } else {
                     type = "math";
+                }
+            }
+
+            // The awards written on an `<answer copy>` read their plain text
+            // as the answer's type, which the copy's own attributes may not
+            // carry (#2657 item 9; `_answerType` in `Award.js`).
+            const answerTypeForAwards = childrenFromSource
+                ? {
+                      _answerType: {
+                          type: "primitive",
+                          name: "_answerType",
+                          primitive: { type: "string", value: type },
+                      },
+                  }
+                : {};
+            if (childrenFromSource) {
+                for (const award of answerAwards(matchedChildren)) {
+                    award.attributes = {
+                        ...answerTypeForAwards,
+                        ...award.attributes,
+                    };
                 }
             }
 
@@ -946,9 +1091,17 @@ export default class Answer extends InlineComponent {
                             ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                             : undefined,
                         children: awardChildren,
-                        attributes: {},
+                        attributes: { ...answerTypeForAwards },
                         doenetAttributes: {},
                         state: {},
+                        // where the content it wraps is written, so that
+                        // what is reported of it is located there rather
+                        // than at the whole answer (DIAG-4, #2657 item 13)
+                        ...wrappedContentPosition(
+                            childrenToNotWrapBegin,
+                            childrenToWrap,
+                            childrenToNotWrapEnd,
+                        ),
                     },
                     ...childrenToNotWrapEnd,
                 ];
