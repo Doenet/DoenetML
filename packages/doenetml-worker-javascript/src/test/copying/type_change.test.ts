@@ -18,6 +18,7 @@ const TYPE_CHANGE_CODES = [
     "doenet-e0065",
     "doenet-e0066",
     "doenet-e0067",
+    "doenet-e0071",
     "doenet-i0053",
     "doenet-i0054",
 ];
@@ -420,11 +421,13 @@ describe("A reference written as a different tag is allowed only between related
         });
         expect(typeChangeDiagnostics()).eqls([
             {
-                code: "doenet-e0065",
+                // a tag that makes its content itself is made only from its
+                // own kind (D48 decision 2)
+                code: "doenet-e0071",
                 type: "error",
                 line: 9,
                 message:
-                    "A `<collect>` can't be made from `$G.cc`, which gives a `<conditionalContent>`. To show it as it is, write `$G.cc`.",
+                    "A `<collect>` makes its content itself, so it can be made only from another `<collect>`, and `$G.cc` isn't one. To show it as it is, write `$G.cc`.",
             },
         ]);
         // No longer the warning that blamed a missing source.
@@ -482,7 +485,7 @@ describe("A reference written as a different tag is allowed only between related
             ["doenet-e0065", "error", 9],
             ["doenet-e0064", "error", 10],
             ["doenet-e0065", "error", 11],
-            ["doenet-e0065", "error", 12],
+            ["doenet-e0071", "error", 12],
         ]);
     });
 

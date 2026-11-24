@@ -764,7 +764,8 @@ describe("Names after collections, round 2 (#2638)", () => {
             "error doenet-e0005",
             "error doenet-e0005",
             "error doenet-e0065",
-            "error doenet-e0065",
+            // a `<select>` made from a `<p>`: only from its own kind (D48)
+            "error doenet-e0071",
         ]);
     });
 

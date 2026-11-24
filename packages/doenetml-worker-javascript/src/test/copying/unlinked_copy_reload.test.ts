@@ -1145,37 +1145,52 @@ describe("A saved value restored to a component of another type @group4", () => 
     `;
 
     for (const form of ["copy", "copyWithState"]) {
-        it(`is dropped, for a ${form} of a collect`, async () => {
-            const r = await reloader(
+        // This was the route to B36: `<group copy="$col">` made its inputs
+        // again on load from what the collect held then, so a textInput got
+        // the `stateId` of the mathInput the reader typed into, and the
+        // saved value was dropped. A `<group>` made from a collection is now
+        // an error (D64, #2649), and a `<collect>` copied keeps its kind,
+        // whose inputs are the collected ones, with their own `stateId`s.
+        it(`a ${form} of a collect as a group is an error, and as a collect keeps its values with what it collects`, async () => {
+            const asGroup = await reloader(
                 doenetMLFor(`<group ${form}="$col" name="gc"/>`),
             );
+            expect(
+                getDiagnosticsByType(asGroup.core()).errors.map(
+                    (d: any) => d.code,
+                ),
+            ).eqls(["doenet-e0065"]);
+
+            const r = await reloader(
+                doenetMLFor(`<collect ${form}="$col" name="gc"/>`),
+            );
+            /** The input the copy of the collect shows. */
+            async function item() {
+                const components = (r.core() as any).core._components;
+                return components[await r.resolve("gc")].replacements.find(
+                    (x: any) => typeof x === "object",
+                );
+            }
+            expect((await item()).componentType).eq("mathInput");
             await updateMathInputValue({
                 latex: "x+1",
-                componentIdx: await r.resolve("gc.i"),
+                componentIdx: (await item()).componentIdx,
                 core: r.core(),
             });
+            expect((await r.sv("col[1]")).stateValues.value.tree).eqls([
+                "+",
+                "x",
+                1,
+            ]);
             await r.setBoolean("b", true);
 
             const saved = await r.reload();
-            // the mathInput the reader typed into, which the textInput made
-            // again on load has the `stateId` of
-            const [stateId] = Object.entries(saved.__componentTypes).find(
-                ([, type]) => type === "mathInput",
-            )!;
-            expect(saved[stateId].value).eqls(["+", "x", 1]);
-
-            const i = await r.sv("gc.i");
-            expect(i.componentType).eq("textInput");
-            expect(i.stateValues.value).eq("");
-            await updateTextInputValue({
-                text: "hello",
-                componentIdx: await r.resolve("gc.i"),
-                core: r.core(),
-            });
-
-            const resaved = await r.reload();
-            expect(resaved.__componentTypes[stateId]).eq("textInput");
-            expect((await r.sv("gc.i")).stateValues.value).eq("hello");
+            expect(Object.keys(saved.__componentTypes).sort()).eqls([
+                "/~b",
+                "/~s/~cc/1/0/0",
+            ]);
+            expect((await item()).componentType).eq("textInput");
+            expect(await (await item()).stateValues.value).eq("");
         });
     }
 
@@ -1183,11 +1198,11 @@ describe("A saved value restored to a component of another type @group4", () => 
         // their components shadow what they collect, whose values are saved
         // under its own `stateId`
         const r = await reloader(
-            doenetMLFor(`<group extend="$col" name="ge"/>`),
+            doenetMLFor(`<collect extend="$col" name="ge"/>`),
         );
         await updateMathInputValue({
             latex: "x+1",
-            componentIdx: await r.resolve("ge.i"),
+            componentIdx: await r.resolve("ge[1]"),
             core: r.core(),
         });
         await r.setBoolean("b", true);
@@ -1196,7 +1211,7 @@ describe("A saved value restored to a component of another type @group4", () => 
             "/~b",
             "/~s/~cc/1/0/0",
         ]);
-        expect((await r.sv("ge.i")).stateValues.value).eq("");
+        expect((await r.sv("ge[1]")).stateValues.value).eq("");
         expect((await r.sv("col[1]")).stateValues.value).eq("");
     });
 
