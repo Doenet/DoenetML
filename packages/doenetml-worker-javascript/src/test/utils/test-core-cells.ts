@@ -37,6 +37,7 @@ import {
     sectionBoxed,
     TRANSPARENT,
     childrenLatex,
+    displaySettings,
     mdLatex,
     pointLatex,
 } from "../../../../doenetml-worker/src/cells/contracts";
@@ -162,6 +163,10 @@ function responseOf(cells: Cells, input: number): unknown {
     if (cells.table.tag(input) === "booleanInput") {
         return cells.value(cells.propCells(input, "value")[0]) !== 0;
     }
+    // A text answer's response is the text typed.
+    if (cells.table.tag(input) === "textInput") {
+        return cells.text(cells.propCells(input, "value")[0]);
+    }
     return exprOf(cells, cells.propCells(input, "expr")[0]);
 }
 
@@ -209,7 +214,9 @@ const answerReaders: Record<string, Reader> = {
         ).map((cell, k) =>
             x.cells.table.tag(inputs[k]) === "booleanInput"
                 ? x.cells.value(cell) !== 0
-                : exprOf(x.cells, cell),
+                : x.cells.table.tag(inputs[k]) === "textInput"
+                  ? x.cells.text(cell)
+                  : exprOf(x.cells, cell),
         );
     },
     // The `showCorrectness` flag is not modelled: the attribute on the
@@ -1473,6 +1480,56 @@ STATE.cascade = {
             (k) => x.cells.core.revealed(k) === 2,
         ),
     sectionToShowCascadeMessage: (_g, x) => chosenStep(x.cells, x.idx),
+};
+
+/** A `<summaryStatistics>`' statistics, in the order both cores list
+ * them: bit `k` of its `statisticsShown` is the `k`th. */
+const SUMMARY_STATISTICS = [
+    "mean",
+    "stdev",
+    "variance",
+    "stderr",
+    "count",
+    "minimum",
+    "quartile1",
+    "median",
+    "quartile3",
+    "maximum",
+    "range",
+    "sum",
+];
+/** Its statistics shown, by `statisticsShown`. */
+const statisticsShown = (g: Get) =>
+    SUMMARY_STATISTICS.filter((_s, k) => (g("statisticsShown") >> k) & 1);
+STATE.summaryStatistics = {
+    // A statistic of no values has none: the current core's null.
+    ...Object.fromEntries(
+        SUMMARY_STATISTICS.map((s) => [
+            s,
+            (g: Get) => (Number.isNaN(g(s)) ? null : g(s)),
+        ]),
+    ),
+    statisticsToDisplay: (g) => statisticsShown(g),
+    // Each statistic shown as its table writes it: rounded by the display
+    // settings, the count as the number it is.
+    summaryStatistics: (g, x) =>
+        Object.fromEntries(
+            statisticsShown(g).map((s) => {
+                const v = g(s);
+                if (Number.isNaN(v)) return [s, null];
+                if (s === "count") return [s, v];
+                const display = displaySettings(x.cells.table, x.idx);
+                return [s, x.cells.core.number_display_latex(v, display)];
+            }),
+        ),
+};
+// A multivariate sample (ADR 0067): one number per category, and the
+// population's counts.
+STATE.sampleMultivariateRandomNumber = {
+    ...numberListReaders("sampledValues"),
+    numCategories: (g) => g("numCategories"),
+    numTotal: (g) => g("numTotal"),
+    numDraws: (g) => g("numDraws"),
 };
 
 /** State variables a type does not have, as the current core's does not:

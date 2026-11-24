@@ -88,6 +88,11 @@ impl Outlining<'_> {
         if self.ar.refs[p.index()].prop.is_some() {
             return Ok(());
         }
+        // An extend that names nothing (warned where it is written) has
+        // nothing to clone: the copy is its own children (ADR 0073).
+        if self.ar.refs[p.index()].names_nothing() {
+            return Ok(());
+        }
         let r = self
             .rd()
             .plan_elem_target(&self.ar, t, p)
@@ -207,6 +212,14 @@ impl Outlining<'_> {
             && let Ok(Some(rt)) = self.rd().ref_target_type(&self.ar, t, p)
             && rt != component_type
         {
+            // An input is not the value it would hold (REF-5, D26).
+            if ComponentType::input_from_value(rt, component_type) {
+                return Err(Error::InputFromValue {
+                    referent: self.rd().dast.macro_display(m),
+                    referent_type: rt.tag().into(),
+                    component_type: component_type.tag().into(),
+                });
+            }
             // `<boolean extend="$bi"/>` reads `bi`'s `value`, and `<math
             // extend="$n"/>` `n`'s default prop: here, not in a planner.
             if let Some(dp) = ComponentType::extend_reads(rt, component_type) {

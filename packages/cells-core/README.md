@@ -22,7 +22,9 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 (and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
 `booleanList` (from text, references, element children and nested lists,
 literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
-`function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
+`function`, `derivative`, `answer` (math, `type="text"` or a lone `text` child,
+typed into a `textInput` child or one it makes, its content or awards
+compared as the current core compares texts, `caseInsensitiveMatch`, ADR 0067;
 or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (bounds that are
 constants, a literal `numToSelect`, `withReplacement` and `sort`; each pick a
@@ -49,7 +51,9 @@ numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
-from text, references and element children, one per entry of a list) and the boolean ones `and`, `or`, `xor`, `iff`,
+from text, references and element children, one per entry of a list),
+`summaryStatistics` (its twelve statistics of the finite values among its
+operands, a literal `statisticsToDisplay`, ADR 0067) and the boolean ones `and`, `or`, `xor`, `iff`,
 `implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the shapes
 `ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
 vertices) and `angle` (by points or a measure), the formatted values
@@ -64,7 +68,9 @@ numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVec
 its count structural, ADR 0041), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`; the distribution's `mean`, `variance` and `standardDeviation`),
-`selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+`selectPrimeNumbers`, `samplePrimeNumbers` and
+`sampleMultivariateRandomNumber` (`hypergeometric`, one number per category,
+ADR 0067), drawn at load
 from the document seed (a copy draws what its referent drew, ADR 0059), and the function operators `clampFunction` and
 `wrapFunctionPeriodic` (literal or numeric bounds), and the derived
 geometry `bestFitLine` (data from points or a list of points), `attractTo`

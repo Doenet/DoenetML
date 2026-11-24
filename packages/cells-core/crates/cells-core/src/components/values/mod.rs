@@ -71,6 +71,9 @@ macro_rules! value_list {
                 tags: [$tag],
                 flags: [copyable],
                 $(over_value: $over,)?
+                // `<numberList extend="$A.matrixSize"/>`: the value is
+                // its one child (ADR 0073).
+                extend_value: Children,
                 default_prop: $names,
                 props {
                     numComponents: list_len { rendered },
@@ -290,6 +293,11 @@ pub mod number {
             avoidScientificNotation: display,
             displayBlanks: display,
             ..anchor
+        }
+        attributes {
+            // Read where its children are planned: a boolean in them is 1
+            // or 0, the one place one is (D47).
+            convertBoolean: On,
         }
         children: Value,
         planner: Props,

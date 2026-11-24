@@ -63,6 +63,19 @@ pub enum Error {
         /// The tag of the extending element.
         component_type: String,
     },
+    /// An input's `extend` names a value: an input is not its value (REF-5,
+    /// D26; the principles' `doenet-e0062`).
+    #[error(
+        "a <{component_type}> cannot be made from a <{referent_type}> (extend=\"${referent}\"): an input is not the value it holds. To edit ${referent}, write <{component_type} bindValueTo=\"${referent}\"/>; to start from its value, write <{component_type} prefill=\"${referent}\"/>"
+    )]
+    InputFromValue {
+        /// The `extend` reference.
+        referent: String,
+        /// The tag of the value it names.
+        referent_type: String,
+        /// The input's tag.
+        component_type: String,
+    },
     /// A reference names a component boxed by an error of its own, so the reader
     /// is boxed too (ADR 0027).
     #[error("'${0}' names a component with an error of its own, so this cannot be planned from it")]

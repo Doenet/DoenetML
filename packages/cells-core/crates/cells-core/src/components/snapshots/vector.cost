@@ -8,3 +8,4 @@ the magnitude scales the vector from its tail: cells 16 · essential 8 · consta
 points from points: a drag moves them: cells 13 · essential 8 · constant 3 · instrs 2 · components 5
 all three: the head is ignored: cells 14 · essential 8 · constant 2 · instrs 1 · components 3
 a copy that gives a tail shares the displacement: cells 20 · essential 10 · constant 2 · instrs 2 · components 4
+an extend of a pair-valued prop is a vector of that displacement: cells 30 · essential 16 · constant 2 · instrs 6 · components 7

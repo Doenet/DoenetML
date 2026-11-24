@@ -13,6 +13,7 @@ component! {
     tags: ["textInput"],
     flags: [copyable],
     reads_as: Text,
+    roles: [ImplicitTextInput],
     response: Text(value),
     text: Text(value),
     needs: Label,

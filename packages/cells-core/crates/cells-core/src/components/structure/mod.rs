@@ -16,6 +16,8 @@ pub(crate) mod sample_random_numbers;
 pub(crate) mod select_prime_numbers;
 pub(crate) mod select_random_numbers;
 
+pub(crate) mod sample_multivariate_random_number;
+
 pub(crate) mod repeat_for_sequence {
     use super::*;
     use crate::compile::api::{ItemCtx, Wire};

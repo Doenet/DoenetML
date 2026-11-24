@@ -125,6 +125,29 @@ pub(crate) fn compare_text(engine: &Engine, texts: Option<&Texts>, kind: u128, v
     }
 }
 
+/// `text` as an answer compares it
+/// ([`SymKind::TextEquals`](super::SymKind::TextEquals)), as the current
+/// core's `trim().replace(/\s+/, " ")`: trimmed, and its first run of
+/// white space (only the first) made one space; lower-cased when
+/// `case_insensitive`.
+pub(crate) fn answer_text(text: &str, case_insensitive: bool) -> String {
+    let text = text.trim();
+    let mut out = match text.find(char::is_whitespace) {
+        Some(start) => {
+            let rest = &text[start..];
+            let end = rest
+                .find(|c: char| !c.is_whitespace())
+                .map_or(text.len(), |k| start + k);
+            format!("{} {}", &text[..start], &text[end..])
+        }
+        None => text.to_string(),
+    };
+    if case_insensitive {
+        out = out.to_lowercase();
+    }
+    out
+}
+
 /// What a [`SymKind::JoinWith`](super::SymKind::JoinWith) puts between its
 /// inputs' texts (ADR 0058).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -133,6 +156,9 @@ pub enum Sep {
     Dot,
     /// A space: a section's automatic title, "Section 2.1".
     Space,
+    /// Nothing: the texts written one after the other, as a text answer's
+    /// content of text and references is (ADR 0067).
+    Empty,
 }
 
 impl Sep {
@@ -141,6 +167,7 @@ impl Sep {
         match self {
             Sep::Dot => ".",
             Sep::Space => " ",
+            Sep::Empty => "",
         }
     }
 }

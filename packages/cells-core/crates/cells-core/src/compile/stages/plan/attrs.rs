@@ -220,7 +220,27 @@ impl<'a> Planning<'a> {
         scope: ElemId,
         v: &ValueChildren,
     ) -> Result<Source> {
+        // A `<number>` reads a boolean only where the author asks for 1 or
+        // 0 (`convertBoolean`, D47); elsewhere a boolean is a type mix.
+        let el = self.rd.own_row(t, e);
+        let shows_number = matches!(
+            el.component_type.text_kind(),
+            Some(crate::components::TextKind::Number(_) | crate::components::TextKind::Grouped(_))
+        );
+        let convert_boolean = shows_number
+            && el.node != NodeId::NONE
+            && self.rd.dast.attr(el.node, "convertBoolean").is_some()
+            && self.rd.attr_on(el.node, "convertBoolean");
         Ok(match &v.value {
+            ChildValue::Reference(p)
+                if shows_number
+                    && !convert_boolean
+                    && self.rd.ref_value_kind(&self.ar, t, *p) == Some(ValueKind::Boolean) =>
+            {
+                let node = self.ar.refs[p.index()].node;
+                let message = boolean_as_number(&self.rd.dast.macro_display(node));
+                self.ar.type_mix(node, &message)
+            }
             // A list of no entries is the missing value where one value is
             // read (ADR 0041, decision 5; ADR 0046); an entry past a list's
             // end reads it through the reference.
@@ -232,7 +252,12 @@ impl<'a> Planning<'a> {
                 literal_value(text.trim()).expect("a literal")
             }
             // Not a single literal or reference: math text.
-            _ => Source::math(self.rd.plan_math(&mut self.ar, t, scope, &v.nodes)?),
+            _ => {
+                let was = std::mem::replace(&mut self.ar.booleans_in_math, convert_boolean);
+                let r = self.rd.plan_math(&mut self.ar, t, scope, &v.nodes);
+                self.ar.booleans_in_math = was;
+                Source::math(r?)
+            }
         })
     }
 

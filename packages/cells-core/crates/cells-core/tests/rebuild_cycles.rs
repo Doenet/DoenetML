@@ -40,7 +40,7 @@ fn a_count_reading_a_collect_over_its_own_iterations_is_a_cycle() {
            <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <collect name="c" from="$r" componentType="point"/>
            <boolean name="two">$c.count = 2</boolean>
-           <number name="k">2 - $g*$two</number>"#,
+           <number name="k" convertBoolean>2 - $g*$two</number>"#,
     ));
     // The same through a polyline's `numVertices`, set the same way.
     expect_cycle(load(
@@ -48,7 +48,7 @@ fn a_count_reading_a_collect_over_its_own_iterations_is_a_cycle() {
            <graph><repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <polyline name="pl" vertices="$r"/></graph>
            <boolean name="two">$pl.numVertices = 2</boolean>
-           <number name="k">2 - $g*$two</number>"#,
+           <number name="k" convertBoolean>2 - $g*$two</number>"#,
     ));
 }
 
@@ -63,8 +63,8 @@ fn counts_reading_each_others_iterations_are_a_cycle() {
            <repeatForSequence name="s" length="$b"><number name="y">1</number></repeatForSequence>
            <boolean name="bs">$s[2].y > 0</boolean>
            <boolean name="br">$r[2].x > 0</boolean>
-           <number name="a">2 - $g*$bs</number>
-           <number name="b">2 - $g*$br</number>"#,
+           <number name="a" convertBoolean>2 - $g*$bs</number>
+           <number name="b" convertBoolean>2 - $g*$br</number>"#,
     ));
 }
 
@@ -142,7 +142,7 @@ fn a_failed_rebuild_beside_a_symbolic_instruction_reports_instead_of_panicking()
            <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <collect name="c" from="$r" componentType="point"/>
            <boolean name="two">$c.count = 2</boolean>
-           <number name="k">2 - $g*$two</number>"#,
+           <number name="k" convertBoolean>2 - $g*$two</number>"#,
     );
     let t = set(&mut doc, "g", "value", 1.0);
     assert!(t.rebuild_error.is_some());
@@ -167,7 +167,7 @@ fn a_failed_rebuild_rolls_the_tick_back() {
            <repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence>
            <collect name="c" from="$r" componentType="point"/>
            <boolean name="two">$c.count = 2</boolean>
-           <number name="k">2 - $g*$two + $extra</number>"#,
+           <number name="k" convertBoolean>2 - $g*$two + $extra</number>"#,
     );
     assert_eq!(v(&doc, "k", "value"), 2.0);
     let g = doc.cell("g", "value").unwrap();

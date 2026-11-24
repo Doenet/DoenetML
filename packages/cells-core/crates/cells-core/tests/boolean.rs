@@ -67,8 +67,17 @@ fn literal_content_is_state_with_that_initial_value() {
     assert_eq!(b(&doc, "t"), 1.0);
     assert_eq!(b(&doc, "f"), 0.0);
     assert_eq!(b(&doc, "mixed"), 1.0);
-    assert_eq!(b(&doc, "one"), 1.0);
-    assert_eq!(b(&doc, "ten"), 0.0);
+    // A number is not true or false (D47 decision 4): a type mix, missing,
+    // with a warning that says to write `true` or `false`.
+    assert!(cells_core::program::is_missing(b(&doc, "one")));
+    assert!(cells_core::program::is_missing(b(&doc, "ten")));
+    assert_eq!(
+        doc.diagnostics()
+            .iter()
+            .filter(|d| d.code == "cells-type-mix")
+            .count(),
+        2
+    );
     assert!(doc.is_essential(doc.cell("f", "value").unwrap()));
     set(&mut doc, "fi", "value", 1.0);
     assert_eq!(b(&doc, "f"), 1.0);

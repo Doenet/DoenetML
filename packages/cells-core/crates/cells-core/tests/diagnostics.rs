@@ -510,10 +510,12 @@ fn a_failure_under_a_cloned_subtree_compiles_once() {
             1,
             "1+",
         ),
-        // Fails while outlining, as a container copy; the unread attribute
-        // is boxed in place, and takes no plan of its own (ADR 0030).
+        // Fails while outlining, as a container copy of a repeat (an
+        // extend that names nothing no longer fails, ADR 0073); the unread
+        // attribute is boxed in place, and takes no plan of its own (ADR
+        // 0030).
         (
-            r#"<point name="p"/><graph name="C" extend="$X"/><graph name="A" extend="$p"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">2+</number>"#,
+            r#"<graph name="R"><repeatForSequence length="2"><point/></repeatForSequence></graph><graph name="C" extend="$X"/><graph name="A" extend="$R"><graph name="X"><point name="p" x="1"/></graph></graph><number name="n" bogus="1">2</number><number name="k">2+</number>"#,
             1,
             "cannot copy",
         ),

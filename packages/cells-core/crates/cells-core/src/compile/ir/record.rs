@@ -353,6 +353,51 @@ impl Record {
         self
     }
 
+    /// The record with attribute `i` (its position among the type's
+    /// declarations) given `value` where the element wrote none: an extend
+    /// of a prop read as that attribute (ADR 0073).
+    pub(crate) fn given_attr(mut self, i: usize, value: AttrValue) -> Record {
+        if self.values.len() <= i {
+            self.values.resize(i + 1, AttrValue::Absent);
+            self.own.resize(i + 1, false);
+        }
+        if matches!(self.values[i], AttrValue::Absent) {
+            self.values[i] = value;
+        }
+        self
+    }
+
+    /// The record with reference `p` as its one child where the element
+    /// wrote no content, read as a type that reads its children as a list
+    /// (`List`) or as a value (`Value`) reads one: an extend of a prop
+    /// read as the children (ADR 0073). None for a type that reads them
+    /// otherwise.
+    pub(crate) fn given_child_reference(mut self, p: RefId, kind: ChildrenKind) -> Option<Record> {
+        if !matches!(self.children.content, Content::Absent) {
+            return Some(self);
+        }
+        self.children.content = match kind {
+            ChildrenKind::List => Content::List(vec![ListPiece::Reference(p)]),
+            ChildrenKind::Value => Content::Value(ValueChildren {
+                nodes: Box::new([]),
+                value: ChildValue::Reference(p),
+                element: None,
+                references: 1,
+            }),
+            _ => return None,
+        };
+        Some(self)
+    }
+
+    /// The record with `pieces` as its children, read as a list's, where
+    /// the element wrote no content (ADR 0073).
+    pub(crate) fn given_children(mut self, pieces: Vec<ListPiece>) -> Record {
+        if matches!(self.children.content, Content::Absent) {
+            self.children.content = Content::List(pieces);
+        }
+        self
+    }
+
     /// Every reference and math text the record holds rewritten, for a
     /// record read from another template.
     pub(in crate::compile) fn rebase(&mut self, rw: &mut Rebaser<'_, '_>) {
