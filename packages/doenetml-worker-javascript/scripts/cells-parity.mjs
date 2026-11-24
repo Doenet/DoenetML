@@ -38,6 +38,36 @@ function classify(message) {
             kind: "unsupported construct",
             key: "math text beyond a tree (relation, tuple, multi-argument function)",
         };
+    // A gap the cells core reports as a diagnostic
+    // (`src/test/utils/cells-diagnostics.ts`): met reading the diagnostics,
+    // or behind a component the core built as an error (`_error`).
+    if (
+        (m = first.match(
+            /\[cells core gap\] (built as an error, )?diagnostic `([\w-]+)`: (.*)$/,
+        ))
+    ) {
+        const [, built, code, message] = m;
+        let r;
+        if ((r = message.match(/^unsupported tag <(\w+)>/)))
+            return { kind: "unsupported tag", key: `<${r[1]}>` };
+        if ((r = message.match(/^unsupported: (.*)$/)))
+            return { kind: "unsupported construct", key: r[1].trim() };
+        if (
+            (r = message.match(
+                /^attribute '(\w+)' is not supported on <(\w+)>/,
+            ))
+        )
+            return { kind: "unsupported attribute", key: `<${r[2]}> ${r[1]}` };
+        return {
+            kind: built ? "built as an error" : "unsupported construct",
+            key: `${code}: ${message.replace(/'[^']*'/g, "'…'").slice(0, 100)}`,
+        };
+    }
+    if (/\[cells core gap\] diagnostic of the parser's error nodes/.test(first))
+        return {
+            kind: "unsupported construct",
+            key: "the parser's error nodes in the diagnostics",
+        };
     if ((m = first.match(/load: Error: (.*)$/)))
         return { kind: "load error", key: m[1].trim().slice(0, 100) };
     if (

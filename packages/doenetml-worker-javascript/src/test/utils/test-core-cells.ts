@@ -42,6 +42,7 @@ import {
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import { latexToText } from "../../utils/math";
 import { convertLatexWithBlanks } from "../../utils/embeddedMathInputs";
+import { CellsDiagnostics } from "./cells-diagnostics";
 
 /** The types whose children are their entries' rows (ADR 0041, decision
  * 4): each row is addressed as `list:k`. */
@@ -1210,6 +1211,20 @@ const STATE: Record<string, Record<string, Reader>> = {
         isListItem: () => false,
         asList: (_g, x) => passedAsList(x.cells, x.idx),
     },
+    // A graph's bounds, numbers in both cores.
+    graph: {
+        xMin: (g) => g("xmin"),
+        xMax: (g) => g("xmax"),
+        yMin: (g) => g("ymin"),
+        yMax: (g) => g("ymax"),
+    },
+    // A parabola's coefficients, numbers in both cores, and its vertex.
+    parabola: {
+        a: (g) => g("a"),
+        b: (g) => g("b"),
+        c: (g) => g("c"),
+        vertex: (g) => pt(g, "vertexX", "vertexY"),
+    },
 };
 
 /** Whether `c` is hidden, as the current core's `hidden`: its own `hide`,
@@ -1519,9 +1534,13 @@ const ANY_FIELDS: Record<string, (cells: Cells, idx: number) => unknown> = {
  * tell a list component from a component (`test/utils/list-entries.ts`):
  * the cells core has no list component, a list's entries being rows of
  * the component table (ADR 0041, decision 4), so none has a
- * `listEntryComponentType`. Its type is the table's; anything else is a
- * gap. */
-function componentObjects(cells: Cells) {
+ * `listEntryComponentType`. Its type is the table's; its state values and
+ * the children it holds are what `entry` (a component of
+ * `returnAllStateVariables`) answers; anything else is a gap. */
+function componentObjects(
+    cells: Cells,
+    entry: (idx: number, componentType: string) => any,
+) {
     return new Proxy(
         {},
         {
@@ -1546,6 +1565,14 @@ function componentObjects(cells: Cells) {
                                     ? "math"
                                     : componentType;
                             if (field === "constructor") return {};
+                            if (
+                                [
+                                    "stateValues",
+                                    "activeChildren",
+                                    "replacements",
+                                ].includes(field)
+                            )
+                                return entry(idx, cells.table.tag(idx))[field];
                             throw new CellsCoreGap(
                                 `JavaScript core internals \`core.core._components[].${field}\``,
                             );
@@ -1697,9 +1724,8 @@ export async function createTestCoreCells({
         fs.readFileSync(path.join(wasmDir, "cells_wasm_bg.wasm")),
     );
 
-    const dast = stripPositions(
-        normalizeDocumentDast(lezerToDast(doenetML), true),
-    );
+    const normalized = normalizeDocumentDast(lezerToDast(doenetML), true);
+    const dast = stripPositions(normalized);
     let core: any;
     try {
         const bytes = new TextEncoder().encode(JSON.stringify(dast));
@@ -1712,6 +1738,28 @@ export async function createTestCoreCells({
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
     const table = new CellsTable(core, wasm.memory);
+    // What the core reports, and the gap behind a component it built as
+    // an error (`cells-diagnostics.ts`).
+    const diagnostics = new CellsDiagnostics(
+        core,
+        normalized,
+        doenetML,
+        (m) => new CellsCoreGap(m),
+        (name) => {
+            const c = core.resolve_path(name);
+            return c !== NONE && table.componentType(c) === "_error"
+                ? table.node(c)
+                : null;
+        },
+    );
+    /** The gap behind `_error` component `c`, for a read of anything of
+     * it: the error the core built it as. */
+    function errorGap(c: number): Error {
+        return (
+            diagnostics.errorGap(table.node(c)) ??
+            new CellsCoreGap("an `_error` with no error diagnostic")
+        );
+    }
     const cells: Cells = {
         core,
         table,
@@ -1757,6 +1805,7 @@ export async function createTestCoreCells({
         componentType: string,
         name: string,
     ): unknown {
+        if (componentType === "_error") throw errorGap(idx);
         const reader = STATE[componentType]?.[name];
         if (!reader)
             throw new CellsCoreGap(
@@ -1819,6 +1868,7 @@ export async function createTestCoreCells({
                 `\`${componentType}.${field}\``,
                 STRUCTURE[componentType]?.includes(field),
             );
+            if (componentType === "_error") throw errorGap(componentIdx);
             const answer = FIELDS[componentType]?.[field] ?? ANY_FIELDS[field];
             if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
@@ -1930,6 +1980,7 @@ export async function createTestCoreCells({
                 componentIdx < table.length
                     ? table.tag(componentIdx)
                     : "(none)";
+            if (componentType === "_error") throw errorGap(componentIdx);
             actionCount++;
             if (process.env.CELLS_TRACE) {
                 console.log(
@@ -2199,7 +2250,15 @@ export async function createTestCoreCells({
 
     async function resolvePathToNodeIdx(name: string, _origin = 0) {
         const idx = core.resolve_path(name);
-        return idx === NONE ? -1 : idx;
+        if (idx !== NONE) return idx;
+        // A name inside an element the core built as an error resolves to
+        // nothing: the gap is that error.
+        const errors: number[] = [];
+        for (let c = 0; c < table.length; c++)
+            if (table.componentType(c) === "_error") errors.push(table.node(c));
+        const gap = diagnostics.unresolvedNameGap(name, errors);
+        if (gap) throw gap;
+        return -1;
     }
 
     /** What the renderers are sent, as the current core's
@@ -2240,6 +2299,10 @@ export async function createTestCoreCells({
                     return undefined;
                 assertCurrent(takenAt, `renderer state of ${key}`);
                 const c = Number(key);
+                // The renderer of a component the core built as an error
+                // is the error's box: the gap is the error.
+                if (c < table.length && table.componentType(c) === "_error")
+                    throw errorGap(c);
                 const id = bridge._idByComponent.get(c);
                 const element =
                     id === undefined ? undefined : root.elements[id];
@@ -2273,7 +2336,13 @@ export async function createTestCoreCells({
 
     return {
         core: withJavascriptOnlyGaps(adapter, {
-            _components: componentObjects(cells),
+            _components: componentObjects(cells, (idx, type) =>
+                componentEntry(idx, type, actionCount),
+            ),
+            // What the current core holds as `rendererInstructionBuilder`'s.
+            get rendererState() {
+                return rendererState();
+            },
             // A component's state variable read as the current core's
             // `components[i].state.name.value`: the state value the
             // table answers (`stateValue`), from the cells the core
@@ -2326,6 +2395,11 @@ export async function createTestCoreCells({
                 get rendererState() {
                     return rendererState();
                 },
+            },
+            // The cells core's diagnostics, with the positions of the
+            // nodes they name (`cells-diagnostics.ts`).
+            get diagnostics() {
+                return diagnostics.records();
             },
         }),
         cells: core,
