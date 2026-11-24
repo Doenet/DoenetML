@@ -36,6 +36,8 @@ import {
     sectionBoxed,
     TRANSPARENT,
     childrenLatex,
+    displaySettings,
+    hiddenByHide,
     mdLatex,
     pointLatex,
 } from "../../../../doenetml-worker/src/cells/contracts";
@@ -153,6 +155,10 @@ const mathValue: Reader = (g, x) => {
         if (x.cells.core.cell_class(e) === "essential")
             return me.fromAst(BLANK);
     }
+    // A value that is missing (ADR 0046) is the blank, as the current
+    // core's math holding nothing to read is.
+    const v = x.cell("value");
+    if (v !== undefined && x.cells.table.isMissing(v)) return me.fromAst(BLANK);
     return M(g("value"));
 };
 
@@ -175,9 +181,21 @@ function attrFlag(
     return text.trim().toLowerCase() !== "false";
 }
 
-/** Answers submitted since the last change to one of their inputs
- * (`justSubmitted`): kept here, since the core has no cell for it. */
-const justSubmitted = new Set<number>();
+/** Answers submitted, each with its responses as they were at the
+ * submission (`justSubmitted`): kept here, since the core has no cell for
+ * it. An answer is just submitted while its responses are unchanged, as
+ * the current core's is while what its credit reads is. */
+const justSubmitted = new Map<number, string>();
+
+/** An answer's current responses, as one key to compare. */
+function responsesKey(cells: Cells, answer: number): string {
+    return JSON.stringify(
+        Array.from(cells.core.answer_inputs(answer) as Uint32Array).map((i) => {
+            const r = responseOf(cells, i) as any;
+            return r?.tree ?? r;
+        }),
+    );
+}
 
 const answerReaders: Record<string, Reader> = {
     creditAchieved: (g) => {
@@ -185,7 +203,8 @@ const answerReaders: Record<string, Reader> = {
         return Number.isNaN(c) ? 0 : c;
     },
     numSubmissions: (g) => g("numSubmissions"),
-    justSubmitted: (_g, x) => justSubmitted.has(x.idx),
+    justSubmitted: (_g, x) =>
+        justSubmitted.get(x.idx) === responsesKey(x.cells, x.idx),
     inputChildren: (_g, x) =>
         Array.from(x.cells.core.answer_inputs(x.idx) as Uint32Array)
             .filter((i) => x.cells.table.parent(i) === x.idx)
@@ -257,14 +276,78 @@ function hasRows(x: Ctx): boolean {
  * settings, as the bridge sends it. */
 const mathLatex: Reader = (_g, x) => reads(x).mathLatex(x.idx);
 
+/** The display settings of a number or a math (ADR 0058), as the six
+ * numbers the core rounds by: from the nearest of it and its referents
+ * that writes each (`contracts.ts`). */
+const settingsOf = (x: Ctx) => displaySettings(x.cells.table, x.idx);
+
+/** A number's or a math's own display settings as the current core's
+ * state variables (`utils/numberDisplay.js`): digits and decimals, the
+ * one not written off (0, -Infinity), the flags as booleans. */
+const displaySettingReaders: Record<string, Reader> = {
+    displayDigits: (_g, x) => settingsOf(x)[0],
+    displayDecimals: (_g, x) => settingsOf(x)[1],
+    displaySmallAsZero: (_g, x) => settingsOf(x)[2],
+    padZeros: (_g, x) => settingsOf(x)[3] !== 0,
+    avoidScientificNotation: (_g, x) => settingsOf(x)[4] !== 0,
+};
+
+/** A math's `valueForDisplay`: its expression, or the number its lowered
+ * chain computes, rounded by its display settings (ADR 0071). */
+const mathValueForDisplay: Reader = (g, x) => {
+    const e = x.cell("expr");
+    if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
+        return me.fromAst(
+            JSON.parse(x.cells.core.display_ast(e, settingsOf(x))),
+        );
+    }
+    const value = mathValue(g, x) as any;
+    return typeof value?.tree === "number"
+        ? M(x.cells.core.number_display_value(value.tree, settingsOf(x)))
+        : value;
+};
+
+/** A math input's display settings: a number's, but 10 digits and no
+ * small number shown as zero where nothing writes digits or decimals, as
+ * the current core's `<mathInput>` defaults them. */
+function inputSettingsOf(x: Ctx): Float64Array {
+    const s = settingsOf(x);
+    const t = x.cells.table;
+    if (
+        t.attrThrough(x.idx, "displayDigits") === null &&
+        t.attrThrough(x.idx, "displayDecimals") === null
+    ) {
+        s[0] = 10;
+        if (t.attrThrough(x.idx, "displaySmallAsZero") === null) s[2] = 0;
+    }
+    return s;
+}
+
+/** A math input's `valueForDisplay`: its expression, or the number it is
+ * bound to, rounded by its display settings. */
+const inputValueForDisplay: Reader = (g, x) => {
+    const e = x.cell("expr");
+    if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
+        return me.fromAst(
+            JSON.parse(x.cells.core.display_ast(e, inputSettingsOf(x))),
+        );
+    }
+    const value = mathValue(g, x) as any;
+    return typeof value?.tree === "number"
+        ? M(x.cells.core.number_display_value(value.tree, inputSettingsOf(x)))
+        : value;
+};
+
 const mathReaders: Record<string, Reader> = {
     value: mathValue,
     immediateValue: mathValue,
-    valueForDisplay: mathValue,
+    valueForDisplay: mathValueForDisplay,
     text: (_g, x) => x.cells.core.component_text(x.idx),
     latex: mathLatex,
     // How many entries its value holds (ADR 0041, inside the handle).
     numDimensions: (g) => g("numDimensions"),
+    ...displaySettingReaders,
+    hidden: (_g, x) => hiddenOf(x.cells, x.idx),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
@@ -827,17 +910,21 @@ const STATE: Record<string, Record<string, Reader>> = {
     vector: vectorReaders,
     ray: rayReaders,
     angle: angleReaders,
-    mathInput: mathReaders,
+    mathInput: { ...mathReaders, valueForDisplay: inputValueForDisplay },
     math: mathReaders,
     // The current core's number values are plain numbers.
     number: {
         value: (g) => g("value"),
-        valueForDisplay: (g) => g("value"),
+        valueForDisplay: (g, x) =>
+            x.cells.core.number_display_value(g("value"), settingsOf(x)),
         text: textOf,
+        ...displaySettingReaders,
+        hidden: (_g, x) => hiddenOf(x.cells, x.idx),
     },
     text: {
         value: (_g, x) => x.cells.text(x.cell("value")!).trim(),
         text: (_g, x) => x.cells.text(x.cell("value")!).trim(),
+        hidden: (_g, x) => hiddenOf(x.cells, x.idx),
     },
     // `immediateValue` is the same cell as `value` in the cells core: a
     // typed-but-uncommitted text is kept here (`rawValues`) until
@@ -1240,7 +1327,7 @@ function hiddenOf(cells: Cells, c: number): boolean {
     };
     for (let x: number | null = c; x !== null; x = cells.table.parent(x)) {
         const type = cells.table.componentType(x);
-        if (on(x, "hide")) return true;
+        if (hiddenByHide(cells.table, x)) return true;
         if (type === "case" && !on(x, "active")) return true;
         if (cells.core.revealed(x) === 2) return true;
         const p = cells.table.parent(x);
@@ -1738,6 +1825,9 @@ export async function createTestCoreCells({
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
     const table = new CellsTable(core, wasm.memory);
+    // A new document has no answer just submitted: what an earlier test's
+    // core left here names components of another document.
+    justSubmitted.clear();
     // What the core reports, and the gap behind a component it built as
     // an error (`cells-diagnostics.ts`).
     const diagnostics = new CellsDiagnostics(
@@ -1898,9 +1988,6 @@ export async function createTestCoreCells({
         if (core.last_rebuilt()) rebuiltAt = actionCount;
         // A tick may move the cells (a rebuild makes every array anew).
         table.reload();
-        // Any change ends an answer's `justSubmitted`, as an input's
-        // value change does in the current core.
-        justSubmitted.clear();
         if (process.env.CELLS_TRACE) {
             const after = reqs.map(([c]) => `${c}=${cells.value(c)}`).join(" ");
             console.log(
@@ -2238,7 +2325,10 @@ export async function createTestCoreCells({
                         );
                     core.submit(componentIdx);
                     table.reload();
-                    justSubmitted.add(componentIdx);
+                    justSubmitted.set(
+                        componentIdx,
+                        responsesKey(cells, componentIdx),
+                    );
                     return;
                 default:
                     throw new CellsCoreGap(
