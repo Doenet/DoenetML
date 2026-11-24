@@ -905,7 +905,8 @@ them; an `<angle>` is a math, made only from a value. **Done by #2672** (closing
 `e0065` suggesting `<label>$m</label>`, and a number from a text that isn't a number missing with
 `i0053`. **Left** (#2677): content through a composite (`<number>$cc</number>` showing a line) is
 not judged; `<number>$t</number>` of `hello` is still a silent `NaN`; an angle writes nothing back
-to its math; and whether an angle reads a text `x` as a math (recommended) is open.
+to its math; and an angle from a text `x` is missing where D78.3 reads it as a math (`x`
+radians).
 
 `<coords>` follows the point group, though it inherits from `<math>`.
 
@@ -1116,10 +1117,8 @@ the document renders.
   `e0057`, suggesting `<math>$m+1</math>` for a value, a `<boolean>` joining them with `and`/`or`,
   and `copy` for an object or an input (`<point copy="$P">(3,4)</point>`); a container's extend
   takes children. **Left** (#2677): a list's extend given children is reported twice, some tags
-  get a form that doesn't work (`<slider>`, `<isNumber>`), and the children are not escaped. **To
-  decide** (#2677 item 12): `<number copy="$n">5</number>` of `2` is `25` while `<point
-  copy="$P">(3,4)</point>` replaces; recommended, children on a copy of a value or object replace
-  its content.
+  get a form that doesn't work (`<slider>`, `<isNumber>`), and the children are not escaped. On a
+  `copy`, a value's or object's children replace its content (D78.2, CPY-1).
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
 - **Through a composite** (done by #2642): an extend of a `<conditionalContent>` holding the
@@ -1219,7 +1218,10 @@ the same content".
 `<T copy="$x" …/>` and `<T copyWithState="$x" …/>` behave as if x's DoenetML were pasted at that
 spot:
 - attributes written on the copy override x's, as in REF-3;
-- children written inside it are appended, as in REF-4;
+- children written inside it are appended, as in REF-4, except that on a value or an object the
+  children that make its value replace the source's (D78.2): `<number copy="$n">5</number>` is
+  `5`. A `<label>` or description replaces only the source's (REF-4a). **Known violation**
+  (#2677): the number is `25`, the source's `2` with `5` appended;
 - the link to x itself is cut, so later changes to x do not reach the copy, and the copy's
   changes do not reach x.
 

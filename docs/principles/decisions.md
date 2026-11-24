@@ -1683,7 +1683,7 @@ Let the form decide, never the attributes. The fresh form is `copy`, and the dup
 
 **The fresh form, `<T copy="$x" …/>`: written again here.**
 - It is the source's DoenetML pasted (CPY-1): attributes override, children are appended
-  (D4), and names inside are private, reached through its name (NAME-3).
+  (D4; a value's or object's content is replaced, D78.2), and names inside are private, reached through its name (NAME-3).
 - It carries no reader state and no random choices. It starts as written content does.
 - Its random components draw their own values, fixed for a given variant and kept through a
   reload, as any written content's are. Two uses differ, and each is stable. Under D17 each is
@@ -3809,3 +3809,35 @@ kind (COLL-1, REF-7), and REF-5 has no pair making a group from a math.
 Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick `<select>`, a
 `<conditionalContent>`, and other composites. Implementation: **done by #2670**. Leftovers in
 #2676 (a pick whose type the DoenetML decides, a name after an index inside a case).
+
+## D78. Decisions from the leftovers of #2670 and #2672 (decided, November 2026)
+
+1. **A tag that makes its own content is made only from that very tag, never through a wrapper**
+   (#2676 item 9; refines D48 decision 2). `<repeat extend="$cc"/>`, where the shown case holds a
+   `<repeat>`, stays `e0071`, as do a one-pick `<select>` whose pick holds one and a `<group>`
+   holding only one. **Why:** such a tag's identity is how it makes its content (`for`, its
+   template, its options), not a value. Two cases holding two different repeats are not one
+   repeat, and the source could change kind as the case changes, which a tag written as
+   `<repeat>` must not do (COLL-1). Nothing is lost: `$cc` shows what the case shows, `$cc[1]`
+   reaches into it (D72), and a repeat named alike in each case is `<repeat extend="$cc.r"/>`
+   (D74 decides whether the cases agree). A value tag made from a one-shown-thing
+   (`<math extend="$cc"/>`) and a list made from one whose items match (D26) stay allowed: they
+   take a value, which may change, not a tag's way of making content.
+2. **Children written on a `copy` of a value or an object replace the source's content**
+   (#2677 item 12; REF-4a). The children that make its value (a number's or a math's
+   expression, a point's coordinates, a list's entries) are one thing the component uses only
+   one of, so the written ones replace the source's, as a written attribute replaces the
+   source's (REF-3) and a written `<title>` replaces a section's (REF-4a).
+   `<number copy="$n">5</number>` of `2` is `5` (it was `25`); `<point copy="$P">(3,4)</point>`
+   is at (3,4), as now. Other children keep their own rule: a `<label>`, `<shortDescription>` or
+   `<description>` written on the copy replaces only the source's label or description, and
+   leaves the content; one not written comes from the source. A container's children are still
+   added after the source's (REF-4).
+3. **An `<angle>` reads a text as a math** (#2677 item 13; D69.3). An angle is a math, and text
+   to math is an allowed pair, so `<angle extend="$t"/>` of `x` is `x` radians, as
+   `<angle extend="$m"/>` of a math `x` is; a text like `hello` makes what
+   `<math extend="$t"/>` makes. It is missing with `i0053` only when that math is not a measure
+   (a tuple, a list, a set).
+
+Implementation: items 2 and 3 with #2677 (PR 68). Item 1 needs no code change: #2670 already
+gives `e0071`; PR 67 pins it with a test.

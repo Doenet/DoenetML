@@ -277,8 +277,9 @@ of a repeat holding the group and the list.
   included, is `e0065` at load, naming `<group>$r</group>` or `<repeat extend="$r"/>`; so is one
   made from one component that isn't a composite, also as a property or a list's entry. **Left**
   (#2676): a pick of a selector whose type is decided (`$sfs[1]`), a name after an index inside a
-  case, and the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4) unchecked; whether
-  `<repeat extend="$cc"/>` of a case showing a repeat is allowed (recommended) is open.
+  case, and the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4) unchecked.
+  `<repeat extend="$cc"/>` of a case showing a repeat stays `e0071` (D78.1): a tag that makes its
+  content is made only from that very tag, not through a wrapper.
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
