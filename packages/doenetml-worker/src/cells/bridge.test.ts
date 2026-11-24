@@ -794,17 +794,25 @@ describe("step 3 components", () => {
         expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
     });
 
-    // A matrix input (ADR 0045): the prototype has no renderer for one, so
-    // it stands as rows of math inputs, typed into as any math input, and
-    // its size controls rebuild the grid.
+    // A matrix input (ADR 0045): its label and size, and its rows of math
+    // inputs, typed into as any math input; its size controls rebuild the
+    // grid.
     it("draws a matrix input as rows of math inputs", async () => {
         const { bridge, all, props, send, changed } = await open(`
 <matrix name="A"><row>1</row><row>3</row></matrix>
-<answer><matrixInput prefill="(1,2)"><label>M</label></matrixInput><award>$A</award></answer>`);
-        const rows = all("span").filter(
-            (s) => s.type === "element" && s.children.length > 0,
+<answer><matrixInput prefill="(1,2)" showSizeControls label="M"/><award>$A</award></answer>`);
+        expect(props("matrixInput")).toMatchObject({
+            label: "M",
+            numRows: 2,
+            numColumns: 1,
+            showSizeControls: true,
+        });
+        const [input] = all("matrixInput");
+        const rows = all("span");
+        expect(input.type === "element" && input.children).toEqual(
+            rows.map((r) => ({ id: r.data.id, annotation: "original" })),
         );
-        expect(rows.length).toBeGreaterThanOrEqual(2);
+        expect(rows).toHaveLength(2);
         expect(all("mathInput")).toHaveLength(2);
         expect(props("mathInput", 0).text).toBe("1");
         expect(props("mathInput", 1).text).toBe("2");
@@ -813,11 +821,10 @@ describe("step 3 components", () => {
         payload = send("answer", "submitAnswer", {});
         expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
         // Its size controls: a third row, a rebuild of the grid.
-        const [grid] = all("span");
         bridge.dispatch({
-            component: "span",
+            component: "matrixInput",
             actionName: "updateNumRows",
-            componentIdx: grid.data.id,
+            componentIdx: input.data.id,
             args: { numRows: 3 },
         });
         expect(byName(bridge.flatDast(), "mathInput")).toHaveLength(3);
