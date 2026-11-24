@@ -509,6 +509,9 @@ pub enum TextKind {
     /// Two numbers as a pair, `(1, 2)`: a point's coordinates, an entry of
     /// a point list shown by itself (ADR 0041).
     Pair(usize, usize),
+    /// A tuple, `(1, 2, 3)`: as many entries as the first prop holds, from
+    /// the second on, each as its cell holds it.
+    Tuple(usize, usize),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):

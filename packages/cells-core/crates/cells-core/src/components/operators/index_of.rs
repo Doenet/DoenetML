@@ -111,14 +111,26 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         Find::Place => Reduction::SearchSorted { right, unsorted },
     };
     let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
+    // A text holds a string id, which no number comparison orders; the
+    // current core compares texts as text.
+    if pieces
+        .iter()
+        .any(|e| ctx.entry_kind(e) == Some(ValueKind::Text))
+    {
+        return Err(Error::Unsupported(format!(
+            "a text among the operands of <{}>: only numbers are compared",
+            ty.tag()
+        )));
+    }
     let mut wiring = ElemWiring::of(ty);
     let value = match (takes_target, attrs.target) {
+        // No position, as the current core answers (0), with the warning.
         (true, None) => {
-            let w = ctx.warn(
+            ctx.warn(
                 NO_TARGET,
                 &format!("<{}> has no `target` to look for", ty.tag()),
             );
-            Wire::undefined(w)
+            Wire::constant(0.0)
         }
         // Nothing to look through: no position.
         _ if pieces.is_empty() => Wire::constant(0.0),

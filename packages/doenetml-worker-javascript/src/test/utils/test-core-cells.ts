@@ -1857,12 +1857,46 @@ export async function createTestCoreCells({
         };
     }
 
+    /** An `_error` among what `c` shows: one of its descendants, or what a
+     * reference among them names (a reference to an `_error` is built as
+     * an undefined value, not as an `_error`); null if there is none. */
+    function errorShownBy(c: number, seen = new Set<number>()): number | null {
+        if (seen.has(c)) return null;
+        seen.add(c);
+        // What a reference names is shown only when it is an `_error`
+        // itself: a prop of a container shows none of its contents.
+        const named = diagnostics
+            .referenceNames(table.node(c))
+            .map((name) => core.resolve_path(name))
+            .find((k) => k !== NONE && table.componentType(k) === "_error");
+        if (named !== undefined) return named;
+        const r = table.referent(c);
+        const next = [
+            ...table
+                .children(c)
+                .flatMap((ch) => ("component" in ch ? [ch.component] : [])),
+            ...(r === null ? [] : [r]),
+        ];
+        for (const k of next) {
+            if (table.componentType(k) === "_error") return k;
+            const e = errorShownBy(k, seen);
+            if (e !== null) return e;
+        }
+        return null;
+    }
+
     function stateValue(
         idx: number,
         componentType: string,
         name: string,
     ): unknown {
         if (componentType === "_error") throw errorGap(idx);
+        // The text of what holds an element the core built as an error
+        // leaves that element out: the gap is the error's.
+        if (name === "text") {
+            const e = errorShownBy(idx);
+            if (e !== null) throw errorGap(e);
+        }
         const reader = STATE[componentType]?.[name];
         if (!reader)
             throw new CellsCoreGap(

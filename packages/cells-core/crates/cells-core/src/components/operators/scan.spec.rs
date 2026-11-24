@@ -74,4 +74,14 @@ spec! {
         doenet r#"<cumulativeSum name="c">x 1</cumulativeSum>"#;
         diagnostics["cells-unsupported"]
     }
+
+    // A math list's entry holds a handle, not the number: each is read
+    // as the number its expression evaluates to (`listoperators.test.ts`).
+    case "a math list's entries are the numbers they hold" {
+        doenet r#"<mathList name="ml">10 20 30</mathList>
+                  <cumulativeSum name="c">$ml</cumulativeSum>
+                  <median name="m">$ml</median>
+                  <indexOf name="i" target="20">$ml</indexOf>"#;
+        expect { "c.numbers" = [10, 30, 60], "m.value" = 20, "i.value" = 2 }
+    }
 }

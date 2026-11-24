@@ -437,6 +437,17 @@ impl Document {
                 format_number(value(x).unwrap_or(f64::NAN)),
                 format_number(value(y).unwrap_or(f64::NAN))
             )),
+            Some(TextKind::Tuple(n, x1)) => {
+                let n = value(n).filter(|n| *n > 0.0).map_or(0, |n| n as usize);
+                let entries: Vec<String> = (x1..x1 + n)
+                    .map(|pi| {
+                        cells
+                            .get(pi)
+                            .map_or(BLANK.into(), |&cell| self.held_text(cell))
+                    })
+                    .collect();
+                out.push_str(&format!("({})", entries.join(", ")));
+            }
             Some(TextKind::Delimited(before, after)) => {
                 out.push_str(before);
                 self.push_children_text(c, out);
@@ -447,6 +458,7 @@ impl Document {
                 for ch in self.children(c) {
                     let text = match ch {
                         Child::Text(t) => t.trim().to_string(),
+                        Child::Component(k) if self.never_rendered(k) => continue,
                         Child::Component(k) => self.rendered_text(k).trim().to_string(),
                     };
                     if text.is_empty() {
@@ -490,12 +502,21 @@ impl Document {
     /// container that is no structure, a `<p>` in an iteration).
     fn push_items_text(&self, c: CompIdx, ty: ComponentType, out: &mut String) {
         let per_scope = matches!(ty.structure_kind(), Some(StructureKind::Repeat { .. }));
+        let children: Vec<Child<'_>> = self.children(c).collect();
+        let iterations = if per_scope {
+            self.iteration_chunks(&children)
+        } else {
+            None
+        };
         let mut items: Vec<String> = Vec::new();
         let mut block = false;
         let mut last_scope = None;
-        for ch in self.children(c) {
-            let (text, scope) = match ch {
+        // The iteration the last item is, where they are plain.
+        let mut last_iteration = None;
+        for (i, ch) in children.iter().enumerate() {
+            let (text, scope) = match *ch {
                 Child::Text(t) => (t.to_string(), None),
+                Child::Component(k) if self.never_rendered(k) => continue,
                 Child::Component(k) => {
                     let kt = self.component_type(k);
                     block |= kt.container() && kt.structure_kind().is_none();
@@ -503,10 +524,17 @@ impl Document {
                     (self.rendered_text(k), scope)
                 }
             };
-            match items.last_mut() {
+            match (items.last_mut(), iterations) {
+                // Each iteration's children are one item, the text before
+                // its first component included.
+                (Some(last), Some(m)) if last_iteration == Some(i / m) => last.push_str(&text),
+                (_, Some(m)) => {
+                    items.push(text);
+                    last_iteration = Some(i / m);
+                }
                 // Text, or a component of the iteration before it, is part
                 // of the item it follows.
-                Some(last) if per_scope && (scope.is_none() || scope == last_scope) => {
+                (Some(last), None) if per_scope && (scope.is_none() || scope == last_scope) => {
                     last.push_str(&text)
                 }
                 _ if !per_scope && text.trim().is_empty() => {}
@@ -538,9 +566,40 @@ impl Document {
                 // A step a cascade holds back, or a message it does not
                 // show, is not in the text (ADR 0062).
                 Child::Component(k) if self.revealed(k) != crate::document::Revealed::Shown => {}
+                Child::Component(k) if self.never_rendered(k) => {}
                 Child::Component(k) => self.push_text(k, out),
             }
         }
+    }
+
+    /// How many of a repeat's `children` each iteration contributes, when
+    /// that is plain: every iteration contributes as many as its template
+    /// has, so where the children divide evenly among the iterations their
+    /// components name, each in its own run, that share is one iteration's.
+    /// None when no component names an iteration, or they do not divide so.
+    fn iteration_chunks(&self, children: &[Child<'_>]) -> Option<usize> {
+        let scope_of = |ch: &Child<'_>| match *ch {
+            Child::Component(k) => Some(self.components.scope[k.index()]),
+            Child::Text(_) => None,
+        };
+        let mut scopes: Vec<_> = children.iter().filter_map(scope_of).collect();
+        scopes.dedup();
+        let n = scopes.len();
+        if n == 0 || !children.len().is_multiple_of(n) {
+            return None;
+        }
+        let m = children.len() / n;
+        children
+            .chunks(m)
+            .zip(&scopes)
+            .all(|(chunk, s)| chunk.iter().filter_map(scope_of).all(|k| k == *s))
+            .then_some(m)
+    }
+
+    /// Whether child `k` is never rendered (a `<setup>`, in a repeat's body
+    /// as anywhere): the current core's `text` leaves it out.
+    fn never_rendered(&self, k: CompIdx) -> bool {
+        self.component_type(k).renders() == crate::components::Renders::Never
     }
 
     /// The heap memory the document holds, in bytes, by part.

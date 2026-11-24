@@ -13,3 +13,4 @@ maxNumber keeps the whole entries below it: cells 8 · essential 0 · constant 8
 an entry past the end of a list is a blank entry: cells 8 · essential 0 · constant 8 · instrs 0 · components 8
 a reference inside brackets is part of its piece's math: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
 an extend of a prop is the list of that prop's entries: cells 13 · essential 1 · constant 12 · instrs 0 · components 17
+a math list's entries are the numbers they hold: cells 12 · essential 0 · constant 12 · instrs 0 · components 10

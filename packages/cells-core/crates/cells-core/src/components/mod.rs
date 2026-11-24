@@ -1411,8 +1411,10 @@ mod tests {
         // section's full number and title as text. 41: ADR 0062 added
         // `is_step`, for a step of a cascade, which aggregates its scores.
         // 44: ADR 0064 added `ref_kind`, `not_a_boolean` and `type_mix`, for
-        // a `<boolean>` of a number or a text, a type mix (D47, D68).
-        const PLAN_CTX_METHODS: usize = 44;
+        // a `<boolean>` of a number or a text, a type mix (D47, D68). 45:
+        // ADR 0072 added `entry_number`, a list's entry read as a number, a
+        // math cell evaluated.
+        const PLAN_CTX_METHODS: usize = 45;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

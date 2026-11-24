@@ -87,7 +87,8 @@ pub(crate) enum PieceKind {
 /// hidden port per entry they contribute ([`PlanCtx::list_entries`]: one
 /// per entry of a list a reference or an element child names, decision
 /// 5), a text piece a number (or a boolean) and a reference an alias of
-/// what it names, in order. A literal is `given` (state a request may
+/// what it names (a math cell's number, [`PlanCtx::entry_number`], unless
+/// booleans are read), in order. A literal is `given` (state a request may
 /// write) when `given`, else a constant. Text that is no literal, and math
 /// with a reference inside its brackets, is, for an operator over math
 /// ([`PieceKind::Math`]), math (`6/2`, `x`): lowered when it is numeric,
@@ -112,6 +113,10 @@ pub(crate) fn operands(
         .into_iter()
         .map(|piece| {
             let wire = match piece {
+                // A math cell is read as the number it holds.
+                ListEntry::Ref(p) if !matches!(kind, PieceKind::Boolean) => {
+                    ctx.entry_number(wiring, p).into()
+                }
                 ListEntry::Ref(p) => Source::reference(p).into(),
                 ListEntry::Math(id) if matches!(kind, PieceKind::Math) => Source::math(id).into(),
                 ListEntry::Math(_) => {
