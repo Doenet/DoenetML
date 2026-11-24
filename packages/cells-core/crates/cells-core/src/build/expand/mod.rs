@@ -206,6 +206,9 @@ pub(in crate::build) struct Builder<'c> {
     /// Collects (a polyline is one) whose count reads the counts of the
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
+    /// Each step of a type with a [`StepGate`](crate::components::StepGate)
+    /// (ADR 0062): the component whose step it is, and its gate.
+    pub(in crate::build) step_gates: HashMap<CompIdx, (CompIdx, SlotId)>,
     /// The slots of the counted values (ADR 0028), as the ports'
     /// attributes say.
     pub(in crate::build) counted_slots: Vec<SlotId>,
@@ -579,6 +582,7 @@ impl<'c> Builder<'c> {
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
+            step_gates: HashMap::new(),
             counted_slots: Vec::new(),
             author_ops: Vec::new(),
             share_math: false,

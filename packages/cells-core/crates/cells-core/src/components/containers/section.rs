@@ -44,6 +44,9 @@ component! {
         // reads, since they decide the wiring.
         creditAchieved: aggregate(Credit, ScoredItems) { score },
         percentCreditAchieved: aggregate(PercentCredit, ScoredItems),
+        // Its credit, but a hand-graded answer's 1 once answered: what a
+        // `<cascade>` reads of it as a step (ADR 0062).
+        creditAchievedForProgress: aggregate(ProgressCredit, ScoredItems),
         weight: attr(1.0),
         aggregateScores: by_planner,
         number: aggregate(Count, SectionsThrough) { rendered },
@@ -60,9 +63,18 @@ component! {
         sectionNumber: by_planner { text },
         title: by_planner { text },
     }
-    // How its heading reads: the renderer's, from its number and title.
+    // How its heading reads: the renderer's, from its number and title;
+    // the colors its heading bar shows its progress in (the steps of a
+    // cascade inside take them, ADR 0062).
     presentation {
         boxed,
+        completedColor,
+        inProgressColor,
+        notStartedColor,
+        completedColorRequiresCredit,
+        completedColorDarkMode,
+        inProgressColorDarkMode,
+        notStartedColorDarkMode,
     }
     attributes {
         weight: Value,
@@ -303,11 +315,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ))),
         }
     };
+    // A step of a cascade aggregates its scores, whatever it says, so it
+    // is scored, and complete, as one (ADR 0062).
     let aggregate = flag(
         "aggregateScores",
         attrs.aggregateScores,
         section_tag.aggregates_scores,
-    )?;
+    )?
+    .max(f64::from(ctx.is_step()));
     let include = flag(
         "includeParentNumber",
         attrs.includeParentNumber,

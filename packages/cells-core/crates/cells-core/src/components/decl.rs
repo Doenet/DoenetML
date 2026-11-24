@@ -95,6 +95,9 @@ pub struct ComponentDef {
     /// How the type is structure rather than content: looked through, a
     /// gate, or a repeat. `None` for a type whose children are its own.
     pub structure_kind: Option<StructureKind>,
+    /// A gate the type sets on each of its children by its place (ADR
+    /// 0062): a `<cascade>`'s steps.
+    pub gate: Option<StepGate>,
     /// What an answer's response reads of an input of this type, and what
     /// kind of value it is; `Some` marks the type as an answer's input.
     pub response: Option<ResponseKind>,
@@ -410,6 +413,37 @@ pub enum StructureKind {
         /// The structural prop holding how many iterations it has.
         count: usize,
     },
+}
+
+/// A gate a type sets on each of its children by its place (ADR 0062), as
+/// `<cascade>` declares it: `gate: Step(numCompleted, revealAll,
+/// hideFutureSections) { .. }`. Its *steps* are its component children,
+/// looked through the structure (groups, the active cases, a repeat's
+/// iterations), but those of a `skip` type and its `message`s; the k-th
+/// (from 0) is there while k is at most `completed` or `all` is 1. A step
+/// that is not there is not shown, not scored and not in the text, as a
+/// child of an inactive case is not; a `headed` step keeps its heading
+/// while held back unless `future` is 1, and its children are what the
+/// gate holds. Section numbers and the document-wide counters count every
+/// step, so a number stays put as the steps are revealed. Each prop it
+/// names is a position in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StepGate {
+    /// How many leading steps are complete (an aggregate over the steps,
+    /// [`AggOp::Completed`]): the step at that place, and those before
+    /// it, are there.
+    pub completed: usize,
+    /// The 0/1 prop that makes every step there.
+    pub all: usize,
+    /// The 0/1 prop that hides a held-back step's heading too.
+    pub future: usize,
+    /// The child types that are no step (a `<title>`, a `<setup>`).
+    pub skip: &'static [ComponentType],
+    /// The type of the messages the gate shows, one per gap: a child of
+    /// it, or of a held-back `headed` step, is shown only while chosen.
+    pub message: ComponentType,
+    /// The step types that keep their heading while held back.
+    pub headed: &'static [ComponentType],
 }
 
 /// What an answer's response reads of an input, by the kind of value it
@@ -1047,6 +1081,9 @@ pub enum Collection {
     /// The picks of a load-time select, each an option's template stamped
     /// once; a reference's `Item` into them (`$s[k]`).
     Picks,
+    /// The steps of a type with a [`StepGate`], in document order (ADR
+    /// 0062).
+    Steps,
 }
 
 /// An operator over a collection's ports.
@@ -1059,6 +1096,13 @@ pub enum AggOp {
     PercentCredit,
     /// How many items the collection holds.
     Count,
+    /// The weighted mean of the items' progress credit (ADR 0062): their
+    /// credit, but a hand-graded answer's 1 once answered. What a
+    /// `<cascade>` reads of a step to tell whether it is complete.
+    ProgressCredit,
+    /// How many leading steps are complete: whose progress credit is 1,
+    /// or that hold nothing scored (ADR 0062).
+    Completed,
 }
 
 /// A prop wired from a collection: `op` over the ports of `over`.

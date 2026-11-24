@@ -514,6 +514,7 @@ fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> (TemplateGraph, Option<Fail
         point_lists: Vec::new(),
         elem_children: FxMap::default(),
         collected: FxMap::default(),
+        step_gates: FxMap::default(),
         consts: std::collections::HashMap::new(),
         missing: None,
         x: Arena::default(),
@@ -563,6 +564,9 @@ pub(super) struct Stamp<'c> {
     /// What each expanded collect gathered (its copies) and whether its
     /// count follows the counts of repeats.
     pub(super) collected: FxMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
+    /// Each step of a type with a step gate (ADR 0062): the component
+    /// whose step it is, and its gate, as a build has them.
+    pub(super) step_gates: FxMap<Comp, (Comp, GraphNode)>,
     /// One node per constant an operator or a hold reads, by its bits:
     /// hashed in full, since a whole number's bits end in zeros, which a
     /// multiplying hash keeps.

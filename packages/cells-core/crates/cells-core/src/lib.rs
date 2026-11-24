@@ -140,7 +140,7 @@ pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
     ActionView, Built, CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings,
-    NONE, TEXT_BIT,
+    NONE, Revealed, TEXT_BIT,
 };
 pub use error::{Error, Result};
 pub use program::ValueType;

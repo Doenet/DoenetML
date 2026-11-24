@@ -117,6 +117,19 @@ export class Reads {
         return this.table.core.expr_latex(cell);
     }
 
+    /** How the cascade above `c` shows it (ADR 0062): 0 shown, 1 a
+     * held-back step that keeps its heading and hides what it holds, 2
+     * hidden. The cells the core read are recorded, so a step revealed
+     * recomputes the element. Asked only of a component a cascade may
+     * govern: a step, a message, a message inside a step. */
+    revealed(c: number): number {
+        if (!governedByCascade(this.table, c)) return 0;
+        for (const cell of this.table.core.reveal_reads(c) as Uint32Array) {
+            this.cell(cell);
+        }
+        return this.table.core.revealed(c);
+    }
+
     /** The number `c` takes from its document-wide counter (a figure's,
      * a table's, a footnote's; ADR 0044), null when it takes none. The
      * core counts it through the active cases; the cells it read are
@@ -162,6 +175,18 @@ export class Reads {
         }
         return numberLatex(this.num(c, prop));
     }
+}
+
+/** Whether a cascade may govern how `c` is shown (ADR 0062): it is a
+ * message, or a cascade is the nearest ancestor that stands as more than
+ * its children, or the one around it. */
+export function governedByCascade(table: CellsTable, c: number): boolean {
+    if (table.componentType(c) === "cascadeMessage") return true;
+    let p = table.parent(c);
+    while (p !== null && TRANSPARENT.has(table.componentType(p))) {
+        p = table.parent(p);
+    }
+    return p !== null && table.componentType(p) === "cascade";
 }
 
 export type Role =
@@ -414,6 +439,21 @@ export const SECTION_KINDS: [tag: string, word: string][] = [
 
 /** Divisions drawn boxed unless `boxed="false"`, as in the current core. */
 const BOXED_BY_DEFAULT = new Set(["objectives"]);
+
+/** Whether a division of tag `tag` is drawn boxed: its own `boxed`, else
+ * a cascade's `boxAll` when it is one of the cascade's steps (ADR 0062),
+ * else its tag's default, as in the current core. */
+export function sectionBoxed(table: CellsTable, c: number, tag: string) {
+    if (table.attr(c, "boxed") !== null) return flag(table, c, "boxed");
+    let p = table.parent(c);
+    while (p !== null && TRANSPARENT.has(table.componentType(p))) {
+        p = table.parent(p);
+    }
+    if (p !== null && table.componentType(p) === "cascade") {
+        if (flag(table, p, "boxAll")) return true;
+    }
+    return BOXED_BY_DEFAULT.has(tag);
+}
 
 /** The types numbered among their sibling divisions: the core's types
  * that declare `numbered`. */
@@ -1049,7 +1089,6 @@ export const CONTRACTS: Record<string, Contract> = {
                 "section",
                 "Section",
             ];
-            const boxed = r.table.attr(c, "boxed");
             return {
                 title: title === null ? null : r.idOf(title),
                 titlePrefix: "",
@@ -1063,10 +1102,7 @@ export const CONTRACTS: Record<string, Contract> = {
                     preferred_form: "Global",
                 },
                 collapsible: false,
-                boxed:
-                    boxed === null
-                        ? BOXED_BY_DEFAULT.has(tag)
-                        : flag(r.table, c, "boxed"),
+                boxed: sectionBoxed(r.table, c, tag),
                 open: true,
             };
         },
@@ -1551,6 +1587,14 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
         noChildren: true,
     },
+    // A cascade (ADR 0062): on screen a block around the steps it shows,
+    // its `<title>` not drawn; a message a block, when shown.
+    cascade: {
+        name: () => "div",
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "title",
+    },
+    cascadeMessage: { name: () => "div" },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */

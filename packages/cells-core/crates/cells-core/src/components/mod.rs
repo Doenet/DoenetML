@@ -294,6 +294,11 @@ component_types! {
     MatrixRow => values::matrix::row::DEFINITION,
     MatrixColumn => values::matrix::column::DEFINITION,
     Page => containers::blocks::page::DEFINITION,
+    /// `<cascade>`: steps revealed as the ones before them are complete
+    /// (ADR 0062).
+    Cascade => containers::cascade::DEFINITION,
+    /// `<cascadeMessage>`: what a cascade shows for a gap between its steps.
+    CascadeMessage => containers::cascade::MESSAGE,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1121,6 +1126,28 @@ impl ComponentType {
         }
     }
 
+    /// The gate the type sets on each of its children by its place
+    /// ([`StepGate`], ADR 0062): a `<cascade>`'s.
+    pub fn step_gate(self) -> Option<StepGate> {
+        self.def().gate
+    }
+
+    /// The [`StepGate`] whose message type the type is, when one is: what
+    /// shows a message of the type (ADR 0062).
+    pub fn message_of(self) -> Option<StepGate> {
+        static GATES: std::sync::OnceLock<Vec<StepGate>> = std::sync::OnceLock::new();
+        GATES
+            .get_or_init(|| {
+                ComponentType::ALL
+                    .iter()
+                    .filter_map(|t| t.step_gate())
+                    .collect()
+            })
+            .iter()
+            .copied()
+            .find(|g| g.message == self)
+    }
+
     /// How a member of the type behaves in a sticky group: its shape, and where
     /// its points are. None for a type that is never a member.
     pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, StickyPoints)> {
@@ -1326,8 +1353,9 @@ mod tests {
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
         // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
-        // section's full number and title as text.
-        const PLAN_CTX_METHODS: usize = 40;
+        // section's full number and title as text. 41: ADR 0062 added
+        // `is_step`, for a step of a cascade, which aggregates its scores.
+        const PLAN_CTX_METHODS: usize = 41;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

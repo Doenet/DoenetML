@@ -12,6 +12,13 @@
 //! aggregating sections, looking through sections that do not aggregate),
 //! each weight multiplied by its gate. With no weight the credit is 1.
 //!
+//! **Steps** (ADR 0062): a type with a [`StepGate`] (a `<cascade>`) gates
+//! each of its steps, found through the structure, by its place: the
+//! k-th (from 0) is there while k is at most the type's `completed`, how
+//! many leading steps' progress credit is 1, or its `all` is 1. Scoring
+//! through it multiplies each step's weight by that gate; the type's own
+//! progress, and a step's, count every step. Numbers count every step.
+//!
 //! **Numbers**: a section's `number` is 1 plus the gates of the sections
 //! before it among its siblings, counted through the containers expanded
 //! in place, whatever its type says is structure ([`StructureKind`]:
@@ -32,7 +39,21 @@ use super::*;
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 
-use crate::components::{AggOp, Collection, Numbering, Scored};
+use crate::components::{AggOp, Collection, Numbering, Scored, StepGate};
+
+/// A step of a gated type, with the product of the cases between it and
+/// that type (ADR 0062).
+type GatedStep = (CompIdx, Option<SlotId>);
+
+/// One scored item, as a scoring walk finds it: its weight, gated by the
+/// cases and steps around it, its credit, and its progress credit (ADR
+/// 0062).
+#[derive(Clone, Copy)]
+struct ScoredItem {
+    weight: SlotId,
+    credit: SlotId,
+    progress: SlotId,
+}
 
 /// Expand, aggregates: a collect's gathered children and count, credit and
 /// section numbers, materialized from the tree the build stamped.
@@ -43,6 +64,8 @@ impl<'c> Builder<'c> {
     /// after every other prop has its source.
     pub(in crate::build) fn aggregate_sources(&mut self) {
         let root = self.root;
+        // The steps' gates first: the credits read them.
+        let stepped = self.gate_steps();
         // A root boxed for an error of its own holds no credit.
         if self.components.component_type[root.index()]
             .aggregate_prop(AggOp::Credit, Collection::ScoredItems)
@@ -60,6 +83,10 @@ impl<'c> Builder<'c> {
                     self.set_constant_credit(c, 0.0);
                 }
             }
+        }
+        for (c, steps) in stepped {
+            self.set_credit(c);
+            self.set_completed(c, &steps);
         }
         let mut seq = self.fresh_seq(root);
         self.number_sections(root, None, &mut seq);
@@ -79,34 +106,64 @@ impl<'c> Builder<'c> {
         )
     }
 
-    /// `creditAchieved` of the document or an aggregating section.
+    /// `creditAchieved` of the document or an aggregating section, and
+    /// its progress credit when its type declares one (a `<cascade>`
+    /// declares only that).
     fn set_credit(&mut self, c: CompIdx) {
-        let (s, p) = self.credit_slots(c);
         let mut items = Vec::new();
-        self.scored_items(c, None, &mut items);
-        match self.mean_credit(c, items) {
-            Some(mean) => {
-                self.fill_aggregate(s, AggOp::Credit, BuiltSource::Alias(mean));
-                let hundred = self.const_slot(100.0);
-                let percent = self.op_source(OpSpec::Mul, &[s, hundred]);
-                self.fill_aggregate(p, AggOp::PercentCredit, percent);
-            }
-            None => {
-                // Nothing to score: full credit, a counted value (ADR 0028)
-                // when a repeat below `c` holds a scored item at some count.
-                let credit = self.counted(s, 1.0);
-                self.fill_aggregate(s, AggOp::Credit, credit);
-                let percent = self.counted(p, 100.0);
-                self.fill_aggregate(p, AggOp::PercentCredit, percent);
+        self.scored_items(c, None, c, &mut items);
+        let ty = self.components.component_type[c.index()];
+        let credit = ty.aggregate_prop(AggOp::Credit, Collection::ScoredItems);
+        if credit.is_some() {
+            let (s, p) = self.credit_slots(c);
+            let pairs = items.iter().map(|i| (i.weight, i.credit)).collect();
+            match self.mean_credit(c, pairs) {
+                Some(mean) => {
+                    self.fill_aggregate(s, AggOp::Credit, BuiltSource::Alias(mean));
+                    let hundred = self.const_slot(100.0);
+                    let percent = self.op_source(OpSpec::Mul, &[s, hundred]);
+                    self.fill_aggregate(p, AggOp::PercentCredit, percent);
+                }
+                None => {
+                    // Nothing to score: full credit, a counted value (ADR 0028)
+                    // when a repeat below `c` holds a scored item at some count.
+                    let credit = self.counted(s, 1.0);
+                    self.fill_aggregate(s, AggOp::Credit, credit);
+                    let percent = self.counted(p, 100.0);
+                    self.fill_aggregate(p, AggOp::PercentCredit, percent);
+                }
             }
         }
+        let Some(pp) = ty.aggregate_prop(AggOp::ProgressCredit, Collection::ScoredItems) else {
+            return;
+        };
+        let s = self.slot(c, pp);
+        // The same as its credit while no item's progress differs from its
+        // credit.
+        if let Some(ci) = credit
+            && items.iter().all(|i| i.progress == i.credit)
+        {
+            let credit = self.slot(c, ci);
+            self.fill_aggregate(s, AggOp::ProgressCredit, BuiltSource::Alias(credit));
+            return;
+        }
+        let pairs = items.iter().map(|i| (i.weight, i.progress)).collect();
+        let progress = match self.mean_credit(c, pairs) {
+            Some(mean) => BuiltSource::Alias(mean),
+            None => self.counted(s, 1.0),
+        };
+        self.fill_aggregate(s, AggOp::ProgressCredit, progress);
     }
 
-    /// Set a credit that cannot change, and its percentage, as constants.
+    /// Set a credit that cannot change, and its percentage (and progress
+    /// credit, when its type has one), as constants.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
         let (s, p) = self.credit_slots(c);
         self.fill_aggregate(s, AggOp::Credit, BuiltSource::Const(credit));
         self.fill_aggregate(p, AggOp::PercentCredit, BuiltSource::Const(100.0 * credit));
+        if let Some(s) = self.progress_slot(c) {
+            self.fill_aggregate(s, AggOp::ProgressCredit, BuiltSource::Const(credit));
+        }
     }
 
     /// Whether `section` aggregates the credit of what it holds: its flag
@@ -175,33 +232,203 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// (gated weight, credit) of each scored item under `c`, in document
-    /// order: answers, and sections that aggregate; other sections and
-    /// containers are looked through, `<setup>` is not.
-    fn scored_items(&mut self, c: CompIdx, gate: Option<SlotId>, out: &mut Vec<(SlotId, SlotId)>) {
+    /// Each scored item under `c`, in document order, its weight gated:
+    /// answers, and sections that aggregate; other sections and containers
+    /// are looked through, `<setup>` is not. A step of a type with a
+    /// [`StepGate`] is gated by its step's gate, unless that type is
+    /// `root`, the component whose credit is being made (ADR 0062).
+    fn scored_items(
+        &mut self,
+        c: CompIdx,
+        gate: Option<SlotId>,
+        root: CompIdx,
+        out: &mut Vec<ScoredItem>,
+    ) {
         for k in self.component_children(c) {
             let scope = self.components.scope[k.index()];
-            let (weight, credit) = match self.components.component_type[k.index()].scored() {
-                Some(Scored::Skip) => continue,
-                Some(Scored::Item { credit, weight }) => {
-                    // A blank response checks as NaN; it is no credit.
-                    let checked = self.slot(k, credit);
-                    let zero = self.const_slot(0.0);
-                    let credit = self.op_slot(OpSpec::NanTo, &[checked, zero], scope);
-                    (self.slot(k, weight), credit)
-                }
-                Some(Scored::Aggregates { weight, .. }) if self.aggregates(k) => {
-                    (self.slot(k, weight), self.credit_slots(k).0)
-                }
-                _ => {
-                    let g = self.gate_through(gate, k);
-                    self.scored_items(k, g, out);
-                    continue;
-                }
+            let gate = match self.step_gates.get(&k) {
+                Some(&(of, g)) if of != root => Some(self.gated(gate, g, scope)),
+                _ => gate,
             };
+            let (weight, credit, progress) =
+                match self.components.component_type[k.index()].scored() {
+                    Some(Scored::Skip) => continue,
+                    Some(Scored::Item { credit, weight }) => {
+                        let credit = self.item_credit(k, credit);
+                        (self.slot(k, weight), credit, credit)
+                    }
+                    Some(Scored::Aggregates { weight, .. }) if self.aggregates(k) => {
+                        let credit = self.credit_slots(k).0;
+                        let progress = self.progress_slot(k).unwrap_or(credit);
+                        (self.slot(k, weight), credit, progress)
+                    }
+                    _ => {
+                        let g = self.gate_through(gate, k);
+                        self.scored_items(k, g, root, out);
+                        continue;
+                    }
+                };
             let weight = self.gated(gate, weight, scope);
-            out.push((weight, credit));
+            out.push(ScoredItem {
+                weight,
+                credit,
+                progress,
+            });
         }
+    }
+
+    /// A scored item's credit: its `credit` prop, no credit while NaN (a
+    /// blank response checks as NaN).
+    fn item_credit(&mut self, k: CompIdx, credit: usize) -> SlotId {
+        let scope = self.components.scope[k.index()];
+        let checked = self.slot(k, credit);
+        let zero = self.const_slot(0.0);
+        self.op_slot(OpSpec::NanTo, &[checked, zero], scope)
+    }
+
+    /// The slot of `c`'s progress credit, when its type declares one.
+    fn progress_slot(&self, c: CompIdx) -> Option<SlotId> {
+        self.components.component_type[c.index()]
+            .aggregate_prop(AggOp::ProgressCredit, Collection::ScoredItems)
+            .map(|p| self.slot(c, p))
+    }
+
+    /// Gate the steps of every type with a [`StepGate`] (ADR 0062): each
+    /// step's gate is 1 while its place (from 0, among the steps in the
+    /// active cases) is at most the type's `completed`, or its `all` is 1.
+    /// Returns each such component with its steps, each with the cases
+    /// around it.
+    fn gate_steps(&mut self) -> Vec<(CompIdx, Vec<GatedStep>)> {
+        let mut out = Vec::new();
+        for c in CompIdx::below(self.components.len()) {
+            let Some(gate) = self.components.component_type[c.index()].step_gate() else {
+                continue;
+            };
+            let mut steps = Vec::new();
+            self.steps_of(c, &gate, None, &mut steps);
+            let completed = self.slot(c, gate.completed);
+            let all = self.slot(c, gate.all);
+            let mut place = Counter::default();
+            for &(k, case) in &steps {
+                let scope = self.components.scope[k.index()];
+                let at = self.const_slot(place.known);
+                let at = match place.before {
+                    None => at,
+                    Some(b) => self.op_slot(OpSpec::Add, &[b, at], scope),
+                };
+                let reached = self.op_slot(OpSpec::Le, &[at, completed], scope);
+                let there = self.op_slot(OpSpec::Max, &[reached, all], scope);
+                self.step_gates.insert(k, (c, there));
+                self.advance(&mut place, case, scope);
+            }
+            out.push((c, steps));
+        }
+        out
+    }
+
+    /// The steps under `c` of a type gated by `gate`, in document order,
+    /// each with the product of the cases between it and that type: the
+    /// component children, looked through the structure, but the types
+    /// that are no step and the messages.
+    fn steps_of(
+        &mut self,
+        c: CompIdx,
+        gate: &StepGate,
+        case: Option<SlotId>,
+        out: &mut Vec<GatedStep>,
+    ) {
+        for k in self.component_children(c) {
+            let ty = self.components.component_type[k.index()];
+            if gate.skip.contains(&ty) || ty == gate.message {
+                continue;
+            }
+            match ty.structure_kind() {
+                Some(StructureKind::Gate { .. }) => {
+                    let g = self.gate_through(case, k);
+                    self.steps_of(k, gate, g, out);
+                }
+                Some(_) => self.steps_of(k, gate, case, out),
+                None => out.push((k, case)),
+            }
+        }
+    }
+
+    /// `c`'s `completed`: how many of its leading steps are complete, a
+    /// step in an inactive case skipped. A step is complete when its
+    /// progress credit is 1, or when it holds nothing scored.
+    fn set_completed(&mut self, c: CompIdx, steps: &[GatedStep]) {
+        let gate = self.components.component_type[c.index()]
+            .step_gate()
+            .expect("a gated type");
+        let scope = self.components.scope[c.index()];
+        let one = self.const_slot(1.0);
+        // Whether every step so far is complete; None while it is 1.
+        let mut leading: Option<SlotId> = None;
+        let mut known = 0.0;
+        let mut terms = Vec::new();
+        for &(k, case) in steps {
+            let complete = self
+                .step_progress(k)
+                .map(|p| self.op_slot(OpSpec::Eq, &[p, one], scope));
+            // A step in an inactive case holds nothing back.
+            let complete = match (complete, case) {
+                (Some(x), Some(g)) => {
+                    let out = self.op_slot(OpSpec::Not, &[g], scope);
+                    Some(self.op_slot(OpSpec::Max, &[x, out], scope))
+                }
+                (x, _) => x,
+            };
+            leading = match (leading, complete) {
+                (l, None) => l,
+                (None, Some(x)) => Some(x),
+                (Some(l), Some(x)) => Some(self.op_slot(OpSpec::Mul, &[l, x], scope)),
+            };
+            match (leading, case) {
+                (None, None) => known += 1.0,
+                (Some(x), None) | (None, Some(x)) => terms.push(x),
+                (Some(l), Some(g)) => terms.push(self.op_slot(OpSpec::Mul, &[l, g], scope)),
+            }
+        }
+        let s = self.slot(c, gate.completed);
+        let Some((&first, rest)) = terms.split_first() else {
+            let count = self.counted(s, known);
+            self.fill_aggregate(s, AggOp::Completed, count);
+            return;
+        };
+        let mut sum = first;
+        for &x in rest {
+            sum = self.op_slot(OpSpec::Add, &[sum, x], scope);
+        }
+        let total = if known == 0.0 {
+            BuiltSource::Alias(sum)
+        } else {
+            let k = self.const_slot(known);
+            self.op_source(OpSpec::Add, &[sum, k])
+        };
+        self.fill_aggregate(s, AggOp::Completed, total);
+    }
+
+    /// The progress credit of step `k`: an answer's, an aggregating
+    /// section's or a gated type's own, else the mean over the scored
+    /// items it holds; None for a step that holds none, which is complete
+    /// once reached.
+    fn step_progress(&mut self, k: CompIdx) -> Option<SlotId> {
+        let ty = self.components.component_type[k.index()];
+        match ty.scored() {
+            Some(Scored::Skip) => return None,
+            Some(Scored::Item { credit, .. }) => return Some(self.item_credit(k, credit)),
+            Some(Scored::Aggregates { .. }) if self.aggregates(k) => {
+                return self.progress_slot(k);
+            }
+            _ => {}
+        }
+        if ty.step_gate().is_some() {
+            return self.progress_slot(k);
+        }
+        let mut items = Vec::new();
+        self.scored_items(k, None, k, &mut items);
+        let pairs = items.iter().map(|i| (i.weight, i.progress)).collect();
+        self.mean_credit(k, pairs)
     }
 
     /// Number the sections inside repeat (or collect from repeats) `r`,

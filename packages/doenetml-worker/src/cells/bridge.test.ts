@@ -1839,3 +1839,52 @@ describe("number display settings", () => {
         );
     });
 });
+
+describe("a cascade (ADR 0062)", () => {
+    it("shows a held-back step's heading alone, and one message for the gap", async () => {
+        const bridge = await load(`<cascade boxAll>
+<section><title>One</title><answer><mathInput name="mi"><label>x</label></mathInput><award><when>$mi = 1</when></award></answer></section>
+<cascadeMessage><p>Finish the first part.</p></cascadeMessage>
+<section boxed="false"><title>Two</title><p>Revealed</p></section>
+</cascade>`);
+        let root = bridge.flatDast();
+        const [cascade, message] = byName(root, "div");
+        expect(message).toBeDefined();
+        const divisions = byName(root, "division");
+        expect(divisions.map((d) => (d.data as any).props.boxed)).toEqual([
+            true,
+            false,
+        ]);
+        // The held-back step keeps its heading and shows nothing it holds.
+        const kids = (e: (typeof divisions)[number]) =>
+            (e.children as any[]).filter(
+                (c) => typeof c !== "string" || c.trim(),
+            );
+        expect(kids(divisions[1])).toEqual([]);
+        expect(
+            (cascade.children as any[]).map((c) => c.id).filter(Boolean),
+        ).toContain(message.data.id);
+        const [mi] = byName(root, "mathInput");
+        const [answer] = byName(root, "answer");
+        bridge.dispatch({
+            component: "mathInput",
+            actionName: "updateValue",
+            componentIdx: mi.data.id,
+            args: { text: "1" },
+        });
+        bridge.dispatch({
+            component: "answer",
+            actionName: "submitAnswer",
+            componentIdx: answer.data.id,
+            args: {},
+        });
+        root = bridge.flatDast();
+        // Revealed: the step draws what it holds, and the message is gone.
+        const ids = (id: number) =>
+            ((root.elements[id] as any).children as any[])
+                .filter((c) => typeof c !== "string")
+                .map((c) => c.id);
+        expect(ids(cascade.data.id)).not.toContain(message.data.id);
+        expect(ids(divisions[1].data.id)).toHaveLength(1);
+    });
+});

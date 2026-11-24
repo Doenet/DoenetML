@@ -148,6 +148,9 @@ gave nothing it took from its own referent.
     the reader's still.
   - A page in a list renders every child, where the current core renders
     only what the list renders (`childIndicesToRender`).
+  - *Done 2026-11-24, ADR 0062:* `<cascade>`, by the first option, a
+    declared per-child gate, as the user decided; its numbering is
+    `passes_both`. What follows is this ADR's record of the question.
   - **`<cascade>`, not implemented.** The current core's cascade reveals
     no step by a reader's action: a step is shown once every step before
     it is complete (`numCompleted`, the leading steps whose
