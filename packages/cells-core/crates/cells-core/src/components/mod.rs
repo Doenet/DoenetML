@@ -310,6 +310,8 @@ component_types! {
     OverValueNumberList => values::over_value::number_list::DEFINITION,
     /// A `<pointList>` over a math value (ADR 0063).
     OverValuePointList => values::over_value::point_list::DEFINITION,
+    /// `<attractTo>` among a point's constraints.
+    AttractTo => geometry::attract_to::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

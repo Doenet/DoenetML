@@ -37,6 +37,8 @@
 //! |                          |                                       | the far point is asked; a midpoint and an offset move both ends      |                   |
 //! | `Extent`                 | (a, b) → the distance from a to b     | both ends about their midpoint, the order kept, a negative size 0    | a, b              |
 //! | `AngleAt{reflex}`        | (P1, V, P3) → the angle at V          | none: an angle through points is not set by a request                | none              |
+//! | `Attract`                | (P, Q, t) → Q when P is within t of   | projection: the requested point written to P, attracted when read    | P                 |
+//! |                          | it, else P                            |                                                                      |                   |
 //! | `Turn`                   | (P1, V, a) → V + the unit ray toward  | none: an angle's third point follows its measure                     | none              |
 //! |                          | P1 turned by a                        |                                                                      |                   |
 //! | `RegularPolygon{n, by}`  | (P, Q) → the n vertices about a       | one vertex: turn and scale about the center; several: the center     | P, Q              |
@@ -295,6 +297,11 @@ pub enum VecOp {
         /// Which of the two angles.
         reflex: Reflex,
     },
+    /// Inputs (x, y, qx, qy, t); outputs `(qx, qy)` when `(x, y)` is within
+    /// `t` of it, else `(x, y)`: a point attracted to what `Q` projects it
+    /// onto. A request writes `(x, y)`, and the point is attracted again
+    /// where it lands.
+    Attract,
     /// Inputs (x1, y1, x, y, a); outputs the point a unit from (x, y) on
     /// the ray through the first point turned counterclockwise by `a`
     /// radians, NaN when an input is not finite: an angle's third point
@@ -1379,6 +1386,7 @@ impl VecOp {
             VecOp::Extent => 2,
             VecOp::AngleAt { .. } => 6,
             VecOp::Turn => 5,
+            VecOp::Attract => 5,
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } => n as usize,
             VecOp::Shuffle { n } => n as usize + 1,
             VecOp::Draws {
@@ -1412,7 +1420,7 @@ impl VecOp {
             VecOp::PolarSlope => 0b1100,
             VecOp::PolarDirection { .. } => 0b11100,
             VecOp::LinePointsFromCoeffs => 0b111,
-            VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
+            VecOp::ProjectCircle | VecOp::ProjectLine | VecOp::Attract => 0b11,
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::SequencePick { .. }
@@ -1511,7 +1519,7 @@ impl VecOp {
             VecOp::CircleTwoPointsRadius => 2,
             VecOp::PolarSlope | VecOp::PolarDirection { .. } => 2,
             VecOp::LinePointsFromCoeffs => 4,
-            VecOp::ProjectCircle | VecOp::ProjectLine => 2,
+            VecOp::ProjectCircle | VecOp::ProjectLine | VecOp::Attract => 2,
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::Clamp
@@ -1680,6 +1688,12 @@ impl VecOp {
             }
             VecOp::Extent => out[0] = (inp[1] - inp[0]).abs(),
             VecOp::AngleAt { reflex } => out[0] = angle_at(inp, reflex),
+            VecOp::Attract => {
+                let (dx, dy) = (inp[0] - inp[2], inp[1] - inp[3]);
+                let near = dx * dx + dy * dy <= inp[4] * inp[4];
+                out[0] = if near { inp[2] } else { inp[0] };
+                out[1] = if near { inp[3] } else { inp[1] };
+            }
             VecOp::Turn => {
                 let [x1, y1, vx, vy, a] = [inp[0], inp[1], inp[2], inp[3], inp[4]];
                 let theta = (y1 - vy).atan2(x1 - vx) + a;
@@ -1902,6 +1916,11 @@ impl VecOp {
                 let (x, y) = self.project(want(0), want(1), &inp[2..]);
                 out.write(inputs[0], x);
                 out.write(inputs[1], y);
+                true
+            }
+            VecOp::Attract => {
+                out.write(inputs[0], want(0));
+                out.write(inputs[1], want(1));
                 true
             }
             VecOp::First { .. }
@@ -2872,6 +2891,7 @@ mod writes {
                 reflex: Reflex::Always,
             },
             VecOp::Turn,
+            VecOp::Attract,
             VecOp::RegularPolygon {
                 n: 3,
                 by: RegularBy::CenterVertex,
@@ -3079,7 +3099,8 @@ mod writes {
             | VecOp::PolarSlope
             | VecOp::PolarDirection { .. }
             | VecOp::ProjectCircle
-            | VecOp::ProjectLine => points(1).collect(),
+            | VecOp::ProjectLine
+            | VecOp::Attract => points(1).collect(),
             VecOp::LinePointsFromCoeffs | VecOp::Pair { .. } => points(2).collect(),
             VecOp::Centroid { .. } => points(1).collect(),
             VecOp::RegularPolygon { n, .. } => points(n as usize).collect(),

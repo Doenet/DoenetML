@@ -27,6 +27,9 @@ component! {
         coords: [x, y],
     }
     sticky: Shape::Point,
+    // A point constrained or attracted to a point is moved onto it: the
+    // projection onto a line through it twice.
+    constrain_target { ports: [x, y, x, y], op: ProjectLine }
     attributes {
         coords: Point,
         x: Scalar,
@@ -37,7 +40,7 @@ component! {
     // (`triggerWhenObjectsClicked`, ADR 0042).
     actions { pointClicked: nothing [Click], pointFocused: nothing [Focus] }
     children: Math {
-        constraints: [ConstrainTo, ConstrainToGrid],
+        constraints: [ConstrainTo, ConstrainToGrid, AttractTo],
     },
     planner: Plan(plan),
 }
@@ -180,6 +183,34 @@ fn constrain(
             let x = snap(wiring, raw_x, dx, xo);
             let y = snap(wiring, raw_y, dy, yo);
             Ok([x, y])
+        }
+        ComponentType::AttractTo => {
+            let attract = super::attract_to::Attrs::of(&c.record);
+            let ChildValue::Reference(p) = attract.children.value else {
+                return Err(Error::Unsupported("<attractTo> without a reference".into()));
+            };
+            // Attracted to the point the target projects it onto, when
+            // near enough: a constraint whose target rides a graph is not
+            // a projection.
+            let ConstrainTarget::Project { props, op } = ctx.constrain_target(p)? else {
+                return Err(Error::Unsupported("<attractTo> a function's graph".into()));
+            };
+            let mut args = vec![raw_x, raw_y];
+            for pr in props {
+                args.push(wiring.hidden(Source::reference(ctx.with_prop(p, pr)?)));
+            }
+            let near = wiring.hidden_vector(op, args);
+            let threshold = attract
+                .threshold
+                .ok()
+                .filter(|t| !t.is_nan())
+                .ok_or_else(|| Error::BadLiteralParam("threshold".into()))?;
+            let threshold = wiring.hidden_wire(Wire::constant(threshold));
+            Ok(ElemWiring::vector(
+                [at.x, at.y],
+                crate::program::VecOp::Attract,
+                vec![raw_x, raw_y, near[0], near[1], threshold],
+            ))
         }
         _ => {
             let ChildValue::Reference(p) = super::constrain_to::Attrs::of(&c.record).children.value

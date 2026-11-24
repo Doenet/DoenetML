@@ -55,6 +55,24 @@ pub(crate) mod constrain_to {
     }
 }
 
+pub(crate) mod attract_to {
+    use super::*;
+
+    component! {
+        /// `<attractTo threshold="0.5">$c</attractTo>` among a point's
+        /// constraints: the point is projected onto what the reference
+        /// names when it is within `threshold` of it, else left where it
+        /// is. Only ever a member of a point's `constraints` group.
+        tags: ["attractTo"],
+        flags: [owned],
+        attributes {
+            threshold: Literal(0.5),
+        }
+        children: Value,
+        owner: Point,
+    }
+}
+
 pub(crate) mod constrain_to_grid {
     use super::*;
 

@@ -67,7 +67,9 @@ its count structural, ADR 0041), and
 `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
 from the document seed (a copy draws what its referent drew, ADR 0059), and the function operators `clampFunction` and
 `wrapFunctionPeriodic` (literal or numeric bounds), and the derived
-geometry `bestFitLine` (data from points or a list of points), `intersection`
+geometry `bestFitLine` (data from points or a list of points), `attractTo`
+among a point's constraints (a reference to a shape; a literal
+`threshold`), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
 `endpoint`, `callAction` (a button calling another component's

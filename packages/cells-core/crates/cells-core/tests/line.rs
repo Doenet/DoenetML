@@ -207,3 +207,45 @@ fn line_from_equation_inlines_the_maths_it_names() {
         assert_close!(v(&doc, "l", "yintercept"), 1.0);
     }
 }
+
+/// A point attracted to a line is projected onto it when it lands within
+/// the threshold of it, and left where it lands otherwise; it follows the
+/// line while near it.
+#[test]
+fn a_point_attracted_to_a_line_snaps_onto_it_only_near_it() {
+    let mut doc = load(
+        r#"<graph>
+             <line name="l" through="(0,0) (1,0)"/>
+             <point name="p" x="3" y="2"><attractTo>$l</attractTo></point>
+             <point name="q" x="3" y="2"><attractTo threshold="3">$l</attractTo></point>
+           </graph>"#,
+    )
+    .unwrap();
+    assert_eq!((v(&doc, "p", "x"), v(&doc, "p", "y")), (3.0, 2.0));
+    assert_eq!((v(&doc, "q", "x"), v(&doc, "q", "y")), (3.0, 0.0));
+    move_point(&mut doc, "p", 4.0, 0.3);
+    assert_eq!((v(&doc, "p", "x"), v(&doc, "p", "y")), (4.0, 0.0));
+    move_point(&mut doc, "p", 4.0, -0.6);
+    assert_eq!((v(&doc, "p", "x"), v(&doc, "p", "y")), (4.0, -0.6));
+    // Dragged back near the line, attracted again.
+    move_point(&mut doc, "p", -1.0, 0.4);
+    assert_eq!((v(&doc, "p", "x"), v(&doc, "p", "y")), (-1.0, 0.0));
+}
+
+/// A point attracted to a point lands on it within the threshold.
+#[test]
+fn a_point_attracted_to_a_point_lands_on_it_near_it() {
+    let mut doc = load(
+        r#"<graph>
+             <point name="goal">(-4.1, 7.4)</point>
+             <point name="a" x="4.9" y="-1.1"><attractTo>$goal</attractTo></point>
+           </graph>"#,
+    )
+    .unwrap();
+    assert_eq!((v(&doc, "a", "x"), v(&doc, "a", "y")), (4.9, -1.1));
+    move_point(&mut doc, "a", -4.0, 7.6);
+    assert_close!(v(&doc, "a", "x"), -4.1);
+    assert_close!(v(&doc, "a", "y"), 7.4);
+    move_point(&mut doc, "a", -3.7, 7.0);
+    assert_eq!((v(&doc, "a", "x"), v(&doc, "a", "y")), (-3.7, 7.0));
+}
