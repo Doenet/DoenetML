@@ -4,7 +4,7 @@
  * those references.
  */
 
-import { Dependency } from "./Dependency";
+import { Dependency, inErrorAtLoad } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
     branchCanChange,
@@ -499,6 +499,10 @@ export class RefResolutionDependency extends Dependency {
      * or reports it again (B33, DIAG-2).
      */
     reportIndexNamesNothing(composite: any, reference: string) {
+        if (inErrorAtLoad(composite)) {
+            // a tag in error at load reports that error alone (DIAG-5)
+            return;
+        }
         this.dependencyHandler.core.diagnosticsManager.setConditionDiagnostics(
             composite.componentIdx,
             this.indexNamesNothingCondition(),
@@ -528,6 +532,10 @@ export class RefResolutionDependency extends Dependency {
         diagnostic: ReturnType<typeof codedDiagnostic>,
         decidedByDoenetML: boolean,
     ) {
+        if (inErrorAtLoad(composite)) {
+            // a tag in error at load reports that error alone (DIAG-5)
+            return;
+        }
         if (decidedByDoenetML) {
             this.dependencyHandler.core.addDiagnostic(diagnostic);
             return;

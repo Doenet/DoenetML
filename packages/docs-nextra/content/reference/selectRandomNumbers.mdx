@@ -80,6 +80,11 @@ editor to see different variants of the document.
 The `<selectRandomNumbers/>{:dn}` component is used with the `numToSelect` attribute to select multiple 
 random values in the default interval $[0,1)$. The default `type` is `uniform`. 
 
+With `numToSelect` left out or written as `1`, the `<selectRandomNumbers>{:dn}` is not a
+collection: `$s` is its one value, it has no `numItems`, and an index after it
+reaches into that value, where a number has nothing to index. Index it only
+when it picks several.
+
 `numToSelect`, `from`, `to`, `mean` and the other attributes that decide what is
 chosen may reference another random choice or content that can't change, but
 not an input, a sampler, or anything else a reader can change: that is an error
