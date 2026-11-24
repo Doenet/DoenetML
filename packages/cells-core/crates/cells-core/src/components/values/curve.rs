@@ -41,6 +41,19 @@ component! {
         // `samples` is the first of `SAMPLES` consecutive cells, outputs
         // with it when `curve` is 1 (`sampled`).
         samples: by_planner { rendered, sampled: curve },
+        // Its extrema (ADR 0061), as the current core searches them: the
+        // grid's width is 200 `xscale` where the domain is unbounded.
+        xscale: by_planner,
+        minima: by_planner,
+        maxima: by_planner,
+        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]),
+        numMinima: computed(OpSpec::Sym(SymKind::Count), [minima]),
+        numMaxima: computed(OpSpec::Sym(SymKind::Count), [maxima]),
+        numExtrema: computed(OpSpec::Sym(SymKind::Count), [extrema]),
+        globalMinimum: by_planner,
+        globalInfimum: by_planner,
+        globalMaximum: by_planner,
+        globalSupremum: by_planner,
     }
     // A point constrained to a function rides its graph: `x` is what was
     // asked, held in the domain, and `y` is f(x). (The current core moves
@@ -49,6 +62,7 @@ component! {
     attributes {
         variables: Text,
         domain: Math,
+        xscale: Scalar,
     }
     children: Math,
     planner: Plan(plan),
@@ -247,6 +261,51 @@ pub(crate) fn one_piece(
     f
 }
 
+/// A function's extrema (ADR 0061): its minima and maxima, searched over
+/// `f` (its domain and pieces, as [`SymKind::EvalFunction`] reads them
+/// after its input) with the grid's scale `xscale`, each search one
+/// value its props read entries of: the local ones, the global one, the
+/// infimum or supremum.
+pub(crate) struct Extrema {
+    pub(crate) minima: Wire,
+    pub(crate) maxima: Wire,
+    pub(crate) global_minimum: Wire,
+    pub(crate) global_infimum: Wire,
+    pub(crate) global_maximum: Wire,
+    pub(crate) global_supremum: Wire,
+}
+
+/// The [`Extrema`] of the function `f`, a piecewise one's when
+/// `piecewise`.
+pub(crate) fn plan_extrema(
+    wiring: &mut ElemWiring,
+    xscale: Port,
+    f: Vec<Port>,
+    piecewise: bool,
+) -> Extrema {
+    let mut inputs = vec![xscale];
+    inputs.extend(f);
+    let mut search = |max: bool| {
+        wiring.hidden(Source::computed(
+            OpSpec::Sym(SymKind::Extrema { max, piecewise }),
+            inputs.clone(),
+        ))
+    };
+    let (min, max) = (search(false), search(true));
+    let mut entry = |of: Port, k: f64| {
+        let k = wiring.hidden_wire(Wire::constant(k));
+        Wire::computed(OpSpec::Sym(SymKind::Entry), vec![of, k])
+    };
+    Extrema {
+        minima: entry(min, 1.0),
+        global_minimum: entry(min, 2.0),
+        global_infimum: entry(min, 3.0),
+        maxima: entry(max, 1.0),
+        global_maximum: entry(max, 2.0),
+        global_supremum: entry(max, 3.0),
+    }
+}
+
 /// A math cell `expr` and, as a curve, its samples over the x-range of
 /// the graph it sits in, else [-10, 10], cut to its domain.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
@@ -257,6 +316,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
     let is_function = component_type == ComponentType::Function;
+    let xscale = Wire::attr(attr::xscale, attrs.xscale).unwrap_or_else(|| Wire::constant(1.0));
+    let domain_ports = [
+        at.domainMin,
+        at.domainMax,
+        at.domainMinClosed,
+        at.domainMaxClosed,
+    ];
+    let f = one_piece(&mut wiring, at.expr, at.variable, domain_ports);
+    let extrema = plan_extrema(&mut wiring, at.xscale, f, false);
     if is_function && is_vector_function(attrs.variables.clone(), &mt) {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
@@ -273,6 +341,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             xmax: Wire::constant(10.0),
             curve: Wire::constant(0.0),
             samples: Wire::absent(),
+            xscale,
+            minima: extrema.minima,
+            maxima: extrema.maxima,
+            globalMinimum: extrema.global_minimum,
+            globalInfimum: extrema.global_infimum,
+            globalMaximum: extrema.global_maximum,
+            globalSupremum: extrema.global_supremum,
         });
         return Ok(wiring);
     }
@@ -309,12 +384,6 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             }
         }
     };
-    let domain_ports = [
-        at.domainMin,
-        at.domainMax,
-        at.domainMinClosed,
-        at.domainMaxClosed,
-    ];
     let [xmin, xmax, samples] = function_curve(
         ctx,
         &mut wiring,
@@ -335,6 +404,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         xmax,
         curve: Wire::constant(1.0),
         samples,
+        xscale,
+        minima: extrema.minima,
+        maxima: extrema.maxima,
+        globalMinimum: extrema.global_minimum,
+        globalInfimum: extrema.global_infimum,
+        globalMaximum: extrema.global_maximum,
+        globalSupremum: extrema.global_supremum,
     });
     Ok(wiring)
 }

@@ -741,14 +741,16 @@ otherwise.
      structural (a rebuild per count), the structural list of step 4,
      which no planner reads yet. `<math>$mi</math>` reads the value
      whole, as before.
-   - A function's maxima, minima and extrema are not done. They have no
-     cap the type knows (the current core searches a grid of a thousand
-     cells and recurses, `utils/extrema.js`), so by decision 2 they stay
-     inside the handle, a math cell holding a list of `(x, f(x))` tuples,
-     which `$f.maxima[1][2]` addresses as above. What is missing is the
-     numerical search itself (bracketing the derivative's sign changes,
-     Brent minimization, the exact critical points of a rational
-     derivative), a port of about a thousand lines.
+   - A function's maxima, minima and extrema: *done 2026-11-24* (ADR
+     0061). They have no cap the type knows (the current core searches a
+     grid of a thousand cells and recurses, `utils/extrema.js`), so by
+     decision 2 they stay inside the handle, a math cell holding a list
+     of `(x, f(x))` tuples, which `$f.maxima[1][2]` addresses as above.
+     One search per direction (`SymKind::Extrema`, a port of the current
+     core's) writes the local, global and infimum ones as one value its
+     props are entries of. `<pointList extend="$f.extrema"/>`, a list
+     whose count follows that value, is the structural list of step 4,
+     not done; an interpolated function's are not done.
    - A matrix's entries (`$A[i][j]`) are not entries of a list head: the
      engine's matrix is not a sequence of rows yet.
    - A write through an entry of a `<math createVectors>$m</math>` is

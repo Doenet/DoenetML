@@ -32,9 +32,23 @@ component! {
         // Always 1: the bridge draws it as a `<function>`'s curve.
         curve: by_planner { rendered },
         samples: by_planner { rendered, sampled: curve },
+        // Its extrema (ADR 0061): its pieces', each on what of its domain
+        // no earlier piece takes, and the ends between them.
+        xscale: by_planner,
+        minima: by_planner,
+        maxima: by_planner,
+        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]),
+        numMinima: computed(OpSpec::Sym(SymKind::Count), [minima]),
+        numMaxima: computed(OpSpec::Sym(SymKind::Count), [maxima]),
+        numExtrema: computed(OpSpec::Sym(SymKind::Count), [extrema]),
+        globalMinimum: by_planner,
+        globalInfimum: by_planner,
+        globalMaximum: by_planner,
+        globalSupremum: by_planner,
     }
     attributes {
         domain: Math,
+        xscale: Scalar,
     }
     planner: Plan(plan),
 }
@@ -60,6 +74,15 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     }
     let n = pieces.len() / crate::program::PIECE_CELLS;
+    let xscale = Wire::attr(attr::xscale, attrs.xscale).unwrap_or_else(|| Wire::constant(1.0));
+    let mut f = vec![
+        at.domainMin,
+        at.domainMax,
+        at.domainMinClosed,
+        at.domainMaxClosed,
+    ];
+    f.extend(pieces.iter().copied());
+    let extrema = curve::plan_extrema(&mut wiring, at.xscale, f, true);
     let (domain, given) = plan_domain(ctx, attrs.domain.as_deref())?;
     let [d0, d1, d2, d3] = if given || n == 0 {
         domain
@@ -82,6 +105,13 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             xmax,
             curve: Wire::constant(1.0),
             samples: Wire::absent(),
+            xscale,
+            minima: extrema.minima,
+            maxima: extrema.maxima,
+            globalMinimum: extrema.global_minimum,
+            globalInfimum: extrema.global_infimum,
+            globalMaximum: extrema.global_maximum,
+            globalSupremum: extrema.global_supremum,
         });
         return Ok(wiring);
     }
@@ -110,6 +140,13 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         xmax: Wire::own(range[1]),
         curve: Wire::constant(1.0),
         samples: Wire::computed(OpSpec::Sym(SymKind::SampleFunction), inputs),
+        xscale,
+        minima: extrema.minima,
+        maxima: extrema.maxima,
+        globalMinimum: extrema.global_minimum,
+        globalInfimum: extrema.global_infimum,
+        globalMaximum: extrema.global_maximum,
+        globalSupremum: extrema.global_supremum,
     });
     Ok(wiring)
 }

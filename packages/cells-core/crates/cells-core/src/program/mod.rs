@@ -598,6 +598,17 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 .map_or(MISSING, Handle::to_value)
         }
         SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
+        SymKind::Extrema { max, piecewise } => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            let found = crate::sym::extrema::search(engine, &vals[1..], vals[0], max, piecewise);
+            out[0] = engine.extrema_value(&found).to_value();
+        }
+        SymKind::MergeExtrema => {
+            out[0] = match (handle(v(0)), handle(v(1))) {
+                (Some(a), Some(b)) => engine.merge_extrema(a, b).to_value(),
+                _ => f64::NAN,
+            }
+        }
         SymKind::Compare { opts } => {
             out[0] = match (handle(v(0)), handle(v(1))) {
                 (Some(a), Some(b)) => engine.compare(a, b, opts),

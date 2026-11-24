@@ -216,8 +216,10 @@ fn census() {
     // and text (`$cc.x`, `$ct.t`) choose their anchors among the cases', 4
     // instructions of no state (ADR 0047). A math's and a math input's
     // `numDimensions` counts the entries of their value (ADR 0041, inside
-    // the handle): 13 more, all dead.
-    assert!(golden[0] <= 140 && golden[1] == 197, "{golden:?}");
+    // the handle): 13 more, all dead. A function's and a derivative's
+    // extrema (ADR 0061) are two searches, six entries, a merge and three
+    // counts: `symbolic.doenet`'s 24 more, all dead.
+    assert!(golden[0] <= 140 && golden[1] == 221, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

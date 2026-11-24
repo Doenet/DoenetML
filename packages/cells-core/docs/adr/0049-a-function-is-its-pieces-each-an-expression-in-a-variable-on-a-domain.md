@@ -97,5 +97,6 @@ wave's work, so this one must not invent an interval type.
   `extrapolateForward` and `extrapolateBackward`, `periodic`, and a
   function of several variables' domains (each refused as an attribute
   nothing reads); a curve's `fs` for the parity adapter; interpolated
-  functions through points, maxima and minima, and a function's
-  extrema, which are a dynamic sequence (ADR 0041, step 5).
+  functions through points, maxima and minima. A function's extrema, a
+  dynamic sequence (ADR 0041, step 5), are searched over its pieces by
+  ADR 0061.
