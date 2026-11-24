@@ -190,20 +190,26 @@ fn a_point_list_over_a_functions_extrema_has_a_point_each() {
     assert_eq!(reference::check(&doc), None);
 }
 
-/// A copied container's clone of a list over a math value is one too,
-/// its entries following the value as the original's do (ADR 0063).
+/// A copied container's clone of a list over a math value is refused, as
+/// a clone of a repeat is, and boxed alone (ADR 0063).
 #[test]
-fn a_clone_of_a_list_over_a_value_follows_the_value() {
+fn a_clone_of_a_list_over_a_value_is_refused() {
     let mut doc = load(
         r#"<mathInput name="mi" prefill="1, 2"/>
-           <section name="s"><p name="p"><mathList name="l">$mi</mathList></p></section>
+           <section name="s"><p name="p"><mathList name="l">$mi</mathList>
+             <mathList name="l2">$mi</mathList></p></section>
            <section name="s2" extend="$s"/>"#,
     )
     .unwrap();
-    assert_eq!(text(&doc, "s2.p"), "1, 2");
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.message.contains("inside a copied container")),
+        "{:?}",
+        doc.diagnostics()
+    );
     type_into(&mut doc, "mi", "a, b, c");
-    assert_eq!(text(&doc, "s2.p"), "a, b, c");
-    assert!(doc.resolve_path("s2.l[3]").is_some());
+    assert_eq!(text(&doc, "s.p"), "a, b, ca, b, c");
     assert_eq!(reference::check(&doc), None);
 }
 

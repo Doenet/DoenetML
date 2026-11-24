@@ -55,10 +55,11 @@ impl Outlining<'_> {
                 settled.insert((t, e));
             }
         }
-        // A container copy's clone of one (`<section extend="$s"/>`) is
-        // one too, a bare copy of it: of its type, with a body of its own
-        // whose item reads the clone's value, which aliases the
-        // original's. A clone follows its original in its template.
+        // A container copy holding a clone of one (`<section
+        // extend="$s"/>`) is refused, as one holding a repeat is: a
+        // repeat-like element no clone stands for (ADR 0041, step 4), its
+        // count keyed by a node a clone has none of. The clones are made
+        // before the settling, so the copy is boxed here.
         for t in 0..self.settled.templates.len() {
             let t = TemplateId::from_index(t);
             for e in ElemId::below(self.outlined(t).elems.len()) {
@@ -70,16 +71,32 @@ impl Outlining<'_> {
                 let [Step::Elem(c)] = plan.steps[..] else {
                     continue;
                 };
-                if plan.hops != 0
-                    || plan.prop.is_some()
-                    || !plan.entries.is_empty()
-                    || !settled.contains(&(t, c))
-                {
+                if plan.hops != 0 || plan.prop.is_some() || !settled.contains(&(t, c)) {
                     continue;
                 }
-                let over = self.outlined(t).elems[c.index()].component_type;
-                self.make_over_value(t, e, over);
-                settled.insert((t, e));
+                let tag = self.outlined(t).elems[c.index()].component_type.tag();
+                // The copy: the nearest element around the clone that is
+                // no clone.
+                let mut copy = e;
+                while self.outlined(t).elems[copy.index()].cloned {
+                    let up = self.outlined(t).elems[copy.index()].name_scope;
+                    if up == ROOT_SCOPE || up == copy {
+                        break;
+                    }
+                    copy = up;
+                }
+                if self.tables[t.index()].is_box(copy) {
+                    continue;
+                }
+                self.boxes.box_in_place(
+                    &self.settled.templates,
+                    &mut self.tables,
+                    t,
+                    copy,
+                    Error::UncopyableType(format!(
+                        "{tag} over a math value inside a copied container"
+                    )),
+                );
             }
         }
     }

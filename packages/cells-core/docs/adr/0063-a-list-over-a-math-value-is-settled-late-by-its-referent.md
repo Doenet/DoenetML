@@ -108,6 +108,10 @@ done.
 - A bare reference reads the value as a `<math>`: a number list over
   `1/3` shows `1/3`, where the current core's list shows `0.333`; a
   point list's shows its points as a math does.
+- A container copy holding one (`<section extend="$s"/>` of a section
+  with a list over a value) is refused and boxed, as one holding a
+  repeat is: a clone has no node to key its count by, and the clones are
+  made before the lists settle. The current core copies it.
 - An index by a cell into the list as a component
   (`<point extend="$pl[$k]"/>`) is refused, as for any repeat; read a prop
   (`$pl[$k].x`) or use a literal index.
