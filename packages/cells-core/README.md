@@ -76,7 +76,13 @@ prefill each; no bound value). A function's `domain` (one interval) and
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
 `intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
-entry; a literal size, ADR 0055), and `subsetOfReals` (intervals, points, set operations,
+entry; a literal size, ADR 0055; `$A[i][j]` its entry, written back
+through; a copy of a value by `extend`), `matrixInput` (a grid of boxes
+`numRows` by `numColumns`, rebuilt when the size changes and keeping what
+was typed by row and column; `prefill`, `defaultEntry`, the size controls'
+`updateNumRows` and `updateNumColumns`; bound by `bindValueTo` to a value,
+a `<matrix>`'s entries written back; an answer's input; ADR 0045, ADR
+0060), and `subsetOfReals` (intervals, points, set operations,
 inequalities and memberships in its `variable`, merged, written as
 intervals or, with a literal `displayMode`, as inequalities); a
 `mathInput` bound to one, or to a math list's entry, writes an

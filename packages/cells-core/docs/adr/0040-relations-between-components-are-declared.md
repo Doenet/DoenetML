@@ -293,6 +293,12 @@ Each step lands alone with the golden diff unchanged.
      of what `for` names, settled by outlining from that sequence once
      every name is in the table (ADR 0041, step 4), and its machinery
      wires it.
+   - *An item that repeats* (2026-11-24, a `<matrixInput>`'s grid, ADR
+     0045): an item whose type is a repeat-like type with an item of its
+     own has a body, made by outlining (`add_item_body`), and its item is
+     planned when it is (`plan_iteration_names` recurses). `ItemCtx`
+     gains `seed_entry(matrix, fallback)`, a given math value seeded from
+     an entry of the repeat's port (`ScopeConst::SeedEntry`).
 4. **`actions`.** `ActionView`, `Document::act`, the `Component`
    attribute kind; `submit` and `trigger` become actions; `triggered`
    and `submit` go. The spec language gains an `act` step, so a button

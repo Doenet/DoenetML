@@ -655,7 +655,9 @@ otherwise.
      are made.
    - `type="letters"` and `type="math"` sequences, and `validSequence`,
      are not done.
-   - `<matrixInput>`, whose grid follows its size, is not done.
+   - `<matrixInput>`, whose grid follows its size: *done 2026-11-24*
+     (ADR 0045, Migration 3), a repeat of rows each a repeat of boxes,
+     the matrix an aggregate over the boxes the build stamped.
 
    *`<matrix>`, 2026-11-24*, the open question of piece 3 answered by a
    parent-declared type (ADR 0055): a `<matrix>`'s `<row>` and `<column>`
@@ -669,9 +671,19 @@ otherwise.
    `defaultEntry`. `numRows`, `numColumns` and `matrixSize` (the two) are
    constants. Tested by `matrix.spec.rs` and the bridge test. Not done:
    a size that follows a value (refused; it is a structural matrix),
-   `$A[i][j]` (an entry inside a math handle, decision 3's projection),
-   rows and columns as named sequences, `extend` of a matrix's value,
-   and `<matrixInput>`; every case of `matrix.test.ts` needs the input.
+   rows and columns as named sequences.
+
+   *`<matrix>`, continued 2026-11-24* (ADR 0060): `$A[i][j]` is decision
+   3's projection, entry then entry inside the expression a matrix holds
+   (`flags: [entries_in_value]`, an entry step of width 0 per index,
+   `SymKind::MatrixEntry`), by literals or cells, the blank past the
+   size, and a write through it writes the matrix's entry; a matrix's
+   template inverts entrywise. `extend="$x.value"` makes a matrix of the
+   value, and one holding a copy of a value reads its size from it
+   (`SymKind::MatrixSize`). `<matrixInput>` is done (ADR 0045).
+   `matrix.test.ts` still waits on `<numberList extend="$A.matrixSize">`
+   (a value list extending a combined prop), a size that follows a value
+   and a `defaultEntry` by reference.
 5. **Dynamic sequences.** The capped list with a live length: point
    coordinates first (merging point, tuple and vector), then a mathInput's
    list, then maxima and intersections with their caps. Test:

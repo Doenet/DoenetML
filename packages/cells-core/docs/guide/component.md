@@ -314,7 +314,7 @@ candidate for a hook, or for removal.
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
 `rewrite`, `settle`, `submit`, `numbered`, `counted`,
-`inner`, `item`, `structural`, `static_count`, `scored: Item(..)`
+`inner`, `item`, `structural`, `static_count`, `scored: Item(..)`, `entries_in_value`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
 
