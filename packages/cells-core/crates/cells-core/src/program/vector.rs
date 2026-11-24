@@ -46,6 +46,8 @@
 //! |                          | the draw permutes them to             |                                                                      |                   |
 //! | `Draws{dist, n, m}`      | (draw, parameters, m excludes) → n    | none: what the seed chose does not move (ADR 0037)                   | none              |
 //! |                          | values of a distribution              |                                                                      |                   |
+//! | `Moments{dist, m}`       | (parameters, m excludes) → the mean,  | none: a distribution's moments are not set by a request              | none              |
+//! |                          | variance and standard deviation       |                                                                      |                   |
 //! | `BestFitLine{n}`         | n points → (a, b, c) of the           | none: a fit is not set by a request                                  | none              |
 //! |                          | least-squares line ax + by + c = 0    |                                                                      |                   |
 //! | `Intersect{a, b}`        | two figures → where they meet, a      | none: an intersection is not set by a request                        | none              |
@@ -335,6 +337,17 @@ pub enum VecOp {
         dist: Dist,
         /// How many values.
         n: u8,
+        /// How many excluded values follow the parameters.
+        n_exclude: u8,
+    },
+    /// The mean, variance and standard deviation of a distribution
+    /// ([`Dist`]), a whole distribution's as the current core's samplers
+    /// report them: inputs its parameters ([`Dist::n_params`]) and
+    /// `n_exclude` excluded values. NaN where the parameters describe no
+    /// distribution, and for primes. No inverse.
+    Moments {
+        /// The distribution.
+        dist: Dist,
         /// How many excluded values follow the parameters.
         n_exclude: u8,
     },
@@ -1180,6 +1193,76 @@ fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64
     }
 }
 
+/// What a [`VecOp::Moments`] gives, into `out`: the mean, the variance
+/// and the standard deviation of the distribution `dist` with
+/// parameters `params`, less `excludes` for a sequence, as the current
+/// core's samplers report them (a whole distribution's, not a sample's);
+/// NaN where the parameters describe none, and for primes.
+fn moments(dist: Dist, params: &[f64], excludes: &[f64], out: &mut [f64]) {
+    let (mean, variance) = if params.iter().any(|v| !v.is_finite()) {
+        (f64::NAN, f64::NAN)
+    } else {
+        match dist {
+            Dist::Uniform => {
+                let (from, to) = (params[0], params[1]);
+                ((from + to) / 2.0, (to - from) * (to - from) / 12.0)
+            }
+            Dist::Gaussian => {
+                let (mean, sd) = (params[0], params[1]);
+                if sd >= 0.0 {
+                    (mean, sd * sd)
+                } else {
+                    (f64::NAN, f64::NAN)
+                }
+            }
+            Dist::Sequence { .. } => sequence_moments(params[0], params[1], params[2], excludes),
+            Dist::Primes { .. } => (f64::NAN, f64::NAN),
+        }
+    };
+    out[0] = mean;
+    out[1] = variance;
+    out[2] = variance.sqrt();
+}
+
+/// The mean and variance of `from, from + step, ..., to` less `excludes`,
+/// every value equally likely: in closed form over the whole sequence,
+/// less each value it excludes (once, however often it is excluded).
+fn sequence_moments(from: f64, step: f64, to: f64, excludes: &[f64]) -> (f64, f64) {
+    let count = sequence_count(from, step, to);
+    if step == 0.0 || count.is_nan() || count < 1.0 || count >= u64::MAX as f64 {
+        return (f64::NAN, f64::NAN);
+    }
+    let mut excluded: Vec<u64> = excludes
+        .iter()
+        .filter_map(|&x| sequence_index(from, step, count, x))
+        .collect();
+    excluded.sort_unstable();
+    excluded.dedup();
+    let left = count - excluded.len() as f64;
+    if left < 1.0 {
+        return (f64::NAN, f64::NAN);
+    }
+    if excluded.is_empty() {
+        let mean = from + step * (count - 1.0) / 2.0;
+        return (mean, (count * count - 1.0) * step * step / 12.0);
+    }
+    // About the sequence's own middle, so a sequence far from 0 keeps its
+    // precision: the values are `mid + step * d`, `d` from `-(count - 1) /
+    // 2` to `(count - 1) / 2`.
+    let mid = from + step * (count - 1.0) / 2.0;
+    let (mut s1, mut s2) = (0.0, (count * count - 1.0) * count / 12.0);
+    for &k in &excluded {
+        let d = k as f64 - (count - 1.0) / 2.0;
+        s1 -= d;
+        s2 -= d * d;
+    }
+    let mean_d = s1 / left;
+    (
+        mid + step * mean_d,
+        step * step * (s2 / left - mean_d * mean_d),
+    )
+}
+
 /// Most inputs a vector operator reads.
 pub use crate::limits::MAX_VEC_IN;
 
@@ -1293,6 +1376,7 @@ impl VecOp {
             VecOp::Draws {
                 dist, n_exclude, ..
             } => 1 + dist.n_params() + n_exclude as usize,
+            VecOp::Moments { dist, n_exclude } => dist.n_params() + n_exclude as usize,
             VecOp::BestFitLine { n } => 2 * n as usize,
             VecOp::Intersect { a, b } => a.n_in() + b.n_in(),
             VecOp::Parabola {
@@ -1328,7 +1412,8 @@ impl VecOp {
             | VecOp::Scan { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
-            | VecOp::Draws { .. } => 0,
+            | VecOp::Draws { .. }
+            | VecOp::Moments { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
             VecOp::Clamp | VecOp::Wrap => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
@@ -1433,6 +1518,7 @@ impl VecOp {
             } => (n as usize).saturating_sub(1),
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } | VecOp::Shuffle { n } => n as usize,
             VecOp::Draws { n, .. } => n as usize,
+            VecOp::Moments { .. } => 3,
             VecOp::BestFitLine { .. } => 3,
             VecOp::Intersect { a, b } => 2 * Figure::cap(a, b) + 1,
             VecOp::Parabola { .. } => 5,
@@ -1604,6 +1690,10 @@ impl VecOp {
                 let k = dist.n_params();
                 let excludes = &inp[1 + k..1 + k + n_exclude as usize];
                 draws(dist, inp[0], &inp[1..=k], excludes, out);
+            }
+            VecOp::Moments { dist, n_exclude } => {
+                let k = dist.n_params();
+                moments(dist, &inp[..k], &inp[k..k + n_exclude as usize], out);
             }
             VecOp::BestFitLine { n } => {
                 let [m, k] = best_fit_line(&inp[..2 * n as usize]);
@@ -1804,6 +1894,7 @@ impl VecOp {
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
             | VecOp::Draws { .. }
+            | VecOp::Moments { .. }
             | VecOp::BestFitLine { .. }
             | VecOp::Intersect { .. }
             | VecOp::DomainRange
@@ -2821,6 +2912,13 @@ mod writes {
                 n: 2,
                 n_exclude: 1,
             },
+            VecOp::Moments {
+                dist: Dist::Sequence {
+                    replace: true,
+                    order: Order::Unsorted,
+                },
+                n_exclude: 1,
+            },
             VecOp::BestFitLine { n: 3 },
             VecOp::Intersect {
                 a: Figure::Line { segment: false },
@@ -2979,6 +3077,7 @@ mod writes {
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
             | VecOp::Draws { .. }
+            | VecOp::Moments { .. }
             | VecOp::BestFitLine { .. }
             | VecOp::Intersect { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
             VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],

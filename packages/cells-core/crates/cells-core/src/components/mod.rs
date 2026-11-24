@@ -1473,7 +1473,6 @@ mod tests {
             ConditionalContent,
             Case,
             Select,
-            SelectFromSequence,
             Group,
             Title,
             Ref,

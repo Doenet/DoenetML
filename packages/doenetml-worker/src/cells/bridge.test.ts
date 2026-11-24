@@ -1447,6 +1447,23 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect((await open(source)).texts()).toEqual(first);
     });
 
+    it("draws a selectFromSequence's picks, and a copy showing them differently draws the same (ADR 0059)", async () => {
+        const source = `<p><selectFromSequence name="s" from="1" to="1000" numToSelect="3"/></p>
+<p><selectFromSequence extend="$s" asList="false"/></p>
+<p><shuffle name="h">1 2 3 4 5 6</shuffle></p>
+<p><shuffle extend="$h" asList="false"/></p>
+<p><selectFromSequence from="5" to="5"/></p>`;
+        const [picks, joined, order, orderJoined, one] = (
+            await open(source)
+        ).texts();
+        const values = picks.split(", ");
+        expect(values).toHaveLength(3);
+        expect(new Set(values).size).toBe(3);
+        expect(joined).toBe(values.join(""));
+        expect(orderJoined).toBe(order.split(", ").join(""));
+        expect(one).toBe("5");
+    });
+
     it("draws a sort of texts and of maths as the text of its entries, and a joined text", async () => {
         const { texts } = await open(`
 <p><sort>pear apple fig</sort></p>

@@ -705,4 +705,6 @@ exactly, whatever a student did (`compare_versions`).
 **Document seed** — The one random seed a document is loaded with. Each
 load-time choice draws from its own stream derived from the seed and the
 choice's stable key and scope, so a choice draws the same way wherever it is
-rebuilt and in every version of the document that keeps its key.
+rebuilt and in every version of the document that keeps its key. A copy
+draws what its referent drew, unless it gives a parameter of the draw (ADR
+0059).

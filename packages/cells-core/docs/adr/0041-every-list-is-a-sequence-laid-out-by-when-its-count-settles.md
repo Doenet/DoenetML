@@ -649,11 +649,17 @@ otherwise.
      collect, a repeat or a point list, and `maxNumber="$n"` are not
      done: each needs a list whose entries are gathered per build, the
      collect's machinery read as a sequence, which no planner reads yet.
-   - A sampler's `numToSelect`/`numSamples` stays a literal, and
-     `<selectFromSequence numToSelect>` other than 1 is still refused:
-     a count read from a constant (`numToSelect="$n"`, ADR 0037) is
-     known only once the check evaluates the constants, after the plans
-     are made.
+   - A sampler's `numToSelect`/`numSamples` stays a literal: a count
+     read from a constant (`numToSelect="$n"`, ADR 0037) is known only
+     once the check evaluates the constants, after the plans are made.
+     *2026-11-24*: `<selectFromSequence>` is a list like the samplers,
+     its picks its entries and rows (`values`, `number1`, ...), `value`
+     the first; one pick is the `SequencePick` it always was, several a
+     `Draws` of the sequence (`withReplacement`, `sort`), so a literal
+     `numToSelect` other than 1 is done, and a select of one reads as a
+     number by decision 1. `length` counts its sequence when every
+     parameter is a literal. `excludeCombinations`, `coprime`, letters
+     and math are not done.
    - `type="letters"` and `type="math"` sequences, and `validSequence`,
      are not done.
    - `<matrixInput>`, whose grid follows its size, is not done.

@@ -1597,6 +1597,7 @@ export const TRANSPARENT = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
     // A capped list (ADR 0041, decision 2): its rows past its live
     // length are hidden.
     "intersection",
@@ -1631,6 +1632,7 @@ export const LIST_LIKE = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
     // A capped list (ADR 0041, decision 2): its rows past its live
     // length are hidden.
     "intersection",
@@ -1679,7 +1681,6 @@ export const OMITTED = new Set([
     "when",
     "response",
     "functionIterates",
-    "selectFromSequence",
     "setup",
     "label",
     "shortDescription",

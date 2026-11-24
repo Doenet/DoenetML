@@ -56,6 +56,9 @@ pub(crate) enum GivenId {
     /// The `k`-th leaf of what the children give (a point's `(a, b)`).
     Children(u32),
     Param(Param),
+    /// A load-time draw ([`ElemWiring::draw`]): not a given value, but
+    /// shared by a copy as one is (ADR 0059).
+    Draw,
 }
 
 impl GivenId {
@@ -69,8 +72,21 @@ impl GivenId {
             GivenId::Children(0) => "_children".to_string(),
             GivenId::Children(k) => format!("_children{k}"),
             GivenId::Param(p) => format!("_{}", p.name()),
+            GivenId::Draw => "_draw".to_string(),
         }
     }
+}
+
+/// What a load-time draw depends on, as its planner declares it
+/// ([`ElemWiring::draw`]): the attributes whose values decide what is
+/// drawn from it (a sequence's bounds, how many are drawn), and whether
+/// the children do (the operands a shuffle orders). A copy that gives
+/// none of them shares its referent's draw, and one that gives any draws
+/// its own (ADR 0059).
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct DrawOn {
+    pub(crate) attrs: &'static [Attr],
+    pub(crate) children: bool,
 }
 
 /// A point a planner uses when the author gives none: the parameters its
@@ -222,6 +238,8 @@ pub(crate) struct ElemWiring {
     own_entry: Option<EntryKind>,
     /// Which port holds each given leaf, by what gave it.
     given: HashMap<GivenId, Port>,
+    /// What the element's draw depends on, when it draws one.
+    draw_on: Option<DrawOn>,
 }
 
 /// The props of an element planned from its type's table, one per table
@@ -280,6 +298,7 @@ impl ElemWiring {
             n_points: 0,
             own_entry: None,
             given: HashMap::new(),
+            draw_on: None,
         }
     }
 
@@ -387,6 +406,24 @@ impl ElemWiring {
     /// The ports of every list point, in order (`item`).
     pub(crate) fn items(&self) -> impl Iterator<Item = [Port; 2]> + '_ {
         (0..self.n_points).map(|k| self.item(k))
+    }
+
+    /// The element's load-time draw (ADR 0037): a hidden port holding a
+    /// number in `[0, 1)` from the seed and the element's key, a scope
+    /// constant, which `on` says what decides. A copy shares it with its
+    /// referent unless the copy gives something it depends on (ADR 0059).
+    /// One a type.
+    pub(crate) fn draw(&mut self, on: DrawOn) -> Port {
+        assert!(self.draw_on.is_none(), "one draw an element");
+        let port = self.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)));
+        self.given.insert(GivenId::Draw, port);
+        self.draw_on = Some(on);
+        port
+    }
+
+    /// What the element's draw depends on, when it draws one.
+    pub(in crate::compile) fn draw_on(&self) -> Option<DrawOn> {
+        self.draw_on
     }
 
     /// A hidden port planned as `source`.

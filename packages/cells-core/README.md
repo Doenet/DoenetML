@@ -24,8 +24,9 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `conditionalContent` (`case`, `else`) and
-`feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
-pick), `hint`, `group` (and `label`), literal `text`, the sections
+`feedback`, `select` (`option`), `selectFromSequence` (bounds that are
+constants, a literal `numToSelect`, `withReplacement` and `sort`; each pick a
+row, ADR 0041; a copy draws what its referent drew, ADR 0059), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
@@ -59,8 +60,9 @@ operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
 its count structural, ADR 0041), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
-`gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
-from the document seed, and the function operators `clampFunction` and
+`gaussian`; the distribution's `mean`, `variance` and `standardDeviation`),
+`selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+from the document seed (a copy draws what its referent drew, ADR 0059), and the function operators `clampFunction` and
 `wrapFunctionPeriodic` (literal or numeric bounds), and the derived
 geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a

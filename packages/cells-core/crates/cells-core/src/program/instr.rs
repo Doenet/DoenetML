@@ -740,6 +740,10 @@ mod arity {
                 kinds: 0,
                 sep: crate::program::texts::Sep::Dot,
             }),
+            OpSpec::Vec(VecOp::Moments {
+                dist: crate::program::Dist::Uniform,
+                n_exclude: 0,
+            }),
         ]);
         ops
     }
@@ -783,6 +787,8 @@ mod arity {
                 VecOp::SequenceParams { .. } => 51,
                 VecOp::SequenceCount { .. } => 52,
                 VecOp::SequenceEntry { .. } => 53,
+                // After the symbolic operators 54 and 55.
+                VecOp::Moments { .. } => 57,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -816,7 +822,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 57;
+    const N_TAGS: usize = 58;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

@@ -360,8 +360,9 @@ impl Program {
         } else if let Op::Vec(..) = ins.op {
             let mut small = [0.0f64; 16];
             let n = ins.op.n_out();
-            // A capped list of many points (an intersection's) is the one
-            // operator with more outputs; it takes the heap.
+            // A capped list of many points (an intersection's), a draw of
+            // many values and a shuffle of many operands write more; they
+            // take the heap.
             let mut large = Vec::new();
             let buf: &mut [f64] = if n <= small.len() {
                 &mut small
