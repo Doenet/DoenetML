@@ -3689,3 +3689,28 @@ which disagreed with VAL-5's listing of a `<group>` among the collections.
 Revises D37 item 2 (the list of what shows nothing) and COLL-3's "None". Implementation: #2673
 (PR 65).
 
+## D74. A reference whose meaning depends on the branch shown is an error (decided, November 2026)
+
+**Why.** An error is for DoenetML that can't do anything reasonable as written. A reference through
+a `<conditionalContent>` or a one-pick chooser that names one kind of thing in one branch and
+another kind, or nothing, in another has no meaning the author can rely on: what it shows, and its
+type, would change with the branch (TYPE-3, COMP-11). D37 item 6 had made a name failing the
+every-branch rule a warning with a blank; this moves it.
+
+**Decided:**
+1. **`$cc.x` when `x` is missing from some branch** is an error at the reference, decided at load
+   (it was warning `w0183`, a blank). **When `x` has different types in different branches** it
+   stays an error (`w0184`, reported at error level; it shows `""` today, where an error should
+   take its place).
+2. **An index after a `<conditionalContent>` or one-pick chooser** (D72) is an error at the
+   reference, decided at load, when a branch holds several components or the branches hold single
+   components of different types. When every branch holds at most one component, all of one
+   type, it reaches into the shown one, typed at load; while the shown branch is empty or no case
+   is shown, it names nothing (missing).
+3. The same for a one-pick `<select>`'s options. A one-pick `<selectFromSequence>` or
+   `<selectRandomNumbers>` gives one type, so it always qualifies.
+4. These are errors in both forms, bare and on a tag (REF-1), shown in the reference's place
+   (DIAG-5). The codes are errors' codes.
+
+Revises D37 item 6 for the every-branch rule. Implementation: #2673 (PR 65).
+

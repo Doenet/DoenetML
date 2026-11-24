@@ -728,13 +728,20 @@ is shown again is compared again, not trusted (SAVE-1).
 - **It resolves only if every case declares it, with the same type.**
   - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
     `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
-  - If a case or the `<else>` has no `x`, `$x` and `$cc.x` name nothing: a blank (VAL-5), with
-    **warning** `w0183` at the reference, bare or on a tag.
+  - If a case or the `<else>` has no `x`, it is an **error** at the reference, bare or on a tag,
+    decided at load (D74): there is nothing reasonable to show in the branches without it. Today
+    this is warning `w0183` with a blank (**known violation**, #2673).
   - If two of them declare `x` with different types, it is an **error** at the reference, bare
     or on a tag, decided at load (`w0184` bare, `e0066` on a scalar tag; DIAG-7). A type error is
     the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
   - So a reference's type, and whether a parent accepts it as a child, never change with the
     active case.
+- **An index after a `<conditionalContent>` or one-pick chooser follows the same rule** (D74): it
+  reaches into the shown component (D72) only if every branch holds at most one component, all of
+  one type. A branch holding several, or single components of different types, is an **error** at
+  the reference, decided at load. While the shown branch holds nothing, or no case is shown, the
+  index names nothing (a missing value, as `<math extend="$cc"/>` is). The same holds for a
+  one-pick `<select>`'s options.
 - **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
   beside the `<conditionalContent>` does (`doenet-w0105`).
 - **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types is an error. A missing
