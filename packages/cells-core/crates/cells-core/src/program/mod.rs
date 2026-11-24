@@ -358,10 +358,18 @@ impl Program {
             let SymEntry { kind, memo } = self.syms[s.index()];
             self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
-            let mut buf = [0.0f64; 16];
+            // Most vector operators write a few cells; a draw of many
+            // values or a shuffle of many operands writes more.
             let n = ins.op.n_out();
-            ins.op
-                .eval_vec(cells, &self.operands, &self.vecs, &mut buf[..n]);
+            let mut small = [0.0f64; 16];
+            let mut large = Vec::new();
+            let buf: &mut [f64] = if n <= small.len() {
+                &mut small[..n]
+            } else {
+                large.resize(n, 0.0);
+                &mut large
+            };
+            ins.op.eval_vec(cells, &self.operands, &self.vecs, buf);
             match changed {
                 Some(changed) => {
                     for k in 0..n {
