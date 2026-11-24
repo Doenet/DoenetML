@@ -421,4 +421,24 @@ describe("A container's extend may present more (D71, #2668) @group4", () => {
         expect(await d.text("pg")).eq("12");
         expect(await d.typeOf("g2.Q")).eq("point");
     });
+
+    it("its children are judged as a type mix, as the container's own are", async () => {
+        // An extend of a value is `e0057` and its children are not also a
+        // type mix; a container's extend is no error, so they are.
+        const warning =
+            "doenet-w0203: `$b` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>$b</number>`.";
+        const d = await load(`
+<boolean name="b">true</boolean>
+<chart name="c" type="line"><series>1 2</series></chart>
+<chart name="c2" extend="$c">$b</chart>
+`);
+        expect(d.diagnostics().filter((m) => m.includes("w0203"))).eqls([
+            warning,
+        ]);
+        expect(d.diagnostics().filter((m) => m.includes("w0107"))).eqls([]);
+        await d.reload();
+        expect(d.diagnostics().filter((m) => m.includes("w0203"))).eqls([
+            warning,
+        ]);
+    });
 });

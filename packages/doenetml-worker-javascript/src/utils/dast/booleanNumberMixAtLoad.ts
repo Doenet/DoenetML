@@ -1626,10 +1626,10 @@ export function checkBooleanNumberMixAtLoad({
         );
     }
 
-    /** The type of component the reference `copy` makes, if written. */
     /**
      * Whether `component` is an `extend` (a linked `_copy`, not a `copy` or
-     * a `copyWithState`) with children written inside it.
+     * a `copyWithState`) of a value or an object, not a container, with
+     * children written inside it (`doenet-e0057`).
      */
     function isExtendGivenChildren(component: SerializedComponent) {
         if (
@@ -1640,13 +1640,29 @@ export function checkBooleanNumberMixAtLoad({
             return false;
         }
         const linkAttr: any = component.attributes?._link;
-        return !(
+        if (
             linkAttr &&
             (linkAttr.primitive?.value === false ||
                 linkAttr.children?.join?.("").trim() === "false")
+        ) {
+            return false;
+        }
+        // A container's extend may be given children, which are added to
+        // what it holds, so they are judged as its own are
+        // (`<chart extend="$c">$b</chart>`, as `<chart>$b</chart>`).
+        const type = createdTypeOf(component);
+        const typeClass = type === undefined ? undefined : allClasses[type];
+        return !(
+            typeClass &&
+            ((typeClass.isContent && !typeClass.extendTakesNoContent) ||
+                componentInfoObjects.isCompositeComponent({
+                    componentType: type!,
+                    includeNonStandard: true,
+                }))
         );
     }
 
+    /** The type of component the reference `copy` makes, if written. */
     function createdTypeOf(copy: SerializedComponent) {
         const created = copy.attributes?._createComponentOfType;
         return created === undefined
