@@ -1298,7 +1298,9 @@ mod tests {
         // sort compares and what a text joins. 38: ADR 0053 added
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
-        const PLAN_CTX_METHODS: usize = 38;
+        // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
+        // section's full number and title as text.
+        const PLAN_CTX_METHODS: usize = 40;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

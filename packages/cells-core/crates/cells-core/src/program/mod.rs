@@ -603,7 +603,9 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             }
         }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
-        SymKind::Join { .. } | SymKind::Order { .. } => unreachable!("text runs in step_sym"),
+        SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. } => {
+            unreachable!("text runs in step_sym")
+        }
         SymKind::SampleQuadratic => {
             let (a, b, c, lo, hi) = (v(0), v(1), v(2), v(3), v(4));
             if lo.is_finite() && hi.is_finite() {
@@ -670,7 +672,12 @@ fn run_text(
     use texts::{KIND_MATH, KIND_TEXT, kind_at};
     let v = |k: usize| cells[inputs[k].index()];
     match kind {
-        SymKind::Join { n, kinds, booleans } => {
+        SymKind::Join { .. } | SymKind::JoinWith { .. } => {
+            let (n, kinds, booleans, sep) = match kind {
+                SymKind::Join { n, kinds, booleans } => (n, kinds, booleans, ", "),
+                SymKind::JoinWith { n, kinds, sep } => (n, kinds, false, sep.as_str()),
+                _ => unreachable!(),
+            };
             if n == 0 {
                 out[0] = MISSING;
                 return;
@@ -678,7 +685,7 @@ fn run_text(
             let mut joined = String::new();
             for i in 0..n as usize {
                 if i > 0 {
-                    joined.push_str(", ");
+                    joined.push_str(sep);
                 }
                 let x = v(i);
                 if is_missing(x) {

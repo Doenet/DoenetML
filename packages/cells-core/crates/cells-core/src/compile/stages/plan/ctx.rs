@@ -633,3 +633,81 @@ impl Inner {
         Source::alias(Arg::Elem(self.0, port))
     }
 }
+
+/// What a section reads of the tree around it (ADR 0058): an ancestor's
+/// prop, and its `<title>` child's text.
+impl PlanCtx<'_, '_> {
+    /// Prop `name` of the nearest ancestor of the element whose type
+    /// `which` accepts, as a reference up the tree read where the element
+    /// sits (ADR 0050: a dependency in the tree), through the repeats and
+    /// choices around its template. None when no ancestor is one; `Some(None)`
+    /// when the nearest one's type has no prop so named.
+    pub(crate) fn ancestor_prop(
+        &mut self,
+        which: impl Fn(ComponentType) -> bool,
+        name: &str,
+    ) -> Option<Option<Source>> {
+        let (mut t, mut e, mut hops) = (self.t, self.e, 0u32);
+        loop {
+            let (at, ae, row) = self.p.rd.enclosing_row(t, e)?;
+            hops += u32::from(at != t);
+            (t, e) = (at, ae);
+            let ty = row.component_type;
+            if !which(ty) {
+                continue;
+            }
+            let Some(prop) = RefProp::named(ty, name) else {
+                return Some(None);
+            };
+            let plan = RefPlan {
+                hops,
+                steps: vec![Step::Elem(ae)],
+                prop: Some(prop),
+                entries: Vec::new(),
+                display: RefDisplay::Spelled(
+                    format!("(the {name} of the enclosing <{}>)", ty.tag()).into(),
+                ),
+                node: NodeId::NONE,
+            };
+            return Some(Some(Source::reference(self.p.ar.push_ref(plan))));
+        }
+    }
+
+    /// The text of the element's last child of type `ty` (a section's
+    /// `<title>`, the one the current core reads): `Some(Some(text))` when
+    /// it holds literal text alone, `Some(None)` when it holds anything
+    /// else, None when the element has no such child. A clone (a child of
+    /// a container copy) holds its original's.
+    pub(crate) fn last_child_text(&self, ty: ComponentType) -> Option<Option<String>> {
+        let d = self.p.rd.dast;
+        let x = self
+            .p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .rfind(|&x| self.p.rd.owned_row(self.t, self.e, x).component_type == ty)?;
+        let mut row = self.p.rd.owned_row(self.t, self.e, x);
+        while row.node == NodeId::NONE {
+            let original = row.extend.and_then(|p| match &self.p.ar.refs[p.index()] {
+                RefPlan { hops: 0, steps, .. } => match steps[..] {
+                    [Step::Elem(o)] => Some(o),
+                    _ => None,
+                },
+                _ => None,
+            });
+            let Some(o) = original else {
+                return Some(None);
+            };
+            row = self.p.rd.referent_row(self.t, o);
+        }
+        let mut text = String::new();
+        for &n in d.children(row.node) {
+            match d.kind(n) {
+                NodeKind::Text => text.push_str(d.str(n)),
+                NodeKind::Other => {}
+                _ => return Some(None),
+            }
+        }
+        Some(Some(text))
+    }
+}

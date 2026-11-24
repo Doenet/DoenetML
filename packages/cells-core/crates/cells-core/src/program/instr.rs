@@ -90,6 +90,18 @@ pub enum SymKind {
         /// Whether the numbers are booleans.
         booleans: bool,
     },
+    /// The text of each of `n` inputs, as `Join` writes each, joined with
+    /// `sep` (ADR 0058): a section's full number ("2.1") and its automatic
+    /// title ("Section 2.1"), which a count that changes in a tick changes.
+    /// A string id; it makes a string as a join does.
+    JoinWith {
+        /// How many inputs.
+        n: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+        /// What goes between two inputs' texts.
+        sep: crate::program::texts::Sep,
+    },
     /// The order of `n` inputs, as the current core's `<sort>` compares
     /// them (ADR 0041 decision 7): output `k` the 1-based position of the
     /// input that comes `k`-th. By value when every input is a number or
@@ -350,12 +362,15 @@ impl SymKind {
 
     /// Whether the output is a string id (a text cell): a join's.
     pub fn makes_text(self) -> bool {
-        matches!(self, SymKind::Join { .. })
+        matches!(self, SymKind::Join { .. } | SymKind::JoinWith { .. })
     }
 
     /// Whether it reads text inputs: a join, an order.
     pub fn reads_text(self) -> bool {
-        matches!(self, SymKind::Join { .. } | SymKind::Order { .. })
+        matches!(
+            self,
+            SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. }
+        )
     }
 
     /// This kind told what its inputs hold (`types`, in order), when it
@@ -370,6 +385,11 @@ impl SymKind {
             SymKind::Order { n, .. } => SymKind::Order {
                 n,
                 kinds: crate::program::texts::kinds_of(types),
+            },
+            SymKind::JoinWith { n, sep, .. } => SymKind::JoinWith {
+                n,
+                kinds: crate::program::texts::kinds_of(types),
+                sep,
             },
             k => k,
         }
@@ -505,7 +525,9 @@ impl OpSpec {
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
             OpSpec::Sym(SymKind::SampleQuadratic) => 5,
-            OpSpec::Sym(SymKind::Join { n, .. } | SymKind::Order { n, .. }) => *n as usize,
+            OpSpec::Sym(
+                SymKind::Join { n, .. } | SymKind::JoinWith { n, .. } | SymKind::Order { n, .. },
+            ) => *n as usize,
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
@@ -695,6 +717,11 @@ mod arity {
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
+            OpSpec::Sym(SymKind::JoinWith {
+                n: 3,
+                kinds: 0,
+                sep: crate::program::texts::Sep::Dot,
+            }),
         ]);
         ops
     }
@@ -762,12 +789,14 @@ mod arity {
                     SymKind::Order { .. } => 20,
                     SymKind::Subset { .. } => 21,
                     SymKind::Compare { .. } => 22,
+                    // After the vector operators 51 to 53.
+                    SymKind::JoinWith { .. } => 26,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 54;
+    const N_TAGS: usize = 55;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
