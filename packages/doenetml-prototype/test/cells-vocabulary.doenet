@@ -128,6 +128,7 @@
         <shuffle>1 2 3</shuffle> <sequence from="1" to="5" />
         <selectRandomNumbers from="3" to="5" /> <sampleRandomNumbers />
         <selectPrimeNumbers /> <samplePrimeNumbers />
+        <sampleMultivariateRandomNumber type="hypergeometric" numInCategories="5 3 2" numDraws="4" />
         <selectFromSequence from="1" to="10" />
         <select><option>a</option><option>b</option></select>
     </p>
@@ -137,6 +138,7 @@
         <asList><number>1</number><number>2</number></asList>
         <group><text>g</text></group>
     </p>
+    <summaryStatistics statisticsToDisplay="mean median count">2 4 9</summaryStatistics>
     <conditionalContent>
         <case condition="$n=3"><p>three</p></case>
     </conditionalContent>

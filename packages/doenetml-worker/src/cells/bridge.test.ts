@@ -2001,3 +2001,18 @@ describe("a list over a math value (ADR 0063)", () => {
         expect(drawn()).toEqual([["a", "b"], ["a + b"]]);
     });
 });
+
+describe("summary statistics", () => {
+    it("sends the statistics it shows, by name, in the core's order", async () => {
+        const bridge = await load(
+            `<summaryStatistics statisticsToDisplay="median mean count">2 4 9</summaryStatistics>`,
+        );
+        const [table] = byName(bridge.flatDast(), "summaryStatistics");
+        const { summaryStatistics } = (table.data as any).props;
+        expect(Object.entries(summaryStatistics)).toEqual([
+            ["mean", "5"],
+            ["count", "3"],
+            ["median", "4"],
+        ]);
+    });
+});

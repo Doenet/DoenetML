@@ -109,3 +109,22 @@
         }
     }
 }
+
+/* A summary statistics' table: one row of headings over one of values. */
+.doenet-document .summary-statistics {
+    margin: 12px 0;
+
+    & caption {
+        text-align: start;
+        padding-bottom: 3px;
+    }
+
+    & th,
+    & td {
+        padding: 3px 10px;
+    }
+
+    & th {
+        border-bottom: thin solid var(--canvasText);
+    }
+}

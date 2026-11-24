@@ -1614,7 +1614,42 @@ export const CONTRACTS: Record<string, Contract> = {
             table.componentType(child) === "title",
     },
     cascadeMessage: { name: () => "div" },
+    // Summary statistics (ADR 0067): the statistics `statisticsShown`
+    // masks in, in the core's order, each by its name as the current core
+    // keys them, as text; its operands are never drawn.
+    summaryStatistics: {
+        props: (r, c) => {
+            const shown = r.num(c, "statisticsShown");
+            const decimals = decimalsThrough(r, c);
+            const summaryStatistics: Record<string, string> = {};
+            STATISTICS.forEach((name, k) => {
+                if (Number.isInteger(shown) && (shown >> k) & 1) {
+                    summaryStatistics[name] = r.numText(c, name, decimals);
+                }
+            });
+            return { summaryStatistics };
+        },
+        noChildren: true,
+    },
 };
+
+/** A summary statistics' statistics, in the order its `statisticsShown`
+ * mask names them (bit `k` the `k`th): its props, by the names the current
+ * core keys them by. */
+const STATISTICS = [
+    "mean",
+    "stdev",
+    "variance",
+    "stderr",
+    "count",
+    "minimum",
+    "quartile1",
+    "median",
+    "quartile3",
+    "maximum",
+    "range",
+    "sum",
+];
 
 /** A literal on/off attribute, `fallback` when it is absent. */
 function flagOr(

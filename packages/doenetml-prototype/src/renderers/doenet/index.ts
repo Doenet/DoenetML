@@ -50,6 +50,7 @@ export * from "./slider";
 export * from "./solution";
 export * from "./sq";
 export * from "./stack";
+export * from "./summary-statistics";
 export * from "./table";
 export * from "./tabular";
 export * from "./tag";
