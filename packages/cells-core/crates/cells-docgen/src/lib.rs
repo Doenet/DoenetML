@@ -234,7 +234,7 @@ pub fn intchain(l: usize) -> String {
 /// N points whose `hide` is bound to one booleanInput. Toggling it changes
 /// N cells and mounts or unmounts N circles.
 pub fn hidden(n: usize) -> String {
-    let mut s = String::from("<booleanInput name=\"b\" value=\"false\"/>\n<graph name=\"g\">\n");
+    let mut s = String::from("<booleanInput name=\"b\" prefill=\"false\"/>\n<graph name=\"g\">\n");
     for i in 0..n {
         let _ = writeln!(
             s,

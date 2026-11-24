@@ -316,6 +316,8 @@ component_types! {
     /// `<sampleMultivariateRandomNumber>`: one number per category, drawn
     /// together at load.
     SampleMultivariateRandomNumber => structure::sample_multivariate_random_number::DEFINITION,
+    /// `<attractTo>` among a point's constraints.
+    AttractTo => geometry::attract_to::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

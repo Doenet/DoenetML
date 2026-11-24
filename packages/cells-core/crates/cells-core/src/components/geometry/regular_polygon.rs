@@ -27,6 +27,9 @@ component! {
         sideLength: by_planner,
         perimeter: by_planner,
         area: by_planner,
+        // Whether a whole drag, and a vertex's, may move it (ADR 0070).
+        draggable: by_planner { rendered },
+        verticesDraggable: by_planner { rendered },
     }
     combined_props {
         center: [cx, cy],
@@ -61,6 +64,8 @@ component! {
         sideLength: Scalar,
         perimeter: Scalar,
         area: Scalar,
+        draggable: Flag(true),
+        verticesDraggable: OptFlag,
     }
     params {
         // The center when not given, the direction from it (or, given a
@@ -99,6 +104,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     }
     let n = n as usize;
     let nf = n as f64;
+    let [draggable, vertices_draggable] = super::drag::flags(
+        attrs.draggable.clone(),
+        attr::draggable,
+        attrs.verticesDraggable.clone(),
+        attr::verticesDraggable,
+        at.draggable,
+    );
     let center = attrs.center.map(PointAttr::point).transpose()?;
     let vertices = attrs.vertices;
     let mut wiring = ElemWiring::with_list(ComponentType::RegularPolygon, n);
@@ -220,6 +232,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         sideLength: times(2.0 * sin),
         perimeter: times(2.0 * nf * sin),
         area: Source::computed_k(OpSpec::Mul, square, nf / 2.0 * (TAU / nf).sin()).into(),
+        draggable,
+        verticesDraggable: vertices_draggable,
     });
     wiring.set_list(points);
     Ok(wiring)

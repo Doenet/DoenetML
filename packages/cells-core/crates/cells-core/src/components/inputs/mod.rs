@@ -76,7 +76,8 @@ pub mod boolean_input {
 
     component! {
         /// A checkbox: its value cell holds 0 or 1 like any other `f64` cell,
-        /// essential unless `bindValueTo` names another (a `<boolean>`'s).
+        /// essential unless `bindValueTo` names another (a `<boolean>`'s),
+        /// and checked at first when `prefill` is true.
         tags: ["booleanInput"],
         flags: [copyable],
         reads_as: Boolean,
@@ -85,7 +86,7 @@ pub mod boolean_input {
         extend_value: Scalar(value),
         default_prop: value,
         props {
-            value: attr(0.0) { bind: bindValueTo, interactive, rendered },
+            value: attr(0.0) { attribute: prefill, bind: bindValueTo, interactive, rendered },
         }
         planner: Props,
     }

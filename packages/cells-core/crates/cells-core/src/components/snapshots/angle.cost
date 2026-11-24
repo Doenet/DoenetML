@@ -7,3 +7,4 @@ between lines is not supported: cells 11 · essential 8 · constant 3 · instrs 
 a measure written as math is an expression, kept as written (ADR 0043): cells 20 · essential 0 · constant 20 · instrs 0 · components 6
 a number, or points: no expression: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
 a reference to an expression: one, following it: cells 9 · essential 1 · constant 4 · instrs 4 · components 4
+its three points: through points, else the third a unit from the vertex at the measure: cells 17 · essential 0 · constant 17 · instrs 0 · components 4

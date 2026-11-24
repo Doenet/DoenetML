@@ -37,6 +37,16 @@
 //! |                          |                                       | the far point is asked; a midpoint and an offset move both ends      |                   |
 //! | `Extent`                 | (a, b) → the distance from a to b     | both ends about their midpoint, the order kept, a negative size 0    | a, b              |
 //! | `AngleAt{reflex}`        | (P1, V, P3) → the angle at V          | none: an angle through points is not set by a request                | none              |
+//! | `Attract`                | (P, Q, t) → Q when P is within t of   | projection: the requested point written to P, attracted when read    | P                 |
+//! |                          | it, else P                            |                                                                      |                   |
+//! | `SegmentPolar`           | (P, m, L, t) → the two ends: P at t   | an end alone translates; the second end sets m and L from the ends,  | P, m, L           |
+//! |                          | along them, L·dir(m) apart            | P the point at t                                                     |                   |
+//! | `SegmentMirror`          | (A, M, t) → A and the end that puts M | each end asked moves, the other held: A the first, M the point at t  | A, M              |
+//! |                          | at t along them                       |                                                                      |                   |
+//! | `SegmentMeasures`        | (P1, P2) → the slope and length       | slope: turn about the midpoint, the length kept; length: scale about | P1, P2            |
+//! |                          |                                       | the midpoint                                                         |                   |
+//! | `Turn`                   | (P1, V, a) → V + the unit ray toward  | none: an angle's third point follows its measure                     | none              |
+//! |                          | P1 turned by a                        |                                                                      |                   |
 //! | `RegularPolygon{n, by}`  | (P, Q) → the n vertices about a       | one vertex: turn and scale about the center; several: the center     | P, Q              |
 //! |                          | center, by [`RegularBy`]              | moves to their mean, the first sets the turn and size                |                   |
 //! | `Scan{op, n}`            | n inputs → running sums, products,    | none: an operator component's result is not set by a request         | none              |
@@ -293,6 +303,35 @@ pub enum VecOp {
         /// Which of the two angles.
         reflex: Reflex,
     },
+    /// Inputs (x, y, qx, qy, t); outputs `(qx, qy)` when `(x, y)` is within
+    /// `t` of it, else `(x, y)`: a point attracted to what `Q` projects it
+    /// onto. A request writes `(x, y)`, and the point is attracted again
+    /// where it lands.
+    Attract,
+    /// Inputs (px, py, m, L, t); outputs a segment's two ends, `P - t L
+    /// dir(m)` and `P + (1 - t) L dir(m)`: `P` the point at `t` along it
+    /// (an end, or a midpoint), `m` its slope and `L` its signed length
+    /// (`dir(m)` points right, up or down when vertical). A request on the
+    /// first end alone translates it; one on the second writes the slope
+    /// and signed length the asked ends have, and `P` where it sits on
+    /// them, as the current core's `<lineSegment slope length>` does.
+    SegmentPolar,
+    /// Inputs (ax, ay, mx, my, t); outputs a segment's two ends, `A` and
+    /// `A + (M - A) / t`, so `M` is the point at `t` along it, as the
+    /// current core's `<lineSegment endpoints midpoint>` makes it. A
+    /// request moves the ends asked and holds the other: `A` the first,
+    /// `M` where the point at `t` is.
+    SegmentMirror,
+    /// Inputs (x1, y1, x2, y2); outputs the segment's slope and length. A
+    /// request on the slope turns it about its midpoint, its length kept
+    /// and its direction the nearer of the two; one on the length scales it
+    /// about its midpoint, as the current core inverts them.
+    SegmentMeasures,
+    /// Inputs (x1, y1, x, y, a); outputs the point a unit from (x, y) on
+    /// the ray through the first point turned counterclockwise by `a`
+    /// radians, NaN when an input is not finite: an angle's third point
+    /// from its first point, its vertex and its measure. No inverse.
+    Turn,
     /// Inputs (px, py, qx, qy); outputs the `n` vertices of a regular
     /// polygon, counterclockwise from its first vertex `V` about its
     /// center `C`, which follow from the inputs as `by` says.
@@ -1563,6 +1602,10 @@ impl VecOp {
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => 4,
             VecOp::Extent => 2,
             VecOp::AngleAt { .. } => 6,
+            VecOp::Turn => 5,
+            VecOp::Attract => 5,
+            VecOp::SegmentPolar | VecOp::SegmentMirror => 5,
+            VecOp::SegmentMeasures => 4,
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } => n as usize,
             VecOp::Shuffle { n } => n as usize + 1,
             VecOp::Draws {
@@ -1596,7 +1639,8 @@ impl VecOp {
             VecOp::PolarSlope => 0b1100,
             VecOp::PolarDirection { .. } => 0b11100,
             VecOp::LinePointsFromCoeffs => 0b111,
-            VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
+            VecOp::ProjectCircle | VecOp::ProjectLine | VecOp::Attract => 0b11,
+            VecOp::SegmentPolar | VecOp::SegmentMirror | VecOp::SegmentMeasures => first(4),
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::SequencePick { .. }
@@ -1611,7 +1655,10 @@ impl VecOp {
             VecOp::Centroid { n } => first(2 * n as usize),
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
             VecOp::Extent => first(2),
-            VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::Intersect { .. } => 0,
+            VecOp::AngleAt { .. }
+            | VecOp::Turn
+            | VecOp::BestFitLine { .. }
+            | VecOp::Intersect { .. } => 0,
             VecOp::Parabola { .. } => first(self.n_in()),
             VecOp::IntoDomain => 1,
             VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
@@ -1692,7 +1739,9 @@ impl VecOp {
             VecOp::CircleTwoPointsRadius => 2,
             VecOp::PolarSlope | VecOp::PolarDirection { .. } => 2,
             VecOp::LinePointsFromCoeffs => 4,
-            VecOp::ProjectCircle | VecOp::ProjectLine => 2,
+            VecOp::ProjectCircle | VecOp::ProjectLine | VecOp::Attract => 2,
+            VecOp::SegmentPolar | VecOp::SegmentMirror => 4,
+            VecOp::SegmentMeasures => 2,
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::Clamp
@@ -1701,7 +1750,7 @@ impl VecOp {
             | VecOp::Wrap
             | VecOp::Extent
             | VecOp::AngleAt { .. } => 1,
-            VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
+            VecOp::WeightedMean { .. } | VecOp::Centroid { .. } | VecOp::Turn => 2,
             VecOp::Pair { .. } => 4,
             VecOp::RegularPolygon { n, .. } => 2 * n as usize,
             VecOp::Scan {
@@ -1862,6 +1911,46 @@ impl VecOp {
             }
             VecOp::Extent => out[0] = (inp[1] - inp[0]).abs(),
             VecOp::AngleAt { reflex } => out[0] = angle_at(inp, reflex),
+            VecOp::SegmentPolar => {
+                let [x1, y1, x2, y2] = segment_polar(&inp[..5]);
+                out[0] = x1;
+                out[1] = y1;
+                out[2] = x2;
+                out[3] = y2;
+            }
+            VecOp::SegmentMirror => {
+                let (t, [ax, ay, mx, my]) = (inp[4], [inp[0], inp[1], inp[2], inp[3]]);
+                out[0] = ax;
+                out[1] = ay;
+                out[2] = if t == 0.0 {
+                    f64::NAN
+                } else {
+                    ax + (mx - ax) / t
+                };
+                out[3] = if t == 0.0 {
+                    f64::NAN
+                } else {
+                    ay + (my - ay) / t
+                };
+            }
+            VecOp::SegmentMeasures => {
+                let (dx, dy) = (inp[2] - inp[0], inp[3] - inp[1]);
+                out[0] = dy / dx;
+                out[1] = dx.hypot(dy);
+            }
+            VecOp::Attract => {
+                let (dx, dy) = (inp[0] - inp[2], inp[1] - inp[3]);
+                let near = dx * dx + dy * dy <= inp[4] * inp[4];
+                out[0] = if near { inp[2] } else { inp[0] };
+                out[1] = if near { inp[3] } else { inp[1] };
+            }
+            VecOp::Turn => {
+                let [x1, y1, vx, vy, a] = [inp[0], inp[1], inp[2], inp[3], inp[4]];
+                let theta = (y1 - vy).atan2(x1 - vx) + a;
+                let finite = [x1, y1, vx, vy, a].iter().all(|v| v.is_finite());
+                out[0] = if finite { vx + theta.cos() } else { f64::NAN };
+                out[1] = if finite { vy + theta.sin() } else { f64::NAN };
+            }
             VecOp::RegularPolygon { n, by } => {
                 let ([cx, cy], [vx, vy]) = regular_center_vertex(n as usize, by, inp);
                 regular_vertices(n as usize, [cx, cy], [vx - cx, vy - cy], out);
@@ -2079,6 +2168,93 @@ impl VecOp {
                 out.write(inputs[1], y);
                 true
             }
+            VecOp::Attract => {
+                out.write(inputs[0], want(0));
+                out.write(inputs[1], want(1));
+                true
+            }
+            VecOp::SegmentPolar => {
+                let t = inp[4];
+                let (e1, e2) = ([want(0), want(1)], [want(2), want(3)]);
+                let next = if desired[2].is_none() && desired[3].is_none() {
+                    // The first end alone: the segment translates.
+                    let [x1, y1, ..] = segment_polar(&inp[..5]);
+                    [inp[0] + e1[0] - x1, inp[1] + e1[1] - y1, inp[2], inp[3]]
+                } else {
+                    let (m, l) = slope_and_signed_length(e1, e2, inp[2]);
+                    let p = [e1[0] + t * (e2[0] - e1[0]), e1[1] + t * (e2[1] - e1[1])];
+                    [p[0], p[1], m, l]
+                };
+                if !next[0].is_finite() || !next[1].is_finite() || next[3].is_nan() {
+                    return false;
+                }
+                if next[0] != inp[0] || next[1] != inp[1] {
+                    out.group(vec![point(0, next[0], next[1])]);
+                }
+                if next[2] != inp[2] {
+                    out.write(inputs[2], next[2]);
+                }
+                if next[3] != inp[3] {
+                    out.write(inputs[3], next[3]);
+                }
+                true
+            }
+            VecOp::SegmentMirror => {
+                let t = inp[4];
+                let asked_second = desired[2].is_some() || desired[3].is_some();
+                if t == 0.0 {
+                    // The point at 0 is the first end: the second has no
+                    // place, and the first moves alone.
+                    if asked_second {
+                        return false;
+                    }
+                    out.group(vec![point(0, want(0), want(1))]);
+                    return true;
+                }
+                let (e1, e2) = ([want(0), want(1)], [want(2), want(3)]);
+                let m = [e1[0] + t * (e2[0] - e1[0]), e1[1] + t * (e2[1] - e1[1])];
+                write_points(inputs, inp, &[e1[0], e1[1], m[0], m[1]], out)
+            }
+            VecOp::SegmentMeasures => {
+                let [x1, y1, x2, y2] = [inp[0], inp[1], inp[2], inp[3]];
+                if ![x1, y1, x2, y2].iter().all(|v| v.is_finite()) {
+                    return false;
+                }
+                let (cx, cy) = ((x1 + x2) / 2.0, (y1 + y2) / 2.0);
+                let len = (x2 - x1).hypot(y2 - y1);
+                let (cur_x, cur_y) = ((x2 - x1) / len, (y2 - y1) / len);
+                let (half, (dx, dy)) = match (desired[0], desired[1]) {
+                    (_, Some(l)) => {
+                        if !l.is_finite() || l < 0.0 || len == 0.0 {
+                            return false;
+                        }
+                        (l / 2.0, (cur_x, cur_y))
+                    }
+                    (Some(m), None) => {
+                        if m.is_nan() || len == 0.0 {
+                            return false;
+                        }
+                        let (mut dx, mut dy) = slope_direction(m);
+                        // The nearer of the two directions with that slope.
+                        if m.is_finite() && cur_x * dx + cur_y * dy < 0.0 {
+                            (dx, dy) = (-dx, -dy);
+                        }
+                        (len / 2.0, (dx, dy))
+                    }
+                    (None, None) => return false,
+                };
+                let next = [
+                    cx - half * dx,
+                    cy - half * dy,
+                    cx + half * dx,
+                    cy + half * dy,
+                ];
+                if next.iter().any(|v| !v.is_finite()) {
+                    return false;
+                }
+                out.group(vec![point(0, next[0], next[1]), point(1, next[2], next[3])]);
+                true
+            }
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::SequencePick { .. }
@@ -2176,7 +2352,7 @@ impl VecOp {
                 out.write(inputs[1], mid + half);
                 true
             }
-            VecOp::AngleAt { .. } => false,
+            VecOp::AngleAt { .. } | VecOp::Turn => false,
             VecOp::RegularPolygon { n, by } => {
                 let n = n as usize;
                 let Some(first) = (0..2 * n).find(|&k| desired[k].is_some()) else {
@@ -2858,6 +3034,46 @@ fn slope_direction(m: f64) -> (f64, f64) {
     }
 }
 
+/// A [`VecOp::SegmentPolar`]'s two ends from its inputs (P, m, L, t).
+fn segment_polar(inp: &[f64]) -> [f64; 4] {
+    let ([px, py], m, l, t) = ([inp[0], inp[1]], inp[2], inp[3], inp[4]);
+    // At length zero the ends coincide whatever the slope.
+    let (dx, dy) = if l == 0.0 {
+        (0.0, 0.0)
+    } else {
+        let (cx, cy) = slope_direction(m);
+        (l * cx, l * cy)
+    };
+    [
+        px - t * dx,
+        py - t * dy,
+        px + (1.0 - t) * dx,
+        py + (1.0 - t) * dy,
+    ]
+}
+
+/// The slope and signed length that put `e2` from `e1` along `dir(m)`, as
+/// the current core's `getSlopeAndSignedLength`: the length carries the
+/// sign of the run; a vertical segment's slope is ±∞ and its length
+/// positive; ends that coincide keep `fallback` with length 0.
+fn slope_and_signed_length(e1: [f64; 2], e2: [f64; 2], fallback: f64) -> (f64, f64) {
+    let (dx, dy) = (e2[0] - e1[0], e2[1] - e1[1]);
+    if dx == 0.0 && dy == 0.0 {
+        (fallback, 0.0)
+    } else if dx == 0.0 {
+        (
+            if dy > 0.0 {
+                f64::INFINITY
+            } else {
+                f64::NEG_INFINITY
+            },
+            dy.abs(),
+        )
+    } else {
+        (dy / dx, dx.hypot(dy) * dx.signum())
+    }
+}
+
 fn centroid(p: &[f64], n: usize) -> (f64, f64) {
     let (mut sx, mut sy) = (0.0, 0.0);
     for i in 0..n {
@@ -3046,6 +3262,11 @@ mod writes {
             VecOp::AngleAt {
                 reflex: Reflex::Always,
             },
+            VecOp::Turn,
+            VecOp::Attract,
+            VecOp::SegmentPolar,
+            VecOp::SegmentMirror,
+            VecOp::SegmentMeasures,
             VecOp::RegularPolygon {
                 n: 3,
                 by: RegularBy::CenterVertex,
@@ -3253,7 +3474,10 @@ mod writes {
             | VecOp::PolarSlope
             | VecOp::PolarDirection { .. }
             | VecOp::ProjectCircle
-            | VecOp::ProjectLine => points(1).collect(),
+            | VecOp::ProjectLine
+            | VecOp::Attract => points(1).collect(),
+            VecOp::SegmentPolar | VecOp::SegmentMirror => points(2).collect(),
+            VecOp::SegmentMeasures => vec![vec![0], vec![1]],
             VecOp::LinePointsFromCoeffs | VecOp::Pair { .. } => points(2).collect(),
             VecOp::Centroid { .. } => points(1).collect(),
             VecOp::RegularPolygon { n, .. } => points(n as usize).collect(),
@@ -3266,6 +3490,7 @@ mod writes {
             | VecOp::Wrap
             | VecOp::Extent
             | VecOp::AngleAt { .. }
+            | VecOp::Turn
             | VecOp::Scan { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }

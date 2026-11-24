@@ -98,7 +98,7 @@ fn an_automatic_title_is_the_word_and_the_full_number() {
 fn a_title_and_number_follow_counts_that_change_at_runtime() {
     let mut doc = load_unpruned(
         r#"<mathInput name="n" prefill="2" />
-<booleanInput name="show" value="true" />
+<booleanInput name="show" prefill="true" />
 <section name="a"/>
 <conditionalContent name="cc" condition="$show"><section name="shown"/></conditionalContent>
 <section name="s">

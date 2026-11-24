@@ -224,7 +224,9 @@ fn census() {
     // a presentation setting planned as a display setting is (ADR 0071),
     // which the choices' interface values choose among the cases' too: 2
     // more, dead.
-    assert!(golden[0] <= 140 && golden[1] == 229, "{golden:?}");
+    // A segment's midpoint, slope and length are props a request may set
+    // (`SegmentMeasures`): `lines.doenet`'s one segment has two more, dead.
+    assert!(golden[0] <= 140 && golden[1] == 231, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

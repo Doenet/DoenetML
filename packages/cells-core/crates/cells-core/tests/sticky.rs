@@ -200,7 +200,7 @@ fn a_member_computed_from_another_member() {
 #[test]
 fn members_inside_choices_follow_the_active_case() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
         <graph name="g"><stickyGroup name="sg">
           <point name="A">(0,0)</point>
           <conditionalContent name="cc"><case condition="$b"><point name="B">(5,5)</point></case></conditionalContent>

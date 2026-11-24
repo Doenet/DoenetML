@@ -38,6 +38,14 @@ component! {
         y1: by_planner { rendered },
         x2: by_planner { rendered },
         y2: by_planner { rendered },
+        // The third point: the third `through` point, else the point a
+        // unit from the vertex at the measure from the first ray, as the
+        // current core's `points` has it.
+        x3: by_planner,
+        y3: by_planner,
+    }
+    combined_props {
+        points: [x1, y1, x2, y2, x3, y3],
     }
     alternate_names {
         value: radians,
@@ -97,14 +105,24 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => Reflex::Never,
     };
     let mut wiring = ElemWiring::of(ComponentType::Angle);
-    // The first point and the vertex, when `through` gives them.
+    // The first point and the vertex, when `through` gives them; the
+    // vertex is the origin when it gives one point, as in the current core.
     let [x1, y1, x2, y2] = match attrs.through.as_slice() {
         [p1, v, ..] => {
             let [x1, y1] = Wire::point(p1, attr::through, 0);
             let [x2, y2] = Wire::point(v, attr::through, 1);
             [x1, y1, x2, y2]
         }
-        _ => [1.0, 0.0, 0.0, 0.0].map(Wire::constant),
+        [p1] => {
+            let [x1, y1] = Wire::point(p1, attr::through, 0);
+            [x1, y1, Wire::constant(0.0), Wire::constant(0.0)]
+        }
+        [] => [1.0, 0.0, 0.0, 0.0].map(Wire::constant),
+    };
+    // The third point, when `through` gives it, whatever gives the measure.
+    let third = match attrs.through.as_slice() {
+        [_, _, p3, ..] => Some(wiring.hidden_point_of(p3, attr::through, 2)),
+        _ => None,
     };
     // The measure's unit, its number and its expression; or a number in
     // radians.
@@ -117,9 +135,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     } else if let Some(nodes) = &attrs.children {
         let (n, e) = measure(ctx, nodes, GivenId::Children(0))?;
         (false, n, e)
-    } else if let [_, _, p3, ..] = attrs.through.as_slice() {
+    } else if let Some(p3) = third {
         let mut args = vec![at.x1, at.y1, at.x2, at.y2];
-        args.extend(wiring.hidden_point_of(p3, attr::through, 2));
+        args.extend(p3);
         let [radians] = ElemWiring::vector([at.radians], VecOp::AngleAt { reflex }, args);
         (false, radians, None)
     } else {
@@ -166,7 +184,16 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             other_expr,
         )
     };
+    let [x3, y3] = third.map(|p| p.map(Wire::own)).unwrap_or_else(|| {
+        ElemWiring::vector(
+            [at.x3, at.y3],
+            VecOp::Turn,
+            vec![at.x1, at.y1, at.x2, at.y2, at.radians],
+        )
+    });
     wiring.set_planned(Planned {
+        x3,
+        y3,
         radians,
         degrees,
         radiansExpr: radians_expr,
