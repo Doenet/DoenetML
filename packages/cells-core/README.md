@@ -40,7 +40,10 @@ and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `exercises`, numbered with the sections) and the unnumbered `proof`, the
 blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
 `caption`) and `footnote`, numbered through the document (ADR 0044),
-`page` (both numbering sequences pass through it, ADR 0058), the
+`page` (both numbering sequences pass through it, ADR 0058), `cascade`
+(its steps revealed as the ones before are complete, each gated by its
+place; `revealAll`, `hideFutureSections`) and `cascadeMessage` (ADR 0062),
+the
 numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,

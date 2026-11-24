@@ -149,7 +149,8 @@ pub(super) const fn aggregate(name: &'static str, op: AggOp, over: Collection) -
             ) | (
                 AggOp::Count,
                 Collection::SectionsThrough | Collection::Gathered
-            )
+            ) | (AggOp::ProgressCredit, Collection::ScoredItems)
+                | (AggOp::Completed, Collection::Steps)
         ),
         "an aggregate's operator does not fit its collection"
     );
@@ -345,6 +346,7 @@ pub(super) const fn definition(
         submit: None,
         roles: &[],
         structure_kind: None,
+        gate: None,
         response: None,
         text: None,
         encloses: None,
@@ -506,6 +508,12 @@ impl ComponentDef {
         count: fn(&crate::compile::api::Record) -> Option<usize>,
     ) -> Self {
         self.static_count = Some(count);
+        self
+    }
+    /// The gate it sets on each of its children ([`super::StepGate`], ADR
+    /// 0062).
+    pub(super) const fn gate(mut self, gate: super::StepGate) -> Self {
+        self.gate = Some(gate);
         self
     }
     /// The counter it takes a number from ([`super::Counted`]).
@@ -964,6 +972,11 @@ macro_rules! component {
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
+        $(gate: Step($gcomp:ident, $gall:ident, $gfut:ident) {
+            skip: [$($gskip:ident),* $(,)?],
+            message: $gmsg:ident,
+            headed: [$($ghead:ident),* $(,)?] $(,)?
+        },)?
         $(item: $itty:ident ($itfn:path),)?
         $(response: $rkind:ident ($rprop:ident),)?
         $(value: $vkind:ident $(($($vprop:ident),+ $(,)?))?,)?
@@ -1039,6 +1052,14 @@ macro_rules! component {
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
+                $(.gate($crate::components::StepGate {
+                    completed: $crate::components::define::at(PROPS, stringify!($gcomp)),
+                    all: $crate::components::define::at(PROPS, stringify!($gall)),
+                    future: $crate::components::define::at(PROPS, stringify!($gfut)),
+                    skip: &[$($crate::components::ComponentType::$gskip),*],
+                    message: $crate::components::ComponentType::$gmsg,
+                    headed: &[$($crate::components::ComponentType::$ghead),*],
+                }))?
                 $(.item($crate::components::ItemDecl {
                     ty: $crate::components::ComponentType::$itty,
                     wire: {

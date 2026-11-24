@@ -535,6 +535,9 @@ impl Document {
         for ch in self.children(c) {
             match ch {
                 Child::Text(t) => out.push_str(t),
+                // A step a cascade holds back, or a message it does not
+                // show, is not in the text (ADR 0062).
+                Child::Component(k) if self.revealed(k) != crate::document::Revealed::Shown => {}
                 Child::Component(k) => self.push_text(k, out),
             }
         }

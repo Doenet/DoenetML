@@ -204,7 +204,9 @@ methods. Rules for planners:
   `numbered:
   Titled(include, label, f)` for a section's number and title;
   `counted: Figures(number)` for a document-wide counter it takes a
-  number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
+  number from (ADR 0044); `gate: Step(completed, all, future) { skip,
+  message, headed }` for a gate it sets on each child by its place, a
+  `<cascade>`'s steps (ADR 0062); `inner { numerator: FractionInputPart, .. }`
   for the inputs it owns, which its planner plans (`ctx.inner(k)`,
   `ctx.plan_inner`) and wires (ADR 0045); `item: Number(item)` on a
   repeat-like type for the component it makes per iteration, wired by a
@@ -316,7 +318,7 @@ candidate for a hook, or for removal.
 
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
-`rewrite`, `settle`, `submit`, `numbered`, `counted`,
+`rewrite`, `settle`, `submit`, `numbered`, `counted`, `gate`,
 `inner`, `item`, `structural`, `static_count`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.

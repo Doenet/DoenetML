@@ -673,6 +673,21 @@ impl PlanCtx<'_, '_> {
         }
     }
 
+    /// Whether the element is a step of a type with a step gate (ADR
+    /// 0062): its nearest ancestor that is no structure (a group, a case,
+    /// a repeat) declares one. A dependency in the tree (ADR 0050).
+    pub(crate) fn is_step(&self) -> bool {
+        let (mut t, mut e) = (self.t, self.e);
+        while let Some((at, ae, row)) = self.p.rd.enclosing_row(t, e) {
+            let ty = row.component_type;
+            if ty.structure_kind().is_none() {
+                return ty.step_gate().is_some();
+            }
+            (t, e) = (at, ae);
+        }
+        false
+    }
+
     /// The text of the element's last child of type `ty` (a section's
     /// `<title>`, the one the current core reads): `Some(Some(text))` when
     /// it holds literal text alone, `Some(None)` when it holds anything

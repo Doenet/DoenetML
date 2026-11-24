@@ -486,6 +486,22 @@ const CONSTRUCTS: &[(&str, &str)] = &[
           <shuffle name="q">$A $B</shuffle>
         </repeatForSequence>"#,
     ),
+    (
+        // A cascade's steps (ADR 0062): in a repeat, in a case, a nested
+        // cascade, each gated by its place in a section that scores them.
+        "cascade-steps",
+        r#"<numberInput name="k" value="1"/><booleanInput name="b"/>
+        <section name="s" aggregateScores><cascade name="c">
+          <section name="a"><numberInput name="x"/><answer name="ax" response="$x">1</answer></section>
+          <repeatForSequence name="r" length="$k" indexName="i">
+            <section name="p"><numberInput name="y"/><answer name="ay" response="$y">$i</answer></section>
+          </repeatForSequence>
+          <conditionalContent condition="$b"><section name="q"><answer>2</answer></section></conditionalContent>
+          <cascadeMessage>Next</cascadeMessage>
+          <cascade name="inner"><p><answer>3</answer></p><section name="z"/></cascade>
+        </cascade></section>
+        <number name="n">$c.numCompleted + $a.creditAchievedForProgress</number>"#,
+    ),
 ];
 
 #[test]

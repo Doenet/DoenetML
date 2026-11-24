@@ -483,6 +483,30 @@ impl Core {
         raw_cells(self.doc.counter_reads(CompIdx::new(idx)))
     }
 
+    /// How the cascade above `idx` shows it (ADR 0062): 0 shown, 1 a
+    /// held-back step that keeps its heading and hides what it holds, 2
+    /// hidden (a step not reached, a message not chosen). A component no
+    /// cascade governs is shown.
+    pub fn revealed(&self, idx: u32) -> u8 {
+        if (idx as usize) >= self.doc.n_components() {
+            return 0;
+        }
+        match self.doc.revealed(CompIdx::new(idx)) {
+            cells_core::Revealed::Shown => 0,
+            cells_core::Revealed::Heading => 1,
+            cells_core::Revealed::Hidden => 2,
+        }
+    }
+
+    /// The cells `revealed` of `idx` reads, for a reader to recompute it
+    /// when one changes.
+    pub fn reveal_reads(&self, idx: u32) -> Vec<u32> {
+        if (idx as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        raw_cells(self.doc.reveal_reads(CompIdx::new(idx)))
+    }
+
     /// A section's full number, such as "2.1" (ADR 0054): its own number,
     /// after its nearest numbered ancestor's when it includes it and is no
     /// list item; none for a component that is no numbered section. It
