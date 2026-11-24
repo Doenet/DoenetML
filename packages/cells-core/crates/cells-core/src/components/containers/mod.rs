@@ -93,8 +93,13 @@ pub mod graph {
 }
 
 containers! {
-    /// `<p>`: a rendered container with no props of its own.
-    p: ["p"];
+    /// `<p>`: a rendered container; `hide` is its only prop, planned as a
+    /// display setting is (ADR 0071).
+    p: ["p"] {
+        props {
+            hide: display,
+        }
+    };
 
     /// `<shortDescription>`: the accessible description of its parent (a
     /// graph, an input); text, not rendered in place.
@@ -191,6 +196,8 @@ containers! {
     /// shows the referent's value.
     inline_math: ["m"] {
         props {
+            // Planned as a display setting is (ADR 0071).
+            hide: display,
             ..anchor
         }
     };
@@ -198,6 +205,8 @@ containers! {
     /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
     display_math: ["md", "me"] {
         props {
+            // Planned as a display setting is (ADR 0071).
+            hide: display,
             ..anchor
         }
     };

@@ -1,4 +1,4 @@
-samples of a discrete uniform: cells 12 · essential 0 · constant 12 · instrs 0 · components 7
-one sample by default: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
+samples of a discrete uniform: cells 17 · essential 0 · constant 17 · instrs 0 · components 7
+one sample by default: cells 10 · essential 0 · constant 10 · instrs 0 · components 4
 a sample count that is no whole number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
-the distribution's moments: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+the distribution's moments: cells 13 · essential 0 · constant 13 · instrs 0 · components 5

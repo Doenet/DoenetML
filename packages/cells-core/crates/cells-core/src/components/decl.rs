@@ -1058,7 +1058,8 @@ pub enum PropFrom {
     /// attribute, a literal or a reference a tick may change, planned by
     /// the compile for every type that has one, whatever its planner, after
     /// the planner runs (ADR 0058). Without the attribute, not given (NaN):
-    /// the reader takes it from the nearest referent that gives it.
+    /// the reader takes it from the nearest referent that gives it. A
+    /// value's `hide` is planned the same way (ADR 0071).
     Display,
 }
 

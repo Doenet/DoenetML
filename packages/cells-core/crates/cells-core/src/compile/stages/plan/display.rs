@@ -38,6 +38,21 @@ impl Planning<'_> {
                 continue;
             }
             let Some(a) = d.attr(node, def.name) else {
+                // Not written: the setting of a sole child that is one
+                // reference, unless the element writes the setting this
+                // one is coupled with (ADR 0071).
+                // `hide` is no number display setting: a child's is its own.
+                let coupled = match def.name {
+                    "displayDigits" => d.attr(node, "displayDecimals").is_some(),
+                    "displayDecimals" => d.attr(node, "displayDigits").is_some(),
+                    "hide" => true,
+                    _ => false,
+                };
+                if !coupled
+                    && let Some(source) = self.sole_child_setting(t, scope, node, def.name)?
+                {
+                    self.tables[t.index()].plans[e.index()].props[pi] = source;
+                }
                 continue;
             };
             let source = match self.rd.attr_text(a) {
@@ -54,6 +69,52 @@ impl Planning<'_> {
             self.tables[t.index()].plans[e.index()].props[pi] = source;
         }
         Ok(())
+    }
+
+    /// Setting `name` of the referent of `node`'s sole child, when its
+    /// children are one bare reference (`<number>$n</number>`, no text
+    /// beside it, no index, no prop) to a component whose type has the
+    /// setting: a reference to it, as the current core's
+    /// `childGroupsIfSingleMatch` takes a sole child's setting. A
+    /// referent that writes none holds it not given, so the reader
+    /// goes on to the default.
+    fn sole_child_setting(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        node: NodeId,
+        name: &'static str,
+    ) -> Result<Option<Source>> {
+        let d = self.rd.dast;
+        let mut sole = None;
+        for &n in d.children(node) {
+            match d.kind(n) {
+                NodeKind::Text if d.str(n).trim().is_empty() => {}
+                NodeKind::Macro if sole.is_none() => sole = Some(n),
+                NodeKind::Other => {}
+                _ => return Ok(None),
+            }
+        }
+        let Some(m) = sole else {
+            return Ok(None);
+        };
+        if d.macro_path(m).len() != 1 || d.macro_has_index(m) {
+            return Ok(None);
+        }
+        let p = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
+        if self.ar.refs[p.index()].prop.is_some() {
+            return Ok(None);
+        }
+        let has_setting = self
+            .rd
+            .ref_target_type(&self.ar, t, p)?
+            .is_some_and(|ty| ty.prop_index(name).is_some());
+        if !has_setting {
+            return Ok(None);
+        }
+        let named = self.rd.prop_named(&self.ar, t, p, name)?;
+        self.ar.ref_mut(p).prop = named;
+        Ok(Some(Source::reference(p)))
     }
 }
 

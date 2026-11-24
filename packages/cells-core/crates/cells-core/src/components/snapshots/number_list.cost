@@ -1,14 +1,14 @@
-text pieces are the entries, by every name: cells 6 · essential 0 · constant 6 · instrs 0 · components 5
+text pieces are the entries, by every name: cells 9 · essential 0 · constant 9 · instrs 0 · components 5
 no children: no entries: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
-a piece that is no number is the missing value: cells 6 · essential 0 · constant 6 · instrs 0 · components 5
-an entry by a literal, past the end, between two, and by a cell: cells 9 · essential 1 · constant 7 · instrs 1 · components 12
-a write through an entry lands on the list's own text piece: cells 7 · essential 1 · constant 6 · instrs 0 · components 7
-a reference is an entry, and a write through it goes to its source: cells 7 · essential 1 · constant 6 · instrs 0 · components 8
-a list of one reads as its entry: cells 9 · essential 0 · constant 9 · instrs 0 · components 5
-a bare copy has the referent's entries: cells 7 · essential 0 · constant 7 · instrs 0 · components 10
-a piece that is math reads as the number it is: cells 8 · essential 0 · constant 8 · instrs 0 · components 7
-an element child is an entry: cells 10 · essential 0 · constant 10 · instrs 0 · components 7
-a nested list's entries are spliced, and a write through one goes to its source: cells 10 · essential 1 · constant 9 · instrs 0 · components 15
-maxNumber keeps the whole entries below it: cells 8 · essential 0 · constant 8 · instrs 0 · components 9
-an entry past the end of a list is a blank entry: cells 8 · essential 0 · constant 8 · instrs 0 · components 8
-a reference inside brackets is part of its piece's math: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
+a piece that is no number is the missing value: cells 9 · essential 0 · constant 9 · instrs 0 · components 5
+an entry by a literal, past the end, between two, and by a cell: cells 12 · essential 1 · constant 10 · instrs 1 · components 12
+a write through an entry lands on the list's own text piece: cells 10 · essential 1 · constant 9 · instrs 0 · components 7
+a reference is an entry, and a write through it goes to its source: cells 9 · essential 1 · constant 8 · instrs 0 · components 8
+a list of one reads as its entry: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+a bare copy has the referent's entries: cells 13 · essential 0 · constant 13 · instrs 0 · components 10
+a piece that is math reads as the number it is: cells 13 · essential 0 · constant 13 · instrs 0 · components 7
+an element child is an entry: cells 13 · essential 0 · constant 13 · instrs 0 · components 7
+a nested list's entries are spliced, and a write through one goes to its source: cells 17 · essential 1 · constant 16 · instrs 0 · components 15
+maxNumber keeps the whole entries below it: cells 13 · essential 0 · constant 13 · instrs 0 · components 9
+an entry past the end of a list is a blank entry: cells 13 · essential 0 · constant 13 · instrs 0 · components 8
+a reference inside brackets is part of its piece's math: cells 10 · essential 0 · constant 10 · instrs 0 · components 5

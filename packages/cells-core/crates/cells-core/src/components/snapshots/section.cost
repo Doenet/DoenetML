@@ -8,5 +8,5 @@ questions and activities aggregate scores; theorems do not: cells 35 · essentia
 problems and exercises are numbered among the divisions, their problems among themselves: cells 20 · essential 0 · constant 20 · instrs 0 · components 7
 problems and exercises take includeParentNumber: cells 23 · essential 0 · constant 23 · instrs 0 · components 8
 the parts of a problem count from 1: cells 22 · essential 0 · constant 22 · instrs 0 · components 8
-a part is a list item, and a problems' problems are its list's: cells 21 · essential 0 · constant 21 · instrs 0 · components 9
+a part is a list item, and a problems' problems are its list's: cells 22 · essential 0 · constant 22 · instrs 0 · components 9
 a section inside a div is numbered among the sections around it: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
