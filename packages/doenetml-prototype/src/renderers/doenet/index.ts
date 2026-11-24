@@ -34,6 +34,7 @@ export * from "./hint";
 export * from "./in-graph-control";
 export * from "./li";
 export * from "./math-input";
+export * from "./matrix-input";
 export * from "./m";
 export * from "./number";
 export * from "./number-input";

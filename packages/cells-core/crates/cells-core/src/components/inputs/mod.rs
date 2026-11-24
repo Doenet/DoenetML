@@ -7,6 +7,7 @@ pub(crate) mod call_action;
 pub mod choice_input;
 pub(crate) mod fraction_input;
 pub mod math_input;
+pub(crate) mod matrix_input;
 pub mod text_input;
 pub(crate) mod trigger_set;
 pub mod update_value;

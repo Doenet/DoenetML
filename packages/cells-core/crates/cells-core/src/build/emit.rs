@@ -773,18 +773,42 @@ impl Emit<'_> {
             .map(|&(s, _)| slot_to_cell[s.index()])
             .filter(|c| sources.contains(c))
             .collect();
-        for &(s, from) in &self.x.seeds {
+        for (k, &(s, from)) in self.x.seeds.iter().enumerate() {
             let (scope, tslot, _) = self.x.slots().essential_key(s);
             let carried = !self.x.reseed && self.x.session.carried(scope, tslot).is_some();
             let src = slot_to_cell[slot_cells.seed_source(&self.x, from).index()];
             if dead_cell == Some(slot_to_cell[s.index()]) {
                 continue;
             }
-            let v = cells[src.index()];
-            let seed = if math_cells.contains(&src) || v.is_nan() {
-                v
-            } else {
-                self.x.engine.import(&Tree::<CellIdx>::Num(v)).to_value()
+            let as_math = |engine: &mut crate::sym::Engine, src: CellIdx| {
+                let v = cells[src.index()];
+                if math_cells.contains(&src) || v.is_nan() {
+                    v
+                } else {
+                    engine.import(&Tree::<CellIdx>::Num(v)).to_value()
+                }
+            };
+            // A matrix input's box (ADR 0045): its entry of the first
+            // seed's matrix, else the second seed, which follows it.
+            let seed = match self.x.seed_entries.get(&s) {
+                Some(_) if k > 0 && self.x.seeds[k - 1].0 == s => continue,
+                Some(&(row, col)) => {
+                    let other = self.x.seeds[k + 1].1;
+                    let other = slot_to_cell[slot_cells.seed_source(&self.x, other).index()];
+                    let m = cells[src.index()];
+                    let entry = (!m.is_nan() && math_cells.contains(&src))
+                        .then(|| {
+                            self.x
+                                .engine
+                                .matrix_entry(crate::sym::Handle::from_value(m), row, col)
+                        })
+                        .flatten();
+                    match entry {
+                        Some(h) => h.to_value(),
+                        None => as_math(self.x.engine, other),
+                    }
+                }
+                None => as_math(self.x.engine, src),
             };
             // The seed is an essential cell's default whether or not a
             // carried value replaces it (`Structure::essential_defaults`);

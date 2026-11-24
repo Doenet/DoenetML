@@ -44,6 +44,8 @@ impl<'a> Planning<'a> {
             None => Source::given(v),
         };
         let mut props = TableProps::of(component_type);
+        // Hidden ports after the table (`read_as_number`).
+        let mut hidden = Vec::new();
         // The element's own children, as its type reads them (ADR 0034):
         // what a `PropFrom::Children` prop is planned from.
         let children = if component_type.def().children.kind == ChildrenKind::Value {
@@ -61,6 +63,7 @@ impl<'a> Planning<'a> {
                 PropFrom::Aggregate(_) => "aggregate",
                 PropFrom::Anchor { .. } => "anchor",
                 PropFrom::ListLen => "list length",
+                PropFrom::Display => "display",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -123,12 +126,16 @@ impl<'a> Planning<'a> {
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(t, e, scope, &children)?,
+                    _ => {
+                        let source = self.plan_value_children(t, e, scope, &children)?;
+                        self.read_as_number(t, component_type, pi, source, &mut hidden)
+                    }
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
-                // Planned after the table, for every type (`plan_anchor`).
-                (None, PropFrom::Anchor { .. }) => Source::absent(),
+                // Planned after the table, for every type (`plan_anchor`,
+                // `plan_display`).
+                (None, PropFrom::Anchor { .. } | PropFrom::Display) => Source::absent(),
                 // A table's list is its own props' points.
                 (None, PropFrom::ListLen) => match component_type.list().map(|l| &l.points) {
                     Some(ListPoints::Table(points)) => Source::constant(points.len() as f64),
@@ -153,8 +160,48 @@ impl<'a> Planning<'a> {
             };
             props[Port::table(pi)] = Some(source);
         }
-        self.tables[t.index()].plans[e.index()].props = props.finish();
+        let mut props = props.finish();
+        props.extend(hidden);
+        self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
+    }
+
+    /// `source`, planned for prop `pi` of an element of `component_type`,
+    /// as that prop reads it: where the prop is the number the type shows
+    /// (a `<number>`'s value) and `source` a reference to what may be a
+    /// math cell (an entry inside a handle, `$mi[2]`, `$f.maxima[1][2]`; a
+    /// math list's entry, `$ml[3]`), the number that cell holds, its
+    /// expression evaluated ([`Flow::ValueOf`], picked by the type pass as
+    /// an operator's value is, ADR 0043), through a hidden port pushed on
+    /// `hidden` after the table; otherwise `source` itself. A reference the
+    /// records show is a number, text, a boolean, a point or a list is
+    /// read as it is.
+    pub(super) fn read_as_number(
+        &self,
+        t: TemplateId,
+        component_type: ComponentType,
+        pi: usize,
+        source: Source,
+        hidden: &mut Vec<Source>,
+    ) -> Source {
+        use crate::components::TextKind;
+        let shows_number = matches!(
+            component_type.text_kind(),
+            Some(TextKind::Number(v) | TextKind::Grouped(v)) if v == pi
+        );
+        let Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) = source else {
+            return source;
+        };
+        let may_be_math = matches!(
+            self.rd.ref_value_kind(&self.ar, t, p),
+            None | Some(ValueKind::Math)
+        );
+        if !shows_number || !may_be_math {
+            return source;
+        }
+        let held = Port::table(component_type.prop_defs().len() + hidden.len());
+        hidden.push(source);
+        Source::value_of(held, held)
     }
 
     /// Children or an attribute read as a value ([`ValueChildren`]), not
@@ -210,16 +257,30 @@ impl<'a> Planning<'a> {
 
     /// Replace cell leaves that name a `<math>` element of this template
     /// with that math's own expression, as parsed, when it has free
-    /// symbols.
-    pub(super) fn inline_symbolic_maths(&mut self, t: TemplateId, id: ExprId) -> ExprId {
-        self.inline_maths(t, id, &mut Vec::new())
+    /// symbols, for element `e`'s plan. The reference is then in no source
+    /// of the plan, so each math inlined is a recorded read of `e`'s (ADR
+    /// 0050, decision 2's third row): a math that is a box boxes `e`, the
+    /// math its cause.
+    pub(super) fn inline_symbolic_maths(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        id: ExprId,
+    ) -> Result<ExprId> {
+        self.inline_maths(t, e, id, &mut Vec::new())
     }
 
     /// `inline_symbolic_maths`, with the maths being inlined around `id`:
     /// one reached again (two maths naming each other) is left a cell.
-    fn inline_maths(&mut self, t: TemplateId, id: ExprId, inlining: &mut Vec<ElemId>) -> ExprId {
-        let e = self.ar.arena.get(id).clone();
-        match e {
+    fn inline_maths(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        id: ExprId,
+        inlining: &mut Vec<ElemId>,
+    ) -> Result<ExprId> {
+        let expr = self.ar.arena.get(id).clone();
+        Ok(match expr {
             Expr::Cell(p) => {
                 let plan = &self.ar.refs[p.index()];
                 let is_value = plan.prop.is_none_or(|pr| pr.is("value"));
@@ -227,38 +288,48 @@ impl<'a> Planning<'a> {
                     .then(|| self.rd.plan_elem_target(&self.ar, t, p))
                     .flatten()
                 else {
-                    return id;
+                    return Ok(id);
                 };
                 // Every `<math>` is parsed before planning; one that did not parse is
                 // left a cell, its error its own.
                 let Some(Ok(ParsedMath::Expr(inner))) = self.parsed.math(t, target) else {
-                    return id;
+                    return Ok(id);
                 };
                 let inner = *inner;
                 if inlining.contains(&target) {
-                    return id;
+                    return Ok(id);
                 }
                 let mut syms = Vec::new();
                 self.ar.arena.symbols(inner, &mut syms);
                 if syms.is_empty() {
-                    return id;
+                    return Ok(id);
                 }
+                // Its expression stands where the reference stood: the
+                // read the plan no longer shows.
+                self.rd.referent_type(
+                    &self.ar,
+                    self.boxes.visible(&self.tables),
+                    &mut self.planned.reads,
+                    t,
+                    e,
+                    p,
+                )?;
                 inlining.push(target);
-                let inlined = self.inline_maths(t, inner, inlining);
+                let inlined = self.inline_maths(t, e, inner, inlining);
                 inlining.pop();
-                inlined
+                inlined?
             }
             // An operator's text is its own: nothing inlines into it.
             Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => id,
             Expr::Neg(a) => {
-                let a = self.inline_maths(t, a, inlining);
+                let a = self.inline_maths(t, e, a, inlining)?;
                 self.ar.arena.push(Expr::Neg(a))
             }
             Expr::Call(f, args) => {
                 let args = args
                     .into_iter()
-                    .map(|a| self.inline_maths(t, a, inlining))
-                    .collect();
+                    .map(|a| self.inline_maths(t, e, a, inlining))
+                    .collect::<Result<_>>()?;
                 self.ar.arena.push(Expr::Call(f, args))
             }
             Expr::Add(a, b)
@@ -267,12 +338,12 @@ impl<'a> Planning<'a> {
             | Expr::Div(a, b)
             | Expr::Pow(a, b) => {
                 let (na, nb) = (
-                    self.inline_maths(t, a, inlining),
-                    self.inline_maths(t, b, inlining),
+                    self.inline_maths(t, e, a, inlining)?,
+                    self.inline_maths(t, e, b, inlining)?,
                 );
-                self.ar.arena.push(e.with_operands(na, nb))
+                self.ar.arena.push(expr.with_operands(na, nb))
             }
-        }
+        })
     }
 }
 

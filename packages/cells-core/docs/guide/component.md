@@ -204,7 +204,9 @@ methods. Rules for planners:
   `numbered:
   Titled(include, label, f)` for a section's number and title;
   `counted: Figures(number)` for a document-wide counter it takes a
-  number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
+  number from (ADR 0044); `gate: Step(completed, all, future) { skip,
+  message, headed }` for a gate it sets on each child by its place, a
+  `<cascade>`'s steps (ADR 0062); `inner { numerator: FractionInputPart, .. }`
   for the inputs it owns, which its planner plans (`ctx.inner(k)`,
   `ctx.plan_inner`) and wires (ADR 0045); `item: Number(item)` on a
   repeat-like type for the component it makes per iteration, wired by a
@@ -214,7 +216,10 @@ methods. Rules for planners:
   is: T }` for the type an element is when its count follows a value (a
   structural sequence, ADR 0041); `static_count: f` for how many entries
   a static sequence's record makes, so a reference to it among a list's
-  children contributes them; and the prop option `infinite`. A free owned type is refused with what owns it
+  children contributes them; `list { capped: [x, y], live: numPoints,
+  hidden: hidden }` for a capped list (ADR 0041, a dynamic sequence: as
+  many points as its planner's cap, its rows hidden past the live
+  length); and the prop option `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - The core names no type: a unit test in `components/mod.rs`
   (`the_core_names_no_type`) refuses any `ComponentType` variant or
@@ -313,7 +318,7 @@ candidate for a hook, or for removal.
 
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
-`rewrite`, `settle`, `submit`, `numbered`, `counted`,
+`rewrite`, `settle`, `submit`, `numbered`, `counted`, `gate`,
 `inner`, `item`, `structural`, `static_count`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.

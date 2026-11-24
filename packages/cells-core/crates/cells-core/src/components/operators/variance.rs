@@ -82,10 +82,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let expr = match population {
         Some(population) if !pieces.is_empty() && kind != Kind::Numeric => {
             let args = over_math::operand_exprs(ctx, &pieces)?;
-            let twice = [args.as_slice(), args.as_slice()].concat();
-            let id = ctx.operator_expr(&twice, |texts| spelled(reduction, population, texts));
             let post = over_math::simplify_post(attrs.simplify, attrs.expand);
-            kind.expr(Some(id), post)
+            if over_math::one_value(ctx, &pieces, false).is_some() {
+                // One math value: its entries, reduced inside it (ADR 0063).
+                let id = ctx.operator_expr(&args, |texts| texts[0].clone());
+                kind.expr(
+                    Some(id),
+                    over_math::reduce_post(reduction, population, post),
+                )
+            } else {
+                let twice = [args.as_slice(), args.as_slice()].concat();
+                let id = ctx.operator_expr(&twice, |texts| spelled(reduction, population, texts));
+                kind.expr(Some(id), post)
+            }
         }
         _ => Wire::absent(),
     };

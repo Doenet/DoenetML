@@ -131,4 +131,42 @@ by its entry (ADR 0017).
    adapter's readers and a fraction input's `activeChildren`.
 2. Open: a value bound to a fraction input, once a bound math can be
    symbolic; `colorInputsSeparately` and `creditAchievedPerInput`.
-3. Open: `<matrixInput>`, a sized grid, with ADR 0041 step 4.
+3. Done (2026-11-24): `<matrixInput>`, a sized grid, with ADR 0041 step
+   4 (`components/inputs/matrix_input.rs`, its spec, `tests/matrix_input.rs`,
+   a `matrix-inputs` and a `bound-matrix-inputs` document in
+   `tests/every_count.rs`). The grid is a repeat over its rows whose item
+   is a row, a repeat over its columns whose item is a box (ADR 0040,
+   `item:`): outlining makes an item's own body when the item is a
+   repeat-like type with an item (`add_item_body`), the item's planning
+   recurses into it, and a repeat outlining made is keyed by the nearest
+   authored element's node, which no other repeat in its scope shares.
+   Each box's expression is a seed (`ScopeConst::SeedEntry`): the
+   prefill's entry at its row and column when first built, else
+   `defaultEntry`, then what was typed, kept by (scope, position, slot)
+   across every rebuild, so a box comes back with its row and column. The
+   matrix input's `expr` is an aggregate over the boxes the build stamped
+   (`AggOp::Grid` over `Collection::Boxes`, `SymKind::Grid`), its size
+   read from its own ports, so a grid of no rows is still `0` by `n`. Its
+   value as an answer's input, a `<matrix extend="$mi.value">`, the
+   bridge (rows of math inputs, the prototype having no renderer for one)
+   and its size actions, and the parity adapter's readers. Departures:
+
+   - **A literal size is not static** (the user's decision). The current core's size controls
+     (`updateNumRows`, `updateNumColumns`, on by default) resize any matrix
+     input, so a literal size, or none (1, or the prefill's size), is the
+     first value of an essential cell the student writes (ADR 0018), and
+     every grid is structural: the "fixed set made by outlining" of the
+     section above is never taken.
+   - **A bound matrix input is a type of its own** (`rewrite {
+     bindValueTo: BoundMatrixInput }`), whose row and box read the bound
+     value: its size `SymKind::MatrixSize` and each box its entry by
+     row then column, two `SymKind::Entry` projections (ADR 0041 step 5),
+     written back through (ADR 0060). `numRows`,
+     `numColumns`, `prefill` and `defaultEntry` are read and ignored, as
+     in the current core.
+   - Not done: a prefill or default entry by reference, a value bound by
+     a child (`<matrixInput>$m</matrixInput>`), `extend` of a matrix input
+     (a repeat, REF-7), `valueChanged`, the display and parsing attributes
+     (`displayDigits`, `splitSymbols`, `parseScientificNotation`,
+     `minComponentWidth`), `focused`, and an uncommitted value: typing
+     commits, so `immediateValue` is `value`.

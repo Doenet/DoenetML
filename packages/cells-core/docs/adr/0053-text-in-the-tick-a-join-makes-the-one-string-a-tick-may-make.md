@@ -151,6 +151,9 @@ concatenation in view.
 - *Done:* reading and making strings in the tick, joins, `<sort>` and
   `<shuffle>` of numbers, texts and maths, and the companion sequence with
   `componentOrder`.
+- *Done 2026-11-24:* a join with a separator, `SymKind::JoinWith`, the
+  next text-valued operator: a section's full number ("2.1") and title
+  ("Section 2.1") as text a reference reads (ADR 0058).
 - *Done 2026-11-23:* a per-element entry width (decision 8). An element
   of a type whose entries are its operands' (`EntryKind::Any`) may decide
   its entries' kind: its plan's list is `ListLen::Entries(n, kind)`

@@ -1,7 +1,9 @@
 //! Copies, as planned: `extend` with a prop path, container copies, the
 //! clone elements themselves, and the copy rules around a [`Planner::Plan`]
 //! type's planner: a bare copy aliases every prop, and a copy with its own
-//! attributes keeps the shared state they supply and shares the rest.
+//! attributes keeps the shared state they supply and shares the rest, its
+//! load-time draw among it unless it gives what the draw depends on (ADR
+//! 0059).
 
 use super::{PlanCtx, Planner, Planning};
 use crate::compile::*;
@@ -14,17 +16,30 @@ impl<'a> Planning<'a> {
     pub(super) fn plan_extend_prop(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
         let component_type = self.rd.own_row(t, e).component_type;
         let props = match component_type.def().extend_value {
-            Some(ExtendValue::Scalar(value)) => (0..component_type.prop_defs().len())
-                .map(|pi| {
-                    if pi == value {
-                        Source::reference(p)
-                    } else {
-                        // A mathInput bound to a cell is a numeric input:
-                        // no expression of its own.
-                        Source::absent()
-                    }
-                })
-                .collect(),
+            Some(ExtendValue::Scalar(value)) => {
+                // A number reads what may be a math cell as its number.
+                let mut hidden = Vec::new();
+                let read = self.read_as_number(
+                    t,
+                    component_type,
+                    value,
+                    Source::reference(p),
+                    &mut hidden,
+                );
+                let mut props: Vec<Source> = (0..component_type.prop_defs().len())
+                    .map(|pi| {
+                        if pi == value {
+                            read.clone()
+                        } else {
+                            // A mathInput bound to a cell is a numeric input:
+                            // no expression of its own.
+                            Source::absent()
+                        }
+                    })
+                    .collect();
+                props.extend(hidden);
+                props
+            }
             Some(ExtendValue::Point(wire)) => wire(Source::coord(p, 0), Source::coord(p, 1)),
             Some(ExtendValue::Expr(wire)) => {
                 let id = self.ar.arena.push(Expr::Cell(p));
@@ -98,9 +113,11 @@ impl<'a> Planning<'a> {
 
     /// Runs a `Plan` type's planner `plan` with the copy rules around it: a
     /// bare copy aliases every prop; a copy with its own attributes or
-    /// children is planned from its record merged under the referent's;
+    /// children is planned from its record merged over the records of the
+    /// chain of referents it stands on ([`Self::inherit`]);
     /// and every given leaf the copy did not give itself is shared with the
-    /// referent's port holding it.
+    /// referent's port holding it, as is its draw when it gives nothing the
+    /// draw depends on (ADR 0059).
     pub(super) fn plan_with_extend(
         &mut self,
         t: TemplateId,
@@ -122,8 +139,8 @@ impl<'a> Planning<'a> {
             self.plan_bare_copy(t, e);
             return Ok(());
         }
-        let mut record = self.parsed.record(t, e)?;
-        let referent = match extend {
+        let record = self.parsed.record(t, e)?;
+        let (record, referent, inherited) = match extend {
             Some(p) => {
                 let r = self.extend_referent(t, p).ok_or_else(|| {
                     Error::Unsupported(format!(
@@ -131,30 +148,19 @@ impl<'a> Planning<'a> {
                         self.ar.ref_display(self.rd.dast, p)
                     ))
                 })?;
-                let (rt, re) = match r {
-                    Referent::Here(re) => (t, re),
-                    Referent::Path(_, rt, re) => (rt, re),
-                };
-                // A referent whose record did not parse is boxed by its
-                // own error; the copy is boxed as its reader (ADR 0027).
-                let theirs = self
-                    .parsed
-                    .record(rt, re)
-                    .map_err(|_| Error::BoxedReferent(self.ar.ref_display(self.rd.dast, p)))?;
-                let theirs = match r {
-                    Referent::Here(_) => theirs,
-                    Referent::Path(p, ..) => self.rd.rebase_record(&mut self.ar, p, theirs),
-                };
-                record = record.merged_over(&theirs);
-                Some(r)
+                let (record, inherited) = self.inherit(t, e, p, r, record)?;
+                (record, Some(r), inherited)
             }
-            None => None,
+            None => (record, None, Inherited::default()),
         };
-        let here = match referent {
-            Some(Referent::Here(r)) => Some(r),
-            _ => None,
-        };
-        let wiring = plan(&mut PlanCtx::new(self, t, e, record, here))?;
+        let wiring = plan(&mut PlanCtx::new(
+            self,
+            t,
+            e,
+            record,
+            inherited.bases,
+            inherited.math,
+        ))?;
         // A given leaf the copy did not give itself is the referent's: the
         // current core's copies share their essential state variables. The
         // copy names what it shares, and linking ties it to the port the
@@ -167,6 +173,8 @@ impl<'a> Planning<'a> {
                     }
                     GivenId::Children(_) => has_children,
                     GivenId::Param(_) => false,
+                    // Shared below, by what it depends on.
+                    GivenId::Draw => true,
                 };
                 if own || !wiring.is_given(port) {
                     continue;
@@ -179,6 +187,25 @@ impl<'a> Planning<'a> {
                     id,
                 });
             }
+            // A load-time draw is shared as a given value is, whatever
+            // else the copy gives, unless it gives what the draw depends
+            // on (ADR 0059).
+            if let Some(on) = wiring.draw_on() {
+                let own = (on.children && has_children)
+                    || on
+                        .attrs
+                        .iter()
+                        .any(|a| own_attrs.iter().any(|o| o.eq_ignore_ascii_case(a.name())));
+                if !own {
+                    self.planned.shares.push(Share {
+                        t,
+                        e,
+                        port: wiring.given()[&GivenId::Draw],
+                        referent: r,
+                        id: GivenId::Draw,
+                    });
+                }
+            }
         }
         if !wiring.given().is_empty() {
             self.planned.given.insert((t, e), wiring.given().clone());
@@ -189,6 +216,126 @@ impl<'a> Planning<'a> {
         plan.list = list;
         Ok(())
     }
+
+    /// What extend `p` of element `e` (its referent `first`) takes from
+    /// the chain of referents it stands on: its `record` merged over each
+    /// link's own record in turn, nearest first, so a link's attribute is
+    /// the one the nearest link writes; and, for a `<math>` that writes no
+    /// text, the text of the nearest link that writes one, planned where
+    /// that link sits. The chain goes on through a link that extends an
+    /// element of its own type (a bare extend, a clone or one with
+    /// overrides alike, which takes the same from its own referent) and
+    /// stops at one that extends nothing, a prop, or another type. A link
+    /// in another template is read through the paths that reach it.
+    ///
+    /// Each link reads the next, so a box anywhere along the chain reaches
+    /// the extend through the links' own reads (ADR 0050).
+    fn inherit(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+        first: Referent,
+        mut record: record::Record,
+    ) -> Result<(record::Record, Inherited)> {
+        let boxed = |s: &Self| Error::BoxedReferent(s.ar.ref_display(s.rd.dast, p));
+        let ty = self.rd.own_row(t, e).planned_as;
+        let wants_math =
+            self.parsed.math(t, e).is_some() && !self.writes_content(self.rd.own_row(t, e).node);
+        let mut out = Inherited::default();
+        // The paths from `t` to the current link's template, outermost first.
+        let mut paths: Vec<RefId> = Vec::new();
+        let mut seen = HashSet::from([(t, e)]);
+        let (mut link_t, mut link) = (t, first);
+        loop {
+            let (rt, re) = match link {
+                Referent::Here(re) => (link_t, re),
+                Referent::Path(path, rt, re) => {
+                    paths.push(path);
+                    (rt, re)
+                }
+            };
+            if !seen.insert((rt, re)) {
+                break;
+            }
+            // A referent whose record did not parse is boxed by its
+            // own error; the copy is boxed as its reader (ADR 0027).
+            let mut theirs = self.parsed.record(rt, re).map_err(|_| boxed(self))?;
+            for &path in paths.iter().rev() {
+                theirs = self.rd.rebase_record(&mut self.ar, path, theirs);
+            }
+            record = record.merged_over(&theirs);
+            if paths.is_empty() {
+                out.bases.push(re);
+            }
+            let row = self.rd.referent_row(rt, re);
+            // The next link: what this one extends, when it is an element
+            // of the same type.
+            let next = row
+                .extend
+                .filter(|&np| {
+                    row.cloned
+                        || (!row.component_type.container()
+                            && self.ar.refs[np.index()].prop.is_none())
+                })
+                .and_then(|np| self.extend_referent(rt, np))
+                .filter(|&r| {
+                    let (nt, ne) = match r {
+                        Referent::Here(x) => (rt, x),
+                        Referent::Path(_, nt, x) => (nt, x),
+                    };
+                    self.rd.referent_row(nt, ne).planned_as == ty
+                });
+            if wants_math && out.math.is_none() {
+                let own_text = row.node != NodeId::NONE && self.writes_content(row.node);
+                let math = match (own_text, next, row.extend) {
+                    // The link's text, or its blank one when it extends
+                    // nothing.
+                    (true, ..) | (false, None, None) => match self.parsed.math(rt, re) {
+                        Some(Ok(math)) => Some(math.clone()),
+                        Some(Err(error)) => return Err(error.clone()),
+                        None => return Err(boxed(self)),
+                    },
+                    // An extend of a prop or of another type: the value it
+                    // extends, a leaf, as `plan_extend_prop` makes it.
+                    (false, None, Some(q)) => {
+                        let id = self.ar.arena.push(Expr::Cell(q));
+                        self.ar.sym_text.insert(id, SymText::Leaf(q));
+                        Some(ParsedMath::Expr(id))
+                    }
+                    (false, Some(_), _) => None,
+                };
+                out.math = math.map(|mut math| {
+                    for &path in paths.iter().rev() {
+                        math = self.rd.rebase_math(&mut self.ar, path, math);
+                    }
+                    math
+                });
+            }
+            let Some(r) = next else { break };
+            (link_t, link) = (rt, r);
+        }
+        Ok((record, out))
+    }
+
+    /// Whether element node `el` writes content of its own: a child that
+    /// is neither presentation nor a comment.
+    fn writes_content(&self, el: NodeId) -> bool {
+        let d = self.rd.dast;
+        !d.children(el).iter().all(|&n| self.rd.is_not_content(n))
+    }
+}
+
+/// What an extend with overrides takes from the referents it stands on,
+/// beside their records ([`Planning::inherit`]).
+#[derive(Default)]
+struct Inherited {
+    /// The links in the extend's own template, nearest first: where
+    /// what the record holds from each is planned.
+    bases: Vec<ElemId>,
+    /// For a `<math>` that writes no text, the nearest link's that does,
+    /// its references read from the extend's template.
+    math: Option<ParsedMath>,
 }
 
 /// The copy rules of `plan_with_extend`, against the test-only

@@ -514,6 +514,7 @@ fn stamp_graph(c: CompiledRef<'_>, parents: bool) -> (TemplateGraph, Option<Fail
         point_lists: Vec::new(),
         elem_children: FxMap::default(),
         collected: FxMap::default(),
+        step_gates: FxMap::default(),
         consts: std::collections::HashMap::new(),
         missing: None,
         x: Arena::default(),
@@ -563,6 +564,9 @@ pub(super) struct Stamp<'c> {
     /// What each expanded collect gathered (its copies) and whether its
     /// count follows the counts of repeats.
     pub(super) collected: FxMap<(TemplateId, ElemId), (Vec<Comp>, bool)>,
+    /// Each step of a type with a step gate (ADR 0062): the component
+    /// whose step it is, and its gate, as a build has them.
+    pub(super) step_gates: FxMap<Comp, (Comp, GraphNode)>,
     /// One node per constant an operator or a hold reads, by its bits:
     /// hashed in full, since a whole number's bits end in zeros, which a
     /// multiplying hash keeps.
@@ -1196,6 +1200,14 @@ impl<'c> Stamp<'c> {
                     self.g.seeds.push((from, target));
                     Def::Given(Some(f64::NAN))
                 }
+                // One stamped box stands for every entry: it reads both.
+                Leaf::Scope(ScopeConst::SeedEntry(p, q)) => {
+                    let matrix = self.one_cell(*p, t, e, pi).0;
+                    let fallback = self.one_cell(*q, t, e, pi).0;
+                    self.g.seeds.push((from, matrix));
+                    self.g.seeds.push((from, fallback));
+                    Def::Given(Some(f64::NAN))
+                }
             },
             Source::Flow(flow) => match flow {
                 Flow::Alias(arg) => Def::Alias(self.arg(t, e, pi, from, *arg)),
@@ -1332,11 +1344,8 @@ impl<'c> Stamp<'c> {
         let (nodes, label) = self.resolve_ref(p, t, Some(1));
         if nodes.len() != 1 {
             let component_type = self.c.plans.templates[t.index()].row(e).component_type;
-            let prop = component_type
-                .prop_defs()
-                .get(pi)
-                .map(|d| d.name)
-                .unwrap_or("args");
+            let props = &self.c.plans.templates[t.index()].plan(e).props;
+            let prop = port_name(component_type, props, pi);
             self.fail(Error::ArityMismatch {
                 component_type: component_type.tag().into(),
                 prop: prop.into(),
@@ -1566,8 +1575,10 @@ impl<'c> Stamp<'c> {
                 MadeKind::Alias => alias(self),
                 MadeKind::Case => PortType::Num,
             },
-            // A choose holds what its branches hold (ADR 0041).
+            // A choose holds what its branches hold (ADR 0041); an entry
+            // inside a math handle is math.
             None => match &self.g.defs[n.index()] {
+                Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Entry)), _) => PortType::Math,
                 Def::Op(GraphOp::Spec(OpSpec::Vec(VecOp::Choose { .. })), inputs) => {
                     let mut kind = PortType::Num;
                     for &input in &inputs[1..] {

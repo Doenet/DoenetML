@@ -12,6 +12,7 @@ use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptio
 
 use super::compare::CompareOpts;
 use super::{Handle, Leaf, Shape, Tree};
+use crate::program::Reduction;
 
 /// The symbolic engine: every math expression a document holds, by handle, and
 /// the operations on them.
@@ -82,6 +83,17 @@ impl Engine {
         let h = Handle::from_index(self.exprs.len() - 1);
         self.index.insert(key, h);
         h
+    }
+
+    /// The expression `h` names, for an operation of the engine kept in a
+    /// module of its own (`sym::extrema`).
+    pub(crate) fn expr(&self, h: Handle) -> &Expr {
+        &self.exprs[h.index()]
+    }
+
+    /// Store `e` (`push`), for such an operation.
+    pub(crate) fn store(&mut self, e: Expr) -> Handle {
+        self.push(e)
     }
 
     /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
@@ -245,6 +257,349 @@ impl Engine {
         let e = me::Mat::new(rows, cols, entries)
             .map(Expr::Matrix)
             .unwrap_or(Expr::Blank);
+        self.push(e)
+    }
+
+    /// Parse LaTeX (`format="latex"`) into a builder tree without storing
+    /// it, as [`Engine::parse_tree`] parses text. Empty LaTeX is the blank
+    /// expression.
+    pub fn parse_latex_tree<L: Leaf>(&mut self, latex: &str) -> Result<Tree<L>, String> {
+        let e = if latex.trim().is_empty() {
+            Expr::Blank
+        } else {
+            let mut p = me::LatexToAst::new(me::LatexToAstOptions::default());
+            me::expr::flatten(p.convert(latex).map_err(|e| e.to_string())?)
+        };
+        to_tree(&e).ok_or_else(|| format!("'{latex}' is not supported in a math cell"))
+    }
+
+    /// The size `h` has read as a matrix input reads a value (ADR 0041,
+    /// decision 8): a matrix's own, a tuple's or vector's `n` by 1, the
+    /// transpose of one (`(a, b)^T`, `(a, b)'`) 1 by `n`, anything else 1
+    /// by 1.
+    pub fn matrix_size(&self, h: Handle) -> (u32, u32) {
+        match grid_of(&self.exprs[h.index()]) {
+            Grid::Matrix(m) => (m.rows(), m.cols()),
+            Grid::Column(xs) => (xs.len() as u32, 1),
+            Grid::Row(xs) => (1, xs.len() as u32),
+            Grid::One(_) => (1, 1),
+        }
+    }
+
+    /// Entry (`row`, `col`), from 1, of `h` read as [`Engine::matrix_size`]
+    /// reads it; none past its size.
+    pub fn matrix_entry(&mut self, h: Handle, row: u32, col: u32) -> Option<Handle> {
+        let e = match grid_of(&self.exprs[h.index()]) {
+            Grid::Matrix(m) => m.get(row.wrapping_sub(1), col.wrapping_sub(1)).cloned(),
+            Grid::Column(xs) if col == 1 => xs.get(row.wrapping_sub(1) as usize).cloned(),
+            Grid::Row(xs) if row == 1 => xs.get(col.wrapping_sub(1) as usize).cloned(),
+            Grid::One(e) if row == 1 && col == 1 => Some(e.clone()),
+            _ => None,
+        }?;
+        Some(self.push(e))
+    }
+
+    /// `h` made `rows` by `cols`: its entries kept where both fit, the
+    /// rest blank. A tuple or vector stays one while one column is asked
+    /// for, a transposed one while one row is; anything else becomes a
+    /// matrix, as the current core's matrix input resizes a bound value.
+    pub fn resize_matrix(&mut self, h: Handle, rows: u32, cols: u32) -> Handle {
+        let e = self.exprs[h.index()].clone();
+        let resized = |xs: Vec<Expr>, n: u32| -> Vec<Expr> {
+            let mut xs = xs;
+            xs.resize(n as usize, Expr::Blank);
+            xs
+        };
+        let out = match e {
+            Expr::Seq(kind, xs) if is_vector(kind) && cols == 1 => {
+                Expr::Seq(kind, resized(xs, rows))
+            }
+            Expr::Pow(base, t) if is_transpose(&base, &t) && rows == 1 => match *base {
+                Expr::Seq(kind, xs) => Expr::Pow(Box::new(Expr::Seq(kind, resized(xs, cols))), t),
+                _ => unreachable!("a transpose of a vector"),
+            },
+            Expr::Prime(base)
+                if rows == 1 && matches!(&*base, Expr::Seq(k, _) if is_vector(*k)) =>
+            {
+                match *base {
+                    Expr::Seq(kind, xs) => {
+                        Expr::Prime(Box::new(Expr::Seq(kind, resized(xs, cols))))
+                    }
+                    _ => unreachable!("a transpose of a vector"),
+                }
+            }
+            e => {
+                let old = e.clone();
+                let m = me::Mat::generate(rows, cols, |r, c| {
+                    match grid_of(&old) {
+                        Grid::Matrix(m) => m.get(r, c).cloned(),
+                        Grid::Column(xs) if c == 0 => xs.get(r as usize).cloned(),
+                        Grid::Row(xs) if r == 0 => xs.get(c as usize).cloned(),
+                        Grid::One(x) if r == 0 && c == 0 => Some(x.clone()),
+                        _ => None,
+                    }
+                    .unwrap_or(Expr::Blank)
+                });
+                Expr::Matrix(m)
+            }
+        };
+        self.push(out)
+    }
+
+    /// The cell each entry of a matrix's template is, by row, when the
+    /// entry is one cell leaf alone, as (cell, is math): the entries a
+    /// `<matrix>` instantiates ([`Post::Matrix`](crate::program::Post::Matrix)).
+    pub fn template_entry_cells(&self, template: Handle) -> Vec<Option<(u32, bool)>> {
+        let one = |e: &Expr| match e {
+            Expr::Sym(s) => leaf_of(&s.name()),
+            _ => None,
+        };
+        match &self.exprs[template.index()] {
+            Expr::Seq(me::expr::SeqKind::List, xs) if xs.len() > 1 => xs.iter().map(one).collect(),
+            e => vec![one(e)],
+        }
+    }
+
+    /// The entries of `h`, by row, when it is a `rows` by `cols` matrix.
+    pub fn matrix_entries(&mut self, h: Handle, rows: u32, cols: u32) -> Option<Vec<Handle>> {
+        let Expr::Matrix(m) = &self.exprs[h.index()] else {
+            return None;
+        };
+        if (m.rows(), m.cols()) != (rows, cols) {
+            return None;
+        }
+        let xs = m.entries().to_vec();
+        Some(xs.into_iter().map(|e| self.push(e)).collect())
+    }
+
+    /// The `rows` by `cols` matrix whose entries, by row, are the
+    /// expressions `entries` hold (a math cell's handle each; NaN the
+    /// blank): a matrix input's value (ADR 0045). The blank expression when
+    /// they do not fill it.
+    pub fn grid(&mut self, rows: u32, cols: u32, entries: &[f64]) -> Handle {
+        let xs: Vec<Expr> = entries
+            .iter()
+            .map(|&v| {
+                if v.is_nan() {
+                    Expr::Blank
+                } else {
+                    self.exprs[Handle::from_value(v).index()].clone()
+                }
+            })
+            .collect();
+        let e = me::Mat::new(rows, cols, xs)
+            .map(Expr::Matrix)
+            .unwrap_or(Expr::Blank);
+        self.push(e)
+    }
+
+    /// The entries of the value `e` (ADR 0041, decision 8): a list's,
+    /// tuple's, vector's or array's; a scalar is its one entry, the blank
+    /// expression none.
+    fn entries_of(e: &Expr) -> Option<&[Expr]> {
+        use me::expr::SeqKind;
+        match e {
+            Expr::Seq(
+                SeqKind::List
+                | SeqKind::Tuple
+                | SeqKind::Vector
+                | SeqKind::AltVector
+                | SeqKind::Array,
+                xs,
+            ) => Some(xs),
+            _ => None,
+        }
+    }
+
+    /// How many entries `h` holds: a list's, tuple's, vector's or
+    /// array's; 1 for a scalar or the blank expression, as the current
+    /// core counts a math's dimensions.
+    pub fn count(&self, h: Handle) -> usize {
+        Self::entries_of(&self.exprs[h.index()]).map_or(1, <[_]>::len)
+    }
+
+    /// The position (0-based) entry `k` (1-based) of `n` names: none for
+    /// an index that is no integer from 1 to `n` (ADR 0041, decision 3).
+    fn entry_at(k: f64, n: usize) -> Option<usize> {
+        (k.fract() == 0.0 && k >= 1.0 && k <= n as f64).then(|| k as usize - 1)
+    }
+
+    /// Entry `k` (1-based) of the value `h` holds, a projection inside
+    /// the handle (ADR 0041, decision 2): a scalar's first entry is
+    /// itself; none past the count or for an index that is no integer. A
+    /// matrix is read by rows, row `k` a tuple of its entries, and a
+    /// vector transposed (`(a, b)^T`, `(a, b)'`) as its one row, so `[i][j]`
+    /// is entry (i, j) of a matrix, as a matrix input reads a value (ADR
+    /// 0060).
+    pub fn entry(&mut self, h: Handle, k: f64) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        if let Some(rows) = rows_of(e) {
+            let x = rows.get(Self::entry_at(k, rows.len())?)?.clone();
+            return Some(self.push(x));
+        }
+        match Self::entries_of(e) {
+            Some(xs) => {
+                let x = xs[Self::entry_at(k, xs.len())?].clone();
+                Some(self.push(x))
+            }
+            None => Self::entry_at(k, 1).map(|_| h),
+        }
+    }
+
+    /// `h` with entry `k` (1-based) replaced by `d`, its head kept; a
+    /// scalar's first entry is `d` itself. None for an index that names
+    /// no entry. A matrix's row `k` takes `d`'s entries, as many as its
+    /// columns (one alone for one column); a transposed vector's one row
+    /// takes them all, still transposed (ADR 0060).
+    pub fn with_entry(&mut self, h: Handle, k: f64, d: Handle) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        let dx = &self.exprs[d.index()];
+        let d_entries = || match Self::entries_of(dx) {
+            Some(xs) => xs.to_vec(),
+            None => vec![dx.clone()],
+        };
+        let out = match e {
+            Expr::Matrix(m) => {
+                let i = Self::entry_at(k, m.rows() as usize)?;
+                let row = d_entries();
+                if row.len() != m.cols() as usize {
+                    return None;
+                }
+                let cols = m.cols() as usize;
+                let mut xs = m.entries().to_vec();
+                xs[i * cols..(i + 1) * cols].clone_from_slice(&row);
+                Expr::Matrix(me::Mat::new(m.rows(), m.cols(), xs)?)
+            }
+            Expr::Pow(base, t) if is_transpose(base, t) => {
+                Self::entry_at(k, 1)?;
+                let Expr::Seq(kind, _) = &**base else {
+                    return None;
+                };
+                Expr::Pow(Box::new(Expr::Seq(*kind, d_entries())), t.clone())
+            }
+            Expr::Prime(base) if matches!(&**base, Expr::Seq(kind, _) if is_vector(*kind)) => {
+                Self::entry_at(k, 1)?;
+                let Expr::Seq(kind, _) = &**base else {
+                    return None;
+                };
+                Expr::Prime(Box::new(Expr::Seq(*kind, d_entries())))
+            }
+            Expr::Seq(kind, xs) => {
+                Self::entries_of(e)?;
+                let i = Self::entry_at(k, xs.len())?;
+                let mut xs = xs.clone();
+                xs[i] = dx.clone();
+                Expr::Seq(*kind, xs)
+            }
+            _ => return Self::entry_at(k, 1).map(|_| d),
+        };
+        Some(self.push(out))
+    }
+
+    /// The items of `e` read as a list's entries (ADR 0063, ADR 0041
+    /// decision 5's `mergeMathLists`): a list's items; none for anything
+    /// else, which is one entry, itself.
+    fn list_items(e: &Expr) -> Option<&[Expr]> {
+        match e {
+            Expr::Seq(me::expr::SeqKind::List, xs) => Some(xs),
+            _ => None,
+        }
+    }
+
+    /// How many entries `h` holds read as a list's (ADR 0063): a list's
+    /// items, else 1 (a tuple, a point, a scalar, the blank expression).
+    pub fn list_count(&self, h: Handle) -> usize {
+        Self::list_items(&self.exprs[h.index()]).map_or(1, <[_]>::len)
+    }
+
+    /// Entry `k` (1-based) of `h` read as a list's (ADR 0063): a list's
+    /// item, else `h` itself as entry 1; none past the count or for an
+    /// index that is no integer.
+    pub fn list_item(&mut self, h: Handle, k: f64) -> Option<Handle> {
+        match Self::list_items(&self.exprs[h.index()]) {
+            Some(xs) => {
+                let x = xs[Self::entry_at(k, xs.len())?].clone();
+                Some(self.push(x))
+            }
+            None => Self::entry_at(k, 1).map(|_| h),
+        }
+    }
+
+    /// `h` with entry `k` (1-based), read as a list's, replaced by `d`:
+    /// the list with that item replaced, or `d` itself for entry 1 of
+    /// what is no list. None for an index that names no entry.
+    pub fn with_list_item(&mut self, h: Handle, k: f64, d: Handle) -> Option<Handle> {
+        let dx = self.exprs[d.index()].clone();
+        match &self.exprs[h.index()] {
+            Expr::Seq(me::expr::SeqKind::List, xs) => {
+                let i = Self::entry_at(k, xs.len())?;
+                let mut xs = xs.clone();
+                xs[i] = dx;
+                Some(self.push(Expr::Seq(me::expr::SeqKind::List, xs)))
+            }
+            _ => Self::entry_at(k, 1).map(|_| d),
+        }
+    }
+
+    /// The reduction `op` of the entries of `h`, read as a list's (ADR
+    /// 0063), as an operator over those entries spells it (ADR 0043): a
+    /// sum, a product, the mean as the sum over the count, a call of the
+    /// function (`min`, `max`, `gcd`, `lcm`, `median`), `mod` of exactly
+    /// two, and the variance (a `population`'s, else a sample's) or its
+    /// square root. The blank expression for none, or for `mod` of any
+    /// other number.
+    pub fn reduce_entries(&mut self, h: Handle, op: Reduction, population: bool) -> Handle {
+        let xs: Vec<Expr> = match Self::list_items(&self.exprs[h.index()]) {
+            Some(xs) => xs.to_vec(),
+            None => vec![self.exprs[h.index()].clone()],
+        };
+        let n = xs.len();
+        if n == 0 {
+            return self.push(Expr::Blank);
+        }
+        let call = |f: &str, xs: Vec<Expr>| Expr::Apply(Box::new(Expr::sym(f)), xs);
+        let sum = |xs: Vec<Expr>| match <[Expr; 1]>::try_from(xs) {
+            Ok([x]) => x,
+            Err(xs) => Expr::Add(xs),
+        };
+        let e = match op {
+            Reduction::Sum => sum(xs),
+            Reduction::Product if n == 1 => xs.into_iter().next().expect("one entry"),
+            Reduction::Product => Expr::Mul(xs),
+            Reduction::Mean => Expr::Div(Box::new(sum(xs)), Box::new(number(n as f64))),
+            Reduction::Min => call("min", xs),
+            Reduction::Max => call("max", xs),
+            Reduction::Gcd => call("gcd", xs),
+            Reduction::Lcm => call("lcm", xs),
+            Reduction::Median => call("median", xs),
+            Reduction::Mod if n == 2 => call("mod", xs),
+            Reduction::Variance | Reduction::StandardDeviation => {
+                let squares = sum(xs
+                    .iter()
+                    .map(|x| Expr::Pow(Box::new(x.clone()), Box::new(number(2.0))))
+                    .collect());
+                let total = Expr::Pow(Box::new(sum(xs)), Box::new(number(2.0)));
+                let spread = Expr::Div(
+                    Box::new(minus(
+                        squares,
+                        Expr::Div(Box::new(total), Box::new(number(n as f64))),
+                    )),
+                    Box::new(number(if population { n } else { n - 1 } as f64)),
+                );
+                if op == Reduction::StandardDeviation {
+                    apply("sqrt", spread)
+                } else {
+                    spread
+                }
+            }
+            _ => Expr::Blank,
+        };
         self.push(e)
     }
 
@@ -616,7 +971,67 @@ fn minus(a: Expr, b: Expr) -> Expr {
 
 /// A number as the engine spells it: the infinities are constants, since a
 /// float infinity does not evaluate.
-fn number(v: f64) -> Expr {
+/// The rows of a value read by rows ([`Engine::entry`]): a matrix's,
+/// each a tuple, or a transposed vector's one, the vector; none for any
+/// other value.
+fn rows_of(e: &Expr) -> Option<Vec<Expr>> {
+    use me::expr::SeqKind;
+    match grid_of(e) {
+        Grid::Matrix(m) => Some(
+            (0..m.rows())
+                .map(|r| {
+                    let c = m.cols() as usize;
+                    let row = m.entries()[r as usize * c..(r as usize + 1) * c].to_vec();
+                    Expr::Seq(SeqKind::Tuple, row)
+                })
+                .collect(),
+        ),
+        Grid::Row(_) => match e {
+            Expr::Pow(base, _) | Expr::Prime(base) => Some(vec![(**base).clone()]),
+            _ => None,
+        },
+        Grid::Column(_) | Grid::One(_) => None,
+    }
+}
+
+/// A value as a matrix input reads it ([`Engine::matrix_size`]).
+enum Grid<'e> {
+    Matrix(&'e me::Mat),
+    Column(&'e [Expr]),
+    Row(&'e [Expr]),
+    One(&'e Expr),
+}
+
+fn grid_of(e: &Expr) -> Grid<'_> {
+    match e {
+        Expr::Matrix(m) => Grid::Matrix(m),
+        Expr::Seq(kind, xs) if is_vector(*kind) => Grid::Column(xs),
+        Expr::Pow(base, t) if is_transpose(base, t) => match &**base {
+            Expr::Seq(_, xs) => Grid::Row(xs),
+            _ => Grid::One(e),
+        },
+        Expr::Prime(base) => match &**base {
+            Expr::Seq(kind, xs) if is_vector(*kind) => Grid::Row(xs),
+            _ => Grid::One(e),
+        },
+        _ => Grid::One(e),
+    }
+}
+
+/// A tuple, vector or angle-bracket vector: what a matrix input reads as a
+/// column (the current core's `vectorOperators`).
+fn is_vector(kind: me::expr::SeqKind) -> bool {
+    use me::expr::SeqKind;
+    matches!(kind, SeqKind::Tuple | SeqKind::Vector | SeqKind::AltVector)
+}
+
+/// Whether `base^t` is a vector transposed (`(a, b)^T`).
+fn is_transpose(base: &Expr, t: &Expr) -> bool {
+    matches!(base, Expr::Seq(kind, _) if is_vector(*kind))
+        && matches!(t, Expr::Sym(s) if s.name() == "T")
+}
+
+pub(crate) fn number(v: f64) -> Expr {
     if v == f64::INFINITY {
         Expr::Const(me::MathConst::Inf)
     } else if v == f64::NEG_INFINITY {
@@ -634,7 +1049,7 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
 }
 
 /// Whether `e` holds the blank expression anywhere.
-fn has_blank(e: &Expr) -> bool {
+pub(crate) fn has_blank(e: &Expr) -> bool {
     matches!(e, Expr::Blank) || e.children().into_iter().any(has_blank)
 }
 

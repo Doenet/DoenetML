@@ -24,8 +24,9 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `conditionalContent` (`case`, `else`) and
-`feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
-pick), `hint`, `group` (and `label`), literal `text`, the sections
+`feedback`, `select` (`option`), `selectFromSequence` (bounds that are
+constants, a literal `numToSelect`, `withReplacement` and `sort`; each pick a
+row, ADR 0041; a copy draws what its referent drew, ADR 0059), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
@@ -39,7 +40,11 @@ and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `theorem`, `paragraphs`, `objectives`, `part`, `task`, `problems`,
 `exercises`, numbered with the sections) and the unnumbered `proof`, the
 blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
-`caption`) and `footnote`, numbered through the document (ADR 0044), the
+`caption`) and `footnote`, numbered through the document (ADR 0044),
+`page` (both numbering sequences pass through it, ADR 0058), `cascade`
+(its steps revealed as the ones before are complete, each gated by its
+place; `revealAll`, `hideFutureSections`) and `cascadeMessage` (ADR 0062),
+the
 numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
@@ -58,8 +63,9 @@ operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
 its count structural, ADR 0041), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
-`gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
-from the document seed, and the function operators `clampFunction` and
+`gaussian`; the distribution's `mean`, `variance` and `standardDeviation`),
+`selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+from the document seed (a copy draws what its referent drew, ADR 0059), and the function operators `clampFunction` and
 `wrapFunctionPeriodic` (literal or numeric bounds), and the derived
 geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
@@ -76,7 +82,13 @@ prefill each; no bound value). A function's `domain` (one interval) and
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
 `intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
-entry; a literal size, ADR 0055), and `subsetOfReals` (intervals, points, set operations,
+entry; a literal size, ADR 0055; `$A[i][j]` its entry, written back
+through; a copy of a value by `extend`), `matrixInput` (a grid of boxes
+`numRows` by `numColumns`, rebuilt when the size changes and keeping what
+was typed by row and column; `prefill`, `defaultEntry`, the size controls'
+`updateNumRows` and `updateNumColumns`; bound by `bindValueTo` to a value,
+a `<matrix>`'s entries written back; an answer's input; ADR 0045, ADR
+0060), and `subsetOfReals` (intervals, points, set operations,
 inequalities and memberships in its `variable`, merged, written as
 intervals or, with a literal `displayMode`, as inequalities); a
 `mathInput` bound to one, or to a math list's entry, writes an

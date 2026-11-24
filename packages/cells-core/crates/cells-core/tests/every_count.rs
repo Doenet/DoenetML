@@ -470,6 +470,23 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         <number name="a">$s[$k] + $s[9] + $r[$k].t[1] + $c[1] + $f[$k].d + $g[1].e</number>"#,
     ),
     (
+        // Lists over a math value (ADR 0063): a math, a number and a
+        // point list whose counts follow a math input's value and a
+        // function's minima, an entry of each read by an index, one in a
+        // repeat whose count a cell sets, and an operator over the value.
+        "lists-over-values",
+        r#"<mathInput name="mi" prefill="1, x, 3"/><numberInput name="k" value="2"/>
+        <mathList name="ml">$mi</mathList><numberList name="nl">$mi</numberList>
+        <function name="f">x^4-8x^2+$k</function>
+        <graph><pointList name="pl" extend="$f.minima"/><point extend="$pl[1]"/></graph>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <mathList name="il">$mi</mathList>
+        </repeatForSequence>
+        <p><sum>$mi</sum> <count>$ml</count> $ml</p>
+        <number name="a">$nl[$k] + $r[1].il[$k]</number>
+        <math name="m">$ml[2] + $r[$k].il[1]</math>"#,
+    ),
+    (
         // A sort and a shuffle of points, whose entries are two cells
         // each (ADR 0053), their copies, a choice between two, and one in
         // a repeat whose count a cell sets.
@@ -486,7 +503,142 @@ const CONSTRUCTS: &[(&str, &str)] = &[
           <shuffle name="q">$A $B</shuffle>
         </repeatForSequence>"#,
     ),
+    (
+        // A matrix input's grid (ADR 0045): rows of boxes, each a repeat
+        // whose count a cell sets, and the matrix they make. (One per
+        // document: a fresh session per pass numbers the scopes afresh, so
+        // each grid takes passes of its own to settle.)
+        "matrix-inputs",
+        r#"<numberInput name="k" value="2"/>
+        <matrixInput name="mi" numRows="$k" numColumns="2" prefill="(a,b)^T"/>
+        <math name="s">$mi + 1</math>"#,
+    ),
+    (
+        // A matrix input bound to a value: its size and its boxes read
+        // from it.
+        "bound-matrix-inputs",
+        r#"<mathInput name="m" prefill="(a,b)"/>
+        <matrixInput name="mb" bindValueTo="$m"/>
+        <math name="s">2$mb</math>"#,
+    ),
+    (
+        // Copies of load-time draws (ADR 0059): with attributes of their
+        // own they draw what their referents drew, unless they give a
+        // parameter; one inside a repeat whose count a cell sets, and one
+        // outside it of an iteration's.
+        "shared-draws",
+        SHARED_DRAWS,
+    ),
+    (
+        // A cascade's steps (ADR 0062): in a repeat, in a case, a nested
+        // cascade, each gated by its place in a section that scores them.
+        "cascade-steps",
+        r#"<numberInput name="k" value="1"/><booleanInput name="b"/>
+        <section name="s" aggregateScores><cascade name="c">
+          <section name="a"><numberInput name="x"/><answer name="ax" response="$x">1</answer></section>
+          <repeatForSequence name="r" length="$k" indexName="i">
+            <section name="p"><numberInput name="y"/><answer name="ay" response="$y">$i</answer></section>
+          </repeatForSequence>
+          <conditionalContent condition="$b"><section name="q"><answer>2</answer></section></conditionalContent>
+          <cascadeMessage>Next</cascadeMessage>
+          <cascade name="inner"><p><answer>3</answer></p><section name="z"/></cascade>
+        </cascade></section>
+        <number name="n">$c.numCompleted + $a.creditAchievedForProgress</number>"#,
+    ),
 ];
+
+/// The construct [`a_copy_draws_what_its_referent_drew`] reads: each
+/// `*2` copy shares its referent's draw, each `*3` draws its own.
+const SHARED_DRAWS: &str = r#"<numberInput name="k" value="2"/>
+        <selectFromSequence name="a" from="1" to="1000" numToSelect="2"/>
+        <selectFromSequence name="a2" extend="$a" asList="false" hide/>
+        <selectFromSequence name="a3" extend="$a" from="1"/>
+        <selectFromSequence name="s" from="1" to="1000"/>
+        <selectFromSequence name="s2" extend="$s" hide/>
+        <selectFromSequence name="s3" extend="$s" to="1000"/>
+        <selectRandomNumbers name="b" numToSelect="3"/>
+        <selectRandomNumbers name="b2" extend="$b" asList="false"/>
+        <selectRandomNumbers name="b3" extend="$b" to="1"/>
+        <samplePrimeNumbers name="p" numSamples="2" to="1000"/>
+        <samplePrimeNumbers name="p2" extend="$p" asList="false"/>
+        <shuffle name="h">1 2 3 4 5 6 7 8 9 10</shuffle>
+        <shuffle name="h2" extend="$h" asList="false"/>
+        <shuffle name="h3" extend="$h">1 2 3 4 5 6 7 8 9 10</shuffle>
+        <choiceInput name="ci" shuffleOrder><label>c</label>
+          <choice>a</choice><choice>b</choice><choice>c</choice><choice>d</choice><choice>e</choice><choice>f</choice><choice>g</choice>
+        </choiceInput>
+        <choiceInput name="ci2" extend="$ci" inline="false"/>
+        <repeatForSequence name="r" length="$k">
+          <selectFromSequence name="t" from="1" to="1000"/>
+          <selectFromSequence name="t2" extend="$t" hide/>
+        </repeatForSequence>
+        <selectFromSequence name="o2" extend="$r[1].t" hide/>
+        <number name="c">$a2[1] + $b2[1] + $h2[1] + $r[$k].t2 + $o2</number>"#;
+
+/// Every copy in [`SHARED_DRAWS`] that gives no parameter of its own
+/// draws what its referent drew, at every seed, though it gives other
+/// attributes (ADR 0059); one that gives a parameter draws its own.
+#[test]
+fn a_copy_draws_what_its_referent_drew() {
+    let json = dast_json(SHARED_DRAWS);
+    let shared = [
+        ("a", "a2", "values"),
+        ("s", "s2", "value"),
+        ("b", "b2", "numbers"),
+        ("p", "p2", "numbers"),
+        ("h", "h2", "values"),
+        ("ci", "ci2", "choiceOrder"),
+        ("r[1].t", "r[1].t2", "value"),
+        ("r[2].t", "r[2].t2", "value"),
+        ("r[1].t", "o2", "value"),
+    ];
+    let own = [
+        ("a", "a3", "values"),
+        ("s", "s3", "value"),
+        ("b", "b3", "numbers"),
+        ("h", "h3", "values"),
+    ];
+    let values = |doc: &Document, path: &str, prop: &str| -> Vec<f64> {
+        let comp = doc
+            .resolve_path(path)
+            .unwrap_or_else(|| panic!("no {path}"));
+        let cells = doc
+            .prop_cells(comp, prop)
+            .unwrap_or_else(|| panic!("no {path}.{prop}"));
+        cells.iter().map(|c| doc.cells[c.index()]).collect()
+    };
+    let mut differed = [false; 4];
+    for seed in 0..8 {
+        let options = LoadOptions {
+            seed,
+            ..Default::default()
+        };
+        let (doc, _) = Document::load(json.as_bytes(), options).unwrap();
+        let errors: Vec<_> = doc
+            .diagnostics()
+            .iter()
+            .filter(|d| d.kind != cells_core::DiagnosticKind::Accessibility)
+            .collect();
+        assert!(errors.is_empty(), "seed {seed}: {errors:?}");
+        for (r, c, prop) in shared {
+            let (rv, cv) = (values(&doc, r, prop), values(&doc, c, prop));
+            assert!(
+                !rv.is_empty() && rv.iter().all(|v| v.is_finite()),
+                "{r}.{prop}: {rv:?}"
+            );
+            assert_eq!(rv, cv, "seed {seed}: {c} drew anew from {r}");
+        }
+        for (k, (r, c, prop)) in own.into_iter().enumerate() {
+            differed[k] |= values(&doc, r, prop) != values(&doc, c, prop);
+        }
+    }
+    for (k, (r, c, _)) in own.into_iter().enumerate() {
+        assert!(
+            differed[k],
+            "{c}, which gives a parameter, drew what {r} drew at every seed"
+        );
+    }
+}
 
 #[test]
 fn no_count_closes_a_loop_the_load_did_not_reject() {
@@ -592,6 +744,22 @@ fn element_types(dast: &Dast) -> Vec<(NodeId, ComponentType)> {
         .collect()
 }
 
+/// Whether an element of type `t` draws at load from the seed, so a
+/// document holding one builds differently at every seed.
+fn draws(t: ComponentType) -> bool {
+    matches!(
+        t,
+        ComponentType::Select
+            | ComponentType::SelectFromSequence
+            | ComponentType::SelectRandomNumbers
+            | ComponentType::SampleRandomNumbers
+            | ComponentType::SelectPrimeNumbers
+            | ComponentType::SamplePrimeNumbers
+            | ComponentType::Shuffle
+            | ComponentType::ChoiceInput
+    )
+}
+
 fn stem(p: &Path) -> String {
     p.file_stem().unwrap().to_string_lossy().into_owned()
 }
@@ -643,9 +811,7 @@ fn loads<'a>(name: &str, bytes: &'a [u8]) -> Vec<Load<'a>> {
         return Vec::new(); // the structure never changes, and the check never runs
     }
     // Without a load-time choice, every seed builds the same document.
-    let draws = types
-        .iter()
-        .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+    let draws = types.iter().any(|&(_, t)| draws(t));
     let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
     let mut out = Vec::new();
     for &seed in seeds {
@@ -839,9 +1005,7 @@ fn every_write_lands_on_a_cell_the_record_makes_essential() {
     let compiles = par_map(&docs, |(name, bytes)| {
         let dast = cells_core::dast::load(bytes).unwrap();
         let types = element_types(&dast);
-        let draws = types
-            .iter()
-            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let draws = types.iter().any(|&(_, t)| draws(t));
         let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
         let counts: Vec<Option<u32>> = if has_repeats(&dast) {
             COUNTS.map(Some).collect()
@@ -980,7 +1144,7 @@ fn a_constant_is_the_same_in_every_build() {
         let types = element_types(&dast);
         let draws = types
             .iter()
-            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+            .any(|&(_, t)| draws(t));
         let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
         for &seed in seeds {
             let options = LoadOptions {
@@ -1058,9 +1222,7 @@ fn every_constant_a_build_makes_is_one_the_check_marked() {
         let mut failures = Vec::new();
         let dast = cells_core::dast::load(bytes).unwrap();
         let types = element_types(&dast);
-        let draws = types
-            .iter()
-            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let draws = types.iter().any(|&(_, t)| draws(t));
         let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
         let counts: Vec<u32> = if has_repeats(&dast) {
             COUNTS.collect()
@@ -1123,9 +1285,7 @@ fn every_constant_lies_in_the_range_the_check_evaluated() {
         let mut failures = Vec::new();
         let dast = cells_core::dast::load(bytes).unwrap();
         let types = element_types(&dast);
-        let draws = types
-            .iter()
-            .any(|(_, t)| matches!(t, ComponentType::Select | ComponentType::SelectFromSequence));
+        let draws = types.iter().any(|&(_, t)| draws(t));
         let seeds = if draws { &SEEDS[..] } else { &SEEDS[..1] };
         let Ok(compiled) = cells_core::testing::compile(&dast) else {
             return failures;

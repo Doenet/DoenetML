@@ -380,6 +380,9 @@ impl<'c> Stamp<'c> {
         label: Label,
         t: TemplateId,
     ) -> (Vec<Option<GraphNode>>, Label) {
+        if entry.in_handle() {
+            return self.entry_in_handle(nodes, entry, label, t);
+        }
         let width = usize::from(entry.width);
         let n = nodes.len() / width;
         if let [IndexTerm::Cell(cell)] = entry.index.terms[..] {
@@ -406,6 +409,57 @@ impl<'c> Stamp<'c> {
         match (k >= 1 && k as u64 <= n as u64).then(|| (k - 1) as usize) {
             Some(i) => (nodes[i * width..(i + 1) * width].to_vec(), label),
             None => (vec![None; width], label),
+        }
+    }
+
+    /// Entry `entry.index` inside the value one node holds, as a build
+    /// takes it (`entry_in_handle`, ADR 0041): a projection of the
+    /// expression it stands for, else the node as a sequence of one.
+    fn entry_in_handle(
+        &mut self,
+        nodes: &[Option<GraphNode>],
+        entry: &EntryIndex,
+        label: Label,
+        t: TemplateId,
+    ) -> (Vec<Option<GraphNode>>, Label) {
+        let &[Some(node)] = nodes else {
+            return (vec![None], label);
+        };
+        let cell = match entry.index.terms[..] {
+            [IndexTerm::Cell(cell)] => {
+                let (index, index_label) = self.resolve_one(cell, t);
+                Some((self.or_missing(index), index_label))
+            }
+            _ => None,
+        };
+        if let Some(expr) = self.math_target(node) {
+            let (index, index_label) = match cell {
+                Some(c) => c,
+                None => {
+                    let k = self.index_value(&entry.index, t);
+                    (self.constant(k as f64), Label::new())
+                }
+            };
+            let s = self.op(t, OpSpec::Sym(SymKind::Entry), vec![expr, index]);
+            self.label(s, expr, &label);
+            self.label(s, index, &index_label);
+            return (vec![Some(s)], Label::new());
+        }
+        match cell {
+            Some((index, index_label)) => (
+                vec![Some(self.choose_over(
+                    index,
+                    &index_label,
+                    &[node],
+                    &label,
+                    t,
+                ))],
+                Label::new(),
+            ),
+            None => match self.index_value(&entry.index, t) {
+                1 => (vec![Some(node)], label),
+                _ => (vec![None], label),
+            },
         }
     }
 

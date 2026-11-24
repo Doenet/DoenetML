@@ -66,6 +66,11 @@ impl PlannedOp {
     pub(in crate::build) fn writes(&self) -> u64 {
         match self {
             PlannedOp::Spec(spec) => spec.writes(),
+            // A `<matrix>`'s template writes its entries (ADR 0060).
+            PlannedOp::Template {
+                post: Post::Matrix { .. },
+                ..
+            } => u64::MAX,
             PlannedOp::Template { .. } => 0,
         }
     }
@@ -195,6 +200,10 @@ pub(in crate::build) struct Builder<'c> {
     /// Essential math slots seeded from another slot's value when first
     /// built: (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
+    /// A seeded box of a matrix input (ADR 0045), by slot: the entry
+    /// (row, column), from 1, of the matrix its first seed holds that it
+    /// takes, its second seed when the matrix has none there.
+    pub(in crate::build) seed_entries: HashMap<SlotId, (u32, u32)>,
     pub(in crate::build) arena: Arena<SlotId>,
     pub(in crate::build) root: CompIdx,
     /// How many iterations each repeat is stamped with.
@@ -206,6 +215,9 @@ pub(in crate::build) struct Builder<'c> {
     /// Collects (a polyline is one) whose count reads the counts of the
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
+    /// Each step of a type with a [`StepGate`](crate::components::StepGate)
+    /// (ADR 0062): the component whose step it is, and its gate.
+    pub(in crate::build) step_gates: HashMap<CompIdx, (CompIdx, SlotId)>,
     /// The slots of the counted values (ADR 0028), as the ports'
     /// attributes say.
     pub(in crate::build) counted_slots: Vec<SlotId>,
@@ -264,6 +276,10 @@ pub(in crate::build) struct Expanded<'c> {
     /// Essential math slots seeded from another slot's value when first
     /// built: (slot, source slot).
     pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
+    /// A seeded box of a matrix input (ADR 0045), by slot: the entry
+    /// (row, column), from 1, of the matrix its first seed holds that it
+    /// takes, its second seed when the matrix has none there.
+    pub(in crate::build) seed_entries: HashMap<SlotId, (u32, u32)>,
     pub(in crate::build) root: CompIdx,
     /// The scope each slot was made in.
     pub(in crate::build) slot_scope: Vec<ScopeId>,
@@ -330,6 +346,7 @@ impl<'c> Builder<'c> {
             consts,
             holds,
             seeds,
+            seed_entries,
             root,
             slot_scope,
             counted_slots,
@@ -357,6 +374,7 @@ impl<'c> Builder<'c> {
             consts,
             holds,
             seeds,
+            seed_entries,
             root,
             slot_scope,
             counted_slots,
@@ -573,12 +591,14 @@ impl<'c> Builder<'c> {
             consts: HashMap::new(),
             holds: Vec::new(),
             seeds: Vec::new(),
+            seed_entries: HashMap::new(),
             arena: Arena::default(),
             root: CompIdx::new(0),
             counts,
             slot_scope: Vec::with_capacity(slots),
             scope_repeat: Vec::new(),
             follows_counts: HashSet::new(),
+            step_gates: HashMap::new(),
             counted_slots: Vec::new(),
             author_ops: Vec::new(),
             share_math: false,
@@ -855,9 +875,7 @@ impl<'c> Builder<'c> {
                 .body
             {
                 Body::Repeat { template } => {
-                    let node = self.compiled.plans.templates[t.index()]
-                        .row(ElemId::from_index(e))
-                        .node;
+                    let node = self.repeat_node(t, ElemId::from_index(e));
                     let n = self.counts.get(scope, node);
                     let mut kids = Vec::new();
                     let mut iter_scopes = Vec::with_capacity(n as usize);
@@ -928,6 +946,23 @@ impl<'c> Builder<'c> {
             out.push(self.child_entry(t, ch, scope, parent));
         }
         Ok(out)
+    }
+
+    /// The node a repeat's iterations and count are keyed by: its own,
+    /// or for one outlining made (a matrix input's row, ADR 0045) the
+    /// nearest enclosing element's, which no other repeat in its scope
+    /// shares.
+    fn repeat_node(&self, mut t: TemplateId, mut e: ElemId) -> NodeId {
+        loop {
+            let node = self.compiled.plans.templates[t.index()].row(e).node;
+            if node != NodeId::NONE {
+                return node;
+            }
+            match self.compiled.plans.templates[t.index()].parent {
+                Some((pt, pe)) => (t, e) = (pt, pe),
+                None => return node,
+            }
+        }
     }
 
     pub(in crate::build) fn child_entries(
@@ -1585,6 +1620,22 @@ impl<'c> Builder<'c> {
                         .resolve_one(*p, inst.scope)
                         .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
                     self.seeds.push((s, from));
+                    BuiltSource::Given(f64::NAN)
+                }
+                Leaf::Scope(ScopeConst::SeedEntry(m, fallback)) => {
+                    let from = self
+                        .resolve_one(*m, inst.scope)
+                        .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
+                    let other = self
+                        .resolve_one(*fallback, inst.scope)
+                        .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
+                    // The positions of the two iterations around: the
+                    // column's, then its row's.
+                    let (outer, _, col) = self.scopes[inst.scope];
+                    let row = self.scopes[outer].2;
+                    self.seeds.push((s, from));
+                    self.seeds.push((s, other));
+                    self.seed_entries.insert(s, (row, col));
                     BuiltSource::Given(f64::NAN)
                 }
             },

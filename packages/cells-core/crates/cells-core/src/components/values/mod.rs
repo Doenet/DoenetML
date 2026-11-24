@@ -28,6 +28,7 @@ pub(crate) mod subset_of_reals;
 pub mod text;
 
 pub(crate) mod matrix;
+pub(crate) mod over_value;
 pub(crate) mod sequence;
 pub(crate) mod structural_sequence;
 pub mod when;
@@ -59,6 +60,7 @@ macro_rules! value_list {
     (
         $(#[$doc:meta])*
         $module:ident: $tag:literal, $names:ident, $item:ident of $kind:ident
+        $(, over_value: $over:ident)?
         $(, attributes { $($attrs:tt)* })? $(,)?
     ) => {
         pub(crate) mod $module {
@@ -68,6 +70,7 @@ macro_rules! value_list {
                 $(#[$doc])*
                 tags: [$tag],
                 flags: [copyable],
+                $(over_value: $over,)?
                 default_prop: $names,
                 props {
                     numComponents: list_len { rendered },
@@ -111,6 +114,7 @@ value_list! {
     /// `<numberList>`: its entries are numbers, `numbers` (`number1`,
     /// ...); a piece that is no number is read as the math it is.
     number_list: "numberList", numbers, number of Number,
+    over_value: OverValueNumberList,
     attributes {
         // Read as the children are parsed: whether a `<math>` child that
         // is a list gives its items as entries.
@@ -122,6 +126,7 @@ value_list! {
     /// `<mathList>`: its entries are expressions, `maths` (`math1`, ...),
     /// each piece of text one a write may change.
     math_list: "mathList", maths, math of Math,
+    over_value: OverValueMathList,
     attributes {
         // Read as the children are parsed: whether a `<math>` child that
         // is a list gives its items as entries.
@@ -277,6 +282,13 @@ pub mod number {
         value: Number,
         props {
             value: children { rendered },
+            // How its value shows (ADR 0058).
+            displayDigits: display,
+            displayDecimals: display,
+            displaySmallAsZero: display,
+            padZeros: display,
+            avoidScientificNotation: display,
+            displayBlanks: display,
             ..anchor
         }
         attributes {

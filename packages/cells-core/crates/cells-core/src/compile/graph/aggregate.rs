@@ -16,8 +16,22 @@
 //! (ADR 0028), listed as such.
 
 use super::*;
-use crate::components::{AggOp, Collection, Numbering, Scored};
+use crate::components::{AggOp, Aggregate, Collection, Numbering, Scored, StepGate};
+
+/// A step of a gated type, with the product of the cases between it and
+/// that type (ADR 0062).
+type GatedStep = (Comp, Option<GraphNode>);
+
+/// One scored item, as a scoring walk finds it, as a build has it: its
+/// gated weight, its credit and its progress credit (ADR 0062).
+#[derive(Clone, Copy)]
+struct ScoredItem {
+    weight: GraphNode,
+    credit: GraphNode,
+    progress: GraphNode,
+}
 use crate::limits::SCORE_CHUNK as CHUNK;
+use crate::program::SymKind;
 
 /// Sections counted so far among one component's flattened children: a
 /// constant count of those outside any case, plus a node summing the gates
@@ -83,6 +97,8 @@ impl<'c> Stamp<'c> {
     /// every section's number.
     pub(super) fn aggregates(&mut self) {
         let root = self.root_children(TemplateId::new(0))[0];
+        // The steps' gates first: the credits read them.
+        let stepped = self.gate_steps();
         // A root boxed for an error of its own (`<document lang="es">`,
         // an attribute nothing reads) holds no credit.
         if self
@@ -103,8 +119,68 @@ impl<'c> Stamp<'c> {
                 }
             }
         }
+        for (c, steps) in stepped {
+            self.credit(c);
+            self.completed(c, &steps);
+        }
         let mut seq = self.fresh_seq(root);
         self.numbers(root, None, &mut seq);
+        self.grids();
+    }
+
+    /// Every matrix input's grid (ADR 0045), as a build makes it: the
+    /// matrix of its boxes' expressions over its size, the one box the
+    /// graph stamps standing for every box, a counted value.
+    fn grids(&mut self) {
+        for i in 0..self.instances.len() {
+            let (t, e) = self.instances[i];
+            let c = Comp::Elem(t, e);
+            let grids: Vec<(usize, u8, u8)> = self.c.plans.templates[t.index()]
+                .plan(e)
+                .props
+                .iter()
+                .enumerate()
+                .filter_map(|(pi, p)| match p {
+                    Source::Flow(Flow::Aggregate(Aggregate {
+                        op: AggOp::Grid { rows, cols },
+                        ..
+                    })) => Some((pi, *rows, *cols)),
+                    _ => None,
+                })
+                .collect();
+            for (pi, rows, cols) in grids {
+                let mut inputs = vec![
+                    self.slot(c, usize::from(rows)),
+                    self.slot(c, usize::from(cols)),
+                ];
+                if let Some(b) = self.grid_box(t, e) {
+                    let ty = self.component_type(b);
+                    if let Some(at) = ty.box_expr() {
+                        inputs.push(self.slot(b, at));
+                    }
+                }
+                let s = self.slot(c, pi);
+                self.g.counted.push(s);
+                self.set(
+                    s,
+                    Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Grid)), inputs),
+                );
+            }
+        }
+    }
+
+    /// The box of repeat `e` of template `t` whose item repeats in turn:
+    /// the item of its item.
+    fn grid_box(&self, t: TemplateId, e: ElemId) -> Option<Comp> {
+        let Body::Repeat { template: rows } = self.c.plans.templates[t.index()].row(e).body else {
+            return None;
+        };
+        let row = ElemId::from_index(0);
+        let Body::Repeat { template: cols } = self.c.plans.templates[rows.index()].row(row).body
+        else {
+            return None;
+        };
+        Some(Comp::Elem(cols, ElemId::from_index(0)))
     }
 
     /// Whether section `c` aggregates scores: its `aggregateScores` is a
@@ -137,37 +213,225 @@ impl<'c> Stamp<'c> {
     /// `creditAchieved` of the document or an aggregating section `c`: the
     /// weighted mean of its scored items, and its percentage that times
     /// 100; with nothing to score, full credit. With a scored item in a
-    /// repeat below `c`, both are counted values.
+    /// repeat below `c`, both are counted values. Its progress credit too,
+    /// when its type declares one (a `<cascade>` declares only that).
     fn credit(&mut self, c: Comp) {
-        let (s, p) = self.credit_slots(c);
         let mut items = Vec::new();
-        self.scored_items(c, None, &mut items);
+        self.scored_items(c, None, c, &mut items);
         let at = self.repeats_around(self.template_of(c));
-        if items
+        let deeper = items
             .iter()
-            .any(|&(_, credit)| self.repeats_around(self.g.nodes[credit.index()].template) > at)
-        {
-            self.g.counted.extend([s, p]);
-        }
+            .any(|i| self.repeats_around(self.g.nodes[i.credit.index()].template) > at);
+        let ty = self.component_type(c);
         let t = self.template_of(c);
-        match self.mean_credit(t, items) {
-            Some(mean) => {
-                self.set(s, Def::Alias(mean));
-                let hundred = self.constant(100.0);
-                self.set(p, Def::Op(GraphOp::Spec(OpSpec::Mul), vec![s, hundred]));
+        let credit = ty.aggregate_prop(AggOp::Credit, Collection::ScoredItems);
+        if credit.is_some() {
+            let (s, p) = self.credit_slots(c);
+            if deeper {
+                self.g.counted.extend([s, p]);
             }
-            None => {
-                self.set(s, Def::Const(Some(1.0)));
-                self.set(p, Def::Const(Some(100.0)));
+            let pairs = items.iter().map(|i| (i.weight, i.credit)).collect();
+            match self.mean_credit(t, pairs) {
+                Some(mean) => {
+                    self.set(s, Def::Alias(mean));
+                    let hundred = self.constant(100.0);
+                    self.set(p, Def::Op(GraphOp::Spec(OpSpec::Mul), vec![s, hundred]));
+                }
+                None => {
+                    self.set(s, Def::Const(Some(1.0)));
+                    self.set(p, Def::Const(Some(100.0)));
+                }
             }
+        }
+        let Some(s) = self.progress_slot(c) else {
+            return;
+        };
+        if let Some(ci) = credit
+            && items.iter().all(|i| i.progress == i.credit)
+        {
+            let credit = self.slot(c, ci);
+            self.set(s, Def::Alias(credit));
+            return;
+        }
+        if deeper {
+            self.g.counted.push(s);
+        }
+        let pairs = items.iter().map(|i| (i.weight, i.progress)).collect();
+        match self.mean_credit(t, pairs) {
+            Some(mean) => self.set(s, Def::Alias(mean)),
+            None => self.set(s, Def::Const(Some(1.0))),
         }
     }
 
-    /// A credit that cannot change, and its percentage, as constants.
+    /// A credit that cannot change, and its percentage (and progress
+    /// credit, when its type has one), as constants.
     fn constant_credit(&mut self, c: Comp, credit: f64) {
         let (s, p) = self.credit_slots(c);
         self.set(s, Def::Const(Some(credit)));
         self.set(p, Def::Const(Some(100.0 * credit)));
+        if let Some(s) = self.progress_slot(c) {
+            self.set(s, Def::Const(Some(credit)));
+        }
+    }
+
+    /// The node of `c`'s progress credit, when its type declares one.
+    fn progress_slot(&self, c: Comp) -> Option<GraphNode> {
+        self.component_type(c)
+            .aggregate_prop(AggOp::ProgressCredit, Collection::ScoredItems)
+            .map(|p| self.slot(c, p))
+    }
+
+    /// Gate the steps of every element of a type with a [`StepGate`] (ADR
+    /// 0062), as a build does: each step's gate is 1 while its place among
+    /// the steps is at most the type's `completed`, or its `all` is 1. A
+    /// place past a repeat or a load-time choice is one the graph does not
+    /// hold, as a section's number there is not. Returns each such element
+    /// with its steps, each with the cases around it.
+    fn gate_steps(&mut self) -> Vec<(Comp, Vec<GatedStep>)> {
+        let mut out = Vec::new();
+        for i in 0..self.instances.len() {
+            let (t, e) = self.instances[i];
+            let c = Comp::Elem(t, e);
+            let Some(gate) = self.component_type(c).step_gate() else {
+                continue;
+            };
+            let mut steps = Vec::new();
+            self.steps_of(c, &gate, None, false, &mut steps);
+            let completed = self.slot(c, gate.completed);
+            let all = self.slot(c, gate.all);
+            let mut place = Counter::default();
+            for &(k, case, varies) in &steps {
+                let kt = self.template_of(k);
+                place.varies |= varies;
+                let at = if place.varies {
+                    let n = self.value(kt, Def::Const(Some(place.known)));
+                    self.g.scope_leaves.insert(n, ScopeLeaf::Varies);
+                    n
+                } else {
+                    self.constant(place.known)
+                };
+                let at = match place.before {
+                    None => at,
+                    Some(b) => self.op(kt, OpSpec::Add, vec![b, at]),
+                };
+                let reached = self.op(kt, OpSpec::Le, vec![at, completed]);
+                let there = self.op(kt, OpSpec::Max, vec![reached, all]);
+                self.step_gates.insert(k, (c, there));
+                self.advance(&mut place, case, k);
+            }
+            out.push((c, steps.into_iter().map(|(k, g, _)| (k, g)).collect()));
+        }
+        out
+    }
+
+    /// The steps under `c` of a type gated by `gate`, in document order, as
+    /// a build finds them: each with the product of the cases between it
+    /// and that type, and whether a repeat or a load-time choice is passed
+    /// on the way to it.
+    fn steps_of(
+        &mut self,
+        c: Comp,
+        gate: &StepGate,
+        case: Option<GraphNode>,
+        varies: bool,
+        out: &mut Vec<(Comp, Option<GraphNode>, bool)>,
+    ) {
+        for k in self.children(c) {
+            let ty = self.component_type(k);
+            if gate.skip.contains(&ty) || ty == gate.message {
+                continue;
+            }
+            match ty.structure_kind() {
+                Some(StructureKind::Gate { .. }) => {
+                    let g = self.gate_through(case, k);
+                    self.steps_of(k, gate, g, varies, out);
+                }
+                Some(StructureKind::Repeat { .. }) => self.steps_of(k, gate, case, true, out),
+                Some(StructureKind::Transparent { .. }) => {
+                    let varies = varies || self.picks_at_load(k) || self.follows_counts(k);
+                    self.steps_of(k, gate, case, varies, out);
+                }
+                None => out.push((k, case, varies)),
+            }
+        }
+    }
+
+    /// `c`'s `completed`, as a build makes it: how many of its leading
+    /// steps are complete, a step in an inactive case skipped. A counted
+    /// value when a step sits in a repeat below `c`.
+    fn completed(&mut self, c: Comp, steps: &[GatedStep]) {
+        let gate = self.component_type(c).step_gate().expect("a gated type");
+        let t = self.template_of(c);
+        let one = self.constant(1.0);
+        let mut leading: Option<GraphNode> = None;
+        let mut known = 0.0;
+        let mut terms = Vec::new();
+        let at = self.repeats_around(t);
+        let mut deeper = false;
+        for &(k, case) in steps {
+            deeper |= self.repeats_around(self.template_of(k)) > at;
+            let complete = self
+                .step_progress(k)
+                .map(|p| self.op(t, OpSpec::Eq, vec![p, one]));
+            let complete = match (complete, case) {
+                (Some(x), Some(g)) => {
+                    let out = self.op(t, OpSpec::Not, vec![g]);
+                    Some(self.op(t, OpSpec::Max, vec![x, out]))
+                }
+                (x, _) => x,
+            };
+            leading = match (leading, complete) {
+                (l, None) => l,
+                (None, Some(x)) => Some(x),
+                (Some(l), Some(x)) => Some(self.op(t, OpSpec::Mul, vec![l, x])),
+            };
+            match (leading, case) {
+                (None, None) => known += 1.0,
+                (Some(x), None) | (None, Some(x)) => terms.push(x),
+                (Some(l), Some(g)) => terms.push(self.op(t, OpSpec::Mul, vec![l, g])),
+            }
+        }
+        let s = self.slot(c, gate.completed);
+        if deeper {
+            self.g.counted.push(s);
+        }
+        let Some((&first, rest)) = terms.split_first() else {
+            self.set(s, Def::Const(Some(known)));
+            return;
+        };
+        let mut sum = first;
+        for &x in rest {
+            sum = self.op(t, OpSpec::Add, vec![sum, x]);
+        }
+        if known == 0.0 {
+            self.set(s, Def::Alias(sum));
+        } else {
+            let k = self.constant(known);
+            self.set(s, Def::Op(GraphOp::Spec(OpSpec::Add), vec![sum, k]));
+        }
+    }
+
+    /// The progress credit of step `k`, as a build reads it: an answer's,
+    /// an aggregating section's or a gated type's own, else the mean over
+    /// the scored items it holds; None when it holds none.
+    fn step_progress(&mut self, k: Comp) -> Option<GraphNode> {
+        let ty = self.component_type(k);
+        match ty.scored() {
+            Some(Scored::Skip) => return None,
+            Some(Scored::Item { credit, .. }) => return Some(self.item_credit(k, credit)),
+            Some(Scored::Aggregates { .. }) if self.aggregates_scores(k) => {
+                return self.progress_slot(k);
+            }
+            _ => {}
+        }
+        if ty.step_gate().is_some() {
+            return self.progress_slot(k);
+        }
+        let mut items = Vec::new();
+        self.scored_items(k, None, k, &mut items);
+        let pairs = items.iter().map(|i| (i.weight, i.progress)).collect();
+        let t = self.template_of(k);
+        self.mean_credit(t, pairs)
     }
 
     /// How many repeats' iterations enclose template `t`.
@@ -216,38 +480,57 @@ impl<'c> Stamp<'c> {
         }
     }
 
-    /// (gated weight, credit) of each scored item under `c`, in document
-    /// order: answers, and sections that aggregate; other sections and
-    /// containers are looked through, `<setup>` is not.
+    /// Each scored item under `c`, in document order, its weight gated:
+    /// answers, and sections that aggregate; other sections and containers
+    /// are looked through, `<setup>` is not. A step of a type with a
+    /// [`StepGate`] is gated by its step's gate unless that type is `root`,
+    /// the component whose credit is being made (ADR 0062).
     fn scored_items(
         &mut self,
         c: Comp,
         gate: Option<GraphNode>,
-        out: &mut Vec<(GraphNode, GraphNode)>,
+        root: Comp,
+        out: &mut Vec<ScoredItem>,
     ) {
         for k in self.children(c) {
             let t = self.template_of(k);
-            let (weight, credit) = match self.component_type(k).scored() {
+            let gate = match self.step_gates.get(&k) {
+                Some(&(of, g)) if of != root => Some(self.gated(gate, g, t)),
+                _ => gate,
+            };
+            let (weight, credit, progress) = match self.component_type(k).scored() {
                 Some(Scored::Skip) => continue,
                 Some(Scored::Item { credit, weight }) => {
-                    // A blank response checks as NaN; it is no credit.
-                    let checked = self.slot(k, credit);
-                    let zero = self.constant(0.0);
-                    let credit = self.op(t, OpSpec::NanTo, vec![checked, zero]);
-                    (self.slot(k, weight), credit)
+                    let credit = self.item_credit(k, credit);
+                    (self.slot(k, weight), credit, credit)
                 }
                 Some(Scored::Aggregates { weight, .. }) if self.aggregates_scores(k) => {
-                    (self.slot(k, weight), self.credit_slots(k).0)
+                    let credit = self.credit_slots(k).0;
+                    let progress = self.progress_slot(k).unwrap_or(credit);
+                    (self.slot(k, weight), credit, progress)
                 }
                 _ => {
                     let g = self.gate_through(gate, k);
-                    self.scored_items(k, g, out);
+                    self.scored_items(k, g, root, out);
                     continue;
                 }
             };
             let weight = self.gated(gate, weight, t);
-            out.push((weight, credit));
+            out.push(ScoredItem {
+                weight,
+                credit,
+                progress,
+            });
         }
+    }
+
+    /// A scored item's credit, as a build reads it: no credit while NaN.
+    fn item_credit(&mut self, k: Comp, credit: usize) -> GraphNode {
+        let t = self.template_of(k);
+        // A blank response checks as NaN; it is no credit.
+        let checked = self.slot(k, credit);
+        let zero = self.constant(0.0);
+        self.op(t, OpSpec::NanTo, vec![checked, zero])
     }
 
     /// Number the sections inside repeat (or collect from repeats) `r`,
@@ -321,7 +604,7 @@ impl<'c> Stamp<'c> {
     /// list item (a `<part>`).
     fn has_list_item(&self, c: Comp) -> bool {
         self.children(c).into_iter().any(|k| {
-            if self.component_type(k).structure_kind().is_some() {
+            if self.component_type(k).passes_list_items() {
                 self.has_list_item(k)
             } else {
                 self.numbered_flag(k, |n| n.list_item)
@@ -370,6 +653,8 @@ impl<'c> Stamp<'c> {
                     }
                     self.numbers(k, gate, seq)
                 }
+                // A page: both sequences continue through it (ADR 0058).
+                None if ty.numbering() == Some(Numbering::PassesBoth) => self.numbers(k, gate, seq),
                 None if ty.numbering() == Some(Numbering::PassesDivisions) => {
                     // The divisions inside continue the sequence; the list
                     // items inside are counted among themselves.

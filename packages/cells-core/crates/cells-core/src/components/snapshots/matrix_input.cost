@@ -1,0 +1,3 @@
+no attributes: one blank box: cells 13 · essential 3 · constant 4 · instrs 6 · components 4
+a prefill gives the size and the boxes: cells 16 · essential 4 · constant 5 · instrs 7 · components 6
+a size larger than the prefill fills with the default entry: cells 24 · essential 8 · constant 5 · instrs 11 · components 10

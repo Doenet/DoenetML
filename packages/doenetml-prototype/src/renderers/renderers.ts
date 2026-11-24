@@ -62,6 +62,7 @@ import {
     AngleInGraph,
     ValueInGraph,
     FractionInput,
+    MatrixInput,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -273,6 +274,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     matchesPattern: { component: Boolean },
     math: { component: M },
     mathInput: { component: MathInput },
+    matrixInput: { component: MatrixInput, passthroughChildren: true },
     matrix: { component: M },
     max: { component: M },
     md: { component: M },

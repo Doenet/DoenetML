@@ -449,7 +449,12 @@ fn text_of(booleans: bool) -> OpSpec {
 fn order_ports(wiring: &mut ElemWiring, drawn: bool, keys: &[Port]) -> Vec<Port> {
     let n = keys.len();
     let spec = if drawn {
-        let draw = wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)));
+        // What decides the order drawn: how many operands there are,
+        // which the children give, and how bare text splits into them.
+        let draw = wiring.draw(DrawOn {
+            attrs: &[attr::r#type],
+            children: true,
+        });
         let mut args = vec![draw];
         args.extend((1..=n).map(|k| wiring.hidden(Source::constant(k as f64))));
         let head = wiring.hidden(Source::computed(

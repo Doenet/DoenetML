@@ -98,6 +98,15 @@ impl Graph for Cells<'_> {
     fn writes(&self, node: GraphNode) -> u64 {
         match self.g.defs[node.index()] {
             Def::Op(GraphOp::Spec(spec), _) => spec.writes(),
+            // A `<matrix>`'s template writes its entries (ADR 0060).
+            Def::Op(GraphOp::Template(k), _)
+                if matches!(
+                    self.g.templates[k as usize].post,
+                    crate::program::Post::Matrix { .. }
+                ) =>
+            {
+                u64::MAX
+            }
             _ => 0,
         }
     }

@@ -373,7 +373,12 @@ impl Document {
                 Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
                 _ => ", ",
             };
-            for (k, entry) in entries.chunks(shape.width().max(1)).enumerate() {
+            // A capped list's entries stop at its live length (ADR 0041).
+            let live = ty
+                .live_len()
+                .and_then(value)
+                .map_or(usize::MAX, |l| if l > 0.0 { l as usize } else { 0 });
+            for (k, entry) in entries.chunks(shape.width().max(1)).take(live).enumerate() {
                 if k > 0 {
                     out.push_str(separator);
                 }
@@ -530,6 +535,9 @@ impl Document {
         for ch in self.children(c) {
             match ch {
                 Child::Text(t) => out.push_str(t),
+                // A step a cascade holds back, or a message it does not
+                // show, is not in the text (ADR 0062).
+                Child::Component(k) if self.revealed(k) != crate::document::Revealed::Shown => {}
                 Child::Component(k) => self.push_text(k, out),
             }
         }

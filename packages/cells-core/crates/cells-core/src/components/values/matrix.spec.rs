@@ -36,6 +36,30 @@ spec! {
         expect { "A.expr" = "[[5, x]]", "B.expr" = "[[2 x]]" }
     }
 
+    case "a copy of its value, by a child or extend, reads its size from the value" {
+        doenet r#"<matrix name="A"><row>a b c</row><row>d e f</row></matrix>
+                  <matrix name="B">$A</matrix><matrix name="C" extend="$A.value"/>
+                  <matrix name="D" extend="$A"/>"#;
+        expect {
+            "B.expr" = "[[a, b, c], [d, e, f]]", "B.matrixSize" = [2, 3],
+            "C.expr" = "[[a, b, c], [d, e, f]]", "C.numColumns" = 3,
+            "D.numRows" = 2,
+        }
+    }
+
+    case "an entry by row then column" {
+        doenet r#"<matrix name="A"><row>a b</row><row>c d</row></matrix>
+                  <math name="e">$A[2][1]</math>"#;
+        expect { "e.expr" = "c" }
+    }
+
+    case "an entry by cells, the missing value past the end" {
+        doenet r#"<matrix name="A"><row>a b</row><row>c d</row></matrix>
+                  <number name="i">1</number><number name="j">2</number>
+                  <math name="e">$A[$i][$j] + 1</math><math name="f">$A[3][1]</math>"#;
+        expect { "e.expr" = "b + 1", "f.expr" = "＿" }
+    }
+
     case "a size that follows a value is refused" {
         doenet r#"<number name="n">2</number><matrix name="A" numRows="$n"/>"#;
         diagnostics["cells-unsupported"]

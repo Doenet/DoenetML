@@ -142,15 +142,63 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ty);
     let kind = Kind::forced(attrs.forceSymbolic, attrs.forceNumeric);
+    let post = over_math::simplify_post(attrs.simplify, attrs.expand);
+    // One reference to a math value: its entries are the operands,
+    // reduced inside the value (ADR 0063).
+    let one_value = over_math::one_value(ctx, &pieces, false);
+    // A count or a median of one math value, read from the value itself.
+    if let Some(p) = over_math::one_value(ctx, &pieces, true)
+        && kind != Kind::Numeric
+    {
+        let value = match fold {
+            Fold::Count => {
+                let id = ctx
+                    .entry_math(&ListEntry::Ref(p))
+                    .expect("a reference is math");
+                let held = wiring.hidden(Source::sym_expr(id, crate::program::Post::None));
+                Some(Wire::computed(
+                    OpSpec::Sym(crate::program::SymKind::ListCount),
+                    vec![held],
+                ))
+            }
+            Fold::Reduce(op @ Reduction::Median, _) => {
+                let held = wiring.hidden(over_math::reduced_value(ctx, p, op, false));
+                Some(Wire::computed(
+                    OpSpec::Sym(crate::program::SymKind::Evaluate),
+                    vec![held],
+                ))
+            }
+            Fold::Reduce(..) => None,
+        };
+        if let Some(value) = value {
+            wiring.set_planned(Planned {
+                expr: Wire::absent(),
+                value,
+            });
+            return Ok(wiring);
+        }
+    }
     // Only the shape of the text matters here: whether there is one.
-    let over_math = spelled.of(&vec![String::new(); pieces.len()]).is_some();
+    let over_math = match one_value {
+        Some(_) => !matches!(spelled, Spelled::Never),
+        None => spelled.of(&vec![String::new(); pieces.len()]).is_some(),
+    };
     let expr = if pieces.is_empty() || kind == Kind::Numeric || !over_math {
         Wire::absent()
     } else {
         let args = over_math::operand_exprs(ctx, &pieces)?;
-        let id = ctx.operator_expr(&args, |texts| spelled.of(texts).expect("a type over math"));
-        let post = over_math::simplify_post(attrs.simplify, attrs.expand);
-        kind.expr(Some(id), post)
+        match (fold, one_value) {
+            // The value itself, its entries reduced after (ADR 0063).
+            (Fold::Reduce(op, _), Some(_)) => {
+                let id = ctx.operator_expr(&args, |texts| texts[0].clone());
+                kind.expr(Some(id), over_math::reduce_post(op, false, post))
+            }
+            _ => {
+                let id =
+                    ctx.operator_expr(&args, |texts| spelled.of(texts).expect("a type over math"));
+                kind.expr(Some(id), post)
+            }
+        }
     };
     let numeric = match fold {
         _ if pieces.is_empty() => Wire::absent(),

@@ -293,6 +293,23 @@ component_types! {
     Matrix => values::matrix::DEFINITION,
     MatrixRow => values::matrix::row::DEFINITION,
     MatrixColumn => values::matrix::column::DEFINITION,
+    MatrixInput => inputs::matrix_input::DEFINITION,
+    BoundMatrixInput => inputs::matrix_input::bound::DEFINITION,
+    MatrixInputRow => inputs::matrix_input::row::DEFINITION,
+    BoundMatrixInputRow => inputs::matrix_input::bound_row::DEFINITION,
+    MatrixInputCell => inputs::matrix_input::cell::DEFINITION,
+    Page => containers::blocks::page::DEFINITION,
+    /// `<cascade>`: steps revealed as the ones before them are complete
+    /// (ADR 0062).
+    Cascade => containers::cascade::DEFINITION,
+    /// `<cascadeMessage>`: what a cascade shows for a gap between its steps.
+    CascadeMessage => containers::cascade::MESSAGE,
+    /// A `<mathList>` over a math value (ADR 0063).
+    OverValueMathList => values::over_value::math_list::DEFINITION,
+    /// A `<numberList>` over a math value (ADR 0063).
+    OverValueNumberList => values::over_value::number_list::DEFINITION,
+    /// A `<pointList>` over a math value (ADR 0063).
+    OverValuePointList => values::over_value::point_list::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -394,6 +411,21 @@ impl ComponentType {
             Some(s) if !s.when.iter().all(|a| is_literal(a)) => s.is,
             _ => self,
         }
+    }
+
+    /// The type an element of this type is when its content is one
+    /// reference to a math value (ADR 0063): a list whose count follows
+    /// the value, settled by outlining once names resolve.
+    pub fn over_value(self) -> Option<ComponentType> {
+        self.def().over_value
+    }
+
+    /// Whether the type is a list over a math value (ADR 0063): what some
+    /// type's [`over_value`](Self::over_value) names.
+    pub fn is_over_value(self) -> bool {
+        ComponentType::ALL
+            .iter()
+            .any(|t| t.def().over_value == Some(self))
     }
 
     /// Whether a component of the type shows what it holds as a list of
@@ -760,6 +792,24 @@ impl ComponentType {
         usize::from(self.list().is_some_and(|l| l.companion.is_some()))
     }
 
+    /// The prop a bare `$x[k]` reads entries inside the expression of
+    /// (ADR 0041, decision 2): its default prop, when that is one cell that
+    /// stands for an expression (`expr_of`) and the type has no list (a
+    /// `<math>`'s, a `<mathInput>`'s `value`).
+    pub fn handle_sel(self) -> Option<PropSel> {
+        let sel = self.default_sel()?;
+        let PropSel::At(PropAt::Position(pi)) = sel else {
+            return None;
+        };
+        (self.list().is_none() && self.expr_of(pi).is_some()).then_some(sel)
+    }
+
+    /// The table position of a capped list's live length
+    /// ([`ListProp::live`], ADR 0041 decision 2), if the type's list is one.
+    pub fn live_len(self) -> Option<usize> {
+        self.prop_index(self.list()?.live?)
+    }
+
     /// How many public props an element with `n` list entries has after
     /// its table's: the entries' cells, then the companion sequence's
     /// ([`ListShape::list_props`]).
@@ -932,6 +982,14 @@ impl ComponentType {
         self.def().numbering
     }
 
+    /// Whether the list items' sequence passes through it (ADR 0054, ADR
+    /// 0058): a structure, or a type both sequences pass through (a
+    /// `<page>`). A section's parent, whose `asList` makes it a list item,
+    /// is its nearest ancestor that is neither.
+    pub fn passes_list_items(self) -> bool {
+        self.structure_kind().is_some() || self.numbering() == Some(Numbering::PassesBoth)
+    }
+
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
     /// its value, when `to` takes a value rather than a copy: `value` for a
     /// boolean of an input that reads as a boolean, else `from`'s default
@@ -962,6 +1020,13 @@ impl ComponentType {
     /// ([`PropDef::expr`]).
     pub fn expr_of(self, pi: usize) -> Option<ExprOf> {
         self.prop_defs().get(pi)?.expr
+    }
+
+    /// The expression a box of a grid stands for (ADR 0045): the prop its
+    /// default prop stands for, or the default prop itself.
+    pub fn box_expr(self) -> Option<usize> {
+        let at = self.prop_index(self.default_prop()?)?;
+        Some(self.expr_of(at).map_or(at, |x| usize::from(x.at)))
     }
 
     /// The prop that stands for the expression prop `pi` holds, if one
@@ -1092,6 +1157,28 @@ impl ComponentType {
             Some(StructureKind::Gate { active }) => Some(active),
             _ => None,
         }
+    }
+
+    /// The gate the type sets on each of its children by its place
+    /// ([`StepGate`], ADR 0062): a `<cascade>`'s.
+    pub fn step_gate(self) -> Option<StepGate> {
+        self.def().gate
+    }
+
+    /// The [`StepGate`] whose message type the type is, when one is: what
+    /// shows a message of the type (ADR 0062).
+    pub fn message_of(self) -> Option<StepGate> {
+        static GATES: std::sync::OnceLock<Vec<StepGate>> = std::sync::OnceLock::new();
+        GATES
+            .get_or_init(|| {
+                ComponentType::ALL
+                    .iter()
+                    .filter_map(|t| t.step_gate())
+                    .collect()
+            })
+            .iter()
+            .copied()
+            .find(|g| g.message == self)
     }
 
     /// How a member of the type behaves in a sticky group: its shape, and where
@@ -1233,6 +1320,14 @@ mod tests {
             .filter(|ty| matches!(ty.def().planner, crate::compile::api::Planner::Props))
             // What owns it, or machinery, plans it.
             .filter(|ty| !ty.def().flags.owned && ty.def().machinery.is_none())
+            // Nor a repeat-like type's item, which its declared function
+            // wires (ADR 0040), when nothing else makes one.
+            .filter(|&&ty| {
+                !(ty.def().flags.internal
+                    && ComponentType::ALL
+                        .iter()
+                        .any(|o| o.def().item.is_some_and(|i| i.ty == ty)))
+            })
             .flat_map(|ty| {
                 ty.prop_defs()
                     .iter()
@@ -1298,9 +1393,12 @@ mod tests {
         // sort compares and what a text joins. 38: ADR 0053 added
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
-        // 41: ADR 0064 added `ref_kind`, `not_a_boolean` and `type_mix`, for
+        // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
+        // section's full number and title as text. 41: ADR 0062 added
+        // `is_step`, for a step of a cascade, which aggregates its scores.
+        // 44: ADR 0064 added `ref_kind`, `not_a_boolean` and `type_mix`, for
         // a `<boolean>` of a number or a text, a type mix (D47, D68).
-        const PLAN_CTX_METHODS: usize = 41;
+        const PLAN_CTX_METHODS: usize = 44;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1446,7 +1544,6 @@ mod tests {
             ConditionalContent,
             Case,
             Select,
-            SelectFromSequence,
             Group,
             Title,
             Ref,

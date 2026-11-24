@@ -18,6 +18,7 @@ use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
 mod act;
+mod cascade;
 mod counters;
 mod functions;
 mod interactive;
@@ -31,6 +32,7 @@ mod sticky;
 pub(crate) mod table;
 
 pub use act::ActionView;
+pub use cascade::Revealed;
 pub use load::{LoadOptions, LoadTimings};
 pub(crate) use table::ChildEntry;
 pub use table::{Child, ComponentTable};

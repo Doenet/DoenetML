@@ -96,8 +96,9 @@ impl Document {
 
     /// Whether numbered component `c` is an item of its parent's list
     /// (ADR 0054): always (a `<part>`), or its parent, the nearest
-    /// ancestor that is no structure, makes its sectioning children its
-    /// list's items (a `<problems>`).
+    /// ancestor the list items do not pass through (no structure, no
+    /// `<page>`), makes its sectioning children its list's items (a
+    /// `<problems>`).
     pub fn is_list_item(&self, c: CompIdx) -> bool {
         let flag = |c: CompIdx, prop: fn(&crate::components::Numbered) -> Option<usize>| {
             let Some(n) = self.component_type(c).def().numbered else {
@@ -110,7 +111,7 @@ impl Document {
         }
         let mut p = self.parent(c);
         while let Some(x) = p {
-            if self.component_type(x).structure_kind().is_none() {
+            if !self.component_type(x).passes_list_items() {
                 return flag(x, |n| n.as_list);
             }
             p = self.parent(x);

@@ -356,6 +356,122 @@ impl RequestEngine<'_> {
                     produced.write(inputs[0], h);
                     true
                 }
+                // A `<matrix>` of its entries (ADR 0060): a desired matrix
+                // of its size writes each entry that is one cell alone
+                // and changes, an expression to a math cell, its value to
+                // a number; the rest stay.
+                Op::Sym(_, _, s, _)
+                    if matches!(
+                        self.program.syms[s.index()].kind,
+                        SymKind::Instantiate {
+                            post: crate::program::Post::Matrix { .. },
+                            ..
+                        }
+                    ) =>
+                {
+                    let SymKind::Instantiate {
+                        template,
+                        post: crate::program::Post::Matrix { rows, cols, .. },
+                    } = self.program.syms[s.index()].kind
+                    else {
+                        unreachable!("matched above")
+                    };
+                    let d = desired[0].unwrap();
+                    let cur = self.cells[ins.out.index()];
+                    let engine = &mut *self.sym.engine;
+                    let leaves = engine.template_entry_cells(template);
+                    let want = (!d.is_nan())
+                        .then(|| engine.matrix_entries(Handle::from_value(d), rows, cols))
+                        .flatten();
+                    let have = (!cur.is_nan())
+                        .then(|| engine.matrix_entries(Handle::from_value(cur), rows, cols))
+                        .flatten();
+                    match want {
+                        Some(want) if want.len() == leaves.len() => {
+                            for (k, (&w, leaf)) in want.iter().zip(&leaves).enumerate() {
+                                if have.as_ref().is_some_and(|h| engine.equals_syntax(h[k], w)) {
+                                    continue;
+                                }
+                                match leaf {
+                                    Some((cell, true)) => {
+                                        produced.write(CellIdx::new(*cell), w.to_value())
+                                    }
+                                    Some((cell, false)) => {
+                                        let v = engine.evaluate(w, None);
+                                        if v.is_finite() {
+                                            produced.write(CellIdx::new(*cell), v);
+                                        }
+                                    }
+                                    None => {}
+                                }
+                            }
+                            true
+                        }
+                        _ => false,
+                    }
+                }
+                // A matrix input's size, read from a value it is bound to
+                // (ADR 0045, ADR 0060): the value resized, written to what
+                // it reads; dropped for a size that is no whole number.
+                Op::Sym(_, _, s, start)
+                    if matches!(
+                        self.program.syms[s.index()].kind,
+                        SymKind::MatrixSize { .. }
+                    ) =>
+                {
+                    let SymKind::MatrixSize { cols } = self.program.syms[s.index()].kind else {
+                        unreachable!("matched above")
+                    };
+                    let d = desired[0].unwrap();
+                    let input = self.program.operands_at(start, 1)[0];
+                    let cur = self.cells[input.index()];
+                    let engine = &mut *self.sym.engine;
+                    let h = if cur.is_nan() {
+                        engine.parse("").expect("the blank expression")
+                    } else {
+                        Handle::from_value(cur)
+                    };
+                    if d.is_finite() && d >= 0.0 && d.fract() == 0.0 {
+                        let (r, c) = engine.matrix_size(h);
+                        let (r, c) = if cols { (r, d as u32) } else { (d as u32, c) };
+                        produced.write(input, engine.resize_matrix(h, r, c).to_value());
+                        true
+                    } else {
+                        false
+                    }
+                }
+                // An entry inside a math handle (ADR 0041): the value
+                // with that entry replaced, its head kept, to what it
+                // reads; dropped for an index that names no entry.
+                // An entry of a value read as a list's (ADR 0063) likewise.
+                Op::Sym(_, _, s, start)
+                    if matches!(
+                        self.program.syms[s.index()].kind,
+                        SymKind::Entry | SymKind::ListItem
+                    ) =>
+                {
+                    let as_list = self.program.syms[s.index()].kind == SymKind::ListItem;
+                    let inputs = self.program.operands_at(start, 2);
+                    let (h, k) = (self.cells[inputs[0].index()], self.cells[inputs[1].index()]);
+                    let d = desired[0].unwrap();
+                    let written = (!h.is_nan() && !d.is_nan())
+                        .then(|| {
+                            let (h, d) = (Handle::from_value(h), Handle::from_value(d));
+                            if as_list {
+                                self.sym.engine.with_list_item(h, k, d)
+                            } else {
+                                self.sym.engine.with_entry(h, k, d)
+                            }
+                        })
+                        .flatten();
+                    match written {
+                        Some(w) => {
+                            produced.write(inputs[0], w.to_value());
+                            true
+                        }
+                        None => false,
+                    }
+                }
                 _ => match ins.op.invert(self.cells, desired[0].unwrap()) {
                     Some((c, v)) => {
                         produced.write(c, v);

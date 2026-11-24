@@ -42,6 +42,7 @@ enum DeclaredSource {
     Aggregate(Aggregate),
     Anchor(u8),
     ListLen,
+    Display,
 }
 
 /// A prop with nothing set: what every prop starts from.
@@ -126,6 +127,15 @@ pub(super) const fn anchor(name: &'static str, coord: u8) -> Prop {
     p
 }
 
+/// A number display setting of the same name ([`PropFrom::Display`]): an
+/// output the renderer reads, so `rendered`; not given without the
+/// attribute.
+pub(super) const fn display(name: &'static str) -> Prop {
+    let mut p = prop_from(name, f64::NAN, DeclaredSource::Display);
+    p.def.rendered = true;
+    p
+}
+
 /// `op` over the collection `over`, wired by the build. Credit is over
 /// scored items only, a count over sections or what the element gathers;
 /// any other pairing fails to compile.
@@ -139,7 +149,8 @@ pub(super) const fn aggregate(name: &'static str, op: AggOp, over: Collection) -
             ) | (
                 AggOp::Count,
                 Collection::SectionsThrough | Collection::Gathered
-            )
+            ) | (AggOp::ProgressCredit, Collection::ScoredItems)
+                | (AggOp::Completed, Collection::Steps)
         ),
         "an aggregate's operator does not fit its collection"
     );
@@ -246,6 +257,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::Aggregate(a) => PropFrom::Aggregate(a),
             DeclaredSource::ListLen => PropFrom::ListLen,
             DeclaredSource::Anchor(coord) => PropFrom::Anchor { coord },
+            DeclaredSource::Display => PropFrom::Display,
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
             },
@@ -320,6 +332,7 @@ pub(super) const fn definition(
         owner: None,
         rewrite: None,
         structural: None,
+        over_value: None,
         child_types: &[],
         settle: None,
         extend_value: None,
@@ -334,6 +347,7 @@ pub(super) const fn definition(
         submit: None,
         roles: &[],
         structure_kind: None,
+        gate: None,
         response: None,
         text: None,
         encloses: None,
@@ -436,6 +450,12 @@ impl ComponentDef {
         self.structural = Some(structural);
         self
     }
+    /// The type of an element whose content is one reference to a math
+    /// value (ADR 0063).
+    pub(super) const fn over_value(mut self, ty: super::ComponentType) -> Self {
+        self.over_value = Some(ty);
+        self
+    }
     /// What outlining settles of an element of the type ([`super::Settle`]).
     pub(super) const fn settle(mut self, settle: super::Settle) -> Self {
         self.settle = Some(settle);
@@ -467,6 +487,12 @@ impl ComponentDef {
         self.numbering = Some(super::Numbering::PassesDivisions);
         self
     }
+    /// Both sequences pass through it ([`super::Numbering`]): a flag,
+    /// `flags: [container, passes_both]`.
+    pub(super) const fn passes_both(mut self) -> Self {
+        self.numbering = Some(super::Numbering::PassesBoth);
+        self
+    }
     /// A sectioning component with no number ([`super::Numbering`]): a
     /// flag, `flags: [container, unnumbered_division]`.
     pub(super) const fn unnumbered_division(mut self) -> Self {
@@ -489,6 +515,12 @@ impl ComponentDef {
         count: fn(&crate::compile::api::Record) -> Option<usize>,
     ) -> Self {
         self.static_count = Some(count);
+        self
+    }
+    /// The gate it sets on each of its children ([`super::StepGate`], ADR
+    /// 0062).
+    pub(super) const fn gate(mut self, gate: super::StepGate) -> Self {
+        self.gate = Some(gate);
         self
     }
     /// The counter it takes a number from ([`super::Counted`]).
@@ -709,6 +741,7 @@ pub(crate) const fn sequence_only(name: &'static str) -> super::ListProp {
         interactive: false,
         rendered: true,
         companion: Some(name),
+        live: None,
     }
 }
 
@@ -799,8 +832,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// for an expression ([`super::ExprOf`]).
 ///
 /// `Planned` has one field per prop the planner plans, in table order:
-/// every prop but a `computed`, an `aggregate`, an `anchor` or a
-/// `list_len` one, which the table gives itself. A planner fills it as a struct literal
+/// every prop but a `computed`, an `aggregate`, an `anchor`, a `display`
+/// or a `list_len` one, which the table gives itself. A planner fills it as a struct literal
 /// (`wiring.set_planned(Planned { .. })`), so a prop left unplanned does
 /// not compile, and one the table gives is not the planner's to write.
 /// `Props<T>` has one field per prop of the table: `Props::PORTS` holds
@@ -946,6 +979,11 @@ macro_rules! component {
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
+        $(gate: Step($gcomp:ident, $gall:ident, $gfut:ident) {
+            skip: [$($gskip:ident),* $(,)?],
+            message: $gmsg:ident,
+            headed: [$($ghead:ident),* $(,)?] $(,)?
+        },)?
         $(item: $itty:ident ($itfn:path),)?
         $(response: $rkind:ident ($rprop:ident),)?
         $(value: $vkind:ident $(($($vprop:ident),+ $(,)?))?,)?
@@ -955,6 +993,7 @@ macro_rules! component {
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
+        $(over_value: $ovis:ident,)?
         $(child_types { $($cttag:ident : $ctty:ident),+ $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
@@ -984,6 +1023,8 @@ macro_rules! component {
             $(entry_coords: [$ex:ident, $ey:ident], max_by: $emax:ident, entries: children
                 $(, interactive: $einteractive:literal)?
                 $(, rendered: $erendered:literal)? $(,)?)?
+            $(capped: [$qx:ident, $qy:ident], live: $qlive:ident, hidden: $qhidden:ident
+                $(, rendered: $qrendered:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
                 attribute: $lattr:ident $(, max: $lmax:expr)?
                 $(, interactive: $lcinteractive:literal)?
@@ -1019,6 +1060,14 @@ macro_rules! component {
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
+                $(.gate($crate::components::StepGate {
+                    completed: $crate::components::define::at(PROPS, stringify!($gcomp)),
+                    all: $crate::components::define::at(PROPS, stringify!($gall)),
+                    future: $crate::components::define::at(PROPS, stringify!($gfut)),
+                    skip: &[$($crate::components::ComponentType::$gskip),*],
+                    message: $crate::components::ComponentType::$gmsg,
+                    headed: &[$($crate::components::ComponentType::$ghead),*],
+                }))?
                 $(.item($crate::components::ItemDecl {
                     ty: $crate::components::ComponentType::$itty,
                     wire: {
@@ -1054,6 +1103,7 @@ macro_rules! component {
                     when: &[$(stringify!($stwhen)),+],
                     is: $crate::components::ComponentType::$stis,
                 }))?
+                $(.over_value($crate::components::ComponentType::$ovis))?
                 $(.child_types(&[$((stringify!($cttag), $crate::components::ComponentType::$ctty)),+]))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
@@ -1074,10 +1124,12 @@ macro_rules! component {
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                         $(values [$lv $lvkind] [$($lvmax)?] [$($lventries $($lvless)?)?])?
                         $(entry_points [$ex, $ey] [$emax])?
+                        $(capped [$qx, $qy])?
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)? $($($einteractive)?)?),
-                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)?),
-                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)?),
+                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)? $($($qrendered)?)?),
+                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)? $($qhidden)?),
+                    live: $crate::components::define::component!(@companion $($qlive)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
@@ -1250,6 +1302,9 @@ macro_rules! component {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
     (@planned [$($acc:ident)*] anchor $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] display $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
     (@planned [$($acc:ident)*] list_len $name:ident $($rest:ident)*) => {
@@ -1633,6 +1688,17 @@ macro_rules! component {
             entry: $crate::components::EntryKind::Point,
         }
     };
+    (@list_points capped [$x:ident, $y:ident]) => {
+        $crate::components::ListPoints::Given {
+            coords: &[stringify!($x), stringify!($y)],
+            alternate_name: None,
+            attribute: None,
+            max: None,
+            max_by: None,
+            from_children: None,
+            entry: $crate::components::EntryKind::Point,
+        }
+    };
     (@list_points values [$v:ident $kind:ident] [$($vmax:ident)?] [$($entries:tt)*]) => {
         $crate::components::ListPoints::Given {
             coords: &[stringify!($v)],
@@ -1664,6 +1730,7 @@ macro_rules! component {
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
     (@prop list_len $name:ident) => { $crate::components::define::list_len(stringify!($name)) };
+    (@prop display $name:ident) => { $crate::components::define::display(stringify!($name)) };
     (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
     (@prop attr $name:ident ($default:expr)) => {
         $crate::components::define::attr(stringify!($name), $default)

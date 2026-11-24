@@ -30,6 +30,8 @@ component! {
             attribute: prefill, bind: bindValueTo, interactive, rendered, infinite, expr_of: expr
         },
         expr: by_planner { interactive, rendered, expr_of: expr },
+        // How many entries its value holds (ADR 0041, inside the handle).
+        numDimensions: computed(OpSpec::Sym(SymKind::Count), [expr]),
     }
     attributes {
         prefill: Content,

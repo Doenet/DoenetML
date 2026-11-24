@@ -48,6 +48,10 @@ pub struct ComponentDef {
     /// The type an element of the type is when its count follows a value
     /// (ADR 0041, decision 2): a structural sequence.
     pub structural: Option<Structural>,
+    /// The type an element of the type is when its content is one
+    /// reference to a math value, settled once names resolve (ADR 0063):
+    /// a list whose count follows that value.
+    pub over_value: Option<ComponentType>,
     /// What a child element of a tag is under an element of the type, in
     /// place of what the tag alone makes it (ADR 0055): a `<matrix>`'s
     /// `<row>` is a `<matrixRow>`.
@@ -95,6 +99,9 @@ pub struct ComponentDef {
     /// How the type is structure rather than content: looked through, a
     /// gate, or a repeat. `None` for a type whose children are its own.
     pub structure_kind: Option<StructureKind>,
+    /// A gate the type sets on each of its children by its place (ADR
+    /// 0062): a `<cascade>`'s steps.
+    pub gate: Option<StepGate>,
     /// What an answer's response reads of an input of this type, and what
     /// kind of value it is; `Some` marks the type as an answer's input.
     pub response: Option<ResponseKind>,
@@ -410,6 +417,37 @@ pub enum StructureKind {
         /// The structural prop holding how many iterations it has.
         count: usize,
     },
+}
+
+/// A gate a type sets on each of its children by its place (ADR 0062), as
+/// `<cascade>` declares it: `gate: Step(numCompleted, revealAll,
+/// hideFutureSections) { .. }`. Its *steps* are its component children,
+/// looked through the structure (groups, the active cases, a repeat's
+/// iterations), but those of a `skip` type and its `message`s; the k-th
+/// (from 0) is there while k is at most `completed` or `all` is 1. A step
+/// that is not there is not shown, not scored and not in the text, as a
+/// child of an inactive case is not; a `headed` step keeps its heading
+/// while held back unless `future` is 1, and its children are what the
+/// gate holds. Section numbers and the document-wide counters count every
+/// step, so a number stays put as the steps are revealed. Each prop it
+/// names is a position in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StepGate {
+    /// How many leading steps are complete (an aggregate over the steps,
+    /// [`AggOp::Completed`]): the step at that place, and those before
+    /// it, are there.
+    pub completed: usize,
+    /// The 0/1 prop that makes every step there.
+    pub all: usize,
+    /// The 0/1 prop that hides a held-back step's heading too.
+    pub future: usize,
+    /// The child types that are no step (a `<title>`, a `<setup>`).
+    pub skip: &'static [ComponentType],
+    /// The type of the messages the gate shows, one per gap: a child of
+    /// it, or of a held-back `headed` step, is shown only while chosen.
+    pub message: ComponentType,
+    /// The step types that keep their heading while held back.
+    pub headed: &'static [ComponentType],
 }
 
 /// What an answer's response reads of an input, by the kind of value it
@@ -736,6 +774,11 @@ pub enum Numbering {
     /// a place among its parent's list items, none among the divisions,
     /// and bounds both.
     Unnumbered,
+    /// Both sequences pass through it (a `<page>`; ADR 0058): a division
+    /// and a list item inside it are numbered among those around it, and
+    /// its parent's `asList` reaches the sections inside it, as through a
+    /// structure. It is no structure otherwise: its children are its own.
+    PassesBoth,
 }
 
 /// A group of element children of given types (`constraints:
@@ -796,6 +839,12 @@ pub struct ListProp {
     /// per entry, after the entries, by this name (ADR 0041 decision 1,
     /// ADR 0053): a `<shuffle>`'s `componentOrder`.
     pub companion: Option<&'static str>,
+    /// A capped list (ADR 0041, decision 2, a dynamic sequence): the table
+    /// prop holding its live length. Its entries are as many as its cap,
+    /// those past the live length the missing value; an entry's row hides
+    /// as its companion's entry says (1 past the live length), a path
+    /// (`$int[3]`) names no entry past it, and its text stops at it.
+    pub live: Option<&'static str>,
 }
 
 /// Where a component of a type is drawn, and so whether the props a renderer
@@ -1003,6 +1052,14 @@ pub enum PropFrom {
         /// 0 for x, 1 for y.
         coord: u8,
     },
+    /// A number display setting of the same name (`displayDigits`,
+    /// `displayDecimals`, `displaySmallAsZero`, `padZeros`,
+    /// `avoidScientificNotation`, `displayBlanks`): the element's own
+    /// attribute, a literal or a reference a tick may change, planned by
+    /// the compile for every type that has one, whatever its planner, after
+    /// the planner runs (ADR 0058). Without the attribute, not given (NaN):
+    /// the reader takes it from the nearest referent that gives it.
+    Display,
 }
 
 /// A set of components around an element, described at compile time and
@@ -1028,6 +1085,13 @@ pub enum Collection {
     /// The picks of a load-time select, each an option's template stamped
     /// once; a reference's `Item` into them (`$s[k]`).
     Picks,
+    /// A matrix input's boxes (ADR 0045), by row: the item of each item of
+    /// its iterations, each standing for the expression its type's default
+    /// prop stands for.
+    Boxes,
+    /// The steps of a type with a [`StepGate`], in document order (ADR
+    /// 0062).
+    Steps,
 }
 
 /// An operator over a collection's ports.
@@ -1040,6 +1104,22 @@ pub enum AggOp {
     PercentCredit,
     /// How many items the collection holds.
     Count,
+    /// The matrix of the boxes' expressions (ADR 0045), `rows` by `cols`,
+    /// the element's own ports at those positions
+    /// ([`SymKind::Grid`](crate::program::SymKind::Grid)).
+    Grid {
+        /// The position of the port holding how many rows.
+        rows: u8,
+        /// The position of the port holding how many columns.
+        cols: u8,
+    },
+    /// The weighted mean of the items' progress credit (ADR 0062): their
+    /// credit, but a hand-graded answer's 1 once answered. What a
+    /// `<cascade>` reads of a step to tell whether it is complete.
+    ProgressCredit,
+    /// How many leading steps are complete: whose progress credit is 1,
+    /// or that hold nothing scored (ADR 0062).
+    Completed,
 }
 
 /// A prop wired from a collection: `op` over the ports of `over`.

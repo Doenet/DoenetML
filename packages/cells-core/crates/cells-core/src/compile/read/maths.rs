@@ -268,6 +268,9 @@ impl SourceReader<'_> {
                 }
                 _ => {
                     let id = self.parse_tokens(ar, toks, src)?;
+                    // Its text for the engine, for a reader that keeps it
+                    // as written (ADR 0043) and evaluates it.
+                    ar.sym_text.insert(id, SymText::Spelled(spelled(toks)));
                     self.plan_from_expr(ar, id)
                 }
             })
@@ -312,4 +315,30 @@ pub(in crate::compile) fn not_a_boolean(display: &str, kind: ValueKind) -> Strin
     format!(
         "`${display}` is {what}, not true or false. To test it, write a comparison such as `{test}`"
     )
+}
+
+/// Math tokens spelled as text the engine parses: a cell leaf by its leaf
+/// name, `pi` by name, a call's parenthesis glued to its name.
+pub(in crate::compile) fn spelled(toks: &[Token]) -> String {
+    let mut text = String::new();
+    for (k, tok) in toks.iter().enumerate() {
+        let glued = matches!(tok, Token::LParen)
+            && matches!(k.checked_sub(1).map(|j| &toks[j]), Some(Token::Ident(_)));
+        if k > 0 && !glued {
+            text.push(' ');
+        }
+        match tok {
+            Token::Num(v) if *v == std::f64::consts::PI => text.push_str("pi"),
+            Token::Num(v) => text.push_str(&format!("{v}")),
+            Token::Ident(name) => text.push_str(name),
+            Token::Cell(r) => text.push_str(&crate::sym::engine::leaf_name(r.get(), false)),
+            Token::Op(c) => text.push(*c),
+            Token::LParen => text.push('('),
+            Token::RParen => text.push(')'),
+            Token::Comma => text.push(','),
+            Token::Eq => text.push('='),
+            Token::Open(c) | Token::Close(c) => text.push(*c),
+        }
+    }
+    text
 }

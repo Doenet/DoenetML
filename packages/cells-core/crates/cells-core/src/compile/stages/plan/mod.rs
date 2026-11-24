@@ -9,6 +9,7 @@ mod choice;
 mod condition;
 mod copies;
 mod ctx;
+mod display;
 mod fix;
 mod items;
 mod iterates;
@@ -181,6 +182,7 @@ impl<'a> Planning<'a> {
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
             self.plan_anchor(t, e)?;
+            self.plan_display(t, e)?;
             self.plan_links(t, e)?;
             let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
             self.tables[t.index()].plans[e.index()].hold = hold;

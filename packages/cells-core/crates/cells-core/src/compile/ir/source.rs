@@ -93,6 +93,12 @@ pub(crate) enum ScopeConst {
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
     Seed(RefId),
+    /// A box of a matrix input (ADR 0045): a given math value whose initial
+    /// expression is entry (row, column) of the matrix the first reference
+    /// names, the row and the column the positions of the two iterations
+    /// around it, or the second reference's value when the matrix has no
+    /// such entry: a seed, as [`ScopeConst::Seed`] is.
+    SeedEntry(RefId, RefId),
 }
 
 /// A dataflow expression over ports: an alias, an operator, a lowered math
@@ -256,6 +262,35 @@ impl Source {
     pub(crate) fn math(id: ExprId) -> Self {
         Source::Flow(Flow::Math(id))
     }
+}
+
+/// The name a diagnostic gives port `pi` of an element of `component_type`
+/// whose plan's ports are `props`: its table prop's; for a hidden port, the
+/// first table prop whose source reads it (a `<number>`'s `value` for the
+/// reference it evaluates); else `args`.
+pub(crate) fn port_name(
+    component_type: crate::components::ComponentType,
+    props: &[Source],
+    pi: usize,
+) -> &'static str {
+    let defs = component_type.prop_defs();
+    if let Some(d) = defs.get(pi) {
+        return d.name;
+    }
+    let reads = |source: &Source| match source {
+        Source::Flow(Flow::Alias(Arg::Own(p))) | Source::Flow(Flow::VecOut(p, _)) => {
+            p.index() == pi
+        }
+        Source::Flow(Flow::ValueOf(a, b)) => a.index() == pi || b.index() == pi,
+        Source::Flow(Flow::Op(_, args)) => args
+            .iter()
+            .any(|a| matches!(a, Arg::Own(p) if p.index() == pi)),
+        _ => false,
+    };
+    defs.iter()
+        .zip(props)
+        .find(|(_, source)| reads(source))
+        .map_or("args", |(d, _)| d.name)
 }
 
 /// What holds an element: when its cells refuse requests.

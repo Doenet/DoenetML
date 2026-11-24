@@ -7,6 +7,7 @@ mod answer;
 mod choice;
 mod copies;
 mod inner;
+mod over_values;
 mod repeat_items;
 
 use crate::compile::*;
@@ -40,6 +41,10 @@ struct Outlining<'a> {
     /// The `<repeat for>`s the walk found, whose items take the type of
     /// what `for` names once every name is in the table.
     repeat_items: Vec<(TemplateId, ElemId)>,
+    /// The lists that read as one reference, each a list over a math
+    /// value or not by what it names once every name is in the table (ADR
+    /// 0063).
+    over_values: Vec<(TemplateId, ElemId)>,
 }
 
 /// Outline `dast`, with what boxing records: what it settles, its rows of
@@ -79,6 +84,7 @@ impl<'a> Outlining<'a> {
             expanding: HashSet::new(),
             expanded: HashSet::new(),
             repeat_items: Vec::new(),
+            over_values: Vec::new(),
         }
     }
 
@@ -122,6 +128,7 @@ impl<'a> Outlining<'a> {
             self.expand_container_copies();
         }
         crate::trace::span("extends").run(|| self.plan_extends());
+        crate::trace::span("over values").run(|| self.settle_over_values());
         crate::trace::span("repeat items").run(|| self.settle_repeat_items());
         crate::trace::span("answer children").run(|| self.add_answer_children());
         crate::trace::span("inner inputs").run(|| self.add_inner_inputs());
@@ -283,6 +290,23 @@ impl<'a> Outlining<'a> {
             .expect("synthetic names are unique")
     }
 
+    /// The body of item `it` of template `t` when the item's type is a
+    /// repeat-like type with an item of its own (a matrix input's row, a
+    /// repeat over its columns; ADR 0045): a template whose one child is
+    /// that item, made the same way in turn.
+    fn add_item_body(&mut self, t: TemplateId, it: ElemId) {
+        let ty = self.outlined(t).elems[it.index()].component_type;
+        let Some(item) = ty.def().item else { return };
+        if !matches!(ty.structure_kind(), Some(StructureKind::Repeat { .. })) {
+            return;
+        }
+        let sub = self.push_template(Some((t, it)));
+        let x = self.add_synthetic(sub, item.ty, StrId::NONE);
+        self.outlined_mut(sub).children = vec![Child::Elem(x)];
+        self.outlined_mut(t).elems[it.index()].body = Body::Repeat { template: sub };
+        self.add_item_body(sub, x);
+    }
+
     /// Create an element (and, for a repeat, its template) from a DAST
     /// element. A boxed node becomes an `_error` element, and so does one
     /// that fails: each element boxes its own failure, so a failure under
@@ -373,6 +397,11 @@ impl<'a> Outlining<'a> {
         let name = self.rd().attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.work.to_plan.push((t, e));
+        // A list that reads as one reference is a list over a math value
+        // or not by what it names, once names resolve (ADR 0063).
+        if self.may_be_over_value(el, component_type) {
+            self.over_values.push((t, e));
+        }
         if self.is_container_copy(t, e) {
             self.container_copies.push((t, e));
             self.outlined_mut(t).elems[e.index()].clones_pending = true;
@@ -400,6 +429,7 @@ impl<'a> Outlining<'a> {
                 if declared.is_some() && !component_type.def().children.built() {
                     let it = self.add_synthetic(sub, value_type, StrId::NONE);
                     self.outlined_mut(sub).children = vec![Child::Elem(it)];
+                    self.add_item_body(sub, it);
                 } else {
                     if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
                         self.add_synthetic(sub, value_type, vn);

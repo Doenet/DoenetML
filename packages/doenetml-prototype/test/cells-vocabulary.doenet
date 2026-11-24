@@ -65,6 +65,7 @@
 <exercises />
 <division type="section" />
 <introduction>i</introduction>
+<page><p>On a page.</p></page>
 <conclusion>c</conclusion>
 <aside><title>A</title><p>z</p></aside>
 <hint><p>h</p></hint>
@@ -144,6 +145,12 @@
 
 <section>
     <title>Inputs</title>
+    <matrix name="m22"><row>1 2</row><row>3 4</row></matrix>
+    <cascade>
+        <section><p>Step one</p></section>
+        <section><p>Step two</p></section>
+        <cascadeMessage><p>Done.</p></cascadeMessage>
+    </cascade>
     <p>
         <numberInput><label>N</label></numberInput>
         <slider from="0" to="10"><label>S</label></slider>
@@ -151,6 +158,8 @@
         <mathInput><label>M</label></mathInput>
         <textInput><label>T</label></textInput>
         <fractionInput prefillNumerator="1"><label>F</label></fractionInput>
+        <matrixInput prefill="(1,2)" showSizeControls label="Grid" />
+        <matrixInput bindValueTo="$m22" label="Bound" />
         <choiceInput>
             <label>C</label>
             <choice>a</choice>
@@ -190,6 +199,8 @@
         <interval>(1, 2)</interval>
         <subsetOfReals>(1, 2) union [3, 4]</subsetOfReals>
         <intervalList>(1, 2) [3, 4)</intervalList>
+        <matrix><row>a b</row><row>c d</row></matrix>
+        <matrix><column>1 3</column><column>2 4</column></matrix>
     </p>
 </section>
 

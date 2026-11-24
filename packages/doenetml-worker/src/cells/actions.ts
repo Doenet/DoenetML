@@ -142,7 +142,7 @@ function switchFlag(prop: string): Resolver {
 }
 
 /** What follows other components and does not move, as in the current
- * core (a best-fit line, an intersection): a drag changes nothing. */
+ * core (a best-fit line): a drag changes nothing. */
 const fixed: Resolver = () => ({ kind: "none" });
 
 /** Keyed by component type, then action name. */
@@ -349,7 +349,6 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     // or a line does, and switch their flag on the current core's switch
     // actions, which the prototype's renderers do not send yet.
     bestFitLine: { moveLine: fixed },
-    intersection: { move: fixed },
     equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
     endpoint: { move: movePoint, switchPoint: switchFlag("open") },
     equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
@@ -367,6 +366,23 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     equilibriumCurve: { moveThroughPoint, switchCurve: switchFlag("stable") },
     // A fraction input's box (ADR 0045): typed into as a math input.
     _fractionInputComponent: {
+        updateValue: (t, c, args) =>
+            RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
+    },
+    // A matrix input's size controls (ADR 0045), as the current core's
+    // actions: a request on its size, which rebuilds the grid; and its
+    // boxes, typed into as math inputs.
+    matrixInput: {
+        updateNumRows: (t, c, { numRows }) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "numRows"), Number(numRows)]],
+        }),
+        updateNumColumns: (t, c, { numColumns }) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "numColumns"), Number(numColumns)]],
+        }),
+    },
+    _matrixComponentInput: {
         updateValue: (t, c, args) =>
             RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
     },
