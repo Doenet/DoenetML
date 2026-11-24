@@ -36,6 +36,23 @@ impl ItemCtx<'_> {
 
     /// Port `port` of the repeat's table, read from the iteration.
     pub(crate) fn owner(&mut self, port: Port) -> Port {
+        let p = self.owner_ref(port);
+        self.wiring.hidden(Source::reference(p))
+    }
+
+    /// A box of a grid (ADR 0045): a given math value whose first
+    /// expression is entry (the repeat's position, this iteration's
+    /// position) of the matrix the repeat's port `matrix` holds, else what
+    /// its port `fallback` holds ([`ScopeConst::SeedEntry`]).
+    pub(crate) fn seed_entry(&mut self, matrix: Port, fallback: Port) -> Source {
+        let m = self.owner_ref(matrix);
+        let f = self.owner_ref(fallback);
+        Source::Leaf(Leaf::Scope(ScopeConst::SeedEntry(m, f)))
+    }
+
+    /// A reference to port `port` of the repeat's table, from the
+    /// iteration.
+    fn owner_ref(&mut self, port: Port) -> RefId {
         let (_, e) = self.owner;
         let name = self.owner_ty.prop_defs()[port.index()].name;
         let prop = RefProp::named(self.owner_ty, name).expect("a table prop of the repeat");
@@ -47,8 +64,7 @@ impl ItemCtx<'_> {
             display: RefDisplay::Spelled(format!("(repeat).{name}").into()),
             node: NodeId::NONE,
         };
-        let p = self.ar.push_ref(plan);
-        self.wiring.hidden(Source::reference(p))
+        self.ar.push_ref(plan)
     }
 
     /// A hidden port of the item: `op` over its ports `args`, for a value
@@ -93,7 +109,15 @@ impl Planning<'_> {
                     let wires = wire(&mut ctx);
                     let mut wiring = ctx.wiring;
                     wiring.set_planned(wires);
-                    wiring.finish().0
+                    let props = wiring.finish().0;
+                    // An item that is a repeat-like type of its own (a
+                    // matrix input's row, ADR 0045) has its own item.
+                    if matches!(el.body, Body::Repeat { .. }) {
+                        self.tables[sub.index()].plans[i].props = props;
+                        self.plan_iteration_names(sub, ElemId::from_index(i));
+                        continue;
+                    }
+                    props
                 }
                 _ if ty.plays(Role::Index) => prop::number::Props {
                     value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
@@ -114,7 +138,8 @@ impl Planning<'_> {
     pub(super) fn has_item(&self, t: TemplateId, e: ElemId) -> bool {
         let el = self.rd.own_row(t, e);
         let def = el.component_type.def();
-        self.rd.attr_name_str(el.node, "valueName").is_some()
+        // A repeat outlining made (a matrix input's row) names nothing.
+        (el.node != NodeId::NONE && self.rd.attr_name_str(el.node, "valueName").is_some())
             || (def.item.is_some() && !def.children.built())
     }
 }

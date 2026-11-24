@@ -655,6 +655,29 @@ impl<'a> SourceReader<'a> {
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
                 let ek = self.outlined_elem(cur_t, e)?.component_type;
+                // `$A[i][j]`: entry (i, j) of the expression a matrix holds
+                // (ADR 0041, decisions 3 and 9), two steps that end the
+                // path.
+                if ek.def().flags.entries_in_value {
+                    let mut indices = d.part_indices(part);
+                    let (Some(row), Some(col), None) =
+                        (indices.next(), indices.next(), indices.next())
+                    else {
+                        return Err(Error::PathTooDeep(display.to_string()));
+                    };
+                    if prop.is_some() || i + 1 != parts.len() {
+                        return Err(Error::PathTooDeep(display.to_string()));
+                    }
+                    for expr in [row, col] {
+                        let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                        entries.push(EntryIndex { index, width: 0 });
+                    }
+                    // The expression its default prop stands for.
+                    prop = ek
+                        .box_expr()
+                        .map(|at| RefProp::of(ek, PropSel::At(PropAt::Position(at))));
+                    break;
+                }
                 // `$l[k]`: an entry of a value list (ADR 0041), whose
                 // count only the build knows.
                 if let Some(dsel @ PropSel::At(PropAt::List)) = ek.default_sel()

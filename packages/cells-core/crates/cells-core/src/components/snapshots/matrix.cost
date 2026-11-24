@@ -3,4 +3,7 @@ by columns: cells 13 · essential 0 · constant 13 · instrs 0 · components 11
 a size fills with the default entry and cuts: cells 13 · essential 0 · constant 13 · instrs 0 · components 10
 nothing given, and a size alone: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
 an entry that reads a value, and children that are one entry: cells 13 · essential 0 · constant 13 · instrs 0 · components 8
+a copy of its value, by a child or extend, reads its size from the value: cells 19 · essential 0 · constant 19 · instrs 0 · components 13
+an entry by row then column: cells 13 · essential 0 · constant 13 · instrs 0 · components 9
+an entry by cells, the missing value past the end: cells 17 · essential 0 · constant 17 · instrs 0 · components 12
 a size that follows a value is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3

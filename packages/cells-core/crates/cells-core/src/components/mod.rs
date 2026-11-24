@@ -293,6 +293,11 @@ component_types! {
     Matrix => values::matrix::DEFINITION,
     MatrixRow => values::matrix::row::DEFINITION,
     MatrixColumn => values::matrix::column::DEFINITION,
+    MatrixInput => inputs::matrix_input::DEFINITION,
+    BoundMatrixInput => inputs::matrix_input::bound::DEFINITION,
+    MatrixInputRow => inputs::matrix_input::row::DEFINITION,
+    BoundMatrixInputRow => inputs::matrix_input::bound_row::DEFINITION,
+    MatrixInputCell => inputs::matrix_input::cell::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -964,6 +969,13 @@ impl ComponentType {
         self.prop_defs().get(pi)?.expr
     }
 
+    /// The expression a box of a grid stands for (ADR 0045): the prop its
+    /// default prop stands for, or the default prop itself.
+    pub fn box_expr(self) -> Option<usize> {
+        let at = self.prop_index(self.default_prop()?)?;
+        Some(self.expr_of(at).map_or(at, |x| usize::from(x.at)))
+    }
+
     /// The prop that stands for the expression prop `pi` holds, if one
     /// does: a `<math>`'s `value` for its `expr`.
     pub fn value_of_expr(self, pi: usize) -> Option<usize> {
@@ -1233,6 +1245,14 @@ mod tests {
             .filter(|ty| matches!(ty.def().planner, crate::compile::api::Planner::Props))
             // What owns it, or machinery, plans it.
             .filter(|ty| !ty.def().flags.owned && ty.def().machinery.is_none())
+            // Nor a repeat-like type's item, which its declared function
+            // wires (ADR 0040), when nothing else makes one.
+            .filter(|&&ty| {
+                !(ty.def().flags.internal
+                    && ComponentType::ALL
+                        .iter()
+                        .any(|o| o.def().item.is_some_and(|i| i.ty == ty)))
+            })
             .flat_map(|ty| {
                 ty.prop_defs()
                     .iter()

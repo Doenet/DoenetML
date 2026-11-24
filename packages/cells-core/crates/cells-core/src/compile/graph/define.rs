@@ -32,6 +32,9 @@ pub(crate) struct Defined {
     /// the graph's components: what a refused load-time choice names
     /// (ADR 0037).
     pub(crate) written_by: FxMap<GraphNode, u32>,
+    /// Per symbolic template, whether it is a `<matrix>`'s, whose inverse
+    /// writes its entries (ADR 0060).
+    matrix_templates: Vec<bool>,
 }
 
 /// One cell as one of its definitions defines it, and what holds it.
@@ -40,6 +43,9 @@ struct CellDef<'a> {
     def: &'a Def,
     flags: &'a [GraphNode],
     held_always: bool,
+    /// The inputs a symbolic template's inverse may write: every one of a
+    /// `<matrix>`'s (ADR 0060), else none.
+    template_writes: u64,
 }
 
 impl<'a> CellDef<'a> {
@@ -54,7 +60,7 @@ impl<'a> CellDef<'a> {
     fn request_targets(&self) -> impl Iterator<Item = GraphNode> + 'a {
         let mask = match self.def {
             Def::Op(GraphOp::Spec(spec), _) => spec.writes(),
-            Def::Op(GraphOp::Template(_), _) => 0,
+            Def::Op(GraphOp::Template(_), _) => self.template_writes,
             _ => u64::MAX,
         };
         let reads = if self.held_always {
@@ -139,6 +145,11 @@ pub(crate) fn define(
         essential: Vec::new(),
         live: Vec::new(),
         written_by: FxMap::default(),
+        matrix_templates: g
+            .templates
+            .iter()
+            .map(|op| matches!(op.post, crate::program::Post::Matrix { .. }))
+            .collect(),
     };
     d.orient(g);
     d.prefill_rule(g, c)?;
@@ -175,6 +186,14 @@ impl Defined {
             def,
             flags: self.flags.get(&cell).map_or(&[], Vec::as_slice),
             held_always: self.held_always[cell.index()],
+            template_writes: match def {
+                Def::Op(GraphOp::Template(k), _)
+                    if self.matrix_templates.get(*k as usize) == Some(&true) =>
+                {
+                    u64::MAX
+                }
+                _ => 0,
+            },
         }
     }
 

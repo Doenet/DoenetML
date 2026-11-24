@@ -32,7 +32,8 @@ use super::*;
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 
-use crate::components::{AggOp, Collection, Numbering, Scored};
+use crate::components::{AggOp, Aggregate, Collection, Numbering, Scored};
+use crate::program::SymKind;
 
 /// Expand, aggregates: a collect's gathered children and count, credit and
 /// section numbers, materialized from the tree the build stamped.
@@ -63,6 +64,68 @@ impl<'c> Builder<'c> {
         }
         let mut seq = self.fresh_seq(root);
         self.number_sections(root, None, &mut seq);
+        self.grid_sources();
+    }
+
+    /// Materialize every matrix input's grid (ADR 0045): the matrix of
+    /// its boxes' expressions, the item of each item of its iterations, by
+    /// row, its size read from its own ports ([`SymKind::Grid`]).
+    fn grid_sources(&mut self) {
+        for c in CompIdx::below(self.components.len()) {
+            let i = self.comp_instance[c.index()];
+            if i.is_none() {
+                continue;
+            }
+            let inst = self.instances[i.index()];
+            let plans = self.compiled.plans;
+            let grids: Vec<(usize, u8, u8)> = plans.templates[inst.template.index()]
+                .plan(inst.elem)
+                .props
+                .iter()
+                .enumerate()
+                .filter_map(|(pi, p)| match p {
+                    Source::Flow(Flow::Aggregate(Aggregate {
+                        op: AggOp::Grid { rows, cols },
+                        ..
+                    })) => Some((pi, *rows, *cols)),
+                    _ => None,
+                })
+                .collect();
+            for (pi, rows, cols) in grids {
+                let mut inputs = vec![
+                    self.slot(c, usize::from(rows)),
+                    self.slot(c, usize::from(cols)),
+                ];
+                for row in self.child_comps(c) {
+                    for b in self.child_comps(row) {
+                        let ty = self.components.component_type[b.index()];
+                        if let Some(at) = ty.box_expr() {
+                            inputs.push(self.slot(b, at));
+                        }
+                    }
+                }
+                let s = self.slot(c, pi);
+                // More boxes than an instruction reads make no matrix.
+                let source = if inputs.len() > u8::MAX as usize {
+                    BuiltSource::Const(f64::NAN)
+                } else {
+                    self.op_source(OpSpec::Sym(SymKind::Grid), &inputs)
+                };
+                self.fill_aggregate(s, AggOp::Grid { rows, cols }, source);
+            }
+        }
+    }
+
+    /// The components among `c`'s children.
+    fn child_comps(&self, c: CompIdx) -> Vec<CompIdx> {
+        let (s, n) = (
+            self.components.child_start[c.index()] as usize,
+            self.components.child_count[c.index()] as usize,
+        );
+        self.components.child_list[s..s + n]
+            .iter()
+            .filter_map(|e| e.as_comp())
+            .collect()
     }
 
     /// The slots of `c`'s credit and its percentage: the props its type

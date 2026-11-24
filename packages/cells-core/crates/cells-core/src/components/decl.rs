@@ -957,6 +957,10 @@ pub struct Flags {
     /// center and radius, a polygon's vertices. `fixLocation` holds it as
     /// `fixed` does.
     pub located: bool,
+    /// `$x[i][j]` is entry (i, j) of the expression its default prop
+    /// stands for, row then column (a matrix's; ADR 0041, decisions 3 and
+    /// 9): a projection, which a write through writes back.
+    pub entries_in_value: bool,
 }
 
 /// Where a prop's value comes from: an attribute, the children, an operator
@@ -1028,6 +1032,10 @@ pub enum Collection {
     /// The picks of a load-time select, each an option's template stamped
     /// once; a reference's `Item` into them (`$s[k]`).
     Picks,
+    /// A matrix input's boxes (ADR 0045), by row: the item of each item of
+    /// its iterations, each standing for the expression its type's default
+    /// prop stands for.
+    Boxes,
 }
 
 /// An operator over a collection's ports.
@@ -1040,6 +1048,15 @@ pub enum AggOp {
     PercentCredit,
     /// How many items the collection holds.
     Count,
+    /// The matrix of the boxes' expressions (ADR 0045), `rows` by `cols`,
+    /// the element's own ports at those positions
+    /// ([`SymKind::Grid`](crate::program::SymKind::Grid)).
+    Grid {
+        /// The position of the port holding how many rows.
+        rows: u8,
+        /// The position of the port holding how many columns.
+        cols: u8,
+    },
 }
 
 /// A prop wired from a collection: `op` over the ports of `over`.

@@ -308,6 +308,7 @@ pub(super) const fn definition(
             owned: false,
             not_extendable: false,
             located: false,
+            entries_in_value: false,
         },
         renders: super::Renders::Always,
         sticky: None,
@@ -365,6 +366,10 @@ impl ComponentDef {
     }
     pub(super) const fn owned(mut self) -> Self {
         self.flags.owned = true;
+        self
+    }
+    pub(super) const fn entries_in_value(mut self) -> Self {
+        self.flags.entries_in_value = true;
         self
     }
     pub(super) const fn not_extendable(mut self) -> Self {

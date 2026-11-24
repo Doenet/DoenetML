@@ -124,6 +124,9 @@ impl IndexPlan {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct EntryIndex {
     pub(crate) index: IndexPlan,
+    /// How many cells an entry takes; 0 for an entry inside the
+    /// expression one cell holds (`$A[i][j]` on a matrix, two such steps:
+    /// the row, then the column; ADR 0041, decision 3).
     pub(crate) width: u8,
 }
 

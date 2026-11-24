@@ -236,10 +236,22 @@ impl<'s, 'a> Types<'s, 'a> {
                     }
                     PortType::Math
                 }
+                Leaf::Scope(ScopeConst::SeedEntry(p, q)) => {
+                    if check {
+                        self.one_cell(t, e, *p, ArityOf::Prop(pi))?;
+                        self.one_cell(t, e, *q, ArityOf::Prop(pi))?;
+                    }
+                    PortType::Math
+                }
             },
             Source::Flow(flow) => match flow {
                 // Credit, a number, a count; an operator's value, numeric
                 // or evaluated.
+                // A matrix input's grid of boxes, a matrix (ADR 0045).
+                Flow::Aggregate(crate::components::Aggregate {
+                    op: crate::components::AggOp::Grid { .. },
+                    ..
+                }) => PortType::Math,
                 Flow::Aggregate(_) | Flow::VecOut(..) | Flow::ValueOf(..) => PortType::Num,
                 // Lowered to operators, or NaN: a number either way.
                 Flow::Math(id) | Flow::MathValue(id) => {
@@ -508,6 +520,11 @@ impl<'s, 'a> Types<'s, 'a> {
         // the entries they may be, and no port of the table, since it may
         // be the missing value.
         for entry in entries {
+            // An entry inside the expression a cell holds: an expression.
+            if entry.width == 0 {
+                cells.types = vec![PortType::Math];
+                continue;
+            }
             let width = usize::from(entry.width);
             let n = cells.types.len() / width;
             cells.types = match entry.index.entry_in(n) {

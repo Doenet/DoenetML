@@ -267,6 +267,13 @@ impl<'c> Builder<'c> {
             }
             return kind;
         }
+        // A symbolic operator that makes an expression holds one (an entry
+        // of a matrix, `$A[i][j]`; ADR 0041, decision 3).
+        if let BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(k)), ..) = self.sources[slot.index()]
+            && k.makes_math()
+        {
+            return ValueType::Math;
+        }
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return ValueType::Number;

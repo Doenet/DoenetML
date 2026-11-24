@@ -1196,6 +1196,14 @@ impl<'c> Stamp<'c> {
                     self.g.seeds.push((from, target));
                     Def::Given(Some(f64::NAN))
                 }
+                // One stamped box stands for every entry: it reads both.
+                Leaf::Scope(ScopeConst::SeedEntry(p, q)) => {
+                    let matrix = self.one_cell(*p, t, e, pi).0;
+                    let fallback = self.one_cell(*q, t, e, pi).0;
+                    self.g.seeds.push((from, matrix));
+                    self.g.seeds.push((from, fallback));
+                    Def::Given(Some(f64::NAN))
+                }
             },
             Source::Flow(flow) => match flow {
                 Flow::Alias(arg) => Def::Alias(self.arg(t, e, pi, from, *arg)),

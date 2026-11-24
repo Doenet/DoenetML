@@ -93,6 +93,12 @@ pub(crate) enum ScopeConst {
     /// reference names when the cell is first built (a mathInput's
     /// `prefill="$n"`): a seed, not a binding.
     Seed(RefId),
+    /// A box of a matrix input (ADR 0045): a given math value whose initial
+    /// expression is entry (row, column) of the matrix the first reference
+    /// names, the row and the column the positions of the two iterations
+    /// around it, or the second reference's value when the matrix has no
+    /// such entry: a seed, as [`ScopeConst::Seed`] is.
+    SeedEntry(RefId, RefId),
 }
 
 /// A dataflow expression over ports: an alias, an operator, a lowered math

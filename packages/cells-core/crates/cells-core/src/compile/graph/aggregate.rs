@@ -16,8 +16,9 @@
 //! (ADR 0028), listed as such.
 
 use super::*;
-use crate::components::{AggOp, Collection, Numbering, Scored};
+use crate::components::{AggOp, Aggregate, Collection, Numbering, Scored};
 use crate::limits::SCORE_CHUNK as CHUNK;
+use crate::program::SymKind;
 
 /// Sections counted so far among one component's flattened children: a
 /// constant count of those outside any case, plus a node summing the gates
@@ -105,6 +106,62 @@ impl<'c> Stamp<'c> {
         }
         let mut seq = self.fresh_seq(root);
         self.numbers(root, None, &mut seq);
+        self.grids();
+    }
+
+    /// Every matrix input's grid (ADR 0045), as a build makes it: the
+    /// matrix of its boxes' expressions over its size, the one box the
+    /// graph stamps standing for every box, a counted value.
+    fn grids(&mut self) {
+        for i in 0..self.instances.len() {
+            let (t, e) = self.instances[i];
+            let c = Comp::Elem(t, e);
+            let grids: Vec<(usize, u8, u8)> = self.c.plans.templates[t.index()]
+                .plan(e)
+                .props
+                .iter()
+                .enumerate()
+                .filter_map(|(pi, p)| match p {
+                    Source::Flow(Flow::Aggregate(Aggregate {
+                        op: AggOp::Grid { rows, cols },
+                        ..
+                    })) => Some((pi, *rows, *cols)),
+                    _ => None,
+                })
+                .collect();
+            for (pi, rows, cols) in grids {
+                let mut inputs = vec![
+                    self.slot(c, usize::from(rows)),
+                    self.slot(c, usize::from(cols)),
+                ];
+                if let Some(b) = self.grid_box(t, e) {
+                    let ty = self.component_type(b);
+                    if let Some(at) = ty.box_expr() {
+                        inputs.push(self.slot(b, at));
+                    }
+                }
+                let s = self.slot(c, pi);
+                self.g.counted.push(s);
+                self.set(
+                    s,
+                    Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Grid)), inputs),
+                );
+            }
+        }
+    }
+
+    /// The box of repeat `e` of template `t` whose item repeats in turn:
+    /// the item of its item.
+    fn grid_box(&self, t: TemplateId, e: ElemId) -> Option<Comp> {
+        let Body::Repeat { template: rows } = self.c.plans.templates[t.index()].row(e).body else {
+            return None;
+        };
+        let row = ElemId::from_index(0);
+        let Body::Repeat { template: cols } = self.c.plans.templates[rows.index()].row(row).body
+        else {
+            return None;
+        };
+        Some(Comp::Elem(cols, ElemId::from_index(0)))
     }
 
     /// Whether section `c` aggregates scores: its `aggregateScores` is a

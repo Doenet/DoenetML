@@ -486,6 +486,24 @@ const CONSTRUCTS: &[(&str, &str)] = &[
           <shuffle name="q">$A $B</shuffle>
         </repeatForSequence>"#,
     ),
+    (
+        // A matrix input's grid (ADR 0045): rows of boxes, each a repeat
+        // whose count a cell sets, and the matrix they make. (One per
+        // document: a fresh session per pass numbers the scopes afresh, so
+        // each grid takes passes of its own to settle.)
+        "matrix-inputs",
+        r#"<numberInput name="k" value="2"/>
+        <matrixInput name="mi" numRows="$k" numColumns="2" prefill="(a,b)^T"/>
+        <math name="s">$mi + 1</math>"#,
+    ),
+    (
+        // A matrix input bound to a value: its size and its boxes read
+        // from it.
+        "bound-matrix-inputs",
+        r#"<mathInput name="m" prefill="(a,b)"/>
+        <matrixInput name="mb" bindValueTo="$m"/>
+        <math name="s">2$mb</math>"#,
+    ),
 ];
 
 #[test]

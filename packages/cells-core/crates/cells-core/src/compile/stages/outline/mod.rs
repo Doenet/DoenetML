@@ -283,6 +283,23 @@ impl<'a> Outlining<'a> {
             .expect("synthetic names are unique")
     }
 
+    /// The body of item `it` of template `t` when the item's type is a
+    /// repeat-like type with an item of its own (a matrix input's row, a
+    /// repeat over its columns; ADR 0045): a template whose one child is
+    /// that item, made the same way in turn.
+    fn add_item_body(&mut self, t: TemplateId, it: ElemId) {
+        let ty = self.outlined(t).elems[it.index()].component_type;
+        let Some(item) = ty.def().item else { return };
+        if !matches!(ty.structure_kind(), Some(StructureKind::Repeat { .. })) {
+            return;
+        }
+        let sub = self.push_template(Some((t, it)));
+        let x = self.add_synthetic(sub, item.ty, StrId::NONE);
+        self.outlined_mut(sub).children = vec![Child::Elem(x)];
+        self.outlined_mut(t).elems[it.index()].body = Body::Repeat { template: sub };
+        self.add_item_body(sub, x);
+    }
+
     /// Create an element (and, for a repeat, its template) from a DAST
     /// element. A boxed node becomes an `_error` element, and so does one
     /// that fails: each element boxes its own failure, so a failure under
@@ -400,6 +417,7 @@ impl<'a> Outlining<'a> {
                 if declared.is_some() && !component_type.def().children.built() {
                     let it = self.add_synthetic(sub, value_type, StrId::NONE);
                     self.outlined_mut(sub).children = vec![Child::Elem(it)];
+                    self.add_item_body(sub, it);
                 } else {
                     if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
                         self.add_synthetic(sub, value_type, vn);

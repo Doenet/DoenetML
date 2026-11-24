@@ -5,7 +5,7 @@
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::program::Post;
+use crate::program::{Post, SymKind};
 
 component! {
     /// `<matrix>`: a math cell holding a matrix, of its `<row>`s (each a
@@ -17,9 +17,10 @@ component! {
     /// expression it names. `numRows`, `numColumns` and `matrixSize` are
     /// its size.
     tags: ["matrix"],
-    flags: [copyable],
+    flags: [copyable, entries_in_value],
     text: Math(expr, value),
     child_types { row: MatrixRow, column: MatrixColumn }
+    extend_value: Expr(extended),
     default_prop: value,
     props {
         expr: by_planner { rendered, expr_of: expr },
@@ -174,13 +175,7 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         && let [ListPiece::Reference(p) | ListPiece::Element(p)] = others[..]
     {
         let id = entry_expr(ctx, &ListEntry::Ref(p))?;
-        wiring.set_planned(Planned {
-            expr: Source::Flow(Flow::MathHandle(id, post_of(attrs.simplify))).into(),
-            value: Source::value_of(Props::PORTS.expr, Props::PORTS.expr).into(),
-            numRows: Wire::absent(),
-            numColumns: Wire::absent(),
-        });
-        return Ok(wiring);
+        return Ok(wiring_of(id, post_of(attrs.simplify)));
     }
     // Its rows, by row: of its rows, its columns turned, or its children
     // as one entry.
@@ -238,6 +233,28 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         numColumns: Wire::constant(n_cols as f64),
     });
     Ok(wiring)
+}
+
+/// A matrix holding the expression `id` as it is, `post` applied: its
+/// size read from the value (`SymKind::MatrixSize`), as a matrix input
+/// reads one.
+fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
+    let at = Props::PORTS;
+    let size = |cols| Wire::computed(OpSpec::Sym(SymKind::MatrixSize { cols }), vec![at.expr]);
+    let mut wiring = ElemWiring::of(crate::components::ComponentType::Matrix);
+    wiring.set_planned(Planned {
+        expr: Source::Flow(Flow::MathHandle(id, post)).into(),
+        value: Source::value_of(at.expr, at.expr).into(),
+        numRows: size(false),
+        numColumns: size(true),
+    });
+    wiring
+}
+
+/// A matrix that `extend="$x.prop"` makes of the value: the expression it
+/// names, a leaf of it, unsimplified.
+fn extended(id: ExprId) -> Vec<Source> {
+    wiring_of(id, Post::None).finish().0
 }
 
 /// A matrix's post for an expression it holds as it is.

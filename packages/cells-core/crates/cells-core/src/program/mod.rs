@@ -602,6 +602,33 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => f64::NAN,
             }
         }
+        SymKind::Grid => {
+            let size = |x: f64| {
+                if x.is_finite() && x >= 0.0 {
+                    x as u32
+                } else {
+                    0
+                }
+            };
+            let entries: Vec<f64> = inputs[2..].iter().map(|c| cells[c.index()]).collect();
+            out[0] = engine.grid(size(v(0)), size(v(1)), &entries).to_value();
+        }
+        SymKind::MatrixSize { cols } => {
+            let (r, c) = handle(v(0)).map_or((1, 1), |h| engine.matrix_size(h));
+            out[0] = f64::from(if cols { c } else { r });
+        }
+        SymKind::MatrixEntry => {
+            out[0] = match handle(v(0)) {
+                Some(h)
+                    if v(1) >= 1.0 && v(2) >= 1.0 && v(1).fract() == 0.0 && v(2).fract() == 0.0 =>
+                {
+                    engine
+                        .matrix_entry(h, v(1) as u32, v(2) as u32)
+                        .map_or(f64::NAN, Handle::to_value)
+                }
+                _ => f64::NAN,
+            }
+        }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
         SymKind::Join { .. } | SymKind::Order { .. } => unreachable!("text runs in step_sym"),
         SymKind::SampleQuadratic => {

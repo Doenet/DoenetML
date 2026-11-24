@@ -363,11 +363,41 @@ impl<'c> Stamp<'c> {
             return self.targets_of(at, prop, label, t, expected);
         }
         let (mut nodes, mut label) = self.targets_of(at, prop, label, t, None);
-        for entry in entries {
-            (nodes, label) = self.entry_of(&nodes, entry, label, t);
+        let mut it = entries.iter();
+        while let Some(entry) = it.next() {
+            (nodes, label) = match (entry.width, &nodes[..]) {
+                // `$A[i][j]` (ADR 0041, decision 3), as a build takes it.
+                (0, &[Some(held)]) => {
+                    let col = it.next().expect("a row index is followed by a column's");
+                    let (i, i_label) = self.index_node(&entry.index, t);
+                    let (j, j_label) = self.index_node(&col.index, t);
+                    let s = self.op(t, OpSpec::Sym(SymKind::MatrixEntry), vec![held, i, j]);
+                    self.g.typed.push((s, PortType::Math.value_type()));
+                    self.label(s, held, &label);
+                    self.label(s, i, &i_label);
+                    self.label(s, j, &j_label);
+                    (vec![Some(s)], Label::new())
+                }
+                (0, _) => {
+                    it.next();
+                    (vec![None], label)
+                }
+                _ => self.entry_of(&nodes, entry, label, t),
+            };
             self.walking = p;
         }
         (nodes, label)
+    }
+
+    /// The node holding index `ip`, and the label of a read of it: the
+    /// cell it names, or its value.
+    fn index_node(&mut self, ip: &IndexPlan, t: TemplateId) -> (GraphNode, Label) {
+        if let [IndexTerm::Cell(cell)] = ip.terms[..] {
+            let (index, label) = self.resolve_one(cell, t);
+            return (self.or_missing(index), label);
+        }
+        let k = self.index_value(ip, t);
+        (self.constant(k as f64), Label::new())
     }
 
     /// Entry `entry.index` of `nodes` taken `entry.width` at a time, read

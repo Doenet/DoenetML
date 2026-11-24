@@ -152,6 +152,24 @@ pub enum SymKind {
         /// How they compare.
         opts: crate::sym::CompareOpts,
     },
+    // A matrix input's grid (ADR 0045, ADR 0041 decision 8).
+    /// The matrix of input 0 rows by input 1 columns whose entries, by
+    /// row, are inputs 2.. (a math cell each, NaN the blank): a matrix
+    /// input's value, made by the build over the boxes it stamped. The
+    /// blank expression when they do not fill it.
+    Grid,
+    /// How many rows (or, with `cols`, columns) input 0 has, read as a
+    /// matrix input reads a value: a matrix's, a tuple's or vector's as a
+    /// column, a transposed one's as a row, else 1 by 1. Its inverse
+    /// writes input 0 resized ([`Engine::resize_matrix`](crate::sym::Engine::resize_matrix)).
+    MatrixSize {
+        /// Columns rather than rows.
+        cols: bool,
+    },
+    /// Entry (input 1, input 2), from 1, of input 0 read as `MatrixSize`
+    /// reads it; NaN past its size. Its inverse writes input 0 with the
+    /// entry replaced.
+    MatrixEntry,
 }
 
 /// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
@@ -344,6 +362,12 @@ impl SymKind {
                 part: crate::sym::SubsetPart::Value,
                 ..
             } => 1,
+            SymKind::MatrixSize { .. } | SymKind::MatrixEntry => 1,
+            // A `<matrix>` of its entries writes each (ADR 0060).
+            SymKind::Instantiate {
+                post: Post::Matrix { .. },
+                ..
+            } => u64::MAX,
             _ => 0,
         }
     }
@@ -385,6 +409,8 @@ impl SymKind {
                 | SymKind::WrapFunctionPeriodic
                 | SymKind::DerivativeBy
                 | SymKind::Subset { .. }
+                | SymKind::Grid
+                | SymKind::MatrixEntry
         )
     }
 }
@@ -512,6 +538,9 @@ impl OpSpec {
             OpSpec::Sym(
                 SymKind::DerivativeBy | SymKind::Subset { .. } | SymKind::Compare { .. },
             ) => 2,
+            OpSpec::Sym(SymKind::Grid) => usize::MAX,
+            OpSpec::Sym(SymKind::MatrixSize { .. }) => 1,
+            OpSpec::Sym(SymKind::MatrixEntry) => 3,
             _ => unreachable!(),
         }
     }
@@ -535,6 +564,8 @@ impl OpSpec {
             OpSpec::Sym(SymKind::SampleBezier { .. }) => {
                 n > 1 && (n - 1).is_multiple_of(BEZIER_POINT_CELLS)
             }
+            // Its size, then any number of entries.
+            OpSpec::Sym(SymKind::Grid) => n >= 2,
             _ => self.arity() == n,
         }
     }
@@ -695,6 +726,9 @@ mod arity {
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
+            OpSpec::Sym(SymKind::Grid),
+            OpSpec::Sym(SymKind::MatrixSize { cols: true }),
+            OpSpec::Sym(SymKind::MatrixEntry),
         ]);
         ops
     }
@@ -762,12 +796,16 @@ mod arity {
                     SymKind::Order { .. } => 20,
                     SymKind::Subset { .. } => 21,
                     SymKind::Compare { .. } => 22,
+                    // After the vector operators 51 to 53.
+                    SymKind::Grid => 26,
+                    SymKind::MatrixSize { .. } => 27,
+                    SymKind::MatrixEntry => 28,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 54;
+    const N_TAGS: usize = 57;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

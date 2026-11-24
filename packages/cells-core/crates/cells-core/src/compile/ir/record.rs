@@ -416,6 +416,10 @@ fn rebase_source(s: &mut Source, rw: &mut Rebaser<'_, '_>) {
             Flow::Math(id) | Flow::MathHandle(id, _) | Flow::MathValue(id) | Flow::SymExpr(id, _),
         ) => rw.expr(id),
         Source::Leaf(Leaf::Scope(ScopeConst::Seed(p))) => rw.reference(p),
+        Source::Leaf(Leaf::Scope(ScopeConst::SeedEntry(p, q))) => {
+            rw.reference(p);
+            rw.reference(q);
+        }
         _ => {}
     }
 }
