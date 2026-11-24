@@ -660,6 +660,9 @@ export function checkBooleanNumberMixAtLoad({
         sourceDoc: number | undefined;
         inAttribute: boolean;
     }) {
+        if (quiet > 0) {
+            return;
+        }
         diagnostics.push(
             codedDiagnostic({
                 type: "warning",
@@ -1169,6 +1172,14 @@ export function checkBooleanNumberMixAtLoad({
     }
 
     /**
+     * Inside content of an `<answer>` reported as of another type than its
+     * input (`doenet-w0205`, `answerTypesAtLoad.ts`), whose advice ("write it
+     * as a boolean") resolves a mix too: a mix there is blanked, but not
+     * reported again (D67 decision 3, DIAG-3).
+     */
+    let quiet = 0;
+
+    /**
      * Check the children of `component`, and then everything in it. `owner`
      * and `attributeName` are the component and attribute it is the
      * attribute component of, if it is one, `parentPosition` where its
@@ -1176,6 +1187,34 @@ export function checkBooleanNumberMixAtLoad({
      * attribute (an attribute component, or what it holds).
      */
     function visit(
+        component: SerializedComponent,
+        owner?: SerializedComponent,
+        attributeName?: string,
+        parentPosition?: SerializedComponent["position"],
+        inAttribute = false,
+    ) {
+        const quieted = Boolean(
+            component.doenetAttributes?.typeMixReportedAtLoad,
+        );
+        if (quieted) {
+            quiet++;
+        }
+        try {
+            visitWithin(
+                component,
+                owner,
+                attributeName,
+                parentPosition,
+                inAttribute,
+            );
+        } finally {
+            if (quieted) {
+                quiet--;
+            }
+        }
+    }
+
+    function visitWithin(
         component: SerializedComponent,
         owner?: SerializedComponent,
         attributeName?: string,

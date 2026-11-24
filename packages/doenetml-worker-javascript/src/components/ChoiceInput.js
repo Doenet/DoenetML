@@ -1655,9 +1655,18 @@ export default class Choiceinput extends Input {
     }) {
         if (!(await this.stateValues.disabled)) {
             let choicesDisabled = await this.stateValues.choicesDisabled;
+            let choiceTexts = await this.stateValues.choiceTexts;
+            let numChoices = await this.stateValues.numChoices;
 
+            // Only an index of a choice the input has is selected: an index
+            // past its choices, or with no choices at all, names nothing
+            // (#2097).
             let effectiveSelectedIndices = selectedIndices.filter(
-                (v) => !choicesDisabled[v - 1],
+                (v) =>
+                    Number.isInteger(v) &&
+                    v >= 1 &&
+                    v <= numChoices &&
+                    !choicesDisabled[v - 1],
             );
 
             let updateInstructions = [
@@ -1669,7 +1678,6 @@ export default class Choiceinput extends Input {
                 },
             ];
 
-            let choiceTexts = await this.stateValues.choiceTexts;
             let event = await buildInputResponseEvent({
                 component: this,
                 verb: "selected",

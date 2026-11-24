@@ -300,22 +300,14 @@ export function returnStandardAnswerAttributes() {
             // The default is English here only so that authors see the words
             // in the schema; `returnSubmitLabelStateVariableDefinitions`
             // ignores this value when the attribute is unspecified and takes
-            // the label from the document's own language instead. An authored
-            // value is never translated — see the note there.
+            // the label from the document's own language instead, "Check
+            // Work" when correctness is shown and "Submit Response" when it
+            // isn't. An authored value is used in both cases, and never
+            // translated (D66 decision 15) — see the note there.
             defaultValue: "Check Work",
             groupName: "answer-grading",
             description:
-                "Label for the submit button when correctness is shown.",
-        },
-
-        submitLabelNoCorrectness: {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectnessPreLocalize",
-            // See the note on `submitLabel`.
-            defaultValue: "Submit Response",
-            groupName: "answer-grading",
-            description:
-                "Label for the submit button when correctness is not shown.",
+                "Label for the submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
         },
 
         displayDigitsForResponses: {
@@ -341,19 +333,21 @@ export function returnStandardAnswerAttributes() {
 }
 
 /**
- * `submitLabel` and `submitLabelNoCorrectness`, with their defaults in the
- * document's language.
+ * `submitLabel`, with its default in the document's language: "Check Work"
+ * when correctness is shown, "Submit Response" when it isn't. One label
+ * (D66 decision 15, #349): an authored `submitLabel` is used whether or not
+ * correctness is shown. (`submitLabelNoCorrectness` is retired; the parser
+ * renames it to `submitLabel` with a deprecation warning.)
  *
- * Only the *default* is translated; see
- * `returnLocalizedDefaultStateVariableDefinition`, which every
- * author-overridable label in the worker resolves through.
+ * Only the *default* is translated, as for every author-overridable label in
+ * the worker (`returnLocalizedDefaultStateVariableDefinition`).
  *
  * Shared by `<answer>` and by every container with a section-wide check-work
- * button, which declare the same two attributes from different tables
+ * button, which declare the same attribute from different tables
  * (`returnStandardAnswerAttributes` and `returnScoredSectionAttributes`) but
- * resolve them identically.
+ * resolve it identically. Each has a `showCorrectness` state variable.
  *
- * @param button How the schema should name the button these label — a section
+ * @param button How the schema should name the button this labels — a section
  *   labels a section-wide one, an `<answer>` its own.
  * @param ownLocale Read the component's *own* `locale` as well as the
  *   enclosing document's. Only `<document>` has one; see
@@ -363,23 +357,22 @@ export function returnSubmitLabelStateVariableDefinitions({
     ownLocale = false,
     button = "the submit button",
 } = {}) {
-    return {
-        submitLabel: returnLocalizedDefaultStateVariableDefinition({
-            name: "submitLabel",
-            translatedDefault: (t) => t("answer-submit-label"),
-            description: `Label for ${button} when correctness is shown.`,
-            ownLocale,
-        }),
-        submitLabelNoCorrectness: returnLocalizedDefaultStateVariableDefinition(
-            {
-                name: "submitLabelNoCorrectness",
-                translatedDefault: (t) =>
-                    t("answer-submit-label-no-correctness"),
-                description: `Label for ${button} when correctness is not shown.`,
-                ownLocale,
+    const definition = returnLocalizedDefaultStateVariableDefinition({
+        name: "submitLabel",
+        translatedDefault: (t, dependencyValues) =>
+            dependencyValues.showCorrectness === false
+                ? t("answer-submit-label-no-correctness")
+                : t("answer-submit-label"),
+        description: `Label for ${button}: “Check Work” by default when correctness is shown, “Submit Response” when it is not.`,
+        ownLocale,
+        additionalDependencies: {
+            showCorrectness: {
+                dependencyType: "stateVariable",
+                variableName: "showCorrectness",
             },
-        ),
-    };
+        },
+    });
+    return { submitLabel: definition };
 }
 
 // Note: depends on `creditAchievedIfSubmit` state variable

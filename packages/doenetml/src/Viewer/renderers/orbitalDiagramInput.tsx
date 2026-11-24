@@ -6,6 +6,8 @@ import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useT } from "../../utils/i18n";
 import { ltrIslandProps } from "./utils/direction";
+import { useRenderedLabel } from "./utils/inputLabel";
+import { renderLabelWithLatex } from "./utils/labelWithLatex";
 
 const ORBITAL_ARROW_STYLE: React.CSSProperties = {
     fill: "none",
@@ -25,13 +27,16 @@ interface OrbitalDiagramInputSVs {
     rows: OrbitalRowData[];
     selectedRowIndex: number;
     selectedBoxIndex: number;
+    label?: string;
+    labelHasLatex?: boolean;
 }
 
 export default React.memo(function orbitalDiagramInput(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } =
+    let { id, SVs, actions, callAction, children } =
         useDoenetRenderer<OrbitalDiagramInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -253,12 +258,46 @@ export default React.memo(function orbitalDiagramInput(
         // sits to the left of its boxes and the boxes fill left to right in
         // every language, and the rows are plain inline flow that would
         // otherwise reverse wholesale under `rtl`.
-        <div ref={ref} id={id} {...ltrIslandProps()}>
-            {controls}
-            {rowsJSX}
-        </div>
+        <>
+            {labelElement(id, SVs, renderedLabel)}
+            <div
+                ref={ref}
+                id={id}
+                {...(SVs.label
+                    ? { role: "group", "aria-labelledby": `${id}-label` }
+                    : {})}
+                {...ltrIslandProps()}
+            >
+                {controls}
+                {rowsJSX}
+            </div>
+        </>
     );
 });
+
+/**
+ * The input's label (CTX-11, #1279), shown above it, outside the
+ * left-to-right island: a label is prose and follows the document's
+ * direction. The widget is a group named by it.
+ */
+function labelElement(
+    id: string,
+    SVs: { label?: string; labelHasLatex?: boolean },
+    renderedLabel: React.ReactNode,
+) {
+    if (!SVs.label) {
+        return null;
+    }
+    return (
+        <div id={`${id}-label`}>
+            {renderedLabel ??
+                renderLabelWithLatex({
+                    label: SVs.label,
+                    labelHasLatex: Boolean(SVs.labelHasLatex),
+                })}
+        </div>
+    );
+}
 
 const OrbitalRow = React.memo(function OrbitalRow({
     rowNumber,

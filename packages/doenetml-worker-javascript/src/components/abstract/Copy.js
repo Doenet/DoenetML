@@ -10549,6 +10549,7 @@ export function addChildrenFromComposite({
             componentInfoObjects,
             nComponents,
             stateIdInfo,
+            childrenFromSource: repl.children,
         });
         nComponents = sugarResult.nComponents;
         diagnostics?.push(...sugarResult.diagnostics);

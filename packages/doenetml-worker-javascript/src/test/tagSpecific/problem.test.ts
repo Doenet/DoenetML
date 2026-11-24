@@ -1213,6 +1213,8 @@ describe("Problem tag tests @group2", async () => {
     });
 
     it("section wide checkWork, submit label", async () => {
+        // One `submitLabel`, whose default depends on `showCorrectness` (D66
+        // decision 15); `submitLabelNoCorrectness` is read as `submitLabel`.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
       <problem sectionWideCheckWork name="prob1">
@@ -1227,42 +1229,21 @@ describe("Problem tag tests @group2", async () => {
       <problem sectionWideCheckWork name="prob4" submitLabel="Hit it!" submitLabelNoCorrectness="Guess">
         <answer name="ans4">x</answer>
       </problem>
+      <problem sectionWideCheckWork name="prob5" showCorrectness="false">
+        <answer name="ans5">x</answer>
+      </problem>
     `,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob1")].stateValues
-                .submitLabel,
-        ).eq("Check Work");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob1")].stateValues
-                .submitLabelNoCorrectness,
-        ).eq("Submit Response");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob2")].stateValues
-                .submitLabel,
-        ).eq("Hit it!");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob2")].stateValues
-                .submitLabelNoCorrectness,
-        ).eq("Submit Response");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob3")].stateValues
-                .submitLabel,
-        ).eq("Check Work");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob3")].stateValues
-                .submitLabelNoCorrectness,
-        ).eq("Guess");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob4")].stateValues
-                .submitLabel,
-        ).eq("Hit it!");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("prob4")].stateValues
-                .submitLabelNoCorrectness,
-        ).eq("Guess");
+        const label = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .submitLabel;
+        expect(await label("prob1")).eq("Check Work");
+        expect(await label("prob2")).eq("Hit it!");
+        expect(await label("prob3")).eq("Guess");
+        expect(await label("prob4")).eq("Hit it!");
+        expect(await label("prob5")).eq("Submit Response");
     });
 
     it("document wide checkWork, submit label", async () => {
@@ -1279,9 +1260,5 @@ describe("Problem tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("doc")].stateValues
                 .submitLabel,
         ).eq("Hit it!");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("doc")].stateValues
-                .submitLabelNoCorrectness,
-        ).eq("Guess");
     });
 });

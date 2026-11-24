@@ -1482,10 +1482,11 @@ describe("Answer tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid type for answer: bad",
         );
+        // at the `type` attribute (D67 decision 5)
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(6);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(14);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(95);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(24);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         let mathInputIdx =
@@ -8962,7 +8963,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq("enterZ label: enter z");
     });
 
-    it("answer label is not applied to explicit input", async () => {
+    it("answer label is applied to its one explicit input (D66 decision 2)", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <answer name="ans1">
@@ -9001,13 +9002,18 @@ What is the derivative of <function name="f">x^2</function>?
         const mathInput2Idx = await resolvePathToNodeIdx("mi2");
         const mathInput3Idx = await resolvePathToNodeIdx("mi3");
 
-        expect(stateVariables[mathInput1Idx].stateValues.label).eq("");
+        // A `<label>` of the answer labels its one input written out, which
+        // has no label of its own (#1674). A label from `labelIsName` is
+        // not a `<label>`, so it doesn't.
+        expect(stateVariables[mathInput1Idx].stateValues.label).eq("Enter x:");
         expect(stateVariables[mathInput1Idx].stateValues.labelHasLatex).eq(
             false,
         );
-        expect(stateVariables[mathInput2Idx].stateValues.label).eq("");
+        expect(stateVariables[mathInput2Idx].stateValues.label).eq(
+            "Enter \\(y\\):",
+        );
         expect(stateVariables[mathInput2Idx].stateValues.labelHasLatex).eq(
-            false,
+            true,
         );
         expect(stateVariables[mathInput3Idx].stateValues.label).eq("");
         expect(stateVariables[mathInput3Idx].stateValues.labelHasLatex).eq(
