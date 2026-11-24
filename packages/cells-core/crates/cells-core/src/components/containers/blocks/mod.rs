@@ -49,6 +49,10 @@ mod caption_spec;
 mod footnote_spec;
 
 #[cfg(all(test, feature = "testing"))]
+#[path = "page.spec.rs"]
+mod page_spec;
+
+#[cfg(all(test, feature = "testing"))]
 #[path = "postpone_render_container.spec.rs"]
 mod postpone_render_container_spec;
 
