@@ -2569,16 +2569,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -2669,13 +2662,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -3138,16 +3125,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -3238,13 +3218,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -3707,16 +3681,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -3807,13 +3774,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -4482,16 +4443,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -4582,13 +4536,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -47297,16 +47245,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -47604,13 +47545,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -48115,16 +48050,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -48422,13 +48350,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -48933,16 +48855,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -49240,13 +49155,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -49751,16 +49660,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -50058,13 +49960,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -50569,16 +50465,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -50885,13 +50774,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -51396,16 +51279,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -51703,13 +51579,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -52214,16 +52084,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -52530,13 +52393,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -53041,16 +52898,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -53357,13 +53207,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -53868,16 +53712,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -54184,13 +54021,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -54695,16 +54526,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -55011,13 +54835,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -55522,16 +55340,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -55829,13 +55640,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -56340,16 +56145,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -56647,13 +56445,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -57158,16 +56950,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -57465,13 +57250,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -57976,16 +57755,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -58283,13 +58055,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -58794,16 +58560,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -59101,13 +58860,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -59612,16 +59365,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -59919,13 +59665,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -60430,16 +60170,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -60734,13 +60467,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -61245,16 +60972,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -61557,13 +61277,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -62068,16 +61782,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -62380,13 +62087,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -62683,16 +62384,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -62783,13 +62477,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -63046,16 +62734,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -63146,13 +62827,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -63614,16 +63289,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -63714,13 +63382,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -69431,8 +69093,22 @@
         },
         {
             "name": "orbitalDiagramInput",
-            "children": [],
-            "childBuckets": "",
+            "children": [
+                "xLabel",
+                "yLabel",
+                "collect",
+                "repeat",
+                "repeatForSequence",
+                "conditionalContent",
+                "select",
+                "group",
+                "module",
+                "setup",
+                "sort",
+                "shuffle",
+                "label"
+            ],
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -69515,6 +69191,17 @@
                     "type": "reference"
                 },
                 {
+                    "name": "labelIsName",
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "groupName": "labels",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "prefill",
                     "description": "An orbital diagram used to prefill the input before the student begins.",
                     "defaultValue": [],
@@ -69550,6 +69237,14 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true,
+                    "groupName": "labels"
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -69578,6 +69273,13 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component.",
+                    "groupName": "labels"
                 },
                 {
                     "name": "value",
@@ -71821,16 +71523,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -71921,13 +71616,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -72390,16 +72079,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -72490,13 +72172,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -76184,16 +75860,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -77665,13 +77334,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -78857,16 +78520,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
+                    "description": "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "scoring",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -78957,13 +78613,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -94516,16 +94166,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the submit button when correctness is shown.",
+                    "description": "Label for the submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "answer-grading",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the submit button when correctness is not shown.",
-                    "groupName": "answer-grading",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -95153,13 +94796,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown."
+                    "description": "Label for the submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "showCorrectness",
@@ -128401,8 +128038,22 @@
         },
         {
             "name": "subsetOfRealsInput",
-            "children": [],
-            "childBuckets": "",
+            "children": [
+                "xLabel",
+                "yLabel",
+                "collect",
+                "repeat",
+                "repeatForSequence",
+                "conditionalContent",
+                "select",
+                "group",
+                "module",
+                "setup",
+                "sort",
+                "shuffle",
+                "label"
+            ],
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -128485,6 +128136,17 @@
                     "type": "reference"
                 },
                 {
+                    "name": "labelIsName",
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "groupName": "labels",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "variable",
                     "description": "Variable name displayed on the number line.",
                     "defaultValue": {
@@ -128548,6 +128210,14 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true,
+                    "groupName": "labels"
+                },
+                {
                     "name": "variable",
                     "type": "_variableName",
                     "isArray": false,
@@ -128597,6 +128267,13 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component.",
+                    "groupName": "labels"
                 },
                 {
                     "name": "subsetValue",
@@ -138424,16 +138101,9 @@
                 },
                 {
                     "name": "submitLabel",
-                    "description": "Label for the submit button when correctness is shown.",
+                    "description": "Label for the submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
                     "groupName": "answer-grading",
                     "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the submit button when correctness is not shown.",
-                    "groupName": "answer-grading",
-                    "defaultValue": "Submit Response",
                     "type": "text"
                 },
                 {
@@ -138589,13 +138259,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown."
+                    "description": "Label for the submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "showCorrectness",

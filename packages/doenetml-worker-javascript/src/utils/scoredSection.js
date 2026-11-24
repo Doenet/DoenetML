@@ -377,18 +377,8 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Check Work",
             groupName: "scoring",
             description:
-                "Label for the section-wide submit button when correctness is shown.",
+                "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
         },
-        submitLabelNoCorrectness: {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectnessPreLocalize",
-            // See the note on `submitLabel`.
-            defaultValue: "Submit Response",
-            groupName: "scoring",
-            description:
-                "Label for the section-wide submit button when correctness is not shown.",
-        },
-
         displayDigitsForCreditAchieved: {
             createComponentOfType: "integer",
             createStateVariable: "displayDigitsForCreditAchieved",
@@ -422,8 +412,8 @@ export function returnScoredSectionAttributes() {
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
 
-    // The section-wide button carries the same two labels an `<answer>` does,
-    // and resolves them the same way.
+    // The section-wide button carries the same label an `<answer>` does, and
+    // resolves it the same way.
     Object.assign(
         stateVariableDefinitions,
         returnSubmitLabelStateVariableDefinitions({

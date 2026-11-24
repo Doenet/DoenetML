@@ -3371,12 +3371,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -4205,13 +4199,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -4385,12 +4373,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -5219,13 +5201,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -5399,12 +5375,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -6233,13 +6203,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -6665,12 +6629,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -7241,13 +7199,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -59510,12 +59462,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -60531,13 +60477,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -60747,12 +60687,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -61768,13 +61702,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -61984,12 +61912,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -63005,13 +62927,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -63221,12 +63137,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -64242,13 +64152,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -64458,12 +64362,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -65486,13 +65384,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -65702,12 +65594,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -66723,13 +66609,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -66939,12 +66819,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -67967,13 +67841,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -68183,12 +68051,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -69211,13 +69073,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -69427,12 +69283,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -70455,13 +70305,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -70671,12 +70515,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -71699,13 +71537,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -71915,12 +71747,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -72936,13 +72762,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -73152,12 +72972,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -74173,13 +73987,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -74389,12 +74197,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -75410,13 +75212,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -75626,12 +75422,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -76647,13 +76437,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -76863,12 +76647,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -77884,13 +77662,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -78100,12 +77872,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -79121,13 +78887,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -79332,12 +79092,6 @@
                     ]
                 },
                 "submitLabel": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "submitLabelNoCorrectness": {
                     "optional": true,
                     "type": [
                         "string"
@@ -80357,13 +80111,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -80573,12 +80321,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -81600,13 +81342,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -81816,12 +81552,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -82843,13 +82573,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -83071,12 +82795,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -83197,13 +82915,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -83391,12 +83103,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -83517,13 +83223,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -83692,12 +83392,6 @@
                     ]
                 },
                 "submitLabel": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "submitLabelNoCorrectness": {
                     "optional": true,
                     "type": [
                         "string"
@@ -84531,13 +84225,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -90706,6 +90394,13 @@
                         "string"
                     ]
                 },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "prefill": {
                     "optional": true,
                     "type": [
@@ -90719,7 +90414,47 @@
                     ]
                 }
             },
-            "children": [],
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "label"
+                }
+            ],
             "textChildrenAllowed": false,
             "properties": [
                 {
@@ -90741,6 +90476,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
                     "fromAttribute": true
                 },
                 {
@@ -90772,6 +90514,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
                 },
                 {
                     "name": "value",
@@ -93099,12 +92847,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -93933,13 +93675,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -94113,12 +93849,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -94947,13 +94677,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -100673,12 +100397,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -101506,13 +101224,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -102833,12 +102545,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForCreditAchieved": {
                     "optional": true,
                     "type": [
@@ -103409,13 +103115,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
+                    "description": "Label for the section-wide submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "numSubmissions",
@@ -120210,12 +119910,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForResponses": {
                     "optional": true,
                     "type": [
@@ -121104,13 +120798,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown."
+                    "description": "Label for the submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "showCorrectness",
@@ -165888,6 +165576,13 @@
                         "string"
                     ]
                 },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "variable": {
                     "optional": true,
                     "type": [
@@ -165914,7 +165609,47 @@
                     ]
                 }
             },
-            "children": [],
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "label"
+                }
+            ],
             "textChildrenAllowed": false,
             "properties": [
                 {
@@ -165936,6 +165671,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
                     "fromAttribute": true
                 },
                 {
@@ -165988,6 +165730,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
                 },
                 {
                     "name": "subsetValue",
@@ -178738,12 +178486,6 @@
                         "string"
                     ]
                 },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigitsForResponses": {
                     "optional": true,
                     "type": [
@@ -178882,13 +178624,7 @@
                     "name": "submitLabel",
                     "type": "text",
                     "isArray": false,
-                    "description": "Label for the submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the submit button when correctness is not shown."
+                    "description": "Label for the submit button: “Check Work” by default when correctness is shown, “Submit Response” when it is not."
                 },
                 {
                     "name": "showCorrectness",

@@ -149,9 +149,9 @@ export function createCheckWorkComponent(
         );
     } else if (validationState === "unvalidated") {
         buttonClassNames.push("check-work-unvalidated");
-        const checkWorkText = SVs.showCorrectness
-            ? SVs.submitLabel
-            : SVs.submitLabelNoCorrectness;
+        // One label, whose default depends on `showCorrectness` (D66
+        // decision 15), decided in the worker.
+        const checkWorkText = SVs.submitLabel;
         // When the button changes back to Check Work,
         // it should not be read by the screen reader
         otherLabel = checkWorkText;

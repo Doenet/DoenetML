@@ -9,6 +9,8 @@ import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useT } from "../../utils/i18n";
 import { ltrIslandProps } from "./utils/direction";
+import { useRenderedLabel } from "./utils/inputLabel";
+import { renderLabelWithLatex } from "./utils/labelWithLatex";
 import "./subsetOfRealsInput.css";
 
 interface PointDisplayed {
@@ -33,8 +35,9 @@ interface SubsetOfRealsInputSVs {
 export default React.memo(function subsetOfReals(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } =
-        useDoenetRenderer<SubsetOfRealsInputSVs>(props, false);
+    let { id, SVs, actions, callAction, children } =
+        useDoenetRenderer<SubsetOfRealsInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
     let [mode, setMode] = useState("add remove points");
     const t = useT();
     let bounds = useRef<HTMLDivElement | null>(null);
@@ -365,55 +368,78 @@ export default React.memo(function subsetOfReals(
         // pointer handler maps an x position to a value by subtracting a left
         // edge. Pinned as one attribute on the whole widget so the controls
         // above the axis stay on the same side as the axis itself.
-        <div ref={ref} id={id} {...ltrIslandProps()}>
-            <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
-                {controlButtons}
-            </div>
-            <svg
-                width="808"
-                height="80"
-                style={{ backgroundColor: "var(--canvas)" }}
-                onMouseDown={(e) => {
-                    handleInput(e, "down");
-                }}
-                onMouseUp={(e) => {
-                    handleInput(e, "up");
-                }}
-                onMouseMove={(e) => {
-                    handleInput(e, "move");
-                }}
-                onMouseLeave={(e) => {
-                    handleInput(e, "leave");
-                }}
+        <>
+            {SVs.label ? (
+                // The label (CTX-11, #1279), outside the left-to-right island:
+                // a label is prose and follows the document's direction.
+                <div id={`${id}-label`}>
+                    {renderedLabel ??
+                        renderLabelWithLatex({
+                            label: SVs.label,
+                            labelHasLatex: Boolean(SVs.labelHasLatex),
+                        })}
+                </div>
+            ) : null}
+            <div
+                ref={ref}
+                id={id}
+                {...(SVs.label
+                    ? { role: "group", "aria-labelledby": `${id}-label` }
+                    : {})}
+                {...ltrIslandProps()}
             >
-                <polygon
-                    points="5,40 20,50 20,30"
-                    style={{
-                        fill: "var(--canvasText)",
-                        stroke: "var(--canvasText)",
-                        strokeWidth: "1",
+                <div ref={bounds} style={{ display: "flex", gap: "12px" }}>
+                    {controlButtons}
+                </div>
+                <svg
+                    width="808"
+                    height="80"
+                    style={{ backgroundColor: "var(--canvas)" }}
+                    onMouseDown={(e) => {
+                        handleInput(e, "down");
                     }}
-                />
-                <polygon
-                    points="795,40 780,50 780,30"
-                    style={{
-                        fill: "var(--canvasText)",
-                        stroke: "var(--canvasText)",
-                        strokeWidth: "1",
+                    onMouseUp={(e) => {
+                        handleInput(e, "up");
                     }}
-                />
-                {storedLines}
-                {hashLines}
-                <line
-                    x1="20"
-                    y1="40"
-                    x2="780"
-                    y2="40"
-                    style={{ stroke: "var(--canvasText)", strokeWidth: "2" }}
-                />
-                {storedPoints}
-                {labels}
-            </svg>
-        </div>
+                    onMouseMove={(e) => {
+                        handleInput(e, "move");
+                    }}
+                    onMouseLeave={(e) => {
+                        handleInput(e, "leave");
+                    }}
+                >
+                    <polygon
+                        points="5,40 20,50 20,30"
+                        style={{
+                            fill: "var(--canvasText)",
+                            stroke: "var(--canvasText)",
+                            strokeWidth: "1",
+                        }}
+                    />
+                    <polygon
+                        points="795,40 780,50 780,30"
+                        style={{
+                            fill: "var(--canvasText)",
+                            stroke: "var(--canvasText)",
+                            strokeWidth: "1",
+                        }}
+                    />
+                    {storedLines}
+                    {hashLines}
+                    <line
+                        x1="20"
+                        y1="40"
+                        x2="780"
+                        y2="40"
+                        style={{
+                            stroke: "var(--canvasText)",
+                            strokeWidth: "2",
+                        }}
+                    />
+                    {storedPoints}
+                    {labels}
+                </svg>
+            </div>
+        </>
     );
 });

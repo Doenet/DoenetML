@@ -1,4 +1,9 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
+} from "../utils/label";
 import me from "math-expressions";
 import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
 import { returnPointsIntervalsFromSubsetStateVariableDefinitions } from "./SubsetOfReals";
@@ -19,6 +24,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
         });
     }
     static componentType = "subsetOfRealsInput";
+    // renders its `<label>` child (CTX-11, #1279)
+    static renderChildren = true;
     // An input, which stands for what it holds: a `<subsetOfReals>`, an object, so it
     // is of that object's type (COLL-4, D46; `utils/componentKinds.ts`).
     static isValue = true;
@@ -31,6 +38,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // labeled as every input is (CTX-11, #1279)
+        Object.assign(attributes, returnLabelAttributes());
         // xMin/xMax/width/height/dx/xLabel are declared on the descriptor
         // but currently do nothing (the renderer hard-codes width="808" /
         // height="80" and ignores the rest; dx="1" actively breaks
@@ -135,8 +144,26 @@ export default class SubsetOfRealsInput extends BlockComponent {
         return attributes;
     }
 
+    static returnChildGroups() {
+        return [
+            ...super.returnChildGroups(),
+            {
+                group: "labels",
+                componentTypes: ["label"],
+            },
+        ];
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A `<label>` child labels it, as it does every input (CTX-11,
+        // #1279).
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelStateVariableDefinitions(),
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         stateVariableDefinitions.subsetValue = {
             description: "The current subset of the reals entered by the user.",

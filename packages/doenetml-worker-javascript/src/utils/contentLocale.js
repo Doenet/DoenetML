@@ -122,14 +122,18 @@ export function contentTranslator(dependencyValues) {
  *   than as a key: `lint:i18n` reads call sites literally, so a key passed as
  *   data would read as an orphan in the catalog and a typo would surface only
  *   at runtime.
+ *   It is also passed the dependency values, for a default that depends on
+ *   another state variable (`submitLabel`'s, on `showCorrectness`).
  * @param ownLocale Read the component's *own* `locale` as well as the
  *   enclosing document's; see {@link returnContentLocaleDependencies}.
+ * @param additionalDependencies Dependencies the default reads.
  */
 export function returnLocalizedDefaultStateVariableDefinition({
     name,
     translatedDefault,
     description,
     ownLocale = false,
+    additionalDependencies = {},
 }) {
     const authored = `${name}PreLocalize`;
     return {
@@ -143,10 +147,14 @@ export function returnLocalizedDefaultStateVariableDefinition({
                 variableName: authored,
             },
             ...returnContentLocaleDependencies({ ownLocale }),
+            ...additionalDependencies,
         }),
         definition({ dependencyValues, usedDefault }) {
             const value = usedDefault[authored]
-                ? translatedDefault(contentTranslator(dependencyValues))
+                ? translatedDefault(
+                      contentTranslator(dependencyValues),
+                      dependencyValues,
+                  )
                 : dependencyValues[authored];
             return { setValue: { [name]: value } };
         },

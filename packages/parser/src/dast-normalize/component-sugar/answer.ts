@@ -20,7 +20,8 @@ export function answerSugar(node: DastElement) {
     if (
         typeChildren.length === 1 &&
         typeChildren[0].type === "text" &&
-        typeChildren[0].value.toLowerCase() === "videowatched"
+        // trimmed, as every value of `type` is (D67 decision 2)
+        typeChildren[0].value.trim().toLowerCase() === "videowatched"
     ) {
         // If node already has an award child, then skip applying sugar.
         // This is to prevent the sugar from being applied multiple times,

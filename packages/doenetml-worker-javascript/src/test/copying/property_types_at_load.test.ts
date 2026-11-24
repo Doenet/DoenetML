@@ -166,9 +166,10 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         // text, and its value shows (not a blank math).
         expect((await d.shown("p1")).text).eq("\n  x\n");
         // A bare `$c` is whether the choice was submitted, not a choice, so
-        // it doesn't make the values texts.
+        // it doesn't make the values texts; it adds no choice, which
+        // `w0210` says (#2097).
         expect(d.errors).eqls([]);
-        expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0107"]);
+        expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0210"]);
     });
 
     it("a choiceInput whose choices hold a lorem is a text, as a lorem makes only texts or paragraphs", async () => {

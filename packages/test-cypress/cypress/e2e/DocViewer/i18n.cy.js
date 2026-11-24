@@ -802,8 +802,9 @@ describe("Translation Tests", { tags: ["@group5"] }, function () {
             // straight back to English. Renderer-side strings accent either
             // way, whichever locale they answer to.
             const KNOWN_UNTRANSLATED = [
-                // `submitLabel` / `submitLabelNoCorrectness` — the check-work
-                // button's resting label, computed by the worker. The rest of
+                // `submitLabel` — the check-work button's resting label,
+                // computed by the worker ("Check Work", or "Submit Response"
+                // when correctness isn't shown). The rest of
                 // that widget follows the document too but is drawn by the
                 // renderer from the chrome catalog, so it accents and this
                 // sweep guards it. Deleting these two entries needs a pseudo
