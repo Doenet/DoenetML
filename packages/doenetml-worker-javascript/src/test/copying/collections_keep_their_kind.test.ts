@@ -167,6 +167,20 @@ describe("A <group> made from a collection is an error at load (D64, #2649) @gro
         expect(await d.typeOf("g")).eq("_error");
     });
 
+    it("a group made from a collection named after an index", async () => {
+        // in an iteration of a repeat, and in a pick of a select: before,
+        // each showed nothing, with no message
+        const inner = `<repeat name="r" for="1 2" valueName="j"><math>$j</math></repeat>`;
+        for (const doenetML of [
+            `<repeat name="outer" for="1 2" valueName="i">${inner}</repeat><group name="g" extend="$outer[1].r"/>`,
+            `<select name="s" numToSelect="2"><option>${inner}</option><option>${inner}</option></select><group name="g" extend="$s[1].r"/>`,
+        ]) {
+            const d = await load(doenetML);
+            expect(d.errorCodes()).eqls(["doenet-e0065"]);
+            expect(await d.typeOf("g")).eq("_error");
+        }
+    });
+
     it("is reported at load in a case that is not true yet (DIAG-7)", async () => {
         const d = await load(
             `<booleanInput name="b"/>${repeat}<conditionalContent><case condition="$b"><group name="g" extend="$r"/></case></conditionalContent>`,
@@ -187,6 +201,10 @@ describe("A <group> made from a collection is an error at load (D64, #2649) @gro
             `${repeat}<group name="h">$r</group><group name="g" extend="$h"/>`,
         ],
         ["an iteration", `${repeat}<group name="g" extend="$r[1]"/>`],
+        [
+            "a math named in an iteration",
+            `<repeat name="outer" for="1 2" valueName="i"><math name="m">$i</math></repeat><group name="g" extend="$outer[1].m"/>`,
+        ],
         [
             "a pick",
             `<select name="s" numToSelect="2"><option><math>1</math></option><option><math>2</math></option></select><group name="g" extend="$s[1]"/>`,
@@ -409,6 +427,22 @@ describe("An index into a conditionalContent is type-checked at load (REF-5) @gr
         expect(await d.text("e")).eq("2");
         await d.setBoolean("b", true);
         expect(await d.text("e")).eq("1");
+    });
+
+    it("an index past the one shown case names nothing, whatever a case holds", async () => {
+        // `$cc[2]` never names what a case holds, so it is not said to give
+        // a `<text>`; it names nothing, as of cases holding maths.
+        const d = await load(
+            `${cc("<text>hi</text>", "<text>bye</text>")}<point name="e" extend="$cc[2]"/>`,
+        );
+        const expected = [
+            "doenet-i0054: `$cc[2]` names nothing now, so this `<point>` is missing until it does.",
+        ];
+        expect(d.diagnostics()).eqls(expected);
+        await d.setBoolean("b", true);
+        expect(d.diagnostics()).eqls(expected);
+        await d.reload();
+        expect(d.diagnostics()).eqls(expected);
     });
 });
 

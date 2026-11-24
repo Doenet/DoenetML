@@ -2127,6 +2127,17 @@ export function checkTypeChangesAtLoad({
                 };
             }
         }
+        if (
+            holder.componentType === "conditionalContent" &&
+            indexText !== undefined &&
+            /^\d+$/.test(indexText) &&
+            Number(indexText) !== 1
+        ) {
+            // A `<conditionalContent>` shows one case at most, so a literal
+            // index other than 1 (`$cc[2]`) never names what a case holds,
+            // and is left to run time, which finds it names nothing.
+            return undefined;
+        }
         const held = instanceHolding(holder, seen);
         if (!held || held.skip) {
             return undefined;
@@ -3804,7 +3815,9 @@ export function checkTypeChangesAtLoad({
      * a group, an iteration or a pick (`$r[1]`), or a tag that shows one
      * thing (a `<conditionalContent>`, a one-pick `<select>`) is not one,
      * and is left as it is. The reference is followed through names in what
-     * it names (`$cc.r`, `$sec.r`), but not through an index or a property.
+     * it names (`$cc.r`, `$sec.r`), also after one index into picks, a shown
+     * case or iterations (`$s[1].r`, `$outer[1].r`), but not through a
+     * property or an index after a name.
      */
     function groupFromCollectionError(
         copy: SerializedComponent,
@@ -3820,20 +3833,33 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const path = ref.unresolvedPath ?? [];
+        const isName = (part: any) =>
+            typeof part.name === "string" &&
+            part.name !== "" &&
+            (part.index ?? []).length === 0;
         let named: SerializedComponent[] | null | undefined;
         if (path.length === 0) {
             const node =
                 referents.componentsByIdx.get(ref.nodeIdx) ??
                 referents.copiesByCreatedIdx.get(ref.nodeIdx);
             named = node ? [node] : undefined;
-        } else if (
-            path.every(
-                (part: any) =>
-                    typeof part.name === "string" &&
-                    part.name !== "" &&
-                    (part.index ?? []).length === 0,
-            )
-        ) {
+        } else if (isIndexIntoPicks(path) && path.slice(1).every(isName)) {
+            // Names after an index into the picks of a select, the shown
+            // case of a conditionalContent (`$s[1].r`), or the iterations
+            // of a repeat (`$outer[1].r`): what is so named in each branch,
+            // or in the template, which each iteration makes.
+            const container = branchContainerAt(ref.nodeIdx, true);
+            named = container
+                ? visibleNamed(
+                      container,
+                      path.slice(1).map((part: any) => part.name),
+                  )
+                : ["repeat", "repeatForSequence"].includes(
+                        referents.referentType(ref.nodeIdx) ?? "",
+                    )
+                  ? descendantsNamed(ref.nodeIdx, path.slice(1))
+                  : undefined;
+        } else if (path.every(isName)) {
             const container = branchContainerAt(ref.nodeIdx);
             named = container
                 ? visibleNamed(

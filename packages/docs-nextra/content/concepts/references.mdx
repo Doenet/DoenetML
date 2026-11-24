@@ -265,8 +265,9 @@ components, including none, as long as they are all of one type.
 
 A single tag made from a list, such as `<math extend="$ml"/>{:dn}`, needs the
 list to hold one entry, and is an error when it holds another number. So is one
-made from a composite holding the list, such as an iteration of
-`<repeat name="r" for="1">$ml</repeat>{:dn}`, `<math extend="$r[1]"/>{:dn}`. When
+made from a composite holding a list whose entries are written out, such as an
+iteration of `<repeat name="r" for="1">$ml</repeat>{:dn}` with
+`<mathList name="ml">1 2 3</mathList>{:dn}`, `<math extend="$r[1]"/>{:dn}`. When
 the list's `maxNumber` is a value, such as `maxNumber="$n"`, the tag is
 missing instead while the list doesn't hold one entry (see
 [below](#what-still-changes-as-the-document-runs)).
