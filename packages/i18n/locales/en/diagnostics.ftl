@@ -2471,13 +2471,14 @@ award-content-for-answer-input =
 
 # An `<answer>`'s `<label>` labels its one input when the input is written out
 # and has no label of its own (D66 decision 2). Otherwise it labels no input:
-# with more than one input ($numInputs) it is shown with the answer's
-# check-work button; with one input ($input, its tag) that has a `<label>` of
-# its own, it is not shown. Tags stay in English.
+# with more than one input ($numInputs) it is shown only beside the answer's
+# own check-work button, which a section-wide check-work button replaces;
+# with one input ($input, its tag) that has a `<label>` of its own, it is not
+# shown. Tags stay in English.
 answer-label-not-on-input =
     { $numInputs ->
         [1] The `<{ $input }>` in this `<answer>` has a `<label>` of its own, so the answer's `<label>` is not shown. Remove one of the two labels.
-       *[other] This `<answer>` has { $numInputs } inputs, so its `<label>` labels none of them; it is shown with the answer's check-work button. Give each input a `<label>` of its own.
+       *[other] This `<answer>` has { $numInputs } inputs, so its `<label>` labels none of them; it is shown only beside the answer's own check-work button, if it has one. Give each input a `<label>` of its own.
     }
 
 # A bare reference to a `<choice>` (`$c1`) in a `<choiceInput>` is whether the

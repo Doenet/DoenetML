@@ -280,6 +280,25 @@ describe("content words follow the document locale @group4", () => {
             );
         });
 
+        it("reads the root document's own `lang` for its own button when correctness is not shown", async () => {
+            // One `submitLabel`, whose default depends on `showCorrectness`
+            // (D66 decision 15), still in the document's own language.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<document lang="es" sectionWideCheckWork showCorrectness="false">
+                  <answer name="a">42</answer>
+                </document>`,
+                documentLocale: "en",
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const documentIdx = await resolvePathToNodeIdx("_document1");
+            expect(stateVariables[documentIdx].stateValues.submitLabel).eq(
+                "Enviar respuesta",
+            );
+        });
+
         it("gives a nested <document> its own language, and its contents with it", async () => {
             // The ancestor lookup finds the *nearest* document, so an answer
             // inside the inner one labels against the inner one's language

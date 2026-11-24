@@ -23,7 +23,13 @@
  * What is decided is written on the answer as its `type`, so that plain
  * text in every award of the answer, written or made by its sugar, is read
  * as that type (`Award.js` reads the answer's `type`; D55 decision 3), as
- * if the author had written it.
+ * if the author had written it; and on each award of the answer that isn't
+ * its child as written (held by a composite in it, or an `<award copy>`) as
+ * `_answerType`, which `Award.js` reads in its place.
+ *
+ * Also here: a `type` that names no type (`doenet-w0078`, at the
+ * attribute), and an answer's `<label>` on its one written input
+ * (`labelTheAnswersInput`, `doenet-w0209`).
  *
  * Also reported here, as warnings, for an award with content other than
  * one `<when>` (an award its sugar makes from the answer's content
@@ -402,9 +408,10 @@ export function decideAnswerTypesAtLoad({
      * labels an input its sugar adds. The input is marked
      * (`doenetAttributes.labelFromAnswer`, read in `label.ts`). Otherwise the
      * answer's label would not label the input, so a warning
-     * (`doenet-w0209`): with more than one input it is shown with the
-     * answer's check-work button and labels none of them; with one input
-     * that has a label of its own, it is not shown at all.
+     * (`doenet-w0209`): with more than one input it labels none of them
+     * and is shown only beside the answer's own check-work button, so not
+     * at all where a section-wide button replaces it; with one input that
+     * has a label of its own, it is not shown at all.
      */
     function labelTheAnswersInput(answer: SerializedComponent) {
         const found: ReturnType<typeof codedDiagnostic>[] = [];

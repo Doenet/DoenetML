@@ -215,7 +215,9 @@ export default class Award extends BaseComponent {
         // of the answer as written (one held by a composite in the answer, or
         // an `<award copy>`), so that its plain text is read as the answer's
         // type, as that of an award written in the answer is (ANS-4, D55;
-        // #1874, #2657 item 5).
+        // #1874, #2657 item 5). The answer's sugar also sets it on the awards
+        // of an `<answer copy>`, written or made, whose own attributes may
+        // not carry the type (#2657 item 9).
         attributes._answerType = {
             createPrimitiveOfType: "string",
             excludeFromSchema: true,
@@ -339,8 +341,9 @@ export default class Award extends BaseComponent {
             if (answerType) {
                 type = answerType.value;
                 if (!["math", "text", "boolean"].includes(type)) {
-                    // Note: no need to send warning here, as answer sends a warning
-                    // (and is the location of the type attribute)
+                    // Note: no need to send warning here: a `type` that names
+                    // no type is reported at load, at the answer's `type`
+                    // attribute (`doenet-w0078`, `answerTypesAtLoad.ts`)
                     type = "math";
                 }
             } else {

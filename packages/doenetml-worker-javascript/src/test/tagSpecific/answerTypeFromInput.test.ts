@@ -814,10 +814,13 @@ describe("An answer's type, after #2648 (#2657) @group4", () => {
     it("item 7: with no input added, no input is named", async () => {
         const { core } = await createTestCore({
             doenetML: `<mathInput name="mi" forAnswer="$a"/>
-            <answer name="a"><considerAsResponses>$mi</considerAsResponses><award>1</award></answer>`,
+            <answer name="a"><considerAsResponses>$mi</considerAsResponses><award>1</award></answer>
+            <mathInput name="mi2" forAnswer="$b"/>
+            <answer name="b"><considerAsResponses>$mi2</considerAsResponses>1</answer>`,
         });
         expect(codedOf(core, /doenet-w020[57]/)).eqls([
             "doenet-w0207: This `<award>`'s content is compared with no input: the answer adds none, and the input written with `forAnswer` is reached only through a `<when>`. Compare that input in a `<when>`, or move it inside the `<answer>`.",
+            "doenet-w0207: The content written in this `<answer>` is compared with no input: the answer adds none, and the input written with `forAnswer` is reached only through a `<when>`. Compare that input in a `<when>`, or move it inside the `<answer>`.",
         ]);
     });
 

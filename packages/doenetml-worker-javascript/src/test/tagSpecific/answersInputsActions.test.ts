@@ -368,7 +368,7 @@ describe("An answer's label labels its one input (#1674, D66 decision 2) @group4
             stateVariables[await resolvePathToNodeIdx("in1")].stateValues.label,
         ).toBe("");
         expect(coded(core, /doenet-w0209/)).toEqual([
-            "doenet-w0209: This `<answer>` has 2 inputs, so its `<label>` labels none of them; it is shown with the answer's check-work button. Give each input a `<label>` of its own.",
+            "doenet-w0209: This `<answer>` has 2 inputs, so its `<label>` labels none of them; it is shown only beside the answer's own check-work button, if it has one. Give each input a `<label>` of its own.",
         ]);
     });
 });
