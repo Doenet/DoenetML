@@ -65,6 +65,7 @@
 <exercises />
 <division type="section" />
 <introduction>i</introduction>
+<page><p>On a page.</p></page>
 <conclusion>c</conclusion>
 <aside><title>A</title><p>z</p></aside>
 <hint><p>h</p></hint>
