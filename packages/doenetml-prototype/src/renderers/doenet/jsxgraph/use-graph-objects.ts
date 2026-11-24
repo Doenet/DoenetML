@@ -112,6 +112,13 @@ export function refresh(o: JSG.GeometryElement) {
     o.update();
 }
 
+/** Let a drag move an object, or not. */
+export function setFixed(o: JSG.GeometryElement, fixed: boolean) {
+    if (o.getAttribute("fixed") !== fixed) {
+        o.setAttribute({ fixed });
+    }
+}
+
 /** Show or hide an object. */
 export function setVisible(o: JSG.GeometryElement, visible: boolean) {
     if (o.getAttribute("visible") !== visible) {

@@ -9,6 +9,8 @@ import {
     isPoints,
     refresh,
     setCoords,
+    setFixed,
+    setVisible,
     useGraphObjects,
     xy,
 } from "./jsxgraph/use-graph-objects";
@@ -17,12 +19,19 @@ import { look } from "./jsxgraph/look";
 type PolygonData = {
     props: {
         numericalVertices: [number, number][];
+        /** Whether a drag may move the whole shape (ADR 0070); true when
+         * a core does not say. */
+        draggable?: boolean;
+        /** Whether a drag may move one vertex; true when a core does not
+         * say. */
+        verticesDraggable?: boolean;
     };
 };
 
 /**
  * A polygon. Dragging it moves every vertex; dragging a vertex moves that
- * one. A change in the number of vertices draws it anew.
+ * one, each only where the core's flags allow it. A change in the number
+ * of vertices draws it anew.
  */
 export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
     const board = React.useContext(GraphContext);
@@ -63,9 +72,18 @@ export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
             }
             return { objects, polygon, vertices };
         },
-        update: ({ polygon, vertices }, { numericalVertices }) => {
+        update: (
+            { polygon, vertices },
+            { numericalVertices, draggable, verticesDraggable },
+        ) => {
             if (vertices.length !== numericalVertices.length) {
                 return; // about to be made anew
+            }
+            // A vertex that may not be dragged on its own has no handle:
+            // fixing it would stop the whole shape's drag as well.
+            setFixed(polygon, draggable === false);
+            for (const v of vertices) {
+                setVisible(v, verticesDraggable !== false);
             }
             vertices.forEach((v, i) => setCoords(v, ...numericalVertices[i]));
             // JSXGraph's typings leave out a polygon's borders.
