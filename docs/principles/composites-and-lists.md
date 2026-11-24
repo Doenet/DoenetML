@@ -157,9 +157,12 @@ The kinds, precisely (Tier 2):
   selectors and samplers with `numToSelect` (or `numSamples`) written as anything but a literal
   `1`, the list operators, `<collect>`, `<sort>`, `<shuffle>`, `<repeat>`, `<repeatForSequence>`
   and `<functionIterates>`.
-- **One shown thing:** a `<conditionalContent>` (0 or 1 items: the shown case), and a `<select>`
-  or other random chooser with no `numToSelect`, or a literal `1`. It is still indexed by item
-  (`$cc[1]`, `$s[1]`), and `numItems` is its own.
+- **One shown thing:** a `<conditionalContent>`, and a `<select>` or other random chooser with no
+  `numToSelect`, or a literal `1`. It is not a collection (D72): an index after it reaches into
+  what it shows, as after a `<group>` of one (`$cc[2]` of a shown `(1,2)` is `2`), and through a
+  case or pick of several it names nothing. It has no `numItems`. **Known violation** (#2673):
+  `$cc[1]` is the shown case, `$cc[2]` names nothing, and `$cc.numItems` is 0 or 1; `$s[2]` of a
+  one-pick select already reaches into the pick, but with a `w0181` that says it names nothing.
 - **Wrappers:** `<group>`, an iteration, a pick and a shown case. A wrapper is not indexable
   itself (COLL-3).
 

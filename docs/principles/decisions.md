@@ -856,7 +856,7 @@ these cases:
 - **from a composite that stands for one component.** A composite, or an instance of one, whose
   content is exactly one component counts as that component. This is D27's pass-through rule
   applied to type changes. Authors think of a one-pick select as its value, and write `$s`
-  before they learn `$s[1]`:
+  before they learn `$s[1]` (D72: `$s[1]` now reaches into the pick; `$s` is the pick):
   - `<math extend="$s"/>` of a select that picked one option holding one math;
   - `<text extend="$cc"/>` while the active case holds one text;
   - `<math extend="$r[1]"/>` of an iteration holding one math;
@@ -3642,4 +3642,28 @@ fine and the other isn't.
    `<m extend="$e">+1</m>` is an error suggesting it.
 
 Implementation: #2668, PR 50.
+
+## D72. A one-shown-thing is not a collection: no item index, no `numItems` (decided, November 2026)
+
+**Why.** D41 and D59 kept a `<conditionalContent>` and a one-pick `<select>` "indexed by item"
+(`$cc[1]`, `$s[1]`) with a `numItems` of their own, a holdover from when a conditional could show
+several cases. On `main`, `$cc[1]` is `$cc` in every case but one (with no case shown, a blank
+with `w0104` instead of nothing), and `$cc[2]` always names nothing. That contradicts COLL-1's own
+statement that a one-shown-thing stands for what it shows, as a `<group>` of one does, after which
+an index reaches into the component (`$g[2]` of a group holding `(1,2)` is `2`). A one-pick
+select already behaves halfway: `$s[2]` reaches into the pick, with a `w0181` saying it names
+nothing.
+
+**Decided:**
+1. **An index after a one-shown-thing reaches into what it shows,** as after a `<group>` of one:
+   `$cc[2]` of a case holding `(1,2)` is `2`; `$s[1]` of a pick holding a point is its first
+   coordinate. Through a case or pick holding several components it names nothing, as for any
+   wrapper of several (COLL-3).
+2. **`numItems` is removed** from a `<conditionalContent>` and a one-pick chooser. It was vestigial.
+3. **No transitional warning.** Selects and conditionals already break backward compatibility in
+   0.8. (A converter candidate for #2457: `$s[1]`, `$cc[1]` → `$s`, `$cc`.)
+4. Wording that taught `$s[1]` for a one-pick select (REF-5: "before they learn `$s[1]`") is
+   revised.
+
+Implementation: #2673 (PR 65).
 
