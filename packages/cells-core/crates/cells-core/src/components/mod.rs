@@ -963,18 +963,26 @@ impl ComponentType {
     }
 
     /// Whether `<to extend="$x"/>` of an `x` of type `from` gives `x`'s
-    /// value as a `to`: a number and a math, or an input and a value type
-    /// it reads as or one related to it, either way (`<math
-    /// extend="$mi"/>`, `<mathInput extend="$n"/>`).
+    /// value as a `to`: a number and a math, or a value type made from an
+    /// input that reads as it or one related to it (`<math
+    /// extend="$mi"/>`). Never an input from a value: an input is not its
+    /// value (REF-5, D26; [`ComponentType::input_from_value`]).
     pub fn extends_as(from: ComponentType, to: ComponentType) -> bool {
         use ComponentType::*;
         fn values(a: ComponentType, b: ComponentType) -> bool {
             a == b || matches!((a, b), (Number, Math) | (Math, Number))
         }
-        from != to
-            && (values(from, to)
-                || from.reads_as().is_some_and(|vt| values(vt, to))
-                || to.reads_as().is_some_and(|vt| values(vt, from)))
+        from != to && (values(from, to) || from.reads_as().is_some_and(|vt| values(vt, to)))
+    }
+
+    /// Whether `<to extend="$x"/>` of an `x` of type `from` asks for an
+    /// input made from a value it would hold: refused, suggesting
+    /// `bindValueTo` or `prefill` (REF-5, D26).
+    pub fn input_from_value(from: ComponentType, to: ComponentType) -> bool {
+        from.reads_as().is_none()
+            && to
+                .reads_as()
+                .is_some_and(|vt| vt == from || ComponentType::extends_as(from, vt))
     }
 
     /// How the type is structure rather than content, if it is.
@@ -1402,7 +1410,9 @@ mod tests {
         // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
         // section's full number and title as text. 41: ADR 0062 added
         // `is_step`, for a step of a cascade, which aggregates its scores.
-        const PLAN_CTX_METHODS: usize = 41;
+        // 44: ADR 0064 added `ref_kind`, `not_a_boolean` and `type_mix`, for
+        // a `<boolean>` of a number or a text, a type mix (D47, D68).
+        const PLAN_CTX_METHODS: usize = 44;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

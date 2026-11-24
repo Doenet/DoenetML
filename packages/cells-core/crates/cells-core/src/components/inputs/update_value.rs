@@ -115,8 +115,10 @@ fn new_value(
 /// Whether text reads as a condition: a comparison, a connective or a
 /// truth value among its tokens, or text math cannot read.
 fn reads_as_condition(ctx: &mut PlanCtx<'_, '_>, nodes: &[crate::dast::NodeId]) -> bool {
-    match ctx.math_tokens(nodes) {
-        Ok((tokens, _)) => tokens.iter().any(|t| match t {
+    // Its tokens only: planning its references here would read them as
+    // math, where a boolean is a type mix.
+    match ctx.math_text(nodes) {
+        Ok(mt) => mt.tokens().iter().any(|t| match t {
             Token::Ident(w) => matches!(w.as_str(), "not" | "and" | "or" | "true" | "false"),
             Token::Op(c) => "<>!≠≤≥".contains(*c),
             Token::Eq => true,

@@ -112,6 +112,16 @@ impl SourceReader<'_> {
                     self.dast.macro_display(m)
                 )));
             }
+            // A boolean read as a number is a type mix, unless a
+            // condition or `convertBoolean` reads it (D47).
+            let p = if !ar.booleans_in_math
+                && self.ref_value_kind(ar, t, p) == Some(ValueKind::Boolean)
+            {
+                let display = self.dast.macro_display(m);
+                ar.mix_ref(p, &boolean_as_number(&display))
+            } else {
+                p
+            };
             plans.push(p);
         }
         let mut next = plans.iter();
@@ -286,6 +296,25 @@ impl SourceReader<'_> {
             reason,
         })
     }
+}
+
+/// The warning for boolean `$display` read as a number (D47).
+pub(in crate::compile) fn boolean_as_number(display: &str) -> String {
+    format!(
+        "`${display}` is true or false, not a number. To count it as 1 or 0, write `<number convertBoolean>${display}</number>`"
+    )
+}
+
+/// The warning for `$display`, a value of another type, read as true or
+/// false (D47, D68), suggesting the comparison meant.
+pub(in crate::compile) fn not_a_boolean(display: &str, kind: ValueKind) -> String {
+    let (what, test) = match kind {
+        ValueKind::Text => ("a text", format!("${display} = true")),
+        _ => ("a number", format!("${display} != 0")),
+    };
+    format!(
+        "`${display}` is {what}, not true or false. To test it, write a comparison such as `{test}`"
+    )
 }
 
 /// Math tokens spelled as text the engine parses: a cell leaf by its leaf

@@ -95,7 +95,13 @@ impl<'a> SourceReader<'a> {
                     || (ty.is_over_value() && ty.default_sel() == Some(PropSel::At(PropAt::Position(i))))
                 {
                     ValueKind::Math
-                } else if matches!(ty.text_kind(), Some(TextKind::Boolean(b)) if b == i) {
+                } else if matches!(ty.text_kind(), Some(TextKind::Boolean(b)) if b == i)
+                    // An input that reads as a boolean: its value is one.
+                    || (ty
+                        .reads_as()
+                        .is_some_and(|r| matches!(r.text_kind(), Some(TextKind::Boolean(_))))
+                        && ty.default_prop().is_some_and(|d| d == def.name))
+                {
                     ValueKind::Boolean
                 } else {
                     ValueKind::Number

@@ -450,6 +450,30 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
+    /// What reference `p` reads, where the templates tell (a boolean, a
+    /// number, a text, ...).
+    pub(crate) fn ref_kind(&self, p: RefId) -> Option<ValueKind> {
+        self.p.rd.ref_value_kind(&self.p.ar, self.t, p)
+    }
+
+    /// Why reference `p`, of `kind`, is not true or false, suggesting the
+    /// comparison meant (D47, D68).
+    pub(crate) fn not_a_boolean(&self, p: RefId, kind: ValueKind) -> String {
+        let node = self.p.ar.refs[p.index()].node;
+        not_a_boolean(&self.p.rd.dast.macro_display(node), kind)
+    }
+
+    /// A type mix (D47, D68; ADR 0064): warned at reference `at`, or on the
+    /// element for its own content (a literal `1` in a `<boolean>`), and
+    /// the missing value in its place.
+    pub(crate) fn type_mix(&mut self, at: Option<RefId>, message: &str) -> Source {
+        let node = match at {
+            Some(p) => self.p.ar.refs[p.index()].node,
+            None => self.node(),
+        };
+        self.p.ar.type_mix(node, message)
+    }
+
     /// Warns that the element cannot be what its attributes ask, with a
     /// diagnostic code and message. What the planner cannot define is
     /// [`Wire::undefined`] of what this returns.

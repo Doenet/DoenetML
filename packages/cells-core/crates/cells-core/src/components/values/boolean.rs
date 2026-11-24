@@ -40,14 +40,31 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ChildValue::Text { text, .. } => match text.trim().to_ascii_lowercase().as_str() {
             "true" => Some(1.0),
             "false" => Some(0.0),
-            // A number is true only when it is 1, as in the current core.
-            s => s.parse::<f64>().ok().map(|v| f64::from(v == 1.0)),
+            // A number is not true or false (D47 decision 4): a type mix.
+            s if s.parse::<f64>().is_ok() => {
+                let message =
+                    format!("`{s}` is a number, not true or false: write `true` or `false`");
+                let value = ctx.type_mix(None, &message).into();
+                wiring.set_planned(Planned { value });
+                return Ok(wiring);
+            }
+            _ => None,
         },
         _ => None,
     };
     let value = match (literal, children.value) {
         (Some(v), _) => Wire::given(GivenId::Children(0), v),
-        (None, ChildValue::Reference(p)) => Source::reference(p).into(),
+        // A reference to a number, a math or a text is not true or false
+        // (D47 decision 4, D68): a type mix, suggesting the comparison.
+        (None, ChildValue::Reference(p)) => match ctx.ref_kind(p) {
+            Some(
+                kind @ (ValueKind::Number | ValueKind::Math | ValueKind::Text | ValueKind::Point),
+            ) => {
+                let message = ctx.not_a_boolean(p, kind);
+                ctx.type_mix(Some(p), &message).into()
+            }
+            _ => Source::reference(p).into(),
+        },
         // A condition: comparisons and connectives.
         (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
