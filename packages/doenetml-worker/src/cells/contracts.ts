@@ -364,7 +364,7 @@ function labelChildren(table: CellsTable, c: number): number[] {
  * one written is used, so one added inside an extend replaces the
  * referent's), else the `label` attribute, else the referent's label when
  * `c` is a reference (ADR 0024). */
-function label(table: CellsTable, c: number): string {
+export function label(table: CellsTable, c: number): string {
     const children = labelChildren(table, c);
     if (children.length) {
         return table.core.component_text(children[children.length - 1]);

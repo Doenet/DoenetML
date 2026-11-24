@@ -32,6 +32,7 @@ import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
 import {
     LIST_LIKE,
     Reads,
+    label,
     SECTION_KINDS,
     sectionBoxed,
     TRANSPARENT,
@@ -783,6 +784,9 @@ const STATE: Record<string, Record<string, Reader>> = {
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
         latex: (_g, x) => pointLatex(reads(x), x.idx),
+        // The text of its `<label>` child, a component (ADR 0024), else
+        // its `label` attribute, as the bridge draws it.
+        label: (_g, x) => label(x.cells.table, x.idx),
     },
     circle: {
         center: (g) => pt(g, "cx", "cy"),
