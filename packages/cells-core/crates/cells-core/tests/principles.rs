@@ -424,3 +424,24 @@ fn d58_a_text_ordered_against_a_number_is_a_type_mix() {
     assert_eq!(warned(&doc, "cells-type-mix-order"), 1);
     assert_eq!(v(&doc, "eq", "value"), 1.0);
 }
+
+/// REF-5, D26: an input is not the value it holds, so one made from a value
+/// is refused, suggesting `bindValueTo` or `prefill`. A value made from an
+/// input is its value (REF-1a).
+#[test]
+fn ref_5_an_input_is_not_made_from_a_value() {
+    for src in [
+        r#"<math name="m">3</math><mathInput name="mi" extend="$m"/>"#,
+        r#"<number name="n">3</number><mathInput name="mi" extend="$n"/>"#,
+        r#"<text name="t">a</text><textInput name="ti" extend="$t"/>"#,
+    ] {
+        let (code, message) = load_error(src);
+        assert_eq!(code, "cells-input-from-value", "{src}");
+        assert!(
+            message.contains("bindValueTo") && message.contains("prefill"),
+            "{message}"
+        );
+    }
+    let doc = load(r#"<mathInput name="mi" prefill="2"/><math name="m" extend="$mi"/>"#).unwrap();
+    assert_eq!(text(&doc, "m"), "2");
+}

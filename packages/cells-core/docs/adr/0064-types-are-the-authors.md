@@ -219,7 +219,12 @@ its own, one per principle code, so the switch is a rename
    between a text and a number, still refused.
 5. Open: an answer's type comes from its input (D55):
    `<answer><textInput/>…</answer>` is refused without `type="text"`.
-3. Open: §3's table in `ComponentType::conversion`, replacing
+3. Begun (2026-11-24): an input made from a value
+   (`<mathInput extend="$m"/>`) is refused, `cells-input-from-value`
+   (`e0062`), suggesting `bindValueTo` and `prefill`
+   (`ComponentType::input_from_value`; `extends_as` no longer relates an
+   input to a value it would hold). Open: the rest of §3's table in
+   `ComponentType::conversion`, replacing
    `extends_as` and `extend_reads`, with the text parse and show
    instructions, and §5's codes.
 4. Open: §1 and §2: `<math>` is always `Math`, values with entries, the
