@@ -218,8 +218,10 @@ fn census() {
     // `numDimensions` counts the entries of their value (ADR 0041, inside
     // the handle): 13 more, all dead. A number's display settings are its
     // props (ADR 0058), which the choices' interface number chooses among
-    // the cases' too: 6 more, dead.
-    assert!(golden[0] <= 140 && golden[1] == 203, "{golden:?}");
+    // the cases' too: 6 more, dead. A function's and a derivative's
+    // extrema (ADR 0061) are two searches, six entries, a merge and three
+    // counts: `symbolic.doenet`'s 24 more, all dead.
+    assert!(golden[0] <= 140 && golden[1] == 227, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

@@ -84,6 +84,17 @@ impl Engine {
         h
     }
 
+    /// The expression `h` names, for an operation of the engine kept in a
+    /// module of its own (`sym::extrema`).
+    pub(crate) fn expr(&self, h: Handle) -> &Expr {
+        &self.exprs[h.index()]
+    }
+
+    /// Store `e` (`push`), for such an operation.
+    pub(crate) fn store(&mut self, e: Expr) -> Handle {
+        self.push(e)
+    }
+
     /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
     /// only a tree whose leaves are cells makes a template `instantiate`
     /// can fill.
@@ -683,7 +694,7 @@ fn minus(a: Expr, b: Expr) -> Expr {
 
 /// A number as the engine spells it: the infinities are constants, since a
 /// float infinity does not evaluate.
-fn number(v: f64) -> Expr {
+pub(crate) fn number(v: f64) -> Expr {
     if v == f64::INFINITY {
         Expr::Const(me::MathConst::Inf)
     } else if v == f64::NEG_INFINITY {
@@ -701,7 +712,7 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
 }
 
 /// Whether `e` holds the blank expression anywhere.
-fn has_blank(e: &Expr) -> bool {
+pub(crate) fn has_blank(e: &Expr) -> bool {
     matches!(e, Expr::Blank) || e.children().into_iter().any(has_blank)
 }
 

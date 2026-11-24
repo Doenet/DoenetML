@@ -175,7 +175,37 @@ pub enum SymKind {
     /// list's, tuple's or vector's, 1 for a scalar, a number (no handle)
     /// or the blank expression.
     Count,
+    /// The local minima, the global minimum and the infimum of a function
+    /// of one variable (input 0 its `xscale`, then its domain and pieces as
+    /// [`SymKind::EvalFunction`] reads them), or its maxima, maximum and
+    /// supremum when `max` (ADR 0061): the tuple of a list of points `(x,
+    /// f(x))` and two points, each the empty list when there is none, as
+    /// the current core's `utils/extrema.js` searches. A `piecewise` one's
+    /// pieces are searched each on what of the domain is theirs.
+    Extrema {
+        /// The maxima.
+        max: bool,
+        /// What the pieces are.
+        of: crate::sym::extrema::Pieces,
+    },
+    /// The points of the lists in inputs 0 and 1 in order of their
+    /// locations: a function's minima and maxima as its extrema (ADR 0061).
+    MergeExtrema,
+    /// The pieces of the spline through `n` given points (ADR 0061): input
+    /// 0 the `xscale`, 1 the `yscale`, 2 the variable's math cell, then
+    /// [`INTERPOLATE_POINT_CELLS`] per point (its kind and which of its
+    /// coordinates and slope are given, then its `x`, `y` and slope).
+    /// Writes the pieces as one value (a list of tuples, for a reader),
+    /// then five cells per piece, as many as `3 n + 1`: its expression and
+    /// its domain, the rest left out.
+    Interpolate {
+        /// How many points are given.
+        n: u8,
+    },
 }
+
+/// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
+pub const INTERPOLATE_POINT_CELLS: usize = 4;
 
 /// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
 pub const BEZIER_POINT_CELLS: usize = 7;
@@ -354,6 +384,10 @@ impl SymKind {
             | SymKind::SampleFunction
             | SymKind::SampleBezier { .. } => SAMPLES,
             SymKind::Order { n, .. } => n as usize,
+            SymKind::Interpolate { n } => {
+                1 + crate::sym::interpolate::PIECE_OUT
+                    * crate::sym::interpolate::max_pieces(n as usize)
+            }
             _ => 1,
         }
     }
@@ -418,6 +452,8 @@ impl SymKind {
                 | SymKind::DerivativeBy
                 | SymKind::Subset { .. }
                 | SymKind::Entry
+                | SymKind::Extrema { .. }
+                | SymKind::MergeExtrema
         )
     }
 }
@@ -550,6 +586,9 @@ impl OpSpec {
                 | SymKind::Compare { .. }
                 | SymKind::Entry,
             ) => 2,
+            OpSpec::Sym(SymKind::Extrema { .. }) => usize::MAX,
+            OpSpec::Sym(SymKind::MergeExtrema) => 2,
+            OpSpec::Sym(SymKind::Interpolate { n }) => 3 + INTERPOLATE_POINT_CELLS * *n as usize,
             _ => unreachable!(),
         }
     }
@@ -572,6 +611,10 @@ impl OpSpec {
             }
             OpSpec::Sym(SymKind::SampleBezier { .. }) => {
                 n > 1 && (n - 1).is_multiple_of(BEZIER_POINT_CELLS)
+            }
+            // The `xscale`, the domain and any number of pieces.
+            OpSpec::Sym(SymKind::Extrema { .. }) => {
+                n > DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
             _ => self.arity() == n,
         }
@@ -744,6 +787,12 @@ mod arity {
                 dist: crate::program::Dist::Uniform,
                 n_exclude: 0,
             }),
+            OpSpec::Sym(SymKind::Extrema {
+                max: true,
+                of: crate::sym::extrema::Pieces::One,
+            }),
+            OpSpec::Sym(SymKind::MergeExtrema),
+            OpSpec::Sym(SymKind::Interpolate { n: 2 }),
         ]);
         ops
     }
@@ -817,12 +866,16 @@ mod arity {
                     SymKind::Entry => 26,
                     SymKind::Count => 27,
                     SymKind::JoinWith { .. } => 28,
+                    // 29 would be vector tag 57 (Moments).
+                    SymKind::Extrema { .. } => 30,
+                    SymKind::MergeExtrema => 31,
+                    SymKind::Interpolate { .. } => 32,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 58;
+    const N_TAGS: usize = 61;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -843,6 +896,7 @@ mod arity {
                 OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
+                OpSpec::Sym(SymKind::Extrema { .. }) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 _ if spec.arity() == usize::MAX => 2,
                 _ => spec.arity(),
             };

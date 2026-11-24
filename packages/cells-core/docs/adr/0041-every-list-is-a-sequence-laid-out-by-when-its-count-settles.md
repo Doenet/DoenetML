@@ -746,15 +746,26 @@ otherwise.
      done: the count follows the value with no cap, so such a list is
      structural (a rebuild per count), the structural list of step 4,
      which no planner reads yet. `<math>$mi</math>` reads the value
-     whole, as before.
-   - A function's maxima, minima and extrema are not done. They have no
-     cap the type knows (the current core searches a grid of a thousand
-     cells and recurses, `utils/extrema.js`), so by decision 2 they stay
-     inside the handle, a math cell holding a list of `(x, f(x))` tuples,
-     which `$f.maxima[1][2]` addresses as above. What is missing is the
-     numerical search itself (bracketing the derivative's sign changes,
-     Brent minimization, the exact critical points of a rational
-     derivative), a port of about a thousand lines.
+     whole, as before. Still open after the extrema (2026-11-24), with
+     `<pointList extend="$f.extrema"/>`, the same list over a prop's
+     value: a list element is laid out when outlining meets it, before
+     the type of what its one reference names is known, so a list that
+     is structural by its referent would be made a repeat-like element
+     with a body after the names settle (as `<repeat for>`'s item is),
+     and an operator reading one needs the items gathered per build, or
+     a symbolic reduction inside the handle instead of a rebuild.
+   - A function's maxima, minima and extrema: *done 2026-11-24* (ADR
+     0061). They have no cap the type knows (the current core searches a
+     grid of a thousand cells and recurses, `utils/extrema.js`), so by
+     decision 2 they stay inside the handle, a math cell holding a list
+     of `(x, f(x))` tuples, which `$f.maxima[1][2]` addresses as above.
+     One search per direction (`SymKind::Extrema`, a port of the current
+     core's) writes the local, global and infimum ones as one value its
+     props are entries of. `<pointList extend="$f.extrema"/>`, a list
+     whose count follows that value, is the structural list of step 4,
+     not done. An interpolated function (a `<function>` through points,
+     maxima and minima) is a capped list of cubic pieces, its count `3 n +
+     1` for `n` points given (ADR 0061), and its extrema its pieces'.
    - A matrix's entries (`$A[i][j]`) are not entries of a list head: the
      engine's matrix is not a sequence of rows yet.
    - A write through an entry of a `<math createVectors>$m</math>` is

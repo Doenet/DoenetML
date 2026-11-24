@@ -1523,6 +1523,24 @@ describe("function operators and triangles", () => {
         expect(resampled.numericalVertices[199]).toEqual([2, 1]);
     });
 
+    it("draws a function through points as a curve through its samples, which follow the points", async () => {
+        // A spline (ADR 0061): through P, (8,4) and a maximum at (5,6).
+        const { all, send } = await open(`<graph xmin="0" xmax="8">
+<point name="P">(0,5)</point>
+<function name="f" through="$P (8,4)" maxima="(5,6)"/>
+</graph>`);
+        const [curve] = all("polyline");
+        const samples = (curve.data as any).props.numericalVertices;
+        expect(samples).toHaveLength(200);
+        expect(samples[0][0]).toBe(0);
+        expect(samples[0][1]).toBeCloseTo(5);
+        expect(samples[199][1]).toBeCloseTo(4);
+        // A drag of a point it passes through resamples it.
+        const payload = send("point", "move", { x: 0, y: 3 });
+        const moved = payload[curve.data.id]?.changedState as any;
+        expect(moved.numericalVertices[0][1]).toBeCloseTo(3);
+    });
+
     it("draws a triangle as a polygon and moves its vertices", async () => {
         const { all, send } = await open(`<graph>
 <triangle vertices="(1,1) (3,1)"/>
