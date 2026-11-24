@@ -454,7 +454,7 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
             `${list}<repeat name="r" for="1" valueName="v">$x</repeat><math name="e" extend="$r[1]"/>`,
         );
         const expected = [
-            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$r[1]` holds 3. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$r[1]</math>`.",
+            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$r[1]` holds 3. To use one of them, write `$r[1][1]`. To read them all as one value, write `<math>$r[1]</math>`.",
         ];
         expect(d.diagnostics()).eqls(expected);
         expect(await d.typeOf("e")).eq("_error");
@@ -484,6 +484,33 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
             `${list}<group name="h">$x</group><math name="e" extend="$h"/>`,
         );
         expect(d.errorCodes()).eqls(["doenet-e0064"]);
+    });
+
+    it("the message's index names an entry, or says to name the list", async () => {
+        // An entry has no name of its own: the message gives an index that
+        // names one, and the form it gives works.
+        const h = await load(
+            `${list}<group name="h">$x</group><math name="e" extend="$h"/><math name="f" extend="$h[1]"/>`,
+        );
+        expect(h.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$h` holds 3. To use one of them, write `$h[1]`. To read them all as one value, write `<math>$h</math>`.",
+        ]);
+        expect(await h.text("f")).eq("1");
+        const r = await load(
+            `<repeat name="r" for="1"><mathList>1 2</mathList></repeat><math name="e" extend="$r[1]"/><math name="f" extend="$r[1][2]"/>`,
+        );
+        expect(r.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$r[1]` holds 2. To use one of them, write `$r[1][1]`. To read them all as one value, write `<math>$r[1]</math>`.",
+        ]);
+        expect(await r.text("f")).eq("2");
+        // `$cc[1]` is the shown case, so `$cc[1]` is not suggested
+        const c = await load(
+            `<conditionalContent name="cc"><case condition="true"><mathList name="l">1 2</mathList></case></conditionalContent><math name="e" extend="$cc"/><math name="f" extend="$cc.l[1]"/>`,
+        );
+        expect(c.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$cc` holds 2. To use one of them, write an index after the name of the `<mathList>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<math>$cc</math>`.",
+        ]);
+        expect(await c.text("f")).eq("1");
     });
 
     it("a list beside another component counts its entries", async () => {

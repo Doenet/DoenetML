@@ -1357,11 +1357,14 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # whose $attribute (`numToSelect` or `numSamples`) is not written as 1;
 # `anyNumber` for a composite such as a `<repeat>` or `<collect>`, which can
 # hold any number; and `count` when it, or one $part of it (`case`,
-# `option` or `iteration`), holds $count components. $sourceType is the tag
-# of the composite the reason is about, which may be one $source holds, or
-# the one `$source` indexes (an iteration of a `<repeat>`). $holdsNothing is
+# `option` or `iteration`), holds $count components, or (`entries`) it holds
+# a list alone whose entries, written out, are $count. $sourceType is the tag
+# of the composite the reason is about (with `entries`, of the list), which
+# may be one $source holds, or the one `$source` indexes (an iteration of a
+# `<repeat>`). $holdsNothing is
 # "true" when $count is zero. $indexSelectsOne is "true" when `$source[1]`
-# names one component, so the message suggests it. `numToSelect`, `<else>`
+# names one component (with `entries`, the list's first entry), so the
+# message suggests it; an entry has no name of its own. `numToSelect`, `<else>`
 # and the tags are DoenetML and stay in English.
 type-change-composite-not-one =
     { $reason ->
@@ -1386,6 +1389,10 @@ type-change-composite-not-one =
                 [true] nothing
                *[other] { $count }
             }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [entries] { $indexSelectsOne ->
+                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]`. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write an index after the name of the `<{ $sourceType }>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            }
            *[other] { $holdsNothing ->
                 [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
                *[other] { $indexSelectsOne ->

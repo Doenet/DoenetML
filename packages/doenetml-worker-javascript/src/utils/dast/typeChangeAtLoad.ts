@@ -1973,12 +1973,19 @@ export function checkTypeChangesAtLoad({
                         attribute: notOne.attribute,
                     }),
                     // `$x[1]` names one component only of the composite named
+                    // (`$s[1]`); of a list held alone (`entries`), the
+                    // list's first entry when `$x` is a group (`$g[1]`) or
+                    // an item (`$r[1][1]`), not a `<conditionalContent>` or
+                    // a `<select>` itself, whose `$cc[1]` is the case
                     indexSelectsOne:
-                        direct &&
-                        tag === sourceTag &&
-                        (notOne.reason === "numToSelect" ||
-                            (notOne.reason === "anyNumber" &&
-                                HOLD_ANY_NUMBER.has(tag)))
+                        (direct &&
+                            tag === sourceTag &&
+                            (notOne.reason === "numToSelect" ||
+                                (notOne.reason === "anyNumber" &&
+                                    HOLD_ANY_NUMBER.has(tag)))) ||
+                        (notOne.reason === "count" &&
+                            notOne.part === "entries" &&
+                            (!direct || sourceTag === "group"))
                             ? "true"
                             : "false",
                 },
