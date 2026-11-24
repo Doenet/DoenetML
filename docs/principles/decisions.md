@@ -3497,6 +3497,9 @@ each following the recommendation except where noted:
 18. **A `<module>`'s declared boolean written with no value is `true`** (#2013), as for a built-in
     attribute, and a declared number left empty is `e0072` (COMP-13).
 
+**Done so far:** decisions 2 and 15 by #2671 (with #1874, #1873, #2097, #1853, #1279, #1565 from
+the sweep); decision 14 by #2634 (closing #2630 and #388).
+
 Also from the sweep: 34 issues were closed as fixed, superseded or duplicates (with #2156, answered
 by D65 decision 7), and the rest still broken were scheduled in #2509 (PRs 51–60) under rules
 already decided.

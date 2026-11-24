@@ -432,12 +432,18 @@ type is **`doenet-w0205`**; an award with content in an answer with several inpu
 **`doenet-w0206`**, and with a `forAnswer` input **`doenet-w0207`**. A bare reference to a
 `<when>` is a boolean value, so `<answer>$w</answer>` adds a `<booleanInput>`.
 
-**Known violations** (#2657): an `<award copy>` from outside the answer keeps its source's reading
-of plain text and can earn 0 silently; a false `w0206`/`w0207` for an indexed reference to a
-composite holding a `<when>`; content of another type inside a composite gets no `w0205`. Decided
-(D67 decisions 2–5): an answer's `type` is matched exactly, `videoWatched` included; `w0205` alone
-where it and `w0203` would both fire; a warning names a reference's value; `w0078` at the
-attribute. **Fixed by #2658** (D70): a boolean answer no longer credits "false" for plain text
+**Fixed by #2671** (closing #2657; D67 decisions 2–5): an `<award copy>` from outside the answer
+reads plain text as the answer's type; no false `w0206`/`w0207` for an indexed reference to a
+composite holding a `<when>`; content of another type inside a composite gets `w0205`; `w0205` alone
+where it and `w0203` would both fire; a warning names a reference's value (`$ti` gives a `text`);
+`w0078` at the attribute; `type` trimmed. An `<award>` inside a composite in an answer (a group,
+an option, a case, an iteration) is the answer's award (COMP-1). Left: `w0197` for `type` in
+another case (PR 49, #2647).
+
+**An answer's `<label>` labels its one written input** (D66 decision 2; done by #2671): with
+several inputs, or an input with a label of its own, it labels none, with **`doenet-w0209`**. Left
+(#2580): an input written inside a `<group>` in the answer, or with `copy`, doesn't take it, with no
+warning. **Fixed by #2658** (D70): a boolean answer no longer credits "false" for plain text
 whose operand the boolean–number rule blanks (`<award>$b = 1</award>`) or that names nothing: the
 logic is missing, and a missing value equals nothing.
 
