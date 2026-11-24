@@ -1335,12 +1335,19 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
                 references: `[$g[2]]`,
                 text: `[2]`,
             },
-            // a `<conditionalContent>`: the case it shows, and then into it
+            // a `<conditionalContent>`: into what it shows (D72), as `$cc[2]`
             {
                 before: `<conditionalContent name="cc"><case condition="false"><math>(1,2)</math></case><else><math>(3,4)</math></else></conditionalContent>`,
                 holds: `$cc`,
-                references: `[$g[1]] [$g[1][2]]`,
-                text: `[(3, 4)] [4]`,
+                references: `[$g[1]] [$g[2]]`,
+                text: `[3] [4]`,
+            },
+            // a one-pick `<select>`: into its pick (D72), as `$s[2]`
+            {
+                before: `<select name="s"><option><point>(5,6)</point></option></select>`,
+                holds: `$s`,
+                references: `[$g[1]] [$g[2]]`,
+                text: `[5] [6]`,
             },
             // a group holding one component: that component
             {
@@ -1506,8 +1513,8 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
 
     it("passes an index after a group holding a reference to a group holding a reference to a composite", async () => {
         // `$x` stands for `x`, which stands for what `$cc` or `$r` names, so
-        // `$g` indexes as `$cc` or `$r` does, and counts as one component
-        // when beside others
+        // `$g` indexes as `$cc` or `$r` does (into what `cc` shows, D72),
+        // and counts as one component when beside others
         const { text, warnings } = await textAndWarnings(`
     <conditionalContent name="cc"><case condition="true"><math>(4,5)</math></case></conditionalContent>
     <group name="x">$cc</group>
@@ -1516,9 +1523,9 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
     <repeat name="r" for="1 2" valueName="v"><math>($v,9)</math></repeat>
     <group name="y">$r</group>
     <group name="h">$y</group>
-    <p name="p">[$g[1]] [$g[1][2]] [$s[2]] [$h[2]] [$h[2][1]]</p>
+    <p name="p">[$g[1]] [$g[2]] [$s[2]] [$h[2]] [$h[2][1]]</p>
     `);
-        expect(text).eq("[(4, 5)] [5] [5] [(2, 9)] [2]");
+        expect(text).eq("[4] [5] [5] [(2, 9)] [2]");
         expect(warnings).eqls([]);
 
         const several = await shownAndReported(`

@@ -24,6 +24,7 @@
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 import type { ReferenceContent } from "@doenet/doenetml-worker";
 import { refResolutionAt } from "./referenceSlot";
+import { showsOneThing } from "./numItems";
 
 /**
  * What a warning calls the instances of a composite: the `iteration`s of a
@@ -143,7 +144,10 @@ function namesInstances(
     unresolvedPath: unknown,
     componentInfoObjects: ComponentInfoObjects,
 ): boolean {
-    if (!referent || unresolvedPath !== null) {
+    if (!referent || unresolvedPath !== null || showsOneThing(referent)) {
+        // A `<conditionalContent>` or a one-pick chooser is not a
+        // collection (D72): a reference to one stands for what it shows,
+        // which an index reaches into.
         return false;
     }
     const componentType = referent.componentType;

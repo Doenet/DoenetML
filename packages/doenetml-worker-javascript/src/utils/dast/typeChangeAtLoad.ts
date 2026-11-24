@@ -4756,6 +4756,71 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The `<conditionalContent>` or one-pick `<select>` an index of the
+     * reference of `copy` comes right after, for `checkIndexIntoBranches`:
+     * read as `[1]` before it when the resolver stopped at it
+     * (`oneShownIndexAtLoad.ts`), or after names it left unresolved that
+     * name one such container through a copy (`$m2.s[1]` of a `<module
+     * name="m2" extend="$m"/>`). `realIndices` is how many indices the author
+     * wrote there, and `whole` whether nothing follows them. `undefined` for
+     * any other reference.
+     */
+    function indexIntoBranchesOf(copy: SerializedComponent):
+        | {
+              container: SerializedComponent;
+              realIndices: number;
+              whole: boolean;
+          }
+        | undefined {
+        const ref = refOf(copy);
+        const path: any[] = ref?.unresolvedPath ?? [];
+        if (!ref || ref.nodeIdx < 0 || path.length === 0) {
+            return undefined;
+        }
+        const [first] = path;
+        if (first.name === "") {
+            if (
+                !isShownIndex(first.index?.[0]) ||
+                (first.index?.length ?? 0) < 2
+            ) {
+                return undefined;
+            }
+            const container = branchContainerAt(ref.nodeIdx);
+            return container
+                ? {
+                      container,
+                      realIndices: first.index.length - 1,
+                      whole: path.length === 1,
+                  }
+                : undefined;
+        }
+        // names, the last with an index (`$m2.s[1]`), through a copy
+        const at = path.findIndex((part) => (part.index ?? []).length > 0);
+        if (at < 0 || path.slice(0, at + 1).some((part) => !part.name)) {
+            return undefined;
+        }
+        const named = descendantsNamed(ref.nodeIdx, [
+            ...path.slice(0, at),
+            { ...path[at], index: [] },
+        ]);
+        if (!named || named.length !== 1) {
+            return undefined;
+        }
+        const [node] = named;
+        if (
+            node.componentType !== "conditionalContent" &&
+            !node.doenetAttributes?.onePick
+        ) {
+            return undefined;
+        }
+        return {
+            container: node,
+            realIndices: path[at].index.length,
+            whole: at === path.length - 1,
+        };
+    }
+
+    /**
      * An index right after a `<conditionalContent>` or a `<select>` that
      * picks one reaches into what the case or pick shown holds (D72, read
      * as `[1]` before it here, `oneShownIndexAtLoad.ts`). It means one thing
@@ -4771,18 +4836,11 @@ export function checkTypeChangesAtLoad({
      * from an entry of what each holds, when that is a list or a math.
      */
     function checkIndexIntoBranches(copy: SerializedComponent) {
-        const ref = refOf(copy);
-        const [first] = ref?.unresolvedPath ?? [];
-        if (
-            !ref ||
-            ref.nodeIdx < 0 ||
-            first?.name !== "" ||
-            !isShownIndex(first.index?.[0]) ||
-            (first.index?.length ?? 0) < 2
-        ) {
+        const found = indexIntoBranchesOf(copy);
+        if (!found) {
             return false;
         }
-        const container = branchContainerAt(ref.nodeIdx);
+        const { container, realIndices, whole } = found;
         const branch = container && branchKind(container);
         const parts = branch && partsOf(container!, branch);
         if (!container || !branch || !parts || parts.length === 0) {
@@ -4862,8 +4920,8 @@ export function checkTypeChangesAtLoad({
         // of that type, decided here when it is a list's or a math's.
         if (
             types.length === 1 &&
-            first.index.length === 2 &&
-            ref.unresolvedPath.length === 1 &&
+            realIndices === 1 &&
+            whole &&
             isScalarTag(copy)
         ) {
             const [type] = types;

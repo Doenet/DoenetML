@@ -3124,6 +3124,7 @@ export default class Copy extends CompositeComponent {
         components,
         workspace,
         componentInfoObjects,
+        allDoenetMLs,
 
         resolveItem,
         publicAliasSubstitutions,
@@ -3849,6 +3850,7 @@ export default class Copy extends CompositeComponent {
 
                 let results = await this.recreateReplacements({
                     component,
+                    allDoenetMLs,
                     sourceNum,
                     numReplacementsSoFar,
                     numNonStringReplacementsSoFar,
@@ -3937,6 +3939,7 @@ export default class Copy extends CompositeComponent {
 
             let results = await this.createReplacementForSource({
                 component,
+                allDoenetMLs,
                 sourceNum,
                 components,
                 nComponents,
@@ -4162,6 +4165,7 @@ export default class Copy extends CompositeComponent {
 
     static async recreateReplacements({
         component,
+        allDoenetMLs,
         sourceNum,
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
@@ -4178,6 +4182,7 @@ export default class Copy extends CompositeComponent {
 
         let results = await this.createReplacementForSource({
             component,
+            allDoenetMLs,
             sourceNum,
             numReplacementsSoFar,
             numNonStringReplacementsSoFar,

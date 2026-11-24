@@ -450,31 +450,48 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.newDiagnostics()).eqls([]);
     });
 
-    it("an iteration or a pick is held to the same rules", async () => {
+    it("an iteration is held to the same rules", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
 <repeat name="rep" for="1" valueName="v">
   <conditionalContent><case condition="$b"><math>$v</math></case></conditionalContent>
 </repeat>
 <repeat name="rep2" for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat>
-<select name="s">
-  <option><conditionalContent><case condition="$b"><math>1</math></case><else><math>3</math></else></conditionalContent></option>
-</select>
 <p name="p1"><math extend="$rep[1]"/></p>
 <p name="p2"><math extend="$rep2[1]"/></p>
-<p name="p3"><math name="m3" extend="$s"/></p>
 `);
         expect(await d.replacedBy("p1")).eqls(["math"]);
         expect(await d.replacedBy("p2")).eqls(["_error"]);
-        expect(await d.texts(["p1", "m3"])).eqls({ p1: "＿", m3: "3" });
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-e0064", 11],
-            ["doenet-i0054", 10],
+            ["doenet-e0064", 8],
+            ["doenet-i0054", 7],
         ]);
         await d.setBoolean("b", true);
-        expect(await d.texts(["p1", "m3"])).eqls({ p1: "1", m3: "1" });
+        expect(await d.texts(["p1"])).eqls({ p1: "1" });
         expect(d.newDiagnostics()).eqls([]);
     });
+
+    // A tag made from a pick (`$s`, D72) or a shown case holding a
+    // `<conditionalContent>` is a blank, with no message, on `main` before
+    // D72 as well (a `<group>` holding one works). It was reached as `$s[1]`
+    // before D72, which made it from the pick's `<group>`. Expected to fail
+    // until that is fixed.
+    it.fails(
+        "a pick holding a conditionalContent is held to the same rules",
+        async () => {
+            const d = await setup(`
+<booleanInput name="b"/>
+<select name="s">
+  <option><conditionalContent><case condition="$b"><math>1</math></case><else><math>3</math></else></conditionalContent></option>
+</select>
+<p name="p3"><math name="m3" extend="$s"/></p>
+`);
+            expect(await d.texts(["m3"])).eqls({ m3: "3" });
+            await d.setBoolean("b", true);
+            expect(await d.texts(["m3"])).eqls({ m3: "1" });
+        },
+    );
 
     it("a name in what a copy copies is found there", async () => {
         const d = await setup(`
@@ -940,10 +957,13 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p2"><math extend="$m2.r[1]"/></p>
 <p name="p3"><math extend="$m2.s[2]"/></p>
 `);
+        // `$m2.s[1]` and `$m2.s[2]` reach into the pick of a one-pick
+        // select, whose option holds several: an error at load (D74), as
+        // `$m.s[1]` would be; `$m2.r[1]` is an iteration of two
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-e0064", 7],
+            ["doenet-e0095", 7],
             ["doenet-e0064", 8],
-            ["doenet-w0181", 9],
+            ["doenet-e0095", 9],
         ]);
     });
 

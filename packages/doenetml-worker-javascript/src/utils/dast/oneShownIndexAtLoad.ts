@@ -83,8 +83,8 @@ export function readIndexIntoWhatIsShownAtLoad(
             }
             if (component.extending) {
                 references.push(component);
-                for (const part of unwrapSource(component.extending as any)
-                    ?.originalPath ?? []) {
+                const extending: any = unwrapSource(component.extending as any);
+                for (const part of extending?.originalPath ?? []) {
                     for (const index of part.index ?? []) {
                         collect(index.value ?? []);
                     }

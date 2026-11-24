@@ -5,6 +5,7 @@
  */
 
 import { Dependency, inErrorAtLoad } from "./Dependency";
+import { showsOneThing } from "../../utils/numItems";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
     branchCanChange,
@@ -1099,6 +1100,21 @@ export class RefResolutionDependency extends Dependency {
             refResolution.nodesInResolvedPath,
         );
 
+        // An index after a `<conditionalContent>` or a one-pick chooser
+        // passes through what it shows (D72), which the resolver keeps in
+        // place once it is withheld (a case no longer shown): the index
+        // names nothing then, as while no case is shown, and is reported so
+        // (DIAG-2, DIAG-6).
+        const withheldShown = this.withheldShownOnPath(refResolution);
+        if (withheldShown) {
+            this.reportIndexPastComposite(
+                composite,
+                withheldShown,
+                getReferenceAsWritten(),
+                [],
+            );
+        }
+
         if (refResolution.unresolvedPath === null) {
             // No unresolved path left, so we're done. An index that reached
             // a replacement its composite now withholds (an iteration past
@@ -1229,6 +1245,30 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * The `<conditionalContent>` or one-pick chooser (`showsOneThing`) whose
+     * shown case or pick `refResolution` passed through, when that is a
+     * replacement it now withholds (a case no longer shown), else
+     * `undefined`.
+     */
+    withheldShownOnPath(refResolution: any) {
+        const path: number[] = refResolution.nodesInResolvedPath ?? [];
+        for (const [ind, idx] of path.entries()) {
+            const component = this.dependencyHandler._components[idx];
+            const holder = component?.replacementOf;
+            if (
+                holder &&
+                // reached from the holder, by an index after it
+                path[ind - 1] === holder.componentIdx &&
+                showsOneThing(holder) &&
+                isWithheldReplacement(holder, component)
+            ) {
+                return holder;
+            }
+        }
+        return undefined;
     }
 
     /**

@@ -863,7 +863,9 @@ export function checkNamesAfterCollectionsAtLoad({
      *   (`$o[1].t.T`), read the same way in what is written in it, but not
      *   its value or index (`$o[1].v`, `namedBySetup`);
      * - one every branch stands for, through the one component each holds
-     *   (`$cc.x`, `$cc[1].x` of a case holding a list, COLL-3).
+     *   (`$cc.x` of a case holding a list, COLL-3), to which the suggestion
+     *   gives one index (`$cc[1].x`): an index after a
+     *   `<conditionalContent>` reaches into what it shows (D72).
      *
      * `undefined` when no collection is followed by a name or property.
      */
@@ -895,34 +897,12 @@ export function checkNamesAfterCollectionsAtLoad({
             container = itemAsBranch(node);
             itemOf = node;
         }
-        // Two indices, the first into the items of a repeat whose item holds
-        // one `<conditionalContent>` or `<select>`, the second into what
-        // that shows (`$o3[1][1].x`), read as one index into that
-        // container (`$cc[1].x`), so a collection every branch holds is
-        // reached as it is there (#2638 item 1).
-        let indexedTwice = false;
-        if (
-            !container &&
-            path.length > 1 &&
-            first?.name === "" &&
-            (first.index ?? []).length === 2 &&
-            node &&
-            takesItemIndex(node)
-        ) {
-            const content = contentOf(itemAsBranch(node).children![0] as any);
-            const [one] = content;
-            if (content.length === 1 && typeof one === "object") {
-                container = branches.containerAt(one.componentIdx, true);
-                indexedTwice = container !== undefined;
-            }
-        }
         if (!container) {
             return undefined;
         }
-        // after an index into the branch a container shows (`$cc[1]`), or
-        // into the items of a repeat (`$o[1]`)
-        const afterIndex = indexed || indexedTwice;
-        let inBranch = afterIndex;
+        // after an index into the picks of a `<select>` (`$s[2]`), or into
+        // the items of a repeat (`$o[1]`)
+        const afterIndex = indexed;
         let names: string[] = [];
         for (let at = afterIndex ? 1 : 0; at < path.length; at++) {
             const part = path[at];
@@ -954,11 +934,16 @@ export function checkNamesAfterCollectionsAtLoad({
                 if (!stood) {
                     return undefined;
                 }
+                // One index, for the collection: a `<conditionalContent>`
+                // or a one-pick `<select>` on the way takes none, as an
+                // index after one reaches into what it shows (D72), and an
+                // index into the picks or the items is written already
+                // (`afterIndex`).
                 return {
                     nodeIdx: stood.node.componentIdx,
                     at,
                     collection: stood.collection,
-                    index: "[1]".repeat(stood.levels + (inBranch ? 0 : 1)),
+                    index: "[1]",
                 };
             }
             if (declared === "types") {
@@ -982,7 +967,6 @@ export function checkNamesAfterCollectionsAtLoad({
             if (named.length === 0) {
                 return undefined;
             }
-            inBranch = false;
             const index = part.index ?? [];
             if (index.length > 0) {
                 // an index into one item of each (`$cc.r[1].q.Q`), read in
@@ -996,7 +980,6 @@ export function checkNamesAfterCollectionsAtLoad({
                 ) {
                     container = itemAsBranch(named[0]);
                     itemOf = named[0];
-                    inBranch = true;
                     names = [];
                     continue;
                 }
