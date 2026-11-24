@@ -201,6 +201,11 @@ impl<'a> Planning<'a> {
             // plan.
             ElemShape::Cloned => {
                 self.plan_bare_copy(t, e);
+                // A clone of a list over a math value (ADR 0063) has its
+                // own item, reading its own value.
+                if matches!(self.rd.own_row(t, e).body, Body::Repeat { .. }) {
+                    self.plan_iteration_names(t, e);
+                }
                 Ok(())
             }
             // The synthesized root; the other synthesized elements are

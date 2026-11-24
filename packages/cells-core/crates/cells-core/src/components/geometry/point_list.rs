@@ -18,6 +18,7 @@ component! {
     /// shape's (`extend_value: List`).
     tags: ["pointList"],
     flags: [copyable, located],
+    over_value: OverValuePointList,
     extend_value: List,
     default_prop: points,
     props {

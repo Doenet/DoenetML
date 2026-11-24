@@ -144,3 +144,93 @@ fn an_index_into_a_props_value_is_inside_its_handle() {
     assert!(v(&doc, "p9", "expr").is_nan());
     assert_eq!(reference::check(&doc), None);
 }
+
+/// A list whose content is one reference to a math value is a list over
+/// it (ADR 0063): its count follows the value, a change of it a rebuild,
+/// and a write through an entry writes the value.
+#[test]
+fn a_list_over_a_math_inputs_value_follows_it() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="1, x, 3"/>
+           <p name="p"><mathList name="l">$mi</mathList></p>
+           <p name="q"><numberList name="nl">$mi</numberList></p>
+           <mathInput name="w" bindValueTo="$l[2]"/>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "1, x, 3");
+    assert_eq!(text(&doc, "q"), "1, NaN, 3");
+    assert!(doc.resolve_path("l[3]").is_some());
+    type_into(&mut doc, "mi", "a, b");
+    assert_eq!(text(&doc, "p"), "a, b");
+    assert!(doc.resolve_path("l[3]").is_none());
+    type_into(&mut doc, "w", "c");
+    assert_eq!(expr(&doc, "mi", "expr"), "a, c");
+    // A value that is no list is one entry: a tuple too.
+    type_into(&mut doc, "mi", "(1, 2)");
+    assert_eq!(text(&doc, "p"), "(1, 2)");
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// A point list over a function's extrema has a point per extremum, and
+/// none for a global maximum there is not (ADR 0063).
+#[test]
+fn a_point_list_over_a_functions_extrema_has_a_point_each() {
+    let doc = load(
+        r#"<function name="f">x^4-8x^2+8</function>
+           <p name="mn"><pointList name="l" extend="$f.minima"/></p>
+           <p name="gmin"><pointList name="g" extend="$f.globalMinimum"/></p>
+           <p name="gmax"><pointList name="h" extend="$f.globalMaximum"/></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "mn"), "(-2, -8), (2, -8)");
+    assert_eq!(text(&doc, "gmin"), "(-2, -8)");
+    assert_eq!(text(&doc, "gmax"), "");
+    assert_eq!(v(&doc, "l[2]", "x"), 2.0);
+    assert!(doc.resolve_path("h[1]").is_none());
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// A copied container's clone of a list over a math value is one too,
+/// its entries following the value as the original's do (ADR 0063).
+#[test]
+fn a_clone_of_a_list_over_a_value_follows_the_value() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="1, 2"/>
+           <section name="s"><p name="p"><mathList name="l">$mi</mathList></p></section>
+           <section name="s2" extend="$s"/>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "s2.p"), "1, 2");
+    type_into(&mut doc, "mi", "a, b, c");
+    assert_eq!(text(&doc, "s2.p"), "a, b, c");
+    assert!(doc.resolve_path("s2.l[3]").is_some());
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// An operator over one math value reduces its entries inside the value
+/// (ADR 0063): no rebuild, and a number where they are numbers.
+#[test]
+fn an_operator_over_a_math_value_reduces_its_entries() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="1, 2, 3"/>
+           <sum name="s">$mi</sum><mean name="m">$mi</mean><count name="c">$mi</count>
+           <max name="mx">$mi</max><median name="md">$mi</median>
+           <variance name="va" population>$mi</variance>
+           <mathList name="l">$mi</mathList><count name="cl">$l</count>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "s", "value"), 6.0);
+    assert_eq!(v(&doc, "m", "value"), 2.0);
+    assert_eq!(v(&doc, "c", "value"), 3.0);
+    assert_eq!(v(&doc, "mx", "value"), 3.0);
+    assert_eq!(v(&doc, "md", "value"), 2.0);
+    assert!(close(v(&doc, "va", "value"), 2.0 / 3.0));
+    assert_eq!(v(&doc, "cl", "value"), 3.0);
+    type_into(&mut doc, "mi", "x, y");
+    assert_eq!(expr(&doc, "s", "expr"), "x + y");
+    assert_eq!(v(&doc, "c", "value"), 2.0);
+    type_into(&mut doc, "mi", "4");
+    assert_eq!(v(&doc, "s", "value"), 4.0);
+    assert_eq!(v(&doc, "c", "value"), 1.0);
+    assert_eq!(reference::check(&doc), None);
+}

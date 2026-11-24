@@ -12,6 +12,7 @@ use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptio
 
 use super::compare::CompareOpts;
 use super::{Handle, Leaf, Shape, Tree};
+use crate::program::Reduction;
 
 /// The symbolic engine: every math expression a document holds, by handle, and
 /// the operations on them.
@@ -499,6 +500,107 @@ impl Engine {
             _ => return Self::entry_at(k, 1).map(|_| d),
         };
         Some(self.push(out))
+    }
+
+    /// The items of `e` read as a list's entries (ADR 0063, ADR 0041
+    /// decision 5's `mergeMathLists`): a list's items; none for anything
+    /// else, which is one entry, itself.
+    fn list_items(e: &Expr) -> Option<&[Expr]> {
+        match e {
+            Expr::Seq(me::expr::SeqKind::List, xs) => Some(xs),
+            _ => None,
+        }
+    }
+
+    /// How many entries `h` holds read as a list's (ADR 0063): a list's
+    /// items, else 1 (a tuple, a point, a scalar, the blank expression).
+    pub fn list_count(&self, h: Handle) -> usize {
+        Self::list_items(&self.exprs[h.index()]).map_or(1, <[_]>::len)
+    }
+
+    /// Entry `k` (1-based) of `h` read as a list's (ADR 0063): a list's
+    /// item, else `h` itself as entry 1; none past the count or for an
+    /// index that is no integer.
+    pub fn list_item(&mut self, h: Handle, k: f64) -> Option<Handle> {
+        match Self::list_items(&self.exprs[h.index()]) {
+            Some(xs) => {
+                let x = xs[Self::entry_at(k, xs.len())?].clone();
+                Some(self.push(x))
+            }
+            None => Self::entry_at(k, 1).map(|_| h),
+        }
+    }
+
+    /// `h` with entry `k` (1-based), read as a list's, replaced by `d`:
+    /// the list with that item replaced, or `d` itself for entry 1 of
+    /// what is no list. None for an index that names no entry.
+    pub fn with_list_item(&mut self, h: Handle, k: f64, d: Handle) -> Option<Handle> {
+        let dx = self.exprs[d.index()].clone();
+        match &self.exprs[h.index()] {
+            Expr::Seq(me::expr::SeqKind::List, xs) => {
+                let i = Self::entry_at(k, xs.len())?;
+                let mut xs = xs.clone();
+                xs[i] = dx;
+                Some(self.push(Expr::Seq(me::expr::SeqKind::List, xs)))
+            }
+            _ => Self::entry_at(k, 1).map(|_| d),
+        }
+    }
+
+    /// The reduction `op` of the entries of `h`, read as a list's (ADR
+    /// 0063), as an operator over those entries spells it (ADR 0043): a
+    /// sum, a product, the mean as the sum over the count, a call of the
+    /// function (`min`, `max`, `gcd`, `lcm`, `median`), `mod` of exactly
+    /// two, and the variance (a `population`'s, else a sample's) or its
+    /// square root. The blank expression for none, or for `mod` of any
+    /// other number.
+    pub fn reduce_entries(&mut self, h: Handle, op: Reduction, population: bool) -> Handle {
+        let xs: Vec<Expr> = match Self::list_items(&self.exprs[h.index()]) {
+            Some(xs) => xs.to_vec(),
+            None => vec![self.exprs[h.index()].clone()],
+        };
+        let n = xs.len();
+        if n == 0 {
+            return self.push(Expr::Blank);
+        }
+        let call = |f: &str, xs: Vec<Expr>| Expr::Apply(Box::new(Expr::sym(f)), xs);
+        let sum = |xs: Vec<Expr>| match <[Expr; 1]>::try_from(xs) {
+            Ok([x]) => x,
+            Err(xs) => Expr::Add(xs),
+        };
+        let e = match op {
+            Reduction::Sum => sum(xs),
+            Reduction::Product if n == 1 => xs.into_iter().next().expect("one entry"),
+            Reduction::Product => Expr::Mul(xs),
+            Reduction::Mean => Expr::Div(Box::new(sum(xs)), Box::new(number(n as f64))),
+            Reduction::Min => call("min", xs),
+            Reduction::Max => call("max", xs),
+            Reduction::Gcd => call("gcd", xs),
+            Reduction::Lcm => call("lcm", xs),
+            Reduction::Median => call("median", xs),
+            Reduction::Mod if n == 2 => call("mod", xs),
+            Reduction::Variance | Reduction::StandardDeviation => {
+                let squares = sum(xs
+                    .iter()
+                    .map(|x| Expr::Pow(Box::new(x.clone()), Box::new(number(2.0))))
+                    .collect());
+                let total = Expr::Pow(Box::new(sum(xs)), Box::new(number(2.0)));
+                let spread = Expr::Div(
+                    Box::new(minus(
+                        squares,
+                        Expr::Div(Box::new(total), Box::new(number(n as f64))),
+                    )),
+                    Box::new(number(if population { n } else { n - 1 } as f64)),
+                );
+                if op == Reduction::StandardDeviation {
+                    apply("sqrt", spread)
+                } else {
+                    spread
+                }
+            }
+            _ => Expr::Blank,
+        };
+        self.push(e)
     }
 
     /// `h` simplified.

@@ -46,16 +46,18 @@ component! {
         // Its extrema (ADR 0061), as the current core searches them: the
         // grid's width is 200 `xscale` where the domain is unbounded.
         xscale: by_planner,
-        minima: by_planner,
-        maxima: by_planner,
-        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]),
+        minima: by_planner { expr_when: minima },
+        maxima: by_planner { expr_when: maxima },
+        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]) {
+            expr_when: extrema
+        },
         numMinima: computed(OpSpec::Sym(SymKind::Count), [minima]),
         numMaxima: computed(OpSpec::Sym(SymKind::Count), [maxima]),
         numExtrema: computed(OpSpec::Sym(SymKind::Count), [extrema]),
-        globalMinimum: by_planner,
-        globalInfimum: by_planner,
-        globalMaximum: by_planner,
-        globalSupremum: by_planner,
+        globalMinimum: by_planner { expr_when: globalMinimum },
+        globalInfimum: by_planner { expr_when: globalInfimum },
+        globalMaximum: by_planner { expr_when: globalMaximum },
+        globalSupremum: by_planner { expr_when: globalSupremum },
         // An interpolated function's (ADR 0061): the height an extremum
         // stands out by, and its pieces as one value, for a reader.
         yscale: by_planner,

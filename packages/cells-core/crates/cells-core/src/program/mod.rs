@@ -600,6 +600,20 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 .map_or(MISSING, Handle::to_value)
         }
         SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
+        SymKind::ListItem => {
+            out[0] = handle(v(0))
+                .and_then(|h| engine.list_item(h, v(1)))
+                .map_or(MISSING, Handle::to_value)
+        }
+        // The missing value has no entries; a NaN that is no handle is
+        // one, as a number is (ADR 0063).
+        SymKind::ListCount => {
+            out[0] = match handle(v(0)) {
+                Some(h) => engine.list_count(h) as f64,
+                None if is_missing(v(0)) => 0.0,
+                None => 1.0,
+            }
+        }
         SymKind::Extrema { max, of } => {
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
             let found = crate::sym::extrema::search(engine, &vals[1..], vals[0], max, of);

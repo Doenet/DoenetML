@@ -7,6 +7,7 @@ mod answer;
 mod choice;
 mod copies;
 mod inner;
+mod over_values;
 mod repeat_items;
 
 use crate::compile::*;
@@ -40,6 +41,10 @@ struct Outlining<'a> {
     /// The `<repeat for>`s the walk found, whose items take the type of
     /// what `for` names once every name is in the table.
     repeat_items: Vec<(TemplateId, ElemId)>,
+    /// The lists that read as one reference, each a list over a math
+    /// value or not by what it names once every name is in the table (ADR
+    /// 0063).
+    over_values: Vec<(TemplateId, ElemId)>,
 }
 
 /// Outline `dast`, with what boxing records: what it settles, its rows of
@@ -79,6 +84,7 @@ impl<'a> Outlining<'a> {
             expanding: HashSet::new(),
             expanded: HashSet::new(),
             repeat_items: Vec::new(),
+            over_values: Vec::new(),
         }
     }
 
@@ -122,6 +128,7 @@ impl<'a> Outlining<'a> {
             self.expand_container_copies();
         }
         crate::trace::span("extends").run(|| self.plan_extends());
+        crate::trace::span("over values").run(|| self.settle_over_values());
         crate::trace::span("repeat items").run(|| self.settle_repeat_items());
         crate::trace::span("answer children").run(|| self.add_answer_children());
         crate::trace::span("inner inputs").run(|| self.add_inner_inputs());
@@ -390,6 +397,11 @@ impl<'a> Outlining<'a> {
         let name = self.rd().attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
         self.work.to_plan.push((t, e));
+        // A list that reads as one reference is a list over a math value
+        // or not by what it names, once names resolve (ADR 0063).
+        if self.may_be_over_value(el, component_type) {
+            self.over_values.push((t, e));
+        }
         if self.is_container_copy(t, e) {
             self.container_copies.push((t, e));
             self.outlined_mut(t).elems[e.index()].clones_pending = true;

@@ -332,6 +332,7 @@ pub(super) const fn definition(
         owner: None,
         rewrite: None,
         structural: None,
+        over_value: None,
         child_types: &[],
         settle: None,
         extend_value: None,
@@ -447,6 +448,12 @@ impl ComponentDef {
     /// ([`super::Structural`], ADR 0041).
     pub(super) const fn structural(mut self, structural: super::Structural) -> Self {
         self.structural = Some(structural);
+        self
+    }
+    /// The type of an element whose content is one reference to a math
+    /// value (ADR 0063).
+    pub(super) const fn over_value(mut self, ty: super::ComponentType) -> Self {
+        self.over_value = Some(ty);
         self
     }
     /// What outlining settles of an element of the type ([`super::Settle`]).
@@ -986,6 +993,7 @@ macro_rules! component {
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
+        $(over_value: $ovis:ident,)?
         $(child_types { $($cttag:ident : $ctty:ident),+ $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
@@ -1095,6 +1103,7 @@ macro_rules! component {
                     when: &[$(stringify!($stwhen)),+],
                     is: $crate::components::ComponentType::$stis,
                 }))?
+                $(.over_value($crate::components::ComponentType::$ovis))?
                 $(.child_types(&[$((stringify!($cttag), $crate::components::ComponentType::$ctty)),+]))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
