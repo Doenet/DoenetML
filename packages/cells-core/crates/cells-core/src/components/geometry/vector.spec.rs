@@ -86,4 +86,23 @@ spec! {
         request { "w.tail" = (5, 5), "w.head" = (5, 8) }
         expect { "v.displacement" = (0, 3), "v.head" = (0, 3) }
     }
+
+    case "an extend of a pair-valued prop is a vector of that displacement" {
+        // ADR 0073: the value is the vector's `displacement`; its tail is
+        // its own, and a drag writes the displacement back to the source.
+        doenet r#"<graph>
+                    <vector name="v" tail="(1,2)" head="(3,5)"/>
+                    <vector name="d" extend="$v.displacement"/>
+                    <vector name="d2" extend="$d"/>
+                    <ray name="r" through="(4,1)"/>
+                    <vector name="rd" extend="$r.direction"/>
+                  </graph>"#;
+        expect { "d.tail" = (0, 0), "d.head" = (2, 3), "d.displacement" = (2, 3),
+                 "d2.displacement" = (2, 3), "rd.displacement" = (4, 1) }
+        request { "d.tail" = (-4, -5), "d.head" = (-2, -8) }
+        expect { "d.tail" = (-4, -5), "d.displacement" = (2, -3), "d2.displacement" = (2, -3),
+                 "v.tail" = (1, 2), "v.head" = (3, -1) }
+        request { "v.tail" = (0, 0), "v.head" = (1, 1) }
+        expect { "d.tail" = (-4, -5), "d.head" = (-3, -4) }
+    }
 }

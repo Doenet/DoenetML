@@ -7,6 +7,7 @@
 
 use super::{PlanCtx, Planner, Planning};
 use crate::compile::*;
+use crate::components::{AttrKind, ChildrenKind};
 
 /// Planning, copies: `extend` with a prop path, container copies, clones, and
 /// the copy rules around a `Plan` type's planner. Reads the referent's record
@@ -52,9 +53,98 @@ impl<'a> Planning<'a> {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 vec![Source::absent(); component_type.prop_defs().len()]
             }
+            // `<vector extend="$v.displacement"/>`, `<numberList
+            // extend="$A.matrixSize"/>`: the value given as an attribute or
+            // as the children, planned by the type's planner (ADR 0073).
+            Some(ExtendValue::Attr(name)) => return self.plan_extend_prop_as_attr(t, e, p, name),
+            Some(ExtendValue::Children) => return self.plan_extend_prop_as_children(t, e, p),
             None => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
+        Ok(())
+    }
+
+    /// `extend="$x.prop"` on a type that reads the value as attribute
+    /// `name` (`ExtendValue::Attr`): its record with the reference as that
+    /// attribute, where the element wrote none, planned by its planner.
+    fn plan_extend_prop_as_attr(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+        name: &'static str,
+    ) -> Result<()> {
+        let component_type = self.rd.own_row(t, e).component_type;
+        let decls = component_type.def().attributes;
+        let i = decls
+            .iter()
+            .position(|d| d.name == name)
+            .expect("an extend_value attribute the type declares");
+        let value = match decls[i].kind {
+            AttrKind::Point => {
+                record::AttrValue::Point(record::PointAttr::Point(GivenPoint::Ref(p)))
+            }
+            AttrKind::Scalar | AttrKind::Value => record::AttrValue::Scalar(Source::reference(p)),
+            _ => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
+        };
+        let record = self.parsed.record(t, e)?.given_attr(i, value);
+        self.plan_record(t, e, component_type, record)
+    }
+
+    /// `extend="$x.prop"` on a type that reads the value as its children
+    /// (`ExtendValue::Children`): its record with the reference as its one
+    /// child, where the element wrote none, planned by its planner.
+    fn plan_extend_prop_as_children(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
+        let component_type = self.rd.own_row(t, e).component_type;
+        let kind = component_type.def().children.kind;
+        // A combined prop of a list (`$A.matrixSize`, `$v.displacement`)
+        // is a fixed sequence of cells: an entry each, each a reference to
+        // its part.
+        let plan = &self.ar.refs[p.index()];
+        let parts = match (kind, plan.prop) {
+            (ChildrenKind::List, Some(rp)) if plan.entries.is_empty() => rp.sel.parts().to_vec(),
+            _ => Vec::new(),
+        };
+        let record = self.parsed.record(t, e)?;
+        let record = if parts.is_empty() {
+            record.given_child_reference(p, kind)
+        } else {
+            let pieces = parts
+                .into_iter()
+                .map(|pi| {
+                    let mut part = self.ar.refs[p.index()].clone();
+                    let rp = part.prop.expect("a combined prop");
+                    part.prop = Some(RefProp::of(rp.of, PropSel::At(PropAt::Position(pi.into()))));
+                    record::ListPiece::Reference(self.ar.push_ref(part))
+                })
+                .collect();
+            Some(record.given_children(pieces))
+        };
+        let record =
+            record.ok_or_else(|| Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p)))?;
+        self.plan_record(t, e, component_type, record)
+    }
+
+    /// Plans element `e` from `record` by its type's planner, as an element
+    /// that extends nothing.
+    fn plan_record(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        component_type: ComponentType,
+        record: record::Record,
+    ) -> Result<()> {
+        let Planner::Plan(plan) = Self::planner(component_type) else {
+            unreachable!("a type that reads an extended value as given plans by a function")
+        };
+        let wiring = plan(&mut PlanCtx::new(self, t, e, record, Vec::new(), None))?;
+        if !wiring.given().is_empty() {
+            self.planned.given.insert((t, e), wiring.given().clone());
+        }
+        let (props, list) = wiring.finish();
+        let plan = &mut self.tables[t.index()].plans[e.index()];
+        plan.props = props;
+        plan.list = list;
         Ok(())
     }
 
@@ -316,6 +406,16 @@ impl<'a> Planning<'a> {
             (link_t, link) = (rt, r);
         }
         Ok((record, out))
+    }
+
+    /// Whether element node `el` writes an attribute other than `name` and
+    /// `extend`, or content, of its own.
+    pub(super) fn writes_own(&self, el: NodeId) -> bool {
+        let d = self.rd.dast;
+        d.attrs(el).any(|a| {
+            let n = d.attr_name(a);
+            n != "name" && n != "extend"
+        }) || self.writes_content(el)
     }
 
     /// Whether element node `el` writes content of its own: a child that

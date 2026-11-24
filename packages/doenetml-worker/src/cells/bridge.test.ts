@@ -794,6 +794,24 @@ describe("step 3 components", () => {
         expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
     });
 
+    // A text answer with no input types into one it makes (ADR 0067),
+    // compared as the current core compares texts.
+    it("draws a text answer's own text input and scores what is typed", async () => {
+        const { all, send, changed } = await open(
+            `<answer type="text">hello there</answer>`,
+        );
+        const [answer] = all("answer");
+        const [input] = all("textInput");
+        expect(answer.type === "element" && answer.children).toContainEqual({
+            id: input.data.id,
+            annotation: "original",
+        });
+        send("textInput", "updateImmediateValue", { text: " hello  there" });
+        send("textInput", "updateValue", {});
+        const payload = send("answer", "submitAnswer", {});
+        expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
+    });
+
     // A matrix input (ADR 0045): its label and size, and its rows of math
     // inputs, typed into as any math input; its size controls rebuild the
     // grid.
@@ -1481,6 +1499,18 @@ describe("random selections, sequences, reordering and list operators", () => {
         }
         expect(first[3].split(", ").map(Number).sort()).toEqual([1, 2, 3, 4]);
         expect((await open(source)).texts()).toEqual(first);
+    });
+
+    // A multivariate sample stands as its numbers, one per category, which
+    // sum to the draws (ADR 0067).
+    it("draws a multivariate sample's numbers, one per category", async () => {
+        const source = `<p><sampleMultivariateRandomNumber type="hypergeometric" numInCategories="5 3 2" numDraws="4"/></p>
+<p><sampleMultivariateRandomNumber type="hypergeometric" numInCategories="5 3 2" numDraws="10"/></p>`;
+        const [some, all] = (await open(source)).texts();
+        const counts = some.split(", ").map(Number);
+        expect(counts).toHaveLength(3);
+        expect(counts.reduce((a, c) => a + c, 0)).toBe(4);
+        expect(all).toBe("5, 3, 2");
     });
 
     it("draws a selectFromSequence's picks, and a copy showing them differently draws the same (ADR 0059)", async () => {

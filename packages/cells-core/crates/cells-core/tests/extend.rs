@@ -238,7 +238,7 @@ fn an_extend_across_related_types_is_the_value_as_that_type() {
         r#"<number name="n">3</number>
            <math name="m" extend="$n"/>
            <math name="sym">x</math><number name="k" extend="$sym"/>
-           <mathInput name="mi" extend="$n"/>
+           <mathInput name="mi" bindValueTo="$n"/>
            <textInput name="ti" prefill="hi"/><text name="t" extend="$ti"/>"#,
     )
     .unwrap();
@@ -561,4 +561,42 @@ fn a_math_extend_chain_reads_the_nearest_text() {
         let p = doc.rendered_text(doc.resolve_path("p").unwrap());
         assert_eq!(p, shown, "{src}");
     }
+}
+
+// An extend that names nothing (an unknown name, or a prop the referent
+// lacks, with or without an index) is warned where it is written, and the
+// element extends nothing where it is a container or writes attributes or
+// children of its own: a container keeps its own children, and any other
+// element is planned from its own record (ADR 0073). A bare extend of
+// nothing is the missing value (ADR 0046).
+#[test]
+fn an_extend_that_names_nothing_extends_nothing() {
+    let doc = load(
+        r#"<p name="p">Hello</p>
+           <p name="p2" extend="$p.badProp"> there</p>
+           <graph name="g" extend="$invalid"><point name="P" x="3"/></graph>
+           <point name="Pc" extend="$P"/>
+           <point name="Q" extend="$nowhere" x="2" y="5"/>
+           <point name="R"/>
+           <text name="t" extend="$R.notAProp[1]"/>
+           <text name="u" extend="$R.notAProp">u</text>"#,
+    )
+    .unwrap();
+    let errors: Vec<_> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == DiagnosticKind::Error)
+        .collect();
+    assert!(errors.is_empty(), "{errors:?}");
+    let warnings = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.kind == DiagnosticKind::Warning)
+        .count();
+    assert_eq!(warnings, 5, "{:?}", doc.diagnostics());
+    assert_eq!(doc.rendered_text(doc.resolve_path("p2").unwrap()), " there");
+    assert_eq!(v(&doc, "Pc", "x"), 3.0);
+    assert_eq!((v(&doc, "Q", "x"), v(&doc, "Q", "y")), (2.0, 5.0));
+    assert_eq!(doc.rendered_text(doc.resolve_path("t").unwrap()), "＿");
+    assert_eq!(doc.rendered_text(doc.resolve_path("u").unwrap()), "u");
 }

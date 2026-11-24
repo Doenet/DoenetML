@@ -633,6 +633,14 @@ impl<'a> SourceReader<'a> {
                             break;
                         }
                         if d.part_indices(part).next().is_some() {
+                            // An index on a prop the type lacks names
+                            // nothing, as the prop alone does (ADR 0046).
+                            if sel.is_none() {
+                                return Err(Error::UnknownProp {
+                                    name: self.elem_label(cur_t, e),
+                                    prop: component_type.canonical_prop(name).into(),
+                                });
+                            }
                             return Err(Error::PathTooDeep(display.to_string()));
                         }
                         // A prop name, or a coordinate of a point-valued prop

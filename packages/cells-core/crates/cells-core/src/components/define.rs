@@ -813,8 +813,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// attribute one of that type instead. `settle: Collects(Point,
 /// vertices)`, `CollectsByAttr(componentType, from)` or `FromMathText(f)`
 /// says what outlining settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
-/// `Point(f)`, `Expr(f)` or `List` says what `extend="$x.prop"` makes of
-/// the value ([`super::ExtendValue`]). `triggers { when: p }` says the
+/// `Point(f)`, `Expr(f)`, `List`, `Attr(name)` or `Children` says what
+/// `extend="$x.prop"` makes of the value ([`super::ExtendValue`]). `triggers { when: p }` says the
 /// rise of the 0/1 prop `p` presses it ([`super::Triggers`], ADR 0042),
 /// and `numbered:
 /// Titled(include, label, f)` how a number and title read
@@ -1400,6 +1400,12 @@ macro_rules! component {
     };
     (@extend_value List) => {
         $crate::components::ExtendValue::List
+    };
+    (@extend_value Attr($attr:ident)) => {
+        $crate::components::ExtendValue::Attr(stringify!($attr))
+    };
+    (@extend_value Children) => {
+        $crate::components::ExtendValue::Children
     };
     // What outlining settles of an element of the type.
     (@settle FromMathText($f:path)) => {

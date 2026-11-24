@@ -456,3 +456,11 @@ above, it is here.
   diff is unchanged (`programs` differs for `choices.doenet`, whose select
   gained its `numToSelect` port); `program::vector` holds the pick equal
   to the draw it made before, bit for bit.
+- *Done 2026-11-24 (ADR 0067):* `<sampleMultivariateRandomNumber
+  type="hypergeometric">`, a load-time draw like the samplers': a
+  `VecOp::Draws` of `Dist::MultivariateHypergeometric` over a constant
+  `numDraws` and constant category sizes (read after it, as excludes
+  are), its values one per category; the check holds every parameter
+  constant and leaves whether they describe a population to the draw,
+  which gives no value where they do not. A copy shares the draw (ADR
+  0059).

@@ -33,7 +33,20 @@ impl Outlining<'_> {
     fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let el = self.outlined(t).elems[e.index()].node;
-        if self.rd().reject_answer_attrs(el)? {
+        let text_answer =
+            self.rd().reject_answer_attrs(el)? || self.rd().answer_text_child(t, e, el).is_some();
+        // A text answer with no input of its own types into one it makes
+        // (ADR 0067).
+        if text_answer {
+            let has_input = self.rd().elem_children(t, e).into_iter().any(|k| {
+                self.outlined(t).elems[k.index()]
+                    .component_type
+                    .response()
+                    .is_some()
+            });
+            if !has_input {
+                self.add_implicit_input(t, e, Role::ImplicitTextInput);
+            }
             return Ok(());
         }
         let mut inputs = Vec::new();
@@ -53,7 +66,7 @@ impl Outlining<'_> {
         let needs_input =
             !self.rd().content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());
         if needs_input && d.attr(el, "response").is_none() && inputs.is_empty() {
-            self.add_implicit_input(t, e);
+            self.add_implicit_input(t, e, Role::ImplicitInput);
         }
         let mut keys = Vec::new();
         for form in &forms {
@@ -105,11 +118,12 @@ impl Outlining<'_> {
         r
     }
 
-    /// Add the `<mathInput>` DoenetML sugars into an answer that names no
-    /// input: an unbound input, first among the answer's children.
-    fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) {
+    /// Add the input DoenetML sugars into an answer that names none (the
+    /// type playing `role`: a `<mathInput>`, or a text answer's
+    /// `<textInput>`): an unbound input, first among the answer's children.
+    fn add_implicit_input(&mut self, t: TemplateId, e: ElemId, role: Role) {
         let mi = self
-            .push_elem(t, NodeId::NONE, Role::ImplicitInput.ty(), StrId::NONE, e)
+            .push_elem(t, NodeId::NONE, role.ty(), StrId::NONE, e)
             .expect("unnamed");
         self.outlined_mut(t).elems[e.index()]
             .children

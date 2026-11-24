@@ -85,8 +85,39 @@ impl<'a> Planning<'a> {
         if let Some(port) = self.plan_text_condition(t, e, nodes, wiring)? {
             return Ok(port);
         }
-        let (toks, src) = self.rd.math_tokens(&mut self.ar, t, e, nodes)?;
-        self.plan_condition_tokens(wiring, &toks, src, Compare::default())
+        let (toks, src) = self.condition_tokens(t, e, nodes)?;
+        let kinds = self.ref_kinds(t, &toks);
+        self.plan_condition_tokens(wiring, &toks, src, Compare::default(), kinds)
+    }
+
+    /// `math_tokens` for a condition, where a boolean may be read.
+    fn condition_tokens<'n>(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &'n [NodeId],
+    ) -> Result<(Vec<Token>, MathSrc<'n>)> {
+        let was = std::mem::replace(&mut self.ar.booleans_in_math, true);
+        let r = self.rd.math_tokens(&mut self.ar, t, scope, nodes);
+        self.ar.booleans_in_math = was;
+        r
+    }
+
+    /// What each reference among `toks` reads, where the templates tell.
+    fn ref_kinds(&self, t: TemplateId, toks: &[Token]) -> Vec<RefKind> {
+        toks.iter()
+            .filter_map(|tok| match tok {
+                Token::Cell(p) => Some(*p),
+                _ => None,
+            })
+            .filter_map(|p| {
+                Some(RefKind {
+                    p,
+                    kind: self.rd.ref_value_kind(&self.ar, t, p)?,
+                    node: self.ar.refs[p.index()].node,
+                })
+            })
+            .collect()
     }
 
     /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
@@ -124,6 +155,33 @@ impl<'a> Planning<'a> {
             ))
         };
         let Some((lhs, rhs, negate)) = split_equality(&spelled) else {
+            let lone = spelled
+                .trim()
+                .strip_prefix('\u{0}')
+                .and_then(|r| r.strip_suffix('\u{0}'))
+                .and_then(|k| k.parse::<usize>().ok());
+            // A text alone is not true or false (D68): a type mix.
+            if let Some(k) = lone {
+                let display = d.macro_display(refs[k]);
+                let message = not_a_boolean(&display, ValueKind::Text);
+                return Ok(Some(wiring.hidden(self.ar.type_mix(refs[k], &message))));
+            }
+            // A text ordered against a value can never hold (D58): a type
+            // mix, warned as one.
+            if spelled.contains(['<', '>']) {
+                let m = refs
+                    .iter()
+                    .copied()
+                    .find(|&m| self.rd.macro_reads_text(t, scope, m))
+                    .expect("a text reference among them");
+                let message = format!(
+                    "`${}` is a text: ordering it with `<` or `>` can never hold. Compare it with `=`, or order a number",
+                    d.macro_display(m)
+                );
+                self.ar.warn(m, "cells-type-mix-order", &message);
+                let missing = Source::constant(crate::program::MISSING);
+                return Ok(Some(wiring.hidden(missing)));
+            }
             return Err(refuse(
                 "a text value in a condition that is not one `=` or `!=`",
             ));
@@ -166,6 +224,7 @@ impl<'a> Planning<'a> {
         toks: &[Token],
         src: MathSrc<'_>,
         compare: Compare,
+        kinds: Vec<RefKind>,
     ) -> Result<Port> {
         let mut p = CondParser {
             toks,
@@ -174,6 +233,7 @@ impl<'a> Planning<'a> {
             src,
             compare,
             unordered: Vec::new(),
+            kinds,
         };
         let port = p.or(self, wiring)?;
         if p.pos != toks.len() {
@@ -197,9 +257,10 @@ impl<'a> Planning<'a> {
         if let Some(port) = self.plan_text_condition(t, scope, nodes, wiring)? {
             return Ok(port);
         }
-        match self.rd.math_tokens(&mut self.ar, t, scope, nodes) {
+        match self.condition_tokens(t, scope, nodes) {
             Ok((toks, src)) => {
                 let unordered = self.unordered_refs(t, &toks);
+                let kinds = self.ref_kinds(t, &toks);
                 let mut p = CondParser {
                     toks: &toks,
                     pos: 0,
@@ -207,6 +268,7 @@ impl<'a> Planning<'a> {
                     src,
                     compare,
                     unordered,
+                    kinds,
                 };
                 let port = p.or(self, wiring)?;
                 if p.pos != toks.len() {
@@ -319,6 +381,17 @@ struct CondParser<'t> {
     compare: Compare,
     /// References to a math written `unordered` (`Planning::unordered_refs`).
     unordered: Vec<RefId>,
+    /// What each reference reads, where the templates tell
+    /// (`Planning::ref_kinds`): a boolean, or a value that is not one.
+    kinds: Vec<RefKind>,
+}
+
+/// What a reference in a condition reads, and where it is written.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct RefKind {
+    p: RefId,
+    kind: ValueKind,
+    node: NodeId,
 }
 
 /// One side of a comparison: the tokens it spans, and its source when it
@@ -329,6 +402,63 @@ struct Operand {
 }
 
 impl CondParser<'_> {
+    /// What reference `p` reads, where the templates tell, and its node.
+    fn kind_of(&self, p: RefId) -> Option<RefKind> {
+        self.kinds.iter().find(|k| k.p == p).copied()
+    }
+
+    /// The node of the boolean reference operand `a` is alone, if it is one.
+    fn boolean_ref(&self, a: &Operand) -> Option<NodeId> {
+        match &self.toks[a.span.clone()] {
+            [Token::Cell(p)] => self
+                .kind_of(*p)
+                .filter(|k| k.kind == ValueKind::Boolean)
+                .map(|k| k.node),
+            _ => None,
+        }
+    }
+
+    /// Where and why operand `a` is not true or false, when it is surely
+    /// a value of another type: a reference to a number, a math or a text
+    /// alone, or a literal number (D47 decision 4, D68).
+    fn not_boolean(&self, a: &Operand) -> Option<(NodeId, String)> {
+        match &self.toks[a.span.clone()] {
+            [Token::Cell(p)] => {
+                let k = self.kind_of(*p)?;
+                match k.kind {
+                    ValueKind::Number | ValueKind::Math | ValueKind::Text | ValueKind::Point => {
+                        let display = self.dast.macro_display(k.node);
+                        Some((k.node, not_a_boolean(&display, k.kind)))
+                    }
+                    ValueKind::Boolean | ValueKind::List => None,
+                }
+            }
+            [Token::Num(v)] => self.src.0.first().map(|&n| {
+                (
+                    n,
+                    format!("`{v}` is a number, not true or false: write `true` or `false`"),
+                )
+            }),
+            _ => None,
+        }
+    }
+
+    /// The node of a boolean reference read as a number inside a larger
+    /// operand (`$b + 1`), a type mix (D47).
+    fn boolean_in_arithmetic(&self, a: &Operand) -> Option<NodeId> {
+        let toks = &self.toks[a.span.clone()];
+        if toks.len() < 2 {
+            return None;
+        }
+        toks.iter().find_map(|tok| match tok {
+            Token::Cell(p) => self
+                .kind_of(*p)
+                .filter(|k| k.kind == ValueKind::Boolean)
+                .map(|k| k.node),
+            _ => None,
+        })
+    }
+
     fn err(&self, reason: String) -> Error {
         Error::BadMath {
             text: self.src.text(self.dast),
@@ -419,11 +549,38 @@ impl CondParser<'_> {
             _ => None,
         };
         let Some((rel, width)) = rel else {
+            // A lone operand holds only when it is a boolean: a number, a
+            // math or a text is a type mix (D47 decision 4, D68).
+            if let Some(mix) = self.not_boolean(&a) {
+                return Ok(wiring.hidden(cp.ar.type_mix(mix.0, &mix.1)));
+            }
+            if let Some(m) = self.boolean_in_arithmetic(&a) {
+                let message = boolean_as_number(&self.dast.macro_display(m));
+                return Ok(wiring.hidden(cp.ar.type_mix(m, &message)));
+            }
             let a = self.number(cp, wiring, &a);
             return Ok(wiring.hidden(Source::computed(OpSpec::Truthy, vec![a])));
         };
         self.pos += width;
         let b = self.operand(cp)?;
+        // A boolean compared with a number, `$b = 1`, is a type mix (D47).
+        if let Some(m) = self
+            .boolean_in_arithmetic(&a)
+            .or_else(|| self.boolean_in_arithmetic(&b))
+        {
+            let message = boolean_as_number(&self.dast.macro_display(m));
+            return Ok(wiring.hidden(cp.ar.type_mix(m, &message)));
+        }
+        let mix = match (self.boolean_ref(&a), self.boolean_ref(&b)) {
+            (Some(m), None) if self.not_boolean(&b).is_some() => Some(m),
+            (None, Some(m)) if self.not_boolean(&a).is_some() => Some(m),
+            _ => None,
+        };
+        if let Some(m) = mix {
+            let display = self.dast.macro_display(m);
+            let message = boolean_as_number(&display);
+            return Ok(wiring.hidden(cp.ar.type_mix(m, &message)));
+        }
         // A side that is one reference to a math written `unordered` makes
         // the comparison unordered.
         let alone_unordered = |o: &Operand| matches!(&self.toks[o.span.clone()], [Token::Cell(p)] if self.unordered.contains(p));

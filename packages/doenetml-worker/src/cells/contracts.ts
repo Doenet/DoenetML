@@ -1677,6 +1677,8 @@ export const TRANSPARENT = new Set([
     // A capped list (ADR 0041, decision 2): its rows past its live
     // length are hidden.
     "intersection",
+    // A multivariate sample, one number per category (ADR 0067).
+    "sampleMultivariateRandomNumber",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1712,6 +1714,8 @@ export const LIST_LIKE = new Set([
     // A capped list (ADR 0041, decision 2): its rows past its live
     // length are hidden.
     "intersection",
+    // A multivariate sample, one number per category (ADR 0067).
+    "sampleMultivariateRandomNumber",
 ]);
 
 /** List-like types whose items are the children of one scope (an
