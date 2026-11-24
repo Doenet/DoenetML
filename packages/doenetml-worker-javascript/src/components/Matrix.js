@@ -105,6 +105,10 @@ export default class Matrix extends MathComponent {
 
             let foundRowsOrColumns = false;
 
+            const isMath = (child) =>
+                typeof child === "object" &&
+                componentInfoObjects.componentIsSpecifiedType(child, "math");
+
             /**
              * Make a `<row>` or `<column>` (written, or made with `copy` or
              * `extend`) a row or column of the matrix. Returns whether it
@@ -151,8 +155,22 @@ export default class Matrix extends MathComponent {
              * an option holding them. Each is renamed, at any depth through
              * composites and the options and cases of a `<select>` or
              * `<conditionalContent>`. Returns whether any was found.
+             *
+             * Those it shows are counted in `numRowsShown`, and a `<math>`
+             * beside them in `numMathsInComposites`; not those in a
+             * `<setup>`, which shows nothing. A row in a `<setup>` is still
+             * renamed, so that `$r` copies it into the matrix as a row.
              */
-            function renameRowsAndColumnsInComposite(composite) {
+            function renameRowsAndColumnsInComposite(
+                composite,
+                inSetup = false,
+            ) {
+                const hidden =
+                    inSetup ||
+                    componentInfoObjects.componentIsSpecifiedType(
+                        composite,
+                        "setup",
+                    );
                 let found = false;
                 for (const child of composite.children ?? []) {
                     if (typeof child !== "object") {
@@ -160,6 +178,13 @@ export default class Matrix extends MathComponent {
                     }
                     if (renameRowOrColumn(child)) {
                         found = true;
+                        if (!hidden) {
+                            numRowsShown++;
+                        }
+                    } else if (isMath(child)) {
+                        if (!hidden) {
+                            numMathsInComposites++;
+                        }
                     } else if (
                         isWrittenComposite(child) ||
                         ["option", "case", "else"].some((type) =>
@@ -169,12 +194,18 @@ export default class Matrix extends MathComponent {
                             ),
                         )
                     ) {
-                        found = renameRowsAndColumnsInComposite(child) || found;
+                        found =
+                            renameRowsAndColumnsInComposite(child, hidden) ||
+                            found;
                     }
                 }
                 return found;
             }
 
+            let numRowsShown = 0;
+            let numMathsInComposites = 0;
+
+            /** Whether `child` is a composite written out, not a reference or a copy. */
             function isWrittenComposite(child) {
                 return (
                     child.componentType !== "_copy" &&
@@ -191,6 +222,7 @@ export default class Matrix extends MathComponent {
                 }
                 if (renameRowOrColumn(child)) {
                     foundRowsOrColumns = true;
+                    numRowsShown++;
                 } else if (
                     isWrittenComposite(child) &&
                     renameRowsAndColumnsInComposite(child)
@@ -202,9 +234,6 @@ export default class Matrix extends MathComponent {
             }
 
             const diagnostics = [];
-            const isMath = (child) =>
-                typeof child === "object" &&
-                componentInfoObjects.componentIsSpecifiedType(child, "math");
             const nonBlank = matchedChildren.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
@@ -213,7 +242,12 @@ export default class Matrix extends MathComponent {
             if (foundRowsOrColumns) {
                 // A `<math>` is the matrix's value only when it has no rows
                 // or columns.
-                if (mathChildren.length > 0) {
+                // A `<math>` beside rows only in a `<setup>` is the matrix's
+                // value.
+                if (
+                    numRowsShown > 0 &&
+                    (mathChildren.length > 0 || numMathsInComposites > 0)
+                ) {
                     diagnostics.push(
                         codedDiagnostic({
                             type: "warning",

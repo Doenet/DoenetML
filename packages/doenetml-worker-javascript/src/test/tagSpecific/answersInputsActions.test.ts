@@ -198,6 +198,29 @@ describe("A matrix's rows from a composite (#1873, COMP-1) @group4", () => {
         );
         expect(matrix).toEqual([["1"], ["2"]]);
     });
+
+    it("a math beside rows in a group is reported as ignored", async () => {
+        const { matrix, core } = await matrixOf(
+            `<group><row><math>1</math> <math>2</math></row><math>5</math></group>`,
+        );
+        expect(matrix).toEqual([["1", "2"]]);
+        expect(coded(core, /doenet-w0194/)).toEqual([
+            "doenet-w0194: A `<math>` written beside the `<row>` or `<column>` children of a `<matrix>` is ignored: the rows or columns give the matrix its entries.",
+        ]);
+    });
+
+    it("rows in a setup are not the matrix's rows", async () => {
+        const { matrix, core } = await matrixOf(
+            `<setup><row name="r"><math>1</math> <math>2</math></row></setup><math>x</math>`,
+        );
+        expect(matrix).toEqual([["x"]]);
+        expect(coded(core, /doenet-w0194/)).toEqual([]);
+
+        const copied = await matrixOf(
+            `<setup><row name="r"><math>1</math> <math>2</math></row></setup>$r`,
+        );
+        expect(copied.matrix).toEqual([["1", "2"]]);
+    });
 });
 
 describe("A reference to a choice in a choice input (#2097) @group4", () => {
