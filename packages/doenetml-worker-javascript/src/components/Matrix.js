@@ -105,9 +105,12 @@ export default class Matrix extends MathComponent {
 
             let foundRowsOrColumns = false;
 
-            const isMath = (child) =>
-                typeof child === "object" &&
-                componentInfoObjects.componentIsSpecifiedType(child, "math");
+            function isMath(child) {
+                return (
+                    typeof child === "object" &&
+                    componentInfoObjects.componentIsSpecifiedType(child, "math")
+                );
+            }
 
             /**
              * Make a `<row>` or `<column>` (written, or made with `copy` or
@@ -264,12 +267,15 @@ export default class Matrix extends MathComponent {
                     // as when there are no rows, and the `<setup>` is kept
                     // beside it (`<matrix><setup><row name="r">1
                     // 2</row></setup>x</matrix>` is `[[x]]`).
-                    const isSetup = (child) =>
-                        typeof child === "object" &&
-                        componentInfoObjects.componentIsSpecifiedType(
-                            child,
-                            "setup",
+                    function isSetup(child) {
+                        return (
+                            typeof child === "object" &&
+                            componentInfoObjects.componentIsSpecifiedType(
+                                child,
+                                "setup",
+                            )
                         );
+                    }
                     newChildren = [
                         ...matchedChildren.filter(isSetup),
                         {

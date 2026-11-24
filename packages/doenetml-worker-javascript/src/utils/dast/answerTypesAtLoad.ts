@@ -668,11 +668,11 @@ export function decideAnswerTypesAtLoad({
             ) {
                 return false;
             }
-            const needsInput = (
+            function needsInput(
                 content: (SerializedComponent | string)[],
                 inAward: boolean,
-            ) =>
-                content.some((c) =>
+            ) {
+                return content.some((c) =>
                     typeof c === "string"
                         ? c.trim() !== ""
                         : !(
@@ -682,6 +682,7 @@ export function decideAnswerTypesAtLoad({
                                       isTag(c, "orbitalDiagram")))
                           ),
                 );
+            }
             return (
                 comparedContents.some(({ content, at }) =>
                     needsInput(content, at !== answer),

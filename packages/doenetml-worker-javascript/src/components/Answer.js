@@ -134,8 +134,9 @@ function wrappedContentPosition({
     wrapped,
     nextSibling,
 }) {
-    const hasPosition = (child) =>
-        typeof child === "object" && Boolean(child.position);
+    function hasPosition(child) {
+        return typeof child === "object" && Boolean(child.position);
+    }
     const positioned = wrapped.filter(hasPosition);
     if (positioned.length > 0) {
         const first = positioned[0];

@@ -22,6 +22,7 @@ import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { documentReferents } from "./valueReferences";
 import { unwrapSource } from "./convertNormalizedDast";
+import { allComponents } from "./copiedAwards";
 
 export function markChoiceReferencesInChoiceInputs({
     serializedComponents,
@@ -40,43 +41,17 @@ export function markChoiceReferencesInChoiceInputs({
     }
 
     // The bare references written as children of a `<choiceInput>`.
-    const candidates: SerializedComponent[] = [];
-    const seen = new Set<SerializedComponent>();
-    function gather(components: (SerializedComponent | string)[]) {
-        for (const component of components) {
-            if (
-                typeof component !== "object" ||
-                component === null ||
-                seen.has(component)
-            ) {
-                continue;
-            }
-            seen.add(component);
-            if (inherits(component.componentType, "choiceInput")) {
-                for (const child of component.children ?? []) {
-                    if (
-                        typeof child === "object" &&
-                        child.componentType === "_copy" &&
-                        child.attributes?._createComponentOfType ===
-                            undefined &&
-                        child.extending
-                    ) {
-                        candidates.push(child);
-                    }
-                }
-            }
-            for (const attribute of Object.values(
-                component.attributes ?? {},
-            ) as any[]) {
-                if (attribute?.component) {
-                    gather([attribute.component]);
-                }
-                gather(attribute?.children ?? []);
-            }
-            gather(component.children ?? []);
-        }
-    }
-    gather(serializedComponents);
+    const candidates = allComponents(serializedComponents)
+        .filter((component) => inherits(component.componentType, "choiceInput"))
+        .flatMap((component) =>
+            (component.children ?? []).filter(
+                (child): child is SerializedComponent =>
+                    typeof child === "object" &&
+                    child.componentType === "_copy" &&
+                    child.attributes?._createComponentOfType === undefined &&
+                    Boolean(child.extending),
+            ),
+        );
 
     if (candidates.length === 0) {
         return [];
