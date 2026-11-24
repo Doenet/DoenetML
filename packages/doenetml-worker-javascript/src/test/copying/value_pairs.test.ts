@@ -567,6 +567,57 @@ describe("A value that doesn't convert is missing, with an info (REF-5, #2659) @
         expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
         expect(await d.stateValue("n", "value")).eq(0.5);
     });
+
+    // The check is made again as the text changes, also the text a
+    // composite holds or a list's one entry, and as whether it is LaTeX
+    // changes.
+    it("<number extend> follows the text it is made from", async () => {
+        const d = await load(`
+<textInput name="ti" prefill="hello"/>
+<conditionalContent name="cc"><else><text>$ti</text></else></conditionalContent>
+<number name="n1" extend="$cc"/>
+<group name="g"><text>$ti</text></group>
+<number name="n2" extend="$g"/>
+<textList name="tl">$ti</textList>
+<number name="n3" extend="$tl"/>
+<textInput name="c" prefill="no"/>
+<text name="t" isLatex="$c = yes">\\frac{1}{2}</text>
+<number name="n4" extend="$t"/>
+<group name="g2"><text isLatex="$c = yes">\\frac{1}{4}</text></group>
+<number name="n5" extend="$g2"/>
+`);
+        const names = ["n1", "n2", "n3", "n4", "n5"];
+        async function missing() {
+            const result: boolean[] = [];
+            for (const name of names) {
+                result.push(await d.stateValue(name, "valueMissing"));
+            }
+            return result;
+        }
+        expect(d.codes()).eqls(Array(5).fill("doenet-i0053"));
+        expect(await missing()).eqls([true, true, true, true, true]);
+
+        await d.setText("ti", "5");
+        await d.setText("c", "yes");
+        expect(d.codes()).eqls([]);
+        expect(await missing()).eqls([false, false, false, false, false]);
+        expect(await d.text("n1")).eq("5");
+        expect(await d.text("n2")).eq("5");
+        expect(await d.text("n3")).eq("5");
+        expect(await d.stateValue("n4", "value")).eq(0.5);
+        expect(await d.stateValue("n5", "value")).eq(0.25);
+
+        await d.setText("ti", "hi");
+        await d.setText("c", "no");
+        expect(d.codes()).eqls(Array(5).fill("doenet-i0053"));
+        expect(await missing()).eqls([true, true, true, true, true]);
+
+        await d.setText("ti", "7");
+        await d.reload();
+        expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
+        expect(await d.text("n1")).eq("7");
+        expect(await d.text("n3")).eq("7");
+    });
 });
 
 describe("A list tag made from a list of a type it can't be made from is an error at load (REF-5, #2649) @group4", () => {

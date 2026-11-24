@@ -469,29 +469,59 @@ export function checkExtendErrorsAtLoad({
             writtenClass.listEntryComponentType !== undefined ||
             writtenClass.listEntryTypeAttribute !== undefined,
         );
-        const written = writtenChildrenText(copy);
+        // In a new tag holding the reference, a `<label>`,
+        // `<shortDescription>` or `<description>` the tag takes no such
+        // child for (a `<number>`, a `<text>`) would be read as part of
+        // what it holds, so the form suggested leaves it out. A `copy`
+        // keeps it.
+        const takenAsPresentation = new Set<string>(
+            (writtenClass.childGroups ?? []).flatMap(
+                (group: { componentTypes: string[] }) => group.componentTypes,
+            ),
+        );
+        const leftOut = isValue
+            ? children.filter(
+                  (child): child is SerializedComponent =>
+                      typeof child !== "string" &&
+                      child.componentType !== "_copy" &&
+                      presentsOnly(child) &&
+                      !takenAsPresentation.has(child.componentType),
+              )
+            : [];
+        const written = writtenChildrenText(copy, leftOut);
+        // A `<boolean>`'s children are one expression, so what is written
+        // is joined to the reference by a logical operator
+        // (`<boolean>$b and false</boolean>`), not written beside it.
+        const isLogic = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: "boolean",
+        });
         return {
             code: "doenet-e0057",
             args: {
                 componentType,
-                kind: isValue ? "value" : "object",
+                kind: isLogic ? "logic" : isValue ? "value" : "object",
                 source: doenetMLReferenceAsWritten(ref.originalPath, sources),
                 // after the reference in `<math>$m x</math>`, a space, so
                 // that what is written isn't read as part of its name
-                written:
-                    isValue && /^[A-Za-z0-9_]/.test(written)
-                        ? ` ${written}`
-                        : written,
+                written: isLogic
+                    ? written.trim()
+                    : isValue && /^[A-Za-z0-9_]/.test(written)
+                      ? ` ${written}`
+                      : written,
             },
         };
     }
 
     /**
-     * The children written inside `copy`, as written, for a message to
-     * suggest them in another form, or `…` when they are long, span lines,
-     * or their place in the source isn't known.
+     * The children written inside `copy`, as written, without the children
+     * `leftOut`, for a message to suggest them in another form, or `…` when
+     * they are long, span lines, or their place in the source isn't known.
      */
-    function writtenChildrenText(copy: SerializedComponent) {
+    function writtenChildrenText(
+        copy: SerializedComponent,
+        leftOut: SerializedComponent[] = [],
+    ) {
         const start = copy.childrenPosition?.start?.offset;
         const end = copy.childrenPosition?.end?.offset;
         const text = sources[copy.sourceDoc ?? 0];
@@ -502,9 +532,29 @@ export function checkExtendErrorsAtLoad({
         ) {
             return "…";
         }
-        const written = text.substring(start, end);
+        let written = text.substring(start, end);
         if (written.length > 60 || written.includes("\n")) {
             return "…";
+        }
+        // from the last, so that the offsets of those before still hold
+        const ranges = leftOut
+            .map((child) => [
+                child.position?.start?.offset,
+                child.position?.end?.offset,
+            ])
+            .sort((a, b) => (b[0] ?? 0) - (a[0] ?? 0));
+        for (const [from, to] of ranges) {
+            if (
+                typeof from !== "number" ||
+                typeof to !== "number" ||
+                from < start ||
+                to > end
+            ) {
+                return "…";
+            }
+            written =
+                written.substring(0, from - start) +
+                written.substring(to - start);
         }
         return written;
     }

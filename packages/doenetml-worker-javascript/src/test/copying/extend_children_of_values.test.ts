@@ -81,9 +81,28 @@ describe("Children inside an extend of a value or an object are an error at load
             valueError("number", "$s", "<number>$s 5</number>"),
         ],
         [
-            "a boolean",
+            "a boolean, whose children are joined to it by a logical operator",
             `<boolean name="s">true</boolean><boolean name="x" extend="$s">false</boolean>`,
-            valueError("boolean", "$s", "<boolean>$s false</boolean>"),
+            "doenet-e0057: Children written inside an `extend` of a `<boolean>` would change what it holds, but an extend is the same `<boolean>` as `$s`. To make a new `<boolean>` from `$s` and more, write a `<boolean>` joining them with `and` or `or`, such as `<boolean>$s and false</boolean>`.",
+        ],
+        [
+            "a number given a label, which the new tag would read as content",
+            `<number name="s">2</number><number name="x" extend="$s"><label>L</label>5</number>`,
+            valueError("number", "$s", "<number>$s 5</number>"),
+        ],
+        [
+            "a text given a label, which the new tag would read as content",
+            `<text name="s">hi</text><text name="x" extend="$s"><label>L</label> there</text>`,
+            valueError("text", "$s", "<text>$s there</text>"),
+        ],
+        [
+            "a point given a label, which copy keeps",
+            `<point name="s">(1,2)</point><point name="x" extend="$s"><label>L</label>(3,4)</point>`,
+            objectError(
+                "point",
+                "$s",
+                '<point copy="$s"><label>L</label>(3,4)</point>',
+            ),
         ],
         [
             "a math made from a number",
@@ -158,8 +177,14 @@ describe("Children inside an extend of a value or an object are an error at load
 <text name="t2">$t there</text>
 <m name="e2">$e+1</m>
 <point name="P2" copy="$P">(3,4)</point>
+<number name="n">2</number>
+<boolean name="b">true</boolean>
+<number name="n2">$n 5</number>
+<boolean name="b2">$b and false</boolean>
 `);
         expect(d.diagnostics()).eqls([]);
+        expect(await d.text("n2")).eq("10");
+        expect(await d.stateValue("b2", "value")).eq(false);
         expect(await d.text("m2")).eq("x + 1");
         expect(await d.text("t2")).eq("hi there");
         expect(await d.stateValue("e2", "latex")).eq("x +1");

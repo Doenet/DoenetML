@@ -1309,11 +1309,16 @@ extend-attribute-changes-content = A `<{ $componentType }>` makes its content fr
 # what it holds, so an extend of it can't be given more (D71). For a value,
 # the message suggests a new tag holding the reference and the children, which
 # gives the value meant; for an object, or an input, whose children say what
-# it is bound to, a `copy`, which makes a new one.
-# $written is the children as written (`+1`), or `…`.
+# it is bound to, a `copy`, which makes a new one. `logic` is a value whose
+# children are one logical expression (a `<boolean>`): the children are
+# joined to the reference with `and` or `or`, `and` in the example.
+# $written is the children as written (`+1`), without a `<label>`,
+# `<shortDescription>` or `<description>` the new tag would read as part of
+# what it holds, or `…`. `and` and `or` are DoenetML, so they stay in English.
 extend-children-change-content =
     { $kind ->
         [value] Children written inside an `extend` of a `<{ $componentType }>` would change what it holds, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` from `{ $source }` and more, write `<{ $componentType }>{ $source }{ $written }</{ $componentType }>`.
+        [logic] Children written inside an `extend` of a `<{ $componentType }>` would change what it holds, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` from `{ $source }` and more, write a `<{ $componentType }>` joining them with `and` or `or`, such as `<{ $componentType }>{ $source } and { $written }</{ $componentType }>`.
         [object] Children written inside an `extend` of a `<{ $componentType }>` would change what it is, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` starting from `{ $source }`, use `copy`: `<{ $componentType } copy="{ $source }">{ $written }</{ $componentType }>`.
         [template] Children written inside an `extend` of a `<{ $componentType }>` would be a new template, but an extend shows the same content as `{ $source }`. To repeat a different template, use `copy`.
         [options] Children written inside an `extend` of a `<{ $componentType }>` would be new options, but an extend shows the same choice as `{ $source }`. To choose from more options, use `copy`.
