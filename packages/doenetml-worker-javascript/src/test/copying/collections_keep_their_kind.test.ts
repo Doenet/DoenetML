@@ -533,6 +533,22 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
         expect(one.errorCodes()).eqls(["doenet-e0064"]);
     });
 
+    it("a list in one case only is what a case holds", async () => {
+        // the other case shows one math, so `$cc` does not always hold 3
+        const c = await load(
+            `${list}<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">$x</case><else><math>5</math></else></conditionalContent><math name="e" extend="$cc"/>`,
+        );
+        expect(c.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from `$cc` only when it always holds one component, and a case of the `<conditionalContent>` holds 3. To read what it holds as one value, write `<math>$cc</math>`.",
+        ]);
+        const s = await load(
+            `${list}<select name="s"><option>$x</option><option><math>5</math></option></select><math name="e" extend="$s[1]"/>`,
+        );
+        expect(s.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from `$s[1]` only when it always holds one component, and an option of the `<select>` holds 3. To read what it holds as one value, write `<math>$s[1]</math>`.",
+        ]);
+    });
+
     it("is reported at load in a case that is not true yet (DIAG-7)", async () => {
         const d = await load(
             `<booleanInput name="b"/>${list}<conditionalContent><case condition="$b"><repeat name="r" for="1" valueName="v">$x</repeat><math name="e" extend="$r[1]"/></case></conditionalContent>`,

@@ -1640,7 +1640,30 @@ export function checkTypeChangesAtLoad({
                 ? parts[0].self
                 : undefined;
         if (partNotOne) {
-            const named = asPartOf(partNotOne, tag, partKind);
+            // A list's entries are what the composite holds only when each
+            // part holds that list's entries; otherwise it is what one part
+            // holds (a case holding a `<mathList>` of 3 beside one holding a
+            // `<math>`).
+            const entries = partNotOne.notOne;
+            const named =
+                entries?.reason === "count" &&
+                entries.part === "entries" &&
+                !parts.every(
+                    (part) =>
+                        part.notOneTag === partNotOne.notOneTag &&
+                        part.notOne?.reason === "count" &&
+                        part.notOne.part === "entries" &&
+                        part.notOne.count === entries.count,
+                )
+                    ? asPartOf(
+                          {
+                              ...partNotOne,
+                              notOne: { ...entries, part: "other" },
+                          },
+                          tag,
+                          partKind,
+                      )
+                    : asPartOf(partNotOne, tag, partKind);
             return {
                 notOne: named.notOne,
                 notOneTag: named.notOneTag,
