@@ -120,12 +120,23 @@ function responseTypesForEvent(atLoad, responses) {
  * own (`wrapped`), as `{ position, sourceDoc }`, or `{}` when it can't be
  * told: from the first to the last component in it that has a position, or,
  * for text alone, which keeps no position, from the end of the component
- * before it to the start of the one after it.
+ * written before the text to the start of the one written after it.
+ *
+ * `children` are the answer's children as written, labels and descriptions
+ * included, and `previousSibling` and `nextSibling` the components the
+ * sugar leaves unwrapped just before and after `wrapped` (not a label, which
+ * may be written anywhere, so may come after the text: `<answer>1 and
+ * true<label>L</label><booleanInput/></answer>`).
  */
-function wrappedContentPosition(before, wrapped, after) {
-    const positioned = wrapped.filter(
-        (child) => typeof child === "object" && child.position,
-    );
+function wrappedContentPosition({
+    children,
+    previousSibling,
+    wrapped,
+    nextSibling,
+}) {
+    const hasPosition = (child) =>
+        typeof child === "object" && Boolean(child.position);
+    const positioned = wrapped.filter(hasPosition);
     if (positioned.length > 0) {
         const first = positioned[0];
         const last = positioned[positioned.length - 1];
@@ -134,13 +145,35 @@ function wrappedContentPosition(before, wrapped, after) {
             sourceDoc: first.sourceDoc,
         };
     }
-    const previous = before.findLast(
-        (child) => typeof child === "object" && child.position,
-    );
-    const next = after.find(
-        (child) => typeof child === "object" && child.position,
-    );
-    if (previous && next && previous.sourceDoc === next.sourceDoc) {
+    // The text lies between the unwrapped siblings around it, as written.
+    const from =
+        previousSibling === undefined ? -1 : children.indexOf(previousSibling);
+    const to =
+        nextSibling === undefined
+            ? children.length
+            : children.indexOf(nextSibling);
+    if ((previousSibling !== undefined && from === -1) || to === -1) {
+        return {};
+    }
+    const textIndices = [];
+    for (let i = from + 1; i < to; i++) {
+        if (typeof children[i] === "string" && children[i].trim() !== "") {
+            textIndices.push(i);
+        }
+    }
+    if (textIndices.length === 0) {
+        return {};
+    }
+    const previous = children.slice(0, textIndices[0]).findLast(hasPosition);
+    const next = children
+        .slice(textIndices[textIndices.length - 1] + 1)
+        .find(hasPosition);
+    if (
+        previous &&
+        next &&
+        previous.sourceDoc === next.sourceDoc &&
+        previous.position.end.offset < next.position.start.offset
+    ) {
         return {
             position: {
                 start: previous.position.end,
@@ -521,6 +554,9 @@ export default class Answer extends InlineComponent {
             // if children are strings and macros
             // wrap with award
 
+            // as written, for where the content it wraps is
+            const childrenAsWritten = matchedChildren;
+
             function checkForResponseDescendant(components) {
                 for (let component of components) {
                     if (component?.attributes) {
@@ -679,6 +715,7 @@ export default class Answer extends InlineComponent {
             const labelChildren = matchedChildren.filter((child) =>
                 componentIsSpecifiedType(child, "label"),
             );
+            const numLabelChildren = labelChildren.length;
             matchedChildren = matchedChildren.filter(
                 (child) =>
                     !(
@@ -1097,11 +1134,19 @@ export default class Answer extends InlineComponent {
                         // where the content it wraps is written, so that
                         // what is reported of it is located there rather
                         // than at the whole answer (DIAG-4, #2657 item 13)
-                        ...wrappedContentPosition(
-                            childrenToNotWrapBegin,
-                            childrenToWrap,
-                            childrenToNotWrapEnd,
-                        ),
+                        ...wrappedContentPosition({
+                            children: childrenAsWritten,
+                            // the unwrapped children before it, after the
+                            // labels the sugar puts first
+                            previousSibling:
+                                childrenToNotWrapBegin.length > numLabelChildren
+                                    ? childrenToNotWrapBegin[
+                                          childrenToNotWrapBegin.length - 1
+                                      ]
+                                    : undefined,
+                            wrapped: childrenToWrap,
+                            nextSibling: childrenToNotWrapEnd[0],
+                        }),
                     },
                     ...childrenToNotWrapEnd,
                 ];

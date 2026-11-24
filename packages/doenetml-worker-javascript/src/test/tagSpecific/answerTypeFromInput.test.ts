@@ -892,4 +892,28 @@ describe("An answer's type, after #2648 (#2657) @group4", () => {
         const end = w0203[0].position!.end.offset!;
         expect(doenetML.slice(start, end)).eqls("$n");
     });
+
+    it("item 13: text alone is located between the components written around it, not at a label after it", async () => {
+        for (const [doenetML, located] of [
+            [
+                `<answer name="a"><booleanInput/><label>L</label>1 and true<award><when>true</when></award></answer>`,
+                "1 and true",
+            ],
+            // the label is written after the text, so it doesn't bound it:
+            // the whole answer, never an empty range
+            [
+                `<answer name="a">1 and true<label>L</label><booleanInput/></answer>`,
+                `<answer name="a">1 and true<label>L</label><booleanInput/></answer>`,
+            ],
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            const w0203 = getDiagnosticsByType(core).warnings.filter(
+                (d) => d.code === "doenet-w0203",
+            );
+            expect(w0203.length).eq(1);
+            const start = w0203[0].position!.start.offset!;
+            const end = w0203[0].position!.end.offset!;
+            expect(doenetML.slice(start, end)).eqls(located);
+        }
+    });
 });
