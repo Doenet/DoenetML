@@ -585,7 +585,7 @@ impl Document {
         let mut scopes: Vec<_> = children.iter().filter_map(scope_of).collect();
         scopes.dedup();
         let n = scopes.len();
-        if n == 0 || children.len() % n != 0 {
+        if n == 0 || !children.len().is_multiple_of(n) {
             return None;
         }
         let m = children.len() / n;
