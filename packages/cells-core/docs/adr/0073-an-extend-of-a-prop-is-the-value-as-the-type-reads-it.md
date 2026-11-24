@@ -106,6 +106,13 @@ ends at a port; what changed is how an element reads a port it extends.
   names would be a choice's interface (ADR 0009); (c) read such a copy
   as a reference to the pick (a `$sel[1]` child), with no names of its
   own.
+- **A bare extend of nothing** (`<integer extend="$P.x3"/>`) is the
+  missing value here (ADR 0046, and the bridge's missing-value test),
+  while the current core builds the element as if written empty (`NaN`
+  for an `<integer>`, `""` for an `<intComma>`;
+  `extend_references.test.ts`, two tests). Making it extend nothing, as
+  decision 3 does for an element that writes something, would pass them
+  and reverse ADR 0046 for this one shape: left to the user.
 - `<mathList extend="$fis.iterates"/>` needs `<functionIterates>`'s
   `iterates` to be the list of iterates (here it is their count), and
   `<when extend="$w.value"/>` a free `<when>`; neither is a path.
