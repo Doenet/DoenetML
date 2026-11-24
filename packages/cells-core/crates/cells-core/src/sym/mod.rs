@@ -9,6 +9,7 @@ pub(crate) mod compare;
 pub(crate) mod display;
 pub(crate) mod engine;
 pub(crate) mod extrema;
+pub(crate) mod interpolate;
 pub(crate) mod subset;
 pub(crate) mod tape;
 pub(crate) mod tree;

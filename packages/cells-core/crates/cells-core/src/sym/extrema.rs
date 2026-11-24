@@ -34,6 +34,21 @@ const SUBGRID: usize = 4;
 /// How deep a search goes again.
 const MAX_RECURSIONS: u32 = 100;
 
+/// What a function's pieces are, to the search.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Pieces {
+    /// One, on the whole line: a `<function>`'s formula, searched on its
+    /// domain.
+    One,
+    /// A piecewise function's, each on what of the domain is its own.
+    Piecewise,
+    /// A spline's (an interpolated function's): a piecewise function's
+    /// whose first and last cubics run on to the infinite ends, where it
+    /// falls without bound to an infinite infimum, as the current core
+    /// reads its coefficients.
+    Spline,
+}
+
 /// A point of a function's graph: its location and value.
 pub(crate) type Pt = (f64, f64);
 
@@ -628,7 +643,7 @@ fn piecewise_at(pieces: &mut [Piece<'_>], d: &[f64], x: f64, anywhere: bool) -> 
 /// The minima of a piecewise function (`find_minima_of_piecewise`): each
 /// piece's on what of the domain `d` no earlier piece takes, less those at
 /// an end of it, and the ends tried alone.
-fn piecewise_minima(pieces: &mut [Piece<'_>], d: &[f64], xscale: f64) -> Minima {
+fn piecewise_minima(pieces: &mut [Piece<'_>], d: &[f64], xscale: f64, spline: bool) -> Minima {
     let mut global = (f64::NEG_INFINITY, f64::INFINITY);
     let mut infimum = (f64::NEG_INFINITY, f64::INFINITY);
     let mut local: Vec<Pt> = Vec::new();
@@ -693,6 +708,33 @@ fn piecewise_minima(pieces: &mut [Piece<'_>], d: &[f64], xscale: f64) -> Minima 
             infimum = (x, fx);
         }
     }
+    if spline {
+        // A cubic that falls without bound toward an infinite end of the
+        // domain: its slope far out says which way it goes.
+        let far = 1e8 * xscale;
+        let unbounded = |lo: bool| {
+            if lo {
+                d[0].is_nan() || d[0] == f64::NEG_INFINITY
+            } else {
+                d[1].is_nan() || d[1] == f64::INFINITY
+            }
+        };
+        let falls_left = unbounded(true)
+            && pieces
+                .iter_mut()
+                .find(|p| p.domain[0] == f64::NEG_INFINITY)
+                .is_some_and(|p| p.formula.df(-far) > 0.0);
+        let falls_right = unbounded(false)
+            && pieces
+                .iter_mut()
+                .find(|p| p.domain[1] == f64::INFINITY)
+                .is_some_and(|p| p.formula.df(far) < 0.0);
+        if falls_right {
+            infimum = (f64::INFINITY, f64::NEG_INFINITY);
+        } else if falls_left {
+            infimum = (f64::NEG_INFINITY, f64::NEG_INFINITY);
+        }
+    }
     local.sort_by(|a, b| a.0.total_cmp(&b.0));
     let (global, infimum) = finalize(None, global, infimum);
     Minima {
@@ -707,13 +749,8 @@ fn piecewise_minima(pieces: &mut [Piece<'_>], d: &[f64], xscale: f64) -> Minima 
 /// reads one), or its maxima when `max`: a `<function>`'s one piece
 /// searched on its domain, or, when `piecewise`, a piecewise function's
 /// pieces. None for a piece with no expression or variable.
-pub(crate) fn search(
-    engine: &Engine,
-    f: &[f64],
-    xscale: f64,
-    max: bool,
-    piecewise: bool,
-) -> Minima {
+pub(crate) fn search(engine: &Engine, f: &[f64], xscale: f64, max: bool, of: Pieces) -> Minima {
+    let piecewise = of != Pieces::One;
     let sign = if max { -1.0 } else { 1.0 };
     let xscale = if xscale.is_finite() && xscale > 0.0 {
         xscale
@@ -736,7 +773,7 @@ pub(crate) fn search(
         });
     }
     let found = if piecewise {
-        piecewise_minima(&mut pieces, d, xscale)
+        piecewise_minima(&mut pieces, d, xscale, of == Pieces::Spline)
     } else {
         let Some(p) = pieces.first_mut() else {
             return Minima::default();

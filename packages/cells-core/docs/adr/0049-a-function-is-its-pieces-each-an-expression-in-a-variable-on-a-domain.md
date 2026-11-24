@@ -96,7 +96,7 @@ wave's work, so this one must not invent an interval type.
   (the vectors `<bezierControls>` gives are fixed); `flipFunction`,
   `extrapolateForward` and `extrapolateBackward`, `periodic`, and a
   function of several variables' domains (each refused as an attribute
-  nothing reads); a curve's `fs` for the parity adapter; interpolated
-  functions through points, maxima and minima. A function's extrema, a
-  dynamic sequence (ADR 0041, step 5), are searched over its pieces by
-  ADR 0061.
+  nothing reads); a curve's `fs` for the parity adapter. A function's
+  extrema, a dynamic sequence (ADR 0041, step 5), are searched over its
+  pieces, and an interpolated function through points, maxima and minima
+  is a capped list of cubic pieces, by ADR 0061.

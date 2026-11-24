@@ -750,7 +750,9 @@ otherwise.
      core's) writes the local, global and infimum ones as one value its
      props are entries of. `<pointList extend="$f.extrema"/>`, a list
      whose count follows that value, is the structural list of step 4,
-     not done; an interpolated function's are not done.
+     not done. An interpolated function (a `<function>` through points,
+     maxima and minima) is a capped list of cubic pieces, its count `3 n +
+     1` for `n` points given (ADR 0061), and its extrema its pieces'.
    - A matrix's entries (`$A[i][j]`) are not entries of a list head: the
      engine's matrix is not a sequence of rows yet.
    - A write through an entry of a `<math createVectors>$m</math>` is

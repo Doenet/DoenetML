@@ -3,8 +3,21 @@
 
 mod common;
 use cells_core::Document;
+use cells_core::LoadOptions;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::load;
+use cells_core::testing::test_utils::{dast_json, load};
+
+/// `src` loaded with every cell computed, as a reader that evaluates a
+/// function anywhere loads it (the parity adapter).
+fn load_unpruned(src: &str) -> Document {
+    let options = LoadOptions {
+        prune: false,
+        ..Default::default()
+    };
+    Document::load(dast_json(src).as_bytes(), options)
+        .unwrap()
+        .0
+}
 use common::*;
 
 /// The expression `name.prop` holds, as the engine prints it.
@@ -53,5 +66,65 @@ fn a_piecewise_functions_extrema_are_its_pieces_and_its_corners() {
     // At 0 it falls through, from the left and to the right: no maximum.
     assert_eq!(expr(&doc, "max", "expr"), "");
     assert_eq!(expr(&doc, "g", "expr"), "(1, -1)");
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// `name` at each of `xs`, as a reader evaluates it.
+fn at(doc: &mut Document, name: &str, xs: &[f64]) -> Vec<f64> {
+    let c = doc.resolve_path(name).unwrap();
+    xs.iter()
+        .map(|&x| doc.function_value(c, x).unwrap())
+        .collect()
+}
+
+fn close(got: &[f64], want: &[f64]) {
+    for (g, w) in got.iter().zip(want) {
+        assert!((g - w).abs() < 1e-9, "{got:?} is not {want:?}");
+    }
+}
+
+#[test]
+fn a_function_through_points_maxima_and_minima_is_a_spline() {
+    // `functionTag.test.ts`: "function with single minimum, change x-scale
+    // and y-scale", "function with min and max", "copy function and
+    // overwrite extrema".
+    let mut doc = load_unpruned(
+        r#"<function name="f" xscale="3" yscale="5" minima="(2)"/>
+           <function name="g" minima="(0,0)" maxima="(1,1)"/>
+           <function name="h" minima="(2,3)" maxima="(4,4)"/>
+           <function name="k" extend="$h" maxima="(0,4)"/>
+           <math name="hmax" extend="$h.maxima"/>"#,
+    );
+    close(&at(&mut doc, "f", &[0., 3., 6., -3.]), &[2., 7., 22., 7.]);
+    close(
+        &at(&mut doc, "g", &[0., 1., 0.5, -2., 3.]),
+        &[0., 1., 0.5, 4., -3.],
+    );
+    close(
+        &at(&mut doc, "h", &[2., 4., 1., 3., 5.]),
+        &[3., 4., 4., 3.5, 3.],
+    );
+    close(
+        &at(&mut doc, "k", &[0., 2., -1., 1., 3.]),
+        &[4., 3., 3., 3.5, 4.],
+    );
+    assert_eq!(expr(&doc, "hmax", "expr"), "(4, 4)");
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn a_spline_follows_the_points_it_is_given() {
+    let mut doc = load(
+        r#"<graph>
+             <point name="P">(0,5)</point>
+           </graph>
+           <function name="f" through="$P (8,4)" maxima="(5,6)"/>
+           <math name="m" extend="$f.maxima"/>"#,
+    )
+    .unwrap();
+    close(&at(&mut doc, "f", &[0., 5., 8.]), &[5., 6., 4.]);
+    set(&mut doc, "P", "x", -2.0);
+    close(&at(&mut doc, "f", &[-2., 5.]), &[5., 6.]);
+    assert_eq!(expr(&doc, "m", "expr"), "(5, 6)");
     assert_eq!(reference::check(&doc), None);
 }

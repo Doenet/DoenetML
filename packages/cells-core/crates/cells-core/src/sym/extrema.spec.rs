@@ -13,7 +13,7 @@ fn of(text: &str, d: [f64; 4], max: bool) -> Minima {
     let x = engine.parse("x").unwrap();
     let mut f = d.to_vec();
     f.extend([e.to_value(), x.to_value(), -INF, INF, 0.0, 0.0]);
-    search(&engine, &f, 1.0, max, false)
+    search(&engine, &f, 1.0, max, Pieces::One)
 }
 
 const LINE: [f64; 4] = [-INF, INF, 0.0, 0.0];
@@ -77,7 +77,7 @@ fn a_piecewise_functions_minima_are_its_pieces_and_its_corners() {
     let mut f = LINE.to_vec();
     f.extend([left, x, -INF, 0.0, 0.0, 0.0]);
     f.extend([right, x, 0.0, INF, 1.0, 0.0]);
-    let min = search(&engine, &f, 1.0, false, true);
+    let min = search(&engine, &f, 1.0, false, Pieces::Piecewise);
     assert_eq!(min.local, vec![(0.0, 0.0)]);
     assert_eq!(min.global, Some((0.0, 0.0)));
 }
@@ -136,7 +136,7 @@ fn a_decimal_coefficient_keeps_the_critical_points_exact() {
     let e = engine.store(e);
     let mut f = vec![-20.0, 20.0, 0.0, 0.0];
     f.extend([e.to_value(), x.to_value(), -INF, INF, 0.0, 0.0]);
-    let min = search(&engine, &f, 1.0, false, false);
+    let min = search(&engine, &f, 1.0, false, Pieces::One);
     assert_eq!(min.local.len(), 1);
     assert!(
         (min.local[0].0 + 2.28205595296559).abs() < 1e-12,

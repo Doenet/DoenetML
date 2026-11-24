@@ -13,8 +13,9 @@ pub mod texts;
 mod vector;
 
 pub use instr::{
-    BEZIER_POINT_CELLS, DOMAIN_CELLS, Instr, InstrIdx, MemoIdx, OperandIdx, Operands, PIECE_CELLS,
-    Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx, in_domain,
+    BEZIER_POINT_CELLS, DOMAIN_CELLS, INTERPOLATE_POINT_CELLS, Instr, InstrIdx, MemoIdx,
+    OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx,
+    in_domain,
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
@@ -598,10 +599,32 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 .map_or(MISSING, Handle::to_value)
         }
         SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
-        SymKind::Extrema { max, piecewise } => {
+        SymKind::Extrema { max, of } => {
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
-            let found = crate::sym::extrema::search(engine, &vals[1..], vals[0], max, piecewise);
+            let found = crate::sym::extrema::search(engine, &vals[1..], vals[0], max, of);
             out[0] = engine.extrema_value(&found).to_value();
+        }
+        SymKind::Interpolate { n } => {
+            use crate::sym::interpolate::{Given, given_by};
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            let given: Vec<Given> = vals[3..]
+                .chunks_exact(INTERPOLATE_POINT_CELLS)
+                .take(n as usize)
+                .map(|p| {
+                    let (kind, has_x, has_y, has_slope) = given_by(p[0]);
+                    let at = |v: f64, has: bool| has.then_some(v);
+                    Given {
+                        kind,
+                        x: at(p[1], has_x),
+                        y: at(p[2], has_y),
+                        slope: at(p[3], has_slope),
+                    }
+                })
+                .collect();
+            match handle(vals[2]).and_then(|v| engine.symbol(v)) {
+                Some(var) => engine.interpolate(&given, vals[0], vals[1], &var, out),
+                None => out.fill(f64::NAN),
+            }
         }
         SymKind::MergeExtrema => {
             out[0] = match (handle(v(0)), handle(v(1))) {

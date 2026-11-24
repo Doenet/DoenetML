@@ -7,6 +7,8 @@ use crate::components::prop::graph;
 use crate::components::{ComponentDef, ComponentType, ConstrainTarget};
 use crate::error::Result;
 use crate::program::{Post, SymKind, VecOp};
+use crate::sym::extrema::Pieces;
+use crate::sym::interpolate::{self, Kind};
 
 component! {
     /// `<function>`: a math cell `expr` in its variable (`x`, or the one
@@ -54,6 +56,10 @@ component! {
         globalInfimum: by_planner,
         globalMaximum: by_planner,
         globalSupremum: by_planner,
+        // An interpolated function's (ADR 0061): the height an extremum
+        // stands out by, and its pieces as one value, for a reader.
+        yscale: by_planner,
+        pieces: by_planner,
     }
     // A point constrained to a function rides its graph: `x` is what was
     // asked, held in the domain, and `y` is f(x). (The current core moves
@@ -63,6 +69,12 @@ component! {
         variables: Text,
         domain: Math,
         xscale: Scalar,
+        yscale: Scalar,
+        through: Math,
+        minima: Math,
+        maxima: Math,
+        extrema: Math,
+        throughSlopes: Scalars,
     }
     children: Math,
     planner: Plan(plan),
@@ -275,19 +287,18 @@ pub(crate) struct Extrema {
     pub(crate) global_supremum: Wire,
 }
 
-/// The [`Extrema`] of the function `f`, a piecewise one's when
-/// `piecewise`.
+/// The [`Extrema`] of the function `f`, whose pieces are `of`.
 pub(crate) fn plan_extrema(
     wiring: &mut ElemWiring,
     xscale: Port,
     f: Vec<Port>,
-    piecewise: bool,
+    of: Pieces,
 ) -> Extrema {
     let mut inputs = vec![xscale];
     inputs.extend(f);
     let mut search = |max: bool| {
         wiring.hidden(Source::computed(
-            OpSpec::Sym(SymKind::Extrema { max, piecewise }),
+            OpSpec::Sym(SymKind::Extrema { max, of }),
             inputs.clone(),
         ))
     };
@@ -311,12 +322,25 @@ pub(crate) fn plan_extrema(
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let component_type = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
-    let nodes = attrs.children.unwrap_or_default();
+    let nodes = attrs.children.clone().unwrap_or_default();
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(component_type);
     let mt = ctx.math_text(&nodes)?;
     let is_function = component_type == ComponentType::Function;
-    let xscale = Wire::attr(attr::xscale, attrs.xscale).unwrap_or_else(|| Wire::constant(1.0));
+    let xscale =
+        Wire::attr(attr::xscale, attrs.xscale.clone()).unwrap_or_else(|| Wire::constant(1.0));
+    let yscale =
+        Wire::attr(attr::yscale, attrs.yscale.clone()).unwrap_or_else(|| Wire::constant(1.0));
+    // Given by points it passes through, maxima, minima or extrema: a
+    // spline (ADR 0061).
+    if is_function
+        && (attrs.through.is_some()
+            || attrs.minima.is_some()
+            || attrs.maxima.is_some()
+            || attrs.extrema.is_some())
+    {
+        return plan_interpolated(ctx, wiring, attrs, xscale, yscale);
+    }
     let domain_ports = [
         at.domainMin,
         at.domainMax,
@@ -324,7 +348,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         at.domainMaxClosed,
     ];
     let f = one_piece(&mut wiring, at.expr, at.variable, domain_ports);
-    let extrema = plan_extrema(&mut wiring, at.xscale, f, false);
+    let extrema = plan_extrema(&mut wiring, at.xscale, f, Pieces::One);
     if is_function && is_vector_function(attrs.variables.clone(), &mt) {
         // Not a curve and not a math cell: a function of several
         // variables, or one returning a tuple, is only iterated
@@ -348,6 +372,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             globalInfimum: extrema.global_infimum,
             globalMaximum: extrema.global_maximum,
             globalSupremum: extrema.global_supremum,
+            yscale,
+            pieces: Wire::absent(),
         });
         return Ok(wiring);
     }
@@ -411,9 +437,189 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         globalInfimum: extrema.global_infimum,
         globalMaximum: extrema.global_maximum,
         globalSupremum: extrema.global_supremum,
+        yscale,
+        pieces: Wire::absent(),
     });
     Ok(wiring)
 }
+
+/// The kinds of point an interpolated function is given, each by the
+/// attribute that gives it, in the order the current core reads them.
+fn given_kinds(attrs: &Attrs) -> [(Option<&[crate::dast::NodeId]>, Kind); 4] {
+    [
+        (attrs.maxima.as_deref(), Kind::Maximum),
+        (attrs.minima.as_deref(), Kind::Minimum),
+        (attrs.extrema.as_deref(), Kind::Extremum),
+        (attrs.through.as_deref(), Kind::Point),
+    ]
+}
+
+/// The points an attribute gives (ADR 0061): a reference to a point is
+/// one, and so is a tuple, `(x, y)`, `(x, )` without its value, `( , y)`
+/// or `(y)` without its location; each coordinate an expression of its
+/// own, evaluated. A coordinate not given is `None`.
+fn given_points(
+    ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
+    nodes: &[crate::dast::NodeId],
+) -> Result<Vec<[Option<Port>; 2]>> {
+    let (toks, _) = ctx.math_tokens(nodes)?;
+    let coord = |ctx: &mut PlanCtx<'_, '_>,
+                 wiring: &mut ElemWiring,
+                 toks: &[Token]|
+     -> Result<Option<Port>> {
+        if toks.is_empty() {
+            return Ok(None);
+        }
+        let held = wiring.hidden(ctx.sym_tokens(toks)?);
+        Ok(Some(wiring.hidden(Source::value_of(held, held))))
+    };
+    let mut points = Vec::new();
+    let mut i = 0;
+    while i < toks.len() {
+        match &toks[i] {
+            Token::Cell(p) => {
+                let p = *p;
+                let x = wiring.hidden(Source::coord(p, 0));
+                let y = wiring.hidden(Source::coord(p, 1));
+                points.push([Some(x), Some(y)]);
+                i += 1;
+            }
+            Token::LParen => {
+                let start = i;
+                let mut depth = 0;
+                while i < toks.len() {
+                    match toks[i] {
+                        Token::LParen => depth += 1,
+                        Token::RParen => depth -= 1,
+                        _ => {}
+                    }
+                    i += 1;
+                    if depth == 0 {
+                        break;
+                    }
+                }
+                let group = &toks[start..i];
+                let inner = &group[1..group.len().saturating_sub(1)];
+                let entries = tuple_entries(group).unwrap_or_else(|| vec![inner.to_vec()]);
+                points.push(match &entries[..] {
+                    [y] => [None, coord(ctx, wiring, y)?],
+                    [x, y] => [coord(ctx, wiring, x)?, coord(ctx, wiring, y)?],
+                    // No point of a function's graph: none of its
+                    // coordinates given, which the spline leaves out.
+                    _ => [None, None],
+                });
+            }
+            _ => i += 1,
+        }
+    }
+    Ok(points)
+}
+
+/// A `<function>` given by points (ADR 0061): the spline through them,
+/// its pieces made by one instruction (`SymKind::Interpolate`) from the
+/// points given, each a coordinate or none, and sampled, evaluated and
+/// searched for its extrema as a piecewise function's (ADR 0049). It has
+/// no formula.
+fn plan_interpolated(
+    ctx: &mut PlanCtx<'_, '_>,
+    mut wiring: ElemWiring,
+    attrs: Attrs,
+    xscale: Wire,
+    yscale: Wire,
+) -> Result<ElemWiring> {
+    let at = Props::PORTS;
+    let var = function_variables(attrs.variables.clone()).remove(0);
+    let (domain, _) = plan_domain(ctx, attrs.domain.as_deref())?;
+    let slopes = attrs.throughSlopes.clone();
+    let mut inputs = vec![at.xscale, at.yscale, at.variable];
+    let mut n = 0usize;
+    for (nodes, kind) in given_kinds(&attrs) {
+        let Some(nodes) = nodes else {
+            continue;
+        };
+        let points = given_points(ctx, &mut wiring, nodes)?;
+        for (k, [x, y]) in points.into_iter().enumerate() {
+            let slope = (kind == Kind::Point)
+                .then(|| slopes.get(k).cloned())
+                .flatten()
+                .map(|s| wiring.hidden(s));
+            let code = interpolate::code(kind, x.is_some(), y.is_some(), slope.is_some());
+            let zero = || Wire::constant(0.0);
+            inputs.push(wiring.hidden_wire(Wire::constant(code)));
+            for p in [x, y, slope] {
+                inputs.push(match p {
+                    Some(p) => p,
+                    None => wiring.hidden_wire(zero()),
+                });
+            }
+            n += 1;
+        }
+    }
+    if n > MAX_GIVEN {
+        return Err(crate::error::Error::Unsupported(format!(
+            "a <function> through more than {MAX_GIVEN} points, maxima and minima"
+        )));
+    }
+    let spec = OpSpec::Sym(SymKind::Interpolate { n: n as u8 });
+    let head = wiring.hidden(Source::computed(spec, inputs));
+    let outs: Vec<Port> = (1..spec.n_out())
+        .map(|k| {
+            wiring.hidden(Source::Flow(Flow::VecOut(
+                head,
+                u8::try_from(k).expect("an instruction writes at most 255 cells"),
+            )))
+        })
+        .collect();
+    let domain_ports = [
+        at.domainMin,
+        at.domainMax,
+        at.domainMinClosed,
+        at.domainMaxClosed,
+    ];
+    let mut f = domain_ports.to_vec();
+    for piece in outs.chunks_exact(interpolate::PIECE_OUT) {
+        f.extend([piece[0], at.variable]);
+        f.extend(&piece[1..]);
+    }
+    let extrema = plan_extrema(&mut wiring, at.xscale, f.clone(), Pieces::Spline);
+    let [gxmin, gxmax] = graph_range(ctx);
+    let gxmin = wiring.hidden_wire(gxmin);
+    let gxmax = wiring.hidden_wire(gxmax);
+    let range = wiring.hidden_vector(
+        VecOp::DomainRange,
+        vec![gxmin, gxmax, at.domainMin, at.domainMax],
+    );
+    let mut sampled = vec![at.xmin, at.xmax];
+    sampled.extend(f);
+    let [d0, d1, d2, d3] = domain;
+    wiring.set_planned(Planned {
+        expr: Wire::absent(),
+        variable: ctx.symbol(&var).into(),
+        domainMin: d0,
+        domainMax: d1,
+        domainMinClosed: d2,
+        domainMaxClosed: d3,
+        xmin: Wire::own(range[0]),
+        xmax: Wire::own(range[1]),
+        curve: Wire::constant(1.0),
+        samples: Wire::computed(OpSpec::Sym(SymKind::SampleFunction), sampled),
+        xscale,
+        minima: extrema.minima,
+        maxima: extrema.maxima,
+        globalMinimum: extrema.global_minimum,
+        globalInfimum: extrema.global_infimum,
+        globalMaximum: extrema.global_maximum,
+        globalSupremum: extrema.global_supremum,
+        yscale,
+        pieces: Wire::own(head),
+    });
+    Ok(wiring)
+}
+
+/// The most points an interpolated function may be given: its pieces'
+/// cells are one instruction's outputs, at most 255.
+const MAX_GIVEN: usize = 16;
 
 #[cfg(test)]
 #[path = "curve.spec.rs"]

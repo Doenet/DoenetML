@@ -82,7 +82,12 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         at.domainMaxClosed,
     ];
     f.extend(pieces.iter().copied());
-    let extrema = curve::plan_extrema(&mut wiring, at.xscale, f, true);
+    let extrema = curve::plan_extrema(
+        &mut wiring,
+        at.xscale,
+        f,
+        crate::sym::extrema::Pieces::Piecewise,
+    );
     let (domain, given) = plan_domain(ctx, attrs.domain.as_deref())?;
     let [d0, d1, d2, d3] = if given || n == 0 {
         domain
