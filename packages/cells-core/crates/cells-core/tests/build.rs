@@ -297,7 +297,7 @@ fn binary_wire_format_rejects_garbage() {
 #[test]
 fn boolean_input_drives_a_point_hide_as_a_zero_one_cell() {
     let mut doc = load_ok(
-        r#"<booleanInput name="b" value="true"/><graph><point name="p" x="1" y="2" hide="$b"/></graph>"#,
+        r#"<booleanInput name="b" prefill="true"/><graph><point name="p" x="1" y="2" hide="$b"/></graph>"#,
     );
     assert_eq!(doc.value("b", "value"), Some(1.0));
     assert_eq!(

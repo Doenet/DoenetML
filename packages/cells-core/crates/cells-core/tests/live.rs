@@ -220,8 +220,10 @@ fn census() {
     // props (ADR 0058), which the choices' interface number chooses among
     // the cases' too: 6 more, dead. A function's and a derivative's
     // extrema (ADR 0061) are two searches, six entries, a merge and three
-    // counts: `symbolic.doenet`'s 24 more, all dead.
-    assert!(golden[0] <= 140 && golden[1] == 227, "{golden:?}");
+    // counts: `symbolic.doenet`'s 24 more, all dead. A segment's midpoint,
+    // slope and length are props a request may set
+    // (`SegmentMeasures`): `lines.doenet`'s one segment has two more, dead.
+    assert!(golden[0] <= 140 && golden[1] == 229, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

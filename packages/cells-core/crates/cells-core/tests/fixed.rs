@@ -17,7 +17,7 @@ fn set(doc: &mut Document, name: &str, prop: &str, value: f64) -> usize {
 #[test]
 fn a_point_with_dynamic_fixed() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <point name="P" x="1" y="2" fixed="$b"/>"#,
     )
     .unwrap();
@@ -37,7 +37,7 @@ fn a_point_with_dynamic_fixed() {
 #[test]
 fn a_fixed_point_follows_the_point_it_references() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <point name="A" x="1" y="2"/>
            <point name="P" x="$A.x" y="3" fixed="$b"/>"#,
     )
@@ -52,7 +52,7 @@ fn a_fixed_point_follows_the_point_it_references() {
 #[test]
 fn a_copy_of_a_dynamically_fixed_point_is_fixed() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <point name="P" x="1" y="2" fixed="$b"/>
            <point name="Q" extend="$P"/>"#,
     )
@@ -68,7 +68,7 @@ fn a_copy_of_a_dynamically_fixed_point_is_fixed() {
 #[test]
 fn a_circle_with_dynamic_fixed() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <point name="C" x="0" y="0"/>
            <circle name="c" center="$C" through="(3, 4)" fixed="$b"/>
            <mathInput name="r" bindValueTo="$c.radius"/>"#,
@@ -93,7 +93,7 @@ fn a_circle_with_dynamic_fixed() {
 #[test]
 fn an_input_with_dynamic_fixed() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <numberInput name="n" value="3" fixed="$b"/>
            <number name="twice">2 * $n</number>
            <mathInput name="t" bindValueTo="$twice"/>"#,
@@ -112,7 +112,7 @@ fn an_input_with_dynamic_fixed() {
 #[test]
 fn a_copy_fixed_on_its_own() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <numberInput name="n" value="3"/>
            <numberInput name="m" extend="$n" fixed="$b"/>"#,
     )
@@ -129,8 +129,8 @@ fn a_copy_fixed_on_its_own() {
 #[test]
 fn graph_axes_with_dynamic_fix_axes_and_fixed() {
     let mut doc = load(
-        r#"<booleanInput name="fa" value="true"/>
-           <booleanInput name="f" value="false"/>
+        r#"<booleanInput name="fa" prefill="true"/>
+           <booleanInput name="f" prefill="false"/>
            <graph name="g" xmin="-5" fixAxes="$fa" fixed="$f"/>"#,
     )
     .unwrap();
@@ -263,7 +263,7 @@ fn an_items_own_fixed_false_wins_over_its_container() {
 #[test]
 fn a_dynamic_fixed_on_a_container_gates_its_content() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <graph fixed="$b"><point name="P" x="1" y="2"/></graph>"#,
     )
     .unwrap();
@@ -278,13 +278,13 @@ fn a_dynamic_fixed_on_a_container_gates_its_content() {
 #[test]
 fn a_fixed_container_reaches_into_a_repeat() {
     let mut doc = load(
-        r#"<booleanInput name="b" value="true"/>
+        r#"<booleanInput name="b" prefill="true"/>
            <graph fixed>
              <repeatForSequence name="r" from="1" to="2"><point name="P" x="1" y="2"/></repeatForSequence>
            </graph>
            <graph fixed="$b">
              <repeatForSequence name="s" from="1" to="2">
-               <booleanInput name="b" value="false"/>
+               <booleanInput name="b" prefill="false"/>
                <point name="Q" x="3" y="4"/>
              </repeatForSequence>
            </graph>"#,
