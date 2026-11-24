@@ -9018,14 +9018,21 @@ async function typeChangeStatus({
 
     /**
      * Whether `writtenType` can be made from a component of `sourceType`,
-     * whose value, if one must be checked, is read by `readValue`. At
+     * whose value, if one must be checked, is read by `readValue`, and
+     * whether that value is LaTeX by `readIsLatex` (else whether
+     * `sourceType` is a `<latex>`). At
      * `level` `"info"`, for the one component a composite holds or the one
      * entry of a list the document makes, only the value is checked: its
      * type was decided when the document loaded (`typeChangeAtLoad`), and
      * a type found otherwise here, such as while a composite in it is made
      * again, is not decided.
      */
-    async function decide({ sourceType, readValue, level = "error" }) {
+    async function decide({
+        sourceType,
+        readValue,
+        readIsLatex,
+        level = "error",
+    }) {
         // What content made at run time is, other than its value, was
         // decided when the document loaded (`typeChangeAtLoad`).
         const valueOnly = level === "info";
@@ -9075,7 +9082,18 @@ async function typeChangeStatus({
         }
         if (rule.valueCheck && readValue) {
             const value = await readTypeChangeValue(component, readValue);
-            if (!valueAllowsTypeChange(rule.valueCheck, value)) {
+            // a text that is LaTeX is read as LaTeX, as the `<number>`
+            // made from it reads it (`Text.js`'s `number`)
+            const isLatex =
+                rule.valueCheck === "number" &&
+                ((readIsLatex
+                    ? await readTypeChangeValue(component, readIsLatex)
+                    : undefined) ??
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: sourceType,
+                        baseComponentType: "latex",
+                    }));
+            if (!valueAllowsTypeChange(rule.valueCheck, value, { isLatex })) {
                 return mismatch({
                     level: "info",
                     code: "doenet-i0053",
@@ -9219,7 +9237,11 @@ async function typeChangeStatus({
         ) {
             return undefined;
         }
-        return decide({ sourceType: typeStoodFor(nonStrings[0]), readValue });
+        return decide({
+            sourceType: typeStoodFor(nonStrings[0]),
+            readValue,
+            readIsLatex: async () => nonStrings[0].stateValues?.isLatex,
+        });
     }
 
     const sourceType = typeStoodFor(sourceComponent);
@@ -9353,6 +9375,7 @@ async function typeChangeStatus({
         return decide({
             sourceType,
             readValue: async () => sourceComponent.stateValues.value,
+            readIsLatex: async () => sourceComponent.stateValues.isLatex,
         });
     }
 
@@ -9474,6 +9497,7 @@ async function typeChangeStatus({
         readValue: one.stateValues
             ? async () => one.stateValues.value
             : undefined,
+        readIsLatex: async () => one.stateValues?.isLatex,
         level: "info",
     });
 }

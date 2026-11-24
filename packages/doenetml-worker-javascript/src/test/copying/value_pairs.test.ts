@@ -535,6 +535,38 @@ describe("A value that doesn't convert is missing, with an info (REF-5, #2659) @
         expect(await d.text("n2")).eq("3 + 4 i");
         expect(await d.text("n3")).eq("∞");
     });
+
+    // A `<number>` reads a text that is LaTeX (`isLatex`, a `<latex>`, a
+    // math's `latex`) as LaTeX, and so does the check.
+    it("<number extend> of a LaTeX text reads it as LaTeX", async () => {
+        const d = await load(`
+<text name="t" isLatex>\\frac{1}{2}</text><number name="n" extend="$t"/>
+<latex name="lx">2^{3}</latex><number name="n2" extend="$lx"/>
+<math name="m">1/4</math><number name="n3" extend="$m.latex"/>
+<textInput name="c" prefill="a"/>
+<conditionalContent name="cc">
+  <case condition="$c = a"><latex>\\pi</latex></case>
+  <else><latex>x</latex></else>
+</conditionalContent>
+<number name="n4" extend="$cc"/>
+<latex name="lx5">hello</latex><number name="n5" extend="$lx5"/>
+`);
+        expect(d.diagnostics()).eqls([
+            "doenet-i0053: A `<number>` can't be made from `$lx5` while its value, “hello”, isn't a number, so it is missing until it is.",
+        ]);
+        expect(await d.stateValue("n", "value")).eq(0.5);
+        expect(await d.stateValue("n2", "value")).eq(8);
+        expect(await d.stateValue("n3", "value")).eq(0.25);
+        expect(await d.stateValue("n4", "value")).closeTo(Math.PI, 1e-12);
+        expect(await d.stateValue("n5", "valueMissing")).eq(true);
+
+        await d.setText("c", "b");
+        expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
+        expect(await d.stateValue("n4", "valueMissing")).eq(true);
+        await d.reload();
+        expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
+        expect(await d.stateValue("n", "value")).eq(0.5);
+    });
 });
 
 describe("A list tag made from a list of a type it can't be made from is an error at load (REF-5, #2649) @group4", () => {

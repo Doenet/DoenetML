@@ -403,9 +403,15 @@ function isContainer(componentType, componentInfoObjects) {
  * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
  * be made from it; for a number, made from a text, a text that reads as a
  * number, as a `<number>` reads a text: through its `math` (`Text.js`'s
- * `number`), so `1e3` or a blank is not one, though `Number()` reads it.
+ * `number`), so `1e3` or a blank is not one, though `Number()` reads it,
+ * and a text that is LaTeX (`isLatex`, a `<latex>`) is read as LaTeX
+ * (`\frac{1}{2}`).
  */
-export function valueAllowsTypeChange(valueCheck, value) {
+export function valueAllowsTypeChange(
+    valueCheck,
+    value,
+    { isLatex = false } = {},
+) {
     const tree = value?.tree;
     if (valueCheck === "tuple") {
         return Array.isArray(tree) && vectorOperators.includes(tree[0]);
@@ -416,7 +422,7 @@ export function valueAllowsTypeChange(valueCheck, value) {
         }
         const number = textToMath({
             value,
-            isLatex: false,
+            isLatex: Boolean(isLatex),
         }).evaluate_to_constant();
         if (typeof number === "number") {
             return !Number.isNaN(number);
