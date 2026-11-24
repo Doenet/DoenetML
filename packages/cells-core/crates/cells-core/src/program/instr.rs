@@ -772,6 +772,7 @@ mod arity {
             OpSpec::Vec(VecOp::AngleAt {
                 reflex: Reflex::Allowed,
             }),
+            OpSpec::Vec(VecOp::Turn),
             OpSpec::Vec(VecOp::RegularPolygon {
                 n: 3,
                 by: RegularBy::CenterVertex,
@@ -911,6 +912,8 @@ mod arity {
                 VecOp::SequenceEntry { .. } => 53,
                 // After the symbolic operators 54 and 55.
                 VecOp::Moments { .. } => 57,
+                // After the symbolic operators to 64.
+                VecOp::Turn => 65,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -952,7 +955,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 65;
+    const N_TAGS: usize = 66;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

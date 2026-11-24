@@ -37,6 +37,8 @@
 //! |                          |                                       | the far point is asked; a midpoint and an offset move both ends      |                   |
 //! | `Extent`                 | (a, b) → the distance from a to b     | both ends about their midpoint, the order kept, a negative size 0    | a, b              |
 //! | `AngleAt{reflex}`        | (P1, V, P3) → the angle at V          | none: an angle through points is not set by a request                | none              |
+//! | `Turn`                   | (P1, V, a) → V + the unit ray toward  | none: an angle's third point follows its measure                     | none              |
+//! |                          | P1 turned by a                        |                                                                      |                   |
 //! | `RegularPolygon{n, by}`  | (P, Q) → the n vertices about a       | one vertex: turn and scale about the center; several: the center     | P, Q              |
 //! |                          | center, by [`RegularBy`]              | moves to their mean, the first sets the turn and size                |                   |
 //! | `Scan{op, n}`            | n inputs → running sums, products,    | none: an operator component's result is not set by a request         | none              |
@@ -293,6 +295,11 @@ pub enum VecOp {
         /// Which of the two angles.
         reflex: Reflex,
     },
+    /// Inputs (x1, y1, x, y, a); outputs the point a unit from (x, y) on
+    /// the ray through the first point turned counterclockwise by `a`
+    /// radians, NaN when an input is not finite: an angle's third point
+    /// from its first point, its vertex and its measure. No inverse.
+    Turn,
     /// Inputs (px, py, qx, qy); outputs the `n` vertices of a regular
     /// polygon, counterclockwise from its first vertex `V` about its
     /// center `C`, which follow from the inputs as `by` says.
@@ -1371,6 +1378,7 @@ impl VecOp {
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => 4,
             VecOp::Extent => 2,
             VecOp::AngleAt { .. } => 6,
+            VecOp::Turn => 5,
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } => n as usize,
             VecOp::Shuffle { n } => n as usize + 1,
             VecOp::Draws {
@@ -1419,7 +1427,10 @@ impl VecOp {
             VecOp::Centroid { n } => first(2 * n as usize),
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
             VecOp::Extent => first(2),
-            VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::Intersect { .. } => 0,
+            VecOp::AngleAt { .. }
+            | VecOp::Turn
+            | VecOp::BestFitLine { .. }
+            | VecOp::Intersect { .. } => 0,
             VecOp::Parabola { .. } => first(self.n_in()),
             VecOp::IntoDomain => 1,
             VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
@@ -1509,7 +1520,7 @@ impl VecOp {
             | VecOp::Wrap
             | VecOp::Extent
             | VecOp::AngleAt { .. } => 1,
-            VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
+            VecOp::WeightedMean { .. } | VecOp::Centroid { .. } | VecOp::Turn => 2,
             VecOp::Pair { .. } => 4,
             VecOp::RegularPolygon { n, .. } => 2 * n as usize,
             VecOp::Scan {
@@ -1669,6 +1680,13 @@ impl VecOp {
             }
             VecOp::Extent => out[0] = (inp[1] - inp[0]).abs(),
             VecOp::AngleAt { reflex } => out[0] = angle_at(inp, reflex),
+            VecOp::Turn => {
+                let [x1, y1, vx, vy, a] = [inp[0], inp[1], inp[2], inp[3], inp[4]];
+                let theta = (y1 - vy).atan2(x1 - vx) + a;
+                let finite = [x1, y1, vx, vy, a].iter().all(|v| v.is_finite());
+                out[0] = if finite { vx + theta.cos() } else { f64::NAN };
+                out[1] = if finite { vy + theta.sin() } else { f64::NAN };
+            }
             VecOp::RegularPolygon { n, by } => {
                 let ([cx, cy], [vx, vy]) = regular_center_vertex(n as usize, by, inp);
                 regular_vertices(n as usize, [cx, cy], [vx - cx, vy - cy], out);
@@ -1983,7 +2001,7 @@ impl VecOp {
                 out.write(inputs[1], mid + half);
                 true
             }
-            VecOp::AngleAt { .. } => false,
+            VecOp::AngleAt { .. } | VecOp::Turn => false,
             VecOp::RegularPolygon { n, by } => {
                 let n = n as usize;
                 let Some(first) = (0..2 * n).find(|&k| desired[k].is_some()) else {
@@ -2853,6 +2871,7 @@ mod writes {
             VecOp::AngleAt {
                 reflex: Reflex::Always,
             },
+            VecOp::Turn,
             VecOp::RegularPolygon {
                 n: 3,
                 by: RegularBy::CenterVertex,
@@ -3073,6 +3092,7 @@ mod writes {
             | VecOp::Wrap
             | VecOp::Extent
             | VecOp::AngleAt { .. }
+            | VecOp::Turn
             | VecOp::Scan { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }

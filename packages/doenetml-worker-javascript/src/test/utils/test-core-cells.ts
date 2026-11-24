@@ -338,6 +338,19 @@ const angleReaders: Record<string, Reader> = {
     value: exprOr("radiansExpr", "radians"),
     angle: exprOr("radiansExpr", "radians"),
     degrees: exprOr("degreesExpr", "degrees"),
+    // Its first point, its vertex and its third point; a coordinate the
+    // core cannot compute is the blank, as the current core shows it.
+    points: (g) =>
+        ["1", "2", "3"].map((k) =>
+            [`x${k}`, `y${k}`].map((p) =>
+                Number.isNaN(g(p)) ? me.fromAst(BLANK) : M(g(p)),
+            ),
+        ),
+    numericalPoints: (g) => [
+        npt(g, "x1", "y1"),
+        npt(g, "x2", "y2"),
+        npt(g, "x3", "y3"),
+    ],
 };
 
 /** A rectangle's and a regular polygon's sizes are numbers in the current
