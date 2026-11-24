@@ -20,8 +20,13 @@
  * - a value type from an input, as the input's value is: `<math
  *   extend="$mi"/>` of a `<mathInput>`, and anything its value can be made
  *   into (an input is its value, REF-1a, D69 decision 3);
- * - an angle as the math of its measure, and from a math (`VALUED_AS`, D66
- *   decision 17, D69 decision 3);
+ * - an angle as the math of its measure, and from a value that is one
+ *   (`VALUED_AS`, D66 decision 17, D69 decision 3): a math, missing while
+ *   its value is a tuple, a vector or another value that is no measure
+ *   (`valueCheck` `"measure"`), a number, or a text, missing while it isn't
+ *   a number (`"number"`). An angle is not made from a point, a vector, a
+ *   coords, a `<matrix>` or anything else that is no value (`notAMeasure`,
+ *   user decision, 2026-11-24);
  * - any other component as a type it stands in as (its `adapters`), and
  *   nothing further (D69): an `<ion>` as the text of its name, a `<line>` as
  *   the math of its equation, a `<label>` as its text. A `<line>` is not a
@@ -76,6 +81,26 @@ const FITTING_INPUTS = {
 const VALUED_AS = {
     angle: "math",
 };
+
+/**
+ * The tags that are maths (`Matrix.js`, `Interval.js`) but whose value is
+ * never the measure of an angle, so an angle is not made from one, as from
+ * a point.
+ */
+const NOT_MEASURES = ["matrix", "interval", "subsetOfReals", "periodicSet"];
+
+/**
+ * The operators of a math's value that make it no measure of an angle: a
+ * tuple or vector (`vectorOperators`), a list, a matrix, an interval or a
+ * set.
+ */
+const NON_MEASURE_OPERATORS = [
+    ...vectorOperators,
+    "list",
+    "matrix",
+    "interval",
+    "set",
+];
 
 /**
  * The family a component type belongs to for a type change: the value or
@@ -134,8 +159,8 @@ function familyOf(componentType, componentInfoObjects) {
  * if allowed only for some of the source's values, which check its value
  * must pass (`valueAllowsTypeChange`):
  * - `{ allowed: true }`;
- * - `{ allowed: true, valueCheck: "tuple" | "number" }`, the check on the
- *   value of the source, or, for an input, of its value;
+ * - `{ allowed: true, valueCheck: "tuple" | "number" | "measure" }`, the
+ *   check on the value of the source, or, for an input, of its value;
  * - `{ allowed: false, kind: "inputFromValue" | "container" | "unrelated" }`;
  *   an `inputFromValue` whose input's value would be a type mix with the
  *   source's also has that `mix` and the input that edits the source
@@ -145,7 +170,8 @@ function familyOf(componentType, componentInfoObjects) {
  *   (`mix` is `"booleanAsNumber"`), a number or a math as a boolean
  *   (`"numberAsBoolean"`), or a text as a boolean (`"textAsBoolean"`, D68),
  *   with an input as its value, and a component that stands in as a text
- *   (a `<label>`) as one;
+ *   (a `<label>`) as one; or an angle made from what is no measure
+ *   (`"notAMeasure"`): a point, a vector, a `<matrix>`, a `<line>`;
  * - `{ allowed: false, kind: "standsInAs", standsInAs, property }`, a
  *   component made into a type it doesn't stand in as (D69): `standsInAs`
  *   is the types it does (its adapters'), and `property` a property of it
@@ -220,6 +246,31 @@ export function typeChangeRule({
         return { allowed: false, kind: "unrelated" };
     }
 
+    // An angle is made only from its measure: a value, a math, a number or
+    // a text (`VALUED_AS`), not from a point, a vector, a `<matrix>`, or
+    // what stands in as a math (a `<line>`'s equation).
+    const writtenIsAngle = Object.keys(VALUED_AS).some((type) =>
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: writtenType,
+            baseComponentType: type,
+        }),
+    );
+    const notAMeasure = { allowed: false, kind: "mix", mix: "notAMeasure" };
+    if (
+        writtenIsAngle &&
+        (standsInAs.length > 0 ||
+            (source.kind === "value" &&
+                GEOMETRIC_TYPES.includes(source.type)) ||
+            NOT_MEASURES.some((type) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: sourceType,
+                    baseComponentType: type,
+                }),
+            ))
+    ) {
+        return notAMeasure;
+    }
+
     if (standsInAs.length > 0) {
         if (
             written.type === "boolean" &&
@@ -261,14 +312,25 @@ export function typeChangeRule({
             if (mix !== undefined) {
                 return { allowed: false, kind: "mix", mix };
             }
-            if (written.type === "number" && source.type === "text") {
-                // a text that isn't a number makes a missing number (VAL-5)
+            if (
+                (written.type === "number" || writtenIsAngle) &&
+                source.type === "text"
+            ) {
+                // a text that isn't a number makes a missing number (VAL-5),
+                // and a missing angle
                 return { allowed: true, valueCheck: "number" };
+            }
+            if (writtenIsAngle && source.type === "math") {
+                // a math that is a tuple or a vector makes a missing angle
+                return { allowed: true, valueCheck: "measure" };
             }
             return { allowed: true };
         }
         if (!writtenIsValue && !sourceIsValue) {
             return { allowed: true };
+        }
+        if (writtenIsAngle) {
+            return notAMeasure;
         }
         if (written.type === "math") {
             // from a point, vector or coords, as its coordinates
@@ -428,7 +490,10 @@ function isContainer(componentType, componentInfoObjects) {
  * Whether `value`, the value of a math or a text, passes `valueCheck`
  * (`typeChangeRule`): a tuple or vector (`vectorOperators`, as `Point.js`
  * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
- * be made from it; for a number, made from a text, a text that reads as a
+ * be made from it; for an angle made from a math, a measure, one that is
+ * not a tuple, a vector, a list, a matrix, an interval or a set
+ * (`NON_MEASURE_OPERATORS`); for a number or an angle made from a text, a
+ * text that reads as a
  * number, as a `<number>` reads a text: through its `math` (`Text.js`'s
  * `number`), so `1e3` or a blank is not one, though `Number()` reads it,
  * and a text that is LaTeX (`isLatex`, a `<latex>`) is read as LaTeX
@@ -442,6 +507,11 @@ export function valueAllowsTypeChange(
     const tree = value?.tree;
     if (valueCheck === "tuple") {
         return Array.isArray(tree) && vectorOperators.includes(tree[0]);
+    }
+    if (valueCheck === "measure") {
+        return !(
+            Array.isArray(tree) && NON_MEASURE_OPERATORS.includes(tree[0])
+        );
     }
     if (valueCheck === "number") {
         if (typeof value !== "string") {

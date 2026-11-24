@@ -500,6 +500,155 @@ describe("An angle is a math, both ways (D66 decision 17, #478) @group4", () => 
     });
 });
 
+describe("An angle is made only from a value (user decision on D66 decision 17, 2026-11-24) @group4", () => {
+    /** The error for an angle made from what is no measure. */
+    function notAMeasure(source: string, sourceType: string) {
+        return `doenet-e0065: A \`<angle>\` can't be made from \`${source}\`, which gives a \`<${sourceType}>\`: an angle is made only from its measure, a math, a number or a text. To show it as it is, write \`${source}\`.`;
+    }
+
+    it("from a point, a vector, a coords, a matrix or a line is an error at load", async () => {
+        const d = await load(`
+<point name="P">(1,2)</point>
+<vector name="v">(1,2)</vector>
+<coords name="c">(1,2)</coords>
+<matrix name="M"><row>1 2</row></matrix>
+<line name="l">y=x</line>
+<angle name="a1" extend="$P"/>
+<angle name="a2" copy="$P"/>
+<angle name="a3" extend="$v"/>
+<angle name="a4" extend="$c"/>
+<angle name="a5" extend="$M"/>
+<angle name="a6" extend="$l"/>
+<math name="r1">$a1</math>
+`);
+        const expected = [
+            notAMeasure("$P", "point"),
+            notAMeasure("$P", "point"),
+            notAMeasure("$v", "vector"),
+            notAMeasure("$c", "coords"),
+            notAMeasure("$M", "matrix"),
+            notAMeasure("$l", "line"),
+        ];
+        expect(d.diagnostics()).eqls(expected);
+        for (const name of ["a1", "a2", "a3", "a4", "a5", "a6"]) {
+            expect(await d.typeOf(name)).eq("_error");
+        }
+        expect(await d.text("r1")).eq("＿");
+        await d.reload();
+        expect(d.diagnostics()).eqls(expected);
+    });
+
+    it("in a case that isn't true, at load", async () => {
+        const d = await load(`
+<booleanInput name="bi"/>
+<point name="P">(1,2)</point>
+<conditionalContent>
+  <case condition="$bi"><angle name="a" extend="$P"/></case>
+</conditionalContent>
+`);
+        expect(d.diagnostics()).eqls([notAMeasure("$P", "point")]);
+        await d.setBoolean("bi", true);
+        expect(d.diagnostics()).eqls([notAMeasure("$P", "point")]);
+        expect(await d.typeOf("a")).eq("_error");
+    });
+
+    it("from a math that is a tuple is missing with an info, and follows the math", async () => {
+        const d = await load(`
+<mathInput name="mi" prefill="1"/>
+<math name="m">$mi</math>
+<angle name="a" extend="$m"/>
+<angle name="a2" extend="$mi"/>
+<math name="r" extend="$a.radians"/>
+<p name="p">$a</p>
+`);
+        expect(d.diagnostics()).eqls([]);
+        expect(await d.text("r")).eq("1");
+
+        await d.setMath("mi", "(1,2)");
+        expect(d.diagnostics()).eqls([
+            "doenet-i0053: A `<angle>` can't be made from `$m` while its value, (1, 2), isn't the measure of an angle, so it is missing until it is.",
+            "doenet-i0053: A `<angle>` can't be made from `$mi` while its value, (1, 2), isn't the measure of an angle, so it is missing until it is.",
+        ]);
+        expect(await d.stateValue("a", "valueMissing")).eq(true);
+        expect(await d.stateValue("a2", "valueMissing")).eq(true);
+        expect(await d.text("p")).eq("＿");
+
+        await d.reload();
+        expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
+        expect(await d.stateValue("a", "valueMissing")).eq(true);
+
+        await d.setMath("mi", "2");
+        expect(d.diagnostics()).eqls([]);
+        expect(await d.stateValue("a", "valueMissing")).eq(false);
+        expect(await d.text("r")).eq("2");
+    });
+
+    it("from a math that is a vector, a list or an interval is missing with an info", async () => {
+        const d = await load(`
+<math name="m1">⟨1,2⟩</math>
+<math name="m2">1,2</math>
+<math name="m3">(1,2]</math>
+<angle name="a1" extend="$m1"/>
+<angle name="a2" extend="$m2"/>
+<angle name="a3" extend="$m3"/>
+`);
+        expect(d.codes()).eqls([
+            "doenet-i0053",
+            "doenet-i0053",
+            "doenet-i0053",
+        ]);
+        for (const name of ["a1", "a2", "a3"]) {
+            expect(await d.stateValue(name, "valueMissing")).eq(true);
+        }
+    });
+
+    it("from a text that isn't a number is missing with an info, and follows the text", async () => {
+        const d = await load(`
+<textInput name="ti" prefill="hello"/>
+<angle name="a" extend="$ti"/>
+<text name="t">hello</text>
+<angle name="a2" extend="$t"/>
+<math name="r" extend="$a.radians"/>
+`);
+        expect(d.diagnostics()).eqls([
+            "doenet-i0053: A `<angle>` can't be made from `$ti` while its value, “hello”, isn't a number, so it is missing until it is.",
+            "doenet-i0053: A `<angle>` can't be made from `$t` while its value, “hello”, isn't a number, so it is missing until it is.",
+        ]);
+        expect(await d.stateValue("a", "valueMissing")).eq(true);
+        expect(await d.stateValue("a2", "valueMissing")).eq(true);
+
+        await d.setText("ti", "1");
+        expect(d.codes()).eqls(["doenet-i0053"]);
+        expect(await d.stateValue("a", "valueMissing")).eq(false);
+        expect(await d.text("r")).eq("1");
+    });
+
+    it("from a measure, a property, an angle, or given children, is unchanged", async () => {
+        const d = await load(`
+<point name="P">(1,2)</point>
+<math name="m">(1,2)</math>
+<angle name="A">pi/3</angle>
+<text name="t">pi/2</text>
+<angle name="a1" extend="$P.x"/>
+<angle name="a2" extend="$A"/>
+<angle name="a3" extend="$t"/>
+<angle name="a4"><math>pi</math></angle>
+<angle name="a5">$m</angle>
+<math name="r1" extend="$a1.radians"/>
+<math name="r2" extend="$a2.radians"/>
+<number name="d3" extend="$a3.degrees"/>
+<math name="r4" extend="$a4.radians"/>
+<math name="r5" extend="$a5.radians"/>
+`);
+        expect(d.diagnostics()).eqls([]);
+        expect(await d.text("r1")).eq("1");
+        expect(await d.text("r2")).eq("π/3");
+        expect(await d.text("d3")).eq("90");
+        expect(await d.text("r4")).eq("π");
+        expect(await d.text("r5")).eq("(1, 2)");
+    });
+});
+
 describe("A value that doesn't convert is missing, with an info (REF-5, #2659) @group4", () => {
     it("<number extend> of a text that isn't a number", async () => {
         const d = await load(`

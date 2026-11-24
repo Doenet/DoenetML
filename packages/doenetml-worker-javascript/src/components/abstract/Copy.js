@@ -6823,7 +6823,8 @@ const MAX_VALUES_WATCHED = 4;
 
 /**
  * The components of `content` (`typeChangeContent`) whose value a point,
- * vector or coords (a math's), or a number (a text's), is checked against
+ * vector or coords (a math's), a number (a text's), or an angle (either's),
+ * is checked against
  * (`typeChangeRule`), or none when there are more than
  * `MAX_VALUES_WATCHED`.
  */
@@ -6832,7 +6833,7 @@ function valueChecked(content, { componentInfoObjects }) {
         (x) =>
             x.componentType === "_ref" ||
             (componentInfoObjects.allComponentClasses[x.componentType] &&
-                ["point", "number"].some(
+                ["point", "number", "angle"].some(
                     (writtenType) =>
                         typeChangeRule({
                             writtenType,

@@ -404,9 +404,14 @@ export function checkExtendErrorsAtLoad({
      * holds, and may (`isContent`); so may a `<group>` or a `<module>`, and
      * the other composites have errors of their own (`doenet-e0057`). An
      * `<m>`, `<me>` or `<men>`, whose children make one expression, counts
-     * as a value (`extendTakesNoContent`, D71 decision 7). On any tag, a
-     * `<label>`, `<shortDescription>` or `<description>` may be written,
-     * which change only how it is presented. An `<answer>` and a
+     * as a value (`extendTakesNoContent`, D71 decision 7). A `<label>`,
+     * `<shortDescription>` or `<description>` may be written where the tag
+     * takes one (its `childGroups` name it: a `<point>`'s `<label>`, an
+     * input's description), which changes only how it is presented; on a
+     * tag that takes none (`<number>`, `<text>`, `<math>`, a list, a
+     * `<point>`'s `<shortDescription>`) it is an error as any other child
+     * is (kind `presentation` when nothing else is written; user decision
+     * on D71 decision 5, 2026-11-24). An `<answer>` and a
      * `<choiceInput>` say what their children would change themselves
      * (`extendChangesContentErrors`).
      */
@@ -442,19 +447,45 @@ export function checkExtendErrorsAtLoad({
         ) {
             return undefined;
         }
-        const presentsOnly = (child: SerializedComponent | string) =>
+        // A `<label>`, `<shortDescription>` or `<description>` (or a tag
+        // that is one, an `<xLabel>`), and whether the written tag takes
+        // it: a child group of its class names one it is (literally, not
+        // through a group of any content, as an `<m>`'s, which would read it
+        // as part of the expression).
+        const presentationBases = ["label", "shortDescription", "description"];
+        const typeOfChild = (child: SerializedComponent) =>
+            child.componentType === "_copy"
+                ? writtenTypeOf(child)
+                : child.componentType;
+        const isPresentation = (child: SerializedComponent) => {
+            const type = typeOfChild(child);
+            return (
+                type !== undefined &&
+                presentationBases.some((base) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: type,
+                        baseComponentType: base,
+                    }),
+                )
+            );
+        };
+        const takenBases = (writtenClass.childGroups ?? [])
+            .flatMap(
+                (group: { componentTypes: string[] }) => group.componentTypes,
+            )
+            .filter((type: string) => presentationBases.includes(type));
+        const takesIt = (child: SerializedComponent) =>
+            takenBases.some((base: string) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: typeOfChild(child) ?? "_copy",
+                    baseComponentType: base,
+                }),
+            );
+        const allowed = (child: SerializedComponent | string) =>
             typeof child === "string"
                 ? child.trim() === ""
-                : ["label", "shortDescription", "description"].some((base) =>
-                      componentInfoObjects.isInheritedComponentType({
-                          inheritedComponentType:
-                              child.componentType === "_copy"
-                                  ? (writtenTypeOf(child) ?? "_copy")
-                                  : child.componentType,
-                          baseComponentType: base,
-                      }),
-                  );
-        if (children.every(presentsOnly)) {
+                : isPresentation(child) && takesIt(child);
+        if (children.every(allowed)) {
             return undefined;
         }
         // An input's children say what it is bound to, so a new one is
@@ -469,25 +500,41 @@ export function checkExtendErrorsAtLoad({
             writtenClass.listEntryComponentType !== undefined ||
             writtenClass.listEntryTypeAttribute !== undefined,
         );
-        // In a new tag holding the reference, a `<label>`,
-        // `<shortDescription>` or `<description>` the tag takes no such
-        // child for (a `<number>`, a `<text>`) would be read as part of
-        // what it holds, so the form suggested leaves it out. A `copy`
-        // keeps it.
-        const takenAsPresentation = new Set<string>(
-            (writtenClass.childGroups ?? []).flatMap(
-                (group: { componentTypes: string[] }) => group.componentTypes,
-            ),
+        // A `<label>`, `<shortDescription>` or `<description>` the tag
+        // takes no such child for is no more allowed in a new tag holding
+        // the reference (a `<number>`, a `<text>` would read it as part of
+        // what it holds) or in a `copy` (a `<point>` doesn't take a
+        // `<shortDescription>`), so the form suggested leaves it out.
+        const leftOut = children.filter(
+            (child): child is SerializedComponent =>
+                typeof child !== "string" &&
+                isPresentation(child) &&
+                !takesIt(child),
         );
-        const leftOut = isValue
-            ? children.filter(
-                  (child): child is SerializedComponent =>
-                      typeof child !== "string" &&
-                      child.componentType !== "_copy" &&
-                      presentsOnly(child) &&
-                      !takenAsPresentation.has(child.componentType),
-              )
-            : [];
+        if (
+            children.every(
+                (child) =>
+                    allowed(child) ||
+                    (typeof child !== "string" && leftOut.includes(child)),
+            )
+        ) {
+            // Only what the tag doesn't take is written, so there is no
+            // other form to suggest: it is removed.
+            const types = [...new Set(leftOut.map(typeOfChild))];
+            return {
+                code: "doenet-e0057",
+                args: {
+                    componentType,
+                    kind: "presentation",
+                    source: doenetMLReferenceAsWritten(
+                        ref.originalPath,
+                        sources,
+                    ),
+                    children: types.map((type) => `\`<${type}>\``).join(", "),
+                    childCount: types.length,
+                },
+            };
+        }
         const written = writtenChildrenText(copy, leftOut);
         // A `<boolean>`'s children are one expression, so what is written
         // is joined to the reference by a logical operator

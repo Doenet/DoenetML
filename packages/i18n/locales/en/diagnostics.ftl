@@ -1313,10 +1313,20 @@ extend-attribute-changes-content = A `<{ $componentType }>` makes its content fr
 # children are one logical expression (a `<boolean>`): the children are
 # joined to the reference with `and` or `or`, `and` in the example.
 # $written is the children as written (`+1`), without a `<label>`,
-# `<shortDescription>` or `<description>` the new tag would read as part of
-# what it holds, or `…`. `and` and `or` are DoenetML, so they stay in English.
+# `<shortDescription>` or `<description>` the tag takes no such child for,
+# or `…`. `presentation` is for an extend of a value or an object given only
+# such children, a `<label>`, `<shortDescription>` or `<description>` its tag
+# doesn't take (a `<number>` takes no `<label>`, a `<point>` no
+# `<shortDescription>`): $children lists them, already joined (`<label>`, or
+# several, such as `<label>`, `<description>`), with $childCount their
+# number. A tag that takes one (a `<point>`'s `<label>`) may be given it on an
+# extend. `and` and `or` are DoenetML, so they stay in English.
 extend-children-change-content =
     { $kind ->
+        [presentation] { $childCount ->
+            [one] A `<{ $componentType }>` takes no { $children }, and an `extend` of `{ $source }` is the same `<{ $componentType }>`, so it can't be given one. To show `{ $source }` again, remove the { $children }.
+           *[other] A `<{ $componentType }>` takes none of { $children }, and an `extend` of `{ $source }` is the same `<{ $componentType }>`, so it can't be given them. To show `{ $source }` again, remove them.
+        }
         [value] Children written inside an `extend` of a `<{ $componentType }>` would change what it holds, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` from `{ $source }` and more, write `<{ $componentType }>{ $source }{ $written }</{ $componentType }>`.
         [logic] Children written inside an `extend` of a `<{ $componentType }>` would change what it holds, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` from `{ $source }` and more, write a `<{ $componentType }>` joining them with `and` or `or`, such as `<{ $componentType }>{ $source } and { $written }</{ $componentType }>`.
         [object] Children written inside an `extend` of a `<{ $componentType }>` would change what it is, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` starting from `{ $source }`, use `copy`: `<{ $componentType } copy="{ $source }">{ $written }</{ $componentType }>`.
@@ -1373,7 +1383,9 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # (`slope` of a `<line>` for a `<number>`), or `none` where it has none, and
 # the message then suggests nothing. `inContent` is
 # for a container (a `<label>`, a `<p>`) made from a value or an object,
-# which it can hold instead. Any other value of $mix is any other pair.
+# which it can hold instead. `notAMeasure` is for an `<angle>` made from
+# what is no value, so no measure of an angle: a `<point>`, a `<vector>`, a
+# `<matrix>`, a `<line>`. Any other value of $mix is any other pair.
 # $componentType is the tag the extend or copy is written as, $sourceType the
 # type of what it is made from, and $source the reference, as written (`$t`);
 # all three are DoenetML, so they stay in English, as do `extend`, `copy`,
@@ -1405,6 +1417,7 @@ type-change-unrelated =
             } To use its { $property }, write `<{ $componentType }>{ $source }.{ $property }</{ $componentType }>`.
         }
         [inContent] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it in a `<{ $componentType }>`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        [notAMeasure] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: an angle is made only from its measure, a math, a number or a text. To show it as it is, write `{ $source }`.
        *[other] { $groupFrom ->
             [collection] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
             [one] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
@@ -1556,11 +1569,14 @@ type-change-property-not-one-value = { $holds ->
     }
 
 # $value is the value of `$source` now. $valueCheck says what it would have
-# to be: a tuple, such as (1, 2), for a point, vector or coords, or a number,
-# for a number made from a text.
+# to be: a tuple, such as (1, 2), for a point, vector or coords; a measure
+# (`measure`), not a tuple, vector, list, matrix, interval or set, for an
+# angle made from a math; or a number, for a number or an angle made from a
+# text.
 type-change-value-not-convertible =
     { $valueCheck ->
         [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so it is missing until it is.
+        [measure] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't the measure of an angle, so it is missing until it is.
        *[number] A `<{ $componentType }>` can't be made from `{ $source }` while its value, “{ $value }”, isn't a number, so it is missing until it is.
     }
 

@@ -11,9 +11,11 @@ vi.mock("hyperformula");
  * A value or an object is what it holds, so children written inside an
  * `extend` of one are an error at load; a container presents what it holds,
  * so its `extend` may be given children, which are added, and a `<title>`
- * replaces its title (D71, REF-7, #2668). On any tag a `<label>`,
- * `<shortDescription>` or `<description>` may be written. A `copy` makes a
- * new component, which may be given anything.
+ * replaces its title (D71, REF-7, #2668). A `<label>`, `<shortDescription>`
+ * or `<description>` may be written where the tag takes one (a `<point>`'s
+ * `<label>`, an input's); on a tag that takes none (a `<number>`, a
+ * `<text>`) it is an error as any other child is (user decision on D71
+ * decision 5). A `copy` makes a new component, which may be given anything.
  */
 async function load(doenetML: string) {
     let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -70,6 +72,14 @@ function valueError(tag: string, source: string, form: string) {
 /** The error for children inside an extend of an object. */
 function objectError(tag: string, source: string, form: string) {
     return `doenet-e0057: Children written inside an \`extend\` of a \`<${tag}>\` would change what it is, but an extend is the same \`<${tag}>\` as \`${source}\`. To make a new \`<${tag}>\` starting from \`${source}\`, use \`copy\`: \`${form}\`.`;
+}
+
+/**
+ * The error for a `<label>`, `<shortDescription>` or `<description>`
+ * (`children`, as listed) inside an extend of a tag that takes none.
+ */
+function presentationError(tag: string, source: string, children: string) {
+    return `doenet-e0057: A \`<${tag}>\` takes no ${children}, and an \`extend\` of \`${source}\` is the same \`<${tag}>\`, so it can't be given one. To show \`${source}\` again, remove the ${children}.`;
 }
 
 describe("Children inside an extend of a value or an object are an error at load (D71, #2668) @group4", () => {
@@ -261,15 +271,89 @@ describe("Children inside an extend of a value or an object are an error at load
             3, 4,
         ]);
     });
+    it("a label, a shortDescription or a description on a tag that takes none (user decision on D71 decision 5)", async () => {
+        const d = await load(`
+<number name="n">2</number>
+<text name="t">hi</text>
+<math name="m">x</math>
+<m name="e">x</m>
+<mathList name="ml">a b</mathList>
+<boolean name="b">true</boolean>
+<point name="P">(1,2)</point>
+<number name="x1" extend="$n"><label>L</label></number>
+<text name="x2" extend="$t"> <label>L</label> </text>
+<math name="x3" extend="$m"><shortDescription>S</shortDescription></math>
+<m name="x4" extend="$e"><label>L</label></m>
+<mathList name="x5" extend="$ml"><label>L</label></mathList>
+<boolean name="x6" extend="$b"><label>L</label></boolean>
+<point name="x7" extend="$P"><shortDescription>S</shortDescription></point>
+<number name="x8" extend="$n"><label>L</label><description>D</description></number>
+<p name="p">$x1</p>
+`);
+        const expected = [
+            presentationError("number", "$n", "`<label>`"),
+            presentationError("text", "$t", "`<label>`"),
+            presentationError("math", "$m", "`<shortDescription>`"),
+            presentationError("m", "$e", "`<label>`"),
+            presentationError("mathList", "$ml", "`<label>`"),
+            presentationError("boolean", "$b", "`<label>`"),
+            presentationError("point", "$P", "`<shortDescription>`"),
+            `doenet-e0057: A \`<number>\` takes none of \`<label>\`, \`<description>\`, and an \`extend\` of \`$n\` is the same \`<number>\`, so it can't be given them. To show \`$n\` again, remove them.`,
+        ];
+        expect(d.diagnostics()).eqls(expected);
+        for (const name of ["x1", "x2", "x3", "x4", "x6", "x7", "x8"]) {
+            expect(await d.typeOf(name)).eq("_error");
+        }
+        expect(await d.text("p")).eq("＿");
+        await d.reload();
+        expect(d.diagnostics()).eqls(expected);
+    });
+
+    it("beside other children, the form suggested leaves out what the tag doesn't take", async () => {
+        const d = await load(`
+<point name="P">(1,2)</point>
+<point name="P2" extend="$P"><shortDescription>S</shortDescription>(3,4)</point>
+<point name="P3" extend="$P"><label>L</label>(3,4)</point>
+`);
+        expect(d.diagnostics()).eqls([
+            objectError("point", "$P", `<point copy="$P">(3,4)</point>`),
+            objectError(
+                "point",
+                "$P",
+                `<point copy="$P"><label>L</label>(3,4)</point>`,
+            ),
+        ]);
+    });
+
+    it("a label on a tag that takes none, in a case that isn't true, at load", async () => {
+        const d = await load(`
+<booleanInput name="bi"/>
+<number name="n">2</number>
+<conditionalContent>
+  <case condition="$bi"><number name="x" extend="$n"><label>L</label></number></case>
+</conditionalContent>
+`);
+        expect(d.diagnostics()).eqls([
+            presentationError("number", "$n", "`<label>`"),
+        ]);
+        await d.setBoolean("bi", true);
+        expect(await d.typeOf("x")).eq("_error");
+    });
 });
 
 describe("What an extend of a value or an object may be given (D71, #2668) @group4", () => {
-    it("a label, a shortDescription or a description, on any tag", async () => {
+    it("a label, a shortDescription or a description, where the tag takes one", async () => {
         const d = await load(`
 <point name="P">(1,2)</point>
 <point name="P2" extend="$P"><label>Q</label></point>
 <mathInput name="mi"/>
 <mathInput name="mi2" extend="$mi"><label>L</label><shortDescription>S</shortDescription></mathInput>
+<angle name="A">pi/2</angle>
+<angle name="A2" extend="$A"><label>An angle</label></angle>
+<textInput name="ti"/>
+<textInput name="ti2" extend="$ti"><description>D</description></textInput>
+<graph name="g"/>
+<graph name="g2" extend="$g"><shortDescription>S</shortDescription></graph>
 `);
         expect(d.diagnostics()).eqls([]);
         expect(await d.stateValue("P2", "label")).eq("Q");

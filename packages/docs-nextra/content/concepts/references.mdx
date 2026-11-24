@@ -52,9 +52,13 @@ a new tag holding the reference instead, `<math>$m+1</math>{:dn}` or
 `<point copy="$P">(3,4)</point>{:dn}`. A container, such as a `<section>{:dn}`, a
 `<p>{:dn}` or a `<graph>{:dn}`, presents what it holds, so its `extend` shows the
 same content again, still linked, and may present more: children written inside
-are added after the source's, and a `<title>{:dn}` replaces its title. On any
-tag, an `extend` may be given a `<label>{:dn}`, a `<shortDescription>{:dn}` or a
-`<description>{:dn}`.
+are added after the source's, and a `<title>{:dn}` replaces its title. An
+`extend` may be given a `<label>{:dn}`, a `<shortDescription>{:dn}` or a
+`<description>{:dn}` where its tag takes one, such as a `<label>{:dn}` on a
+`<point>{:dn}` or an input. A tag that takes none, such as a `<number>{:dn}` or
+a `<text>{:dn}`, can't be given one on an `extend` either:
+`<number extend="$n"><label>L</label></number>{:dn}` is an error, as any other
+child is.
 
 ```doenet-editor-horiz
 <section name="mySec">
@@ -242,7 +246,11 @@ only between related types:
   `<math extend="$mi"/>{:dn}` of a `<mathInput>`, and anything its value can
   be made into, such as `<point extend="$mi"/>{:dn}` while `mi` holds a tuple;
 * an `<angle>` as the `<math>` of its measure, and from a math, number or
-  text, as its measure in radians: `<angle extend="$m"/>{:dn}`;
+  text, as its measure in radians: `<angle extend="$m"/>{:dn}`. An angle is
+  made only from such a value: `<angle extend="$P"/>{:dn}` of a point (or a
+  vector, a `<matrix>`, a `<line>`) is an error, and one made from a math
+  whose value is a tuple, or from a text that isn't a number, is missing until
+  it is a measure;
 * another component as what it stands for wherever its own tag can't go, and
   nothing further: a `<line>` as the `<math>` of its equation, an `<ion>` as
   the `<text>` of its name, a `<label>` as its `<text>`. A line is not a

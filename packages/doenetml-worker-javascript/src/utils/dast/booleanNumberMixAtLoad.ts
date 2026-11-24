@@ -1358,8 +1358,15 @@ export function checkBooleanNumberMixAtLoad({
             component.componentType === "_copy"
                 ? createdTypeOf(component)
                 : component.componentType;
+        // Children written inside an `extend` are not what it holds: an
+        // extend of a value or an object is the same component again, so
+        // they are an error at load (`doenet-e0057`, D71,
+        // `extendErrorsAtLoad.ts`), not also judged here as a type mix
+        // (`<boolean extend="$b"><label>L</label></boolean>`).
         const componentClass =
-            checkedType === undefined ? undefined : allClasses[checkedType];
+            checkedType === undefined || isExtendGivenChildren(component)
+                ? undefined
+                : allClasses[checkedType];
         // Where to report what has no position of its own: a component the
         // sugar made (a `<boolean>` from a `<booleanList>`'s text) is
         // reported at its parent, and an attribute component at its
@@ -1495,8 +1502,8 @@ export function checkBooleanNumberMixAtLoad({
                     for (const child of [...(component.children ?? [])]) {
                         if (
                             typeof child !== "object" ||
-                            // a `<label>` written as a tag, which labels
-                            // what holds it, as on an extend (D71)
+                            // a `<label>` written as a tag, which is not
+                            // read here as a reference to a stand-in
                             inherits(child.componentType, "label")
                         ) {
                             continue;
@@ -1620,6 +1627,26 @@ export function checkBooleanNumberMixAtLoad({
     }
 
     /** The type of component the reference `copy` makes, if written. */
+    /**
+     * Whether `component` is an `extend` (a linked `_copy`, not a `copy` or
+     * a `copyWithState`) with children written inside it.
+     */
+    function isExtendGivenChildren(component: SerializedComponent) {
+        if (
+            component.componentType !== "_copy" ||
+            !component.attributes?._copyInChildren ||
+            component.attributes?._copyWithState
+        ) {
+            return false;
+        }
+        const linkAttr: any = component.attributes?._link;
+        return !(
+            linkAttr &&
+            (linkAttr.primitive?.value === false ||
+                linkAttr.children?.join?.("").trim() === "false")
+        );
+    }
+
     function createdTypeOf(copy: SerializedComponent) {
         const created = copy.attributes?._createComponentOfType;
         return created === undefined
