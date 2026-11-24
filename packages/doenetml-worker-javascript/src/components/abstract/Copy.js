@@ -1934,12 +1934,13 @@ export default class Copy extends CompositeComponent {
         // extend="$g"/>` in a `<group name="g">` holding two components, or
         // `<math extend="$r"/>` in a repeat), would report it as circular
         // too, once it is made.
-        const atLoad = await typeChangeAtLoadError({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-        });
+        const atLoad =
+            (await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            })) ?? (await propExtendErrorAtLoad(component));
         if (atLoad) {
             const stateIdInfo = {
                 prefix: `${component.stateId}|`,
@@ -3141,12 +3142,13 @@ export default class Copy extends CompositeComponent {
         // missing tag, D37), and only that, stays in place of the copy
         // whatever its source does now, whether it names nothing, is in a
         // case not active (`targetInactive`), or has changed.
-        const atLoad = await typeChangeAtLoadError({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-        });
+        const atLoad =
+            (await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            })) ?? (await propExtendErrorAtLoad(component));
         if (atLoad) {
             const key = typeChangeKey(atLoad);
             workspace.sourceIndices = [];
@@ -7505,6 +7507,33 @@ async function typeChangeAtLoadError({
     // The same diagnostic the document reported when it loaded
     // (`reportTypeChangesAtLoad`), which is kept once.
     return typeChangeAtLoadDiagnostic({ mark, writtenType, source });
+}
+
+/**
+ * The error found when the document loaded, from what is written
+ * (`doenetAttributes.extendErrorsAtLoad`, `extendErrorsAtLoad.ts`), for an
+ * extend made from a property or an entry of a list (`<number
+ * extend="$l.slope">5</number>`, `<math extend="$ml[1]">+1</math>`, D71), as
+ * a mismatch for `inPlaceOfCopy`: the error in its place (DIAG-5), as an
+ * extend of a component has (`replacementForSource`). `undefined` otherwise.
+ */
+async function propExtendErrorAtLoad(component) {
+    const marks = component.doenetAttributes?.extendErrorsAtLoad;
+    if (
+        !marks?.length ||
+        !(await component.stateValues.effectivePropNameBySource)?.[0] ||
+        !(
+            (await component.stateValues.link) ||
+            (await component.stateValues.copyWithState)
+        )
+    ) {
+        return undefined;
+    }
+    const { code, args } = marks[0];
+    return {
+        level: "error",
+        diagnostic: codedDiagnostic({ type: "error", code, args: { ...args } }),
+    };
 }
 
 /**

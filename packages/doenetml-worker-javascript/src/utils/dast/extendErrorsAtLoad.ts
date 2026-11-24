@@ -491,11 +491,17 @@ export function checkExtendErrorsAtLoad({
         const written = writtenChildrenText(copy, leftOut);
         // A `<boolean>`'s children are one expression, so what is written
         // is joined to the reference by a logical operator
-        // (`<boolean>$b and false</boolean>`), not written beside it.
-        const isLogic = componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: componentType,
-            baseComponentType: "boolean",
-        });
+        // (`<boolean>$b and false</boolean>`), not written beside it. So
+        // are those of a tag that reads its children as a `<boolean>` does
+        // (`<when>`, `<not>`), but not of one whose children are operands
+        // (`<and>$a false</and>`, `<isNumber>`).
+        const isLogic =
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType: "boolean",
+            }) &&
+            writtenClass.returnChildGroups ===
+                allClasses.boolean.returnChildGroups;
         return {
             code: "doenet-e0057",
             args: {

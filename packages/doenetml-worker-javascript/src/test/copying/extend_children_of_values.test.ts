@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateBooleanInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -50,7 +51,15 @@ async function load(doenetML: string) {
         }));
     }
 
-    return { diagnostics, typeOf, stateValue, text, reload };
+    async function setBoolean(name: string, boolean: boolean) {
+        await updateBooleanInputValue({
+            boolean,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+    }
+
+    return { diagnostics, typeOf, stateValue, text, reload, setBoolean };
 }
 
 /** The error for children inside an extend of a value. */
@@ -84,6 +93,16 @@ describe("Children inside an extend of a value or an object are an error at load
             "a boolean, whose children are joined to it by a logical operator",
             `<boolean name="s">true</boolean><boolean name="x" extend="$s">false</boolean>`,
             "doenet-e0057: Children written inside an `extend` of a `<boolean>` would change what it holds, but an extend is the same `<boolean>` as `$s`. To make a new `<boolean>` from `$s` and more, write a `<boolean>` joining them with `and` or `or`, such as `<boolean>$s and false</boolean>`.",
+        ],
+        [
+            "a <not>, whose children are one logical expression as a <boolean>'s",
+            `<not name="s">true</not><not name="x" extend="$s">false</not>`,
+            "doenet-e0057: Children written inside an `extend` of a `<not>` would change what it holds, but an extend is the same `<not>` as `$s`. To make a new `<not>` from `$s` and more, write a `<not>` joining them with `and` or `or`, such as `<not>$s and false</not>`.",
+        ],
+        [
+            "an <and>, whose children are operands",
+            `<boolean name="s">true</boolean><and name="x" extend="$s">true</and>`,
+            valueError("and", "$s", "<and>$s true</and>"),
         ],
         [
             "a number given a label, which the new tag would read as content",
@@ -143,6 +162,56 @@ describe("Children inside an extend of a value or an object are an error at load
             expect(d.diagnostics()).eqls([message]);
         });
     }
+
+    // Made from a property or a list's entry, not a component: the error
+    // is in its place all the same (DIAG-5), and a reference to it is
+    // missing.
+    for (const [what, doenetML, message] of [
+        [
+            "a property",
+            `<line name="l" through="(0,0) (1,2)"/><number name="x" extend="$l.slope">5</number><math name="y">$x</math>`,
+            valueError("number", "$l.slope", "<number>$l.slope 5</number>"),
+        ],
+        [
+            "an entry of a mathList",
+            `<mathList name="l">a b</mathList><math name="x" extend="$l[1]">+1</math><math name="y">$x</math>`,
+            valueError("math", "$l[1]", "<math>$l[1]+1</math>"),
+        ],
+        [
+            "a vertex",
+            `<polygon name="l" vertices="(1,2) (3,4) (5,6)"/><point name="x" extend="$l.vertices[1]">(3,4)</point><math name="y">$x</math>`,
+            objectError(
+                "point",
+                "$l.vertices[1]",
+                '<point copy="$l.vertices[1]">(3,4)</point>',
+            ),
+        ],
+    ]) {
+        it(`made from ${what}`, async () => {
+            const d = await load(doenetML);
+            expect(d.diagnostics()).eqls([message]);
+            expect(await d.typeOf("x")).eq("_error");
+            expect(await d.text("y")).eq("＿");
+            await d.reload();
+            expect(d.diagnostics()).eqls([message]);
+            expect(await d.typeOf("x")).eq("_error");
+        });
+    }
+
+    it("made from a property, in a case made true later", async () => {
+        const d = await load(`
+<booleanInput name="b"/>
+<line name="l" through="(0,0) (1,2)"/>
+<conditionalContent><case condition="$b"><number name="x" extend="$l.slope">5</number></case></conditionalContent>
+`);
+        const expected = [
+            valueError("number", "$l.slope", "<number>$l.slope 5</number>"),
+        ];
+        expect(d.diagnostics()).eqls(expected);
+        await d.setBoolean("b", true);
+        expect(d.diagnostics()).eqls(expected);
+        expect(await d.typeOf("x")).eq("_error");
+    });
 
     it("a mathList", async () => {
         const d = await load(
