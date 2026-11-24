@@ -1587,12 +1587,16 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
         noChildren: true,
     },
-    // A matrix input (ADR 0045): the prototype has no renderer of its own
-    // for one, so its grid is sent as it is, rows of math inputs: the
-    // input a span of its rows, each row a span of its boxes.
+    // A matrix input (ADR 0045): its label and size, and as its children
+    // its rows, each a span of its boxes, math inputs, which the renderer
+    // lays out as a grid; its size controls when `showSizeControls`.
     matrixInput: {
-        name: () => "span",
-        props: (r, c) => inputPresentation(r.table, c),
+        props: (r, c) => ({
+            ...inputPresentation(r.table, c),
+            numRows: r.num(c, "numRows"),
+            numColumns: r.num(c, "numColumns"),
+            showSizeControls: flag(r.table, c, "showSizeControls"),
+        }),
         excludeChild: (table, _c, child) =>
             table.componentType(child) !== "_matrixInputRow",
     },

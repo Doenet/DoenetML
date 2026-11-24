@@ -145,6 +145,12 @@
 
 <section>
     <title>Inputs</title>
+    <matrix name="m22"><row>1 2</row><row>3 4</row></matrix>
+    <cascade>
+        <section><p>Step one</p></section>
+        <section><p>Step two</p></section>
+        <cascadeMessage><p>Done.</p></cascadeMessage>
+    </cascade>
     <p>
         <numberInput><label>N</label></numberInput>
         <slider from="0" to="10"><label>S</label></slider>
@@ -152,6 +158,8 @@
         <mathInput><label>M</label></mathInput>
         <textInput><label>T</label></textInput>
         <fractionInput prefillNumerator="1"><label>F</label></fractionInput>
+        <matrixInput prefill="(1,2)" showSizeControls label="Grid" />
+        <matrixInput bindValueTo="$m22" label="Bound" />
         <choiceInput>
             <label>C</label>
             <choice>a</choice>
