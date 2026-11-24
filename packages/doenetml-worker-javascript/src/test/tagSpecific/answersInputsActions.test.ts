@@ -231,6 +231,14 @@ describe("A matrix's rows from a composite (#1873, COMP-1) @group4", () => {
             `<setup><row name="r"><math>1</math> <math>2</math></row></setup>$r`,
         );
         expect(copied.matrix).toEqual([["1", "2"]]);
+
+        // text beside rows only in a setup is the matrix's value, as when
+        // there are no rows
+        const text = await matrixOf(
+            `<setup><row name="r"><math>1</math> <math>2</math></row></setup>x`,
+        );
+        expect(text.matrix).toEqual([["x"]]);
+        expect(coded(text.core, /doenet-w0107|doenet-w0194/)).toEqual([]);
     });
 });
 

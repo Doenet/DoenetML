@@ -255,6 +255,38 @@ export default class Matrix extends MathComponent {
                             args: { reason: "rows" },
                         }),
                     );
+                } else if (
+                    numRowsShown === 0 &&
+                    nonBlank.some((child) => typeof child === "string")
+                ) {
+                    // Rows only in a `<setup>`, which shows nothing: text
+                    // beside them is the matrix's value, made a `<math>`
+                    // as when there are no rows, and the `<setup>` is kept
+                    // beside it (`<matrix><setup><row name="r">1
+                    // 2</row></setup>x</matrix>` is `[[x]]`).
+                    const isSetup = (child) =>
+                        typeof child === "object" &&
+                        componentInfoObjects.componentIsSpecifiedType(
+                            child,
+                            "setup",
+                        );
+                    newChildren = [
+                        ...matchedChildren.filter(isSetup),
+                        {
+                            type: "serialized",
+                            componentType: "math",
+                            componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
+                            children: matchedChildren.filter(
+                                (child) => !isSetup(child),
+                            ),
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
+                        },
+                    ];
                 }
             } else if (nonBlank.length > 1 && nonBlank.every(isMath)) {
                 // A matrix uses one `<math>` child: of several written, the
