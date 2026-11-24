@@ -453,3 +453,26 @@ fn a_cell_indexes_a_repeat_longer_than_one_choose_reads() {
     assert_eq!(doc.value("x", "value"), Some(-2.0));
     assert_eq!(reference::check(&doc), None);
 }
+
+/// A repeat's text is its iterations' texts separated by commas, each
+/// iteration's own text before its first component included, and what is
+/// never rendered (a `<setup>` in the body) left out, as the current
+/// core's `repeat.test.ts` reads it.
+#[test]
+fn a_repeats_text_is_one_item_per_iteration() {
+    let doc = load(
+        r#"<sequence name="s" from="1" to="3"/>
+        <p name="t"><repeat for="$s" indexName="i">a <math>($i, $i)</math></repeat></p>
+        <p name="u"><repeat for="$s" valueName="b"><setup><sequence name="s2" from="1" to="$b"/></setup><repeat for="$s2" valueName="a"><math>($a, $b)</math></repeat></repeat></p>
+        <p name="v"><repeat for="$s" indexName="i"><math>($i, 2, $i)</math>: <math>($i, $i, $i)</math></repeat></p>"#,
+    )
+    .unwrap();
+    let text = |name: &str| doc.rendered_text(doc.resolve_path(name).unwrap());
+    assert_eq!(text("t"), "a (1, 1), a (2, 2), a (3, 3)");
+    // A tuple of three or more shows its entries.
+    assert_eq!(
+        text("v"),
+        "(1, 2, 1): (1, 1, 1), (2, 2, 2): (2, 2, 2), (3, 2, 3): (3, 3, 3)"
+    );
+    assert_eq!(text("u"), "(1, 1), (1, 2), (2, 2), (1, 3), (2, 3), (3, 3)");
+}

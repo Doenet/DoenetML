@@ -482,6 +482,7 @@ pub mod tuple {
         tags: ["tuple"],
         flags: [copyable, internal, owned],
         roles: [Item],
+        text: Tuple(n, x1),
         default_prop: coords,
         props {
             n: by_planner { rendered },
