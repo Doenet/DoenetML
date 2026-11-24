@@ -110,3 +110,37 @@ fn where_a_value_is_complex_no_extremum_is_found() {
     close(max.local[0], (2.614, 3.82));
     assert_eq!(max.infimum.unwrap().0, -100.0);
 }
+
+#[test]
+fn a_decimal_coefficient_keeps_the_critical_points_exact() {
+    // `piecewisefunction.test.ts`, "a piece's maxima are as exact as its
+    // minima": `5.1` is `51/10`, and the pole at it no extremum.
+    let mut engine = Engine::new();
+    let x = engine.parse("x").unwrap();
+    // The float a lowered math leaves, as the engine imports it.
+    fn q_is_5_1(e: &Expr) -> Expr {
+        let all = |xs: &[Expr]| xs.iter().map(q_is_5_1).collect();
+        let one = |x: &Expr| Box::new(q_is_5_1(x));
+        match e {
+            Expr::Sym(s) if s.name() == "q" => Expr::Num(me::Number::from_f64(5.1)),
+            Expr::Add(xs) => Expr::Add(all(xs)),
+            Expr::Mul(xs) => Expr::Mul(all(xs)),
+            Expr::Div(a, b) => Expr::Div(one(a), one(b)),
+            Expr::Pow(a, b) => Expr::Pow(one(a), one(b)),
+            Expr::Neg(a) => Expr::Neg(one(a)),
+            _ => e.clone(),
+        }
+    }
+    let e = engine.parse("(x+8)(x-8)/((x-2)(x+4)(x-q)^2)").unwrap();
+    let e = q_is_5_1(&engine.expr(e).clone());
+    let e = engine.store(e);
+    let mut f = vec![-20.0, 20.0, 0.0, 0.0];
+    f.extend([e.to_value(), x.to_value(), -INF, INF, 0.0, 0.0]);
+    let min = search(&engine, &f, 1.0, false, false);
+    assert_eq!(min.local.len(), 1);
+    assert!(
+        (min.local[0].0 + 2.28205595296559).abs() < 1e-12,
+        "{:?}",
+        min.local
+    );
+}

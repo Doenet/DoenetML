@@ -149,6 +149,7 @@ struct Formula {
 
 impl Formula {
     fn new(e: &Expr, var: &str, sign: f64) -> Formula {
+        let e = &exact_decimals(e);
         let (d, exact) = if has_blank(e) {
             (None, None)
         } else {
@@ -197,6 +198,38 @@ impl Formula {
         let ys = me::evaluate_many(d, &self.var, xs);
         (ys.len() == xs.len()).then(|| ys.into_iter().map(|y| self.sign * y).collect())
     }
+}
+
+/// `e` with each float in it the decimal it is written as, an exact
+/// rational (`5.1` is `51/10`), as the current core's engine holds the
+/// numbers an author writes: a formula with a float in it has no exact
+/// critical points (`critical_points` declines an inexact coefficient).
+fn exact_decimals(e: &Expr) -> Expr {
+    let all = |xs: &[Expr]| xs.iter().map(exact_decimals).collect::<Vec<_>>();
+    let one = |x: &Expr| Box::new(exact_decimals(x));
+    match e {
+        Expr::Num(me::Number::Float(v)) => decimal(v.get()).map_or_else(|| e.clone(), Expr::Num),
+        Expr::Add(xs) => Expr::Add(all(xs)),
+        Expr::Mul(xs) => Expr::Mul(all(xs)),
+        Expr::Div(a, b) => Expr::Div(one(a), one(b)),
+        Expr::Pow(a, b) => Expr::Pow(one(a), one(b)),
+        Expr::Neg(a) => Expr::Neg(one(a)),
+        Expr::Apply(f, xs) => Expr::Apply(f.clone(), all(xs)),
+        _ => e.clone(),
+    }
+}
+
+/// `v` as the decimal its shortest spelling is, when it fits a rational of
+/// 64-bit integers.
+fn decimal(v: f64) -> Option<me::Number> {
+    if !v.is_finite() {
+        return None;
+    }
+    let text = format!("{}", v.abs());
+    let (whole, frac) = text.split_once('.').unwrap_or((&text, ""));
+    let den = 10i64.checked_pow(u32::try_from(frac.len()).ok()?)?;
+    let num = format!("{whole}{frac}").parse::<i64>().ok()?;
+    Some(me::Number::rat(if v < 0.0 { -num } else { num }, den))
 }
 
 /// The real roots of `e`'s derivative, each a number, when the engine has
