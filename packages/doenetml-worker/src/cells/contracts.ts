@@ -1550,6 +1550,7 @@ export const TRANSPARENT = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1581,6 +1582,7 @@ export const LIST_LIKE = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
 ]);
 
 /** List-like types whose items are the children of one scope (an
@@ -1625,7 +1627,6 @@ export const OMITTED = new Set([
     "when",
     "response",
     "functionIterates",
-    "selectFromSequence",
     "setup",
     "label",
     "shortDescription",
