@@ -213,6 +213,7 @@
     <point>(1,2)<constraints><constrainToGrid dx="3" dy="2" /></constraints></point>
     <circle name="c" />
     <point>(1,2)<constraints><constrainTo>$c</constrainTo></constraints></point>
+    <point>(2,1)<constraints><attractTo>$c</attractTo></constraints></point>
     $P1 $P2 $P3 $l1 $l2
     <lineSegment />
     <polygon name="poly" vertices="(0,0) (1,0) (0,1)" />
