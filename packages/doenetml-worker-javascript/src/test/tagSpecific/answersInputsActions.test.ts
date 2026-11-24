@@ -452,6 +452,24 @@ describe("A callAction's target that names a property (#1565, NAME-2) @group4", 
         ]);
     });
 
+    it("no warning for a name after a component made by extend or copy, which may name what it has from its source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<p name="p0"><point name="Q">(1,2)</point></p>
+            <p name="p1" extend="$p0"/>
+            <section name="s"><p name="p2" copy="$p0"/></section>
+            <callAction name="ca1" target="$p1.Q" actionName="movePoint" />
+            <callAction name="ca2" target="$s.p2.Q" actionName="movePoint" />`,
+        });
+        expect(coded(core, /doenet-w0211/)).toEqual([]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["ca1", "ca2"]) {
+            const target =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .targetComponentIdx;
+            expect(stateVariables[target].componentType).toBe("point");
+        }
+    });
+
     it("the warning is not repeated when the action is called", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<point name="p" />

@@ -54,9 +54,11 @@ export function checkActionTargetsAtLoad({
      * `$p.styleDescription[1]`) names nothing, and the action does nothing
      * (NAME-2; #1565): `doenet-w0211`, at load (DIAG-7). Only a referent
      * that is not a composite is checked, since what is after a composite
-     * may name what it makes, decided when it expands; and only a property,
-     * since an index alone may name an entry of a list (`$pl[2]`), which is
-     * a target.
+     * may name what it makes, decided when it expands; nor one made by
+     * `extend` or `copy`, since a name after it may name what it has from
+     * its source (`<p name="p" extend="$p0"/>`, then `$p.Q`); and only a
+     * property, since an index alone may name an entry of a list (`$pl[2]`),
+     * which is a target.
      */
     function callActionTargetDiagnostics(
         component: SerializedComponent,
@@ -80,6 +82,9 @@ export function checkActionTargetsAtLoad({
         const type = typeOfReferent(ref.nodeIdx);
         if (
             type === undefined ||
+            // made by `extend` or `copy`: a `_copy` that creates it
+            !componentsByIdx.has(ref.nodeIdx) ||
+            componentsByIdx.get(ref.nodeIdx)?.componentType === "_copy" ||
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: type,
                 baseComponentType: "_composite",
