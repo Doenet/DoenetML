@@ -90,7 +90,10 @@ impl<'a> SourceReader<'a> {
                 let def = &ty.prop_defs()[i];
                 Some(if def.text {
                     ValueKind::Text
-                } else if ty.expr_of(i).is_some() {
+                } else if ty.expr_of(i).is_some()
+                    // A list over a math value's value (ADR 0063).
+                    || (ty.is_over_value() && ty.default_sel() == Some(PropSel::At(PropAt::Position(i))))
+                {
                     ValueKind::Math
                 } else if matches!(ty.text_kind(), Some(TextKind::Boolean(b)) if b == i) {
                     ValueKind::Boolean

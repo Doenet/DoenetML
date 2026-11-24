@@ -304,6 +304,12 @@ component_types! {
     Cascade => containers::cascade::DEFINITION,
     /// `<cascadeMessage>`: what a cascade shows for a gap between its steps.
     CascadeMessage => containers::cascade::MESSAGE,
+    /// A `<mathList>` over a math value (ADR 0063).
+    OverValueMathList => values::over_value::math_list::DEFINITION,
+    /// A `<numberList>` over a math value (ADR 0063).
+    OverValueNumberList => values::over_value::number_list::DEFINITION,
+    /// A `<pointList>` over a math value (ADR 0063).
+    OverValuePointList => values::over_value::point_list::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -405,6 +411,21 @@ impl ComponentType {
             Some(s) if !s.when.iter().all(|a| is_literal(a)) => s.is,
             _ => self,
         }
+    }
+
+    /// The type an element of this type is when its content is one
+    /// reference to a math value (ADR 0063): a list whose count follows
+    /// the value, settled by outlining once names resolve.
+    pub fn over_value(self) -> Option<ComponentType> {
+        self.def().over_value
+    }
+
+    /// Whether the type is a list over a math value (ADR 0063): what some
+    /// type's [`over_value`](Self::over_value) names.
+    pub fn is_over_value(self) -> bool {
+        ComponentType::ALL
+            .iter()
+            .any(|t| t.def().over_value == Some(self))
     }
 
     /// Whether a component of the type shows what it holds as a list of

@@ -1,0 +1,5 @@
+a math list over a math input's typed list: cells 14 · essential 1 · constant 7 · instrs 6 · components 7
+a math list over a math's value: cells 17 · essential 0 · constant 17 · instrs 0 · components 8
+a number list over a math input evaluates each entry: cells 16 · essential 1 · constant 7 · instrs 8 · components 7
+a point list over a function's minima: cells 37 · essential 0 · constant 37 · instrs 0 · components 9
+a list over another list stays a static list: cells 6 · essential 0 · constant 6 · instrs 0 · components 9

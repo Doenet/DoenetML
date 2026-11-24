@@ -443,17 +443,25 @@ impl RequestEngine<'_> {
                 // An entry inside a math handle (ADR 0041): the value
                 // with that entry replaced, its head kept, to what it
                 // reads; dropped for an index that names no entry.
-                Op::Sym(_, _, s, start) if self.program.syms[s.index()].kind == SymKind::Entry => {
+                // An entry of a value read as a list's (ADR 0063) likewise.
+                Op::Sym(_, _, s, start)
+                    if matches!(
+                        self.program.syms[s.index()].kind,
+                        SymKind::Entry | SymKind::ListItem
+                    ) =>
+                {
+                    let as_list = self.program.syms[s.index()].kind == SymKind::ListItem;
                     let inputs = self.program.operands_at(start, 2);
                     let (h, k) = (self.cells[inputs[0].index()], self.cells[inputs[1].index()]);
                     let d = desired[0].unwrap();
                     let written = (!h.is_nan() && !d.is_nan())
                         .then(|| {
-                            self.sym.engine.with_entry(
-                                Handle::from_value(h),
-                                k,
-                                Handle::from_value(d),
-                            )
+                            let (h, d) = (Handle::from_value(h), Handle::from_value(d));
+                            if as_list {
+                                self.sym.engine.with_list_item(h, k, d)
+                            } else {
+                                self.sym.engine.with_entry(h, k, d)
+                            }
                         })
                         .flatten();
                     match written {

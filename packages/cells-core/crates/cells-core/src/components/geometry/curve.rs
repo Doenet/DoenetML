@@ -102,7 +102,11 @@ type Coordinate = (Source, FunctionParts);
 
 /// The coordinates the children give: a function's, or each entry of a
 /// tuple written as math in `variable`.
-fn coordinates(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Vec<Coordinate>> {
+fn coordinates(
+    ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
+    attrs: &Attrs,
+) -> Result<Vec<Coordinate>> {
     let variable: Source = match attrs.variable.as_deref() {
         None => ctx.symbol("x"),
         Some(nodes) => {
@@ -147,7 +151,7 @@ fn coordinates(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Vec<Coordinat
             Some(_) => ctx.symbol(&function_variables(f.variables.clone()).remove(0)),
             None => variable.clone(),
         };
-        let (domain, _) = plan_domain(ctx, f.domain.as_deref())?;
+        let (domain, _) = plan_domain(ctx, wiring, f.domain.as_deref())?;
         let (toks, _) = ctx.math_tokens(&nodes)?;
         // A function returning a tuple gives both coordinates.
         let entries = tuple_entries(&toks).unwrap_or_else(|| vec![toks.clone()]);
@@ -398,7 +402,7 @@ pub(crate) fn plan_curve(
         ];
         return Ok((wiring, CurveWires { props, points }));
     }
-    let coords = coordinates(ctx, &attrs)?;
+    let coords = coordinates(ctx, &mut wiring, &attrs)?;
     match coords.len() {
         // A function's graph.
         1 => {

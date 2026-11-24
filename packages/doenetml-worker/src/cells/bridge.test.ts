@@ -1942,3 +1942,32 @@ describe("a cascade (ADR 0062)", () => {
         expect(ids(divisions[1].data.id)).toHaveLength(1);
     });
 });
+
+describe("a list over a math value (ADR 0063)", () => {
+    it("draws an entry per entry of the value, rebuilt as their count changes", async () => {
+        const bridge = await load(`<mathInput name="mi" prefill="1, x, 3"/>
+<p><mathList>$mi</mathList></p>
+<p><sum>$mi</sum></p>
+<graph><function name="f">x^4-8x^2+8</function><pointList extend="$f.minima"/></graph>`);
+        let root = bridge.flatDast();
+        // Each paragraph's drawn values, in order.
+        const drawn = () => {
+            root = bridge.flatDast();
+            return byName(root, "p").map((p: any) =>
+                (p.children as any[])
+                    .filter((c) => typeof c !== "string")
+                    .map((c) => (root.elements[c.id] as any).data.props.latex),
+            );
+        };
+        expect(drawn()).toEqual([["1", "x", "3"], ["1 + x + 3"]]);
+        expect(byName(root, "point")).toHaveLength(2);
+        const [mi] = byName(root, "mathInput");
+        bridge.dispatch({
+            component: "mathInput",
+            actionName: "updateValue",
+            componentIdx: mi.data.id,
+            args: { text: "a, b" },
+        });
+        expect(drawn()).toEqual([["a", "b"], ["a + b"]]);
+    });
+});

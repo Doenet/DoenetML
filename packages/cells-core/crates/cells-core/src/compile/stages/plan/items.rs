@@ -34,6 +34,12 @@ impl ItemCtx<'_> {
             .hidden(Source::computed_k(crate::program::OpSpec::Add, k, -1.0))
     }
 
+    /// A constant `v`, for an operator the item's props read (an entry's
+    /// position).
+    pub(crate) fn constant(&mut self, v: f64) -> Port {
+        self.wiring.hidden(Source::constant(v))
+    }
+
     /// Port `port` of the repeat's table, read from the iteration.
     pub(crate) fn owner(&mut self, port: Port) -> Port {
         let p = self.owner_ref(port);

@@ -216,6 +216,16 @@ pub enum SymKind {
         /// Columns rather than rows.
         cols: bool,
     },
+    // A list over a math value (ADR 0063).
+    /// Entry `k` (input 1) of the value input 0 holds, read as a list's
+    /// entries: a list's item, else the value itself as entry 1 (a tuple
+    /// is one point, one math); the missing value for an index that is no
+    /// integer from 1 to the count. Its inverse writes input 0 with that
+    /// entry replaced.
+    ListItem,
+    /// How many entries the value input 0 holds, read as a list's: a
+    /// list's items, else 1; 0 for the missing value.
+    ListCount,
 }
 
 /// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
@@ -275,6 +285,21 @@ pub enum Post {
     /// Every number in it of magnitude below the threshold, these bits of
     /// an `f64`, made 0 (`<setSmallToZero>`).
     SmallToZero(u64),
+    /// The reduction `op` of its entries, read as a list's (ADR 0063): an
+    /// operator reading one math value whose entries are its operands
+    /// (`<sum>$mi</sum>`), reduced inside the value; a variance's or a
+    /// standard deviation's a `population`'s when the flag says, then
+    /// simplified and expanded as the flags say.
+    Reduce {
+        /// The reduction.
+        op: crate::program::Reduction,
+        /// A population's variance, not a sample's.
+        population: bool,
+        /// Simplified after.
+        simplify: bool,
+        /// Expanded after.
+        expand: bool,
+    },
     /// How equal the two entries of the pair it is are, as the engine
     /// compares them with these options, as a number from 0 to 1: a
     /// comparison of two references the type pass found may be math
@@ -351,6 +376,21 @@ impl Post {
                 let h = engine.matrix(h, rows, cols);
                 if simplify { engine.simplify(h) } else { h }
             }
+            Post::Reduce {
+                op,
+                population,
+                simplify,
+                expand,
+            } => {
+                let mut h = engine.reduce_entries(h, op, population);
+                if simplify {
+                    h = engine.simplify(h);
+                }
+                if expand {
+                    h = engine.expand(h);
+                }
+                h
+            }
         }
     }
 
@@ -415,7 +455,7 @@ impl SymKind {
                 part: crate::sym::SubsetPart::Value,
                 ..
             } => 1,
-            SymKind::Entry => 1,
+            SymKind::Entry | SymKind::ListItem => 1,
             SymKind::MatrixSize { .. } => 1,
             // A `<matrix>` of its entries writes each (ADR 0060).
             SymKind::Instantiate {
@@ -472,6 +512,7 @@ impl SymKind {
                 | SymKind::DerivativeBy
                 | SymKind::Subset { .. }
                 | SymKind::Entry
+                | SymKind::ListItem
                 | SymKind::Extrema { .. }
                 | SymKind::MergeExtrema
                 | SymKind::Grid
@@ -589,7 +630,9 @@ impl OpSpec {
                 | SymKind::InstantiateBlank { .. }
                 | SymKind::SampleTape { .. },
             ) => usize::MAX,
-            OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative | SymKind::Count) => 1,
+            OpSpec::Sym(
+                SymKind::Evaluate | SymKind::Derivative | SymKind::Count | SymKind::ListCount,
+            ) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
@@ -605,7 +648,8 @@ impl OpSpec {
                 SymKind::DerivativeBy
                 | SymKind::Subset { .. }
                 | SymKind::Compare { .. }
-                | SymKind::Entry,
+                | SymKind::Entry
+                | SymKind::ListItem,
             ) => 2,
             OpSpec::Sym(SymKind::Extrema { .. }) => usize::MAX,
             OpSpec::Sym(SymKind::MergeExtrema) => 2,
@@ -820,6 +864,8 @@ mod arity {
             OpSpec::Sym(SymKind::Interpolate { n: 2 }),
             OpSpec::Sym(SymKind::Grid),
             OpSpec::Sym(SymKind::MatrixSize { cols: true }),
+            OpSpec::Sym(SymKind::ListItem),
+            OpSpec::Sym(SymKind::ListCount),
         ]);
         ops
     }
@@ -899,12 +945,14 @@ mod arity {
                     SymKind::Interpolate { .. } => 32,
                     SymKind::Grid => 33,
                     SymKind::MatrixSize { .. } => 34,
+                    SymKind::ListItem => 35,
+                    SymKind::ListCount => 36,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 63;
+    const N_TAGS: usize = 65;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

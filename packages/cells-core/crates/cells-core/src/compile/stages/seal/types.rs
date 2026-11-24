@@ -486,12 +486,7 @@ impl<'s, 'a> Types<'s, 'a> {
             },
             ArityOf::Prop(pi) => Error::ArityMismatch {
                 component_type: component_type.tag().into(),
-                prop: component_type
-                    .prop_defs()
-                    .get(pi)
-                    .map(|d| d.name)
-                    .unwrap_or("args")
-                    .into(),
+                prop: port_name(component_type, &self.seal.view(t).plan(e).props, pi).into(),
                 expected,
                 got,
             },

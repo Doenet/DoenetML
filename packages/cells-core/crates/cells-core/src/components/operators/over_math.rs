@@ -13,7 +13,7 @@
 
 use crate::compile::api::{
     ChildValue, ElemWiring, ExprId, GivenId, Leaf, ListEntry, PlanCtx, Port, Source, ValueChildren,
-    Wire,
+    ValueKind, Wire,
 };
 use crate::error::{Error, Result};
 use crate::program::Post;
@@ -98,6 +98,59 @@ pub(crate) fn entry_expr(ctx: &mut PlanCtx<'_, '_>, entry: &ListEntry) -> Result
         },
         _ => unreachable!("a reference or math text is math"),
     })
+}
+
+/// The one reference an operator's operands are, when they are that
+/// reference alone and it may name a math value (ADR 0063): its value's
+/// entries, read as a list's, are the operands, reduced inside the value
+/// (`Post::Reduce`) where the operator is symbolic. With `known`, only a
+/// reference the records show is math (a `<count>`'s or a `<median>`'s,
+/// read numerically otherwise).
+pub(crate) fn one_value(
+    ctx: &PlanCtx<'_, '_>,
+    entries: &[ListEntry],
+    known: bool,
+) -> Option<crate::compile::api::RefId> {
+    let [entry @ ListEntry::Ref(p)] = entries else {
+        return None;
+    };
+    match ctx.entry_kind(entry) {
+        Some(ValueKind::Math) => Some(*p),
+        None if !known => Some(*p),
+        _ => None,
+    }
+}
+
+/// The reduction `op` of the entries of the value reference `p` names
+/// (ADR 0063), a math cell: the reference as a leaf, a number made one,
+/// reduced inside the value; `population` a variance's.
+pub(crate) fn reduced_value(
+    ctx: &mut PlanCtx<'_, '_>,
+    p: crate::compile::api::RefId,
+    op: crate::program::Reduction,
+    population: bool,
+) -> Source {
+    let id = ctx
+        .entry_math(&ListEntry::Ref(p))
+        .expect("a reference is math");
+    Source::sym_expr(id, reduce_post(op, population, Post::None))
+}
+
+/// `post`, a simplify and expand of an operator over math, after the
+/// reduction `op` of the entries of its one value (ADR 0063).
+pub(crate) fn reduce_post(op: crate::program::Reduction, population: bool, post: Post) -> Post {
+    let (simplify, expand) = match post {
+        Post::Simplify => (true, false),
+        Post::Expand => (false, true),
+        Post::SimplifyExpand => (true, true),
+        _ => (false, false),
+    };
+    Post::Reduce {
+        op,
+        population,
+        simplify,
+        expand,
+    }
 }
 
 /// The number a planned value is as written: a literal's.

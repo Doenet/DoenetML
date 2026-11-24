@@ -470,6 +470,23 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         <number name="a">$s[$k] + $s[9] + $r[$k].t[1] + $c[1] + $f[$k].d + $g[1].e</number>"#,
     ),
     (
+        // Lists over a math value (ADR 0063): a math, a number and a
+        // point list whose counts follow a math input's value and a
+        // function's minima, an entry of each read by an index, one in a
+        // repeat whose count a cell sets, and an operator over the value.
+        "lists-over-values",
+        r#"<mathInput name="mi" prefill="1, x, 3"/><numberInput name="k" value="2"/>
+        <mathList name="ml">$mi</mathList><numberList name="nl">$mi</numberList>
+        <function name="f">x^4-8x^2+$k</function>
+        <graph><pointList name="pl" extend="$f.minima"/><point extend="$pl[1]"/></graph>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <mathList name="il">$mi</mathList>
+        </repeatForSequence>
+        <p><sum>$mi</sum> <count>$ml</count> $ml</p>
+        <number name="a">$nl[$k] + $r[1].il[$k]</number>
+        <math name="m">$ml[2] + $r[$k].il[1]</math>"#,
+    ),
+    (
         // A sort and a shuffle of points, whose entries are two cells
         // each (ADR 0053), their copies, a choice between two, and one in
         // a repeat whose count a cell sets.

@@ -1344,11 +1344,8 @@ impl<'c> Stamp<'c> {
         let (nodes, label) = self.resolve_ref(p, t, Some(1));
         if nodes.len() != 1 {
             let component_type = self.c.plans.templates[t.index()].row(e).component_type;
-            let prop = component_type
-                .prop_defs()
-                .get(pi)
-                .map(|d| d.name)
-                .unwrap_or("args");
+            let props = &self.c.plans.templates[t.index()].plan(e).props;
+            let prop = port_name(component_type, props, pi);
             self.fail(Error::ArityMismatch {
                 component_type: component_type.tag().into(),
                 prop: prop.into(),

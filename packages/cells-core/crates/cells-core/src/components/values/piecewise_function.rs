@@ -35,16 +35,18 @@ component! {
         // Its extrema (ADR 0061): its pieces', each on what of its domain
         // no earlier piece takes, and the ends between them.
         xscale: by_planner,
-        minima: by_planner,
-        maxima: by_planner,
-        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]),
+        minima: by_planner { expr_when: minima },
+        maxima: by_planner { expr_when: maxima },
+        extrema: computed(OpSpec::Sym(SymKind::MergeExtrema), [minima, maxima]) {
+            expr_when: extrema
+        },
         numMinima: computed(OpSpec::Sym(SymKind::Count), [minima]),
         numMaxima: computed(OpSpec::Sym(SymKind::Count), [maxima]),
         numExtrema: computed(OpSpec::Sym(SymKind::Count), [extrema]),
-        globalMinimum: by_planner,
-        globalInfimum: by_planner,
-        globalMaximum: by_planner,
-        globalSupremum: by_planner,
+        globalMinimum: by_planner { expr_when: globalMinimum },
+        globalInfimum: by_planner { expr_when: globalInfimum },
+        globalMaximum: by_planner { expr_when: globalMaximum },
+        globalSupremum: by_planner { expr_when: globalSupremum },
     }
     attributes {
         domain: Math,
@@ -88,7 +90,7 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         f,
         crate::sym::extrema::Pieces::Piecewise,
     );
-    let (domain, given) = plan_domain(ctx, attrs.domain.as_deref())?;
+    let (domain, given) = plan_domain(ctx, &mut wiring, attrs.domain.as_deref())?;
     let [d0, d1, d2, d3] = if given || n == 0 {
         domain
     } else {

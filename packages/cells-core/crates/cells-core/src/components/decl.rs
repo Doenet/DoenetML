@@ -48,6 +48,10 @@ pub struct ComponentDef {
     /// The type an element of the type is when its count follows a value
     /// (ADR 0041, decision 2): a structural sequence.
     pub structural: Option<Structural>,
+    /// The type an element of the type is when its content is one
+    /// reference to a math value, settled once names resolve (ADR 0063):
+    /// a list whose count follows that value.
+    pub over_value: Option<ComponentType>,
     /// What a child element of a tag is under an element of the type, in
     /// place of what the tag alone makes it (ADR 0055): a `<matrix>`'s
     /// `<row>` is a `<matrixRow>`.

@@ -41,6 +41,16 @@ spec! {
         expect { "a.value" = -100, "b.value" = f64::NAN }
     }
 
+    case "an endpoint written as constant math is its value" {
+        doenet r#"<function name="f" domain="(-sqrt(2), sqrt(10))">x</function>
+                  <evaluate name="a" function="$f" input="3"/>
+                  <evaluate name="b" function="$f" input="3.2"/>"#;
+        expect {
+            "f.domainMin" = -std::f64::consts::SQRT_2, "f.domainMax" = 10f64.sqrt(),
+            "a.value" = 3, "b.value" = f64::NAN,
+        }
+    }
+
     case "an endpoint that follows an input" {
         doenet r#"<numberInput name="n" value="1"/>
                   <function name="f" domain="[0, $n]">x</function>

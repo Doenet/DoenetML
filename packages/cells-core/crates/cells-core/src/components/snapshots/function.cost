@@ -1,7 +1,8 @@
 a closed domain: missing outside it, given at its ends: cells 17 · essential 0 · constant 17 · instrs 0 · components 6
 an open domain: missing at its ends: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
 an infinite end, written as a word: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
-an endpoint that is no number is no bound: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
+an endpoint that is no number is no bound: cells 15 · essential 0 · constant 15 · instrs 0 · components 4
+an endpoint written as constant math is its value: cells 15 · essential 0 · constant 15 · instrs 0 · components 4
 an endpoint that follows an input: cells 11 · essential 1 · constant 9 · instrs 1 · components 4
 no domain: the whole line, open at its infinite ends: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
 a domain that is not one interval is warned about and ignored: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
