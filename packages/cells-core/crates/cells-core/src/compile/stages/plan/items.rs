@@ -135,6 +135,7 @@ impl Planning<'_> {
                     padZeros: Source::absent(),
                     avoidScientificNotation: Source::absent(),
                     displayBlanks: Source::absent(),
+                    hide: Source::absent(),
                     anchorX: Source::constant(0.0),
                     anchorY: Source::constant(0.0),
                 }

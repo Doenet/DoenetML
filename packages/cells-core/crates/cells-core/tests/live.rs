@@ -220,8 +220,11 @@ fn census() {
     // props (ADR 0058), which the choices' interface number chooses among
     // the cases' too: 6 more, dead. A function's and a derivative's
     // extrema (ADR 0061) are two searches, six entries, a merge and three
-    // counts: `symbolic.doenet`'s 24 more, all dead.
-    assert!(golden[0] <= 140 && golden[1] == 227, "{golden:?}");
+    // counts: `symbolic.doenet`'s 24 more, all dead. A value's `hide` is
+    // a presentation setting planned as a display setting is (ADR 0071),
+    // which the choices' interface values choose among the cases' too: 2
+    // more, dead.
+    assert!(golden[0] <= 140 && golden[1] == 229, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

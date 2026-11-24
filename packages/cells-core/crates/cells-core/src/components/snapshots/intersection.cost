@@ -1,7 +1,7 @@
 two lines: none when they coincide or are parallel: cells 21 · essential 12 · constant 4 · instrs 3 · components 10
 segments: none when one stops short: cells 21 · essential 12 · constant 4 · instrs 3 · components 8
 hidden by the author: cells 22 · essential 13 · constant 4 · instrs 3 · components 7
-hidden by the author, in text: cells 22 · essential 13 · constant 4 · instrs 3 · components 8
+hidden by the author, in text: cells 23 · essential 13 · constant 5 · instrs 3 · components 8
 a line and a circle: two points, one where tangent: cells 27 · essential 11 · constant 5 · instrs 7 · components 11
 two circles: none when they share a center: cells 24 · essential 8 · constant 7 · instrs 5 · components 9
 two polygons: the edges' crossings, each once: cells 84 · essential 14 · constant 15 · instrs 27 · components 17

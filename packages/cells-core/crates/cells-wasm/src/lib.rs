@@ -568,6 +568,58 @@ impl Core {
         display_of(display).number_latex(value)
     }
 
+    /// The display settings of component `idx` (ADR 0058, ADR 0071), as
+    /// the six numbers `display_latex` takes: from the nearest of it and
+    /// its referents that writes each, as the core's own text reads them.
+    pub fn display_settings(&self, idx: u32) -> Vec<f64> {
+        if (idx as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        let (d, _) = self.doc.display_settings(CompIdx::new(idx));
+        vec![
+            d.digits,
+            d.decimals,
+            d.small_as_zero,
+            f64::from(u8::from(d.pad_zeros)),
+            f64::from(u8::from(d.avoid_scientific_notation)),
+            f64::from(u8::from(d.show_blanks)),
+        ]
+    }
+
+    /// Text of the expression a math cell holds, rounded and written by
+    /// the settings `display` (see `display_of`), as the current core
+    /// writes a math's `text`.
+    pub fn display_text(&self, cell: u32, display: &[f64]) -> String {
+        if (cell as usize) >= self.doc.cells.len() {
+            return String::new();
+        }
+        self.doc
+            .display_text(CellIdx::new(cell), &display_of(display))
+    }
+
+    /// The expression a math cell holds, rounded by the settings
+    /// `display`, as the JavaScript math tree in JSON: a math's
+    /// `valueForDisplay`. Empty for a NaN handle.
+    pub fn display_ast(&self, cell: u32, display: &[f64]) -> String {
+        if (cell as usize) >= self.doc.cells.len() {
+            return String::new();
+        }
+        self.doc
+            .display_ast(CellIdx::new(cell), &display_of(display))
+    }
+
+    /// The number `value` as text, rounded and written by the settings
+    /// `display`: a number's `text`.
+    pub fn number_display_text(&self, value: f64, display: &[f64]) -> String {
+        display_of(display).number_text(value)
+    }
+
+    /// The number `value` rounded by the settings `display`: a number's
+    /// `valueForDisplay`.
+    pub fn number_display_value(&self, value: f64, display: &[f64]) -> f64 {
+        display_of(display).round_number(value)
+    }
+
     /// LaTeX of the tuple of the numbers `cells` hold (a point's
     /// coordinates), rounded and written as `display_latex` writes them.
     pub fn coords_latex(&self, cells: &[u32], display: &[f64]) -> String {

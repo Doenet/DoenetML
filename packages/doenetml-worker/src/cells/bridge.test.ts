@@ -1922,6 +1922,22 @@ describe("number display settings", () => {
             "1.500",
         );
     });
+
+    it("draw a number rounded by them, and leave out a hidden value (ADR 0071)", async () => {
+        const bridge = await load(
+            `<number name="n" displayDigits="5">5.123456</number>
+<p name="p"><number>5.123456</number> $n <number>$n</number> <math hide>x</math><text name="t" hide>s</text><text extend="$t" hide="false"/></p>`,
+        );
+        const root = bridge.flatDast();
+        expect(
+            byName(root, "number").map((e) => (e.data as any).props.text),
+        ).toEqual(["5.1235", "5.12", "5.1235", "5.1235"]);
+        const [p] = byName(root, "p");
+        const shown = (p as any).children
+            .filter((c: any) => typeof c !== "string")
+            .map((c: any) => (root.elements[c.id] as any).name);
+        expect(shown).toEqual(["number", "number", "number", "text"]);
+    });
 });
 
 describe("a cascade (ADR 0062)", () => {

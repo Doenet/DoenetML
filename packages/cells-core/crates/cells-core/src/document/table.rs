@@ -416,8 +416,34 @@ impl Document {
         }
         match ty.text_kind() {
             Some(TextKind::Text(pi)) => out.push_str(&self.text_value(cells[pi])),
+            // A type with display settings shows its number rounded by
+            // them (ADR 0058, ADR 0071).
+            Some(TextKind::Number(pi)) if self.has_display_settings(c) => {
+                let v = value(pi).unwrap_or(f64::NAN);
+                if crate::program::is_missing(v) {
+                    out.push_str(BLANK);
+                } else {
+                    out.push_str(&self.display_settings(c).0.number_text(v));
+                }
+            }
             Some(TextKind::Number(pi)) => {
                 out.push_str(&format_number(value(pi).unwrap_or(f64::NAN)))
+            }
+            Some(TextKind::Math(expr, pi)) if self.has_display_settings(c) => {
+                let (display, _) = self.display_settings(c);
+                match cells.get(expr) {
+                    Some(&e) if !self.cells[e.index()].is_nan() => {
+                        out.push_str(&self.display_text(e, &display))
+                    }
+                    _ => {
+                        let v = value(pi).unwrap_or(f64::NAN);
+                        if crate::program::is_missing(v) {
+                            out.push_str(BLANK);
+                        } else {
+                            out.push_str(&display.number_text(v));
+                        }
+                    }
+                }
             }
             Some(TextKind::Grouped(pi)) => {
                 out.push_str(&group_digits(&format_number(value(pi).unwrap_or(f64::NAN))))
@@ -567,6 +593,9 @@ impl Document {
                 // show, is not in the text (ADR 0062).
                 Child::Component(k) if self.revealed(k) != crate::document::Revealed::Shown => {}
                 Child::Component(k) if self.never_rendered(k) => {}
+                // A value its `hide` hides is not in its parent's text
+                // (ADR 0071).
+                Child::Component(k) if self.hidden_value(k) => {}
                 Child::Component(k) => self.push_text(k, out),
             }
         }

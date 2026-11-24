@@ -1,4 +1,4 @@
-a step holding nothing scored is complete once reached: cells 19 · essential 0 · constant 19 · instrs 0 · components 6
+a step holding nothing scored is complete once reached: cells 20 · essential 0 · constant 20 · instrs 0 · components 6
 a step is complete when its answers are right: cells 35 · essential 6 · constant 7 · instrs 19 · components 8
 a step whose answers weigh nothing does not hold the next back: cells 36 · essential 6 · constant 8 · instrs 19 · components 8
 a held-back step is not scored: cells 38 · essential 6 · constant 8 · instrs 20 · components 9
