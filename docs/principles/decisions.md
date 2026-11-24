@@ -2185,7 +2185,8 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
 5. **`$x` is `<X extend="$x"/>` again**, where X is the type `$x` presents as: x's tag, or an
    input's value type (REF-1a). With no referent, both are a blank.
 6. **A missing referent, an ambiguous name, a missing property, or a name failing D22's
-   every-branch rule is a warning in both forms.** It shows a blank. Errors stay for what can't
+   every-branch rule is a warning in both forms.** (**Revised by D74 and D75:** each is an error
+   at load when the DoenetML proves it can never name anything.) It shows a blank. Errors stay for what can't
    be honored as written: unrelated types and containers (REF-5), mixed types (`e0066`,
    `w0184` on a composite tag), D32's extends, and cycles.
 
@@ -3713,4 +3714,39 @@ every-branch rule a warning with a blank; this moves it.
    (DIAG-5). The codes are errors' codes.
 
 Revises D37 item 6 for the every-branch rule. Implementation: #2673 (PR 65).
+
+## D75. A reference the DoenetML proves can never give anything is an error (decided, November 2026)
+
+**Why.** D74 made a reference whose meaning depends on the branch shown an error. That left an odd
+order: `$cc.x` with `x` in one branch, which works some of the time, was an error, while
+`$g[1]` of a group of several, which never works, was a warning. An error is for DoenetML that can't
+do anything reasonable as written; a reference that the DoenetML proves can never give anything is
+such DoenetML. Chosen after community feedback, over keeping D37's warnings for these.
+
+**Decided:**
+1. **An error at load, at the reference, bare or on a tag, shown in its place (DIAG-5):** every
+   reference the DoenetML alone proves can never give anything. Examples, with today's codes:
+   - a name with no referent, a typo (`w0104`), keeping its "Did you mean" suggestion (DIAG-3);
+   - an ambiguous name (`w0105`);
+   - a property the component doesn't have (`w0104`), and an index that can't apply
+     (`w0100`, `$n.value[1]`);
+   - a literal index below 1 (`$l[0]`), and a literal index past an end fixed by the DoenetML;
+   - an index into a group or wrapper of several (`w0188`, `w0191`), a property after one
+     (`w0193`);
+   - a name or property after a collection (`w0200`, D59), a name after a repeat's value that the
+     items lack (`w0183`/`w0184`);
+   - a name or index whose meaning depends on the branch shown (D74);
+   - `$choice` inside a `<choiceInput>` (`w0210`), a reference to a `<variantControl>` (`w0199`),
+     a `<callAction>` target naming nothing (`w0211`), a `sortByProp` naming no property
+     (`w0198`).
+2. **Still missing (a blank), with a warning or an info as now:** a reference that may name
+   something as the document runs: an index past the end of a list or repeat whose length can
+   change, an index from an input or other changing value, a case or iteration not made yet,
+   `selectedIndex` before a choice, `$ans.submittedResponse` before a submission.
+3. **What decides "proves":** the load-time checks (DIAG-7). Where they can't tell, the
+   reference stays a warning or info: a false error is worse than a missed one.
+4. Content in a case not shown is checked too (DIAG-7), so the error is the same in every state.
+
+Revises D37 item 6 and the part of D37 that reverted #2447's errors for `w0104`/`w0105` on a tag.
+Implementation: #2674 (PR 66).
 

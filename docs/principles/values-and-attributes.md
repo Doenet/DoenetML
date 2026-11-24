@@ -247,9 +247,12 @@ Code: `W/utils/numberDisplay.js:250`, the "a sole child passes its formatting up
 Whether formatting should pass through arithmetic was left open in #2127 (D19).
 
 ### VAL-5: a reference to one thing that isn't there is missing, and shows as a blank (Tier 1; D37)
-A reference can name nothing: no referent, an index past the end, `$P.z` on a 2D point, or
-`selectedIndex` before a choice is made. Such a reference is *missing*. Any component can be
-missing, and a tag whose source is missing is missing too (REF-0).
+A reference can name nothing *at the moment*: an index past the end of a list that can grow, an
+index from an input, `selectedIndex` before a choice is made, `$ans.submittedResponse` before a
+submission. Such a reference is *missing*. Any component can be missing, and a tag whose source is
+missing is missing too (REF-0). A reference the DoenetML proves can never name anything (a typo,
+a property the component doesn't have, an index into a group of several) is not missing but an
+error at load (D75, DIAG-1).
 - **(Tier 1)** A reference to one thing (a name, an index, a property, an iteration or a pick)
   gives that thing, or a missing value. A reference to a collection (a list, a repeat, a collect)
   or to a `<group>` gives its members, possibly none. That is the only way a reference shows

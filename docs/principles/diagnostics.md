@@ -16,14 +16,17 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - an extend that changes what a tag makes (REF-7, `doenet-e0056`–`e0061`);
   - an unrelated type change (REF-5), and a tag whose type the DoenetML doesn't guarantee
     (REF-0, D36, D37);
-  - a cycle (NAME-7).
+  - a cycle (NAME-7);
+  - **a reference the DoenetML proves can never give anything** (D75): a name with no referent
+    (a typo), an ambiguous name, a property the component doesn't have, a literal `$l[0]`, an
+    index into a group of several, a name after a collection, a name or index whose meaning
+    depends on the branch shown (D74). There is nothing reasonable to show. **Known violation**
+    (#2674): these are warnings today, shown as a blank.
 - **Warning:** the DoenetML is valid, but almost certainly not what was meant, or does nothing.
   The author should change it. Examples:
   - an attribute that is ignored, including one the tag doesn't have on a `copy`, `copyWithState`
     or `extend` (`doenet-w0187`, #2482);
   - a deprecated form;
-  - an ambiguous name (`doenet-w0105`);
-  - a literal `$l[0]`;
   - a `copyWithState` whose nested choices kept the source's, and a `copyWithState` of a URI,
     which has no state to carry (D33).
 - **Info:** the DoenetML is valid, and with the values it has now, part of it is missing (a blank)

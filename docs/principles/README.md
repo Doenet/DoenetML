@@ -115,8 +115,9 @@ A keyword in an attribute's value, such as `"full"` or `"true"`, can be written 
    - a tag you write makes that tag: `<math extend="$x"/>` is always a math. If x can be
      something that isn't a math (cases of different types, several components), it is an error.
      Wrap it instead, `<math>$cc</math>`, or index it, `$x[1]`.
-   - something that isn't there shows as a blank, `＿`, written bare or as a tag: a typo, an index
-     past the end, `$ans.submittedResponse` before a submission. Only what is empty shows nothing: an
+   - something that isn't there right now shows as a blank, `＿`, written bare or as a tag: an
+     index past the end, `$ans.submittedResponse` before a submission. A reference that can never
+     name anything, such as a typo, is an error (D75). Only what is empty shows nothing: an
      empty list, a repeat with no iterations, an empty `<group>` or case, a `<conditionalContent>`
      with no case shown (D73). A blank never equals anything, so it never earns
      credit. (VAL-5, D37)
