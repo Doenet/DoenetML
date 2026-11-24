@@ -9,3 +9,5 @@ excluded values are left out: cells 8 · essential 0 · constant 8 · instrs 0 �
 an empty sequence: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
 a count that follows a reference is a structural sequence: cells 17 · essential 0 · constant 17 · instrs 0 · components 7
 its entries among a list's and an operator's children: cells 10 · essential 0 · constant 10 · instrs 0 · components 11
+a sequence of math steps symbolically (ADR 0074): cells 18 · essential 0 · constant 18 · instrs 0 · components 10
+a sequence of letters counts its letters (ADR 0074): cells 22 · essential 0 · constant 22 · instrs 0 · components 12

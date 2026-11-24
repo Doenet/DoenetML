@@ -69,12 +69,24 @@ impl<'a> SourceReader<'a> {
             }
         }
         let e = last?;
-        let ty = self.outlined(self.template_up(t, r.hops)).elems[e.index()].component_type;
+        let row = &self.outlined(self.template_up(t, r.hops)).elems[e.index()];
+        let ty = row.component_type;
         let sel = match r.prop {
             None => ty.default_sel(),
             Some(rp) => rp.sel_on(ty),
         }?;
-        let entry = |ty: ComponentType| match ty.list_entry() {
+        // A sequence's entries follow its `type` (ADR 0074).
+        let by_type = ty
+            .entries_by_type()
+            .then(|| {
+                let written = self
+                    .dast
+                    .attr_peek(row.node, "type")
+                    .and_then(|a| self.attr_text(a));
+                ty.entry_by_type(written.as_deref())
+            })
+            .flatten();
+        let entry = |ty: ComponentType| match by_type.or(ty.list_entry()) {
             Some(EntryKind::Number) => Some(ValueKind::Number),
             Some(EntryKind::Text) => Some(ValueKind::Text),
             Some(EntryKind::Boolean) => Some(ValueKind::Boolean),

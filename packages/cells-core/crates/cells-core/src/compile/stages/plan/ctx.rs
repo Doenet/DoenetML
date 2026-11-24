@@ -484,6 +484,27 @@ impl<'a> PlanCtx<'_, 'a> {
 
     // Operators over math (ADR 0043).
 
+    /// A scalar planned from the record as the text it was written as: a
+    /// literal's number, math text with no reference as written (`c`,
+    /// `3x`, `aZ`); `None` for anything else (a reference, math reading
+    /// one). What a sequence of letters or math reads its parameters as
+    /// (ADR 0074).
+    pub(crate) fn source_text(&self, source: &Source) -> Option<String> {
+        match source {
+            Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => {
+                Some(crate::sym::engine::number_text(*v))
+            }
+            Source::Flow(Flow::Math(id)) => match self.p.ar.sym_text.get(id)? {
+                text @ SymText::Nodes { plans, .. } if plans.is_empty() => {
+                    Some(text.spell(self.p.rd.dast))
+                }
+                SymText::Spelled(text) => Some(text.clone()),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
     /// An operand planned from the record (a literal, a reference, math
     /// text, as [`PlanCtx::value_of`] plans one) as an expression the
     /// symbolic engine reads: the number, the reference's leaf, or the math

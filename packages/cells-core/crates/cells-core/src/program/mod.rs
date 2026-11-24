@@ -687,7 +687,8 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
         | SymKind::JoinWith { .. }
         | SymKind::Order { .. }
         | SymKind::TextEquals { .. }
-        | SymKind::TextNumber => {
+        | SymKind::TextNumber
+        | SymKind::Letters { .. } => {
             unreachable!("text runs in step_sym")
         }
         SymKind::SampleQuadratic => {
@@ -845,6 +846,15 @@ fn run_text(
         SymKind::TextNumber => {
             let text = texts.as_deref().and_then(|t| t.get(v(0))).unwrap_or("");
             out[0] = text.trim().parse::<f64>().unwrap_or(f64::NAN);
+        }
+        SymKind::Letters { lowercase } => {
+            let n = v(0);
+            out[0] = match texts {
+                Some(t) if n >= 1.0 && n.fract() == 0.0 && n < 1e15 => {
+                    t.intern(&texts::letters(n as u64, lowercase))
+                }
+                _ => MISSING,
+            };
         }
         _ => unreachable!("not a text operation"),
     }

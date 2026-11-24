@@ -10,3 +10,5 @@ a parameter a student can change is refused: cells 3 · essential 1 · constant 
 hidden: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
 an entry by index: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
 more than sixteen, sorted: cells 27 · essential 0 · constant 27 · instrs 0 · components 22
+a math value of the sequence (ADR 0074): cells 14 · essential 0 · constant 14 · instrs 0 · components 5
+letters, a draw too large for the run, is refused (ADR 0074): cells 2 · essential 0 · constant 2 · instrs 0 · components 2

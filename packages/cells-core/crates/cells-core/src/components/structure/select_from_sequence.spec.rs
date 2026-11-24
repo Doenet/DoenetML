@@ -72,4 +72,15 @@ spec! {
         doenet r#"<selectFromSequence name="s" numToSelect="20" sort from="1" to="20"/>"#;
         expect { "s.values" = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] }
     }
+
+    case "a math value of the sequence (ADR 0074)" {
+        doenet r#"<selectFromSequence name="s" type="math" from="x" step="y" length="1"/>
+                  <selectFromSequence name="t" type="math" from="2x" length="1"/>"#;
+        expect { "s.value" = "x", "s.number1" = "x", "t.value" = "2 x" }
+    }
+
+    case "letters, a draw too large for the run, is refused (ADR 0074)" {
+        doenet r#"<selectFromSequence name="s" type="letters" from="a" to="b" numToSelect="3"/>"#;
+        diagnostics["cells-choice-domain"]
+    }
 }

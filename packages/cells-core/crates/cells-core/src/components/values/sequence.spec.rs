@@ -68,4 +68,19 @@ spec! {
                   <sum name="t">$s</sum>"#;
         expect { "l.numbers" = [2, 3, 4, 7], "t.value" = 9 }
     }
+
+    case "a sequence of math steps symbolically (ADR 0074)" {
+        doenet r#"<sequence name="s" type="math" from="x" step="y" length="3"/>
+                  <sequence name="t" type="math" from="3x" to="3y" length="4"/>"#;
+        expect {
+            "s.number1" = "x", "s.number3" = "x + 2 y", "s.numComponents" = 3,
+            "t.number2" = "2 x + y",
+        }
+    }
+
+    case "a sequence of letters counts its letters (ADR 0074)" {
+        doenet r#"<sequence name="s" type="letters" from="a" to="e" exclude="c"/>
+                  <sequence name="t" type="letters" from="Y" to="f" step="-4"/>"#;
+        expect { "s.numComponents" = 4, "t.numComponents" = 5 }
+    }
 }

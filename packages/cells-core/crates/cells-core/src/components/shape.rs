@@ -39,8 +39,9 @@ impl ListShape {
     /// it decides them; None for the type's.
     pub fn new(ty: ComponentType, own: Option<EntryKind>) -> ListShape {
         debug_assert!(
-            own.is_none() || ty.list_entry() == Some(EntryKind::Any),
-            "only an element of a type whose entries are its operands' decides its entries"
+            own.is_none() || ty.list_entry() == Some(EntryKind::Any) || ty.entries_by_type(),
+            "only an element of a type whose entries are its operands', or follow its `type`, \
+             decides its entries"
         );
         ListShape { ty, own }
     }
