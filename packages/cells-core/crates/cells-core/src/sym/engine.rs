@@ -803,6 +803,16 @@ impl Engine {
         display.latex(&self.exprs[h.index()])
     }
 
+    /// `h` as text, rounded and written as `display` asks.
+    pub fn display_text(&self, h: Handle, display: &super::Display) -> String {
+        display.text(&self.exprs[h.index()])
+    }
+
+    /// `h` rounded as `display` asks, as the JavaScript math tree in JSON.
+    pub fn display_ast_json(&self, h: Handle, display: &super::Display) -> String {
+        me::expr::serde::to_js(&display.round(&self.exprs[h.index()])).to_string()
+    }
+
     /// Number of stored expressions.
     pub fn len(&self) -> usize {
         self.exprs.len()

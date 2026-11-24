@@ -20,6 +20,7 @@ use crate::tick::{Request, TickOutcome};
 mod act;
 mod cascade;
 mod counters;
+mod display;
 mod functions;
 mod interactive;
 mod load;
@@ -323,6 +324,36 @@ impl Document {
             self.math
                 .engine
                 .display_latex(Handle::from_value(h), display)
+        }
+    }
+
+    /// Text of the expression a math cell holds, rounded and written as
+    /// `display` asks, as the current core writes a math's `text`; the
+    /// blank for a missing value, empty for a NaN handle.
+    pub fn display_text(&self, cell: CellIdx, display: &crate::sym::Display) -> String {
+        let h = self.cells[cell.index()];
+        if crate::program::is_missing(h) {
+            crate::document::table::BLANK.into()
+        } else if h.is_nan() {
+            String::new()
+        } else {
+            self.math
+                .engine
+                .display_text(Handle::from_value(h), display)
+        }
+    }
+
+    /// The expression a math cell holds, rounded as `display` asks, as the
+    /// JavaScript math tree in JSON: a math's `valueForDisplay`. Empty for
+    /// a NaN handle.
+    pub fn display_ast(&self, cell: CellIdx, display: &crate::sym::Display) -> String {
+        let h = self.cells[cell.index()];
+        if h.is_nan() {
+            String::new()
+        } else {
+            self.math
+                .engine
+                .display_ast_json(Handle::from_value(h), display)
         }
     }
 

@@ -141,11 +141,13 @@ gave nothing it took from its own referent.
     container's children. A heading flag given by a reference does too.
   - A section inside an `<aside>` that includes its parent's number: an
     aside keeps no `sectionNumber`, so the section's is missing.
-  - A setting taken from a sole child (`<math>$n</math>` showing as `n`
-    does) and the settings of a point and of the operators: each type
-    would declare the props, and a planner the sole child's ports as
-    their default. A math's `valueForDisplay` and `text`, rounded, are
-    the reader's still.
+  - *Done 2026-11-24, ADR 0071:* a setting taken from a sole child that
+    is one reference (`<math>$n</math>` showing as `n` does), by a
+    reference to the child's referent's setting; a `<number>`'s and a
+    `<math>`'s `text` and `valueForDisplay`, rounded, by the core
+    (`Document::display_settings`, the same rule as the bridge's walk).
+  - The settings of a point, of the operators and of a `<mathInput>`:
+    each type would declare the props.
   - A page in a list renders every child, where the current core renders
     only what the list renders (`childIndicesToRender`).
   - *Done 2026-11-24, ADR 0062:* `<cascade>`, by the first option, a

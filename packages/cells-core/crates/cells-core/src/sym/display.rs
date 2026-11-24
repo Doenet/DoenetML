@@ -5,7 +5,7 @@
 
 use math_expressions as me;
 use me::expr::SeqKind;
-use me::{Expr, LatexOpts, MathConst, Number};
+use me::{Expr, LatexOpts, MathConst, Number, TextOpts};
 
 /// The number-display settings of a math, a point, ...: `displayDigits`,
 /// `displayDecimals`, `displaySmallAsZero`, `padZeros`,
@@ -73,6 +73,42 @@ impl Display {
     /// a number shows.
     pub fn number_latex(&self, v: f64) -> String {
         self.latex(&number(v))
+    }
+
+    /// The text options the settings ask for, as [`Display::latex_opts`].
+    fn text_opts(&self) -> TextOpts {
+        let latex = self.latex_opts();
+        TextOpts {
+            pad_to_decimals: latex.pad_to_decimals,
+            pad_to_digits: latex.pad_to_digits,
+            avoid_scientific_notation: self.avoid_scientific_notation,
+            show_blanks: self.show_blanks,
+            ..TextOpts::default()
+        }
+    }
+
+    /// `e` as text, rounded for display: the current core's `text` of a
+    /// math (ADR 0071).
+    pub fn text(&self, e: &Expr) -> String {
+        me::to_text(&self.round(e), &self.text_opts())
+    }
+
+    /// The number `v` as text, rounded for display: the current core's
+    /// `text` of a number.
+    pub fn number_text(&self, v: f64) -> String {
+        self.text(&number(v))
+    }
+
+    /// The number `v` rounded for display, as a number: the current core's
+    /// `valueForDisplay` of a number. A NaN or an infinity is itself.
+    pub fn round_number(&self, v: f64) -> f64 {
+        if !v.is_finite() {
+            return v;
+        }
+        match self.round(&number(v)) {
+            Expr::Num(n) => n.to_f64(),
+            e => me::evaluate_to_constant(&e).map_or(v, |z| z.re),
+        }
     }
 
     /// A point's coordinates `values` as LaTeX, rounded for display: a

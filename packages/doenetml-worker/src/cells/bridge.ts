@@ -22,6 +22,7 @@ import {
     BLOCKS,
     CONTRACTS,
     anchorProps,
+    hiddenByHide,
     LIST_LIKE,
     OMITTED,
     PER_SCOPE,
@@ -520,11 +521,7 @@ export class CellsBridge {
         const type = this.table.componentType(k);
         if (OMITTED.has(type)) return;
         if (contract?.excludeChild?.(this.table, owner, k)) return;
-        const hide = this.table.cell(k, "hide");
-        if (hide !== undefined) {
-            const v = reads.cell(hide);
-            if (v !== 0 && !Number.isNaN(v)) return;
-        }
+        if (hiddenByHide(this.table, k, (cell) => reads.cell(cell))) return;
         if (type === "case" && reads.num(k, "active") !== 1) return;
         // A step a cascade does not show, a message it does not choose.
         if (reads.revealed(k) === 2) return;

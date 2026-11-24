@@ -296,6 +296,9 @@ pub mod number {
             padZeros: display,
             avoidScientificNotation: display,
             displayBlanks: display,
+            // Shown neither drawn nor in its parent's text; planned as a
+            // display setting is (ADR 0071).
+            hide: display,
             ..anchor
         }
         attributes {

@@ -14,6 +14,9 @@ component! {
     value: Text,
     props {
         value: children { text, rendered },
+        // Shown neither drawn nor in its parent's text; planned as a
+        // display setting is (ADR 0071).
+        hide: display,
         ..anchor
     }
     children: Value,

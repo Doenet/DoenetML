@@ -177,8 +177,8 @@ fn a_document_with_an_attribute_nothing_reads_warns_and_loads() {
 /// the attributes its planner never ran to read.
 #[test]
 fn every_unread_attribute_is_reported_at_once_and_boxed_content_is_not() {
-    let src = r#"<number name="a" hide>1</number>
-        <p name="p" disabled><number name="b" hide>2</number></p>
+    let src = r#"<number name="a" simplify>1</number>
+        <p name="p" disabled><number name="b" simplify>2</number></p>
         <number name="c">3</number>"#;
     let doc = load(src).unwrap();
     assert_eq!(doc.value("c", "value"), Some(3.0));
@@ -187,7 +187,7 @@ fn every_unread_attribute_is_reported_at_once_and_boxed_content_is_not() {
     messages.sort();
     assert_eq!(errs.len(), 2, "{messages:?}");
     assert!(messages[0].contains("'disabled'") && messages[0].contains("<p>"));
-    assert!(messages[1].contains("'hide'") && messages[1].contains("<number>"));
+    assert!(messages[1].contains("'simplify'") && messages[1].contains("<number>"));
 }
 
 /// An attribute a renderer reads is not refused: one every type may carry
