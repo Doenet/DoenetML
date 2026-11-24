@@ -370,6 +370,23 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
         updateValue: (t, c, args) =>
             RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
     },
+    // A matrix input's size controls (ADR 0045), as the current core's
+    // actions: a request on its size, which rebuilds the grid; and its
+    // boxes, typed into as math inputs.
+    matrixInput: {
+        updateNumRows: (t, c, { numRows }) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "numRows"), Number(numRows)]],
+        }),
+        updateNumColumns: (t, c, { numColumns }) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "numColumns"), Number(numColumns)]],
+        }),
+    },
+    _matrixComponentInput: {
+        updateValue: (t, c, args) =>
+            RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
+    },
 };
 
 /** A value's drag in a graph, as the current core's `moveText`, `moveMath`

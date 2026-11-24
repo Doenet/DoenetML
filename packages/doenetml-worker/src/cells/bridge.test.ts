@@ -794,6 +794,35 @@ describe("step 3 components", () => {
         expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
     });
 
+    // A matrix input (ADR 0045): the prototype has no renderer for one, so
+    // it stands as rows of math inputs, typed into as any math input, and
+    // its size controls rebuild the grid.
+    it("draws a matrix input as rows of math inputs", async () => {
+        const { bridge, all, props, send, changed } = await open(`
+<matrix name="A"><row>1</row><row>3</row></matrix>
+<answer><matrixInput prefill="(1,2)"><label>M</label></matrixInput><award>$A</award></answer>`);
+        const rows = all("span").filter(
+            (s) => s.type === "element" && s.children.length > 0,
+        );
+        expect(rows.length).toBeGreaterThanOrEqual(2);
+        expect(all("mathInput")).toHaveLength(2);
+        expect(props("mathInput", 0).text).toBe("1");
+        expect(props("mathInput", 1).text).toBe("2");
+        let payload = send("mathInput", "updateValue", { text: "3" }, 1);
+        expect(changed(payload, "mathInput", 1)?.text).toBe("3");
+        payload = send("answer", "submitAnswer", {});
+        expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
+        // Its size controls: a third row, a rebuild of the grid.
+        const [grid] = all("span");
+        bridge.dispatch({
+            component: "span",
+            actionName: "updateNumRows",
+            componentIdx: grid.data.id,
+            args: { numRows: 3 },
+        });
+        expect(byName(bridge.flatDast(), "mathInput")).toHaveLength(3);
+    });
+
     it("opens a hint and scores a submitted answer", async () => {
         const { props, send, changed } = await open(`
 <hint><p>Try harder</p></hint>

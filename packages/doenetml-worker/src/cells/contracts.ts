@@ -1504,6 +1504,21 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
         noChildren: true,
     },
+    // A matrix input (ADR 0045): the prototype has no renderer of its own
+    // for one, so its grid is sent as it is, rows of math inputs: the
+    // input a span of its rows, each row a span of its boxes.
+    matrixInput: {
+        name: () => "span",
+        props: (r, c) => inputPresentation(r.table, c),
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) !== "_matrixInputRow",
+    },
+    _matrixInputRow: { name: () => "span" },
+    // A matrix input's box: a math input, drawn as one.
+    _matrixComponentInput: {
+        name: () => "mathInput",
+        props: (r, c, inGraph) => CONTRACTS.mathInput.props!(r, c, inGraph),
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */

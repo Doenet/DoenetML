@@ -97,6 +97,11 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     callAction: { callAction: [{}] },
     updateValue: { updateValue: [{}] },
     _fractionInputComponent: { updateValue: [{ text: "3" }] },
+    _matrixComponentInput: { updateValue: [{ text: "3" }] },
+    matrixInput: {
+        updateNumRows: [{ numRows: 2 }],
+        updateNumColumns: [{ numColumns: 3 }],
+    },
     curve: {
         moveThroughPoint: [{ throughPointInd: 1, throughPoint: [2, 3] }],
     },
@@ -177,6 +182,7 @@ const DOC = `
 <repeatForSequence name="r" from="1" to="3" valueName="v"><number>$v</number></repeatForSequence>
 <setup><number name="hidden">$n + 2</number></setup>
 <fractionInput name="fi" prefillNumerator="1"/>
+<matrixInput name="mxi" prefill="(1,2)"/>
 `;
 
 /** What the bridge must have requested, as `type.prop`: one per kind of
@@ -216,6 +222,9 @@ const EXPECTED_REQUESTS = [
     "equilibriumLine.x1",
     "equilibriumLine.stable",
     "_fractionInputComponent.expr",
+    "_matrixComponentInput.expr",
+    "matrixInput.numRows",
+    "matrixInput.numColumns",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -272,6 +281,7 @@ const EXPECTED_READS = [
     "updateValue.hide",
     "triggerSet.hide",
     "_fractionInputComponent.expr",
+    "_matrixComponentInput.expr",
 ];
 
 beforeAll(async () => {
