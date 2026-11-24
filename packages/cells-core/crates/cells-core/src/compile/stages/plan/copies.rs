@@ -16,17 +16,30 @@ impl<'a> Planning<'a> {
     pub(super) fn plan_extend_prop(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
         let component_type = self.rd.own_row(t, e).component_type;
         let props = match component_type.def().extend_value {
-            Some(ExtendValue::Scalar(value)) => (0..component_type.prop_defs().len())
-                .map(|pi| {
-                    if pi == value {
-                        Source::reference(p)
-                    } else {
-                        // A mathInput bound to a cell is a numeric input:
-                        // no expression of its own.
-                        Source::absent()
-                    }
-                })
-                .collect(),
+            Some(ExtendValue::Scalar(value)) => {
+                // A number reads what may be a math cell as its number.
+                let mut hidden = Vec::new();
+                let read = self.read_as_number(
+                    t,
+                    component_type,
+                    value,
+                    Source::reference(p),
+                    &mut hidden,
+                );
+                let mut props: Vec<Source> = (0..component_type.prop_defs().len())
+                    .map(|pi| {
+                        if pi == value {
+                            read.clone()
+                        } else {
+                            // A mathInput bound to a cell is a numeric input:
+                            // no expression of its own.
+                            Source::absent()
+                        }
+                    })
+                    .collect();
+                props.extend(hidden);
+                props
+            }
             Some(ExtendValue::Point(wire)) => wire(Source::coord(p, 0), Source::coord(p, 1)),
             Some(ExtendValue::Expr(wire)) => {
                 let id = self.ar.arena.push(Expr::Cell(p));

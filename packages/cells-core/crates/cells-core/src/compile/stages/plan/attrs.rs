@@ -44,6 +44,8 @@ impl<'a> Planning<'a> {
             None => Source::given(v),
         };
         let mut props = TableProps::of(component_type);
+        // Hidden ports after the table (`read_as_number`).
+        let mut hidden = Vec::new();
         // The element's own children, as its type reads them (ADR 0034):
         // what a `PropFrom::Children` prop is planned from.
         let children = if component_type.def().children.kind == ChildrenKind::Value {
@@ -124,7 +126,10 @@ impl<'a> Planning<'a> {
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(t, e, scope, &children)?,
+                    _ => {
+                        let source = self.plan_value_children(t, e, scope, &children)?;
+                        self.read_as_number(t, component_type, pi, source, &mut hidden)
+                    }
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
@@ -155,8 +160,48 @@ impl<'a> Planning<'a> {
             };
             props[Port::table(pi)] = Some(source);
         }
-        self.tables[t.index()].plans[e.index()].props = props.finish();
+        let mut props = props.finish();
+        props.extend(hidden);
+        self.tables[t.index()].plans[e.index()].props = props;
         Ok(())
+    }
+
+    /// `source`, planned for prop `pi` of an element of `component_type`,
+    /// as that prop reads it: where the prop is the number the type shows
+    /// (a `<number>`'s value) and `source` a reference to what may be a
+    /// math cell (an entry inside a handle, `$mi[2]`, `$f.maxima[1][2]`; a
+    /// math list's entry, `$ml[3]`), the number that cell holds, its
+    /// expression evaluated ([`Flow::ValueOf`], picked by the type pass as
+    /// an operator's value is, ADR 0043), through a hidden port pushed on
+    /// `hidden` after the table; otherwise `source` itself. A reference the
+    /// records show is a number, text, a boolean, a point or a list is
+    /// read as it is.
+    pub(super) fn read_as_number(
+        &self,
+        t: TemplateId,
+        component_type: ComponentType,
+        pi: usize,
+        source: Source,
+        hidden: &mut Vec<Source>,
+    ) -> Source {
+        use crate::components::TextKind;
+        let shows_number = matches!(
+            component_type.text_kind(),
+            Some(TextKind::Number(v) | TextKind::Grouped(v)) if v == pi
+        );
+        let Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) = source else {
+            return source;
+        };
+        let may_be_math = matches!(
+            self.rd.ref_value_kind(&self.ar, t, p),
+            None | Some(ValueKind::Math)
+        );
+        if !shows_number || !may_be_math {
+            return source;
+        }
+        let held = Port::table(component_type.prop_defs().len() + hidden.len());
+        hidden.push(source);
+        Source::value_of(held, held)
     }
 
     /// Children or an attribute read as a value ([`ValueChildren`]), not

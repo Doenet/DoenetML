@@ -264,6 +264,35 @@ impl Source {
     }
 }
 
+/// The name a diagnostic gives port `pi` of an element of `component_type`
+/// whose plan's ports are `props`: its table prop's; for a hidden port, the
+/// first table prop whose source reads it (a `<number>`'s `value` for the
+/// reference it evaluates); else `args`.
+pub(crate) fn port_name(
+    component_type: crate::components::ComponentType,
+    props: &[Source],
+    pi: usize,
+) -> &'static str {
+    let defs = component_type.prop_defs();
+    if let Some(d) = defs.get(pi) {
+        return d.name;
+    }
+    let reads = |source: &Source| match source {
+        Source::Flow(Flow::Alias(Arg::Own(p))) | Source::Flow(Flow::VecOut(p, _)) => {
+            p.index() == pi
+        }
+        Source::Flow(Flow::ValueOf(a, b)) => a.index() == pi || b.index() == pi,
+        Source::Flow(Flow::Op(_, args)) => args
+            .iter()
+            .any(|a| matches!(a, Arg::Own(p) if p.index() == pi)),
+        _ => false,
+    };
+    defs.iter()
+        .zip(props)
+        .find(|(_, source)| reads(source))
+        .map_or("args", |(d, _)| d.name)
+}
+
 /// What holds an element: when its cells refuse requests.
 #[derive(Debug, Clone, Default)]
 pub(crate) enum Hold {

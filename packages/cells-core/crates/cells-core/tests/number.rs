@@ -79,3 +79,34 @@ fn a_written_literal_number_is_saved_and_restored() {
     assert_eq!(v(&fresh, "n", "value"), 5.0);
     assert_eq!(v(&fresh, "mi", "value"), 5.0);
 }
+
+/// A number reading a math cell (an entry inside a math input's value, a
+/// math list's entry, a function's extremum) holds the number that cell's
+/// expression is, not the handle the cell holds; a number it names stays
+/// an alias a write reaches.
+#[test]
+fn a_number_reading_a_math_cell_evaluates_it() {
+    let mut doc = load(
+        r#"<mathInput name="mi" prefill="1, 2, 3"/>
+           <mathList name="ml">4 5 6</mathList>
+           <function name="f">x^4-8x^2+8</function>
+           <number name="n0">7</number>
+           <number name="n1" extend="$mi[2]"/>
+           <number name="n2" extend="$ml[3]"/>
+           <number name="n3">$f.maxima[1][2]</number>
+           <number name="n4">$mi[3]</number>
+           <number name="n5" extend="$n0"/>
+           <mathInput name="w" bindValueTo="$n5"/>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "n1", "value"), 2.0);
+    assert_eq!(v(&doc, "n2", "value"), 6.0);
+    assert_eq!(v(&doc, "n3", "value"), 8.0);
+    assert_eq!(v(&doc, "n4", "value"), 3.0);
+    common::type_into(&mut doc, "mi", "1, x, 9");
+    assert!(v(&doc, "n1", "value").is_nan());
+    assert_eq!(v(&doc, "n4", "value"), 9.0);
+    assert_eq!(type_into(&mut doc, "w", 4.0), 0);
+    assert_eq!(v(&doc, "n0", "value"), 4.0);
+    assert_eq!(cells_core::testing::reference::check(&doc), None);
+}
