@@ -20,6 +20,7 @@ pub use instr::{
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
+pub use vector::Statistic;
 pub use vector::{
     Dist, Figure, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction,
     Reflex, RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
@@ -682,7 +683,11 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             out[0] = f64::from(if cols { c } else { r });
         }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
-        SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. } => {
+        SymKind::Join { .. }
+        | SymKind::JoinWith { .. }
+        | SymKind::Order { .. }
+        | SymKind::TextEquals { .. }
+        | SymKind::TextNumber => {
             unreachable!("text runs in step_sym")
         }
         SymKind::SampleQuadratic => {
@@ -823,6 +828,23 @@ fn run_text(
             for (o, k) in out.iter_mut().zip(order) {
                 *o = (k + 1) as f64;
             }
+        }
+        SymKind::TextEquals { case_insensitive } => {
+            let t = texts.as_deref();
+            let [a, b] = [0, 1].map(|i| {
+                let x = v(i);
+                let text = if is_missing(x) {
+                    ""
+                } else {
+                    t.and_then(|t| t.get(x)).unwrap_or("")
+                };
+                texts::answer_text(text, case_insensitive)
+            });
+            out[0] = if a == b { 1.0 } else { 0.0 };
+        }
+        SymKind::TextNumber => {
+            let text = texts.as_deref().and_then(|t| t.get(v(0))).unwrap_or("");
+            out[0] = text.trim().parse::<f64>().unwrap_or(f64::NAN);
         }
         _ => unreachable!("not a text operation"),
     }

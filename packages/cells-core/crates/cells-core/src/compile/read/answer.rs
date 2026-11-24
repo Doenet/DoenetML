@@ -10,6 +10,12 @@ pub(in crate::compile) struct AwardForm {
     pub(in crate::compile) el: NodeId,
     pub(in crate::compile) when: Option<(ElemId, NodeId)>,
     pub(in crate::compile) nodes: Vec<NodeId>,
+    /// The element whose children are the content: the award, or its
+    /// `<math>` or `<text>` child.
+    pub(in crate::compile) content_el: NodeId,
+    /// Whether the content is a `<text>` child's, which only a text
+    /// answer compares (ADR 0067).
+    pub(in crate::compile) from_text: bool,
 }
 
 /// Reading the source, an `<answer>`: the attributes out of scope, each award's
@@ -20,7 +26,6 @@ impl SourceReader<'_> {
     /// Returns whether the answer is `type="text"`.
     pub(in crate::compile) fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
         let d = self.dast;
-        self.reject_compare_attrs(el, "answer")?;
         let mut text = false;
         if let Some(a) = d.attr(el, "type") {
             let ty = self.attr_text(a).unwrap_or_default();
@@ -32,6 +37,9 @@ impl SourceReader<'_> {
                 }
             }
         }
+        // A text answer compares without regard to case when asked (ADR
+        // 0067); a math answer's case-insensitive match is not modelled.
+        self.reject_compare_attrs(el, "answer", text)?;
         if self.attr_on(el, "matchPartial") {
             return Err(Error::Unsupported("<answer matchPartial>".into()));
         }
@@ -43,9 +51,39 @@ impl SourceReader<'_> {
         Ok(text)
     }
 
+    /// The `<text>` child that makes answer `e` (at `el`) a text answer
+    /// without `type="text"`, as the current core infers one (ADR 0067):
+    /// its one element child, a `<text>`, with no other content, and no
+    /// `type` but `text`.
+    pub(in crate::compile) fn answer_text_child(
+        &self,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+    ) -> Option<NodeId> {
+        if let Some(a) = self.dast.attr_peek(el, "type")
+            && self.attr_text(a).unwrap_or_default().trim() != "text"
+        {
+            return None;
+        }
+        let kids: Vec<&Elem> = self
+            .elem_children(t, e)
+            .into_iter()
+            .map(|k| &self.outlined(t).elems[k.index()])
+            .filter(|k| k.node != NodeId::NONE)
+            .collect();
+        match kids[..] {
+            [k] if k.component_type.plays(Role::TextValue) && self.content_nodes(el).is_empty() => {
+                Some(k.node)
+            }
+            _ => None,
+        }
+    }
+
     /// Attributes of an answer or award that change how responses compare
-    /// and are not modelled: refused, never ignored.
-    fn reject_compare_attrs(&self, el: NodeId, tag: &str) -> Result<()> {
+    /// and are not modelled: refused, never ignored. `caseInsensitiveMatch`
+    /// is modelled on a text answer (`case_ok`).
+    fn reject_compare_attrs(&self, el: NodeId, tag: &str, case_ok: bool) -> Result<()> {
         const OUT_OF_SCOPE: &[&str] = &[
             "allowedErrorInNumbers",
             "allowedErrorIsAbsolute",
@@ -57,6 +95,9 @@ impl SourceReader<'_> {
             "splitSymbols",
         ];
         for &name in OUT_OF_SCOPE {
+            if case_ok && name == "caseInsensitiveMatch" {
+                continue;
+            }
             if self.dast.attr(el, name).is_some() {
                 return Err(Error::Unsupported(format!("<{tag} {name}>")));
             }
@@ -73,14 +114,17 @@ impl SourceReader<'_> {
         if d.attr(el, "extend").is_some() {
             return Err(Error::Unsupported("<award extend>".into()));
         }
-        self.reject_compare_attrs(el, "award")?;
+        self.reject_compare_attrs(el, "award", false)?;
         let mut when = None;
-        // `<award><math>2 + $a</math></award>`: the math is the content.
+        // `<award><math>2 + $a</math></award>`: the math is the content;
+        // `<award><text>yes</text></award>`, the text, for a text answer
+        // (ADR 0067).
         let mut math_child = None;
         for k in self.elem_children(t, a) {
             let ty = self.outlined(t).elems[k.index()].component_type;
             // A `<math>` that settled as math, not as a point or a tuple.
-            let math = matches!(ty.def().settle, Some(Settle::FromMathText(_)));
+            let math = matches!(ty.def().settle, Some(Settle::FromMathText(_)))
+                || ty.plays(Role::TextValue);
             match ty {
                 _ if ty.plays(Role::When) && when.is_none() => {
                     when = Some((k, self.outlined(t).elems[k.index()].node))
@@ -99,6 +143,13 @@ impl SourceReader<'_> {
                 }
             }
         }
+        let content_el = math_child.unwrap_or(el);
+        let from_text = math_child.is_some_and(|m| {
+            self.elem_children(t, a).into_iter().any(|k| {
+                let kid = &self.outlined(t).elems[k.index()];
+                kid.node == m && kid.component_type.plays(Role::TextValue)
+            })
+        });
         let nodes = match math_child {
             Some(m) if self.content_nodes(el).is_empty() => self.content_nodes(m),
             Some(_) => {
@@ -118,6 +169,8 @@ impl SourceReader<'_> {
                 el,
                 when,
                 nodes,
+                content_el,
+                from_text,
             }),
         }
     }

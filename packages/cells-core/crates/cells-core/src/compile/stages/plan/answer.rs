@@ -47,7 +47,9 @@ impl<'a> Planning<'a> {
                     .into(),
             ));
         }
-        let text_answer = self.rd.reject_answer_attrs(el)?;
+        let typed_text = self.rd.reject_answer_attrs(el)?;
+        let text_child = self.rd.answer_text_child(t, e, el);
+        let text_answer = typed_text || text_child.is_some();
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         // The synthetic children outlining made are planned below.
@@ -58,6 +60,8 @@ impl<'a> Planning<'a> {
             match self.rd.owned_row(t, e, k).component_type {
                 ty if ty.response().is_some() => inputs.push(k),
                 ty if ty.plays(Role::Award) => awards.push(k),
+                // The text a text answer compares with (ADR 0067).
+                _ if text_child == Some(self.rd.owned_row(t, e, k).node) => {}
                 other => {
                     return Err(Error::Unsupported(format!(
                         "a <{}> inside an <answer>",
@@ -82,7 +86,7 @@ impl<'a> Planning<'a> {
             return self.plan_choice_answer(t, e, el, *ci);
         }
         if text_answer {
-            return self.plan_text_answer(t, e, el, &inputs, &awards);
+            return self.plan_text_answer(t, e, el, text_child, &inputs, &awards);
         }
         if inputs.iter().any(|&k| {
             matches!(
@@ -292,17 +296,20 @@ impl<'a> Planning<'a> {
     }
 
     /// `<answer type="text">`: a `<textInput>` child's value is the
-    /// response (a string id); the submitted copy is compared with each
-    /// award's literal text, trimmed, by id.
+    /// response (a string id), or, with none, the value of the one the
+    /// answer makes (ADR 0067); the submitted copy is compared with the
+    /// answer's content, literal text or one reference, or with each
+    /// award's literal text, as the current core compares texts
+    /// (`SymKind::TextEquals`).
     fn plan_text_answer(
         &mut self,
         t: TemplateId,
         e: ElemId,
         el: NodeId,
+        text_child: Option<NodeId>,
         inputs: &[ElemId],
         awards: &[ElemId],
     ) -> Result<()> {
-        let d = self.rd.dast;
         let ti = match inputs {
             [ti] if matches!(
                 self.rd.owned_row(t, e, *ti).component_type.response(),
@@ -311,19 +318,46 @@ impl<'a> Planning<'a> {
             {
                 *ti
             }
+            [] => self.plan_implicit_text_input(t, e)?,
             _ => {
                 return Err(Error::Unsupported(
-                    "<answer type=\"text\"> needs one <textInput> child".into(),
+                    "<answer type=\"text\"> with an input other than one <textInput>".into(),
                 ));
             }
         };
-        if awards.is_empty() {
-            return Err(Error::Unsupported(
-                "<answer type=\"text\"> without <award> children".into(),
-            ));
-        }
+        let equals = OpSpec::Sym(SymKind::TextEquals {
+            case_insensitive: self.rd.attr_on(el, "caseInsensitiveMatch"),
+        });
+        // A `<text>` child's content is the answer's (ADR 0067).
+        let content_el = text_child.unwrap_or(el);
+        let content = self.rd.content_nodes(content_el);
         let mut wiring = ElemWiring::of(self.rd.own_row(t, e).component_type);
         let weight = self.plan_weight(t, e, el)?;
+        if awards.is_empty() {
+            if content.is_empty() {
+                return Err(Error::Unsupported(
+                    "an <answer type=\"text\"> with nothing to check".into(),
+                ));
+            }
+            let scope = self.rd.own_row(t, e).name_scope;
+            let correct = self.plan_text_content(t, scope, &mut wiring, content_el)?;
+            let ports = answer::Props::PORTS;
+            wiring.set_public_sources(answer::Props {
+                response: Source::alias(Arg::Elem(ti, text_input::Props::PORTS.value)),
+                correct: Source::absent(),
+                submitted: Source::Leaf(Leaf::GivenText(None)),
+                credit: Source::computed(equals, vec![ports.submitted, correct]),
+                weight,
+                numSubmissions: Source::given(0.0),
+            });
+            self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
+            return Ok(());
+        }
+        if !content.is_empty() {
+            return Err(Error::Unsupported(
+                "an <answer type=\"text\"> with both content and <award> children".into(),
+            ));
+        }
         let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
             let form = self.rd.award_form(t, a)?;
@@ -332,21 +366,12 @@ impl<'a> Planning<'a> {
                     "a <when> in an <award> of a text answer".into(),
                 ));
             }
-            let mut text = String::new();
-            for &n in &form.nodes {
-                if d.kind(n) != NodeKind::Text {
-                    return Err(Error::Unsupported(
-                        "a reference in an <award> of a text answer".into(),
-                    ));
-                }
-                text.push_str(d.str(n));
-            }
-            let id = self.ar.intern_literal(self.rd.dast, text.trim()).to_value();
             let mut award_wiring = ElemWiring::of(Role::Award.ty());
+            let scope = self.rd.own_row(t, e).name_scope;
+            let correct = self.plan_text_content(t, scope, &mut award_wiring, form.content_el)?;
             let credit = self.award_credit(t, a, form.el)?;
-            let correct = award_wiring.hidden(Source::constant(id));
             let holds = award_wiring.hidden(Source::op(
-                OpSpec::Eq,
+                equals,
                 vec![
                     Arg::Elem(e, answer::Props::PORTS.submitted),
                     Arg::Own(correct),
@@ -422,6 +447,11 @@ impl<'a> Planning<'a> {
                 });
                 self.tables[t.index()].plans[w.index()].props = when_wiring.finish().0;
                 wiring.hidden(Source::alias(Arg::Elem(w, when::Props::PORTS.value)))
+            }
+            None if form.from_text => {
+                return Err(Error::Unsupported(
+                    "a <text> in an <award> of a math answer".into(),
+                ));
             }
             None => {
                 let id = self
@@ -523,6 +553,87 @@ impl<'a> Planning<'a> {
         }
         .into_vec();
         Ok(mi)
+    }
+
+    /// The text the content of `el` (a text answer or one of its awards)
+    /// writes, as a hidden port of `wiring`: literal text as written, one
+    /// reference what it names, and text and references together their
+    /// texts one after the other, white space between them kept, joined in
+    /// the tick (ADR 0067, ADR 0053).
+    fn plan_text_content(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        wiring: &mut ElemWiring,
+        el: NodeId,
+    ) -> Result<Port> {
+        let d = self.rd.dast;
+        let nodes: Vec<NodeId> = d
+            .children(el)
+            .iter()
+            .copied()
+            .filter(|&n| matches!(d.kind(n), NodeKind::Text | NodeKind::Macro))
+            .collect();
+        if nodes.iter().all(|&n| d.kind(n) == NodeKind::Text) {
+            let text: String = nodes.iter().map(|&n| d.str(n)).collect();
+            let id = self.ar.intern_literal(d, text.trim());
+            return Ok(wiring.hidden(Source::Leaf(Leaf::GivenText(Some(id)))));
+        }
+        // Text around a lone reference is white space, which a comparison
+        // trims: the reference alone.
+        let lone = nodes
+            .iter()
+            .all(|&n| d.kind(n) == NodeKind::Macro || d.str(n).trim().is_empty())
+            && nodes
+                .iter()
+                .filter(|&&n| d.kind(n) == NodeKind::Macro)
+                .count()
+                == 1;
+        let mut parts = Vec::new();
+        for &n in &nodes {
+            let source = if d.kind(n) == NodeKind::Macro {
+                Source::reference(self.rd.plan_ref(&mut self.ar, t, scope, n)?)
+            } else if lone {
+                continue;
+            } else {
+                Source::Leaf(Leaf::GivenText(Some(self.ar.intern_literal(d, d.str(n)))))
+            };
+            parts.push(wiring.hidden(source));
+        }
+        if let [one] = parts[..] {
+            return Ok(one);
+        }
+        if parts.len() > usize::from(u8::MAX) {
+            return Err(Error::Unsupported(
+                "a text answer's content of more than 255 pieces".into(),
+            ));
+        }
+        let join = SymKind::JoinWith {
+            n: byte(parts.len()),
+            kinds: 0,
+            sep: crate::program::texts::Sep::Empty,
+        };
+        Ok(wiring.hidden(Source::computed(OpSpec::Sym(join), parts)))
+    }
+
+    /// Plans text answer `e`'s implicit `<textInput>`, which outlining
+    /// made (ADR 0067): an unbound input holding the empty text.
+    fn plan_implicit_text_input(&mut self, t: TemplateId, e: ElemId) -> Result<ElemId> {
+        let ti = self
+            .rd
+            .elem_children(t, e)
+            .into_iter()
+            .find(|&k| {
+                let el = self.rd.owned_row(t, e, k);
+                el.node == NodeId::NONE && el.component_type.plays(Role::ImplicitTextInput)
+            })
+            .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;
+        let empty = self.ar.intern_literal(self.rd.dast, "");
+        self.tables[t.index()].plans[ti.index()].props = text_input::Props {
+            value: Source::Leaf(Leaf::GivenText(Some(empty))),
+        }
+        .into_vec();
+        Ok(ti)
     }
 
     /// The equality an answer or award compares with.

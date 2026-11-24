@@ -310,6 +310,12 @@ component_types! {
     OverValueNumberList => values::over_value::number_list::DEFINITION,
     /// A `<pointList>` over a math value (ADR 0063).
     OverValuePointList => values::over_value::point_list::DEFINITION,
+    /// `<summaryStatistics>`: statistics of the finite values of its
+    /// operands.
+    SummaryStatistics => operators::summary_statistics::DEFINITION,
+    /// `<sampleMultivariateRandomNumber>`: one number per category, drawn
+    /// together at load.
+    SampleMultivariateRandomNumber => structure::sample_multivariate_random_number::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
