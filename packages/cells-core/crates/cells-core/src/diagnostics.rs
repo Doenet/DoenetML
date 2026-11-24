@@ -146,6 +146,8 @@ impl Error {
             NoDefaultProp(_) => "cells-no-default-prop",
             UncopyableType(_) => "cells-uncopyable-type",
             ExtendTypeMismatch { .. } => "cells-extend-type-mismatch",
+            // The principles' e0062, not in this branch's registry yet.
+            InputFromValue { .. } => "cells-input-from-value",
             BoxedReferent(_) => "cells-boxed-referent",
             ArityMismatch { .. } => "cells-arity-mismatch",
             BadValue { .. } => "cells-bad-attribute-value",

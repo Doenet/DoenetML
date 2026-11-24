@@ -238,7 +238,7 @@ fn an_extend_across_related_types_is_the_value_as_that_type() {
         r#"<number name="n">3</number>
            <math name="m" extend="$n"/>
            <math name="sym">x</math><number name="k" extend="$sym"/>
-           <mathInput name="mi" extend="$n"/>
+           <mathInput name="mi" bindValueTo="$n"/>
            <textInput name="ti" prefill="hi"/><text name="t" extend="$ti"/>"#,
     )
     .unwrap();

@@ -70,6 +70,21 @@ pub(crate) enum SymText {
 }
 
 impl SymText {
+    /// The references the text reads, in order: what the seal checks as
+    /// the build will bind them (a spelled operand's `cellN<plan>` leaves).
+    pub(crate) fn plans(&self) -> Vec<RefId> {
+        match self {
+            SymText::Nodes { plans, .. } => plans.to_vec(),
+            SymText::Leaf(p) => vec![*p],
+            SymText::Spelled(text) => text
+                .split(|c: char| !c.is_ascii_alphanumeric())
+                .filter_map(|w| w.strip_prefix("cellN").or_else(|| w.strip_prefix("cellM")))
+                .filter_map(|n| n.parse().ok())
+                .map(RefId::new)
+                .collect(),
+        }
+    }
+
     /// The text, each `$ref` written `cellN<plan>`.
     pub(crate) fn spell(&self, dast: &Dast) -> String {
         let leaf = |p: RefId| crate::sym::engine::leaf_name(p.get(), false);
