@@ -44,6 +44,32 @@ given another input or `<award>{:dn}`, or a grading attribute such as `weight`
 or `symbolicEquality`; it can be given a `<label>{:dn}`, or `showCorrectness`. To
 make an answer that grades differently, use `copy`.
 
+What an `extend` may be given depends on what the component is. A value, such
+as a `<math>{:dn}` or a `<text>{:dn}`, or an object, such as a `<point>{:dn}`, is
+what it holds, so children written inside an `extend` of one are an error. Write
+a new tag holding the reference instead, `<math>$m+1</math>{:dn}` or
+`<text>$t there</text>{:dn}`, or, for an object, make a new one with `copy`:
+`<point copy="$P">(3,4)</point>{:dn}`. A container, such as a `<section>{:dn}`, a
+`<p>{:dn}` or a `<graph>{:dn}`, presents what it holds, so its `extend` shows the
+same content again, still linked, and may present more: children written inside
+are added after the source's, and a `<title>{:dn}` replaces its title. On any
+tag, an `extend` may be given a `<label>{:dn}`, a `<shortDescription>{:dn}` or a
+`<description>{:dn}`.
+
+```doenet-editor-horiz
+<section name="mySec">
+  <title>Original title</title>
+  <p>A value: <math name="m">x</math></p>
+</section>
+
+<section extend="$mySec">
+  <title>New title</title>
+  <p>The same content, with a new title and this paragraph.</p>
+</section>
+
+<p>One more: <math>$m+1</math></p>
+```
+
 ### Making an independent copy: `copy` and `copyWithState`
 
 An `extend` is the same component again. To make a new component that starts
@@ -52,8 +78,8 @@ from another and then changes on its own, use `copy` or `copyWithState`.
 - `<T copy="$x"/>{:dn}` is as if `x`'s DoenetML were written again in its place.
   Attributes written on the copy override `x`'s, and children written inside it
   are added, read as they are on a tag written on its own: the coordinates in
-  `<point copy="$P">(3,4)</point>{:dn}` put it at (3,4), as `xs="3 4"` would,
-  and so they do on an `extend`. It starts as written content does: an input starts at its
+  `<point copy="$P">(3,4)</point>{:dn}` put it at (3,4), as `xs="3 4"` would.
+  It starts as written content does: an input starts at its
   `prefill`, a point where it was written, whatever the reader has done to `x`.
   A random component inside it, such as a `<select>{:dn}`, makes its own random
   choices, so two copies of one source can differ. Its choices are fixed for a
@@ -200,21 +226,31 @@ nothing.
 When `t` is not a `<math>`, the tag asks for a math made from `t`. That works
 only between related types:
 
-* `<math>`, `<number>` and `<text>`, from one another, by value, and
-  `<boolean>` and `<text>`: a text is a `<boolean>` while it is the word
-  `true` or `false`. A boolean is not a number, nor a number a boolean:
+* `<math>`, `<number>` and `<text>`, from one another, by value, and a
+  `<text>` from a `<boolean>`, which shows the word `true` or `false`. A
+  boolean is not a number, nor a number or a text a boolean:
   `<number extend="$b"/>{:dn}` of a `<boolean>` is an error, which suggests
   `<number convertBoolean>$b</number>{:dn}`, the one way to count a boolean
   as `1` or `0`, and `<boolean extend="$n"/>{:dn}` of a number suggests a
-  comparison, such as `<boolean>$n != 0</boolean>{:dn}`;
+  comparison, such as `<boolean>$n != 0</boolean>{:dn}`, as
+  `<boolean extend="$t"/>{:dn}` of a text suggests
+  `<boolean>$t = true</boolean>{:dn}`;
 * `<point>`, `<vector>` and `<coords>`, from one another;
 * a `<math>` from a point, vector or coords, as the tuple of its coordinates,
   and a point, vector or coords from a math whose value is a tuple;
 * a `<math>`, `<number>`, `<text>` or `<boolean>` from an input, as its value:
   `<math extend="$mi"/>{:dn}` of a `<mathInput>`, and anything its value can
   be made into, such as `<point extend="$mi"/>{:dn}` while `mi` holds a tuple;
-* a component as what it stands for wherever its own tag can't go, such as an
-  `<angle>` as a `<math>`, or an `<ion>` as the `<text>` of its name.
+* an `<angle>` as the `<math>` of its measure, and from a math, number or
+  text, as its measure in radians: `<angle extend="$m"/>{:dn}`;
+* another component as what it stands for wherever its own tag can't go, and
+  nothing further: a `<line>` as the `<math>` of its equation, an `<ion>` as
+  the `<text>` of its name, a `<label>` as its `<text>`. A line is not a
+  number, so `<number extend="$line"/>{:dn}` is an error, which suggests the
+  property meant, `<number>$line.slope</number>{:dn}`. So is
+  `<text extend="$line"/>{:dn}`, which suggests
+  `<text>$line.equation</text>{:dn}`, and a `<number>{:dn}` holding `$line` is
+  a blank, with a warning.
 
 A `<group>` can be made from anything but a collection, and holds it. A
 collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
@@ -292,8 +328,8 @@ components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
 A tag whose reference names nothing, more than one thing, or a property its
 source doesn't have is not an error: it is **missing**, with the same warning
 the bare reference gives. A missing tag shows as a blank, `＿`, whatever it
-adds: `<math extend="$nothing">+1</math>{:dn}` and
-`<p extend="$nothing">note</p>{:dn}` both show `＿`, without their children, and
+adds: `<math extend="$nothing"/>{:dn}` shows `＿`, and so does
+`<p extend="$nothing">note</p>{:dn}`, without its children, and
 a missing point isn't drawn in a graph. It is not the same as the empty tag:
 `<text/>{:dn}` is `""`, while a missing text never equals anything, and a
 reference to it, or to a property of it, is missing too. `hide` still hides it.
@@ -368,7 +404,7 @@ Other errors, each with the form to write instead:
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write
-  `<mathInput bindValueTo="$m"/>{:dn}`, and to start from its value,
+  `<mathInput>$m</mathInput>{:dn}`, and to start from its value,
   `<mathInput prefill="$m"/>{:dn}`.
 
 #### What still changes as the document runs
@@ -377,7 +413,7 @@ Four things are decided as the document runs. Each leaves the tag missing for
 a while, shown as `＿`, with an info, and none changes its type:
 
 * **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
-  a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
+  a tuple, or `<number extend="$t"/>{:dn}` while the text `t` is not a number, is
   missing until the value converts. So is one made from an input's value, such
   as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`
   (missing too while no choice, or more than one, is selected), or

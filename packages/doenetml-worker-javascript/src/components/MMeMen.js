@@ -34,6 +34,10 @@ export class M extends InlineComponent {
     static componentType = "m";
     // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
     static isContent = true;
+    // Its children make one expression, so it counts as a value for what an
+    // `extend` of it may be given (D71 decision 7): `<m extend="$e">+1</m>`
+    // is an error suggesting `<m>$e+1</m>` (`extendErrorsAtLoad.ts`).
+    static extendTakesNoContent = true;
 
     static componentDocs = {
         summary: "Inline math rendered with LaTeX",
@@ -520,6 +524,12 @@ export class M extends InlineComponent {
 
         return stateVariableDefinitions;
     }
+
+    /**
+     * The property a message suggests in place of a type change this
+     * doesn't stand in as (D69, `valuePropertyFor`): its math.
+     */
+    static valueProperties = { number: "math" };
 
     static adapters = ["math", "text"];
 

@@ -2130,6 +2130,12 @@ export default class Line extends GraphicalComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * The property a message suggests in place of a type change this line
+     * doesn't stand in as (D69, `valuePropertyFor` in `typeChange.js`).
+     */
+    static valueProperties = { number: "slope", text: "equation" };
+
     static adapters = [
         {
             stateVariable: "equation",

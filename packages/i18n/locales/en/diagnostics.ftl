@@ -1169,8 +1169,19 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 # - `comparedWithNumber`: a boolean compared with a number (`$b = 1`).
 # - `numberComparedWithBoolean`: a number compared with the word `true` or
 #   `false` (`$n = true`); $literal is that word.
-# - `mathInputBoundToBoolean`, `booleanInputBoundToNumber`: an input bound
-#   with `bindValueTo` to a value of the other type.
+# - `mathInputBoundToBoolean`, `booleanInputBoundToNumber`,
+#   `booleanInputBoundToText`: an input bound with `bindValueTo`, or with a
+#   reference written inside it, to a value of another type. The form
+#   suggested is the input holding the reference (D65 decision 6).
+# - `textAsBoolean`: a text, or what stands in as one (a `<label>`), where
+#   true or false is wanted; a comparison such as `= true` decides a boolean
+#   from a text (D68).
+# - `standsInAs`: a component that stands in as a value only through what it
+#   is read as (a `<line>` as a `<math>`, its equation) in a value tag that
+#   doesn't take that (`<number>$line</number>`, D69). $sourceType is its
+#   tag, $componentType the value tag's, $standsInAs the tags it is read as
+#   (with $standsInAsCount their number), and $property a property of it
+#   that gives what is meant (`slope`), or `none`.
 # The words `true`, `false`, `convertBoolean`, `bindValueTo` and the tags are
 # DoenetML, so they stay in English.
 boolean-number-mix = { $reason ->
@@ -1198,8 +1209,30 @@ boolean-number-mix = { $reason ->
             [literal] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. Write `true` or `false` instead.
            *[other] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. To test it, write a comparison such as `{ $source } != 0`.
         }
-        [mathInputBoundToBoolean] A `<mathInput>` can't edit `{ $source }`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="{ $source }"/>`.
-        [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="{ $source }"/>`.
+        [mathInputBoundToBoolean] A `<mathInput>` can't edit `{ $source }`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput>{ $source }</booleanInput>`.
+        [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput>{ $source }</mathInput>`.
+        [booleanInputBoundToText] A `<booleanInput>` can't edit `{ $source }`, which is a text, not true or false, so it is bound to a blank. To edit it, write `<textInput>{ $source }</textInput>`.
+        [textAsBoolean] { $form ->
+            [tag] This `{ $source }` is a text, not true or false, so it is a blank here. To test it, write a comparison, such as one with `= true`.
+            [list] `{ $source }` holds texts, not values that are true or false, so it is a blank here. To test one, write a comparison such as `{ $source }[1] = true`.
+           *[other] `{ $source }` is a text, not true or false, so it is a blank here. To test it, write a comparison such as `{ $source } = true`.
+        }
+        [standsInAs] { $form ->
+            [tag] { $standsInAsCount ->
+                [one] This `{ $source }` is read only as a { $standsInAs }, which a `<{ $componentType }>` doesn't take, so it is a blank here.
+               *[other] This `{ $source }` is read only as one of { $standsInAs }, none of which a `<{ $componentType }>` takes, so it is a blank here.
+            } { $property ->
+                [none] To show it, write it outside the `<{ $componentType }>`.
+               *[other] To use its { $property }, give it a name and write that name followed by `.{ $property }`.
+            }
+           *[other] { $standsInAsCount ->
+                [one] `{ $source }` is a `<{ $sourceType }>`, which is read only as a { $standsInAs }, which a `<{ $componentType }>` doesn't take, so it is a blank here.
+               *[other] `{ $source }` is a `<{ $sourceType }>`, which is read only as one of { $standsInAs }, none of which a `<{ $componentType }>` takes, so it is a blank here.
+            } { $property ->
+                [none] To show it, write it outside the `<{ $componentType }>`.
+               *[other] To use its { $property }, write `{ $source }.{ $property }`.
+            }
+        }
        *[numberAsBoolean] { $form ->
             [tag] This `{ $source }` is a number, not true or false, so it is a blank here. To test it, write a comparison, such as one with `!= 0`.
             [list] `{ $source }` holds numbers, not values that are true or false, so it is a blank here. To test one, write a comparison such as `{ $source }[1] != 0`.
@@ -1270,9 +1303,18 @@ extend-attribute-changes-content = A `<{ $componentType }>` makes its content fr
 
 # $kind says what the children would be: the template of a repeat, the options
 # of a select, the cases of a conditionalContent, the problems of a pretzel, or
-# else the inputs the tag makes its content from.
+# else the inputs the tag makes its content from. `value` and `object` are for
+# children written inside an extend of a value (`<math>`, `<text>`, an input,
+# a list, an `<m>`) or an object (`<point>`, `<line>`, `<function>`), which is
+# what it holds, so an extend of it can't be given more (D71). For a value,
+# the message suggests a new tag holding the reference and the children, which
+# gives the value meant; for an object, or an input, whose children say what
+# it is bound to, a `copy`, which makes a new one.
+# $written is the children as written (`+1`), or `…`.
 extend-children-change-content =
     { $kind ->
+        [value] Children written inside an `extend` of a `<{ $componentType }>` would change what it holds, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` from `{ $source }` and more, write `<{ $componentType }>{ $source }{ $written }</{ $componentType }>`.
+        [object] Children written inside an `extend` of a `<{ $componentType }>` would change what it is, but an extend is the same `<{ $componentType }>` as `{ $source }`. To make a new `<{ $componentType }>` starting from `{ $source }`, use `copy`: `<{ $componentType } copy="{ $source }">{ $written }</{ $componentType }>`.
         [template] Children written inside an `extend` of a `<{ $componentType }>` would be a new template, but an extend shows the same content as `{ $source }`. To repeat a different template, use `copy`.
         [options] Children written inside an `extend` of a `<{ $componentType }>` would be new options, but an extend shows the same choice as `{ $source }`. To choose from more options, use `copy`.
         [cases] Children written inside an `extend` of a `<{ $componentType }>` would be new cases, but an extend shows the same content as `{ $source }`. To choose from other cases, use `copy`.
@@ -1313,14 +1355,23 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # An `extend` or `copy` written as a different tag than what it is of (D26):
 # `<math extend="$t"/>` asks for a math made from `$t`. That is allowed only
 # between related types, such as math, number, text and boolean, or point,
-# vector and coords. $mix is `booleanAsNumber` for a boolean made a number or a
-# math, and `numberAsBoolean` for a number or a math made a boolean (D47
-# decisions 3 and 4): `<number convertBoolean>` is the one place a boolean is
-# read as 1 or 0, and a comparison decides a boolean from a number; any other
-# value of $mix is any other pair. $componentType is the tag the extend or copy is written
-# as, $sourceType the type of what it is made from, and $source the reference,
-# as written (`$t`); all three are DoenetML, so they stay in English, as do
-# `extend`, `copy`, `bindValueTo`, `prefill` and `.text`. A
+# vector and coords. $mix says which form the message suggests:
+# `booleanAsNumber` for a boolean made a number or a math, `numberAsBoolean`
+# for a number or a math made a boolean (D47 decisions 3 and 4), and
+# `textAsBoolean` for a text, or what stands in as one (a `<label>`, a
+# `<textInput>`), made a boolean (D68): `<number convertBoolean>` is the one
+# place a boolean is read as 1 or 0, and a comparison decides a boolean from a
+# number or a text. `standsInAs` is for a component made into a type it
+# doesn't stand in as (D69): $standsInAs lists the tags it does stand in as
+# (`<math>`, or several, such as `<math>`, `<text>`, with $standsInAsCount
+# their number), and $property is a property of it that gives what is meant
+# (`slope` of a `<line>` for a `<number>`), or empty for none. `inContent` is
+# for a container (a `<label>`, a `<p>`) made from a value or an object,
+# which it can hold instead. Any other value of $mix is any other pair.
+# $componentType is the tag the extend or copy is written as, $sourceType the
+# type of what it is made from, and $source the reference, as written (`$t`);
+# all three are DoenetML, so they stay in English, as do `extend`, `copy`,
+# `bindValueTo`, `prefill`, `.text`, `true` and the property. A
 # `<variantControl>` shows nothing, so writing the reference by itself is no
 # advice for one; it is told why instead. $collection is "true" for a
 # `<group>` made from a collection (D64): a list, a `<repeat>`, a `<collect>`,
@@ -1332,6 +1383,18 @@ type-change-unrelated =
     { $mix ->
         [booleanAsNumber] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: true or false is not a number. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
         [numberAsBoolean] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: a number is not true or false. To test it, write a comparison such as `<boolean>{ $source } != 0</boolean>`.
+        [textAsBoolean] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: a text is not true or false. To test it, write a comparison such as `<boolean>{ $source } = true</boolean>`.
+        [standsInAs] { $property ->
+            [none] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: { $standsInAsCount ->
+                [one] a `<{ $sourceType }>` is read only as a { $standsInAs }, not as anything that could be made from one.
+               *[other] a `<{ $sourceType }>` is read only as one of { $standsInAs }, not as anything that could be made from them.
+            } To show it as it is, write `{ $source }`.
+           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: { $standsInAsCount ->
+                [one] a `<{ $sourceType }>` is read only as a { $standsInAs }, not as anything that could be made from one.
+               *[other] a `<{ $sourceType }>` is read only as one of { $standsInAs }, not as anything that could be made from them.
+            } To use its { $property }, write `<{ $componentType }>{ $source }.{ $property }</{ $componentType }>`.
+        }
+        [inContent] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it in a `<{ $componentType }>`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
        *[other] { $collection ->
             [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
            *[other] { $sourceType ->
@@ -1341,11 +1404,20 @@ type-change-unrelated =
         }
     }
 
-# $hasPrefill is "true" when the input has a `prefill` attribute.
+# $hasPrefill is "true" when the input has a `prefill` attribute. The form
+# suggested to edit the value is the input holding the reference, which shows
+# and writes to it as `bindValueTo` does (D65 decision 6); a `<choiceInput>`,
+# whose children are its choices, is bound with `bindValueTo`.
 type-change-input-from-value =
     { $hasPrefill ->
-        [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`.
+        [true] { $componentType ->
+            [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
+           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
+        }
+       *[other] { $componentType ->
+            [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`.
+           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+        }
     }
 
 type-change-from-container = A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` holding other content. To use its text, write `{ $source }.text`.
@@ -1464,12 +1536,12 @@ type-change-property-not-one-value = { $holds ->
     }
 
 # $value is the value of `$source` now. $valueCheck says what it would have
-# to be: a tuple, such as (1, 2), for a point, vector or coords, or true or
-# false, a number or a relation, for a boolean.
+# to be: a tuple, such as (1, 2), for a point, vector or coords, or a number,
+# for a number made from a text.
 type-change-value-not-convertible =
     { $valueCheck ->
         [tuple] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't a tuple of coordinates, so it is missing until it is.
-       *[other] A `<{ $componentType }>` can't be made from `{ $source }` while its value, { $value }, isn't true or false, so it is missing until it is.
+       *[number] A `<{ $componentType }>` can't be made from `{ $source }` while its value, “{ $value }”, isn't a number, so it is missing until it is.
     }
 
 ## Children that do not match

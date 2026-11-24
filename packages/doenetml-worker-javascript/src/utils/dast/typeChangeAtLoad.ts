@@ -65,7 +65,7 @@
  * `doenetAttributes.typeChangeAtLoad`: `{ code, args }` for an error, which
  * `Copy.js` reports in place of the copy (`typeChangeStatus`), or `"allowed"`
  * when the check passed. What still changes at run time is the value of a
- * math a point or a boolean is made from (`doenet-i0053`), and an index whose
+ * math a point is made from, or of a text a number is made from (`doenet-i0053`), and an index whose
  * value names nothing (`doenet-i0054`); neither changes what the component is.
  *
  * Runs after sugar (which makes an `<else>` a `<case>`) and before the list
@@ -76,7 +76,7 @@ import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
 import { itemReader } from "./reorderedItemsAtLoad";
 import { unwrapSource } from "./convertNormalizedDast";
-import { typeChangeRule } from "../typeChange";
+import { typeChangeRule, unrelatedTypeChangeArgs } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
@@ -1902,15 +1902,13 @@ export function checkTypeChangesAtLoad({
                 return undefined;
             }
             const rule = becomes(valueType, writtenType);
-            if (rule.kind === "booleanNumber") {
-                return {
-                    code: "doenet-e0065",
-                    args: { sourceType: valueType, mix: rule.mix },
-                };
-            }
-            return rule.allowed || rule.kind !== "unrelated"
+            return rule.allowed ||
+                !["mix", "standsInAs", "unrelated"].includes(rule.kind!)
                 ? undefined
-                : { code: "doenet-e0065", args: { sourceType: valueType } };
+                : {
+                      code: "doenet-e0065",
+                      args: unrelatedArgs(rule, valueType, writtenType),
+                  };
         }
         const rule = becomes(sourceType, writtenType);
         if (rule.allowed) {
@@ -1933,15 +1931,23 @@ export function checkTypeChangesAtLoad({
         if (rule.kind === "container") {
             return { code: "doenet-e0063", args: { sourceType } };
         }
-        if (rule.kind === "booleanNumber") {
-            // a boolean as a number, or a number as a boolean (D47
-            // decisions 3 and 4), with the way to ask
-            return {
-                code: "doenet-e0065",
-                args: { sourceType, mix: rule.mix },
-            };
-        }
-        return { code: "doenet-e0065", args: { sourceType } };
+        // a boolean as a number, a number or a text as a boolean (D47
+        // decisions 3 and 4, D68), with the way to ask; a component as what
+        // it doesn't stand in as (D69), with the property to write
+        return {
+            code: "doenet-e0065",
+            args: unrelatedArgs(rule, sourceType, writtenType),
+        };
+    }
+
+    /** The arguments of `doenet-e0065` for `rule` (`typeChange.js`). */
+    function unrelatedArgs(rule: any, sourceType: string, writtenType: string) {
+        return unrelatedTypeChangeArgs({
+            rule,
+            sourceType,
+            writtenType,
+            componentInfoObjects,
+        }) as Record<string, string | number>;
     }
 
     /**
@@ -2022,10 +2028,7 @@ export function checkTypeChangesAtLoad({
             if (!rule.allowed) {
                 return {
                     code: "doenet-e0065",
-                    args:
-                        rule.kind === "booleanNumber"
-                            ? { sourceType, mix: rule.mix }
-                            : { sourceType },
+                    args: unrelatedArgs(rule, sourceType, writtenType),
                 };
             }
         }
@@ -3503,6 +3506,30 @@ export function checkTypeChangesAtLoad({
                 const node =
                     referents.componentsByIdx.get(ref.nodeIdx) ??
                     referents.copiesByCreatedIdx.get(ref.nodeIdx);
+                if (
+                    isList &&
+                    node &&
+                    entryOfList !== undefined &&
+                    isAuthoredListType(node.componentType, componentInfoObjects)
+                ) {
+                    // A list tag made from a list of other entries
+                    // (`<booleanList extend="$ml"/>`): each entry would be
+                    // made from one of the other type, so the pair is
+                    // decided as for one entry (REF-5, D47, D68).
+                    const sourceEntry =
+                        allClasses[node.componentType]?.listEntryComponentType;
+                    if (
+                        sourceEntry === undefined ||
+                        !allClasses[sourceEntry] ||
+                        becomes(sourceEntry, entryOfList).allowed
+                    ) {
+                        return undefined;
+                    }
+                    return {
+                        code: "doenet-e0065",
+                        args: { sourceType: node.componentType },
+                    };
+                }
                 if (!node || isList || node.componentType === "setup") {
                     return undefined;
                 }

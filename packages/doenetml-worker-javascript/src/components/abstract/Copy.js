@@ -41,6 +41,7 @@ import {
     madeFromInputValue,
     typeChangeChecksValue,
     typeChangeRule,
+    unrelatedTypeChangeArgs,
     valueAllowsTypeChange,
 } from "../../utils/typeChange";
 import {
@@ -1435,7 +1436,7 @@ export default class Copy extends CompositeComponent {
                     // component it holds (`componentStoodFor`), which
                     // changes when a case or a pick further in does, and
                     // `"contentValue"` when, written as a point, vector,
-                    // coords or boolean, the extend is also checked against
+                    // coords or a number from a text, the extend is also checked against
                     // the value of a math it holds (`typeChangeContentValue`).
                     // A composite tag is made from its own kind only, which
                     // what it holds does not change.
@@ -1458,7 +1459,7 @@ export default class Copy extends CompositeComponent {
                     componentInfoObjects.allComponentClasses[sourceType];
                 if (sourceClass?.listEntryComponentType !== undefined) {
                     // `"numEntriesValue"` when, written as a point, vector,
-                    // coords or boolean, the one entry is also checked
+                    // coords or a number from a text, the one entry is also checked
                     // against its value, as a math is.
                     let typeChangeValueCheck = null;
                     if (listIsDecided(sourceType, { componentInfoObjects })) {
@@ -6786,7 +6787,7 @@ const MAX_VALUES_WATCHED = 4;
 
 /**
  * The components of `content` (`typeChangeContent`) whose value a point,
- * vector, coords or boolean is checked against (`typeChangeRule`), or none
+ * vector or coords is checked against (`typeChangeRule`), or none
  * when there are more than `MAX_VALUES_WATCHED`.
  */
 function valueChecked(content, { componentInfoObjects }) {
@@ -9064,10 +9065,12 @@ async function typeChangeStatus({
             return mismatch({
                 level,
                 code: "doenet-e0065",
-                args:
-                    rule.kind === "booleanNumber"
-                        ? { sourceType, mix: rule.mix }
-                        : { sourceType },
+                args: unrelatedTypeChangeArgs({
+                    rule,
+                    sourceType,
+                    writtenType,
+                    componentInfoObjects,
+                }),
             });
         }
         if (rule.valueCheck && readValue) {

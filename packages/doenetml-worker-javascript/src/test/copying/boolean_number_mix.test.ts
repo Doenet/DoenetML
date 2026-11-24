@@ -231,18 +231,18 @@ describe("Booleans and numbers kept apart @group2", () => {
     <point name="R" extend="$P" x="$n + 1"/>
     <math name="Rx" extend="$R.x"/>
     <boolean name="c"/>
-    <boolean name="c1" extend="$c">$n</boolean>
-    <boolean name="c2" extend="$c">$n > 1</boolean>
+    <boolean name="c1" copy="$c">$n</boolean>
+    <boolean name="c2" copy="$c">$n > 1</boolean>
     <number name="ne"/>
     <number name="nce" convertBoolean/>
-    <number name="e1" extend="$nce">$b</number>
+    <number name="e1" copy="$nce">$b</number>
     <number name="e2" copy="$nce">$b</number>
-    <number name="e3" extend="$ne" convertBoolean>$b</number>
-    <number name="e4" extend="$nce" convertBoolean="false">$b</number>
+    <number name="e3" copy="$ne" convertBoolean>$b</number>
+    <number name="e4" copy="$nce" convertBoolean="false">$b</number>
     <boolean name="f">false</boolean>
-    <number name="e5" extend="$nce">$f</number>
-    <number name="e6" extend="$nce" convertBoolean="yes">$b</number>
-    <number name="e7" extend="$ne" convertBoolean="TRUE">$f</number>
+    <number name="e5" copy="$nce">$f</number>
+    <number name="e6" copy="$nce" convertBoolean="yes">$b</number>
+    <number name="e7" copy="$ne" convertBoolean="TRUE">$f</number>
     <number name="e8" copy="$nce" convertBoolean="">$b</number>
     `,
         });
@@ -295,11 +295,11 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
             [
                 4,
-                'A `<mathInput>` can\'t edit `$b`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="$b"/>`.',
+                "A `<mathInput>` can't edit `$b`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput>$b</booleanInput>`.",
             ],
             [
                 5,
-                'A `<booleanInput>` can\'t edit `$n`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="$n"/>`.',
+                "A `<booleanInput>` can't edit `$n`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput>$n</mathInput>`.",
             ],
         ]);
 
@@ -341,19 +341,17 @@ describe("Booleans and numbers kept apart @group2", () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["m1", "n1", "b1", "b2", "m2"]) {
+        for (const name of ["m1", "n1", "b1", "b2", "m2", "b3"]) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].componentType,
                 name,
             ).eq("_error");
         }
-        // a boolean and a text still convert
+        // a boolean still shows as the word in a text, but a text is not
+        // read as a boolean (D68)
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
         ).eq("true");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("b3")].stateValues.value,
-        ).eq(true);
 
         const toNumber = (tag: string, source: string, sourceType: string) =>
             `A \`<${tag}>\` can't be made from \`${source}\`, which gives a \`<${sourceType}>\`: true or false is not a number. To count it as 1 or 0, write \`<number convertBoolean>${source}</number>\`.`;
@@ -365,6 +363,10 @@ describe("Booleans and numbers kept apart @group2", () => {
             [8, toBoolean("$n", "number")],
             [9, toBoolean("$m", "math")],
             [10, toNumber("math", "$bi", "booleanInput")],
+            [
+                12,
+                "A `<boolean>` can't be made from `$t1`, which gives a `<text>`: a text is not true or false. To test it, write a comparison such as `<boolean>$t1 = true</boolean>`.",
+            ],
         ]);
     });
 
@@ -1039,8 +1041,8 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
     });
 
-    // #2656 item 6: REF-5 makes a boolean only from a text; a label stands
-    // in as its text only where a text is wanted (D26)
+    // #2656 item 6: a label stands in as its text, which is not true or
+    // false either (D68, D69)
     it("a boolean can't be made from a label", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1059,11 +1061,11 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect(diagnosticsOf(core, ["doenet-e0065"])).eqls([
             [
                 3,
-                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`: a text is not true or false. To test it, write a comparison such as `<boolean>$l1 = true</boolean>`.",
             ],
             [
                 4,
-                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`. To show it as it is, write `$l1`.",
+                "A `<boolean>` can't be made from `$l1`, which gives a `<label>`: a text is not true or false. To test it, write a comparison such as `<boolean>$l1 = true</boolean>`.",
             ],
         ]);
     });

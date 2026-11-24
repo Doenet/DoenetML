@@ -26,7 +26,7 @@ describe("Attributes of an extend or copy of a list @group4", () => {
     <mathList name="ml" displayDigits="5" hide fixed>1.23456789 2</mathList>
     <p name="p1"><mathList extend="$ml" name="e1" /></p>
     <p name="p2"><mathList extend="$ml" name="e2" hide="false" displayDigits="2" fixed="false" /></p>
-    <p name="p3"><mathList extend="$ml" name="e3" hide="false"><math>7.123456</math></mathList></p>
+    <p name="p3"><mathList copy="$ml" name="e3" hide="false"><math>7.123456</math></mathList></p>
     <p name="p4"><textList extend="$ml" name="e4" hide="false" /></p>
     `,
         });
@@ -45,7 +45,8 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         expect((await sv("e2")).fixed).eq(false);
         expect((await sv("p2")).text).eq("1.2, 2");
 
-        // an entry it adds is shown with the digits it takes
+        // an entry a copy adds is shown with the digits it takes (an extend
+        // of a list can't add one, D71)
         expect((await sv("p3")).text).eq("1.2346, 2, 7.1235");
         expect((await sv("e3")).fixed).eq(true);
 
@@ -352,8 +353,8 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathList name="ml" maxNumber="3" splitSymbols="false" functionSymbols="g" parseScientificNotation>a b</mathList>
-    <p name="p1"><mathList extend="$ml" name="e">xy g(x) 1E3</mathList></p>
-    <p name="p2"><mathList extend="$ml" name="eo" maxNumber="5">xy g(x) 1E3</mathList></p>
+    <p name="p1"><mathList copy="$ml" name="e">xy g(x) 1E3</mathList></p>
+    <p name="p2"><mathList copy="$ml" name="eo" maxNumber="5">xy g(x) 1E3</mathList></p>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);

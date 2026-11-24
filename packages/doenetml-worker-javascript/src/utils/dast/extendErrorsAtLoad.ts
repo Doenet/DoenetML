@@ -25,6 +25,12 @@
  * guessed: an extend written as a tag that makes its content may extend
  * something else, which the run time reports another error for.
  *
+ * Children written inside an extend of a value or an object (`<math
+ * extend="$m">+1</math>`, `<point extend="$P">(3,4)</point>`) are
+ * `doenet-e0057` too, decided by the tag written alone (D71): a value or an
+ * object is what it holds. A container presents what it holds, and its
+ * extend may be given more (`childrenOfValueOrObjectError`).
+ *
  * An `<award>` or a `<choice>` can only be copied (D42, `doenet-e0078`), so
  * an extend or a `copyWithState` written as one is marked here too, decided
  * by the tag written alone, whatever it is of, unless the type check found it
@@ -44,6 +50,7 @@ import {
     extendChangesContentErrors,
     onlyCopiedErrors,
     PARTS_OF_CHOOSING_TAGS,
+    TAGS_MAKING_THEIR_CONTENT,
 } from "../../components/abstract/Copy";
 
 /**
@@ -388,6 +395,120 @@ export function checkExtendErrorsAtLoad({
         return names;
     }
 
+    /**
+     * The error for children written inside `copy`, an extend written as
+     * the tag `writtenType`, when that tag makes a value or an object (D71,
+     * REF-7): a value or an object is what it holds, so an extend of it,
+     * which is the same component again, can't be given more. A container
+     * (content, D46: `<section>`, `<p>`, `<graph>`, …) presents what it
+     * holds, and may (`isContent`); so may a `<group>` or a `<module>`, and
+     * the other composites have errors of their own (`doenet-e0057`). An
+     * `<m>`, `<me>` or `<men>`, whose children make one expression, counts
+     * as a value (`extendTakesNoContent`, D71 decision 7). On any tag, a
+     * `<label>`, `<shortDescription>` or `<description>` may be written,
+     * which change only how it is presented. An `<answer>` and a
+     * `<choiceInput>` say what their children would change themselves
+     * (`extendChangesContentErrors`).
+     */
+    function childrenOfValueOrObjectError(
+        copy: SerializedComponent,
+        writtenType: string | undefined,
+        ref: { originalPath: any[] },
+        children: (SerializedComponent | string)[],
+    ): ExtendErrorAtLoad | undefined {
+        if (writtenType === undefined) {
+            return undefined;
+        }
+        const componentType =
+            componentInfoObjects.componentTypeAsWritten(writtenType) ??
+            writtenType;
+        const writtenClass = allClasses[componentType];
+        if (
+            !writtenClass ||
+            componentType.startsWith("_") ||
+            (writtenClass.isContent && !writtenClass.extendTakesNoContent) ||
+            componentInfoObjects.isCompositeComponent({
+                componentType,
+                includeNonStandard: true,
+            }) ||
+            Object.hasOwn(PARTS_OF_CHOOSING_TAGS, componentType) ||
+            TAGS_MAKING_THEIR_CONTENT.has(componentType) ||
+            ["answer", "choiceInput"].some((base) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType: base,
+                }),
+            )
+        ) {
+            return undefined;
+        }
+        const presentsOnly = (child: SerializedComponent | string) =>
+            typeof child === "string"
+                ? child.trim() === ""
+                : ["label", "shortDescription", "description"].some((base) =>
+                      componentInfoObjects.isInheritedComponentType({
+                          inheritedComponentType:
+                              child.componentType === "_copy"
+                                  ? (writtenTypeOf(child) ?? "_copy")
+                                  : child.componentType,
+                          baseComponentType: base,
+                      }),
+                  );
+        if (children.every(presentsOnly)) {
+            return undefined;
+        }
+        // An input's children say what it is bound to, so a new one is
+        // made with `copy`, as an object is.
+        const isInput = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: "_input",
+        });
+        const isValue = Boolean(
+            (writtenClass.isValue && !isInput) ||
+            writtenClass.extendTakesNoContent ||
+            writtenClass.listEntryComponentType !== undefined ||
+            writtenClass.listEntryTypeAttribute !== undefined,
+        );
+        const written = writtenChildrenText(copy);
+        return {
+            code: "doenet-e0057",
+            args: {
+                componentType,
+                kind: isValue ? "value" : "object",
+                source: doenetMLReferenceAsWritten(ref.originalPath, sources),
+                // after the reference in `<math>$m x</math>`, a space, so
+                // that what is written isn't read as part of its name
+                written:
+                    isValue && /^[A-Za-z0-9_]/.test(written)
+                        ? ` ${written}`
+                        : written,
+            },
+        };
+    }
+
+    /**
+     * The children written inside `copy`, as written, for a message to
+     * suggest them in another form, or `…` when they are long, span lines,
+     * or their place in the source isn't known.
+     */
+    function writtenChildrenText(copy: SerializedComponent) {
+        const start = copy.childrenPosition?.start?.offset;
+        const end = copy.childrenPosition?.end?.offset;
+        const text = sources[copy.sourceDoc ?? 0];
+        if (
+            typeof start !== "number" ||
+            typeof end !== "number" ||
+            text === undefined
+        ) {
+            return "…";
+        }
+        const written = text.substring(start, end);
+        if (written.length > 60 || written.includes("\n")) {
+            return "…";
+        }
+        return written;
+    }
+
     const diagnostics: any[] = [];
 
     /** Mark `errors` on `copy`, and report them now. */
@@ -453,6 +574,36 @@ export function checkExtendErrorsAtLoad({
         const copyInChildrenAttr: any = copy.attributes?._copyInChildren;
         const copyInChildren = Boolean(copyInChildrenAttr);
         const writtenType = writtenTypeOf(copy);
+
+        // Children written inside an extend of a value or an object, which
+        // is what it holds (D71): decided by the tag written alone. A list
+        // tag (`<mathList extend="$ml">3</mathList>`) is made a list holding
+        // the extend (`forList`), beside the children written in it.
+        const forList = copy.doenetAttributes?.forList;
+        const list = forList === undefined ? undefined : byIdx.get(forList);
+        const childrenError = list
+            ? childrenOfValueOrObjectError(
+                  list,
+                  list.componentType,
+                  ref,
+                  (list.children ?? []).filter((child) => child !== copy),
+              )
+            : copyInChildren
+              ? childrenOfValueOrObjectError(
+                    copy,
+                    writtenType,
+                    ref,
+                    copy.children ?? [],
+                )
+              : undefined;
+        if (childrenError) {
+            markErrors(copy, [childrenError]);
+            if (list) {
+                // the error, alone, in place of the list
+                list.children = [copy];
+            }
+            continue;
+        }
         const source = sourceOf(copy);
 
         let replacementType = source?.componentType;

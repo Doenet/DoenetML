@@ -779,7 +779,7 @@ describe("FractionInput tag tests @group3", async () => {
                     "doenet-e0062",
                 ]);
                 expect(errors[0].message).contains(
-                    `A \`<${tag}>\` can't be made from \`${source}\`, a \`<math>\`: an input isn't the same thing as its value. To edit \`${source}\`, write \`<${tag} bindValueTo="${source}"/>\`.`,
+                    `A \`<${tag}>\` can't be made from \`${source}\`, a \`<math>\`: an input isn't the same thing as its value. To edit \`${source}\`, write \`<${tag}>${source}</${tag}>\`.`,
                 );
                 expect(errors[0].position?.start.line).eq(3);
             });

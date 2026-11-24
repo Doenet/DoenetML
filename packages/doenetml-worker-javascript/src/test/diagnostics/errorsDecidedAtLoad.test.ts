@@ -431,8 +431,8 @@ const leftToRunTime: [string, string, string[]][] = [
         ["doenet-e0064"],
     ],
     [
-        "a list extending a list that keeps one, with an entry added",
-        `<mathList name="ml" maxNumber="1">1 2</mathList><mathList name="ml2" extend="$ml">3</mathList><math extend="$ml2"/>`,
+        "a list copying a list that keeps one, with an entry added",
+        `<mathList name="ml" maxNumber="1">1 2</mathList><mathList name="ml2" copy="$ml">3</mathList><math extend="$ml2"/>`,
         [],
     ],
     [

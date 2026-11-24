@@ -1,0 +1,20 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/doenetml-headless": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+Which value a tag may be made from, and what an `extend` may be given, are now decided when the document loads, with a message that says what to write. These are breaking changes for documents that relied on the old behavior:
+
+- **A text is never read as a boolean.** `<boolean extend="$t"/>` of a `<text>`, `<label>`, `<textInput>` or `<choiceInput>` of texts is an error (`doenet-e0065`) suggesting `<boolean>$t = true</boolean>`; it read the words `true`/`false`. A text where a boolean is wanted (`<boolean>$t</boolean>`, a `<when>`, `hide="$t"`, `<booleanInput bindValueTo="$t"/>` or `<booleanInput>$t</booleanInput>`, a `<booleanList>` of a `<textList>`) is a blank with a warning (`doenet-w0203`) suggesting the comparison; it was a silent `false`. The keywords `true` and `false`, and a boolean shown as a word in a text, are unchanged.
+- **A component becomes only what it stands in as.** `<math extend="$line"/>`, `<text extend="$ion"/>`, `<text extend="$l"/>` of a `<label>`, and a `<math>` or `<text>` of an `<m>` still work. A type past that is an error naming the property to write: `<number extend="$line"/>` suggests `<number>$line.slope</number>`, `<text extend="$line"/>` suggests `<text>$line.equation</text>`; it was a silent `NaN`, `false` or a blank with "Invalid children". The same component in a `<number>`, `<math>`, `<text>` or `<boolean>` it can't stand in for (`<number>$line</number>`) is a blank with a warning naming the property. `<label extend="$m"/>` of a math is an error suggesting `<label>$m</label>`.
+- **An angle can be made from a math** (`<angle extend="$m"/>`, also from a number or a text), as its measure in radians, and a `<text>` from an angle works.
+- **A number made from a text that isn't a number is missing**, shown as a blank with an info (`doenet-i0053`), not `NaN`.
+- `<booleanList extend="$ml"/>` of a `<mathList>`, and any list made from a list of a type its entries can't be made from, is an error at load, not a blank with a warning.
+- The message for an input made from a value suggests the input holding it: "To edit `$m`, write `<mathInput>$m</mathInput>`" (a `<choiceInput>` keeps `bindValueTo`), as do the warnings for an input bound to a value of another type.
+- **Children written inside an `extend` of a value or an object are an error** (`doenet-e0057`). `<number extend="$n">5</number>` of `2` was `25`, and `<math extend="$m">+1</math>` was `x + 1`, silently. The message suggests the new tag holding the reference (`<math>$m+1</math>`, `<text>$t there</text>`, `<m>$e+1</m>`) or, for an object or an input, `copy` (`<point copy="$P">(3,4)</point>`). An extend of a container (a section, `<p>`, `<graph>`, `<feedback>`, …, and a `<group>` or `<module>`) may still be given children, which are added, and a `<title>`. A `<label>`, `<shortDescription>` or `<description>` may be written inside any extend, and a `copy` may be given anything.
+
+Closes #2659, #478, #2668.

@@ -140,11 +140,9 @@ describe("A bare reference and the extend written out @group4", () => {
         expect(await firstChildType("p4")).eq("math");
         expect(await firstChildType("p5")).eq("_ref");
         expect(await firstChildType("p6")).eq("_ref");
-        // one with a child keeps it
-        expect(await firstChildType("p9")).eq("math");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
-        ).eq("1.5 * 2");
+        // one with a child is an error, as an extend of a value can't be
+        // given more (D71)
+        expect(await firstChildType("p9")).eq("_error");
         // a copy of a list's entry, typeset as the entry is, which a
         // reference to the entry is not
         expect(await firstChildType("p7")).eq("math");
