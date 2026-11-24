@@ -59,6 +59,12 @@
 //! |                          | to the domain                         |                                                                      |                   |
 //! | `DomainHull{n}`          | n domains → the least interval        | none: a piecewise function's domain is not set by a request          | none              |
 //! |                          | holding them                          |                                                                      |                   |
+//! | `SequenceParams{given}`  | the given of (from, to, step, length) | none: a structural sequence's shape is not set by a request          | none              |
+//! |                          | → (from, step, length)                |                                                                      |                   |
+//! | `SequenceCount{m}`       | (from, step, length, m excludes) →    | none                                                                 | none              |
+//! |                          | how many values are not excluded      |                                                                      |                   |
+//! | `SequenceEntry{m}`       | (k, from, step, length, m excludes) → | none                                                                 | none              |
+//! |                          | the k-th value not excluded           |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -386,6 +392,89 @@ pub enum VecOp {
         /// How many domains.
         n: u8,
     },
+    /// A structural `<sequence>`'s parameters (ADR 0041): inputs the ones
+    /// `given` has a bit for of `from`, `to`, `step` and `length` (bits 0
+    /// to 3), in that order; outputs `from`, `step` and `length` as the
+    /// current core's `calculateSequenceParameters` gives them from
+    /// whichever are given ([`sequence_parameters`]), a length of 0 when
+    /// one is no number. No inverse.
+    SequenceParams {
+        /// Which of the four are given, a bit each.
+        given: u8,
+    },
+    /// Inputs `from`, `step`, `length` and `n_exclude` values to leave out;
+    /// output how many of `from, from + step, ...` (`length` of them) are
+    /// left ([`sequence_values`]), at most [`MAX_SEQUENCE`]: a structural
+    /// sequence's count. A missing exclude leaves nothing out. No inverse.
+    SequenceCount {
+        /// How many excluded values follow `length`.
+        n_exclude: u8,
+    },
+    /// Inputs `k`, `from`, `step`, `length` and `n_exclude` values to leave
+    /// out; output the `k`-th (from 1) value left, the missing value past
+    /// the count: entry `k` of a structural sequence. No inverse.
+    SequenceEntry {
+        /// How many excluded values follow `length`.
+        n_exclude: u8,
+    },
+}
+
+/// The most numbers a structural sequence counts (ADR 0041): its count is
+/// a repeat's, one scope per number.
+pub const MAX_SEQUENCE: usize = 1000;
+
+/// From, step and length of a sequence of numbers, as the current core's
+/// `calculateSequenceParameters` gives them from whichever of `from`,
+/// `to`, `step` and `length` are given (`from` 1, `step` 1 and `length` 10
+/// by default; `to` and `length` give the step); None when all four are.
+pub fn sequence_parameters(
+    from: Option<f64>,
+    to: Option<f64>,
+    step: Option<f64>,
+    length: Option<f64>,
+) -> Option<(f64, f64, f64)> {
+    // The count of a run from `a` to `b` by `s`, rounded as the current
+    // core rounds it.
+    let count = |a: f64, b: f64, s: f64| (((b - a) / s + 1.0) * (1.0 + 1e-14)).floor();
+    Some(match (from, to) {
+        (None, None) => (1.0, step.unwrap_or(1.0), length.unwrap_or(10.0)),
+        (None, Some(to)) => {
+            let step = step.unwrap_or(1.0);
+            let length = length.unwrap_or_else(|| count(1.0, to, step));
+            (to - step * (length - 1.0), step, length)
+        }
+        (Some(from), None) => (from, step.unwrap_or(1.0), length.unwrap_or(10.0)),
+        (Some(from), Some(to)) => match (step, length) {
+            (None, None) => (from, 1.0, count(from, to, 1.0)),
+            (None, Some(length)) => (from, (to - from) / (length - 1.0), length),
+            (Some(step), None) => (from, step, count(from, to, step)),
+            (Some(_), Some(_)) => return None,
+        },
+    })
+}
+
+/// The numbers `from, from + step, ...`, `length` of them, less those
+/// `exclude` holds (within a relative 1e-10), in order: a length that is
+/// no whole number, or below 0, is none, as the current core warns and
+/// takes.
+pub fn sequence_values(
+    from: f64,
+    step: f64,
+    length: f64,
+    exclude: &[f64],
+) -> impl Iterator<Item = f64> + '_ {
+    let length = if length.is_finite() && length >= 0.0 && length.fract() == 0.0 {
+        length as usize
+    } else {
+        0
+    };
+    (0..length)
+        .map(move |k| if k == 0 { from } else { from + step * k as f64 })
+        .filter(move |v| {
+            !exclude
+                .iter()
+                .any(|x| (x - v).abs() <= 1e-10 * v.abs().max(1.0))
+        })
 }
 
 /// What a [`VecOp::Scan`] computes over the prefixes of its inputs, as the
@@ -1210,6 +1299,9 @@ impl VecOp {
             VecOp::IntoDomain => 5,
             VecOp::DomainRange => 4,
             VecOp::DomainHull { n } => 4 * n as usize,
+            VecOp::SequenceParams { given } => given.count_ones() as usize,
+            VecOp::SequenceCount { n_exclude } => 3 + n_exclude as usize,
+            VecOp::SequenceEntry { n_exclude } => 4 + n_exclude as usize,
         }
     }
 
@@ -1242,6 +1334,9 @@ impl VecOp {
             VecOp::Parabola { .. } => first(self.n_in()),
             VecOp::IntoDomain => 1,
             VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
+            VecOp::SequenceParams { .. }
+            | VecOp::SequenceCount { .. }
+            | VecOp::SequenceEntry { .. } => 0,
         }
     }
 
@@ -1339,6 +1434,8 @@ impl VecOp {
             VecOp::IntoDomain => 1,
             VecOp::DomainRange => 2,
             VecOp::DomainHull { .. } => 4,
+            VecOp::SequenceParams { .. } => 3,
+            VecOp::SequenceCount { .. } | VecOp::SequenceEntry { .. } => 1,
         }
     }
 
@@ -1356,7 +1453,10 @@ impl VecOp {
             | VecOp::SequencePick { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
-            | VecOp::Draws { .. } => false,
+            | VecOp::Draws { .. }
+            | VecOp::SequenceParams { .. }
+            | VecOp::SequenceCount { .. }
+            | VecOp::SequenceEntry { .. } => false,
             VecOp::Reduce { op, .. } => !matches!(
                 op,
                 Reduction::Between
@@ -1539,6 +1639,37 @@ impl VecOp {
                 };
             }
             VecOp::DomainHull { n } => out.copy_from_slice(&domain_hull(&inp[..4 * n as usize])),
+            VecOp::SequenceParams { given } => {
+                let mut it = inp.iter().copied();
+                let mut take =
+                    |bit: u8| (given & (1 << bit) != 0).then(|| it.next().unwrap_or(f64::NAN));
+                let (from, to, step, length) = (take(0), take(1), take(2), take(3));
+                let [f, s, l] = sequence_parameters(from, to, step, length)
+                    .map_or([f64::NAN; 3], |(f, s, l)| [f, s, l]);
+                // A value that is no number makes no sequence.
+                out.copy_from_slice(&if [f, s, l].iter().all(|v| v.is_finite()) {
+                    [f, s, l]
+                } else {
+                    [f, s, 0.0]
+                });
+            }
+            VecOp::SequenceCount { n_exclude } => {
+                let ex = &inp[3..3 + n_exclude as usize];
+                out[0] = sequence_values(inp[0], inp[1], inp[2], ex)
+                    .take(MAX_SEQUENCE)
+                    .count() as f64;
+            }
+            VecOp::SequenceEntry { n_exclude } => {
+                let k = inp[0];
+                let ex = &inp[4..4 + n_exclude as usize];
+                out[0] = if k >= 1.0 && k.fract() == 0.0 && k <= MAX_SEQUENCE as f64 {
+                    sequence_values(inp[1], inp[2], inp[3], ex)
+                        .nth(k as usize - 1)
+                        .unwrap_or(crate::program::MISSING)
+                } else {
+                    crate::program::MISSING
+                };
+            }
         }
     }
 
@@ -1674,7 +1805,10 @@ impl VecOp {
             | VecOp::BestFitLine { .. }
             | VecOp::IntersectLines { .. }
             | VecOp::DomainRange
-            | VecOp::DomainHull { .. } => false,
+            | VecOp::DomainHull { .. }
+            | VecOp::SequenceParams { .. }
+            | VecOp::SequenceCount { .. }
+            | VecOp::SequenceEntry { .. } => false,
             VecOp::Parabola { through, vertex } => {
                 // A vertex asked for keeps `a`.
                 let abc = if desired[3].is_some() || desired[4].is_some() {
@@ -2532,6 +2666,9 @@ mod writes {
             VecOp::IntoDomain,
             VecOp::DomainRange,
             VecOp::DomainHull { n: 2 },
+            VecOp::SequenceParams { given: 0b0110 },
+            VecOp::SequenceCount { n_exclude: 1 },
+            VecOp::SequenceEntry { n_exclude: 1 },
         ]
     }
 
@@ -2655,9 +2792,11 @@ mod writes {
             | VecOp::IntersectLines { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
             VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],
             VecOp::IntoDomain => vec![vec![0]],
-            VecOp::DomainRange | VecOp::DomainHull { .. } => {
-                (0..op.n_out()).map(|k| vec![k]).collect()
-            }
+            VecOp::DomainRange
+            | VecOp::DomainHull { .. }
+            | VecOp::SequenceParams { .. }
+            | VecOp::SequenceCount { .. }
+            | VecOp::SequenceEntry { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

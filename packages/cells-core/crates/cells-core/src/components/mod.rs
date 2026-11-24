@@ -114,7 +114,6 @@ component_types! {
     Slider => inputs::slider::DEFINITION,
     RepeatForSequence => structure::repeat_for_sequence::DEFINITION,
     Collect => structure::collect::DEFINITION,
-    SequenceValue => structure::sequence_value::DEFINITION,
     BooleanInput => inputs::boolean_input::DEFINITION,
     Math => values::math::DEFINITION,
     Evaluate => values::evaluate::DEFINITION,
@@ -290,6 +289,10 @@ component_types! {
     Interval => values::interval::DEFINITION,
     SubsetOfReals => values::subset_of_reals::DEFINITION,
     IntervalList => values::interval_list::DEFINITION,
+    StructuralSequence => values::structural_sequence::DEFINITION,
+    Matrix => values::matrix::DEFINITION,
+    MatrixRow => values::matrix::row::DEFINITION,
+    MatrixColumn => values::matrix::column::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -380,6 +383,37 @@ impl ComponentType {
                 .collect()
         });
         by_tag.get(tag).copied()
+    }
+
+    /// The type an element of this type is, given whether each attribute
+    /// it carries holds literal numbers only (`is_literal`): a
+    /// structural sequence's (ADR 0041) when one its count follows does
+    /// not, else this.
+    pub fn laid_out(self, is_literal: impl Fn(&str) -> bool) -> ComponentType {
+        match self.def().structural {
+            Some(s) if !s.when.iter().all(|a| is_literal(a)) => s.is,
+            _ => self,
+        }
+    }
+
+    /// Whether a component of the type shows what it holds as a list of
+    /// items (COMP-2): a repeat's iterations, a collect's gathered
+    /// components, each one item.
+    pub fn lists_items(self) -> bool {
+        matches!(self.structure_kind(), Some(StructureKind::Repeat { .. }))
+            || self.def().machinery == Some(Machinery::Collect)
+    }
+
+    /// The type a child element of tag `tag` is under an element of this
+    /// type (ADR 0055): the one the type declares for the tag, else the
+    /// tag's own.
+    pub fn child_type(self, tag: &str) -> Option<ComponentType> {
+        self.def()
+            .child_types
+            .iter()
+            .find(|(t, _)| *t == tag)
+            .map(|&(_, ty)| ty)
+            .or_else(|| ComponentType::from_tag(tag))
     }
 
     /// The tag the type shows as: the first of its tags.

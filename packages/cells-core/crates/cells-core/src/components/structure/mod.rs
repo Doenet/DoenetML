@@ -1,4 +1,4 @@
-//! Repeat, sequence value, function iterates, collect, conditional
+//! Repeat, function iterates, collect, conditional
 //! content, case, select and select from sequence: types whose children the builder makes, so they shape the document
 //! rather than hold a value.
 
@@ -18,6 +18,8 @@ pub(crate) mod select_random_numbers;
 
 pub(crate) mod repeat_for_sequence {
     use super::*;
+    use crate::compile::api::{ItemCtx, Wire};
+    use crate::components::prop;
 
     component! {
         /// `<repeatForSequence>`: its children are every iteration's expanded
@@ -33,6 +35,7 @@ pub(crate) mod repeat_for_sequence {
         /// A NaN count means zero iterations.
         tags: ["repeatForSequence"],
         structure: Repeat { count: count },
+        item: Number(item),
         props {
             from: attr(1.0),
             to: attr(NO_VALUE),
@@ -49,41 +52,23 @@ pub(crate) mod repeat_for_sequence {
         }
         presentation { asList }
         // Its props are its table's; the hidden elements its `valueName`
-        // and `indexName` make in its body are the compile's, as every
-        // repeat's (`plan_iteration_names`).
+        // and `indexName` make in its body are planned with it: the value
+        // by `item` (ADR 0040), the index as every repeat's.
         planner: Props,
     }
-}
 
-/// `sequenceValue`: the value of one iteration of a repeat over a sequence.
-pub mod sequence_value {
-    use super::*;
-
-    component! {
-        /// The hidden component behind a repeat's `valueName`: `from + (k-1) *
-        /// step`. `from` and `step` alias the repeat's; `k` is the
-        /// iteration's 1-based position, a scope constant.
-        tags: ["sequenceValue"],
-        flags: [copyable, internal],
-        roles: [SequenceValue],
-        default_prop: value,
-        props {
-            from: attr(1.0),
-            step: attr(1.0),
-            k: attr(1.0),
-            km1: computed(OpSpec::Add, [k, (-1.0)]),
-            scaled: computed(OpSpec::Mul, [km1, step]),
-            value: computed(OpSpec::Add, [scaled, from]) { rendered },
+    /// The value of iteration `k`, the item `valueName` names: a `<number>`
+    /// holding `from + (k - 1) * step`, `from` and `step` the repeat's.
+    fn item(ctx: &mut ItemCtx<'_>) -> prop::number::Planned {
+        let at = Props::PORTS;
+        let k = ctx.index_from_zero();
+        let step = ctx.owner(at.step);
+        let scaled = ctx.computed(OpSpec::Mul, vec![k, step]);
+        let from = ctx.owner(at.from);
+        prop::number::Planned {
+            value: Wire::computed(OpSpec::Add, vec![scaled, from]),
         }
-        planner: Props,
     }
-
-    /// The position of `from`: the sequence's first value.
-    pub const FROM: usize = Props::AT.from;
-    /// The position of `step`: the difference between consecutive values.
-    pub const STEP: usize = Props::AT.step;
-    /// The position of `k`: the iteration's 1-based position.
-    pub const K: usize = Props::AT.k;
 }
 
 /// `case`: one branch of a `<conditionalContent>`.

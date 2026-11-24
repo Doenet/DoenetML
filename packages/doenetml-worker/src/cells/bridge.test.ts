@@ -120,6 +120,17 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws a matrix as a math, its rows not drawn (ADR 0041, ADR 0055)", async () => {
+        const bridge = await load(
+            `<p><matrix><row>a b</row><row>c d</row></matrix></p>`,
+        );
+        const root = bridge.flatDast();
+        const maths = byName(root, "math");
+        expect(maths).toHaveLength(1);
+        expect((maths[0].data as any).props.latex).toContain("matrix");
+        expect(maths[0].children).toEqual([]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>

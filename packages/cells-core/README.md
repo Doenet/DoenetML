@@ -27,7 +27,7 @@ or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `cond
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
 pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
-`functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
+`functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
 `title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
 sections), `sideBySide`,
@@ -55,7 +55,8 @@ drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
-numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers, literal parameters), and
+numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
+its count structural, ADR 0041), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
 from the document seed, and the function operators `clampFunction` and
@@ -74,7 +75,8 @@ prefill each; no bound value). A function's `domain` (one interval) and
 (a function's graph, a parametric curve, or a spline through points with
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
-`intervalList`, and `subsetOfReals` (intervals, points, set operations,
+`intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
+entry; a literal size, ADR 0055), and `subsetOfReals` (intervals, points, set operations,
 inequalities and memberships in its `variable`, merged, written as
 intervals or, with a literal `displayMode`, as inequalities); a
 `mathInput` bound to one, or to a math list's entry, writes an

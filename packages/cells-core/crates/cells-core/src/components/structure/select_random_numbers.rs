@@ -44,6 +44,7 @@ component! {
         exclude: Scalars,
         numToSelect: Literal(1.0),
     }
+    static_count: count,
     children: None,
     planner: Plan(plan),
 }
@@ -235,3 +236,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 #[cfg(test)]
 #[path = "select_random_numbers.spec.rs"]
 mod spec;
+
+/// How many numbers its record draws (`numToSelect`): a reference to it among
+/// a list's children contributes as many (ADR 0041).
+fn count(record: &Record) -> Option<usize> {
+    draw_count("numToSelect", Attrs::of(record).numToSelect).ok()
+}

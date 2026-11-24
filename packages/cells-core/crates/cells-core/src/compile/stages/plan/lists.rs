@@ -1,7 +1,8 @@
 //! Planning, lists: what a reference or an element among a list's or an
 //! operator's children contributes, told from the records alone (ADR 0041,
 //! decisions 2, 5 and 9). A reference to a static sequence (a value list
-//! whose count is a fact of the source) contributes its entries, spliced;
+//! whose count is a fact of the source, or a `<sequence>` or sampler whose
+//! record counts it) contributes its entries, spliced;
 //! a reference to one entry past such a list's end, one missing entry (ADR
 //! 0046: a blank in a list, the missing value to an operator); anything
 //! else, one value, as a reference always did.
@@ -113,6 +114,11 @@ impl<'a> Planning<'a> {
         }
         let record = self.parsed.record_ref(t, x)?;
         let el = self.rd.referent_row(t, x);
+        // A sequence or a sampler counts its own (a copy's are its
+        // referent's, merged into its record).
+        if let Some(count) = el.component_type.def().static_count {
+            return count(record);
+        }
         visiting.push((t, x));
         let pieces = record.list_pieces();
         let n = match (pieces, el.extend) {
@@ -381,8 +387,9 @@ impl<'a> Planning<'a> {
 /// or a list operator's (`<sort>`, `<cumulativeSum>`, `<differences>`),
 /// as its list declares (`from_children`).
 fn is_value_list(ty: ComponentType, points: bool) -> bool {
-    ty.def().children.kind == crate::components::ChildrenKind::List
-        && ty.list_from_children().is_some()
+    (ty.def().static_count.is_some()
+        || ty.def().children.kind == crate::components::ChildrenKind::List
+            && ty.list_from_children().is_some())
         && ty
             .list_entry()
             .is_some_and(|k| (k == crate::components::EntryKind::Point) == points)

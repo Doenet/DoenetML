@@ -1,10 +1,11 @@
-from and to, by every name and by index: cells 9 · essential 0 · constant 9 · instrs 0 · components 8
-nothing given: one to ten: cells 13 · essential 0 · constant 13 · instrs 0 · components 12
-from, step and length: cells 7 · essential 0 · constant 7 · instrs 0 · components 5
-to alone counts from 1: cells 7 · essential 0 · constant 7 · instrs 0 · components 6
-to and length end at to: cells 7 · essential 0 · constant 7 · instrs 0 · components 5
+from and to, by every name and by index: cells 10 · essential 0 · constant 10 · instrs 0 · components 8
+nothing given: one to ten: cells 14 · essential 0 · constant 14 · instrs 0 · components 12
+from, step and length: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
+to alone counts from 1: cells 8 · essential 0 · constant 8 · instrs 0 · components 6
+to and length end at to: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
 from, to and length give the step: cells 9 · essential 0 · constant 9 · instrs 0 · components 7
-a negative step, stopping before to: cells 7 · essential 0 · constant 7 · instrs 0 · components 5
-excluded values are left out: cells 7 · essential 0 · constant 7 · instrs 0 · components 6
+a negative step, stopping before to: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
+excluded values are left out: cells 8 · essential 0 · constant 8 · instrs 0 · components 6
 an empty sequence: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
-a count that follows a reference is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3
+a count that follows a reference is a structural sequence: cells 17 · essential 0 · constant 17 · instrs 0 · components 7
+its entries among a list's and an operator's children: cells 10 · essential 0 · constant 10 · instrs 0 · components 11

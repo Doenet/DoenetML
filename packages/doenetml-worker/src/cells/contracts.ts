@@ -421,7 +421,6 @@ const NUMBER_TYPES = new Set([
     "number",
     "clampNumber",
     "evaluate",
-    "sequenceValue",
     "numberInput",
     "slider",
     // The numeric operators.
@@ -826,16 +825,6 @@ export const CONTRACTS: Record<string, Contract> = {
     evaluate: MATH_VALUE,
     function: CURVE,
     derivative: CURVE,
-    sequenceValue: {
-        name: () => "number",
-        props: (r, c) => ({
-            text: r.numText(
-                c,
-                "value",
-                r.table.attrThrough(c, "displayDecimals"),
-            ),
-        }),
-    },
     tuple: {
         props: (r, c) => {
             const n = r.num(c, "n");
@@ -1507,6 +1496,13 @@ export const CONTRACTS: Record<string, Contract> = {
     subsetOfReals: {
         name: () => "math",
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+    },
+    // A matrix (ADR 0041, decision 8) is a math, drawn as one; its rows
+    // and columns (ADR 0055) are what it is made of, never drawn.
+    matrix: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+        noChildren: true,
     },
 };
 

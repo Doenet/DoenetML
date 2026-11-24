@@ -319,6 +319,8 @@ pub(super) const fn definition(
         machinery: None,
         owner: None,
         rewrite: None,
+        structural: None,
+        child_types: &[],
         settle: None,
         extend_value: None,
         actions: &[],
@@ -327,6 +329,8 @@ pub(super) const fn definition(
         counted: None,
         numbering: None,
         inner: &[],
+        item: None,
+        static_count: None,
         submit: None,
         roles: &[],
         structure_kind: None,
@@ -418,6 +422,20 @@ impl ComponentDef {
         self.rewrite = Some((attr, to));
         self
     }
+    /// What a child of each tag is under it ([`super::ComponentDef::child_types`]).
+    pub(super) const fn child_types(
+        mut self,
+        child_types: &'static [(&'static str, super::ComponentType)],
+    ) -> Self {
+        self.child_types = child_types;
+        self
+    }
+    /// The type of an element whose count follows a value
+    /// ([`super::Structural`], ADR 0041).
+    pub(super) const fn structural(mut self, structural: super::Structural) -> Self {
+        self.structural = Some(structural);
+        self
+    }
     /// What outlining settles of an element of the type ([`super::Settle`]).
     pub(super) const fn settle(mut self, settle: super::Settle) -> Self {
         self.settle = Some(settle);
@@ -458,6 +476,19 @@ impl ComponentDef {
     /// The inputs it owns ([`super::InnerInput`], ADR 0045).
     pub(super) const fn inner(mut self, inner: &'static [super::InnerInput]) -> Self {
         self.inner = inner;
+        self
+    }
+    /// The component it makes per iteration ([`super::ItemDecl`], ADR 0040).
+    pub(super) const fn item(mut self, item: super::ItemDecl) -> Self {
+        self.item = Some(item);
+        self
+    }
+    /// How many entries its record makes ([`super::ComponentDef::static_count`]).
+    pub(super) const fn static_count(
+        mut self,
+        count: fn(&crate::compile::api::Record) -> Option<usize>,
+    ) -> Self {
+        self.static_count = Some(count);
         self
     }
     /// The counter it takes a number from ([`super::Counted`]).
@@ -915,6 +946,7 @@ macro_rules! component {
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
+        $(item: $itty:ident ($itfn:path),)?
         $(response: $rkind:ident ($rprop:ident),)?
         $(value: $vkind:ident $(($($vprop:ident),+ $(,)?))?,)?
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
@@ -922,6 +954,8 @@ macro_rules! component {
         $(needs: $needs:ident,)?
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
+        $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
+        $(child_types { $($cttag:ident : $ctty:ident),+ $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggers { when: $twhen:ident $(,)? })?
@@ -967,6 +1001,7 @@ macro_rules! component {
         $(actions { $($actname:ident : $actfn:path $([$actev:ident])?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
         $(inner { $($iname:ident : $ity:ident),* $(,)? })?
+        $(static_count: $scfn:path,)?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(machinery: $mach:ident,)?
         $(owner: $owner:ident,)?
@@ -984,6 +1019,17 @@ macro_rules! component {
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
+                $(.item($crate::components::ItemDecl {
+                    ty: $crate::components::ComponentType::$itty,
+                    wire: {
+                        fn wire(
+                            ctx: &mut $crate::compile::api::ItemCtx<'_>,
+                        ) -> Vec<($crate::compile::api::Port, $crate::compile::api::Wire)> {
+                            $itfn(ctx).into_iter().collect()
+                        }
+                        wire
+                    },
+                }))?
                 $(.response($crate::components::ResponseKind::$rkind(
                     $crate::components::define::at(PROPS, stringify!($rprop)),
                 )))?
@@ -1004,6 +1050,11 @@ macro_rules! component {
                 $(.needs($crate::components::Needs::$needs))?
                 $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
+                $(.structural($crate::components::Structural {
+                    when: &[$(stringify!($stwhen)),+],
+                    is: $crate::components::ComponentType::$stis,
+                }))?
+                $(.child_types(&[$((stringify!($cttag), $crate::components::ComponentType::$ctty)),+]))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggers($crate::components::Triggers {
@@ -1048,6 +1099,7 @@ macro_rules! component {
                     name: stringify!($iname),
                     ty: $crate::components::ComponentType::$ity,
                 }),*]))?
+                $(.static_count($scfn))?
                 $(.machinery($crate::components::Machinery::$mach))?
                 $(.owner($crate::components::ComponentType::$owner))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
@@ -1495,6 +1547,7 @@ macro_rules! component {
     (@kind Point) => { $crate::components::AttrKind::Point };
     (@kind Points) => { $crate::components::AttrKind::Points { max: None } };
     (@kind Scalars) => { $crate::components::AttrKind::Scalars };
+    (@kind Entries) => { $crate::components::AttrKind::Entries };
     (@kind Points($max:expr)) => { $crate::components::AttrKind::Points { max: Some($max) } };
     (@kind Flag($d:expr)) => { $crate::components::AttrKind::Flag { default: $d } };
     (@kind Bool($d:expr)) => { $crate::components::AttrKind::Bool { default: $d } };
@@ -1520,6 +1573,7 @@ macro_rules! component {
     (@field Point) => { Option<$crate::compile::api::PointAttr> };
     (@field Points $(($max:expr))?) => { Vec<$crate::compile::api::GivenPoint> };
     (@field Scalars) => { Vec<$crate::compile::api::Source> };
+    (@field Entries) => { Vec<$crate::compile::api::ListPiece> };
     (@field Flag($d:expr)) => { $crate::compile::api::Source };
     (@field Bool($d:expr)) => { bool };
     (@field Number($d:expr)) => { f64 };
@@ -1538,6 +1592,7 @@ macro_rules! component {
     (@get Point, $r:ident, $a:expr) => { $r.point($a) };
     (@get Points $(($max:expr))?, $r:ident, $a:expr) => { $r.points($a) };
     (@get Scalars, $r:ident, $a:expr) => { $r.scalars($a) };
+    (@get Entries, $r:ident, $a:expr) => { $r.entries($a) };
     (@get Flag($d:expr), $r:ident, $a:expr) => { $r.flag($a, $d) };
     (@get Bool($d:expr), $r:ident, $a:expr) => { $r.bool($a, $d) };
     (@get Number($d:expr), $r:ident, $a:expr) => { $r.number($a, $d) };

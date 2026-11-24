@@ -18,6 +18,8 @@ pub(crate) enum AttrValue {
     Points(Vec<GivenPoint>),
     /// `Scalars`: a source per item.
     Scalars(Vec<Source>),
+    /// `Entries`: the pieces of a list.
+    Entries(Vec<ListPiece>),
     Bool(bool),
     Number(f64),
     /// `Literal`: the number, or the error reading it met, for the
@@ -202,6 +204,14 @@ impl Record {
         }
     }
 
+    /// The pieces of a list written in an attribute, none when absent.
+    pub(crate) fn entries(&self, attr: Attr) -> Vec<ListPiece> {
+        match self.get(attr) {
+            AttrValue::Entries(pieces) => pieces.clone(),
+            _ => Vec::new(),
+        }
+    }
+
     /// A 0/1 flag: its source, `default` when absent.
     pub(crate) fn flag(&self, attr: Attr, default: bool) -> Source {
         match self.get(attr) {
@@ -361,6 +371,21 @@ impl Record {
                     }
                 }
                 AttrValue::Ref(p) => rw.reference(p),
+                AttrValue::Entries(pieces) => {
+                    for piece in pieces {
+                        match piece {
+                            ListPiece::Reference(p) | ListPiece::Element(p) => rw.reference(p),
+                            ListPiece::Math(frags) => {
+                                for frag in frags {
+                                    if let PieceFrag::Ref(p) = frag {
+                                        rw.reference(p);
+                                    }
+                                }
+                            }
+                            ListPiece::Text(_) => {}
+                        }
+                    }
+                }
                 AttrValue::Content(v) => match &mut v.value {
                     ChildValue::Reference(p) => rw.reference(p),
                     // Math text names nodes planned where the referent
@@ -585,6 +610,62 @@ impl Reader<'_> {
             component_type,
             record,
         })
+    }
+
+    /// An attribute's nodes read as a list's entries ([`ListPiece`]):
+    /// split at the spaces outside any bracket pair, a piece that is one
+    /// reference alone a reference, one of text alone text, and one
+    /// mixing them math text (`exclude="$a $b-$a 7"` is three).
+    fn parse_attr_entries(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+    ) -> Result<Vec<ListPiece>> {
+        let d = self.dast;
+        let mut pieces = Vec::new();
+        let mut frags: Vec<PieceFrag> = Vec::new();
+        let mut piece = String::new();
+        let mut depth = 0i32;
+        fn end(frags: &mut Vec<PieceFrag>, piece: &mut String, pieces: &mut Vec<ListPiece>) {
+            if !piece.is_empty() {
+                frags.push(PieceFrag::Text(std::mem::take(piece)));
+            }
+            match std::mem::take(frags).as_slice() {
+                [] => {}
+                [PieceFrag::Ref(p)] => pieces.push(ListPiece::Reference(*p)),
+                [PieceFrag::Text(text)] => pieces.push(ListPiece::Text(text.clone())),
+                more => pieces.push(ListPiece::Math(more.to_vec())),
+            }
+        }
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Text => {
+                    for c in d.str(n).chars() {
+                        match c {
+                            '(' | '[' | '{' => depth += 1,
+                            ')' | ']' | '}' => depth -= 1,
+                            _ => {}
+                        }
+                        if c.is_whitespace() && depth <= 0 {
+                            end(&mut frags, &mut piece, &mut pieces);
+                        } else {
+                            piece.push(c);
+                        }
+                    }
+                }
+                NodeKind::Macro => {
+                    if !piece.is_empty() {
+                        frags.push(PieceFrag::Text(std::mem::take(&mut piece)));
+                    }
+                    frags.push(PieceFrag::Ref(self.plan_ref(ar, t, scope, n)?));
+                }
+                _ => {}
+            }
+        }
+        end(&mut frags, &mut piece, &mut pieces);
+        Ok(pieces)
     }
 
     /// Content nodes read as a list's entries ([`ListPiece`]): text split
@@ -843,6 +924,9 @@ impl Reader<'_> {
                 AttrValue::Points(self.plan_point_list(ar, t, scope, node, a)?)
             }
             AttrKind::Scalars => AttrValue::Scalars(self.plan_scalar_list(ar, t, scope, a)?),
+            AttrKind::Entries => {
+                AttrValue::Entries(self.parse_attr_entries(ar, t, scope, d.attr_children(a))?)
+            }
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
                 // A reference is bound.
                 Some(_) => self.plan_scalar(ar, t, scope, d.attr_children(a))?,

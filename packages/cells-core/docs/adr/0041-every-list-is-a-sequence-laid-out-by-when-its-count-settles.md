@@ -1,7 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done,
-step 2's first three pieces, step 3, and step 6 in part, with their
+step 2's first three pieces, step 3, step 4 in part, and step 6 in
+part, with their
 departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
@@ -573,6 +574,104 @@ otherwise.
    items, `<repeat for>` over any sequence, `maxNumber="$n"`. Test:
    `listcomponentsamplers.test.ts`, `listcomponentcollections.test.ts`,
    `repeatIterationValues.test.ts`, `repeat*Lists.test.ts`.
+
+   *In part, 2026-11-24:*
+
+   - **A sequence's layout is chosen per element.** A type declares
+     the attributes its count follows and the type it is when one of
+     them is no literal number (`structural { when: [from, to, step,
+     length, exclude], is: StructuralSequence }`, `Structural`):
+     outlining reads what each attribute holds, before anything is
+     planned, and `ComponentType::laid_out` gives the element its type,
+     so a `<sequence>` of literal numbers stays a static sequence (its
+     entries constants, rows per entry) and one with a reference or
+     math (`to="$n"`, `from="2-5"`, `exclude="$x"`) is a structural one,
+     an internal type with the tag `sequence`
+     (`components/values/structural_sequence.rs`).
+   - **A structural sequence is a repeat with an item** (ADR 0040,
+     decision 3): `structure: Repeat { count: numComponents }`, `item:
+     Number(item)`, `children: None`, so its body is one `<number>` per
+     iteration and a change of its count a rebuild that keeps essential
+     values by (scope, position, slot) (ADR 0004, ADR 0017). Its
+     parameters are one instruction over the given ones
+     (`VecOp::SequenceParams`, the current core's
+     `calculateSequenceParameters`, shared with the static planner as
+     `program::sequence_parameters`), its count another
+     (`SequenceCount`, at most `MAX_SEQUENCE`), and entry `k` a third
+     (`SequenceEntry`). `$s[k]` is iteration `k`'s number, `$s.numComponents`
+     the count, `<collect from="$s" componentType="number">` its numbers.
+   - **Its `exclude` is a capped list** (decision 2): ten table ports
+     padded with the missing value, read as a list's entries are
+     (`AttrKind::Entries`, `PlanCtx::list_entries`): a reference to a
+     static sequence spliced, a piece mixing references and text math
+     (`$n2-$n1`), a math cell (a math list's entry) evaluated.
+   - **A static `<sequence>` or sampler among a list's children.** A
+     type whose planner makes its entries declares how many its record
+     makes (`static_count`), so `<sum>$s</sum>`, `<numberList>$s
+     7</numberList>` and `exclude="$every3"` read its entries
+     (`Splice::Entries`), where they read one value before.
+   - **`<repeat for>` over any sequence.** Over a static sequence (a
+     value list, a list operator, a static `<sequence>`, a sampler), the
+     count is a constant and the item `$l[i]`, an entry step by the
+     iteration's index cell (an index outlining makes beside the item
+     when no `indexName` names one); over a structural sequence, the
+     count is its count's cell and the item aliases each prop of
+     iteration `i`'s item. Outlining settles the item's type once every
+     name is in the table (`settle_repeat_items`): the row type of the
+     sequence's entries (`entry_row`), or its declared item. A write
+     through the item lands where the entry comes from.
+   - **A repeat's and a collect's text** is its items separated by
+     commas (an iteration's children one item), unless `asList="false"`
+     or an item holds a block, as the bridge draws them; `hide` on either
+     `<sequence>` hides it from its text and the bridge.
+   - `tests/every_count.rs` builds a `structural-sequences` document at
+     every count; its range check of constants holds a repeat whose
+     count is a constant at that count (`builds_at_reachable`), since a
+     forced count past it is no build a session makes and puts an
+     iteration's index outside the range the check gave it (a
+     `<repeatForSequence length="3">` with its index read met the same).
+     Tested by `structural_sequence.spec.rs`, `sequence.spec.rs` and
+     `tests/structural.rs`.
+
+   Departures, and what is not done:
+
+   - The static sequence keeps the static layout; decision 2 classes
+     by the leaf kinds as written, so constant math (`to="2+3"`) is
+     structural with a count no tick changes, not static.
+   - A structural sequence has no `numbers` list prop, no rows of its
+     own (its numbers are its iterations' items) and is not copyable:
+     a bare `$s` (in a `<p>`, among a list's or an operator's children,
+     `<math>$s</math>`) is refused as a copy of a repeat is. A list whose
+     children include a repeat or a reference to a structural sequence
+     (a structural list), `<collect>`'s items read where a list's are
+     (`<sum>$c</sum>`, `$c` in a `<p>`), a `<repeat for>` over a
+     collect, a repeat or a point list, and `maxNumber="$n"` are not
+     done: each needs a list whose entries are gathered per build, the
+     collect's machinery read as a sequence, which no planner reads yet.
+   - A sampler's `numToSelect`/`numSamples` stays a literal, and
+     `<selectFromSequence numToSelect>` other than 1 is still refused:
+     a count read from a constant (`numToSelect="$n"`, ADR 0037) is
+     known only once the check evaluates the constants, after the plans
+     are made.
+   - `type="letters"` and `type="math"` sequences, and `validSequence`,
+     are not done.
+   - `<matrixInput>`, whose grid follows its size, is not done.
+
+   *`<matrix>`, 2026-11-24*, the open question of piece 3 answered by a
+   parent-declared type (ADR 0055): a `<matrix>`'s `<row>` and `<column>`
+   children are `<matrixRow>` and `<matrixColumn>`, each a list of
+   entries read as a `<mathList>`'s. The matrix is a math cell
+   (`Flow::SymExpr`) whose expression is its entries by row, made a
+   matrix in the engine (`Post::Matrix`, `Engine::matrix`): of its rows,
+   else its columns turned, else its children as one entry (a 1 by 1
+   matrix), or one reference alone the expression it names; rows shorter
+   than the longest, and a literal `numRows`/`numColumns`, filled with
+   `defaultEntry`. `numRows`, `numColumns` and `matrixSize` (the two) are
+   constants. Tested by `matrix.spec.rs` and the bridge test. Not done:
+   a size that follows a value (refused; it is a structural matrix),
+   `$A[i][j]` (an entry inside a math handle, decision 3's projection),
+   rows and columns as named sequences, `extend` of a matrix's value,
+   and `<matrixInput>`; every case of `matrix.test.ts` needs the input.
 5. **Dynamic sequences.** The capped list with a live length: point
    coordinates first (merging point, tuple and vector), then a mathInput's
    list, then maxima and intersections with their caps. Test:

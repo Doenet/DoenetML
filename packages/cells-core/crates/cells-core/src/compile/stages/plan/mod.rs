@@ -10,6 +10,7 @@ mod condition;
 mod copies;
 mod ctx;
 mod fix;
+mod items;
 mod iterates;
 mod lists;
 mod planner;
@@ -19,6 +20,7 @@ use crate::compile::*;
 // What a planner is given and how a type names its planner: the planner-facing
 // part of planning, which `api` re-exports to the components.
 pub(crate) use ctx::PlanCtx;
+pub(crate) use items::ItemCtx;
 pub(crate) use lists::ListEntry;
 use lists::Splice;
 pub(crate) use planner::Planner;
@@ -229,7 +231,15 @@ impl<'a> Planning<'a> {
                     }
                     Ok(())
                 }
-                Planner::Plan(plan) => self.plan_with_extend(t, e, extend, plan),
+                Planner::Plan(plan) => {
+                    self.plan_with_extend(t, e, extend, plan)?;
+                    // A repeat-like type's item and index, which its
+                    // planner does not plan (ADR 0040).
+                    if matches!(self.rd.own_row(t, e).body, Body::Repeat { .. }) {
+                        self.plan_iteration_names(t, e);
+                    }
+                    Ok(())
+                }
             },
         }
     }
@@ -423,22 +433,6 @@ impl<'a> Planning<'a> {
         let mut props = vec![Source::absent(); component_type.prop_defs().len()];
         mark_aggregates(component_type, &mut props);
         self.tables[t.index()].plans[e.index()].props = props;
-    }
-
-    /// A plan naming prop `prop` of repeat `e` of template `t`, as seen
-    /// from the repeat's own template (one hop up).
-    fn own_prop_plan(&mut self, t: TemplateId, e: ElemId, prop: &'static str) -> RefId {
-        let ty = self.rd.own_row(t, e).component_type;
-        let prop_sel = RefProp::named(ty, prop).expect("a repeat has the prop its body reads");
-        let plan = RefPlan {
-            hops: 1,
-            steps: vec![Step::Elem(e)],
-            prop: Some(prop_sel),
-            entries: Vec::new(),
-            display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
-            node: NodeId::NONE,
-        };
-        self.ar.push_ref(plan)
     }
 }
 

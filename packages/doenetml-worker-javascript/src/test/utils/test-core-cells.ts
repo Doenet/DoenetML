@@ -33,6 +33,7 @@ import {
     LIST_LIKE,
     Reads,
     SECTION_KINDS,
+    TRANSPARENT,
     childrenLatex,
     mdLatex,
     pointLatex,
@@ -378,11 +379,20 @@ const booleanOperatorReaders: Record<string, Reader> = {
     text: textOf,
 };
 
-/** The entries of a value list (ADR 0041), as the numbers they are. */
-const listNumbers: Reader = (_g, x) =>
-    Array.from(x.cells.propCells(x.idx, "numbers")).map((c) =>
-        x.cells.value(c),
-    );
+/** The entries of a value list (ADR 0041), as the numbers they are: a
+ * static sequence's list, or a structural one's numbers, one per
+ * iteration (ADR 0041, step 4). */
+const listNumbers: Reader = (_g, x) => {
+    const cells = x.cells.propCells(x.idx, "numbers");
+    if (cells.length > 0) {
+        return Array.from(cells).map((c) => x.cells.value(c));
+    }
+    return presentedChildren(x.cells, x.idx).flatMap((child) => {
+        if (typeof child === "string") return [];
+        const value = x.cells.table.cell(child.componentIdx, "value");
+        return value === undefined ? [] : [x.cells.value(value)];
+    });
+};
 /** A list of numbers (`sequence`, the samplers): `numbers`, and the state
  * variable the current core computes them in (`valuesVariable`). */
 function numberListReaders(valuesVariable?: string): Record<string, Reader> {
@@ -1080,7 +1090,123 @@ const STATE: Record<string, Record<string, Reader>> = {
         intervals: subsetPart("intervals"),
         isolatedPoints: subsetPart("isolatedPoints"),
     },
+    // A matrix (ADR 0041, decision 8): a math holding a matrix, its size
+    // its own cells, its entries read off the expression.
+    matrix: {
+        ...mathReaders,
+        numRows: (g) => g("numRows"),
+        numColumns: (g) => g("numColumns"),
+        matrixSize: (g) => [g("numRows"), g("numColumns")],
+        matrix: (g, x) => {
+            const tree = (mathValue(g, x) as any).tree;
+            if (!Array.isArray(tree) || tree[0] !== "matrix") return [];
+            return tree[2]
+                .slice(1)
+                .map((row: any[]) =>
+                    row.slice(1).map((e: unknown) => me.fromAst(e)),
+                );
+        },
+    },
 };
+
+/** What `idx` holds among its children as the current core's
+ * `activeChildren` lists them (ADR 0041, decision 4): its text children
+ * and components, each one that stands as its children (a repeat, a
+ * collect, a group, a list whose entries are rows) replaced by them, and
+ * a choice's inactive cases left out. A list's entries are rows, each a
+ * component of the entry's type, so a test's `childrenAsPresented` reads
+ * them as children. */
+function presentedChildren(
+    cells: Cells,
+    idx: number,
+): (string | { componentIdx: number; componentType: string })[] {
+    const out: (string | { componentIdx: number; componentType: string })[] =
+        [];
+    for (const child of cells.table.children(idx)) {
+        if (!("component" in child)) {
+            out.push(child.text);
+            continue;
+        }
+        const k = child.component;
+        const type = cells.table.componentType(k);
+        if (type === "case") {
+            const active = cells.table.cell(k, "active");
+            if (active === undefined || cells.value(active) !== 1) continue;
+        }
+        if (TRANSPARENT.has(type)) {
+            out.push(...presentedChildren(cells, k));
+            continue;
+        }
+        out.push({
+            componentIdx: k,
+            componentType: type === "mathValue" ? "math" : type,
+        });
+    }
+    return out;
+}
+
+/** The component fields the harness answers for every type: what a
+ * component holds among its children (`presentedChildren`), and for one
+ * that stands as its children, what it stands for among its parent's,
+ * which the current core calls a composite's replacements. */
+const ANY_FIELDS: Record<string, (cells: Cells, idx: number) => unknown> = {
+    activeChildren: presentedChildren,
+    replacements: (cells, idx) => {
+        const type = cells.table.componentType(idx);
+        if (!TRANSPARENT.has(type)) {
+            throw new CellsCoreGap(`\`replacements\` of \`${type}\``);
+        }
+        return presentedChildren(cells, idx);
+    },
+    replacementsToWithhold: (cells, idx) => {
+        const type = cells.table.componentType(idx);
+        if (!TRANSPARENT.has(type)) {
+            throw new CellsCoreGap(`\`replacementsToWithhold\` of \`${type}\``);
+        }
+        return 0;
+    },
+};
+
+/** The current core's component objects, as far as a test reads them to
+ * tell a list component from a component (`test/utils/list-entries.ts`):
+ * the cells core has no list component, a list's entries being rows of
+ * the component table (ADR 0041, decision 4), so none has a
+ * `listEntryComponentType`. Its type is the table's; anything else is a
+ * gap. */
+function componentObjects(cells: Cells) {
+    return new Proxy(
+        {},
+        {
+            get(_target, key) {
+                if (typeof key !== "string" || !/^\d+$/.test(key))
+                    return undefined;
+                const idx = Number(key);
+                if (idx >= cells.table.length) return undefined;
+                const componentType = cells.table.componentType(idx);
+                return new Proxy(
+                    {},
+                    {
+                        get(_t, field) {
+                            if (typeof field !== "string" || field === "then")
+                                return undefined;
+                            if (field === "componentIdx") return idx;
+                            if (field === "componentType") return componentType;
+                            if (field === "constructor") return {};
+                            throw new CellsCoreGap(
+                                `JavaScript core internals \`core.core._components[].${field}\``,
+                            );
+                        },
+                    },
+                );
+            },
+            ownKeys() {
+                throw new CellsCoreGap(
+                    "JavaScript core internals `core.core._components` enumerated",
+                );
+            },
+        },
+    );
+}
 
 /** The component fields the harness answers for some types: a fraction
  * input's `activeChildren` are the boxes it owns (ADR 0045), which the
@@ -1296,7 +1422,7 @@ export async function createTestCoreCells({
             },
         );
         const unsupported = (field: string) => () => {
-            const answer = FIELDS[componentType]?.[field];
+            const answer = FIELDS[componentType]?.[field] ?? ANY_FIELDS[field];
             if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
         };
@@ -1740,6 +1866,7 @@ export async function createTestCoreCells({
 
     return {
         core: withJavascriptOnlyGaps(adapter, {
+            _components: componentObjects(cells),
             rendererInstructionBuilder: {
                 get rendererState() {
                     return rendererState();

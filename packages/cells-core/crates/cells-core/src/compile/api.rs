@@ -13,5 +13,5 @@ pub(crate) use super::ir::{
 };
 pub(crate) use super::read::ValueKind;
 pub(crate) use super::stages::plan::ListEntry;
-pub(crate) use super::stages::plan::{PlanCtx, Planner};
+pub(crate) use super::stages::plan::{ItemCtx, PlanCtx, Planner};
 pub(crate) use crate::components::ConstrainTarget;

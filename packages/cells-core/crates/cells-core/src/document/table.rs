@@ -347,6 +347,15 @@ impl Document {
         let cells = self.comp_cells(c);
         let value = |pi: usize| cells.get(pi).map(|cell| self.cells[cell.index()]);
         let ty = self.component_type(c);
+        // A hidden list shows nothing (ADR 0041, decision 9).
+        if (ty.list_entry().is_some() || ty.lists_items())
+            && ty
+                .prop_index("hide")
+                .and_then(value)
+                .is_some_and(|h| h != 0.0 && !h.is_nan())
+        {
+            return;
+        }
         let shape = self.components.shape(c);
         // A value list shows its entries, separated by commas (ADR 0041).
         // A point list's own points (`(1, 2), (3, 4)`) likewise; a shape's
@@ -389,6 +398,15 @@ impl Document {
                     }
                 }
             }
+            return;
+        }
+        // A repeat (a structural sequence's numbers among them, ADR 0041)
+        // and a collect show their items as a list: an iteration's
+        // children, or a gathered one, each one item, separated by
+        // commas unless the list says not or an item is a block (COMP-2),
+        // as the bridge draws them.
+        if ty.text_kind().is_none() && ty.lists_items() {
+            self.push_items_text(c, ty, out);
             return;
         }
         match ty.text_kind() {
@@ -458,6 +476,53 @@ impl Document {
             crate::program::ValueType::Math => self.math_text(cell),
             crate::program::ValueType::Text => self.text_value(cell),
             crate::program::ValueType::Number => format_number(self.cells[cell.index()]),
+        }
+    }
+
+    /// The text of list-like `c` (`lists_items`): each item's text, its
+    /// whitespace around it dropped, an empty one skipped, separated by
+    /// commas unless `asList="false"` or an item holds a block (a
+    /// container that is no structure, a `<p>` in an iteration).
+    fn push_items_text(&self, c: CompIdx, ty: ComponentType, out: &mut String) {
+        let per_scope = matches!(ty.structure_kind(), Some(StructureKind::Repeat { .. }));
+        let mut items: Vec<String> = Vec::new();
+        let mut block = false;
+        let mut last_scope = None;
+        for ch in self.children(c) {
+            let (text, scope) = match ch {
+                Child::Text(t) => (t.to_string(), None),
+                Child::Component(k) => {
+                    let kt = self.component_type(k);
+                    block |= kt.container() && kt.structure_kind().is_none();
+                    let scope = per_scope.then(|| self.components.scope[k.index()]);
+                    (self.rendered_text(k), scope)
+                }
+            };
+            match items.last_mut() {
+                // Text, or a component of the iteration before it, is part
+                // of the item it follows.
+                Some(last) if per_scope && (scope.is_none() || scope == last_scope) => {
+                    last.push_str(&text)
+                }
+                _ if !per_scope && text.trim().is_empty() => {}
+                _ => items.push(text),
+            }
+            if scope.is_some() {
+                last_scope = scope;
+            }
+        }
+        let separator = match self.attr_text(c, "asList") {
+            Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
+            _ if block => "",
+            _ => ", ",
+        };
+        let mut first = true;
+        for item in items.iter().map(|i| i.trim()).filter(|i| !i.is_empty()) {
+            if !first {
+                out.push_str(separator);
+            }
+            out.push_str(item);
+            first = false;
         }
     }
 

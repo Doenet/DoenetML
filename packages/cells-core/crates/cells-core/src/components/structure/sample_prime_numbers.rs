@@ -38,6 +38,7 @@ component! {
         exclude: Scalars,
         numSamples: Literal(1.0),
     }
+    static_count: count,
     children: None,
     planner: Plan(plan),
 }
@@ -55,3 +56,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
 #[cfg(test)]
 #[path = "sample_prime_numbers.spec.rs"]
 mod spec;
+
+/// How many numbers its record draws (`numSamples`): a reference to it among
+/// a list's children contributes as many (ADR 0041).
+fn count(record: &Record) -> Option<usize> {
+    draw_count("numSamples", Attrs::of(record).numSamples).ok()
+}

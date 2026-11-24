@@ -447,6 +447,29 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         <number name="n">$s + $r[$k].c</number>"#,
     ),
     (
+        // Structural sequences (ADR 0041, step 4): a sequence whose count
+        // a cell sets, with an exclude a cell sets, one inside a repeat
+        // counting by the iteration's index and value (the item a
+        // `<repeatForSequence>` declares, ADR 0040), an entry by a cell,
+        // by an index and past the count, and a collect of a sequence's
+        // numbers; and a `<repeat for>` over each kind of sequence, a
+        // list's entries and a structural sequence's numbers.
+        "structural-sequences",
+        r#"<numberInput name="k" value="2"/>
+        <numberList name="l">5 $k 7</numberList>
+        <repeat name="f" for="$l" valueName="u" indexName="j">
+          <number name="d">$u + $j + $s[$j]</number>
+        </repeat>
+        <repeat name="g" for="$s" valueName="w"><number name="e">2$w</number></repeat>
+        <sequence name="s" from="1" to="$k" exclude="$k"/>
+        <repeatForSequence name="r" length="$k" indexName="i" valueName="v">
+          <sequence name="t" length="$i" step="$v"/>
+          <number name="b">$t[$k] + $s[$i]</number>
+        </repeatForSequence>
+        <collect name="c" from="$s" componentType="number"/>
+        <number name="a">$s[$k] + $s[9] + $r[$k].t[1] + $c[1] + $f[$k].d + $g[1].e</number>"#,
+    ),
+    (
         // A sort and a shuffle of points, whose entries are two cells
         // each (ADR 0053), their copies, a choice between two, and one in
         // a repeat whose count a cell sets.
@@ -1154,7 +1177,10 @@ fn every_constant_lies_in_the_range_the_check_evaluated() {
             let mut session = Session::new(seed);
             let mut math = MathStore::default();
             for &c in &counts {
-                for built in builds_at(&compiled, &mut session, &mut math, c) {
+                // A count no student reaches (a constant count other than
+                // its own) puts an iteration's index outside the range
+                // the check gives it, and is no build a session makes.
+                for built in builds_at_reachable(&compiled, &mut session, &mut math, c) {
                     check(format!("{name}, seed {seed}, count {c}"), &built);
                 }
             }
@@ -1205,6 +1231,28 @@ fn builds_at(
     math: &mut MathStore,
     c: u32,
 ) -> Vec<Built> {
+    builds_forcing(compiled, session, math, c, false)
+}
+
+/// [`builds_at`], with a repeat whose count is a constant (a `<repeat
+/// for>` over a static sequence, a literal length) at that count: the
+/// builds a session can make.
+fn builds_at_reachable(
+    compiled: &Arc<Compiled>,
+    session: &mut Session,
+    math: &mut MathStore,
+    c: u32,
+) -> Vec<Built> {
+    builds_forcing(compiled, session, math, c, true)
+}
+
+fn builds_forcing(
+    compiled: &Arc<Compiled>,
+    session: &mut Session,
+    math: &mut MathStore,
+    c: u32,
+    reachable: bool,
+) -> Vec<Built> {
     let mut out = Vec::new();
     let mut counts = Counts::default();
     for _ in 0..MAX_PASSES {
@@ -1214,6 +1262,21 @@ fn builds_at(
         *session = next;
         let mut settled = true;
         for r in &doc.structure.repeats {
+            let constant = reachable
+                .then(|| {
+                    let ty = doc.components.component_type[r.comp.index()];
+                    let cell = doc.components.comp_cells(r.comp)[ty.count_prop()?];
+                    let v = doc.cells[cell.index()];
+                    doc.is_const(cell).then(|| {
+                        if v.is_finite() && v > 0.0 {
+                            v.floor() as u32
+                        } else {
+                            0
+                        }
+                    })
+                })
+                .flatten();
+            let c = constant.unwrap_or(c);
             if r.iterations != c {
                 counts.set(r.scope, r.node, c);
                 settled = false;

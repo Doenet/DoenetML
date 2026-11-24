@@ -4,6 +4,7 @@
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::{Error, Result};
+use crate::program::{MAX_SEQUENCE, sequence_parameters, sequence_values};
 
 component! {
     /// `<sequence from to step length exclude>`: the numbers `from, from +
@@ -11,14 +12,18 @@ component! {
     /// core counts them from whichever of the four are given (`from` 1,
     /// `step` 1 and `length` 10 by default; `to` and `length` give the
     /// step). Its entries are its list, `numbers` (`number1`, ...), and
-    /// `numComponents` how many there are. Every parameter is a literal:
-    /// a count that follows a reference is a structural sequence (ADR 0041
-    /// step 4), not supported, as letters and math are not.
+    /// `numComponents` how many there are. Every parameter is a literal
+    /// number here, a static sequence: one with a parameter that is a
+    /// reference or math is a structural sequence (ADR 0041, decision 2),
+    /// of the type `structural` names. Letters and math are not
+    /// supported.
     tags: ["sequence"],
     flags: [copyable],
+    structural { when: [from, to, step, length, exclude], is: StructuralSequence }
     default_prop: numbers,
     props {
         numComponents: list_len { rendered },
+        hide: by_planner { rendered },
     }
     list {
         names: [numbers, values],
@@ -38,50 +43,17 @@ component! {
         length: Scalar,
         exclude: Scalars,
         r#type: Text,
+        hide: Flag(false),
     }
+    static_count: count,
     children: None,
     planner: Plan(plan),
 }
 
-/// The most numbers a sequence holds: its entries are a list's ports.
-const MAX_SEQUENCE: usize = 1000;
-
-/// From, step and length, as the current core's
-/// `calculateSequenceParameters` gives them for numbers from whichever are
-/// given; an error when all four are.
-pub(crate) fn parameters(
-    from: Option<f64>,
-    to: Option<f64>,
-    step: Option<f64>,
-    length: Option<f64>,
-) -> Result<(f64, f64, f64)> {
-    // The count of a run from `a` to `b` by `s`, rounded as the current
-    // core rounds it.
-    let count = |a: f64, b: f64, s: f64| (((b - a) / s + 1.0) * (1.0 + 1e-14)).floor();
-    Ok(match (from, to) {
-        (None, None) => (1.0, step.unwrap_or(1.0), length.unwrap_or(10.0)),
-        (None, Some(to)) => {
-            let step = step.unwrap_or(1.0);
-            let length = length.unwrap_or_else(|| count(1.0, to, step));
-            (to - step * (length - 1.0), step, length)
-        }
-        (Some(from), None) => (from, step.unwrap_or(1.0), length.unwrap_or(10.0)),
-        (Some(from), Some(to)) => match (step, length) {
-            (None, None) => (from, 1.0, count(from, to, 1.0)),
-            (None, Some(length)) => (from, (to - from) / (length - 1.0), length),
-            (Some(step), None) => (from, step, count(from, to, step)),
-            (Some(_), Some(_)) => {
-                return Err(Error::Unsupported(
-                    "<sequence> with from, to, step and length all given".into(),
-                ));
-            }
-        },
-    })
-}
-
-/// Its entries: constants the planner counts from its literal parameters.
-pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let attrs = Attrs::of(ctx.record());
+/// Its numbers, from its literal parameters: an error for a type other
+/// than numbers, a parameter that is no number, all four given, or more
+/// than [`MAX_SEQUENCE`].
+fn numbers(attrs: Attrs) -> Result<Vec<f64>> {
     if let Some(t) = &attrs.r#type
         && !t.trim().eq_ignore_ascii_case("number")
     {
@@ -99,37 +71,39 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             ))),
         }
     };
-    let (from, step, length) = parameters(
+    let (from, step, length) = sequence_parameters(
         literal("from", attrs.from)?,
         literal("to", attrs.to)?,
         literal("step", attrs.step)?,
         literal("length", attrs.length)?,
-    )?;
+    )
+    .ok_or_else(|| {
+        Error::Unsupported("<sequence> with from, to, step and length all given".into())
+    })?;
     let exclude = attrs
         .exclude
         .into_iter()
         .map(|x| literal("exclude", Some(x)).map(Option::unwrap))
         .collect::<Result<Vec<f64>>>()?;
-    // A length that is no whole number, or below 0, is none, as the
-    // current core warns and takes.
-    let length = if length.is_finite() && length >= 0.0 && length.fract() == 0.0 {
-        length as usize
-    } else {
-        0
-    };
-    if length > MAX_SEQUENCE {
+    if length.is_finite() && length > MAX_SEQUENCE as f64 {
         return Err(Error::Unsupported(format!(
             "<sequence> of more than {MAX_SEQUENCE} numbers"
         )));
     }
-    let values: Vec<f64> = (0..length)
-        .map(|k| if k == 0 { from } else { from + step * k as f64 })
-        .filter(|v| {
-            !exclude
-                .iter()
-                .any(|x| (x - v).abs() <= 1e-10 * v.abs().max(1.0))
-        })
-        .collect();
+    Ok(sequence_values(from, step, length, &exclude).collect())
+}
+
+/// How many numbers its record makes: a reference to it among a list's
+/// children contributes as many (ADR 0041).
+fn count(record: &Record) -> Option<usize> {
+    numbers(Attrs::of(record)).ok().map(|v| v.len())
+}
+
+/// Its entries: constants the planner counts from its literal parameters.
+pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    let attrs = Attrs::of(ctx.record());
+    let hide = Wire::scalar(attrs.hide.clone(), GivenId::Attr(attr::hide, 0));
+    let values = numbers(attrs)?;
     let n = values.len();
     let mut wiring = ElemWiring::with_list(ctx.component_type(), n);
     wiring.set_entries(
@@ -144,7 +118,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             })
             .collect(),
     );
-    wiring.set_planned(Planned {});
+    wiring.set_planned(Planned { hide });
     Ok(wiring)
 }
 

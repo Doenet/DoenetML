@@ -27,7 +27,9 @@ pub(crate) mod pluralize;
 pub(crate) mod subset_of_reals;
 pub mod text;
 
+pub(crate) mod matrix;
 pub(crate) mod sequence;
+pub(crate) mod structural_sequence;
 pub mod when;
 
 // The specs of the value lists, defined below by `value_list!`, sit

@@ -227,6 +227,17 @@ pub enum Post {
         /// Expanded after.
         expand: bool,
     },
+    /// Its entries, a list by row, made a matrix of `rows` by `cols`
+    /// (ADR 0041, decision 8), then simplified as the flag says: a
+    /// `<matrix>`'s post.
+    Matrix {
+        /// How many rows.
+        rows: u32,
+        /// How many columns.
+        cols: u32,
+        /// Simplified after.
+        simplify: bool,
+    },
 }
 
 impl Post {
@@ -264,6 +275,14 @@ impl Post {
                     h = engine.expand(h);
                 }
                 h
+            }
+            Post::Matrix {
+                rows,
+                cols,
+                simplify,
+            } => {
+                let h = engine.matrix(h, rows, cols);
+                if simplify { engine.simplify(h) } else { h }
             }
         }
     }
@@ -673,6 +692,9 @@ mod arity {
             OpSpec::Sym(SymKind::Compare {
                 opts: crate::sym::CompareOpts::default(),
             }),
+            OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
+            OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
         ]);
         ops
     }
@@ -712,6 +734,10 @@ mod arity {
                 VecOp::IntoDomain => 44,
                 VecOp::DomainRange => 45,
                 VecOp::DomainHull { .. } => 46,
+                // After the symbolic operators 47 to 50.
+                VecOp::SequenceParams { .. } => 51,
+                VecOp::SequenceCount { .. } => 52,
+                VecOp::SequenceEntry { .. } => 53,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -741,7 +767,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 51;
+    const N_TAGS: usize = 54;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

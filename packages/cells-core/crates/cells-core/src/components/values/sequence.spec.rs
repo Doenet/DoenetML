@@ -56,9 +56,16 @@ spec! {
         expect { "s.numComponents" = 0 }
     }
 
-    case "a count that follows a reference is refused" {
+    case "a count that follows a reference is a structural sequence" {
         doenet r#"<number name="n">4</number>
                   <sequence name="s" to="$n"/>"#;
-        diagnostics["cells-unsupported"]
+        expect { "s.numComponents" = 4 }
+    }
+
+    case "its entries among a list's and an operator's children" {
+        doenet r#"<sequence name="s" from="2" to="4"/>
+                  <numberList name="l">$s 7</numberList>
+                  <sum name="t">$s</sum>"#;
+        expect { "l.numbers" = [2, 3, 4, 7], "t.value" = 9 }
     }
 }

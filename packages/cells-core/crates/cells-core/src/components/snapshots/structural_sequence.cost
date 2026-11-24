@@ -1,0 +1,5 @@
+to follows a number input: cells 15 · essential 1 · constant 8 · instrs 4 · components 6
+length, step and from follow inputs: cells 18 · essential 3 · constant 8 · instrs 5 · components 9
+excludes that are references: cells 19 · essential 1 · constant 14 · instrs 4 · components 8
+math in a parameter: cells 20 · essential 0 · constant 20 · instrs 0 · components 7
+all four given is refused: cells 4 · essential 0 · constant 4 · instrs 0 · components 3
