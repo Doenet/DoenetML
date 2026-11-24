@@ -41,6 +41,7 @@ import {
     madeFromInputValue,
     typeChangeChecksValue,
     typeChangeRule,
+    unrelatedTypeChangeArgs,
     valueAllowsTypeChange,
 } from "../../utils/typeChange";
 import {
@@ -1435,7 +1436,7 @@ export default class Copy extends CompositeComponent {
                     // component it holds (`componentStoodFor`), which
                     // changes when a case or a pick further in does, and
                     // `"contentValue"` when, written as a point, vector,
-                    // coords or boolean, the extend is also checked against
+                    // coords or a number from a text, the extend is also checked against
                     // the value of a math it holds (`typeChangeContentValue`).
                     // A composite tag is made from its own kind only, which
                     // what it holds does not change.
@@ -1458,7 +1459,7 @@ export default class Copy extends CompositeComponent {
                     componentInfoObjects.allComponentClasses[sourceType];
                 if (sourceClass?.listEntryComponentType !== undefined) {
                     // `"numEntriesValue"` when, written as a point, vector,
-                    // coords or boolean, the one entry is also checked
+                    // coords or a number from a text, the one entry is also checked
                     // against its value, as a math is.
                     let typeChangeValueCheck = null;
                     if (listIsDecided(sourceType, { componentInfoObjects })) {
@@ -1617,15 +1618,33 @@ export default class Copy extends CompositeComponent {
                                 : "numEntries",
                         variablesOptional: true,
                     };
+                    if (stateValues.typeChangeValueCheck === "value") {
+                        // whether a text is LaTeX, which decides whether it
+                        // reads as a number (`valueAllowsTypeChange`)
+                        dependencies.typeChangeSourceIsLatex = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            variableName: "isLatex",
+                            variablesOptional: true,
+                        };
+                    }
                     if (
                         stateValues.typeChangeValueCheck === "numEntriesValue"
                     ) {
                         // the value of the first entry, which is checked
                         // when it is the only one. Only an entry that is a
-                        // math is (`utils/typeChange.js`): of a list of
-                        // maths, `math1`, or of intervals, `interval1`; the
-                        // list has one of them, a list of other entries
-                        // neither.
+                        // math or a text is (`utils/typeChange.js`): of a
+                        // list of maths, `math1`, of intervals, `interval1`,
+                        // or of texts, `text1`; the list has at most one of
+                        // them.
+                        dependencies.typeChangeSourceTextValue = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            variableName: "text1",
+                            variablesOptional: true,
+                        };
                         dependencies.typeChangeSourceEntryValue = {
                             dependencyType: "stateVariable",
                             componentIdx:
@@ -1721,10 +1740,11 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        // The value of each math in what a composite holds
+        // The value of each math or text in what a composite holds
         // (`typeChangeContent`) when the type an `extend` is written as is
         // checked against it (`typeChangeValueCheck` "contentValue"), such
-        // as a math for `<point extend="$g"/>` of a group holding one, so
+        // as a math for `<point extend="$g"/>` of a group holding one, or a
+        // text for `<number extend="$g"/>`, so
         // the extend is decided again when it changes. Content holding more
         // of them than `MAX_VALUES_WATCHED` does not stand for one
         // component, whatever their values, so they are not watched.
@@ -1747,6 +1767,21 @@ export default class Copy extends CompositeComponent {
                                 dependencyType: "stateVariable",
                                 componentIdx: x.componentIdx,
                                 variableName: "value",
+                                variablesOptional: true,
+                            },
+                        ]),
+                    ),
+                    // whether a text is LaTeX, which decides whether it
+                    // reads as a number (`valueAllowsTypeChange`)
+                    ...Object.fromEntries(
+                        valueChecked(stateValues.typeChangeContent, {
+                            componentInfoObjects,
+                        }).map((x, i) => [
+                            `isLatex${i}`,
+                            {
+                                dependencyType: "stateVariable",
+                                componentIdx: x.componentIdx,
+                                variableName: "isLatex",
                                 variablesOptional: true,
                             },
                         ]),
@@ -1899,12 +1934,13 @@ export default class Copy extends CompositeComponent {
         // extend="$g"/>` in a `<group name="g">` holding two components, or
         // `<math extend="$r"/>` in a repeat), would report it as circular
         // too, once it is made.
-        const atLoad = await typeChangeAtLoadError({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-        });
+        const atLoad =
+            (await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            })) ?? (await propExtendErrorAtLoad(component));
         if (atLoad) {
             const stateIdInfo = {
                 prefix: `${component.stateId}|`,
@@ -3106,12 +3142,13 @@ export default class Copy extends CompositeComponent {
         // missing tag, D37), and only that, stays in place of the copy
         // whatever its source does now, whether it names nothing, is in a
         // case not active (`targetInactive`), or has changed.
-        const atLoad = await typeChangeAtLoadError({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-        });
+        const atLoad =
+            (await typeChangeAtLoadError({
+                component,
+                components,
+                componentInfoObjects,
+                workspace,
+            })) ?? (await propExtendErrorAtLoad(component));
         if (atLoad) {
             const key = typeChangeKey(atLoad);
             workspace.sourceIndices = [];
@@ -6786,19 +6823,24 @@ const MAX_VALUES_WATCHED = 4;
 
 /**
  * The components of `content` (`typeChangeContent`) whose value a point,
- * vector, coords or boolean is checked against (`typeChangeRule`), or none
- * when there are more than `MAX_VALUES_WATCHED`.
+ * vector or coords (a math's), a number (a text's), or an angle (either's),
+ * is checked against
+ * (`typeChangeRule`), or none when there are more than
+ * `MAX_VALUES_WATCHED`.
  */
 function valueChecked(content, { componentInfoObjects }) {
     const checked = (content ?? []).filter(
         (x) =>
             x.componentType === "_ref" ||
             (componentInfoObjects.allComponentClasses[x.componentType] &&
-                typeChangeRule({
-                    writtenType: "point",
-                    sourceType: x.componentType,
-                    componentInfoObjects,
-                }).valueCheck),
+                ["point", "number", "angle"].some(
+                    (writtenType) =>
+                        typeChangeRule({
+                            writtenType,
+                            sourceType: x.componentType,
+                            componentInfoObjects,
+                        }).valueCheck,
+                )),
     );
     return checked.length > MAX_VALUES_WATCHED ? [] : checked;
 }
@@ -7466,6 +7508,33 @@ async function typeChangeAtLoadError({
     // The same diagnostic the document reported when it loaded
     // (`reportTypeChangesAtLoad`), which is kept once.
     return typeChangeAtLoadDiagnostic({ mark, writtenType, source });
+}
+
+/**
+ * The error found when the document loaded, from what is written
+ * (`doenetAttributes.extendErrorsAtLoad`, `extendErrorsAtLoad.ts`), for an
+ * extend made from a property or an entry of a list (`<number
+ * extend="$l.slope">5</number>`, `<math extend="$ml[1]">+1</math>`, D71), as
+ * a mismatch for `inPlaceOfCopy`: the error in its place (DIAG-5), as an
+ * extend of a component has (`replacementForSource`). `undefined` otherwise.
+ */
+async function propExtendErrorAtLoad(component) {
+    const marks = component.doenetAttributes?.extendErrorsAtLoad;
+    if (
+        !marks?.length ||
+        !(await component.stateValues.effectivePropNameBySource)?.[0] ||
+        !(
+            (await component.stateValues.link) ||
+            (await component.stateValues.copyWithState)
+        )
+    ) {
+        return undefined;
+    }
+    const { code, args } = marks[0];
+    return {
+        level: "error",
+        diagnostic: codedDiagnostic({ type: "error", code, args: { ...args } }),
+    };
 }
 
 /**
@@ -9021,14 +9090,21 @@ async function typeChangeStatus({
 
     /**
      * Whether `writtenType` can be made from a component of `sourceType`,
-     * whose value, if one must be checked, is read by `readValue`. At
+     * whose value, if one must be checked, is read by `readValue`, and
+     * whether that value is LaTeX by `readIsLatex` (else whether
+     * `sourceType` is a `<latex>`). At
      * `level` `"info"`, for the one component a composite holds or the one
      * entry of a list the document makes, only the value is checked: its
      * type was decided when the document loaded (`typeChangeAtLoad`), and
      * a type found otherwise here, such as while a composite in it is made
      * again, is not decided.
      */
-    async function decide({ sourceType, readValue, level = "error" }) {
+    async function decide({
+        sourceType,
+        readValue,
+        readIsLatex,
+        level = "error",
+    }) {
         // What content made at run time is, other than its value, was
         // decided when the document loaded (`typeChangeAtLoad`).
         const valueOnly = level === "info";
@@ -9058,6 +9134,8 @@ async function typeChangeStatus({
                         "prefill" in writtenClass.createAttributesObject()
                             ? "true"
                             : "false",
+                    mix: rule.mix ?? "none",
+                    fittingInput: rule.fittingInput ?? "none",
                 },
             });
         }
@@ -9068,15 +9146,28 @@ async function typeChangeStatus({
             return mismatch({
                 level,
                 code: "doenet-e0065",
-                args:
-                    rule.kind === "booleanNumber"
-                        ? { sourceType, mix: rule.mix }
-                        : { sourceType },
+                args: unrelatedTypeChangeArgs({
+                    rule,
+                    sourceType,
+                    writtenType,
+                    componentInfoObjects,
+                }),
             });
         }
         if (rule.valueCheck && readValue) {
             const value = await readTypeChangeValue(component, readValue);
-            if (!valueAllowsTypeChange(rule.valueCheck, value)) {
+            // a text that is LaTeX is read as LaTeX, as the `<number>`
+            // made from it reads it (`Text.js`'s `number`)
+            const isLatex =
+                rule.valueCheck === "number" &&
+                ((readIsLatex
+                    ? await readTypeChangeValue(component, readIsLatex)
+                    : undefined) ??
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: sourceType,
+                        baseComponentType: "latex",
+                    }));
+            if (!valueAllowsTypeChange(rule.valueCheck, value, { isLatex })) {
                 return mismatch({
                     level: "info",
                     code: "doenet-i0053",
@@ -9220,7 +9311,11 @@ async function typeChangeStatus({
         ) {
             return undefined;
         }
-        return decide({ sourceType: typeStoodFor(nonStrings[0]), readValue });
+        return decide({
+            sourceType: typeStoodFor(nonStrings[0]),
+            readValue,
+            readIsLatex: async () => nonStrings[0].stateValues?.isLatex,
+        });
     }
 
     const sourceType = typeStoodFor(sourceComponent);
@@ -9354,6 +9449,7 @@ async function typeChangeStatus({
         return decide({
             sourceType,
             readValue: async () => sourceComponent.stateValues.value,
+            readIsLatex: async () => sourceComponent.stateValues.isLatex,
         });
     }
 
@@ -9475,6 +9571,7 @@ async function typeChangeStatus({
         readValue: one.stateValues
             ? async () => one.stateValues.value
             : undefined,
+        readIsLatex: async () => one.stateValues?.isLatex,
         level: "info",
     });
 }

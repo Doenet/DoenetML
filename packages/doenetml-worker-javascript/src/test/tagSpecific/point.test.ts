@@ -7530,10 +7530,12 @@ describe("Point tag tests @group4", async () => {
         expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
     });
 
-    it("coordinates written as a child of a copy or extend set its coordinates, as `xs` does", async () => {
-        // The child `(3,4)` is sugar for `xs="3 4"`, also on a `copy` or
-        // `extend`, which it takes precedence over the source with (#2395),
-        // whether the source wrote its coordinates as a child or as `xs`.
+    it("coordinates written as a child of a copy set its coordinates, as `xs` does", async () => {
+        // The child `(3,4)` is sugar for `xs="3 4"`, also on a `copy`,
+        // which it takes precedence over the source with (#2395), whether
+        // the source wrote its coordinates as a child or as `xs`. On an
+        // `extend` it is an error at load (D71): an extend of a point is
+        // the same point, and can't be given more.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="show"/>
@@ -7578,7 +7580,7 @@ describe("Point tag tests @group4", async () => {
             return coords;
         }
 
-        const atLoad = ["C0", "E0", "CQ0", "EQ0", "X0", "XE0", "L0", "W0"];
+        const atLoad = ["C0", "CQ0", "X0", "XE0", "L0"];
         const expected = Object.fromEntries(
             atLoad.map((name) => [name, [3, 4]]),
         );
@@ -7594,7 +7596,20 @@ describe("Point tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("L0")].stateValues.label,
         ).eq("L");
         const { errors, warnings } = getDiagnosticsByType(core);
-        expect([...errors, ...warnings]).eqls([]);
+        expect(warnings).eqls([]);
+        expect(errors.map((e: any) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 7],
+            ["doenet-e0057", 9],
+            ["doenet-e0057", 14],
+            ["doenet-e0057", 21],
+            ["doenet-e0057", 23],
+        ]);
+        for (const name of ["E0", "EQ0", "W0"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)]?.componentType,
+                name,
+            ).not.eq("point");
+        }
 
         // after the sources are dragged, and for copies made afterwards
         for (const name of ["P", "Q"]) {
@@ -7613,7 +7628,7 @@ describe("Point tag tests @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("show"),
             core,
         });
-        const later = ["C1", "E1", "CQ1", "EQ1", "X1"];
+        const later = ["C1", "CQ1", "X1"];
         expect(await coordsOf([...atLoad, ...later])).eqls({
             ...expected,
             ...Object.fromEntries(later.map((name) => [name, [3, 4]])),

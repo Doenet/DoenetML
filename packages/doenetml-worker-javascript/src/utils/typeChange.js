@@ -7,29 +7,35 @@
  * wrapping it in a new `T` (`verifyReplacementsMatchSpecifiedType`).
  *
  * Allowed:
- * - between the value types math, number and text, and between boolean and
- *   text, a text being a boolean only while it is the word `true` or
- *   `false`. A boolean is not a number or a math, nor a number or a math a
- *   boolean (D47 decisions 3 and 4): `<number convertBoolean>` is the one
- *   place a boolean is read as `1` or `0`, and a comparison (`$n != 0`) is
- *   how a number decides a boolean (`booleanNumber`);
+ * - between the value types math, number and text, and a text from a
+ *   boolean (shown as the word). A text is not a boolean (D68), a boolean is
+ *   not a number or a math, nor a number or a math a boolean (D47 decisions
+ *   3 and 4): `<number convertBoolean>` is the one place a boolean is read
+ *   as `1` or `0`, and a comparison (`$n != 0`, `$t = true`) is how a number
+ *   or a text decides a boolean (`mix`). A number from a text is missing
+ *   while the text isn't a number (`valueCheck` `"number"`);
  * - between the geometric types point, vector and coords;
  * - math from a point, vector or coords, as the tuple of its coordinates;
  * - a point, vector or coords from a math whose value is a tuple;
  * - a value type from an input, as the input's value is: `<math
  *   extend="$mi"/>` of a `<mathInput>`, and anything its value can be made
- *   into;
- * - an angle as the math of its measure, and a label as its text
- *   (`VALUED_AS`), but not a boolean from a label: REF-5 makes a boolean
- *   only from a text, and a label is not one (#2656);
- * - any other component as a type it stands in as where its own type is not
- *   taken (its `adapters`): an `<ion>` as the text of its name, a `<line>`
- *   as the math of its equation, and, for an adapter to a value type, as any
- *   value type.
+ *   into (an input is its value, REF-1a, D69 decision 3);
+ * - an angle as the math of its measure, and from a value that is one
+ *   (`VALUED_AS`, D66 decision 17, D69 decision 3): a math, missing while
+ *   its value is a tuple, a vector or another value that is no measure
+ *   (`valueCheck` `"measure"`), a number, or a text, missing while it isn't
+ *   a number (`"number"`). An angle is not made from a point, a vector, a
+ *   coords, a `<matrix>` or anything else that is no value (`notAMeasure`,
+ *   user decision, 2026-11-24);
+ * - any other component as a type it stands in as (its `adapters`), and
+ *   nothing further (D69): an `<ion>` as the text of its name, a `<line>` as
+ *   the math of its equation, a `<label>` as its text. A `<line>` is not a
+ *   number, though its equation is a math (`standsInAs`).
  *
  * Anything else is not, and is reported by its kind, each with the clearer
  * form the author can write instead: an input made from a value
- * (`inputFromValue`), a container read as a value (`container`), and any
+ * (`inputFromValue`), a container read as a value (`container`), a
+ * component made into what it doesn't stand in as (`standsInAs`), and any
  * other pair (`unrelated`).
  *
  * A list written as the tag (`<mathList extend="$g"/>`) is not decided here:
@@ -37,6 +43,7 @@
  */
 
 import { vectorOperators } from "@doenet/utils";
+import { textToMath } from "./valueFunctions/text";
 
 /** The value types, which are made from one another. */
 const VALUE_TYPES = ["math", "number", "text", "boolean"];
@@ -58,15 +65,42 @@ const INPUT_VALUE_TYPES = {
     booleanInput: "boolean",
 };
 
+/** The input that edits a value of each value type. */
+const FITTING_INPUTS = {
+    math: "mathInput",
+    number: "mathInput",
+    text: "textInput",
+    boolean: "booleanInput",
+};
+
 /**
- * Other types whose value is one of the value types, so that they are made
- * from, and into, the others as that type: an angle is its measure in
- * radians, a math, and a label its text (their `adapters`).
+ * The one type that is not a value type but is made from, and into, the
+ * value types as one (D69 decision 3, D66 decision 17): an angle is its
+ * measure in radians, a math.
  */
 const VALUED_AS = {
     angle: "math",
-    label: "text",
 };
+
+/**
+ * The tags that are maths (`Matrix.js`, `Interval.js`) but whose value is
+ * never the measure of an angle, so an angle is not made from one, as from
+ * a point.
+ */
+const NOT_MEASURES = ["matrix", "interval", "subsetOfReals", "periodicSet"];
+
+/**
+ * The operators of a math's value that make it no measure of an angle: a
+ * tuple or vector (`vectorOperators`), a list, a matrix, an interval or a
+ * set.
+ */
+const NON_MEASURE_OPERATORS = [
+    ...vectorOperators,
+    "list",
+    "matrix",
+    "interval",
+    "set",
+];
 
 /**
  * The family a component type belongs to for a type change: the value or
@@ -125,12 +159,23 @@ function familyOf(componentType, componentInfoObjects) {
  * if allowed only for some of the source's values, which check its value
  * must pass (`valueAllowsTypeChange`):
  * - `{ allowed: true }`;
- * - `{ allowed: true, valueCheck: "tuple" | "boolean" }`, the check on the
- *   value of the source, or, for an input, of its value;
+ * - `{ allowed: true, valueCheck: "tuple" | "number" | "measure" }`, the
+ *   check on the value of the source, or, for an input, of its value;
  * - `{ allowed: false, kind: "inputFromValue" | "container" | "unrelated" }`;
- * - `{ allowed: false, kind: "booleanNumber", mix }`, a boolean as a number
- *   or a math (`mix` is `"booleanAsNumber"`), or a number or a math as a
- *   boolean (`"numberAsBoolean"`), with an input as its value.
+ *   an `inputFromValue` whose input's value would be a type mix with the
+ *   source's also has that `mix` and the input that edits the source
+ *   (`fittingInput`, `<mathInput>` for a number);
+ * - `{ allowed: false, kind: "mix", mix }`, a value as a type it isn't
+ *   read as without the author asking: a boolean as a number or a math
+ *   (`mix` is `"booleanAsNumber"`), a number or a math as a boolean
+ *   (`"numberAsBoolean"`), or a text as a boolean (`"textAsBoolean"`, D68),
+ *   with an input as its value, and a component that stands in as a text
+ *   (a `<label>`) as one; or an angle made from what is no measure
+ *   (`"notAMeasure"`): a point, a vector, a `<matrix>`, a `<line>`;
+ * - `{ allowed: false, kind: "standsInAs", standsInAs, property }`, a
+ *   component made into a type it doesn't stand in as (D69): `standsInAs`
+ *   is the types it does (its adapters'), and `property` a property of it
+ *   that gives the value meant, if it has one (`valuePropertyFor`).
  *
  * A composite is not decided here: what it stands for is its content
  * (`Copy.js`, `typeChangeStatus`).
@@ -154,49 +199,102 @@ export function typeChangeRule({
 
     if (written.kind === "input") {
         if (source.kind === "value") {
-            return { allowed: false, kind: "inputFromValue" };
+            // An input whose value would be a type mix with the source's
+            // (`<booleanInput extend="$n"/>`, D47, D68) can't edit it
+            // either way, so the input that can is named (`fittingInput`).
+            const mix =
+                written.valueType &&
+                VALUE_TYPES.includes(source.type) &&
+                VALUE_TYPES.includes(written.valueType)
+                    ? valueMix(source.type, written.valueType)
+                    : undefined;
+            return mix
+                ? {
+                      allowed: false,
+                      kind: "inputFromValue",
+                      mix,
+                      fittingInput: FITTING_INPUTS[source.type],
+                  }
+                : { allowed: false, kind: "inputFromValue" };
         }
         return { allowed: false, kind: "unrelated" };
     }
 
-    const sourceClass = componentInfoObjects.allComponentClasses[sourceType];
-
-    // What any other component stands in as where its own type is not
-    // taken (`adapters`, as `ChildMatcher` substitutes them): an `<ion>` as
-    // the text of its name, a `<line>` as the math of its equation. Value
-    // types and inputs are decided by the table alone, so that its checks
-    // on a math's value are not passed over.
-    const adapterCount =
-        source.kind === "other" ? (sourceClass?.numAdapters ?? 0) : 0;
-    for (let n = 0; n < adapterCount; n++) {
-        const adapterType = sourceClass.getAdapterComponentType(
-            n,
-            componentInfoObjects.publicStateVariableInfo,
-        );
-        if (!adapterType) {
-            continue;
-        }
-        if (
+    // What any other component stands in as (its `adapters`, as
+    // `ChildMatcher` substitutes them where its own type is not taken):
+    // an `<ion>` as the text of its name, a `<line>` as the math of its
+    // equation. It is made into those types only, not into what they
+    // could be made into in turn (D69). Value types and inputs are
+    // decided by the table alone, so that its checks on a math's value
+    // are not passed over.
+    const standsInAs =
+        source.kind === "other"
+            ? adapterTypesOf(sourceType, componentInfoObjects)
+            : [];
+    if (
+        standsInAs.some((adapterType) =>
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: adapterType,
                 baseComponentType: writtenType,
-            })
-        ) {
-            return { allowed: true };
-        }
-        const adapted = familyOf(adapterType, componentInfoObjects);
-        if (
-            adapted.kind === "value" &&
-            VALUE_TYPES.includes(adapted.type) &&
-            VALUE_TYPES.includes(written.type) &&
-            booleanNumberMix(adapted.type, written.type) === undefined
-        ) {
-            return { allowed: true };
-        }
+            }),
+        )
+    ) {
+        return { allowed: true };
     }
 
     if (written.kind !== "value") {
         return { allowed: false, kind: "unrelated" };
+    }
+
+    // An angle is made only from its measure: a value, a math, a number or
+    // a text (`VALUED_AS`), not from a point, a vector, a `<matrix>`, or
+    // what stands in as a math (a `<line>`'s equation).
+    const writtenIsAngle = Object.keys(VALUED_AS).some((type) =>
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: writtenType,
+            baseComponentType: type,
+        }),
+    );
+    const notAMeasure = { allowed: false, kind: "mix", mix: "notAMeasure" };
+    if (
+        writtenIsAngle &&
+        (standsInAs.length > 0 ||
+            (source.kind === "value" &&
+                GEOMETRIC_TYPES.includes(source.type)) ||
+            NOT_MEASURES.some((type) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: sourceType,
+                    baseComponentType: type,
+                }),
+            ))
+    ) {
+        return notAMeasure;
+    }
+
+    if (standsInAs.length > 0) {
+        if (
+            written.type === "boolean" &&
+            standsInAs.every((adapterType) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: adapterType,
+                    baseComponentType: "text",
+                }),
+            )
+        ) {
+            // what stands in only as a text, a `<label>`, is no more true
+            // or false than a text is (D68 decision 1)
+            return { allowed: false, kind: "mix", mix: "textAsBoolean" };
+        }
+        return {
+            allowed: false,
+            kind: "standsInAs",
+            standsInAs,
+            property: valuePropertyFor(
+                sourceType,
+                writtenType,
+                componentInfoObjects,
+            ),
+        };
     }
 
     if (source.kind === "input") {
@@ -207,31 +305,32 @@ export function typeChangeRule({
     }
 
     if (source.kind === "value") {
-        if (
-            written.type === "boolean" &&
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: sourceType,
-                baseComponentType: "label",
-            })
-        ) {
-            // A label stands in as its text (`VALUED_AS`), but REF-5 makes
-            // a boolean only from a text itself.
-            return { allowed: false, kind: "unrelated" };
-        }
         const writtenIsValue = VALUE_TYPES.includes(written.type);
         const sourceIsValue = VALUE_TYPES.includes(source.type);
         if (writtenIsValue && sourceIsValue) {
-            const mix = booleanNumberMix(source.type, written.type);
+            const mix = valueMix(source.type, written.type);
             if (mix !== undefined) {
-                return { allowed: false, kind: "booleanNumber", mix };
+                return { allowed: false, kind: "mix", mix };
             }
-            if (written.type === "boolean" && source.type === "text") {
-                return { allowed: true, valueCheck: "boolean" };
+            if (
+                (written.type === "number" || writtenIsAngle) &&
+                source.type === "text"
+            ) {
+                // a text that isn't a number makes a missing number (VAL-5),
+                // and a missing angle
+                return { allowed: true, valueCheck: "number" };
+            }
+            if (writtenIsAngle && source.type === "math") {
+                // a math that is a tuple or a vector makes a missing angle
+                return { allowed: true, valueCheck: "measure" };
             }
             return { allowed: true };
         }
         if (!writtenIsValue && !sourceIsValue) {
             return { allowed: true };
+        }
+        if (writtenIsAngle) {
+            return notAMeasure;
         }
         if (written.type === "math") {
             // from a point, vector or coords, as its coordinates
@@ -251,11 +350,77 @@ export function typeChangeRule({
 }
 
 /**
- * Which way a value of `sourceType` made a `writtenType` mixes a boolean and
- * a number (D47 decisions 3 and 4), both value types (`VALUE_TYPES`):
- * `"booleanAsNumber"`, `"numberAsBoolean"`, or `undefined` for no mix.
+ * The types a component of `componentType` stands in as where its own type
+ * is not taken: those of its `adapters` (`ChildMatcher`), in order, each
+ * once.
  */
-function booleanNumberMix(sourceType, writtenType) {
+export function adapterTypesOf(componentType, componentInfoObjects) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    const types = [];
+    for (let n = 0; n < (componentClass?.numAdapters ?? 0); n++) {
+        const adapterType = componentClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+        if (
+            adapterType &&
+            !adapterType.startsWith("_") &&
+            !types.includes(adapterType)
+        ) {
+            types.push(adapterType);
+        }
+    }
+    return types;
+}
+
+/**
+ * The property of a component of `sourceType` that gives the value a
+ * `writtenType` made from it would mean, which a message suggests in place
+ * of the type change (D69): `slope` for a `<number>` of a `<line>`,
+ * `equation` for a `<text>` of one. Each class names its own
+ * (`static valueProperties`, by the value type written); `""` for none.
+ */
+export function valuePropertyFor(
+    sourceType,
+    writtenType,
+    componentInfoObjects,
+) {
+    const properties =
+        componentInfoObjects.allComponentClasses[sourceType]?.valueProperties;
+    if (!properties) {
+        return "";
+    }
+    const written = familyOf(writtenType, componentInfoObjects);
+    return properties[written.type] ?? "";
+}
+
+/**
+ * Whether a component of `componentType` is one that stands in as a value
+ * only through its adapters (D69): neither a value type, an input, a
+ * geometric type nor an angle, but with an adapter to one of the value
+ * types, as a `<line>`, an `<ion>`, a `<function>`, an `<m>` or a
+ * `<label>` has.
+ */
+export function standsInAsValueOnly(componentType, componentInfoObjects) {
+    if (familyOf(componentType, componentInfoObjects).kind !== "other") {
+        return false;
+    }
+    return adapterTypesOf(componentType, componentInfoObjects).some(
+        (adapterType) => {
+            const family = familyOf(adapterType, componentInfoObjects);
+            return family.kind === "value" && VALUE_TYPES.includes(family.type);
+        },
+    );
+}
+
+/**
+ * Which way a value of `sourceType` made a `writtenType` mixes values that
+ * are not read as each other unless the author asks (D47 decisions 3 and 4,
+ * D68), both value types (`VALUE_TYPES`): `"booleanAsNumber"`,
+ * `"numberAsBoolean"`, `"textAsBoolean"`, or `undefined` for no mix.
+ */
+function valueMix(sourceType, writtenType) {
     const numeric = (type) => type === "math" || type === "number";
     if (sourceType === "boolean" && numeric(writtenType)) {
         return "booleanAsNumber";
@@ -263,13 +428,16 @@ function booleanNumberMix(sourceType, writtenType) {
     if (numeric(sourceType) && writtenType === "boolean") {
         return "numberAsBoolean";
     }
+    if (sourceType === "text" && writtenType === "boolean") {
+        return "textAsBoolean";
+    }
     return undefined;
 }
 
 /**
  * Whether a `writtenType` made from a value whose type is not known yet is
  * checked against that value (`valueAllowsTypeChange`): a point, vector or
- * coords made from a math, or a boolean made from a text. What it is made
+ * coords made from a math, or a number made from a text. What it is made
  * from is decided later, as the selected values of a `<choiceInput>` or the
  * one component a composite holds.
  */
@@ -322,21 +490,84 @@ function isContainer(componentType, componentInfoObjects) {
  * Whether `value`, the value of a math or a text, passes `valueCheck`
  * (`typeChangeRule`): a tuple or vector (`vectorOperators`, as `Point.js`
  * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
- * be made from it; for a boolean, made only from a text (D47 decision 4),
- * the word `true` or `false`, as a `<boolean>` reads a text
- * (`utils/booleanLogic.js`).
+ * be made from it; for an angle made from a math, a measure, one that is
+ * not a tuple, a vector, a list, a matrix, an interval or a set
+ * (`NON_MEASURE_OPERATORS`); for a number or an angle made from a text, a
+ * text that reads as a
+ * number, as a `<number>` reads a text: through its `math` (`Text.js`'s
+ * `number`), so `1e3` or a blank is not one, though `Number()` reads it,
+ * and a text that is LaTeX (`isLatex`, a `<latex>`) is read as LaTeX
+ * (`\frac{1}{2}`).
  */
-export function valueAllowsTypeChange(valueCheck, value) {
+export function valueAllowsTypeChange(
+    valueCheck,
+    value,
+    { isLatex = false } = {},
+) {
     const tree = value?.tree;
     if (valueCheck === "tuple") {
         return Array.isArray(tree) && vectorOperators.includes(tree[0]);
     }
-    if (valueCheck === "boolean") {
-        // a text, which is true or false only as that word
-        const word = String(value ?? "")
-            .trim()
-            .toLowerCase();
-        return word === "true" || word === "false";
+    if (valueCheck === "measure") {
+        return !(
+            Array.isArray(tree) && NON_MEASURE_OPERATORS.includes(tree[0])
+        );
+    }
+    if (valueCheck === "number") {
+        if (typeof value !== "string") {
+            return true;
+        }
+        const number = textToMath({
+            value,
+            isLatex: Boolean(isLatex),
+        }).evaluate_to_constant();
+        if (typeof number === "number") {
+            return !Number.isNaN(number);
+        }
+        // a complex number (`3+4i`)
+        return (
+            typeof number?.re === "number" &&
+            typeof number?.im === "number" &&
+            !Number.isNaN(number.re) &&
+            !Number.isNaN(number.im)
+        );
     }
     return true;
+}
+
+/**
+ * The arguments of `doenet-e0065` (`type-change-unrelated`) for `rule`, a
+ * type change `typeChangeRule` doesn't allow and that is not an input made
+ * from a value or a container read as a value: `mix` says which form the
+ * message suggests. `sourceType` is the type the source gives.
+ */
+export function unrelatedTypeChangeArgs({
+    rule,
+    sourceType,
+    writtenType,
+    componentInfoObjects,
+}) {
+    if (rule.kind === "mix") {
+        return { sourceType, mix: rule.mix };
+    }
+    if (rule.kind === "standsInAs") {
+        return {
+            sourceType,
+            mix: "standsInAs",
+            standsInAs: rule.standsInAs
+                .map((type) => `\`<${type}>\``)
+                .join(", "),
+            standsInAsCount: rule.standsInAs.length,
+            property: rule.property || "none",
+        };
+    }
+    if (
+        componentInfoObjects.allComponentClasses[writtenType]?.isContent &&
+        !componentInfoObjects.allComponentClasses[sourceType]?.isContent
+    ) {
+        // a container made from a value or an object holds it
+        // (`<label>$m</label>`, D69 decision 4)
+        return { sourceType, mix: "inContent" };
+    }
+    return { sourceType };
 }

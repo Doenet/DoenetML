@@ -25,6 +25,12 @@
  * guessed: an extend written as a tag that makes its content may extend
  * something else, which the run time reports another error for.
  *
+ * Children written inside an extend of a value or an object (`<math
+ * extend="$m">+1</math>`, `<point extend="$P">(3,4)</point>`) are
+ * `doenet-e0057` too, decided by the tag written alone (D71): a value or an
+ * object is what it holds. A container presents what it holds, and its
+ * extend may be given more (`childrenOfValueOrObjectError`).
+ *
  * An `<award>` or a `<choice>` can only be copied (D42, `doenet-e0078`), so
  * an extend or a `copyWithState` written as one is marked here too, decided
  * by the tag written alone, whatever it is of, unless the type check found it
@@ -44,6 +50,7 @@ import {
     extendChangesContentErrors,
     onlyCopiedErrors,
     PARTS_OF_CHOOSING_TAGS,
+    TAGS_MAKING_THEIR_CONTENT,
 } from "../../components/abstract/Copy";
 
 /**
@@ -388,6 +395,223 @@ export function checkExtendErrorsAtLoad({
         return names;
     }
 
+    /**
+     * The error for children written inside `copy`, an extend written as
+     * the tag `writtenType`, when that tag makes a value or an object (D71,
+     * REF-7): a value or an object is what it holds, so an extend of it,
+     * which is the same component again, can't be given more. A container
+     * (content, D46: `<section>`, `<p>`, `<graph>`, …) presents what it
+     * holds, and may (`isContent`); so may a `<group>` or a `<module>`, and
+     * the other composites have errors of their own (`doenet-e0057`). An
+     * `<m>`, `<me>` or `<men>`, whose children make one expression, counts
+     * as a value (`extendTakesNoContent`, D71 decision 7). A `<label>`,
+     * `<shortDescription>` or `<description>` may be written where the tag
+     * takes one (its `childGroups` name it: a `<point>`'s `<label>`, an
+     * input's description), which changes only how it is presented; on a
+     * tag that takes none (`<number>`, `<text>`, `<math>`, a list, a
+     * `<point>`'s `<shortDescription>`) it is an error as any other child
+     * is (kind `presentation` when nothing else is written; user decision
+     * on D71 decision 5, 2026-11-24). An `<answer>` and a
+     * `<choiceInput>` say what their children would change themselves
+     * (`extendChangesContentErrors`).
+     */
+    function childrenOfValueOrObjectError(
+        copy: SerializedComponent,
+        writtenType: string | undefined,
+        ref: { originalPath: any[] },
+        children: (SerializedComponent | string)[],
+    ): ExtendErrorAtLoad | undefined {
+        if (writtenType === undefined) {
+            return undefined;
+        }
+        const componentType =
+            componentInfoObjects.componentTypeAsWritten(writtenType) ??
+            writtenType;
+        const writtenClass = allClasses[componentType];
+        if (
+            !writtenClass ||
+            componentType.startsWith("_") ||
+            (writtenClass.isContent && !writtenClass.extendTakesNoContent) ||
+            componentInfoObjects.isCompositeComponent({
+                componentType,
+                includeNonStandard: true,
+            }) ||
+            Object.hasOwn(PARTS_OF_CHOOSING_TAGS, componentType) ||
+            TAGS_MAKING_THEIR_CONTENT.has(componentType) ||
+            ["answer", "choiceInput"].some((base) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType: base,
+                }),
+            )
+        ) {
+            return undefined;
+        }
+        // A `<label>`, `<shortDescription>` or `<description>` (or a tag
+        // that is one, an `<xLabel>`), and whether the written tag takes
+        // it: a child group of its class names one it is (literally, not
+        // through a group of any content, as an `<m>`'s, which would read it
+        // as part of the expression).
+        const presentationBases = ["label", "shortDescription", "description"];
+        const typeOfChild = (child: SerializedComponent) =>
+            child.componentType === "_copy"
+                ? writtenTypeOf(child)
+                : child.componentType;
+        const isPresentation = (child: SerializedComponent) => {
+            const type = typeOfChild(child);
+            return (
+                type !== undefined &&
+                presentationBases.some((base) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: type,
+                        baseComponentType: base,
+                    }),
+                )
+            );
+        };
+        const takenBases = (writtenClass.childGroups ?? [])
+            .flatMap(
+                (group: { componentTypes: string[] }) => group.componentTypes,
+            )
+            .filter((type: string) => presentationBases.includes(type));
+        const takesIt = (child: SerializedComponent) =>
+            takenBases.some((base: string) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: typeOfChild(child) ?? "_copy",
+                    baseComponentType: base,
+                }),
+            );
+        const allowed = (child: SerializedComponent | string) =>
+            typeof child === "string"
+                ? child.trim() === ""
+                : isPresentation(child) && takesIt(child);
+        if (children.every(allowed)) {
+            return undefined;
+        }
+        // An input's children say what it is bound to, so a new one is
+        // made with `copy`, as an object is.
+        const isInput = componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: "_input",
+        });
+        const isValue = Boolean(
+            (writtenClass.isValue && !isInput) ||
+            writtenClass.extendTakesNoContent ||
+            writtenClass.listEntryComponentType !== undefined ||
+            writtenClass.listEntryTypeAttribute !== undefined,
+        );
+        // A `<label>`, `<shortDescription>` or `<description>` the tag
+        // takes no such child for is no more allowed in a new tag holding
+        // the reference (a `<number>`, a `<text>` would read it as part of
+        // what it holds) or in a `copy` (a `<point>` doesn't take a
+        // `<shortDescription>`), so the form suggested leaves it out.
+        const leftOut = children.filter(
+            (child): child is SerializedComponent =>
+                typeof child !== "string" &&
+                isPresentation(child) &&
+                !takesIt(child),
+        );
+        if (
+            children.every(
+                (child) =>
+                    allowed(child) ||
+                    (typeof child !== "string" && leftOut.includes(child)),
+            )
+        ) {
+            // Only what the tag doesn't take is written, so there is no
+            // other form to suggest: it is removed.
+            const types = [...new Set(leftOut.map(typeOfChild))];
+            return {
+                code: "doenet-e0057",
+                args: {
+                    componentType,
+                    kind: "presentation",
+                    source: doenetMLReferenceAsWritten(
+                        ref.originalPath,
+                        sources,
+                    ),
+                    children: types.map((type) => `\`<${type}>\``).join(", "),
+                    childCount: types.length,
+                },
+            };
+        }
+        const written = writtenChildrenText(copy, leftOut);
+        // A `<boolean>`'s children are one expression, so what is written
+        // is joined to the reference by a logical operator
+        // (`<boolean>$b and false</boolean>`), not written beside it. So
+        // are those of a tag that reads its children as a `<boolean>` does
+        // (`<when>`, `<not>`), but not of one whose children are operands
+        // (`<and>$a false</and>`, `<isNumber>`).
+        const isLogic =
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType: "boolean",
+            }) &&
+            writtenClass.returnChildGroups ===
+                allClasses.boolean.returnChildGroups;
+        return {
+            code: "doenet-e0057",
+            args: {
+                componentType,
+                kind: isLogic ? "logic" : isValue ? "value" : "object",
+                source: doenetMLReferenceAsWritten(ref.originalPath, sources),
+                // after the reference in `<math>$m x</math>`, a space, so
+                // that what is written isn't read as part of its name
+                written: isLogic
+                    ? written.trim()
+                    : isValue && /^[A-Za-z0-9_]/.test(written)
+                      ? ` ${written}`
+                      : written,
+            },
+        };
+    }
+
+    /**
+     * The children written inside `copy`, as written, without the children
+     * `leftOut`, for a message to suggest them in another form, or `…` when
+     * they are long, span lines, or their place in the source isn't known.
+     */
+    function writtenChildrenText(
+        copy: SerializedComponent,
+        leftOut: SerializedComponent[] = [],
+    ) {
+        const start = copy.childrenPosition?.start?.offset;
+        const end = copy.childrenPosition?.end?.offset;
+        const text = sources[copy.sourceDoc ?? 0];
+        if (
+            typeof start !== "number" ||
+            typeof end !== "number" ||
+            text === undefined
+        ) {
+            return "…";
+        }
+        let written = text.substring(start, end);
+        if (written.length > 60 || written.includes("\n")) {
+            return "…";
+        }
+        // from the last, so that the offsets of those before still hold
+        const ranges = leftOut
+            .map((child) => [
+                child.position?.start?.offset,
+                child.position?.end?.offset,
+            ])
+            .sort((a, b) => (b[0] ?? 0) - (a[0] ?? 0));
+        for (const [from, to] of ranges) {
+            if (
+                typeof from !== "number" ||
+                typeof to !== "number" ||
+                from < start ||
+                to > end
+            ) {
+                return "…";
+            }
+            written =
+                written.substring(0, from - start) +
+                written.substring(to - start);
+        }
+        return written;
+    }
+
     const diagnostics: any[] = [];
 
     /** Mark `errors` on `copy`, and report them now. */
@@ -453,6 +677,36 @@ export function checkExtendErrorsAtLoad({
         const copyInChildrenAttr: any = copy.attributes?._copyInChildren;
         const copyInChildren = Boolean(copyInChildrenAttr);
         const writtenType = writtenTypeOf(copy);
+
+        // Children written inside an extend of a value or an object, which
+        // is what it holds (D71): decided by the tag written alone. A list
+        // tag (`<mathList extend="$ml">3</mathList>`) is made a list holding
+        // the extend (`forList`), beside the children written in it.
+        const forList = copy.doenetAttributes?.forList;
+        const list = forList === undefined ? undefined : byIdx.get(forList);
+        const childrenError = list
+            ? childrenOfValueOrObjectError(
+                  list,
+                  list.componentType,
+                  ref,
+                  (list.children ?? []).filter((child) => child !== copy),
+              )
+            : copyInChildren
+              ? childrenOfValueOrObjectError(
+                    copy,
+                    writtenType,
+                    ref,
+                    copy.children ?? [],
+                )
+              : undefined;
+        if (childrenError) {
+            markErrors(copy, [childrenError]);
+            if (list) {
+                // the error, alone, in place of the list
+                list.children = [copy];
+            }
+            continue;
+        }
         const source = sourceOf(copy);
 
         let replacementType = source?.componentType;

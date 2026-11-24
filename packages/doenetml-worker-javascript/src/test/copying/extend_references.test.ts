@@ -6400,7 +6400,7 @@ describe("Extend and references tests @group2", async () => {
             doenetML: `
     <math name="the-base">x</math>
     <p name="p">$(the-base)</p>
-    <math name="m2" extend="$(the-base)">+y</math>
+    <math name="m2">$(the-base)+y</math>
     <math name="m3" copy="$(the-base)">y</math>
     `,
         });
@@ -7806,20 +7806,20 @@ describe("Extend and references tests @group2", async () => {
             ).eq("original");
         });
 
-        it("a child added inside a copy or extend of a list reaches the list's children only through the copy's name", async () => {
+        it("a child added inside a copy of a list reaches the list's children only through the copy's name", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <mathList name="L"><math name="h">1</math><math>2</math></mathList>
 <section name="T">
     <setup><math name="h">5</math></setup>
     <mathList copy="$L" name="L2"><math name="q">$h</math><math name="q2">$L2.h</math></mathList>
-    <mathList extend="$L" name="L3"><math name="q">$h</math><math name="q2">$L3.h</math></mathList>
 </section>
 `,
             });
 
             expect(getDiagnosticsByType(core).errors).eqls([]);
-            for (const list of ["L2", "L3"]) {
+            // (an extend of a list can't be given children, D71)
+            for (const list of ["L2"]) {
                 expect(
                     (await stateOf(core, resolvePathToNodeIdx, `T.${list}.q`))
                         .value.tree,

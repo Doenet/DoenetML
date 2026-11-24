@@ -79,6 +79,12 @@ import { literalText } from "./choiceErrorsAtLoad";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { buildParsedExpression } from "../booleanLogic";
 import me from "math-expressions";
+import {
+    adapterTypesOf,
+    standsInAsValueOnly,
+    valuePropertyFor,
+} from "../typeChange";
+import { kindOfComponentType } from "../componentKinds";
 
 /** Why a value is a type mix (`doenet-w0203`'s `reason`). */
 type MixReason =
@@ -88,7 +94,10 @@ type MixReason =
     | "comparedWithNumber"
     | "numberComparedWithBoolean"
     | "mathInputBoundToBoolean"
-    | "booleanInputBoundToNumber";
+    | "booleanInputBoundToNumber"
+    | "textAsBoolean"
+    | "booleanInputBoundToText"
+    | "standsInAs";
 
 /** The relations that order (D58); `=` and `≠` don't. */
 const ORDERINGS = new Set(["<", ">", "le", "ge", "lts", "gts"]);
@@ -188,6 +197,12 @@ export function checkBooleanNumberMixAtLoad({
             return undefined;
         }
         if (type === "_copy") {
+            const typeChange = component.doenetAttributes?.typeChangeAtLoad;
+            if (typeChange !== undefined && typeChange !== "allowed") {
+                // an error in its place (`typeChangeAtLoad.ts`), already
+                // reported, of no type here
+                return undefined;
+            }
             const target = plainReferent(component);
             return target === undefined
                 ? itemsSummary(component)
@@ -446,6 +461,78 @@ export function checkBooleanNumberMixAtLoad({
             : mayConvertBoolean(node, seen);
     }
 
+    /**
+     * What `child` is, when it is a component that stands in as a value only
+     * through its adapters (D69, `standsInAsValueOnly`): a `<line>`, an
+     * `<ion>`, a `<label>`, written as a tag, or a reference to one with
+     * nothing after the name. Its type and the types it stands in as.
+     */
+    function standsInOf(child: SerializedComponent): StandsIn | undefined {
+        let type: string | undefined;
+        if (child.componentType === "_copy") {
+            const created = createdTypeOf(child);
+            if (created !== undefined) {
+                type = created;
+            } else {
+                const ref: any = child.extending
+                    ? unwrapSource(child.extending as any)
+                    : undefined;
+                if (
+                    !ref ||
+                    ref.nodeIdx < 0 ||
+                    (ref.unresolvedPath ?? []).length > 0
+                ) {
+                    return undefined;
+                }
+                type = referents.referentType(ref.nodeIdx);
+                // A bare reference reads the referent's implicit property
+                // (REF-1a): `$c` of a `<choice>` is whether it was
+                // submitted, a boolean, not the choice. A `<label>`'s is the
+                // label itself (`implicitPropReturnsSameType`).
+                const implicit =
+                    type === undefined
+                        ? undefined
+                        : allClasses[type]?.variableForImplicitProp;
+                if (
+                    implicit !== undefined &&
+                    !allClasses[type!]?.implicitPropReturnsSameType
+                ) {
+                    const implicitType = (componentInfoObjects as any)
+                        .publicStateVariableInfo?.[type!]
+                        ?.stateVariableDescriptions?.[implicit]
+                        ?.createComponentOfType;
+                    if (
+                        implicitType !== undefined &&
+                        !inherits(implicitType, "text")
+                    ) {
+                        return undefined;
+                    }
+                }
+            }
+        } else {
+            type = child.componentType;
+        }
+        if (
+            type === undefined ||
+            !allClasses[type] ||
+            !standsInAsValueOnly(type, componentInfoObjects)
+        ) {
+            return undefined;
+        }
+        return {
+            type,
+            standsInAs: adapterTypesOf(type, componentInfoObjects),
+        };
+    }
+
+    /**
+     * Whether what stands in only as the types `standsInAs` is read as a
+     * `baseType` (D69): one of them is one.
+     */
+    function readAs(standsInAs: string[], baseType: string) {
+        return standsInAs.some((type) => inherits(type, baseType));
+    }
+
     /** `child` as the author wrote it, for the message. */
     function asWritten(child: SerializedComponent): {
         source: string;
@@ -651,6 +738,7 @@ export function checkBooleanNumberMixAtLoad({
         position,
         sourceDoc,
         inAttribute,
+        standsIn,
     }: {
         reason: MixReason;
         source: string;
@@ -659,6 +747,8 @@ export function checkBooleanNumberMixAtLoad({
         position: SerializedComponent["position"];
         sourceDoc: number | undefined;
         inAttribute: boolean;
+        /** for `standsInAs`, what the component is and is read as (D69) */
+        standsIn?: StandsIn & { componentType: string };
     }) {
         if (quiet > 0) {
             return;
@@ -673,6 +763,20 @@ export function checkBooleanNumberMixAtLoad({
                     form,
                     place: inAttribute ? "attribute" : "content",
                     literal: literal ?? "",
+                    ...(standsIn && {
+                        sourceType: standsIn.type,
+                        componentType: standsIn.componentType,
+                        standsInAs: standsIn.standsInAs
+                            .map((type) => `\`<${type}>\``)
+                            .join(", "),
+                        standsInAsCount: standsIn.standsInAs.length,
+                        property:
+                            valuePropertyFor(
+                                standsIn.type,
+                                standsIn.componentType,
+                                componentInfoObjects,
+                            ) || "none",
+                    }),
                 },
                 position,
                 sourceDoc,
@@ -801,6 +905,7 @@ export function checkBooleanNumberMixAtLoad({
              * for a literal, when the whole content is
              */
             children: SerializedComponent[];
+            standsIn?: StandsIn & { componentType: string };
         }[] = [];
         const orderings: {
             source: string;
@@ -891,7 +996,32 @@ export function checkBooleanNumberMixAtLoad({
                 return;
             }
             const { type, child } = typeOfTree(tree);
-            if (type === "math") {
+            const standsIn =
+                type === undefined && child ? standsInOf(child) : undefined;
+            if (
+                (type === "text" && child) ||
+                (standsIn && readAs(standsIn.standsInAs, "text"))
+            ) {
+                // A text is not true or false, nor is what stands in as
+                // one (a `<label>`); a comparison decides a boolean from it
+                // (D68 decision 2)
+                found.push({
+                    reason: bound ? "booleanInputBoundToText" : "textAsBoolean",
+                    ...asWrittenOrList(child!),
+                    written: fullyAsWritten(child!),
+                    children: [child!],
+                });
+            } else if (standsIn) {
+                // what stands in only as a math, or another type that is
+                // not true or false (D69 decision 2)
+                found.push({
+                    reason: "standsInAs",
+                    ...asWritten(child!),
+                    written: fullyAsWritten(child!),
+                    children: [child!],
+                    standsIn: { ...standsIn, componentType: "boolean" },
+                });
+            } else if (type === "math") {
                 const { source, form } = describe(tree, child);
                 found.push({
                     reason: bound
@@ -1103,7 +1233,7 @@ export function checkBooleanNumberMixAtLoad({
 
         atPlaceOfLogic(parsed.tree);
 
-        for (const { reason, source, form, literal } of found) {
+        for (const { reason, source, form, literal, standsIn } of found) {
             warn({
                 reason,
                 source,
@@ -1112,6 +1242,7 @@ export function checkBooleanNumberMixAtLoad({
                 position,
                 sourceDoc,
                 inAttribute,
+                standsIn,
             });
         }
         for (const { source, operator, sectionOf } of orderings) {
@@ -1227,8 +1358,15 @@ export function checkBooleanNumberMixAtLoad({
             component.componentType === "_copy"
                 ? createdTypeOf(component)
                 : component.componentType;
+        // Children written inside an `extend` are not what it holds: an
+        // extend of a value or an object is the same component again, so
+        // they are an error at load (`doenet-e0057`, D71,
+        // `extendErrorsAtLoad.ts`), not also judged here as a type mix
+        // (`<boolean extend="$b"><label>L</label></boolean>`).
         const componentClass =
-            checkedType === undefined ? undefined : allClasses[checkedType];
+            checkedType === undefined || isExtendGivenChildren(component)
+                ? undefined
+                : allClasses[checkedType];
         // Where to report what has no position of its own: a component the
         // sugar made (a `<boolean>` from a `<booleanList>`'s text) is
         // reported at its parent, and an attribute component at its
@@ -1320,6 +1458,26 @@ export function checkBooleanNumberMixAtLoad({
                         if (!takesIt && takes(componentClass, "boolean")) {
                             reason = "numberAsBoolean";
                         }
+                    } else if (
+                        value.type === "text" &&
+                        !isNumber &&
+                        // text written in a `<group>` is read by what holds
+                        // it, as a `<booleanList>` reads `true false`
+                        child.componentType !== "group"
+                    ) {
+                        // a text where only true or false is taken (D68
+                        // decision 2): `<booleanInput>$t</booleanInput>`,
+                        // a `<booleanList>`
+                        if (
+                            !takesIt &&
+                            takes(componentClass, "boolean") &&
+                            !takes(componentClass, "math") &&
+                            !takes(componentClass, "number")
+                        ) {
+                            reason = inherits(checkedType!, "booleanInput")
+                                ? "booleanInputBoundToText"
+                                : "textAsBoolean";
+                        }
                     }
                     if (reason !== undefined) {
                         const { source, form } = asWrittenOrList(child);
@@ -1332,6 +1490,43 @@ export function checkBooleanNumberMixAtLoad({
                             inAttribute,
                         });
                         blankPlace(holder, child);
+                    }
+                }
+                // A component that stands in as a value only through its
+                // adapters is read in a value tag only as what it stands in
+                // as, never as what that could be made into (D69 decision
+                // 2): `<number>$line</number>` is a blank, as
+                // `<number extend="$line"/>` is an error.
+                const baseType = valueTagBase(checkedType!);
+                if (baseType !== undefined) {
+                    for (const child of [...(component.children ?? [])]) {
+                        if (
+                            typeof child !== "object" ||
+                            // a `<label>` written as a tag, which is not
+                            // read here as a reference to a stand-in
+                            inherits(child.componentType, "label")
+                        ) {
+                            continue;
+                        }
+                        const standsIn = standsInOf(child);
+                        if (
+                            !standsIn ||
+                            readAs(standsIn.standsInAs, baseType)
+                        ) {
+                            continue;
+                        }
+                        warn({
+                            reason: "standsInAs",
+                            ...asWritten(child),
+                            position: child.position ?? fallback,
+                            sourceDoc: child.sourceDoc ?? component.sourceDoc,
+                            inAttribute,
+                            standsIn: {
+                                ...standsIn,
+                                componentType: checkedType!,
+                            },
+                        });
+                        blankPlace(component, child);
                     }
                 }
                 if (
@@ -1410,6 +1605,61 @@ export function checkBooleanNumberMixAtLoad({
             // content all literal is made one new blank
             written.children = stand.children;
         }
+    }
+
+    /**
+     * The value type a value tag of `componentType` reads its content as
+     * (`number`, `math` or `text`), or `undefined` for any other tag: an
+     * input, an object or content, or a `<boolean>`, whose content is logic
+     * (`checkLogic`).
+     */
+    function valueTagBase(componentType: string) {
+        if (
+            inherits(componentType, "_input") ||
+            kindOfComponentType(componentType, componentInfoObjects)?.kind !==
+                "value"
+        ) {
+            return undefined;
+        }
+        return ["number", "math", "text"].find((base) =>
+            inherits(componentType, base),
+        );
+    }
+
+    /**
+     * Whether `component` is an `extend` (a linked `_copy`, not a `copy` or
+     * a `copyWithState`) of a value or an object, not a container, with
+     * children written inside it (`doenet-e0057`).
+     */
+    function isExtendGivenChildren(component: SerializedComponent) {
+        if (
+            component.componentType !== "_copy" ||
+            !component.attributes?._copyInChildren ||
+            component.attributes?._copyWithState
+        ) {
+            return false;
+        }
+        const linkAttr: any = component.attributes?._link;
+        if (
+            linkAttr &&
+            (linkAttr.primitive?.value === false ||
+                linkAttr.children?.join?.("").trim() === "false")
+        ) {
+            return false;
+        }
+        // A container's extend may be given children, which are added to
+        // what it holds, so they are judged as its own are
+        // (`<chart extend="$c">$b</chart>`, as `<chart>$b</chart>`).
+        const type = createdTypeOf(component);
+        const typeClass = type === undefined ? undefined : allClasses[type];
+        return !(
+            typeClass &&
+            ((typeClass.isContent && !typeClass.extendTakesNoContent) ||
+                componentInfoObjects.isCompositeComponent({
+                    componentType: type!,
+                    includeNonStandard: true,
+                }))
+        );
     }
 
     /** The type of component the reference `copy` makes, if written. */
@@ -1513,6 +1763,9 @@ const READ_HERE = new Set([
     "sort",
     "shuffle",
 ]);
+
+/** What stands in as a value only through its adapters (D69). */
+type StandsIn = { type: string; standsInAs: string[] };
 
 type ValueSummary =
     { type: "math" | "boolean" | "text"; tag: string } | "none" | undefined;

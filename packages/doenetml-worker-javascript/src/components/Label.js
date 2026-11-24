@@ -992,6 +992,13 @@ export default class Label extends InlineComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * The property a message suggests in place of a type change this label
+     * doesn't stand in as (D69, `valuePropertyFor`): its text, which a
+     * `<math>` or a `<number>` reads.
+     */
+    static valueProperties = { math: "text", number: "text" };
+
     static adapters = ["text"];
 
     async moveLabel({

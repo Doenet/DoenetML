@@ -331,7 +331,7 @@ describe("A reference written as a different tag is allowed only between related
                 type: "error",
                 line: lineOf("mathInputFromMath"),
                 message:
-                    'A `<mathInput>` can\'t be made from `$m`, a `<math>`: an input isn\'t the same thing as its value. To edit `$m`, write `<mathInput bindValueTo="$m"/>`. To start from its value, write `<mathInput prefill="$m"/>`.',
+                    "A `<mathInput>` can't be made from `$m`, a `<math>`: an input isn't the same thing as its value. To edit `$m`, write `<mathInput>$m</mathInput>`. To start from its value, write `<mathInput prefill=\"$m\"/>`.",
             },
             {
                 code: "doenet-e0062",
@@ -493,7 +493,7 @@ describe("A reference written as a different tag is allowed only between related
         const { texts, typeChangeDiagnostics } = await setup(`
 <math name="m">x+1</math><text name="t">x+1</text>
 <mathInput name="mi" prefill="x"/>
-<p name="p1"><boolean extend="$t"/></p>
+<p name="p1"><number extend="$t"/></p>
 <p name="p2"><point extend="$m"/></p>
 <p name="p3"><point copy="$m"/></p>
 <p name="p4"><point extend="$mi"/></p>
@@ -510,7 +510,7 @@ describe("A reference written as a different tag is allowed only between related
                 type: "info",
                 line: 4,
                 message:
-                    "A `<boolean>` can't be made from `$t` while its value, x+1, isn't true or false, so it is missing until it is.",
+                    "A `<number>` can't be made from `$t` while its value, “x+1”, isn't a number, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
@@ -1146,9 +1146,9 @@ describe("A reference written as a different tag is allowed only between related
 describe("A related type is made from the value of what is referenced, not from the component (#2440, #2437) @group4", () => {
     it("a value type from an input, and the value types from one another", async () => {
         // Each was the tag's default before #2440, most with the source put
-        // in as a child it can't hold (`doenet-w0107`). A text is a boolean
-        // while it is the word. A boolean is not a number or a math (D47
-        // decision 3): an error, which suggests `<number convertBoolean>`.
+        // in as a child it can't hold (`doenet-w0107`). A boolean is not a
+        // number or a math (D47 decision 3): an error, which suggests
+        // `<number convertBoolean>`. A text is not a boolean either (D68).
         const { texts, typeChangeDiagnostics } = await setup(`
 <mathInput name="mi" prefill="(1,2)"/>
 <mathInput name="mi2" prefill="2"/>
@@ -1195,31 +1195,33 @@ describe("A related type is made from the value of what is referenced, not from 
             numberFromBooleanInput: "",
             mathFromTextInput: "2",
             numberFromTextInput: "2",
-            booleanFromTextInput: "false",
+            booleanFromTextInput: "",
             mathFromBoolean: "",
             numberFromBoolean: "",
             numberFromFalse: "",
-            booleanFromText: "true",
+            booleanFromText: "",
         });
         expect(
             typeChangeDiagnostics().map((d) => [d.code, d.type, d.line]),
         ).eqls([
             ["doenet-e0065", "error", 13],
             ["doenet-e0065", "error", 15],
+            ["doenet-e0065", "error", 18],
             ["doenet-e0065", "error", 19],
             ["doenet-e0065", "error", 20],
             ["doenet-e0065", "error", 21],
+            ["doenet-e0065", "error", 22],
         ]);
     });
 
     it("a value that doesn't convert is missing, with an info, from a text, an input or a property", async () => {
         const { texts, typeChangeDiagnostics } = await setup(`
-<text name="t">2</text>
+<text name="t">two</text>
 <textInput name="ti" prefill="yes"/>
 <point name="P">(3,4)</point>
 <choiceInput name="ci" preselectChoice="1"><choice><math>x</math></choice><choice><math>(1,2)</math></choice></choiceInput>
-<p name="p1"><boolean extend="$t"/></p>
-<p name="p2"><boolean extend="$ti"/></p>
+<p name="p1"><number extend="$t"/></p>
+<p name="p2"><number extend="$ti"/></p>
 <p name="p3"><point extend="$P.x"/></p>
 <p name="p4"><point extend="$ci"/></p>
 <p name="p5"><point extend="$P.coords"/></p>
@@ -1237,14 +1239,14 @@ describe("A related type is made from the value of what is referenced, not from 
                 type: "info",
                 line: 6,
                 message:
-                    "A `<boolean>` can't be made from `$t` while its value, 2, isn't true or false, so it is missing until it is.",
+                    "A `<number>` can't be made from `$t` while its value, “two”, isn't a number, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
                 type: "info",
                 line: 7,
                 message:
-                    "A `<boolean>` can't be made from `$ti` while its value, yes, isn't true or false, so it is missing until it is.",
+                    "A `<number>` can't be made from `$ti` while its value, “yes”, isn't a number, so it is missing until it is.",
             },
             {
                 code: "doenet-i0053",
