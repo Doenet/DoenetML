@@ -516,6 +516,10 @@ impl<'a> Planning<'a> {
                 vec![math_input::Props::PORTS.expr],
             ),
             expr: Source::Leaf(Leaf::GivenMath(None)),
+            numDimensions: Source::computed(
+                OpSpec::Sym(SymKind::Count),
+                vec![math_input::Props::PORTS.expr],
+            ),
         }
         .into_vec();
         Ok(mi)

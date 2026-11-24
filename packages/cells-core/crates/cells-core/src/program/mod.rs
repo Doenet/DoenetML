@@ -592,6 +592,12 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::Entry => {
+            out[0] = handle(v(0))
+                .and_then(|h| engine.entry(h, v(1)))
+                .map_or(MISSING, Handle::to_value)
+        }
+        SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
         SymKind::Compare { opts } => {
             out[0] = match (handle(v(0)), handle(v(1))) {
                 (Some(a), Some(b)) => engine.compare(a, b, opts),

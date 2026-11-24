@@ -152,6 +152,17 @@ pub enum SymKind {
         /// How they compare.
         opts: crate::sym::CompareOpts,
     },
+    /// Entry `k` (input 1) of the value input 0 holds, inside the math
+    /// handle (ADR 0041, decision 2: a dynamic sequence with no cap): a
+    /// list's, tuple's or vector's entry, a scalar's one entry its own;
+    /// the missing value for an index that is no integer from 1 to the
+    /// count. Its inverse writes input 0 with that entry replaced, its
+    /// head kept.
+    Entry,
+    /// How many entries the value input 0 holds (`numDimensions`): a
+    /// list's, tuple's or vector's, 1 for a scalar, a number (no handle)
+    /// or the blank expression.
+    Count,
 }
 
 /// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
@@ -344,6 +355,7 @@ impl SymKind {
                 part: crate::sym::SubsetPart::Value,
                 ..
             } => 1,
+            SymKind::Entry => 1,
             _ => 0,
         }
     }
@@ -385,6 +397,7 @@ impl SymKind {
                 | SymKind::WrapFunctionPeriodic
                 | SymKind::DerivativeBy
                 | SymKind::Subset { .. }
+                | SymKind::Entry
         )
     }
 }
@@ -499,7 +512,7 @@ impl OpSpec {
                 | SymKind::InstantiateBlank { .. }
                 | SymKind::SampleTape { .. },
             ) => usize::MAX,
-            OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
+            OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative | SymKind::Count) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
@@ -510,7 +523,10 @@ impl OpSpec {
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
             OpSpec::Sym(
-                SymKind::DerivativeBy | SymKind::Subset { .. } | SymKind::Compare { .. },
+                SymKind::DerivativeBy
+                | SymKind::Subset { .. }
+                | SymKind::Compare { .. }
+                | SymKind::Entry,
             ) => 2,
             _ => unreachable!(),
         }
@@ -695,6 +711,8 @@ mod arity {
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
+            OpSpec::Sym(SymKind::Entry),
+            OpSpec::Sym(SymKind::Count),
         ]);
         ops
     }
@@ -762,12 +780,15 @@ mod arity {
                     SymKind::Order { .. } => 20,
                     SymKind::Subset { .. } => 21,
                     SymKind::Compare { .. } => 22,
+                    // After the vector operators 51 to 53.
+                    SymKind::Entry => 26,
+                    SymKind::Count => 27,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 54;
+    const N_TAGS: usize = 56;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

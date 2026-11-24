@@ -4,7 +4,7 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::program::Post;
+use crate::program::{Post, SymKind};
 
 component! {
     /// `<math>`: lowered to a numeric chain in `value` when its expression is
@@ -22,6 +22,8 @@ component! {
         // Both of a math's props are set by the builder from its children.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
+        // How many entries its value holds (ADR 0041, inside the handle).
+        numDimensions: computed(OpSpec::Sym(SymKind::Count), [expr]),
         ..anchor
     }
     attributes {

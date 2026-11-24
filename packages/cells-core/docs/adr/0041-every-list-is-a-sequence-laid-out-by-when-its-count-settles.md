@@ -1,7 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done,
-step 2's first three pieces, step 3, step 4 in part, and step 6 in
+step 2's first three pieces, step 3, step 4 in part, step 5 in
+part (no point merge), and step 6 in
 part, with their
 departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
@@ -708,6 +709,54 @@ otherwise.
      `<regularPolygon>` (its vertex count is its `numVertices`) are not
      figures yet, and the intersection's warning when a third figure
      appears in a case (`$cc.l3`) is the load's, not a tick's.
+
+   *A sequence inside the handle, 2026-11-24.* A value with no cap (a
+   mathInput's `1, 2, 3`, a `<math>` reading one, a subset's `points`)
+   stays inside its math cell, and `[k]` on it is an entry step of width
+   0 (`EntryIndex::IN_HANDLE`): on a type whose default prop is one cell
+   standing for an expression and that has no list
+   (`ComponentType::handle_sel`: `<math>`, `<mathInput>`), `$m[k]`,
+   `$m[i][j]` (entry then entry) and the current core's names `$m.x`,
+   `$m.y`, `$m.z`, `$m.x4`; on any one-cell prop, `$S.points[2]`,
+   `$f.maxima[1][2]`. Whether it is a projection is decided from the
+   port's type, the same in the type pass, the template graph and the
+   build (`math_target`): a cell that stands for an expression gives
+   `SymKind::Entry` over that expression and the index (a constant, an
+   iteration's index or a cell), the missing value for an index that is
+   no integer from 1 to the count; a number is a sequence of one (`$n[1]`
+   the cell, any other index the missing value, a cell index a `Choose`
+   with the integrality guard). A write through an entry writes the
+   value with that entry replaced, its head kept (the inverse of
+   `Entry`), so a `<mathInput bindValueTo="$m.y">` writes the input it
+   came from. `numDimensions` of a `<math>` and a `<mathInput>` counts
+   the entries (`SymKind::Count`; 1 for a scalar, a number or the blank
+   expression). `<repeat for="$mi">` has an iteration per entry: its
+   count is `$mi.numDimensions`, so a change of the count is a rebuild,
+   and its item a math value, `$mi[i]` by the iteration's index. Tested
+   by `tests/dynamic_sequences.rs`. Departures, and what is not done:
+
+   - A list or an operator reading `$mi` as its entries (`<mathList>$mi
+     </mathList>`, `<sum>$mi</sum>`, decision 5's projection) is not
+     done: the count follows the value with no cap, so such a list is
+     structural (a rebuild per count), the structural list of step 4,
+     which no planner reads yet. `<math>$mi</math>` reads the value
+     whole, as before.
+   - A function's maxima, minima and extrema are not done. They have no
+     cap the type knows (the current core searches a grid of a thousand
+     cells and recurses, `utils/extrema.js`), so by decision 2 they stay
+     inside the handle, a math cell holding a list of `(x, f(x))` tuples,
+     which `$f.maxima[1][2]` addresses as above. What is missing is the
+     numerical search itself (bracketing the derivative's sign changes,
+     Brent minimization, the exact critical points of a rational
+     derivative), a port of about a thousand lines.
+   - A matrix's entries (`$A[i][j]`) are not entries of a list head: the
+     engine's matrix is not a sequence of rows yet.
+   - A write through an entry of a `<math createVectors>$m</math>` is
+     dropped: its expression is an instantiation with a post, which has
+     no inverse (a `<math>$m</math>` is an alias of `$m`'s and writes
+     through). The current core writes the vector back to `$m`.
+   - A mathInput's `numListItems`, `list`, `vector` and `matrix` props,
+     and the entries of a mathInput's value as rows, are not done.
 6. **Order.** `<sort>` as a permutation aggregate with an order port;
    `<shuffle>` seeded. Test: `sort.test.ts`, `shuffle.test.ts`.
 

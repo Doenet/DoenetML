@@ -1566,8 +1566,10 @@ impl<'c> Stamp<'c> {
                 MadeKind::Alias => alias(self),
                 MadeKind::Case => PortType::Num,
             },
-            // A choose holds what its branches hold (ADR 0041).
+            // A choose holds what its branches hold (ADR 0041); an entry
+            // inside a math handle is math.
             None => match &self.g.defs[n.index()] {
+                Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Entry)), _) => PortType::Math,
                 Def::Op(GraphOp::Spec(OpSpec::Vec(VecOp::Choose { .. })), inputs) => {
                     let mut kind = PortType::Num;
                     for &input in &inputs[1..] {

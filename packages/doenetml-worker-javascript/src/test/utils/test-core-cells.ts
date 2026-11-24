@@ -261,6 +261,8 @@ const mathReaders: Record<string, Reader> = {
     valueForDisplay: mathValue,
     text: (_g, x) => x.cells.core.component_text(x.idx),
     latex: mathLatex,
+    // How many entries its value holds (ADR 0041, inside the handle).
+    numDimensions: (g) => g("numDimensions"),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */

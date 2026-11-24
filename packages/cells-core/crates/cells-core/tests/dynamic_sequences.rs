@@ -42,3 +42,80 @@ fn an_intersection_shows_its_points_up_to_its_live_length() {
     assert!(doc.resolve_path("int[1]").is_none());
     assert_eq!(reference::check(&doc), None);
 }
+
+/// The expression `name.prop` holds, as the engine prints it.
+fn expr(doc: &Document, name: &str, prop: &str) -> String {
+    doc.math_text(doc.cell(name, prop).unwrap())
+}
+
+#[test]
+fn a_math_inputs_entries_are_inside_its_handle() {
+    let mut doc = load(
+        r#"<mathInput name="m" prefill="(a,b,c)"/>
+           <math name="m2">$m</math>
+           <math name="x" extend="$m[1]"/>
+           <math name="y" extend="$m2.y"/>
+           <math name="x4" extend="$m.x4"/>
+           <mathInput name="k" prefill="2"/>
+           <math name="mk" extend="$m[$k]"/>
+           <number name="n" extend="$m.numDimensions"/>
+           <number name="n2" extend="$m2.numDimensions"/>
+           <mathInput name="mx" bindValueTo="$x"/>
+           <mathInput name="my" bindValueTo="$m2.y"/>"#,
+    )
+    .unwrap();
+    assert_eq!(expr(&doc, "x", "expr"), "a");
+    assert_eq!(expr(&doc, "y", "expr"), "b");
+    assert_eq!(expr(&doc, "mk", "expr"), "b");
+    assert_eq!(v(&doc, "n", "value"), 3.0);
+    assert_eq!(v(&doc, "n2", "value"), 3.0);
+    // Past the count: the missing value.
+    assert!(v(&doc, "x4", "expr").is_nan());
+    // A write through an entry lands on the input, its head kept.
+    type_into(&mut doc, "mx", "d");
+    assert_eq!(expr(&doc, "m", "expr"), "(d, b, c)");
+    type_into(&mut doc, "my", "e");
+    assert_eq!(expr(&doc, "m", "expr"), "(d, e, c)");
+    // A longer list: four entries.
+    type_into(&mut doc, "m", "v, w, x, y");
+    assert_eq!(v(&doc, "n", "value"), 4.0);
+    assert_eq!(expr(&doc, "x4", "expr"), "y");
+    set(&mut doc, "k", "value", 4.0);
+    assert_eq!(expr(&doc, "mk", "expr"), "y");
+    // An index that is no integer names nothing.
+    set(&mut doc, "k", "value", 2.5);
+    assert!(v(&doc, "mk", "expr").is_nan());
+    // A scalar is a sequence of one.
+    type_into(&mut doc, "m", "q");
+    assert_eq!(expr(&doc, "x", "expr"), "q");
+    assert_eq!(v(&doc, "n", "value"), 1.0);
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn a_repeat_for_a_math_input_has_an_iteration_per_entry() {
+    let mut doc = load(
+        r#"<mathInput name="m" prefill="1, x, 3"/>
+           <p name="p"><repeat name="r" for="$m" valueName="v"><math simplify>2$v</math></repeat></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "2, 2 x, 6");
+    type_into(&mut doc, "m", "a, b");
+    assert_eq!(text(&doc, "p"), "2 a, 2 b");
+    type_into(&mut doc, "m", "y");
+    assert_eq!(text(&doc, "p"), "2 y");
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
+fn an_index_into_a_props_value_is_inside_its_handle() {
+    let doc = load(
+        r#"<subsetOfReals name="S">{1, 3} or (4, 5)</subsetOfReals>
+           <math name="p2" extend="$S.points[2]"/>
+           <math name="p9" extend="$S.points[9]"/>"#,
+    )
+    .unwrap();
+    assert_eq!(expr(&doc, "p2", "expr"), "3");
+    assert!(v(&doc, "p9", "expr").is_nan());
+    assert_eq!(reference::check(&doc), None);
+}

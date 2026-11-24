@@ -280,6 +280,27 @@ impl<'a> Planning<'a> {
         Ok(())
     }
 
+    /// A reference to the cell of the index outlining made beside a
+    /// repeat's item (`body`, its body's rows), read from the iteration.
+    fn iteration_index(&mut self, body: &[Elem]) -> Option<RefId> {
+        let index = (1..body.len()).find(|&i| {
+            let x = &body[i];
+            x.node == NodeId::NONE && x.component_type.plays(Role::Index)
+        })?;
+        let index_ty = body[index].component_type;
+        Some(self.ar.push_ref(RefPlan {
+            hops: 0,
+            steps: vec![Step::Elem(ElemId::from_index(index))],
+            prop: Some(RefProp::of(
+                index_ty,
+                PropSel::At(PropAt::Position(index_ty.scalar_prop()?)),
+            )),
+            entries: Vec::new(),
+            display: RefDisplay::Spelled("(iteration index)".into()),
+            node: NodeId::NONE,
+        }))
+    }
+
     /// `<repeat for="$l">` over a sequence (ADR 0041, decision 2): one
     /// iteration per entry. Over a static sequence (a value list, a list
     /// operator, a `<sequence>` or sampler of literal count) the count is
@@ -302,6 +323,53 @@ impl<'a> Planning<'a> {
         let (_, body) = self.rd.body_rows(t, e)?;
         let item = self.has_item(t, e).then(|| body[0].component_type);
         let spelled = display_of(self.rd.dast, &base);
+        // The value a math or a math input holds (ADR 0041, decision 2):
+        // as many iterations as it has entries, a count that follows the
+        // value, and the item's value entry `i` inside its handle.
+        if let Some(sel) = ty
+            .handle_sel()
+            .filter(|&sel| base.entries.is_empty() && base.prop.is_none_or(|p| p.sel == sel))
+        {
+            let count = ty.prop_index("numDimensions")?;
+            let mut counted = base.clone();
+            counted.prop = Some(RefProp::of(ty, PropSel::At(PropAt::Position(count))));
+            let count = Source::reference(self.ar.push_ref(counted));
+            let props = item.and_then(|it| {
+                let [port] = it.entry_ports()[..] else {
+                    return None;
+                };
+                let index = self.iteration_index(body)?;
+                let mut plan = base.clone();
+                plan.hops += 1;
+                plan.prop = Some(RefProp::of(ty, sel));
+                plan.entries.push(EntryIndex {
+                    index: IndexPlan {
+                        terms: vec![IndexTerm::Cell(index)],
+                    },
+                    width: EntryIndex::IN_HANDLE,
+                });
+                plan.display = RefDisplay::Spelled(format!("{spelled}[i]").into());
+                plan.node = NodeId::NONE;
+                let entry = Source::reference(self.ar.push_ref(plan));
+                Some(
+                    (0..it.prop_defs().len())
+                        .map(|i| {
+                            if i == port {
+                                entry.clone()
+                            } else {
+                                Source::absent()
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            });
+            self.tables[t.index()].plans[e.index()].props =
+                prop::repeat_for::Props { count }.into_vec();
+            if let Some(props) = props {
+                self.tables[sub.index()].plans[0].props = props;
+            }
+            return Some(());
+        }
         let (count, props) = if let (Some(declared), Some(count)) = (ty.def().item, ty.count_prop())
         {
             // A structural sequence: its count's cell, and iteration `i`'s

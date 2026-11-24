@@ -214,8 +214,10 @@ fn census() {
     // `symbolic.doenet`'s one more, live. A value's anchor, where a graph
     // draws it, is an input wherever it is: the choices' interface number
     // and text (`$cc.x`, `$ct.t`) choose their anchors among the cases', 4
-    // instructions of no state (ADR 0047).
-    assert!(golden[0] <= 140 && golden[1] == 184, "{golden:?}");
+    // instructions of no state (ADR 0047). A math's and a math input's
+    // `numDimensions` counts the entries of their value (ADR 0041, inside
+    // the handle): 13 more, all dead.
+    assert!(golden[0] <= 140 && golden[1] == 197, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

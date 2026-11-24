@@ -356,6 +356,30 @@ impl RequestEngine<'_> {
                     produced.write(inputs[0], h);
                     true
                 }
+                // An entry inside a math handle (ADR 0041): the value
+                // with that entry replaced, its head kept, to what it
+                // reads; dropped for an index that names no entry.
+                Op::Sym(_, _, s, start) if self.program.syms[s.index()].kind == SymKind::Entry => {
+                    let inputs = self.program.operands_at(start, 2);
+                    let (h, k) = (self.cells[inputs[0].index()], self.cells[inputs[1].index()]);
+                    let d = desired[0].unwrap();
+                    let written = (!h.is_nan() && !d.is_nan())
+                        .then(|| {
+                            self.sym.engine.with_entry(
+                                Handle::from_value(h),
+                                k,
+                                Handle::from_value(d),
+                            )
+                        })
+                        .flatten();
+                    match written {
+                        Some(w) => {
+                            produced.write(inputs[0], w.to_value());
+                            true
+                        }
+                        None => false,
+                    }
+                }
                 _ => match ins.op.invert(self.cells, desired[0].unwrap()) {
                     Some((c, v)) => {
                         produced.write(c, v);

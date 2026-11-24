@@ -121,10 +121,25 @@ impl IndexPlan {
 /// or a point of a list (`$l.points[$k]`, width 2). An index that is not
 /// an integer from 1 to the count names the missing value. A literal in
 /// range is no entry step: planning binds it as the port's own entry.
+/// Of width [`EntryIndex::IN_HANDLE`], it is entry `k` of the value the
+/// one cell holds (`$mi[2]`), a projection inside its math handle when it
+/// stands for an expression, else the cell itself as a sequence of one.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct EntryIndex {
     pub(crate) index: IndexPlan,
     pub(crate) width: u8,
+}
+
+impl EntryIndex {
+    /// The width of an entry inside the value one cell holds (ADR 0041,
+    /// decision 2: a dynamic sequence with no cap stays inside the math
+    /// handle, `Item(k)` a symbolic projection).
+    pub(crate) const IN_HANDLE: u8 = 0;
+
+    /// Whether it is an entry inside the value one cell holds.
+    pub(crate) fn in_handle(&self) -> bool {
+        self.width == Self::IN_HANDLE
+    }
 }
 
 /// A reference planned: the template levels up to where its first name is, the
