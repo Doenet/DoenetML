@@ -141,9 +141,12 @@ pub(crate) fn whole_line() -> [Wire; 4] {
 /// The domain an element's `domain` attribute writes (ADR 0049), as four
 /// wires: the endpoints (one that is no number is NaN) and closedness; the whole line without one, and with
 /// a warning when it is not one interval. The second is whether one was
-/// given.
+/// given. An endpoint written as math is its value: lowered when the
+/// compile can lower it, else its expression evaluated (`sqrt(10)`,
+/// which ADR 0043 keeps as written), in hidden ports of `wiring`.
 pub(crate) fn plan_domain(
     ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
     nodes: Option<&[crate::dast::NodeId]>,
 ) -> Result<([Wire; 4], bool)> {
     let Some(nodes) = nodes else {
@@ -159,9 +162,17 @@ pub(crate) fn plan_domain(
     };
     // An endpoint that is no number stays one: no bound for the function
     // itself, a piece left out of a piecewise function.
-    let end = |source: Source, k: u32| -> Wire {
+    let mut end = |source: Source, k: u32| -> Wire {
         match source {
             Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) if !v.is_nan() => Wire::constant(v),
+            // Math text: its value, as an operator over math has one
+            // (ADR 0043): evaluated when the type pass keeps it as
+            // written, else lowered.
+            Source::Flow(Flow::Math(id)) => {
+                let expr = wiring.hidden(Source::math_handle(id, Post::None));
+                let numeric = wiring.hidden(Source::math(id));
+                Source::value_of(expr, numeric).into()
+            }
             source => Wire::scalar(source, GivenId::Attr(attr::domain, k)),
         }
     };
@@ -380,7 +391,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let (expr, parts) = if is_function {
         let id = ctx.sym_math(&nodes, &mt)?;
         let var = function_variables(attrs.variables).remove(0);
-        let (domain, has_domain) = plan_domain(ctx, attrs.domain.as_deref())?;
+        let (domain, has_domain) = plan_domain(ctx, &mut wiring, attrs.domain.as_deref())?;
         let parts = FunctionParts {
             plain: var == "x" && !has_domain,
             variable: ctx.symbol(&var).into(),
@@ -530,7 +541,7 @@ fn plan_interpolated(
 ) -> Result<ElemWiring> {
     let at = Props::PORTS;
     let var = function_variables(attrs.variables.clone()).remove(0);
-    let (domain, _) = plan_domain(ctx, attrs.domain.as_deref())?;
+    let (domain, _) = plan_domain(ctx, &mut wiring, attrs.domain.as_deref())?;
     let slopes = attrs.throughSlopes.clone();
     let mut inputs = vec![at.xscale, at.yscale, at.variable];
     let mut n = 0usize;

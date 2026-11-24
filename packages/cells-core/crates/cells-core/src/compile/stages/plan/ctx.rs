@@ -176,27 +176,10 @@ impl<'a> PlanCtx<'_, 'a> {
     pub(crate) fn sym_tokens(&mut self, toks: &[Token]) -> Result<Source> {
         let src = MathSrc(&[]);
         let id = self.p.rd.parse_tokens(&mut self.p.ar, toks, src)?;
-        let mut text = String::new();
-        for (k, tok) in toks.iter().enumerate() {
-            let glued = matches!(tok, Token::LParen)
-                && matches!(k.checked_sub(1).map(|j| &toks[j]), Some(Token::Ident(_)));
-            if k > 0 && !glued {
-                text.push(' ');
-            }
-            match tok {
-                Token::Num(v) if *v == std::f64::consts::PI => text.push_str("pi"),
-                Token::Num(v) => text.push_str(&format!("{v}")),
-                Token::Ident(name) => text.push_str(name),
-                Token::Cell(r) => text.push_str(&crate::sym::engine::leaf_name(r.get(), false)),
-                Token::Op(c) => text.push(*c),
-                Token::LParen => text.push('('),
-                Token::RParen => text.push(')'),
-                Token::Comma => text.push(','),
-                Token::Eq => text.push('='),
-                Token::Open(c) | Token::Close(c) => text.push(*c),
-            }
-        }
-        self.p.ar.sym_text.insert(id, SymText::Spelled(text));
+        self.p
+            .ar
+            .sym_text
+            .insert(id, SymText::Spelled(crate::compile::read::spelled(toks)));
         Ok(Source::sym_expr(id, crate::program::Post::None))
     }
 

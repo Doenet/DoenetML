@@ -88,7 +88,7 @@ fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         f,
         crate::sym::extrema::Pieces::Piecewise,
     );
-    let (domain, given) = plan_domain(ctx, attrs.domain.as_deref())?;
+    let (domain, given) = plan_domain(ctx, &mut wiring, attrs.domain.as_deref())?;
     let [d0, d1, d2, d3] = if given || n == 0 {
         domain
     } else {
