@@ -86,6 +86,7 @@ pub(super) fn plan_primes(
         exclude,
         on,
     )
+    .map(|(wiring, _)| wiring)
 }
 
 /// Its list: `numToSelect` primes ([`plan_primes`]).

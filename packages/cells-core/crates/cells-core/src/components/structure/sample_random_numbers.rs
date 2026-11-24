@@ -18,6 +18,10 @@ component! {
     default_prop: numbers,
     props {
         numComponents: list_len { rendered },
+        // The distribution's, from its parameters.
+        mean: by_planner,
+        variance: by_planner,
+        standardDeviation: by_planner,
     }
     list {
         names: [numbers, values],
@@ -37,6 +41,7 @@ component! {
         step: Scalar,
         mean: Scalar,
         standardDeviation: Scalar,
+        variance: Scalar,
         exclude: Scalars,
         numSamples: Literal(1.0),
     }
@@ -57,6 +62,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         step: attrs.step,
         mean: attrs.mean,
         standard_deviation: attrs.standardDeviation,
+        variance: attrs.variance,
         exclude: attrs.exclude,
         on: DrawOn {
             attrs: &[
@@ -66,14 +72,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 attr::step,
                 attr::mean,
                 attr::standardDeviation,
+                attr::variance,
                 attr::exclude,
                 attr::numSamples,
             ],
             children: false,
         },
     };
-    let mut wiring = plan_random(ctx, n, params)?;
-    wiring.set_planned(Planned {});
+    let (mut wiring, [mean, variance, sd]) = plan_random(ctx, n, params)?;
+    wiring.set_planned(Planned {
+        mean: Wire::own(mean),
+        variance: Wire::own(variance),
+        standardDeviation: Wire::own(sd),
+    });
     Ok(wiring)
 }
 

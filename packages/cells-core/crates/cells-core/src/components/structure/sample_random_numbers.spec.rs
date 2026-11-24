@@ -21,4 +21,9 @@ spec! {
         doenet r#"<sampleRandomNumbers name="s" numSamples="2.5"/>"#;
         diagnostics["cells-bad-attribute-value"]
     }
+
+    case "the distribution's moments" {
+        doenet r#"<sampleRandomNumbers name="s" type="discreteUniform" from="2" to="8" step="2" numSamples="3"/>"#;
+        expect { "s.mean" = 5, "s.variance" = 5, "s.numComponents" = 3 }
+    }
 }

@@ -164,7 +164,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             replace: attrs.withReplacement,
             order,
         };
-        plan_draws(ctx, dist, n, vec![from, step, to], attrs.exclude, DRAW_ON)?
+        plan_draws(ctx, dist, n, vec![from, step, to], attrs.exclude, DRAW_ON)?.0
     };
     let value = if n == 0 {
         Wire::absent()

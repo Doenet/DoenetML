@@ -22,6 +22,10 @@ component! {
     default_prop: numbers,
     props {
         numComponents: list_len { rendered },
+        // The distribution's, from its parameters.
+        mean: by_planner,
+        variance: by_planner,
+        standardDeviation: by_planner,
     }
     list {
         names: [numbers, values],
@@ -41,6 +45,7 @@ component! {
         step: Scalar,
         mean: Scalar,
         standardDeviation: Scalar,
+        variance: Scalar,
         exclude: Scalars,
         numToSelect: Literal(1.0),
     }
@@ -59,6 +64,9 @@ pub(super) struct RandomParams {
     pub(super) step: Option<Source>,
     pub(super) mean: Option<Source>,
     pub(super) standard_deviation: Option<Source>,
+    /// A gaussian's variance, for its standard deviation when that is
+    /// not given.
+    pub(super) variance: Option<Source>,
     pub(super) exclude: Vec<Source>,
     /// What decides the draw: every parameter, and how many are drawn.
     pub(super) on: DrawOn,
@@ -83,7 +91,7 @@ pub(super) fn plan_random(
     ctx: &mut PlanCtx<'_, '_>,
     n: usize,
     p: RandomParams,
-) -> Result<ElemWiring> {
+) -> Result<(ElemWiring, [Port; 3])> {
     let kind = p.kind.as_deref().map(|t| t.trim().to_ascii_lowercase());
     let tag = ctx.component_type().tag();
     let refuse_unused = |unused: &[(&str, bool)], kind: &str| -> Result<()> {
@@ -97,6 +105,7 @@ pub(super) fn plan_random(
     let gaussian_attrs = [
         ("mean", p.mean.is_some()),
         ("standardDeviation", p.standard_deviation.is_some()),
+        ("variance", p.variance.is_some()),
     ];
     // A default `to` is one past a literal `from`: by 1 for a uniform, by
     // the step for a discrete one.
@@ -104,7 +113,7 @@ pub(super) fn plan_random(
         Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(Source::constant(v + by)),
         _ => None,
     };
-    match kind.as_deref().unwrap_or("uniform") {
+    let (dist, params, excludes) = match kind.as_deref().unwrap_or("uniform") {
         "uniform" => {
             refuse_unused(&gaussian_attrs, "uniform")?;
             refuse_unused(
@@ -126,30 +135,21 @@ pub(super) fn plan_random(
                     }
                 },
             };
-            plan_draws(ctx, Dist::Uniform, n, vec![from, to], Vec::new(), p.on)
+            (Dist::Uniform, vec![from, to], Vec::new())
         }
         "discreteuniform" => {
             refuse_unused(&gaussian_attrs, "discreteUniform")?;
-            let from = p.from.unwrap_or_else(|| Source::constant(0.0));
-            let step = p.step.unwrap_or_else(|| Source::constant(1.0));
-            let to = match p.to {
-                Some(to) => to,
-                None => match (&step, one_past(&from, 0.0)) {
-                    (Source::Leaf(Leaf::Given(s) | Leaf::Const(s)), Some(_)) => {
-                        one_past(&from, *s).expect("a literal from")
-                    }
-                    _ => {
-                        return Err(Error::Unsupported(format!(
-                            "<{tag}> with a `from` or `step` that is no number needs a `to`"
-                        )));
-                    }
-                },
-            };
+            let (from, step, to) =
+                discrete_bounds(p.from, p.step, p.to, &p.exclude).ok_or_else(|| {
+                    Error::Unsupported(format!(
+                        "<{tag}> with a `from` or `step` that is no number needs a `to`"
+                    ))
+                })?;
             let dist = Dist::Sequence {
                 replace: true,
                 order: Order::Unsorted,
             };
-            plan_draws(ctx, dist, n, vec![from, step, to], p.exclude, p.on)
+            (dist, vec![from, step, to], p.exclude)
         }
         "gaussian" => {
             refuse_unused(
@@ -162,12 +162,76 @@ pub(super) fn plan_random(
                 "gaussian",
             )?;
             let mean = p.mean.unwrap_or_else(|| Source::constant(0.0));
-            let sd = p
-                .standard_deviation
-                .unwrap_or_else(|| Source::constant(1.0));
-            plan_draws(ctx, Dist::Gaussian, n, vec![mean, sd], Vec::new(), p.on)
+            let sd = match (p.standard_deviation, p.variance) {
+                (Some(sd), _) => sd,
+                (None, None) => Source::constant(1.0),
+                // A variance is the square of the deviation it stands for.
+                (None, Some(Source::Leaf(Leaf::Given(v) | Leaf::Const(v)))) => {
+                    Source::constant(v.sqrt())
+                }
+                (None, Some(_)) => {
+                    return Err(Error::Unsupported(format!(
+                        "<{tag} variance> that is no number"
+                    )));
+                }
+            };
+            (Dist::Gaussian, vec![mean, sd], Vec::new())
         }
-        other => Err(Error::Unsupported(format!("<{tag} type=\"{other}\">"))),
+        other => return Err(Error::Unsupported(format!("<{tag} type=\"{other}\">"))),
+    };
+    let (mut wiring, inputs) = plan_draws(ctx, dist, n, params, excludes, p.on)?;
+    let moments = moments(&mut wiring, dist, inputs);
+    Ok((wiring, moments))
+}
+
+/// A discrete uniform sampler's `from`, `step` and `to`, defaulted as the
+/// current core defaults them from literals: with no `to`, the first two
+/// values from `from` (0 by default) that it does not exclude; with no
+/// `from`, the values below `to` down to 0, ending at `to`. None when `to`
+/// is missing and `from`, `step` or an exclude is no literal.
+fn discrete_bounds(
+    from: Option<Source>,
+    step: Option<Source>,
+    to: Option<Source>,
+    excludes: &[Source],
+) -> Option<(Source, Source, Source)> {
+    let literal = |s: &Source| match s {
+        Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(*v),
+        _ => None,
+    };
+    let step = step.unwrap_or_else(|| Source::constant(1.0));
+    let s = literal(&step);
+    match (from, to) {
+        (from, None) => {
+            let from = from.unwrap_or_else(|| Source::constant(0.0));
+            let (mut f, s) = (literal(&from)?, s?);
+            let excluded: Vec<f64> = excludes.iter().map(literal).collect::<Option<_>>()?;
+            // Bounded, so a step of 0 among excludes cannot loop; the
+            // check refuses what is left.
+            let mut k = 0;
+            while excluded.contains(&f) && k < excluded.len() {
+                f += s;
+                k += 1;
+            }
+            let mut i = 1.0;
+            while excluded.contains(&(f + i * s)) && i <= excluded.len() as f64 {
+                i += 1.0;
+            }
+            Some((Source::constant(f), step, Source::constant(f + i * s)))
+        }
+        (None, Some(to)) => match (literal(&to), s) {
+            (Some(t), Some(s)) if s != 0.0 => {
+                let count = (t / s + 1.0).floor();
+                let f = if count >= 1.0 {
+                    t - (count - 1.0) * s
+                } else {
+                    0.0
+                };
+                Some((Source::constant(f), step, to))
+            }
+            _ => Some((Source::constant(0.0), step, to)),
+        },
+        (Some(from), Some(to)) => Some((from, step, to)),
     }
 }
 
@@ -178,7 +242,8 @@ pub(super) fn plan_random(
 /// passes a draw. Whether the parameters are constants, and the
 /// distribution never too small to draw from, is the check's (ADR 0037).
 /// A copy shares the draw unless it gives something in `on` (ADR 0059).
-/// The caller sets the table's props.
+/// The caller sets the table's props; it is given the ports holding the
+/// parameters and the excludes, in order, which the moments read.
 pub(super) fn plan_draws(
     ctx: &mut PlanCtx<'_, '_>,
     dist: Dist,
@@ -186,7 +251,7 @@ pub(super) fn plan_draws(
     params: Vec<Source>,
     excludes: Vec<Source>,
     on: DrawOn,
-) -> Result<ElemWiring> {
+) -> Result<(ElemWiring, Vec<Port>)> {
     let ty = ctx.component_type();
     if 1 + params.len() + excludes.len() > MAX_VEC_IN {
         return Err(Error::Unsupported(format!(
@@ -196,26 +261,38 @@ pub(super) fn plan_draws(
         )));
     }
     let mut wiring = ElemWiring::with_list(ty, n);
-    if n == 0 {
-        return Ok(wiring);
-    }
     let param = |source: Source| match source {
         Source::Leaf(Leaf::Given(v)) => Source::constant(v),
         source => source,
     };
     let n_exclude = byte(excludes.len());
-    let mut args = vec![wiring.draw(on)];
-    for s in params.into_iter().chain(excludes) {
-        args.push(wiring.hidden(param(s)));
+    let draw = (n > 0).then(|| wiring.draw(on));
+    let inputs: Vec<Port> = params
+        .into_iter()
+        .chain(excludes)
+        .map(|s| wiring.hidden(param(s)))
+        .collect();
+    if let Some(draw) = draw {
+        let op = VecOp::Draws {
+            dist,
+            n: byte(n),
+            n_exclude,
+        };
+        let mut args = vec![draw];
+        args.extend(&inputs);
+        let head = wiring.entry(0);
+        wiring.set_entries(ElemWiring::vector_from(head, op, args, &[]));
     }
-    let op = VecOp::Draws {
-        dist,
-        n: byte(n),
-        n_exclude,
-    };
-    let head = wiring.entry(0);
-    wiring.set_entries(ElemWiring::vector_from(head, op, args, &[]));
-    Ok(wiring)
+    Ok((wiring, inputs))
+}
+
+/// The mean, variance and standard deviation of the distribution a
+/// sampler draws from (`VecOp::Moments`), over the ports [`plan_draws`]
+/// gave: hidden ports, which the sampler's props alias.
+fn moments(wiring: &mut ElemWiring, dist: Dist, inputs: Vec<Port>) -> [Port; 3] {
+    let n_exclude = byte(inputs.len() - dist.n_params());
+    let ports = wiring.hidden_vector(VecOp::Moments { dist, n_exclude }, inputs);
+    [ports[0], ports[1], ports[2]]
 }
 
 /// Its list: `numToSelect` values from the distribution its `type`
@@ -230,6 +307,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         step: attrs.step,
         mean: attrs.mean,
         standard_deviation: attrs.standardDeviation,
+        variance: attrs.variance,
         exclude: attrs.exclude,
         on: DrawOn {
             attrs: &[
@@ -239,14 +317,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 attr::step,
                 attr::mean,
                 attr::standardDeviation,
+                attr::variance,
                 attr::exclude,
                 attr::numToSelect,
             ],
             children: false,
         },
     };
-    let mut wiring = plan_random(ctx, n, params)?;
-    wiring.set_planned(Planned {});
+    let (mut wiring, [mean, variance, sd]) = plan_random(ctx, n, params)?;
+    wiring.set_planned(Planned {
+        mean: Wire::own(mean),
+        variance: Wire::own(variance),
+        standardDeviation: Wire::own(sd),
+    });
     Ok(wiring)
 }
 

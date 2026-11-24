@@ -413,6 +413,21 @@ function heldMath(cells: Cells, cell: number): unknown {
         ? exprOf(cells, cell)
         : M(cells.value(cell));
 }
+/** The order a select's literal `sort` asks for, as its planner reads it. */
+const sortAttr: Reader = (_g, x) => {
+    const text = x.cells.table.attr(x.idx, "sort");
+    if (text === null) return "unsorted";
+    const t = text.trim().toLowerCase();
+    if (t === "" || t === "true") return "increasing";
+    return t === "false" ? "unsorted" : t;
+};
+/** A random-number sampler's distribution's moments, which the core
+ * computes from its parameters. */
+const momentReaders: Record<string, Reader> = {
+    mean: (g) => g("mean"),
+    variance: (g) => g("variance"),
+    standardDeviation: (g) => g("standardDeviation"),
+};
 /** A part of a subset of the reals (`points`, `intervals`, ..): a math
  * cell holding a list of its entries, one entry alone, none empty. */
 function subsetPart(prop: string): Reader {
@@ -846,20 +861,22 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     latex: { value: textOf, text: textOf },
     sequence: numberListReaders("sequenceValues"),
-    sampleRandomNumbers: numberListReaders("sampledValues"),
-    selectRandomNumbers: numberListReaders("selectedValues"),
+    sampleRandomNumbers: {
+        ...numberListReaders("sampledValues"),
+        ...momentReaders,
+    },
+    selectRandomNumbers: {
+        ...numberListReaders("selectedValues"),
+        ...momentReaders,
+    },
     samplePrimeNumbers: numberListReaders("sampledValues"),
-    selectPrimeNumbers: numberListReaders("selectedValues"),
+    selectPrimeNumbers: {
+        ...numberListReaders("selectedValues"),
+        sort: sortAttr,
+    },
     selectFromSequence: {
         ...numberListReaders("selectedValues"),
-        // The order its literal `sort` asks for, as the planner reads it.
-        sort: (_g, x) => {
-            const text = x.cells.table.attr(x.idx, "sort");
-            if (text === null) return "unsorted";
-            const t = text.trim().toLowerCase();
-            if (t === "" || t === "true") return "increasing";
-            return t === "false" ? "unsorted" : t;
-        },
+        sort: sortAttr,
     },
     ...Object.fromEntries(
         [
