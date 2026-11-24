@@ -774,6 +774,9 @@ mod arity {
             }),
             OpSpec::Vec(VecOp::Turn),
             OpSpec::Vec(VecOp::Attract),
+            OpSpec::Vec(VecOp::SegmentPolar),
+            OpSpec::Vec(VecOp::SegmentMirror),
+            OpSpec::Vec(VecOp::SegmentMeasures),
             OpSpec::Vec(VecOp::RegularPolygon {
                 n: 3,
                 by: RegularBy::CenterVertex,
@@ -916,6 +919,9 @@ mod arity {
                 // After the symbolic operators to 64.
                 VecOp::Turn => 65,
                 VecOp::Attract => 66,
+                VecOp::SegmentPolar => 67,
+                VecOp::SegmentMirror => 68,
+                VecOp::SegmentMeasures => 69,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -957,7 +963,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 67;
+    const N_TAGS: usize = 70;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

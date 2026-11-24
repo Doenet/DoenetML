@@ -58,8 +58,16 @@ write.
 ## Consequences
 
 - The polygon, triangle, rectangle and regular polygon declare
-  `draggable` and `verticesDraggable`. One constant cell per shape (the
-  default flag), the second an alias.
+  `draggable` and `verticesDraggable`, the line segment `draggable` and
+  `endpointsDraggable`. One constant cell per shape (the default flag),
+  the second an alias.
+- A segment placed by a midpoint, slope or length (`SegmentPolar`,
+  `SegmentMirror`) says so in a 0/1 cell, `basedOnSlopeOrMidpoint`, which
+  the bridge reads as it reads a line's `basedOnDirection`: a drag of one
+  end asks for the other where it is, as the current core's
+  `moveLineSegment` does, so the ends' inverse sets the slope and length.
+  A request on one end from anything else (a point bound to it) moves it
+  alone, which for a placed segment translates it.
 - The cells viewer's renderers do not read the flags yet; the prototype's
   renderers receive them through the contracts.
 - A point's `draggable`, a vector's `draggable`, `headDraggable` and

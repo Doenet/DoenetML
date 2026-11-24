@@ -230,22 +230,38 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     line: { moveLine },
     // A whole-segment drag sends both endpoints; an endpoint's drag, one.
     lineSegment: {
-        moveLineSegment: (t, c, { point1coords, point2coords }) => {
-            const moves: [Point, Point][] = [];
-            if (point1coords) {
-                moves.push([
-                    [cellOf(t, c, "x1"), cellOf(t, c, "y1")],
-                    point1coords,
-                ]);
-            }
-            if (point2coords) {
-                moves.push([
-                    [cellOf(t, c, "x2"), cellOf(t, c, "y2")],
-                    point2coords,
-                ]);
-            }
-            return movePoints(moves);
-        },
+        moveLineSegment: gated(
+            "endpointsDraggable",
+            ({ point1coords, point2coords }) =>
+                Number(!!point1coords) + Number(!!point2coords),
+            (t, c, { point1coords, point2coords }) => {
+                // Placed by a midpoint, slope or length, an end dragged
+                // alone holds the other where it is, as the current core's
+                // moveLineSegment does.
+                if (t.value(cellOf(t, c, "basedOnSlopeOrMidpoint")) === 1) {
+                    return moveBoth(
+                        t,
+                        c,
+                        ["x1", "y1", point1coords],
+                        ["x2", "y2", point2coords],
+                    );
+                }
+                const moves: [Point, Point][] = [];
+                if (point1coords) {
+                    moves.push([
+                        [cellOf(t, c, "x1"), cellOf(t, c, "y1")],
+                        point1coords,
+                    ]);
+                }
+                if (point2coords) {
+                    moves.push([
+                        [cellOf(t, c, "x2"), cellOf(t, c, "y2")],
+                        point2coords,
+                    ]);
+                }
+                return movePoints(moves);
+            },
+        ),
     },
     // The center; the inverse carries the through points along.
     circle: {

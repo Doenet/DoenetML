@@ -962,6 +962,8 @@ export const CONTRACTS: Record<string, Contract> = {
                 [r.num(c, "x1"), r.num(c, "y1")],
                 [r.num(c, "x2"), r.num(c, "y2")],
             ],
+            draggable: r.bool(c, "draggable"),
+            endpointsDraggable: r.bool(c, "endpointsDraggable"),
         }),
     }),
     circle: inGraphOnly({

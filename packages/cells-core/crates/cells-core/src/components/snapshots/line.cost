@@ -6,7 +6,7 @@ a point and a slope: the second point a unit along it: cells 13 · essential 8 �
 a slope alone: through the origin: cells 13 · essential 8 · constant 3 · instrs 1 · components 3
 a slope from a number: cells 14 · essential 8 · constant 4 · instrs 1 · components 4
 parallel to another line, following it: cells 19 · essential 11 · constant 4 · instrs 3 · components 4
-parallel to a segment: cells 18 · essential 11 · constant 3 · instrs 3 · components 4
+parallel to a segment: cells 19 · essential 11 · constant 4 · instrs 3 · components 4
 perpendicular to a vector: cells 14 · essential 9 · constant 3 · instrs 1 · components 3
 perpendicular to a point's coordinates: cells 15 · essential 9 · constant 4 · instrs 1 · components 4
 an equation attribute: coefficients are the state: cells 15 · essential 7 · constant 4 · instrs 1 · components 4

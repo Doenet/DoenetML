@@ -697,6 +697,32 @@ describe("step 3 components", () => {
         });
     });
 
+    it("drags a segment's end alone, holding the other when a slope places it", async () => {
+        const { send, changed, all } = await open(`<graph>
+<lineSegment slope="0" length="2"/>
+<lineSegment endpoints="(0,0) (1,1)" endpointsDraggable="false"/>
+</graph>`);
+        // The first end dragged: the second held, the slope and length follow.
+        let payload = send("lineSegment", "moveLineSegment", {
+            point1coords: [2, 2],
+        });
+        expect(changed(payload, "lineSegment")).toEqual({
+            numericalEndpoints: [
+                [2, 2],
+                [2, 0],
+            ],
+        });
+        // An end of a segment whose ends are not draggable stays put.
+        payload = send(
+            "lineSegment",
+            "moveLineSegment",
+            { point2coords: [3, 3] },
+            1,
+        );
+        expect(changed(payload, "lineSegment", 1)).toBeUndefined();
+        expect(all("lineSegment")).toHaveLength(2);
+    });
+
     it("draws a polyline through the points it gathered, and a legend", async () => {
         const { all, props } = await open(`<graph>
 <collect name="ps" componentType="point" from="$g2"/>

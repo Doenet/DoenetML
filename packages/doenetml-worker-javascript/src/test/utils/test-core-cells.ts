@@ -837,8 +837,24 @@ const STATE: Record<string, Record<string, Reader>> = {
         numDimensions: () => 2,
     },
     lineSegment: {
-        endpoints: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
+        // A coordinate the core cannot compute (an end a midpoint at the
+        // first end leaves undefined) is the blank, as the current core
+        // shows it.
+        endpoints: (g) =>
+            ["1", "2"].map((k) =>
+                [`x${k}`, `y${k}`].map((p) =>
+                    Number.isNaN(g(p)) ? me.fromAst(BLANK) : M(g(p)),
+                ),
+            ),
         numericalEndpoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
+        // A number in the current core; the length and midpoint are maths.
+        slope: (g) => g("slope"),
+        length: (g) => M(g("length")),
+        midpoint: (g) => pt(g, "mx", "my"),
+        // What a drag may move (ADR 0070), 0/1 cells.
+        draggable: (g) => g("draggable") !== 0,
+        endpointsDraggable: (g) => g("endpointsDraggable") !== 0,
+        numDimensions: () => 2,
     },
     polygon: polygonReaders,
     triangle: polygonReaders,
@@ -1678,6 +1694,11 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     curve: ["moveThroughPoint"],
     equilibriumCurve: ["moveThroughPoint", "switchCurve"],
     matrixInput: ["updateNumRows", "updateNumColumns"],
+    // Drags the bridge gates by what they may move (ADR 0070), and a
+    // segment's end that holds the other when a slope or midpoint places it.
+    polygon: ["movePolygon"],
+    triangle: ["movePolygon"],
+    lineSegment: ["moveLineSegment"],
 };
 
 function stripPositions(o: any): any {
