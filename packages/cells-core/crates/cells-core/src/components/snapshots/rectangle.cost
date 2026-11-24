@@ -1,9 +1,10 @@
-no attributes: the unit square: cells 15 · essential 8 · constant 3 · instrs 1 · components 3
-a corner and a size: a point on a vertex keeps the size or the anchor: cells 16 · essential 8 · constant 4 · instrs 1 · components 6
-a center and a size: cells 16 · essential 8 · constant 4 · instrs 1 · components 4
-a center alone: a unit square about it: cells 15 · essential 8 · constant 3 · instrs 1 · components 3
-a vertex and a center: a point on the vertex holds the center: cells 16 · essential 8 · constant 4 · instrs 1 · components 5
-two vertices, from points: cells 12 · essential 8 · constant 4 · instrs 0 · components 5
-a whole-rectangle drag and a center request translate it: cells 18 · essential 8 · constant 4 · instrs 2 · components 4
-the width and height, bound to inputs, keep the center: cells 14 · essential 8 · constant 4 · instrs 2 · components 5
-a width given by a number moves with it: cells 16 · essential 8 · constant 4 · instrs 1 · components 4
+no attributes: the unit square: cells 16 · essential 8 · constant 4 · instrs 1 · components 3
+a corner and a size: a point on a vertex keeps the size or the anchor: cells 17 · essential 8 · constant 5 · instrs 1 · components 6
+a center and a size: cells 17 · essential 8 · constant 5 · instrs 1 · components 4
+a center alone: a unit square about it: cells 16 · essential 8 · constant 4 · instrs 1 · components 3
+a vertex and a center: a point on the vertex holds the center: cells 17 · essential 8 · constant 5 · instrs 1 · components 5
+two vertices, from points: cells 13 · essential 8 · constant 5 · instrs 0 · components 5
+a whole-rectangle drag and a center request translate it: cells 19 · essential 8 · constant 5 · instrs 2 · components 4
+the width and height, bound to inputs, keep the center: cells 15 · essential 8 · constant 5 · instrs 2 · components 5
+a width given by a number moves with it: cells 17 · essential 8 · constant 5 · instrs 1 · components 4
+what a drag may move: flags the core computes and holds nothing by: cells 28 · essential 13 · constant 6 · instrs 3 · components 6

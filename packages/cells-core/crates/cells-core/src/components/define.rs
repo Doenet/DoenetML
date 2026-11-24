@@ -855,7 +855,9 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 ///
 /// `attributes { .. }` declares the attributes the type's planner reads,
 /// each with its kind: `center: Point`, `radius: Scalar`,
-/// `through: Points(3)`, `hide: Flag(false)`, `rigid: Bool(false)`,
+/// `through: Points(3)`, `hide: Flag(false)`, `verticesDraggable: OptFlag`
+/// (a flag, none when absent, for a planner to default to another),
+/// `rigid: Bool(false)`,
 /// `minShrink: Number(0.1)`, `rotateAround: Text`, `equation: Math`,
 /// `function: Ref`. The planner reads them typed, as the struct `Attrs`
 /// (`Attrs::of(ctx.record())`). A module `attr` holds one
@@ -1611,6 +1613,7 @@ macro_rules! component {
     (@kind Entries) => { $crate::components::AttrKind::Entries };
     (@kind Points($max:expr)) => { $crate::components::AttrKind::Points { max: Some($max) } };
     (@kind Flag($d:expr)) => { $crate::components::AttrKind::Flag { default: $d } };
+    (@kind OptFlag) => { $crate::components::AttrKind::Flag { default: false } };
     (@kind Bool($d:expr)) => { $crate::components::AttrKind::Bool { default: $d } };
     (@kind Number($d:expr)) => { $crate::components::AttrKind::Number { default: $d } };
     (@kind Literal($d:expr)) => { $crate::components::AttrKind::Literal { default: $d } };
@@ -1626,7 +1629,7 @@ macro_rules! component {
     (@kind $other:ident $(($($karg:tt)*))?) => {
         compile_error!(concat!(
             "component!: attribute kind `", stringify!($other),
-            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), Bool(default), Number(default), Literal(default), On, Written, LiteralFlag, Content, Text, Math, Ref"
+            "` is not one of Scalar, Value, Point, Points, Points(max), Flag(default), OptFlag, Bool(default), Number(default), Literal(default), On, Written, LiteralFlag, Content, Text, Math, Ref"
         ))
     };
     (@field Scalar) => { Option<$crate::compile::api::Source> };
@@ -1636,6 +1639,7 @@ macro_rules! component {
     (@field Scalars) => { Vec<$crate::compile::api::Source> };
     (@field Entries) => { Vec<$crate::compile::api::ListPiece> };
     (@field Flag($d:expr)) => { $crate::compile::api::Source };
+    (@field OptFlag) => { Option<$crate::compile::api::Source> };
     (@field Bool($d:expr)) => { bool };
     (@field Number($d:expr)) => { f64 };
     (@field Literal($d:expr)) => { $crate::error::Result<f64> };
@@ -1655,6 +1659,7 @@ macro_rules! component {
     (@get Scalars, $r:ident, $a:expr) => { $r.scalars($a) };
     (@get Entries, $r:ident, $a:expr) => { $r.entries($a) };
     (@get Flag($d:expr), $r:ident, $a:expr) => { $r.flag($a, $d) };
+    (@get OptFlag, $r:ident, $a:expr) => { $r.scalar($a) };
     (@get Bool($d:expr), $r:ident, $a:expr) => { $r.bool($a, $d) };
     (@get Number($d:expr), $r:ident, $a:expr) => { $r.number($a, $d) };
     (@get Literal($d:expr), $r:ident, $a:expr) => { $r.literal($a, $d) };

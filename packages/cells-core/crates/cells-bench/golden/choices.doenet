@@ -6,7 +6,7 @@
 </conditionalContent>
 <number name="sx">$cc.x</number>
 <number name="sw">$cc.w</number>
-<booleanInput name="b" value="true"/>
+<booleanInput name="b" prefill="true"/>
 <conditionalContent name="ct">
   <case condition="$b"><text name="t">dog</text></case>
   <else><text name="t">cat</text></else>

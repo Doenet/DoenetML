@@ -161,7 +161,7 @@ fn inactive_answers_do_not_count() {
 fn nested_cases_gate_by_every_enclosing_case() {
     let mut doc = load(
         r#"
-<booleanInput name="b1" value="true"/><booleanInput name="b2" value="true"/>
+<booleanInput name="b1" prefill="true"/><booleanInput name="b2" prefill="true"/>
 <mathInput name="m0"/><answer name="a0" response="$m0">0</answer>
 <conditionalContent condition="$b1">
   <conditionalContent condition="$b2"><mathInput name="m1"/><answer name="a1" response="$m1">1</answer></conditionalContent>
@@ -182,7 +182,7 @@ fn nested_cases_gate_by_every_enclosing_case() {
 fn hidden_answers_still_count() {
     // The current core's `scoredDescendants` ignores `hidden`.
     let doc = load(
-        r#"<booleanInput name="h" value="true"/><mathInput name="m1"/><answer name="a1" response="$m1">1</answer>
+        r#"<booleanInput name="h" prefill="true"/><mathInput name="m1"/><answer name="a1" response="$m1">1</answer>
 <conditionalContent name="cc" hide="$h"><case condition="true"><mathInput name="m2"/><answer name="a2" response="$m2">2</answer></case></conditionalContent>"#,
     )
     .unwrap();

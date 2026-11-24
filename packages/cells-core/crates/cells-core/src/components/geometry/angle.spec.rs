@@ -86,4 +86,15 @@ spec! {
         request { "mi.value" = 1 }
         expect { "a.radians" = 1, "a.degrees" = 180.0 / PI }
     }
+
+    case "its three points: through points, else the third a unit from the vertex at the measure" {
+        doenet r#"<angle name="t" through="(2,2) (2,4) (4,2)" radians="1"/>
+                  <angle name="r" radians="pi/2"/>
+                  <angle name="one" through="(0,3)" degrees="90"/>"#;
+        // A given third point is kept, whatever gives the measure.
+        expect { "t.points" = [2, 2, 2, 4, 4, 2] }
+        expect { "r.points" = [1, 0, 0, 0, 0, 1] }
+        // One through point is the first, the vertex the origin.
+        expect { "one.points" = [0, 3, 0, 0, -1, 0] }
+    }
 }

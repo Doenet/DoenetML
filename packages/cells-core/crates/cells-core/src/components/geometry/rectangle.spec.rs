@@ -95,4 +95,20 @@ spec! {
         request { "r.vertex3" = (5, 1), "r.vertex1" = (0, 0) }
         expect { "n.value" = 5 }
     }
+
+    case "what a drag may move: flags the core computes and holds nothing by" {
+        doenet r#"<booleanInput name="d"/>
+                  <graph><rectangle name="r" draggable="$d"/>
+                  <rectangle name="s" verticesDraggable="false"/></graph>
+                  <mathInput name="w" bindValueTo="$r.width"/>"#;
+        // `verticesDraggable` follows `draggable` unless given.
+        expect { "r.draggable" = 0, "r.verticesDraggable" = 0, "s.draggable" = 1, "s.verticesDraggable" = 0 }
+        request { "d.value" = 1 }
+        expect { "r.draggable" = 1, "r.verticesDraggable" = 1 }
+        // An input bound to the rectangle still writes it when not draggable:
+        // only a drag reads the flags (ADR 0070).
+        request { "d.value" = 0 }
+        request { "w.value" = 3 }
+        expect { "r.width" = 3 }
+    }
 }

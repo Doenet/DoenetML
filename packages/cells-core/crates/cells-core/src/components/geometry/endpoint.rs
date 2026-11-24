@@ -36,7 +36,7 @@ component! {
         open: Flag(false),
     }
     children: Math {
-        constraints: [ConstrainTo, ConstrainToGrid],
+        constraints: [ConstrainTo, ConstrainToGrid, AttractTo],
     },
     planner: Plan(plan),
 }

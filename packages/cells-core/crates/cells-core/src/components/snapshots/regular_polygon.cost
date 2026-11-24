@@ -1,11 +1,11 @@
-no attributes: a triangle about the origin, a vertex at (1, 0): cells 21 · essential 9 · constant 4 · instrs 2 · components 3
-a square of a given area, and its sizes: cells 26 · essential 9 · constant 5 · instrs 4 · components 3
-an area from a number, which a vertex drag writes: cells 27 · essential 9 · constant 6 · instrs 4 · components 4
-a pentagon of a given side about a center: cells 27 · essential 9 · constant 5 · instrs 3 · components 3
-a hexagon of a given inradius: cells 29 · essential 9 · constant 5 · instrs 3 · components 3
-a center and a vertex; the sizes are not used: cells 18 · essential 8 · constant 4 · instrs 1 · components 4
-one vertex: the center a circumradius to its left: cells 23 · essential 9 · constant 4 · instrs 2 · components 3
-two adjacent vertices, counterclockwise: cells 19 · essential 8 · constant 3 · instrs 1 · components 3
-the circumradius, bound to an input, scales it: cells 27 · essential 9 · constant 5 · instrs 4 · components 4
-a circumradius from a number, which a vertex drag writes: cells 24 · essential 9 · constant 5 · instrs 2 · components 4
+no attributes: a triangle about the origin, a vertex at (1, 0): cells 22 · essential 9 · constant 5 · instrs 2 · components 3
+a square of a given area, and its sizes: cells 27 · essential 9 · constant 6 · instrs 4 · components 3
+an area from a number, which a vertex drag writes: cells 28 · essential 9 · constant 7 · instrs 4 · components 4
+a pentagon of a given side about a center: cells 28 · essential 9 · constant 6 · instrs 3 · components 3
+a hexagon of a given inradius: cells 30 · essential 9 · constant 6 · instrs 3 · components 3
+a center and a vertex; the sizes are not used: cells 19 · essential 8 · constant 5 · instrs 1 · components 4
+one vertex: the center a circumradius to its left: cells 24 · essential 9 · constant 5 · instrs 2 · components 3
+two adjacent vertices, counterclockwise: cells 20 · essential 8 · constant 4 · instrs 1 · components 3
+the circumradius, bound to an input, scales it: cells 28 · essential 9 · constant 6 · instrs 4 · components 4
+a circumradius from a number, which a vertex drag writes: cells 25 · essential 9 · constant 6 · instrs 2 · components 4
 a number of vertices that is no literal is not supported: cells 8 · essential 4 · constant 4 · instrs 0 · components 4

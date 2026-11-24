@@ -164,7 +164,7 @@ fn val_8_a_flag_written_as_an_expression_is_refused() {
 #[test]
 fn name_0_a_keyword_value_is_matched_in_any_case() {
     let doc =
-        load(r#"<booleanInput name="b" value="TRUE"/><booleanInput name="c" value="False"/>"#)
+        load(r#"<booleanInput name="b" prefill="TRUE"/><booleanInput name="c" prefill="False"/>"#)
             .unwrap();
     assert_eq!(v(&doc, "b", "value"), 1.0);
     assert_eq!(v(&doc, "c", "value"), 0.0);

@@ -1,4 +1,4 @@
-<booleanInput name="b" value="true"/>
+<booleanInput name="b" prefill="true"/>
 <point name="A" x="1" y="2"/>
 <point name="P" x="$A.x" y="3" fixed="$b"/>
 <numberInput name="n" value="3" fixed="$b"/>

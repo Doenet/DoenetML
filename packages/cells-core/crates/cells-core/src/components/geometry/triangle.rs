@@ -22,6 +22,9 @@ component! {
         // list.
         cx: by_planner { interactive },
         cy: by_planner { interactive },
+        // Whether a whole drag, and a vertex's, may move it (ADR 0070).
+        draggable: by_planner { rendered },
+        verticesDraggable: by_planner { rendered },
     }
     combined_props {
         center: [cx, cy],
@@ -51,6 +54,8 @@ component! {
         allowDilation: Bool(true),
         allowRotation: Bool(true),
         allowTranslation: Bool(true),
+        draggable: Flag(true),
+        verticesDraggable: OptFlag,
     }
     params {
         // A missing vertex's coordinates.
@@ -64,7 +69,9 @@ component! {
 const _: () = assert!(
     Props::AT.numVertices == super::polygon::NUM_VERTICES
         && Props::AT.cx == super::polygon::CX
-        && Props::AT.cy == super::polygon::CY,
+        && Props::AT.cy == super::polygon::CY
+        && Props::AT.draggable == super::polygon::DRAGGABLE
+        && Props::AT.verticesDraggable == super::polygon::VERTICES_DRAGGABLE,
     "a triangle's props must be laid out as a polygon's"
 );
 

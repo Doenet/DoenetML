@@ -223,7 +223,7 @@ fn numbers_follow_a_count_of_divisions_that_changes_at_runtime() {
     // at runtime", without its cascade.
     let mut doc = load_unpruned(
         r#"<mathInput name="n" prefill="2" />
-<booleanInput name="show" value="true" />
+<booleanInput name="show" prefill="true" />
 <section name="a"/>
 <div>
   <repeatForSequence name="r" length="$n"><section name="p"/></repeatForSequence>
@@ -262,7 +262,7 @@ fn numbers_follow_a_count_of_divisions_that_changes_at_runtime() {
 fn parts_follow_a_count_that_changes_at_runtime() {
     let mut doc = load_unpruned(
         r#"<mathInput name="n" prefill="2" />
-<booleanInput name="show" value="true" />
+<booleanInput name="show" prefill="true" />
 <problem name="p">
   <conditionalContent condition="$show"><proof><p>Clear.</p></proof></conditionalContent>
   <repeatForSequence name="r" length="$n"><part name="q"/></repeatForSequence>

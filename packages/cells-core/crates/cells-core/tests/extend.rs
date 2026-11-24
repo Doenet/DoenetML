@@ -196,7 +196,7 @@ fn child_types(doc: &cells_core::Document, path: &str) -> Vec<&'static str> {
 fn a_bare_reference_to_an_input_is_its_value() {
     let mut doc = load(
         r#"<mathInput name="mi" prefill="2"/><textInput name="ti" prefill="hi"/>
-           <booleanInput name="bi" value="true"/><numberInput name="ni" value="4"/>
+           <booleanInput name="bi" prefill="true"/><numberInput name="ni" value="4"/>
            <p name="out">$mi $ti $bi $ni</p>
            <repeatForSequence name="r" from="1" to="1"><mathInput name="in" prefill="7"/></repeatForSequence>
            <p name="iter">$r[1]</p>

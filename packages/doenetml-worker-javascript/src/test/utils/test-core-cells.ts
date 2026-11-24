@@ -32,6 +32,7 @@ import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
 import {
     LIST_LIKE,
     Reads,
+    label,
     SECTION_KINDS,
     sectionBoxed,
     TRANSPARENT,
@@ -375,6 +376,9 @@ const polygonReaders: Record<string, Reader> = {
     numericalVertices: (g) =>
         items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
     center: (g) => pt(g, "cx", "cy"),
+    // What a drag may move (ADR 0070), 0/1 cells.
+    draggable: (g) => g("draggable") !== 0,
+    verticesDraggable: (g) => g("verticesDraggable") !== 0,
 };
 
 /** A tuple of two numbers, as the current core's `coords` of a vector. */
@@ -424,6 +428,19 @@ const angleReaders: Record<string, Reader> = {
     value: exprOr("radiansExpr", "radians"),
     angle: exprOr("radiansExpr", "radians"),
     degrees: exprOr("degreesExpr", "degrees"),
+    // Its first point, its vertex and its third point; a coordinate the
+    // core cannot compute is the blank, as the current core shows it.
+    points: (g) =>
+        ["1", "2", "3"].map((k) =>
+            [`x${k}`, `y${k}`].map((p) =>
+                Number.isNaN(g(p)) ? me.fromAst(BLANK) : M(g(p)),
+            ),
+        ),
+    numericalPoints: (g) => [
+        npt(g, "x1", "y1"),
+        npt(g, "x2", "y2"),
+        npt(g, "x3", "y3"),
+    ],
 };
 
 /** A rectangle's and a regular polygon's sizes are numbers in the current
@@ -856,6 +873,9 @@ const STATE: Record<string, Record<string, Reader>> = {
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
         latex: (_g, x) => pointLatex(reads(x), x.idx),
+        // The text of its `<label>` child, a component (ADR 0024), else
+        // its `label` attribute, as the bridge draws it.
+        label: (_g, x) => label(x.cells.table, x.idx),
     },
     circle: {
         center: (g) => pt(g, "cx", "cy"),
@@ -906,8 +926,24 @@ const STATE: Record<string, Record<string, Reader>> = {
         numDimensions: () => 2,
     },
     lineSegment: {
-        endpoints: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
+        // A coordinate the core cannot compute (an end a midpoint at the
+        // first end leaves undefined) is the blank, as the current core
+        // shows it.
+        endpoints: (g) =>
+            ["1", "2"].map((k) =>
+                [`x${k}`, `y${k}`].map((p) =>
+                    Number.isNaN(g(p)) ? me.fromAst(BLANK) : M(g(p)),
+                ),
+            ),
         numericalEndpoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
+        // A number in the current core; the length and midpoint are maths.
+        slope: (g) => g("slope"),
+        length: (g) => M(g("length")),
+        midpoint: (g) => pt(g, "mx", "my"),
+        // What a drag may move (ADR 0070), 0/1 cells.
+        draggable: (g) => g("draggable") !== 0,
+        endpointsDraggable: (g) => g("endpointsDraggable") !== 0,
+        numDimensions: () => 2,
     },
     polygon: polygonReaders,
     triangle: polygonReaders,
@@ -1801,6 +1837,11 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     curve: ["moveThroughPoint"],
     equilibriumCurve: ["moveThroughPoint", "switchCurve"],
     matrixInput: ["updateNumRows", "updateNumColumns"],
+    // Drags the bridge gates by what they may move (ADR 0070), and a
+    // segment's end that holds the other when a slope or midpoint places it.
+    polygon: ["movePolygon"],
+    triangle: ["movePolygon"],
+    lineSegment: ["moveLineSegment"],
 };
 
 function stripPositions(o: any): any {
