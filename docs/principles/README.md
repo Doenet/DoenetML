@@ -116,9 +116,9 @@ A keyword in an attribute's value, such as `"full"` or `"true"`, can be written 
      something that isn't a math (cases of different types, several components), it is an error.
      Wrap it instead, `<math>$cc</math>`, or index it, `$x[1]`.
    - something that isn't there shows as a blank, `＿`, written bare or as a tag: a typo, an index
-     past the end, `$ans.submittedResponse` before a submission, `$cc` while no case is shown. Only
-     what is empty by what is written shows nothing: an empty list, a repeat with no iterations, an
-     empty `<group>` or case (D73). A blank never equals anything, so it never earns
+     past the end, `$ans.submittedResponse` before a submission. Only what is empty shows nothing: an
+     empty list, a repeat with no iterations, an empty `<group>` or case, a `<conditionalContent>`
+     with no case shown (D73). A blank never equals anything, so it never earns
      credit. (VAL-5, D37)
 
    (REF-0, REF-3 to REF-5)

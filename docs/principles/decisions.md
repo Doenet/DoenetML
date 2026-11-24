@@ -2149,7 +2149,7 @@ missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a 
    input or another missing value included (VAL-5's Tier 1 rule stays).
 2. **A reference to a collection gives its members, possibly none.** A list, a repeat, a collect,
    a group, and `$cc` itself while no case is active show nothing when empty (**revised by D73**:
-   `$cc` with no case shown is `＿`; an empty group or shown case shows nothing). This is the only
+   an empty group or shown case shows nothing too, and a tag made from any of these is missing). This is the only
    way a reference shows nothing.
 3. **Missing shows as `＿` inline, and is not drawn in a graph.** This settles D10. A missing
    point is not drawn and can't be dragged.
@@ -3668,7 +3668,7 @@ nothing.
 
 Implementation: #2673 (PR 65).
 
-## D73. Nothing chosen is a blank; nothing written shows nothing (decided, November 2026)
+## D73. A wrapper or conditional with nothing to show shows nothing (decided, November 2026)
 
 **Why.** VAL-5 lets a reference show nothing only when it reaches a collection with no members, and
 listed `$cc` with no case shown among them, because a `<conditionalContent>` counted as a
@@ -3676,8 +3676,9 @@ collection of 0 or 1 cases. D72 ends that view. COLL-3 also said a wrapper holdi
 which disagreed with VAL-5's listing of a `<group>` among the collections.
 
 **Decided:**
-1. **`$cc` while no case is shown is a blank `＿`**, a reference to one thing that isn't there
-   (VAL-5). A `<conditionalContent>` written in place still shows nothing.
+1. **`$cc` while no case is shown shows nothing,** as the `<conditionalContent>` does where it is
+   written. Showing something only while a condition holds is its main use; a blank would make
+   that use harder. (First decided as `＿`, then revised the same day.)
 2. **An empty `<group>` shows nothing,** bare or by reference: it says nothing is there, and a
    blank would surprise an author. The same holds for a shown case, `<else>`, option or iteration
    that holds nothing, so `$cc` whose shown case is empty shows nothing. An author who wants
