@@ -60,6 +60,8 @@ pub(super) struct RandomParams {
     pub(super) mean: Option<Source>,
     pub(super) standard_deviation: Option<Source>,
     pub(super) exclude: Vec<Source>,
+    /// What decides the draw: every parameter, and how many are drawn.
+    pub(super) on: DrawOn,
 }
 
 /// How many values a sampler draws, from its literal count attribute
@@ -124,7 +126,7 @@ pub(super) fn plan_random(
                     }
                 },
             };
-            plan_draws(ctx, Dist::Uniform, n, vec![from, to], Vec::new())
+            plan_draws(ctx, Dist::Uniform, n, vec![from, to], Vec::new(), p.on)
         }
         "discreteuniform" => {
             refuse_unused(&gaussian_attrs, "discreteUniform")?;
@@ -147,7 +149,7 @@ pub(super) fn plan_random(
                 replace: true,
                 order: Order::Unsorted,
             };
-            plan_draws(ctx, dist, n, vec![from, step, to], p.exclude)
+            plan_draws(ctx, dist, n, vec![from, step, to], p.exclude, p.on)
         }
         "gaussian" => {
             refuse_unused(
@@ -163,7 +165,7 @@ pub(super) fn plan_random(
             let sd = p
                 .standard_deviation
                 .unwrap_or_else(|| Source::constant(1.0));
-            plan_draws(ctx, Dist::Gaussian, n, vec![mean, sd], Vec::new())
+            plan_draws(ctx, Dist::Gaussian, n, vec![mean, sd], Vec::new(), p.on)
         }
         other => Err(Error::Unsupported(format!("<{tag} type=\"{other}\">"))),
     }
@@ -175,6 +177,7 @@ pub(super) fn plan_random(
 /// entries. A literal parameter is a constant, never state, as no request
 /// passes a draw. Whether the parameters are constants, and the
 /// distribution never too small to draw from, is the check's (ADR 0037).
+/// A copy shares the draw unless it gives something in `on` (ADR 0059).
 /// The caller sets the table's props.
 pub(super) fn plan_draws(
     ctx: &mut PlanCtx<'_, '_>,
@@ -182,6 +185,7 @@ pub(super) fn plan_draws(
     n: usize,
     params: Vec<Source>,
     excludes: Vec<Source>,
+    on: DrawOn,
 ) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     if 1 + params.len() + excludes.len() > MAX_VEC_IN {
@@ -200,7 +204,7 @@ pub(super) fn plan_draws(
         source => source,
     };
     let n_exclude = byte(excludes.len());
-    let mut args = vec![wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)))];
+    let mut args = vec![wiring.draw(on)];
     for s in params.into_iter().chain(excludes) {
         args.push(wiring.hidden(param(s)));
     }
@@ -227,6 +231,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         mean: attrs.mean,
         standard_deviation: attrs.standardDeviation,
         exclude: attrs.exclude,
+        on: DrawOn {
+            attrs: &[
+                attr::r#type,
+                attr::from,
+                attr::to,
+                attr::step,
+                attr::mean,
+                attr::standardDeviation,
+                attr::exclude,
+                attr::numToSelect,
+            ],
+            children: false,
+        },
     };
     let mut wiring = plan_random(ctx, n, params)?;
     wiring.set_planned(Planned {});

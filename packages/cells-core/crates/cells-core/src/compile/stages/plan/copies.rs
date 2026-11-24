@@ -1,7 +1,9 @@
 //! Copies, as planned: `extend` with a prop path, container copies, the
 //! clone elements themselves, and the copy rules around a [`Planner::Plan`]
 //! type's planner: a bare copy aliases every prop, and a copy with its own
-//! attributes keeps the shared state they supply and shares the rest.
+//! attributes keeps the shared state they supply and shares the rest, its
+//! load-time draw among it unless it gives what the draw depends on (ADR
+//! 0059).
 
 use super::{PlanCtx, Planner, Planning};
 use crate::compile::*;
@@ -100,7 +102,8 @@ impl<'a> Planning<'a> {
     /// bare copy aliases every prop; a copy with its own attributes or
     /// children is planned from its record merged under the referent's;
     /// and every given leaf the copy did not give itself is shared with the
-    /// referent's port holding it.
+    /// referent's port holding it, as is its draw when it gives nothing the
+    /// draw depends on (ADR 0059).
     pub(super) fn plan_with_extend(
         &mut self,
         t: TemplateId,
@@ -167,6 +170,8 @@ impl<'a> Planning<'a> {
                     }
                     GivenId::Children(_) => has_children,
                     GivenId::Param(_) => false,
+                    // Shared below, by what it depends on.
+                    GivenId::Draw => true,
                 };
                 if own || !wiring.is_given(port) {
                     continue;
@@ -178,6 +183,25 @@ impl<'a> Planning<'a> {
                     referent: r,
                     id,
                 });
+            }
+            // A load-time draw is shared as a given value is, whatever
+            // else the copy gives, unless it gives what the draw depends
+            // on (ADR 0059).
+            if let Some(on) = wiring.draw_on() {
+                let own = (on.children && has_children)
+                    || on
+                        .attrs
+                        .iter()
+                        .any(|a| own_attrs.iter().any(|o| o.eq_ignore_ascii_case(a.name())));
+                if !own {
+                    self.planned.shares.push(Share {
+                        t,
+                        e,
+                        port: wiring.given()[&GivenId::Draw],
+                        referent: r,
+                        id: GivenId::Draw,
+                    });
+                }
             }
         }
         if !wiring.given().is_empty() {

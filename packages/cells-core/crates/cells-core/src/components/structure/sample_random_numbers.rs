@@ -58,6 +58,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         mean: attrs.mean,
         standard_deviation: attrs.standardDeviation,
         exclude: attrs.exclude,
+        on: DrawOn {
+            attrs: &[
+                attr::r#type,
+                attr::from,
+                attr::to,
+                attr::step,
+                attr::mean,
+                attr::standardDeviation,
+                attr::exclude,
+                attr::numSamples,
+            ],
+            children: false,
+        },
     };
     let mut wiring = plan_random(ctx, n, params)?;
     wiring.set_planned(Planned {});

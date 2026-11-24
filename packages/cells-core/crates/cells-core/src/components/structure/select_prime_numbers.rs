@@ -74,6 +74,7 @@ pub(super) fn plan_primes(
     (from, to, exclude): (Option<Source>, Option<Source>, Vec<Source>),
     replace: bool,
     order: Order,
+    on: DrawOn,
 ) -> Result<ElemWiring> {
     let from = from.unwrap_or_else(|| Source::constant(2.0));
     let to = to.unwrap_or_else(|| Source::constant(100.0));
@@ -83,6 +84,7 @@ pub(super) fn plan_primes(
         n,
         vec![from, to],
         exclude,
+        on,
     )
 }
 
@@ -97,7 +99,19 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let n = draw_count("numToSelect", attrs.numToSelect)?;
     let order = order(attrs.sort)?;
     let range = (attrs.from, attrs.to, attrs.exclude);
-    let mut wiring = plan_primes(ctx, n, range, attrs.withReplacement, order)?;
+    // The order is not the draw's: a copy sorting what its referent drew
+    // shares the draw.
+    let on = DrawOn {
+        attrs: &[
+            attr::from,
+            attr::to,
+            attr::exclude,
+            attr::numToSelect,
+            attr::withReplacement,
+        ],
+        children: false,
+    };
+    let mut wiring = plan_primes(ctx, n, range, attrs.withReplacement, order, on)?;
     wiring.set_planned(Planned {});
     Ok(wiring)
 }

@@ -8,8 +8,8 @@ pub(crate) use super::ir::record::{
     ChildValue, ListPiece, Member, PointAttr, Record, ValueChildren,
 };
 pub(crate) use super::ir::{
-    Attr, DefaultPoint, ElemWiring, Flow, GivenId, GivenPoint, Leaf, MathText, NO_VALUE, Param,
-    ParsedMath, Port, ScopeConst, Source, Wire,
+    Attr, DefaultPoint, DrawOn, ElemWiring, Flow, GivenId, GivenPoint, Leaf, MathText, NO_VALUE,
+    Param, ParsedMath, Port, ScopeConst, Source, Wire,
 };
 pub(crate) use super::read::ValueKind;
 pub(crate) use super::stages::plan::ListEntry;
