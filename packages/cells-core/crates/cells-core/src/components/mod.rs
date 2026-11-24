@@ -760,6 +760,12 @@ impl ComponentType {
         usize::from(self.list().is_some_and(|l| l.companion.is_some()))
     }
 
+    /// The table position of a capped list's live length
+    /// ([`ListProp::live`], ADR 0041 decision 2), if the type's list is one.
+    pub fn live_len(self) -> Option<usize> {
+        self.prop_index(self.list()?.live?)
+    }
+
     /// How many public props an element with `n` list entries has after
     /// its table's: the entries' cells, then the companion sequence's
     /// ([`ListShape::list_props`]).

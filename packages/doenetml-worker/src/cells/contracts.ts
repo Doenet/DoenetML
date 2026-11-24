@@ -1396,12 +1396,11 @@ export const CONTRACTS: Record<string, Contract> = {
                 : {},
     },
     // Derived geometry, each drawn by the renderer of the shape it is: a
-    // best-fit line as a line; an intersection as a point, left out while
-    // it is hidden (no crossing); a parabola as a function's curve. An
+    // best-fit line as a line; a parabola as a function's curve (an
+    // intersection stands as its rows, each a point, ADR 0041). An
     // equilibrium point or line and an endpoint also send their flag as
     // the current core's renderers read it (`open`, `dashed`).
     bestFitLine: lineContract(),
-    intersection: { name: () => "point", props: pointProps },
     parabola: CURVE,
     equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
     endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
@@ -1550,6 +1549,9 @@ export const TRANSPARENT = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    // A capped list (ADR 0041, decision 2): its rows past its live
+    // length are hidden.
+    "intersection",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1581,6 +1583,9 @@ export const LIST_LIKE = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    // A capped list (ADR 0041, decision 2): its rows past its live
+    // length are hidden.
+    "intersection",
 ]);
 
 /** List-like types whose items are the children of one scope (an

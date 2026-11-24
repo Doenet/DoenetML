@@ -1622,6 +1622,34 @@ describe("derived geometry", () => {
         );
     });
 
+    it("draws an intersection's points up to its live length (ADR 0041)", async () => {
+        const { all, send } = await open(`<graph>
+<point name="P">(3,4)</point>
+<circle name="c" center="$P" radius="1"/>
+<line name="l" through="(4,1) (4,-4)"/>
+<intersection name="int">$l $c</intersection>
+</graph>`);
+        const [graph] = all("graph");
+        // Tangent: one point, the second row hidden and not sent.
+        const [p, first, ...rest] = all("point");
+        expect(rest).toEqual([]);
+        expect(props(first)).toEqual({
+            x: { math_object: "4" },
+            y: { math_object: "4" },
+        });
+        const before = childIds(graph.children);
+        expect(before).toContain(first.data.id);
+        // Moved right: two points.
+        const payload = send(p.data.id, "point", "move", { x: 4, y: 5 });
+        const after = childIds(payload[graph.data.id].newChildren!);
+        expect(after.length).toBe(before.length + 1);
+        // Moved away: none.
+        const none = send(p.data.id, "point", "move", { x: 8, y: 5 });
+        expect(childIds(none[graph.data.id].newChildren!).length).toBe(
+            before.length - 1,
+        );
+    });
+
     it("draws a parabola as a curve through its samples", async () => {
         const { all } = await open(`<graph xmin="-2" xmax="2">
 <parabola through="(1,2) (3,4)"/>

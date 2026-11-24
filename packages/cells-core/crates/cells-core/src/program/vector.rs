@@ -48,8 +48,8 @@
 //! |                          | values of a distribution              |                                                                      |                   |
 //! | `BestFitLine{n}`         | n points → (a, b, c) of the           | none: a fit is not set by a request                                  | none              |
 //! |                          | least-squares line ax + by + c = 0    |                                                                      |                   |
-//! | `IntersectLines{..}`     | (P1, P2, P3, P4) → where line P1P2    | none: an intersection is not set by a request                        | none              |
-//! |                          | crosses P3P4, and whether none does   |                                                                      |                   |
+//! | `Intersect{a, b}`        | two figures → where they meet, a      | none: an intersection is not set by a request                        | none              |
+//! |                          | capped list of points, and how many   |                                                                      |                   |
 //! | `Parabola{n, vertex}`    | (a, vertex, n points) → (a, b, c) and | a vertex asked for keeps a; the vertex to the vertex asked for, each | a, the vertex,    |
 //! |                          | the vertex of the parabola through    | point vertically onto the parabola asked for (sideways with the      | the points (or a, |
 //! |                          | them (or (a, b, c) → the same)        | vertex), a when asked (or a, b, c themselves)                        | b, c)             |
@@ -347,16 +347,20 @@ pub enum VecOp {
         /// How many points.
         n: u8,
     },
-    /// Inputs (x1, y1, x2, y2, x3, y3, x4, y4): the line through the first
-    /// two points and the one through the last two. Outputs (x, y, none):
-    /// where they cross and 0, or NaN, NaN and 1 when they are parallel,
-    /// the same, not finite, or a segment among them misses the crossing.
-    /// No inverse: an intersection is not set by a request.
-    IntersectLines {
-        /// Whether the first line is the segment between its points.
-        segment1: bool,
-        /// Whether the second is.
-        segment2: bool,
+    /// Where two figures meet (`<intersection>`), as a capped list (ADR
+    /// 0041, decision 2): inputs are `a`'s cells then `b`'s
+    /// ([`Figure::n_in`]); outputs are [`Figure::cap`] points' coordinates,
+    /// those past the points found the missing value, then how many were
+    /// found. As the current core finds them: lines and segments cross
+    /// once at most, a circle meets a line or a circle twice, and a
+    /// polygon or polyline meets as each of its edges does, a point found
+    /// twice kept once. No inverse: an intersection is not set by a
+    /// request.
+    Intersect {
+        /// The first figure.
+        a: Figure,
+        /// The second.
+        b: Figure,
     },
     /// The coefficients (a, b, c) of the parabola `y = a x² + b x + c` and
     /// its vertex (x, y), through `through` points (0 to 3), with its
@@ -1290,7 +1294,7 @@ impl VecOp {
                 dist, n_exclude, ..
             } => 1 + dist.n_params() + n_exclude as usize,
             VecOp::BestFitLine { n } => 2 * n as usize,
-            VecOp::IntersectLines { .. } => 8,
+            VecOp::Intersect { a, b } => a.n_in() + b.n_in(),
             VecOp::Parabola {
                 through: 0,
                 vertex: false,
@@ -1330,7 +1334,7 @@ impl VecOp {
             VecOp::Centroid { n } => first(2 * n as usize),
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
             VecOp::Extent => first(2),
-            VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 0,
+            VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::Intersect { .. } => 0,
             VecOp::Parabola { .. } => first(self.n_in()),
             VecOp::IntoDomain => 1,
             VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
@@ -1429,7 +1433,8 @@ impl VecOp {
             } => (n as usize).saturating_sub(1),
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } | VecOp::Shuffle { n } => n as usize,
             VecOp::Draws { n, .. } => n as usize,
-            VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 3,
+            VecOp::BestFitLine { .. } => 3,
+            VecOp::Intersect { a, b } => 2 * Figure::cap(a, b) + 1,
             VecOp::Parabola { .. } => 5,
             VecOp::IntoDomain => 1,
             VecOp::DomainRange => 2,
@@ -1456,7 +1461,8 @@ impl VecOp {
             | VecOp::Draws { .. }
             | VecOp::SequenceParams { .. }
             | VecOp::SequenceCount { .. }
-            | VecOp::SequenceEntry { .. } => false,
+            | VecOp::SequenceEntry { .. }
+            | VecOp::Intersect { .. } => false,
             VecOp::Reduce { op, .. } => !matches!(
                 op,
                 Reduction::Between
@@ -1605,19 +1611,15 @@ impl VecOp {
                 out[1] = if m.is_nan() { f64::NAN } else { -1.0 };
                 out[2] = k;
             }
-            VecOp::IntersectLines { segment1, segment2 } => {
-                match intersect_lines(inp, segment1, segment2) {
-                    Some((x, y)) => {
-                        out[0] = x;
-                        out[1] = y;
-                        out[2] = 0.0;
-                    }
-                    None => {
-                        out[0] = f64::NAN;
-                        out[1] = f64::NAN;
-                        out[2] = 1.0;
-                    }
+            VecOp::Intersect { a, b } => {
+                let points = intersect(a, b, inp);
+                let cap = Figure::cap(a, b);
+                for (k, o) in out[..2 * cap].iter_mut().enumerate() {
+                    *o = points
+                        .get(k / 2)
+                        .map_or(crate::program::MISSING, |p| p[k % 2]);
                 }
+                out[2 * cap] = points.len().min(cap) as f64;
             }
             VecOp::Parabola { through, vertex } => {
                 let [a, b, c] = parabola(inp, through as usize, vertex);
@@ -1803,7 +1805,7 @@ impl VecOp {
             | VecOp::Shuffle { .. }
             | VecOp::Draws { .. }
             | VecOp::BestFitLine { .. }
-            | VecOp::IntersectLines { .. }
+            | VecOp::Intersect { .. }
             | VecOp::DomainRange
             | VecOp::DomainHull { .. }
             | VecOp::SequenceParams { .. }
@@ -2040,6 +2042,191 @@ fn best_fit_line(p: &[f64]) -> [f64; 2] {
 /// as the current core finds it; None when they are parallel or the same
 /// (to within 1e-14), a coordinate is not finite, or a segment among them
 /// misses the crossing.
+/// A figure an [`VecOp::Intersect`] meets another at: its cells, in
+/// order, are a line's or segment's two points, a circle's center and
+/// radius, or a polygon's or polyline's vertices.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Figure {
+    /// A line through two points, or the segment between them.
+    Line {
+        /// Whether it is the segment.
+        segment: bool,
+    },
+    /// A circle: its center and radius.
+    Circle,
+    /// A polygon (`closed`) or polyline of `n` vertices.
+    Poly {
+        /// How many vertices.
+        n: u8,
+        /// Whether its last vertex joins its first.
+        closed: bool,
+    },
+}
+
+impl Figure {
+    /// How many cells it takes among the inputs.
+    pub const fn n_in(self) -> usize {
+        match self {
+            Figure::Line { .. } => 4,
+            Figure::Circle => 3,
+            Figure::Poly { n, .. } => 2 * n as usize,
+        }
+    }
+
+    /// How many edges a polygon or polyline has; 1 for anything else.
+    fn edges(self) -> usize {
+        match self {
+            Figure::Poly { n, closed: true } if n > 2 => n as usize,
+            Figure::Poly { n, .. } => (n as usize).saturating_sub(1),
+            _ => 1,
+        }
+    }
+
+    /// The most points two figures meet at, the cap of their capped list:
+    /// one where two lines or segments cross, two where a circle meets
+    /// one, a polygon's or polyline's as many as its edges' together.
+    pub fn cap(a: Figure, b: Figure) -> usize {
+        let per_edge = match (a, b) {
+            (Figure::Circle, _) | (_, Figure::Circle) => 2,
+            _ => 1,
+        };
+        a.edges() * b.edges() * per_edge
+    }
+
+    /// The figure as pieces a meeting is found between, each with its
+    /// cells: a polygon's or polyline's edges as segments, else itself.
+    fn pieces(self, cells: &[f64]) -> Vec<(Figure, [f64; 4])> {
+        match self {
+            Figure::Poly { n, .. } => (0..self.edges())
+                .map(|k| {
+                    let (p, q) = (k, (k + 1) % n as usize);
+                    (
+                        Figure::Line { segment: true },
+                        [
+                            cells[2 * p],
+                            cells[2 * p + 1],
+                            cells[2 * q],
+                            cells[2 * q + 1],
+                        ],
+                    )
+                })
+                .collect(),
+            f => {
+                let mut c = [f64::NAN; 4];
+                c[..f.n_in()].copy_from_slice(&cells[..f.n_in()]);
+                vec![(f, c)]
+            }
+        }
+    }
+}
+
+/// Where figures `a` and `b` meet, from their cells `inp`, in the current
+/// core's order: by piece of `a`, then piece of `b`, a point found twice
+/// kept once where a polygon or polyline is one of them.
+fn intersect(a: Figure, b: Figure, inp: &[f64]) -> Vec<[f64; 2]> {
+    let (ca, cb) = inp.split_at(a.n_in());
+    let mut points: Vec<[f64; 2]> = Vec::new();
+    for (fa, xa) in a.pieces(ca) {
+        for (fb, xb) in b.pieces(cb) {
+            points.extend(meet(fa, &xa, fb, &xb));
+        }
+    }
+    if matches!(a, Figure::Poly { .. }) || matches!(b, Figure::Poly { .. }) {
+        let mut kept: Vec<[f64; 2]> = Vec::with_capacity(points.len());
+        for p in points {
+            if !kept.contains(&p) {
+                kept.push(p);
+            }
+        }
+        points = kept;
+    }
+    points
+}
+
+/// Where two lines, segments or circles meet.
+fn meet(a: Figure, xa: &[f64; 4], b: Figure, xb: &[f64; 4]) -> Vec<[f64; 2]> {
+    match (a, b) {
+        (Figure::Line { segment: s1 }, Figure::Line { segment: s2 }) => {
+            let mut inp = [0.0; 8];
+            inp[..4].copy_from_slice(xa);
+            inp[4..].copy_from_slice(xb);
+            intersect_lines(&inp, s1, s2).map_or(Vec::new(), |(x, y)| vec![[x, y]])
+        }
+        (Figure::Circle, Figure::Circle) => intersect_circles(xa, xb),
+        (Figure::Line { segment }, Figure::Circle) => intersect_line_circle(xa, segment, xb),
+        (Figure::Circle, Figure::Line { segment }) => intersect_line_circle(xb, segment, xa),
+        _ => Vec::new(),
+    }
+}
+
+/// Where two circles (center, radius) meet, as the current core's
+/// `intersectTwoCircles` finds it: nowhere for one center.
+fn intersect_circles(c1: &[f64], c2: &[f64]) -> Vec<[f64; 2]> {
+    let (x1, y1, r1, x2, y2, r2) = (c1[0], c1[1], c1[2], c2[0], c2[1], c2[2]);
+    if ![x1, y1, r1, x2, y2, r2].iter().all(|v| v.is_finite()) {
+        return Vec::new();
+    }
+    let (dx, dy) = (x2 - x1, y2 - y1);
+    let dr2 = r1 * r1 - r2 * r2;
+    let sr2 = r1 * r1 + r2 * r2;
+    let dist2 = dx * dx + dy * dy;
+    if dist2 == 0.0 {
+        return Vec::new();
+    }
+    let d = 2.0 * sr2 / dist2 - dr2 * dr2 / (dist2 * dist2) - 1.0;
+    if d < 0.0 {
+        return Vec::new();
+    }
+    let c = dr2 / (2.0 * dist2);
+    let (x, y) = ((x1 + x2) / 2.0 + c * dx, (y1 + y2) / 2.0 + c * dy);
+    if d == 0.0 {
+        return vec![[x, y]];
+    }
+    let h = d.sqrt() / 2.0;
+    vec![[x + h * dy, y - h * dx], [x - h * dy, y + h * dx]]
+}
+
+/// Where a line or segment (two points) meets a circle (center, radius),
+/// as the current core's `intersectLineAndCircle` finds it.
+fn intersect_line_circle(l: &[f64], segment: bool, c: &[f64]) -> Vec<[f64; 2]> {
+    let (cx, cy, r) = (c[0], c[1], c[2]);
+    if !l[..4].iter().chain(&c[..3]).all(|v| v.is_finite()) {
+        return Vec::new();
+    }
+    let (x1, y1, x2, y2) = (l[0] - cx, l[1] - cy, l[2] - cx, l[3] - cy);
+    let (dx, dy) = (x2 - x1, y2 - y1);
+    let dr2 = dx * dx + dy * dy;
+    if dr2 == 0.0 {
+        return Vec::new();
+    }
+    let det = x1 * y2 - x2 * y1;
+    let d = r * r * dr2 - det * det;
+    if d < 0.0 {
+        return Vec::new();
+    }
+    let (x, y) = (cx + det * dy / dr2, cy - det * dx / dr2);
+    let mut points = if d == 0.0 {
+        vec![[x, y]]
+    } else {
+        let sq = d.sqrt();
+        let sign = if dy < 0.0 { -1.0 } else { 1.0 };
+        let (xs, ys) = (sign * dx * sq / dr2, dy.abs() * sq / dr2);
+        vec![[x + xs, y + ys], [x - xs, y - ys]]
+    };
+    if segment {
+        // Between the endpoints, along x unless the segment is vertical.
+        points.retain(|&[x, y]| {
+            let (x, y) = (x - cx, y - cy);
+            if x2 != x1 {
+                x >= x1.min(x2) && x <= x1.max(x2)
+            } else {
+                y >= y1.min(y2) && y <= y1.max(y2)
+            }
+        });
+    }
+    points
+}
+
 fn intersect_lines(inp: &[f64], segment1: bool, segment2: bool) -> Option<(f64, f64)> {
     let [x1, y1, x2, y2, x3, y3, x4, y4] = <[f64; 8]>::try_from(&inp[..8]).ok()?;
     if !inp[..8].iter().all(|v| v.is_finite()) {
@@ -2635,9 +2822,13 @@ mod writes {
                 n_exclude: 1,
             },
             VecOp::BestFitLine { n: 3 },
-            VecOp::IntersectLines {
-                segment1: false,
-                segment2: true,
+            VecOp::Intersect {
+                a: Figure::Line { segment: false },
+                b: Figure::Line { segment: true },
+            },
+            VecOp::Intersect {
+                a: Figure::Circle,
+                b: Figure::Poly { n: 3, closed: true },
             },
             VecOp::Parabola {
                 through: 0,
@@ -2789,7 +2980,7 @@ mod writes {
             | VecOp::Shuffle { .. }
             | VecOp::Draws { .. }
             | VecOp::BestFitLine { .. }
-            | VecOp::IntersectLines { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::Intersect { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
             VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],
             VecOp::IntoDomain => vec![vec![0]],
             VecOp::DomainRange
@@ -2999,18 +3190,66 @@ mod writes {
 
     #[test]
     fn lines_cross_where_both_pass() {
-        let cross =
-            |segment1, segment2, p: &[f64]| eval(VecOp::IntersectLines { segment1, segment2 }, p);
+        let cross = |segment1, segment2, p: &[f64]| {
+            eval(
+                VecOp::Intersect {
+                    a: Figure::Line { segment: segment1 },
+                    b: Figure::Line { segment: segment2 },
+                },
+                p,
+            )
+        };
         let lines = [-8.0, -7.0, 8.0, 9.0, 4.0, 6.0, -4.0, -6.0];
-        assert_eq!(cross(false, false, &lines), [2.0, 3.0, 0.0]);
-        // Parallel or the same: none.
+        assert_eq!(cross(false, false, &lines), [2.0, 3.0, 1.0]);
+        // Parallel or the same: none, the point missing.
         let none = cross(false, false, &[1.0, 2.0, 2.0, 2.0, 3.0, 2.0, 4.0, 2.0]);
-        assert!(none[0].is_nan() && none[1].is_nan() && none[2] == 1.0);
+        assert!(crate::program::is_missing(none[0]) && none[2] == 0.0);
         // A segment that stops short of the crossing misses it.
         let short = [-8.0, -7.0, 0.0, 1.0, 4.0, 6.0, -4.0, -6.0];
-        assert_eq!(cross(false, false, &short), [2.0, 3.0, 0.0]);
-        assert_eq!(cross(true, false, &short)[2], 1.0);
-        assert_eq!(cross(false, true, &short), [2.0, 3.0, 0.0]);
+        assert_eq!(cross(false, false, &short), [2.0, 3.0, 1.0]);
+        assert_eq!(cross(true, false, &short)[2], 0.0);
+        assert_eq!(cross(false, true, &short), [2.0, 3.0, 1.0]);
+    }
+
+    /// Circles meet a line or a circle twice, once where tangent; a
+    /// polygon meets as its edges do, a vertex counted once.
+    #[test]
+    fn figures_meet_up_to_their_cap() {
+        let meet = |a, b, p: &[f64]| eval(VecOp::Intersect { a, b }, p);
+        let line = Figure::Line { segment: false };
+        // The line x = 4 and the circle about (4, 5) of radius 2.
+        let lc = meet(line, Figure::Circle, &[4.0, 1.0, 4.0, -4.0, 4.0, 5.0, 2.0]);
+        assert_eq!(lc, [4.0, 7.0, 4.0, 3.0, 2.0]);
+        // Tangent: once, the second point missing.
+        let tangent = meet(line, Figure::Circle, &[4.0, 1.0, 4.0, -4.0, 3.0, 5.0, 1.0]);
+        assert_eq!(tangent[..2], [4.0, 5.0]);
+        assert!(crate::program::is_missing(tangent[2]) && tangent[4] == 1.0);
+        // Two circles about (3, 4) and (3, 6), radius 1: touching once.
+        let cc = meet(
+            Figure::Circle,
+            Figure::Circle,
+            &[3.0, 4.0, 1.0, 3.0, 6.0, 1.0],
+        );
+        assert_eq!((cc[0], cc[1], cc[4]), (3.0, 5.0, 1.0));
+        // The same circle twice: none.
+        let same = meet(
+            Figure::Circle,
+            Figure::Circle,
+            &[3.0, 4.0, 1.0, 3.0, 4.0, 1.0],
+        );
+        assert_eq!(same[4], 0.0);
+        // The unit triangle and the unit square share three vertices.
+        let tri = Figure::Poly { n: 3, closed: true };
+        let sq = Figure::Poly { n: 4, closed: true };
+        let pp = meet(
+            tri,
+            sq,
+            &[
+                0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+            ],
+        );
+        assert_eq!(pp[2 * 12], 3.0);
+        assert_eq!(pp[..6], [1.0, 0.0, 0.0, 0.0, 0.0, 1.0]);
     }
 
     /// The coefficients the current core finds, and an inverse that moves

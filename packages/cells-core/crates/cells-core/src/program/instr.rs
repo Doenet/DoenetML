@@ -641,9 +641,9 @@ mod arity {
                 n_exclude: 0,
             }),
             OpSpec::Vec(VecOp::BestFitLine { n: 3 }),
-            OpSpec::Vec(VecOp::IntersectLines {
-                segment1: true,
-                segment2: false,
+            OpSpec::Vec(VecOp::Intersect {
+                a: crate::program::Figure::Line { segment: true },
+                b: crate::program::Figure::Circle,
             }),
             OpSpec::Vec(VecOp::Parabola {
                 through: 2,
@@ -729,7 +729,7 @@ mod arity {
                 VecOp::Shuffle { .. } => 23,
                 VecOp::Draws { .. } => 24,
                 VecOp::BestFitLine { .. } => 25,
-                VecOp::IntersectLines { .. } => 26,
+                VecOp::Intersect { .. } => 26,
                 VecOp::Parabola { .. } => 27,
                 VecOp::IntoDomain => 44,
                 VecOp::DomainRange => 45,

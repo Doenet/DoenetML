@@ -20,8 +20,8 @@ pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
 pub use vector::{
-    Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
-    RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
+    Dist, Figure, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction,
+    Reflex, RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
     sequence_index,
 };
 pub use vector::{MAX_SEQUENCE, sequence_parameters, sequence_values};
@@ -358,8 +358,17 @@ impl Program {
             let SymEntry { kind, memo } = self.syms[s.index()];
             self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
-            let mut buf = [0.0f64; 16];
+            let mut small = [0.0f64; 16];
             let n = ins.op.n_out();
+            // A capped list of many points (an intersection's) is the one
+            // operator with more outputs; it takes the heap.
+            let mut large = Vec::new();
+            let buf: &mut [f64] = if n <= small.len() {
+                &mut small
+            } else {
+                large.resize(n, 0.0);
+                &mut large
+            };
             ins.op
                 .eval_vec(cells, &self.operands, &self.vecs, &mut buf[..n]);
             match changed {

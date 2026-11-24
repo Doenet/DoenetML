@@ -87,7 +87,6 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     bestFitLine: {
         moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
     },
-    intersection: { move: [{ x: 2, y: 3 }] },
     equilibriumPoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
     endpoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
     equilibriumLine: {
@@ -262,8 +261,8 @@ const EXPECTED_READS = [
     "clampFunction.samples",
     "wrapFunctionPeriodic.curve",
     "bestFitLine.x1",
-    "intersection.x",
-    "intersection.hide",
+    "intersection.list[0]",
+    "intersection.list[2]",
     "parabola.samples",
     "equilibriumPoint.stable",
     "endpoint.open",

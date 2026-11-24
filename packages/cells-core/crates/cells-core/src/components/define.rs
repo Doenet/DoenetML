@@ -709,6 +709,7 @@ pub(crate) const fn sequence_only(name: &'static str) -> super::ListProp {
         interactive: false,
         rendered: true,
         companion: Some(name),
+        live: None,
     }
 }
 
@@ -984,6 +985,8 @@ macro_rules! component {
             $(entry_coords: [$ex:ident, $ey:ident], max_by: $emax:ident, entries: children
                 $(, interactive: $einteractive:literal)?
                 $(, rendered: $erendered:literal)? $(,)?)?
+            $(capped: [$qx:ident, $qy:ident], live: $qlive:ident, hidden: $qhidden:ident
+                $(, rendered: $qrendered:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
                 attribute: $lattr:ident $(, max: $lmax:expr)?
                 $(, interactive: $lcinteractive:literal)?
@@ -1074,10 +1077,12 @@ macro_rules! component {
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                         $(values [$lv $lvkind] [$($lvmax)?] [$($lventries $($lvless)?)?])?
                         $(entry_points [$ex, $ey] [$emax])?
+                        $(capped [$qx, $qy])?
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)? $($($einteractive)?)?),
-                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)?),
-                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)?),
+                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)? $($($qrendered)?)?),
+                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)? $($qhidden)?),
+                    live: $crate::components::define::component!(@companion $($qlive)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
@@ -1630,6 +1635,17 @@ macro_rules! component {
             max: None,
             max_by: Some(attr::$max),
             from_children: Some(0),
+            entry: $crate::components::EntryKind::Point,
+        }
+    };
+    (@list_points capped [$x:ident, $y:ident]) => {
+        $crate::components::ListPoints::Given {
+            coords: &[stringify!($x), stringify!($y)],
+            alternate_name: None,
+            attribute: None,
+            max: None,
+            max_by: None,
+            from_children: None,
             entry: $crate::components::EntryKind::Point,
         }
     };

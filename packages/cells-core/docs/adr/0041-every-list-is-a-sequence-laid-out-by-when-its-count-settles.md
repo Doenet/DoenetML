@@ -677,6 +677,37 @@ otherwise.
    list, then maxima and intersections with their caps. Test:
    `point.test.ts` (dimension changes), `math.test.ts` ("components of
    math"), `functionTag.test.ts` (extrema).
+
+   The point, tuple and vector merge is deferred (the user's decision,
+   2026-11-24); the pieces below come first.
+
+   *The capped list, 2026-11-24.* A type's list may be capped
+   (`ListProp::live`, declared `capped: [x, y], live: numPoints, hidden:
+   hidden`): its entries are as many as the cap its planner makes, those
+   past the live length (a table prop the planner wires) the missing
+   value. The list's companion sequence (ADR 0053) is each entry's
+   `hide`, 1 past the live length, and a made row's `hide` aliases it
+   (`ListShape::row_hide_slot`), so a row past the live length is drawn
+   by no renderer; a path names no entry past it (`$int[3]`,
+   `Document::resolve_path`) and the list's text stops at it. The first
+   capped list is `<intersection>` (`components/geometry/intersection.rs`,
+   `VecOp::Intersect`): where two lines, segments, circles or polygons
+   (a `<polygon>`'s given vertices, a `<triangle>`'s three, a
+   `<rectangle>`'s four) meet, as the current core finds them, its cap
+   from the two figures (`Figure::cap`: one for two lines, two where a
+   circle meets a line or a circle, a polygon as many as its edges'), a
+   point found twice kept once where a polygon is one of them. Its
+   points are `point` rows, `points` the list, `numPoints` the live
+   length; a drag of one is dropped. Tested by `intersection.spec.rs`,
+   `tests/dynamic_sequences.rs` and the bridge test. Departures:
+
+   - A vector operator writes at most `MAX_VEC_IN` cells (an
+     intersection of two polygons of four vertices is 16 points and a
+     count, 33), the step's buffer taking the heap past 16.
+   - A `<polyline>` (a collect of its points, structural) and a
+     `<regularPolygon>` (its vertex count is its `numVertices`) are not
+     figures yet, and the intersection's warning when a third figure
+     appears in a case (`$cc.l3`) is the load's, not a tick's.
 6. **Order.** `<sort>` as a permutation aggregate with an order port;
    `<shuffle>` seeded. Test: `sort.test.ts`, `shuffle.test.ts`.
 
