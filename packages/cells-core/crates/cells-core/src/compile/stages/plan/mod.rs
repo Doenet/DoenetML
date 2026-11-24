@@ -15,6 +15,7 @@ mod items;
 mod iterates;
 mod lists;
 mod planner;
+mod repeat_literal;
 mod rows;
 
 use crate::compile::*;
@@ -25,6 +26,7 @@ pub(crate) use items::ItemCtx;
 pub(crate) use lists::ListEntry;
 use lists::Splice;
 pub(crate) use planner::Planner;
+pub(in crate::compile) use repeat_literal::{item_type, literal_for};
 use rows::Rows;
 
 /// Planning's view (ADR 0031, "The planner context"): what outlining

@@ -4,9 +4,12 @@ use super::select_prime_numbers::order;
 use super::select_random_numbers::{draw_count, plan_draws};
 use crate::compile::api::*;
 use crate::components::define::*;
+use crate::components::values::typed_sequence::{
+    SeqKind, TypedParams, choose, letter_run, math_port, math_values,
+};
 use crate::error::{Error, Result};
 use crate::limits::{MAX_VEC_IN, byte};
-use crate::program::{Dist, VecOp, sequence_parameters};
+use crate::program::{Dist, Order, VecOp, sequence_parameters};
 
 component! {
     /// `<selectFromSequence from to step length exclude numToSelect
@@ -20,8 +23,10 @@ component! {
     /// may read any value no student can change (ADR 0037), which the
     /// check makes sure of, with every draw possible; `numToSelect` is a
     /// literal. A copy draws what its referent drew unless it gives a
-    /// parameter of its own (ADR 0059). Letters, math, `excludeCombinations`
-    /// and `coprime` are not supported.
+    /// parameter of its own (ADR 0059). `type="letters"` and `type="math"`
+    /// draw among the values a `<sequence>` of that type lists, counted
+    /// when the document is compiled, which a draw of their places picks
+    /// (ADR 0074). `excludeCombinations` and `coprime` are not supported.
     tags: ["selectFromSequence"],
     flags: [copyable],
     default_prop: values,
@@ -48,7 +53,7 @@ component! {
         length: Scalar,
         numToSelect: Literal(1.0),
         r#type: Text,
-        exclude: Scalars,
+        exclude: Entries,
         excludeCombinations: Written,
         coprime: Written,
         sort: Text,
@@ -137,7 +142,7 @@ fn bounds(attrs: &Attrs) -> Result<(Source, Source, Source)> {
 /// arithmetic on a parameter that is no literal: whether the sequence is
 /// ever too short is the check's.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let attrs = Attrs::of(ctx.record());
+    let mut attrs = Attrs::of(ctx.record());
     for (banned, written) in [
         ("excludeCombinations", attrs.excludeCombinations),
         ("coprime", attrs.coprime),
@@ -146,25 +151,23 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             return Err(Error::Unsupported(format!("<selectFromSequence {banned}>")));
         }
     }
-    if let Some(ty) = &attrs.r#type
-        && ty.trim() != "number"
-    {
-        return Err(Error::Unsupported(
-            "<selectFromSequence> of letters or math".into(),
-        ));
+    let kind = SeqKind::of(attrs.r#type.as_deref());
+    if kind != SeqKind::Number {
+        return plan_typed(ctx, attrs, kind);
     }
+    let exclude = exclude_sources(ctx, std::mem::take(&mut attrs.exclude))?;
     let (from, step, to) = bounds(&attrs)?;
     let n = draw_count("numToSelect", attrs.numToSelect)?;
     let order = order(attrs.sort)?;
     let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
     let mut wiring = if n == 1 {
-        one_pick(ctx, from, step, to, attrs.exclude)?
+        one_pick(ctx, from, step, to, exclude)?
     } else {
         let dist = Dist::Sequence {
             replace: attrs.withReplacement,
             order,
         };
-        plan_draws(ctx, dist, n, vec![from, step, to], attrs.exclude, DRAW_ON)?.0
+        plan_draws(ctx, dist, n, vec![from, step, to], exclude, DRAW_ON)?.0
     };
     let value = if n == 0 {
         Wire::absent()
@@ -173,6 +176,155 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     wiring.set_planned(Planned { value, hide });
     Ok(wiring)
+}
+
+/// Its excludes, each piece a number or a reference, as a list writes
+/// them (with spaces), a reference to a static sequence its entries (ADR
+/// 0041, decision 9). Math (`2+1`, `2,`) is refused.
+fn exclude_sources(ctx: &mut PlanCtx<'_, '_>, pieces: Vec<ListPiece>) -> Result<Vec<Source>> {
+    ctx.list_entries(pieces, f64::INFINITY)?
+        .into_iter()
+        .map(|entry| match entry {
+            ListEntry::Ref(p) => Ok(Source::reference(p)),
+            ListEntry::Text(_, text) => {
+                text.parse::<f64>()
+                    .map(Source::given)
+                    .map_err(|_| Error::BadValue {
+                        attr: "exclude".into(),
+                        text,
+                    })
+            }
+            ListEntry::Math(_) => Err(Error::BadValue {
+                attr: "exclude".into(),
+                text: "math with a reference".into(),
+            }),
+        })
+        .collect()
+}
+
+/// A draw among letters or math (ADR 0074), from literal parameters.
+/// Letters are drawn as numbers, as a select of numbers draws them (a
+/// `VecOp::Draws` of the run, less its excludes, without replacement
+/// unless `withReplacement`, sorted by number as `sort` says), each entry
+/// the letters of its number (`SymKind::Letters`), every one of which the
+/// planner interns. Math values are computed when the document is
+/// compiled, each a hidden port shown (a pick is fixed), and the draw is
+/// of their places, each entry the value at its place ([`choose`]); math
+/// is never sorted, as the current core leaves it.
+fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<ElemWiring> {
+    let tag = ctx.component_type().tag();
+    let written = attrs.r#type.as_deref().unwrap_or("").trim().to_string();
+    let text = |ctx: &PlanCtx<'_, '_>, name: &str, source: &Option<Source>| match source {
+        None => Ok(None),
+        Some(s) => ctx.source_text(s).map(Some).ok_or_else(|| {
+            Error::Unsupported(format!(
+                "<{tag} type=\"{written}\"> whose `{name}` is no literal"
+            ))
+        }),
+    };
+    let length = match &attrs.length {
+        None => None,
+        Some(Source::Leaf(Leaf::Given(v) | Leaf::Const(v))) => Some(*v),
+        Some(_) => {
+            return Err(Error::Unsupported(format!(
+                "<{tag} type=\"{written}\"> whose `length` is no number"
+            )));
+        }
+    };
+    let exclude = ctx
+        .list_entries(attrs.exclude.clone(), f64::INFINITY)?
+        .into_iter()
+        .map(|entry| match entry {
+            ListEntry::Text(_, text) => Ok(text),
+            _ => Err(Error::Unsupported(format!(
+                "<{tag} type=\"{written}\"> excluding a value that is no literal"
+            ))),
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let params = TypedParams {
+        from: text(ctx, "from", &attrs.from)?,
+        to: text(ctx, "to", &attrs.to)?,
+        step: text(ctx, "step", &attrs.step)?,
+        length,
+        exclude,
+    };
+    let n = draw_count("numToSelect", attrs.numToSelect)?;
+    let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
+    let replace = attrs.withReplacement;
+    let mut wiring = ElemWiring::with_entries(ctx.component_type(), n, kind.entry());
+    let constant = |wiring: &mut ElemWiring, v: f64| wiring.hidden(Source::constant(v));
+    let entries: Vec<Wire> = match kind {
+        SeqKind::Letters => {
+            let run = letter_run(&params)?;
+            run.interned(ctx)?;
+            if 4 + run.exclude.len() > MAX_VEC_IN {
+                return Err(Error::Unsupported(format!(
+                    "<{tag}> excluding more than {} values",
+                    MAX_VEC_IN - 4
+                )));
+            }
+            let order = order(attrs.sort)?;
+            let picks = draws(&mut wiring, n, replace, order, |w| {
+                let mut params = vec![
+                    constant(w, run.from),
+                    constant(w, run.step),
+                    constant(w, run.to()),
+                ];
+                params.extend(run.exclude.iter().map(|&x| constant(w, x)));
+                params
+            });
+            picks.into_iter().map(|p| run.of_port(p).into()).collect()
+        }
+        SeqKind::Math => {
+            let values: Vec<Port> = math_values(&params)?
+                .into_iter()
+                .map(|t| math_port(&mut wiring, t))
+                .collect();
+            let m = values.len() as f64;
+            let picks = draws(&mut wiring, n, replace, Order::Unsorted, |w| {
+                let one = constant(w, 1.0);
+                vec![one, one, constant(w, m)]
+            });
+            picks
+                .into_iter()
+                .map(|p| choose(&mut wiring, p, &values).into())
+                .collect()
+        }
+        SeqKind::Number => unreachable!("numbers are drawn as numbers"),
+    };
+    let value = if n == 0 {
+        Wire::absent()
+    } else {
+        wiring.set_entries(entries);
+        Wire::own(wiring.entry(0))
+    };
+    wiring.set_planned(Planned { value, hide });
+    Ok(wiring)
+}
+
+/// `n` values drawn (`VecOp::Draws` of `Dist::Sequence`) from the run
+/// whose `from`, `step`, `to` and excludes `params` makes, hidden ports of
+/// `wiring`; none for none.
+fn draws(
+    wiring: &mut ElemWiring,
+    n: usize,
+    replace: bool,
+    order: Order,
+    params: impl FnOnce(&mut ElemWiring) -> Vec<Port>,
+) -> Vec<Port> {
+    if n == 0 {
+        return Vec::new();
+    }
+    let draw = wiring.draw(DRAW_ON);
+    let params = params(wiring);
+    let op = VecOp::Draws {
+        dist: Dist::Sequence { replace, order },
+        n: byte(n),
+        n_exclude: byte(params.len() - 3),
+    };
+    let mut args = vec![draw];
+    args.extend(params);
+    wiring.hidden_vector(op, args)
 }
 
 /// One pick: a `VecOp::SequencePick`, as every select of one number has

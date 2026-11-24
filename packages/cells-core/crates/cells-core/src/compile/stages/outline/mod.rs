@@ -353,15 +353,27 @@ impl<'a> Outlining<'a> {
         // `<group rendered="c">` is a conditional content with one case.
         let component_type = component_type.rewritten(|attr| d.attr(el, attr).is_some());
         // A sequence whose count follows a value is a structural one (ADR
-        // 0041, decision 2), told from what its attributes hold.
-        let component_type = component_type.laid_out(|attr| {
-            d.attr(el, attr).is_none_or(|a| {
-                self.rd().attr_text(a).is_some_and(|text| {
-                    text.split_whitespace()
-                        .all(|x| x.parse::<f64>().is_ok_and(f64::is_finite))
+        // 0041, decision 2), told from what its attributes hold: literal
+        // numbers, or, for a sequence of letters or math, any text with no
+        // reference, whose count the compile counts (ADR 0074). Its
+        // `length` is a number whatever its type.
+        let typed = match d.attr_peek(el, "type").and_then(|a| self.rd().attr_text(a)) {
+            Some(t) => crate::components::values::typed_sequence::SeqKind::of(Some(&t)),
+            None => crate::components::values::typed_sequence::SeqKind::Number,
+        };
+        let component_type = component_type
+            .laid_out(|attr| {
+                d.attr(el, attr).is_none_or(|a| {
+                    self.rd().attr_text(a).is_some_and(|text| {
+                        (typed != crate::components::values::typed_sequence::SeqKind::Number
+                            && attr != "length")
+                            || text
+                                .split_whitespace()
+                                .all(|x| x.parse::<f64>().is_ok_and(f64::is_finite))
+                    })
                 })
             })
-        });
+            .typed(typed);
         // A case is a branch its choice makes, never an element of its own.
         if component_type.plays(Role::Case) {
             return Err(Error::Unsupported(component_type.free_owned_refusal()));

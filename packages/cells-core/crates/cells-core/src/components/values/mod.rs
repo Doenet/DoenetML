@@ -31,6 +31,7 @@ pub(crate) mod matrix;
 pub(crate) mod over_value;
 pub(crate) mod sequence;
 pub(crate) mod structural_sequence;
+pub(crate) mod typed_sequence;
 pub mod when;
 
 // The specs of the value lists, defined below by `value_list!`, sit

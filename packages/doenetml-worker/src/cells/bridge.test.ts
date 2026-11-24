@@ -2073,3 +2073,56 @@ describe("a list over a math value (ADR 0063)", () => {
         expect(drawn()).toEqual([["a", "b"], ["a + b"]]);
     });
 });
+
+describe("sequences of letters and math, a literal repeat, a point list of an entry (ADR 0074)", () => {
+    /** Each paragraph's drawn children as `<name>value`. */
+    function drawn(root: ReturnType<CellsBridge["flatDast"]>) {
+        return byName(root, "p").map((p: any) =>
+            (p.children as any[])
+                .filter((c) => typeof c !== "string")
+                .map((c) => {
+                    const el = root.elements[c.id] as any;
+                    const props = el.data.props ?? {};
+                    return `<${el.name}>${props.text ?? props.latex ?? props.value ?? ""}`;
+                }),
+        );
+    }
+
+    it("draws letters as texts and math as maths", async () => {
+        const bridge =
+            await load(`<p><sequence type="letters" from="x" to="z"/></p>
+<p><sequence type="math" from="x" step="y" length="2"/></p>
+<p><selectFromSequence type="letters" from="q" to="q"/></p>`);
+        expect(drawn(bridge.flatDast())).toEqual([
+            ["<text>x", "<text>y", "<text>z"],
+            ["<math>x", "<math>x + y"],
+            ["<text>q"],
+        ]);
+    });
+
+    it("draws a repeat over a literal list, an iteration per piece", async () => {
+        const bridge = await load(
+            `<p><repeat for="hello there" type="text" valueName="w"><text>$w</text></repeat></p>`,
+        );
+        expect(drawn(bridge.flatDast())).toEqual([
+            ["<text>hello", "<text>there"],
+        ]);
+    });
+
+    it("draws a point list of the entry an index names, none past the list, rebuilt as it moves", async () => {
+        const bridge = await load(`<mathInput name="n" prefill="2"/>
+<graph><line name="l" through="(2,-3) (3,4)"/><pointList extend="$l.points[$n]"/></graph>`);
+        let root = bridge.flatDast();
+        // The line's two points are its own; the list's is a third.
+        expect(byName(root, "point")).toHaveLength(1);
+        const [n] = byName(root, "mathInput");
+        bridge.dispatch({
+            component: "mathInput",
+            actionName: "updateValue",
+            componentIdx: n.data.id,
+            args: { text: "3" },
+        });
+        root = bridge.flatDast();
+        expect(byName(root, "point")).toHaveLength(0);
+    });
+});

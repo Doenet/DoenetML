@@ -495,7 +495,14 @@ const booleanOperatorReaders: Record<string, Reader> = {
 const listNumbers: Reader = (_g, x) => {
     const cells = x.cells.propCells(x.idx, "numbers");
     if (cells.length > 0) {
-        return Array.from(cells).map((c) => x.cells.value(c));
+        // A sequence of letters or math lists strings or expressions
+        // (ADR 0074): each entry as its cell holds it.
+        return Array.from(cells).map((c) => {
+            const holds = x.cells.core.cell_holds(c);
+            if (holds === "text") return x.cells.text(c);
+            if (holds === "math") return heldMath(x.cells, c);
+            return x.cells.value(c);
+        });
     }
     return presentedChildren(x.cells, x.idx).flatMap((child) => {
         if (typeof child === "string") return [];

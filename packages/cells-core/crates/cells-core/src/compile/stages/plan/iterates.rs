@@ -216,6 +216,11 @@ impl<'a> Planning<'a> {
         let Some((sub, body)) = self.rd.body_rows(t, e) else {
             unreachable!("a repeat has a body template")
         };
+        // A literal list in `for` (`for="1 2 3"`): an anonymous static
+        // list (ADR 0074).
+        if let Some(kind) = super::literal_for(&self.rd, el) {
+            return self.plan_repeat_for_literal(t, e, kind);
+        }
         let m = self.attr_macro(el, "repeat", "for")?;
         let fp = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
         let unsupported = || {

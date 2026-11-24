@@ -89,6 +89,12 @@ impl Outlining<'_> {
         let (num_to_select, with_replacement) = if reactive {
             (Some(1), false)
         } else {
+            // A select's `type` is the type the parser's normalizer wrapped
+            // each piece of its bare text in, one option a piece
+            // (`<select type="number">1 5 7</select>`, `selectSugar`): its
+            // options say it, so the select itself reads nothing more of
+            // it (ADR 0074).
+            d.attr(el, "type");
             let num = match d.attr(el, "numToSelect") {
                 Some(a) if self.rd().attr_text(a).is_some() => {
                     Some(self.rd().literal_attr(a, "numToSelect")?)

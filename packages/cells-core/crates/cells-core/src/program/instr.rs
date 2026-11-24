@@ -241,6 +241,18 @@ pub enum SymKind {
     /// data only when it reads as a number (ADR 0067). Reads the strings
     /// and makes none.
     TextNumber,
+    /// The letters of the number input 0 is (`1` is `a`, `27` is `aa`, as
+    /// the current core's `numberToLetters`), in lower case when input 1
+    /// is 1, else upper, as a string id: a sequence of letters' entry (ADR
+    /// 0074). The compile interns every string its planner lets it meet,
+    /// so it finds the id and makes none. Missing for anything but a whole
+    /// number from 1.
+    Letters,
+    /// The number of the letters input 0's text is (`a` 1, `aa` 27, in
+    /// either case, as the current core's `lettersToNumber`), else NaN: a
+    /// sequence of letters' exclude that is a reference (ADR 0074). Reads
+    /// the strings and makes none.
+    LetterNumber,
 }
 
 /// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
@@ -483,7 +495,10 @@ impl SymKind {
 
     /// Whether the output is a string id (a text cell): a join's.
     pub fn makes_text(self) -> bool {
-        matches!(self, SymKind::Join { .. } | SymKind::JoinWith { .. })
+        matches!(
+            self,
+            SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Letters
+        )
     }
 
     /// Whether it reads text inputs: a join, an order, a text equality.
@@ -495,6 +510,8 @@ impl SymKind {
                 | SymKind::Order { .. }
                 | SymKind::TextEquals { .. }
                 | SymKind::TextNumber
+                | SymKind::Letters
+                | SymKind::LetterNumber
         )
     }
 
@@ -677,6 +694,8 @@ impl OpSpec {
             OpSpec::Sym(SymKind::MatrixSize { .. }) => 1,
             OpSpec::Sym(SymKind::TextEquals { .. }) => 2,
             OpSpec::Sym(SymKind::TextNumber) => 1,
+            OpSpec::Sym(SymKind::Letters) => 2,
+            OpSpec::Sym(SymKind::LetterNumber) => 1,
             _ => unreachable!(),
         }
     }
@@ -896,6 +915,8 @@ mod arity {
                 case_insensitive: false,
             }),
             OpSpec::Sym(SymKind::TextNumber),
+            OpSpec::Sym(SymKind::Letters),
+            OpSpec::Sym(SymKind::LetterNumber),
         ]);
         ops
     }
@@ -985,12 +1006,16 @@ mod arity {
                     SymKind::ListCount => 36,
                     SymKind::TextEquals { .. } => 37,
                     SymKind::TextNumber => 38,
+                    // 41 to 43 would be vector tags 69 to 71 (the segment
+                    // and attract operators).
+                    SymKind::Letters => 44,
+                    SymKind::LetterNumber => 45,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 72;
+    const N_TAGS: usize = 74;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

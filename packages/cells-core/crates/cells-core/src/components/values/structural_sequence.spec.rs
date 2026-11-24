@@ -49,4 +49,16 @@ spec! {
                   <sequence name="s" from="1" to="$n" step="1" length="4"/>"#;
         diagnostics["cells-unsupported"]
     }
+
+    case "letters whose excludes follow a text (ADR 0074)" {
+        doenet r#"<textInput name="e" prefill="b"><label>e</label></textInput>
+                  <sequence name="s" type="letters" from="a" to="e" exclude="$e c"/>"#;
+        expect { "s.numComponents" = 3 }
+    }
+
+    case "math whose count follows a value is refused (ADR 0074)" {
+        doenet r#"<mathInput name="e"><label>e</label></mathInput>
+                  <sequence name="s" type="math" from="x" length="3" exclude="$e"/>"#;
+        diagnostics["cells-unsupported"]
+    }
 }

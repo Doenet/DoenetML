@@ -35,6 +35,15 @@ impl Outlining<'_> {
             if !has_item {
                 continue;
             }
+            // Over a literal list (`for="1 2 3"`), a value of its type
+            // (ADR 0074).
+            if let Some(kind) = crate::compile::stages::plan::literal_for(&self.rd(), node) {
+                let item = crate::compile::stages::plan::item_type(kind);
+                let it = &mut self.outlined_mut(sub).elems[0];
+                it.component_type = item;
+                it.planned_as = item;
+                continue;
+            }
             let Some(m) = self
                 .dast
                 .attr_peek(node, "for")

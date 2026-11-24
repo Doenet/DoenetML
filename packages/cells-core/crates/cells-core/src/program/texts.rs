@@ -171,3 +171,34 @@ impl Sep {
         }
     }
 }
+
+/// The letters of `n` from 1 (`a` 1, `z` 26, `aa` 27), as the current
+/// core's `numberToLetters`: a sequence of letters' value (ADR 0074).
+pub(crate) fn letters(n: u64, lowercase: bool) -> String {
+    let offset = if lowercase { b'a' } else { b'A' };
+    let mut n = n - 1;
+    let mut out = Vec::new();
+    loop {
+        out.push(offset + (n % 26) as u8);
+        if n < 26 {
+            break;
+        }
+        n = n / 26 - 1;
+    }
+    out.reverse();
+    String::from_utf8(out).expect("ascii letters")
+}
+
+/// The number of the letters `s` is (`a` 1, `z` 26, `aa` 27, in either
+/// case), as the current core's `lettersToNumber`; None for anything else.
+pub(crate) fn letters_number(s: &str) -> Option<f64> {
+    let s = s.trim();
+    if s.is_empty() || !s.chars().all(|c| c.is_ascii_alphabetic()) {
+        return None;
+    }
+    Some(
+        s.to_ascii_uppercase()
+            .bytes()
+            .fold(0.0, |n, b| n * 26.0 + f64::from(b - b'A' + 1)),
+    )
+}

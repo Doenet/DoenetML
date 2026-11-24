@@ -318,6 +318,12 @@ component_types! {
     SampleMultivariateRandomNumber => structure::sample_multivariate_random_number::DEFINITION,
     /// `<attractTo>` among a point's constraints.
     AttractTo => geometry::attract_to::DEFINITION,
+    /// A `<pointList>` of one entry of a point list chosen by an index, a
+    /// count of 0 or 1 (ADR 0074).
+    PointListEntry => geometry::point_list_entry::DEFINITION,
+    /// A `<sequence type="letters">` whose count follows a value: its
+    /// items texts (ADR 0074).
+    StructuralLetterSequence => values::structural_sequence::LETTERS,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1416,7 +1422,9 @@ mod tests {
         // a `<boolean>` of a number or a text, a type mix (D47, D68). 45:
         // ADR 0072 added `entry_number`, a list's entry read as a number, a
         // math cell evaluated.
-        const PLAN_CTX_METHODS: usize = 45;
+        // ADR 0074 added `source_text`, a sequence's letters or math as
+        // written.
+        const PLAN_CTX_METHODS: usize = 46;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

@@ -14,6 +14,7 @@ pub mod line;
 mod pair;
 pub mod point;
 pub(crate) mod point_list;
+pub(crate) mod point_list_entry;
 pub mod polygon;
 pub mod polyline;
 pub(crate) mod ray;
