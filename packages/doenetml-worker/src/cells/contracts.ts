@@ -1629,16 +1629,23 @@ export const CONTRACTS: Record<string, Contract> = {
     cascadeMessage: { name: () => "div" },
     // Summary statistics (ADR 0067): the statistics `statisticsShown`
     // masks in, in the core's order, each by its name as the current core
-    // keys them, as text; its operands are never drawn.
+    // keys them, as text rounded by its number-display settings (ADR
+    // 0071); its operands are never drawn.
     summaryStatistics: {
         props: (r, c) => {
             const shown = r.num(c, "statisticsShown");
-            const decimals = decimalsThrough(r, c);
+            const settings = displaySettings(r.table, c, (cell) =>
+                r.cell(cell),
+            );
             const summaryStatistics: Record<string, string> = {};
             STATISTICS.forEach((name, k) => {
-                if (Number.isInteger(shown) && (shown >> k) & 1) {
-                    summaryStatistics[name] = r.numText(c, name, decimals);
-                }
+                if (!Number.isInteger(shown) || !((shown >> k) & 1)) return;
+                summaryStatistics[name] = r.missing(c, name)
+                    ? BLANK
+                    : r.table.core.number_display_text(
+                          r.num(c, name),
+                          settings,
+                      );
             });
             return { summaryStatistics };
         },
