@@ -3763,3 +3763,26 @@ such DoenetML. Chosen after community feedback, over keeping D37's warnings for 
 Revises D37 item 6 and the part of D37 that reverted #2447's errors for `w0104`/`w0105` on a tag.
 Implementation: #2674 (PR 66).
 
+## D76. An invalid attribute is an error; an attribute ignored in deference to another is a warning (decided, November 2026)
+
+**Why.** DIAG-1 gave "an attribute that is ignored" as a warning, and its example was one the tag
+doesn't have, written on a `copy`, `copyWithState` or `extend` (`w0187`, #2482). The same
+attribute written on the tag plainly is the error `e0004`. On `main`, `<math foo="1">` is `e0004`
+while `<math copy="$m" foo="1"/>` is `w0187`, and an attribute the tag has that does nothing as
+written (`mean` on a uniform `<sampleRandomNumbers>`, `<proof includeAutoNumber>`) is silent.
+
+**Decided:**
+1. **An attribute the tag doesn't have is an error** (`e0004`), in every form: written plainly,
+   and on a `copy`, `copyWithState` or `extend`. `w0187` goes. It can do nothing reasonable as
+   written (DIAG-1, D75).
+2. **An attribute ignored in deference to another is a warning:** overspecification (`<vector>`'s
+   `head` beside `tail` and `displacement`, `w0007`; content `coords` overrides, `w0202`) and an
+   attribute written twice (`w0201`, D62).
+3. **An attribute the tag has that does nothing as written** (a mode it doesn't apply to, such as
+   `mean` on a uniform sampler) is a warning saying it is ignored, not silence (DIAG-1). One that
+   does nothing on any tag (`<proof>`'s `includeAutoNumber`, #164) is removed, so it is invalid:
+   item 1.
+4. An attribute an extend can't apply follows REF-7 (`e0056` on the tags whose content is made).
+
+Implementation: #2675 (PR 51).
+

@@ -22,10 +22,13 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
     index into a group of several, a name after a collection, a name or index whose meaning
     depends on the branch shown (D74). There is nothing reasonable to show. **Known violation**
     (#2674): these are warnings today, shown as a blank.
+- **Error, too: an attribute the tag doesn't have** (`doenet-e0004`), in every form, on a `copy`,
+  `copyWithState` or `extend` too (D76). **Known violation** (#2675): there it is warning
+  `doenet-w0187`.
 - **Warning:** the DoenetML is valid, but almost certainly not what was meant, or does nothing.
   The author should change it. Examples:
-  - an attribute that is ignored, including one the tag doesn't have on a `copy`, `copyWithState`
-    or `extend` (`doenet-w0187`, #2482);
+  - an attribute ignored in deference to another (overspecified: `w0007`, `w0202`; written
+    twice: `w0201`), and one the tag has that does nothing as written (D76);
   - a deprecated form;
   - a `copyWithState` whose nested choices kept the source's, and a `copyWithState` of a URI,
     which has no state to carry (D33).
