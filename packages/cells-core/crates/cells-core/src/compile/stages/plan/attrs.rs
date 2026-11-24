@@ -61,6 +61,7 @@ impl<'a> Planning<'a> {
                 PropFrom::Aggregate(_) => "aggregate",
                 PropFrom::Anchor { .. } => "anchor",
                 PropFrom::ListLen => "list length",
+                PropFrom::Display => "display",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -127,8 +128,9 @@ impl<'a> Planning<'a> {
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
-                // Planned after the table, for every type (`plan_anchor`).
-                (None, PropFrom::Anchor { .. }) => Source::absent(),
+                // Planned after the table, for every type (`plan_anchor`,
+                // `plan_display`).
+                (None, PropFrom::Anchor { .. } | PropFrom::Display) => Source::absent(),
                 // A table's list is its own props' points.
                 (None, PropFrom::ListLen) => match component_type.list().map(|l| &l.points) {
                     Some(ListPoints::Table(points)) => Source::constant(points.len() as f64),

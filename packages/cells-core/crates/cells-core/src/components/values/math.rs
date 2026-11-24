@@ -22,6 +22,13 @@ component! {
         // Both of a math's props are set by the builder from its children.
         expr: children { rendered, expr_of: expr },
         value: children { rendered, expr_of: expr },
+        // How its value shows (ADR 0058).
+        displayDigits: display,
+        displayDecimals: display,
+        displaySmallAsZero: display,
+        padZeros: display,
+        avoidScientificNotation: display,
+        displayBlanks: display,
         ..anchor
     }
     attributes {

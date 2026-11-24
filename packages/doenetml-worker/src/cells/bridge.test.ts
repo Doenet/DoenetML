@@ -1770,3 +1770,27 @@ describe("a page", () => {
         ]);
     });
 });
+
+describe("number display settings", () => {
+    it("follow a setting given by a reference", async () => {
+        const bridge = await load(
+            `<booleanInput name="b" label="b"/><number name="n">2</number>
+<p><math displayDecimals="3" padZeros="$b">1.5</math> <number displayDecimals="$n">1.23456</number></p>`,
+        );
+        const root = bridge.flatDast();
+        const [math] = byName(root, "math");
+        const numbers = byName(root, "number");
+        expect((math.data as any).props.latex).toBe("1.5");
+        expect((numbers[1].data as any).props.text).toBe("1.23");
+        const [b] = byName(root, "booleanInput");
+        const payload = bridge.dispatch({
+            component: "booleanInput",
+            actionName: "updateBoolean",
+            componentIdx: b.data.id,
+            args: { boolean: true },
+        }).payload as Record<number, ElementUpdate>;
+        expect((payload[math.data.id]?.changedState as any).latex).toBe(
+            "1.500",
+        );
+    });
+});

@@ -1008,6 +1008,14 @@ pub enum PropFrom {
         /// 0 for x, 1 for y.
         coord: u8,
     },
+    /// A number display setting of the same name (`displayDigits`,
+    /// `displayDecimals`, `displaySmallAsZero`, `padZeros`,
+    /// `avoidScientificNotation`, `displayBlanks`): the element's own
+    /// attribute, a literal or a reference a tick may change, planned by
+    /// the compile for every type that has one, whatever its planner, after
+    /// the planner runs (ADR 0058). Without the attribute, not given (NaN):
+    /// the reader takes it from the nearest referent that gives it.
+    Display,
 }
 
 /// A set of components around an element, described at compile time and

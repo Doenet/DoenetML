@@ -214,8 +214,10 @@ fn census() {
     // `symbolic.doenet`'s one more, live. A value's anchor, where a graph
     // draws it, is an input wherever it is: the choices' interface number
     // and text (`$cc.x`, `$ct.t`) choose their anchors among the cases', 4
-    // instructions of no state (ADR 0047).
-    assert!(golden[0] <= 140 && golden[1] == 184, "{golden:?}");
+    // instructions of no state (ADR 0047). A number's display settings
+    // are its props (ADR 0058), which the choices' interface number
+    // chooses among the cases' too: 6 more, dead.
+    assert!(golden[0] <= 140 && golden[1] == 190, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

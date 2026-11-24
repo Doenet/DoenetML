@@ -42,6 +42,7 @@ enum DeclaredSource {
     Aggregate(Aggregate),
     Anchor(u8),
     ListLen,
+    Display,
 }
 
 /// A prop with nothing set: what every prop starts from.
@@ -122,6 +123,15 @@ pub(super) const fn anchor(name: &'static str, coord: u8) -> Prop {
     assert!(coord < 2, "an anchor has two coordinates");
     let mut p = prop_from(name, 0.0, DeclaredSource::Anchor(coord));
     p.def.interactive = true;
+    p.def.rendered = true;
+    p
+}
+
+/// A number display setting of the same name ([`PropFrom::Display`]): an
+/// output the renderer reads, so `rendered`; not given without the
+/// attribute.
+pub(super) const fn display(name: &'static str) -> Prop {
+    let mut p = prop_from(name, f64::NAN, DeclaredSource::Display);
     p.def.rendered = true;
     p
 }
@@ -246,6 +256,7 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
             DeclaredSource::Aggregate(a) => PropFrom::Aggregate(a),
             DeclaredSource::ListLen => PropFrom::ListLen,
             DeclaredSource::Anchor(coord) => PropFrom::Anchor { coord },
+            DeclaredSource::Display => PropFrom::Display,
             DeclaredSource::AttributeOr(or) => PropFrom::AttributeOr {
                 alias: at(&out, or) as u8,
             },
@@ -805,8 +816,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// for an expression ([`super::ExprOf`]).
 ///
 /// `Planned` has one field per prop the planner plans, in table order:
-/// every prop but a `computed`, an `aggregate`, an `anchor` or a
-/// `list_len` one, which the table gives itself. A planner fills it as a struct literal
+/// every prop but a `computed`, an `aggregate`, an `anchor`, a `display`
+/// or a `list_len` one, which the table gives itself. A planner fills it as a struct literal
 /// (`wiring.set_planned(Planned { .. })`), so a prop left unplanned does
 /// not compile, and one the table gives is not the planner's to write.
 /// `Props<T>` has one field per prop of the table: `Props::PORTS` holds
@@ -1258,6 +1269,9 @@ macro_rules! component {
     (@planned [$($acc:ident)*] anchor $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
+    (@planned [$($acc:ident)*] display $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
     (@planned [$($acc:ident)*] list_len $name:ident $($rest:ident)*) => {
         $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
     };
@@ -1670,6 +1684,7 @@ macro_rules! component {
     (@alternate_name $name:ident) => { Some(stringify!($name)) };
     (@prop by_planner $name:ident) => { $crate::components::define::by_planner(stringify!($name)) };
     (@prop list_len $name:ident) => { $crate::components::define::list_len(stringify!($name)) };
+    (@prop display $name:ident) => { $crate::components::define::display(stringify!($name)) };
     (@prop children $name:ident) => { $crate::components::define::children(stringify!($name)) };
     (@prop attr $name:ident ($default:expr)) => {
         $crate::components::define::attr(stringify!($name), $default)
