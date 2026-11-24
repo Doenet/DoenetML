@@ -850,6 +850,17 @@ const STATE: Record<string, Record<string, Reader>> = {
     selectRandomNumbers: numberListReaders("selectedValues"),
     samplePrimeNumbers: numberListReaders("sampledValues"),
     selectPrimeNumbers: numberListReaders("selectedValues"),
+    selectFromSequence: {
+        ...numberListReaders("selectedValues"),
+        // The order its literal `sort` asks for, as the planner reads it.
+        sort: (_g, x) => {
+            const text = x.cells.table.attr(x.idx, "sort");
+            if (text === null) return "unsorted";
+            const t = text.trim().toLowerCase();
+            if (t === "" || t === "true") return "increasing";
+            return t === "false" ? "unsorted" : t;
+        },
+    },
     ...Object.fromEntries(
         [
             "cumulativeSum",
@@ -1191,6 +1202,12 @@ function componentObjects(cells: Cells) {
                                 return undefined;
                             if (field === "componentIdx") return idx;
                             if (field === "componentType") return componentType;
+                            // The type it is drawn as: its own, a math
+                            // value's a math (`presentedChildren`).
+                            if (field === "presentedComponentType")
+                                return componentType === "mathValue"
+                                    ? "math"
+                                    : componentType;
                             if (field === "constructor") return {};
                             throw new CellsCoreGap(
                                 `JavaScript core internals \`core.core._components[].${field}\``,
