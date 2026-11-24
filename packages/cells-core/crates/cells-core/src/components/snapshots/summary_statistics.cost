@@ -1,0 +1,8 @@
+of numbers, with the sample formulas: cells 19 · essential 0 · constant 19 · instrs 0 · components 2
+interpolated quartiles, and a median at either end of the double range: cells 47 · essential 0 · constant 47 · instrs 0 · components 4
+one value: no spread: cells 17 · essential 0 · constant 17 · instrs 0 · components 3
+math children by their value, a value that is no finite number passed over: cells 24 · essential 0 · constant 24 · instrs 0 · components 6
+a text is data when it reads as a number: cells 35 · essential 0 · constant 35 · instrs 0 · components 5
+none: a count of 0 and no value for the rest: cells 5 · essential 0 · constant 5 · instrs 0 · components 3
+follows its operands: cells 19 · essential 1 · constant 5 · instrs 13 · components 4
+which statistics show: the default, a selection unioned, in order: cells 57 · essential 0 · constant 57 · instrs 0 · components 5

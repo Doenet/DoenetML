@@ -242,10 +242,6 @@ fn unsupported_answer_forms_are_refused() {
         );
     };
     refused(
-        r#"<answer name="a" type="text">hello</answer>"#,
-        "type=\"text\"",
-    );
-    refused(
         r#"<answer name="a" type="boolean">true</answer>"#,
         "type=\"boolean\"",
     );
@@ -308,6 +304,122 @@ fn a_text_answers_response_is_not_a_number() {
         errors,
         ["unsupported: a text value ($a.response) inside math"; 2]
     );
+}
+
+/// Type `s` into text input `ti`: intern, then request the id.
+fn type_text(doc: &mut Document, ti: CompIdx, s: &str) {
+    let id = doc.intern(s);
+    let cell = doc.comp_cells(ti)[prop::text_input::VALUE];
+    doc.request(&[cells_core::Request { cell, value: id }]);
+}
+
+// A text answer with no input of its own types into one it makes (ADR
+// 0067), and compares texts as the current core does: trimmed, the first
+// run of white space one space.
+#[test]
+fn a_bare_text_answer_owns_an_implicit_text_input() {
+    let mut doc = load(r#"<answer name="a" type="text">hello there</answer>"#).unwrap();
+    let a = doc.resolve_path("a").unwrap();
+    let ins = doc.answer_inputs(a);
+    assert_eq!(ins.len(), 1);
+    let ti = ins[0];
+    assert_eq!(doc.component_type(ti), ComponentType::TextInput);
+    assert_eq!(doc.parent(ti), Some(a));
+    for (typed, expected) in [
+        (" hello there ", 1.0),
+        ("hellothere", 0.0),
+        ("hello  there", 1.0),
+        ("Hello there", 0.0),
+    ] {
+        type_text(&mut doc, ti, typed);
+        submit(&mut doc, "a");
+        assert_eq!(credit(&doc, "a"), expected, "{typed:?}");
+    }
+    assert_eq!(doc.value("a", "numSubmissions"), Some(4.0));
+    assert_eq!(reference::check(&doc), None);
+}
+
+// Its content may be one reference to a text, and its awards need no
+// input child either.
+#[test]
+fn a_text_answer_reads_a_reference_and_awards_without_an_input() {
+    let mut doc = load(
+        r#"<text name="h">hello there</text><answer name="a" type="text">$h</answer>
+<answer name="b" type="text"><award>  yes </award><award credit="0.5">maybe</award></answer>"#,
+    )
+    .unwrap();
+    let ti = inputs(&doc, "a")[0];
+    type_text(&mut doc, ti, "hello  there ");
+    submit(&mut doc, "a");
+    assert_eq!(credit(&doc, "a"), 1.0);
+    let ti = inputs(&doc, "b")[0];
+    type_text(&mut doc, ti, "MAYBE");
+    submit(&mut doc, "b");
+    assert_eq!(credit(&doc, "b"), 0.0, "case matters");
+    type_text(&mut doc, ti, "maybe");
+    submit(&mut doc, "b");
+    assert_eq!(credit(&doc, "b"), 0.5);
+    type_text(&mut doc, ti, " yes");
+    submit(&mut doc, "b");
+    assert_eq!(credit(&doc, "b"), 1.0);
+}
+
+// Text and references together are their texts one after the other, the
+// white space between them kept, in an answer's content and an award's.
+#[test]
+fn a_text_answers_content_joins_text_and_references() {
+    let mut doc = load(
+        r#"<text name="h">hello</text><text name="t">there</text>
+<answer name="a" type="text">$h $t</answer>
+<answer name="b" type="text"><award>$h there</award></answer>
+<answer name="c" type="text">$h$t</answer>"#,
+    )
+    .unwrap();
+    for (answer, typed, expected) in [
+        ("a", "hello there", 1.0),
+        ("a", "hellothere", 0.0),
+        ("b", "hello there", 1.0),
+        ("c", "hellothere", 1.0),
+    ] {
+        let ti = inputs(&doc, answer)[0];
+        type_text(&mut doc, ti, typed);
+        submit(&mut doc, answer);
+        assert_eq!(credit(&doc, answer), expected, "{answer} {typed:?}");
+    }
+}
+
+// A `<text>` child makes an answer a text answer, and an award's `<text>`
+// child is its content; in a math answer's award one is refused.
+#[test]
+fn a_text_child_is_a_text_answers_content() {
+    let mut doc = load(
+        r#"<answer name="a"><text>hello there</text></answer>
+<answer name="b" type="text"><award><text>  yes </text></award></answer>
+<answer name="c" type="text"><text>no</text></answer>"#,
+    )
+    .unwrap();
+    for (answer, typed) in [("a", "hello there"), ("b", "yes"), ("c", "no")] {
+        let ti = inputs(&doc, answer)[0];
+        assert_eq!(doc.component_type(ti), ComponentType::TextInput);
+        type_text(&mut doc, ti, typed);
+        submit(&mut doc, answer);
+        assert_eq!(credit(&doc, answer), 1.0, "{answer}");
+    }
+    let (_, m) = load_error(r#"<answer name="a"><award><text>x</text></award></answer>"#);
+    assert!(m.contains("a <text> in an <award> of a math answer"), "{m}");
+    let (_, m) = load_error(r#"<answer name="a" type="math"><text>x</text></answer>"#);
+    assert!(m.contains("a <text> inside an <answer>"), "{m}");
+}
+
+// `caseInsensitiveMatch` on a text answer compares lower-cased.
+#[test]
+fn a_text_answer_may_match_without_case() {
+    let mut doc =
+        load(r#"<answer name="a" type="text" caseInsensitiveMatch>Hello there!</answer>"#).unwrap();
+    let ti = inputs(&doc, "a")[0];
+    type_text(&mut doc, ti, "hello THERE!");
+    submit(&mut doc, "a");
+    assert_eq!(credit(&doc, "a"), 1.0);
 }
 
 // Placed in a paragraph, a text answer's response shows as its text.

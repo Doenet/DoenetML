@@ -92,8 +92,16 @@ pub(crate) fn post_of(expand: bool, simplify: bool) -> Post {
 
 /// The type a `<math>` is, from its text alone: a tuple of two, `(a, b)`,
 /// is a point; a tuple of more entries is a tuple, one cell per entry;
-/// anything else is a math cell. Each `$ref` is one token.
+/// anything else is a math cell. Each `$ref` is one token. A tuple with a
+/// free symbol (`(x, 1)`) is a math cell too: a point's coordinates are
+/// numbers, and `x` lowered to one would be a silent NaN.
 pub(crate) fn settled_type(toks: &[Token]) -> ComponentType {
+    let free_symbol = toks.iter().enumerate().any(|(i, tok)| {
+        matches!(tok, Token::Ident(_)) && !matches!(toks.get(i + 1), Some(Token::LParen))
+    });
+    if free_symbol {
+        return ComponentType::Math;
+    }
     match tuple_entries(toks).map(|entries| entries.len()) {
         Some(2) => ComponentType::Point,
         Some(n) if n > 2 => ComponentType::Tuple,

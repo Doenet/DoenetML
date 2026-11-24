@@ -362,6 +362,8 @@ pub enum Role {
     /// ADR 0049): its value at `x` is its first piece's whose domain holds
     /// `x`.
     PiecewiseFunction,
+    /// The input a text answer makes when it has none (ADR 0067).
+    ImplicitTextInput,
 }
 
 impl Role {
@@ -384,6 +386,7 @@ impl Role {
         Role::Choice,
         Role::Function,
         Role::PiecewiseFunction,
+        Role::ImplicitTextInput,
     ];
 }
 

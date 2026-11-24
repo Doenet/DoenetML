@@ -226,6 +226,21 @@ pub enum SymKind {
     /// How many entries the value input 0 holds, read as a list's: a
     /// list's items, else 1; 0 for the missing value.
     ListCount,
+    // A text answer (ADR 0067).
+    /// 1 when the texts of inputs 0 and 1 (string ids) are equal as the
+    /// current core compares an answer's texts, else 0: each trimmed and
+    /// its first run of white space made one space, then, when
+    /// `case_insensitive`, lower-cased. A missing or NaN input reads as
+    /// the empty text. Reads the strings and makes none.
+    TextEquals {
+        /// Compare without regard to case.
+        case_insensitive: bool,
+    },
+    /// The number the text of input 0 (a string id) writes, trimmed (`88`
+    /// is 88), else NaN: a text among a `<summaryStatistics>`' operands,
+    /// data only when it reads as a number (ADR 0067). Reads the strings
+    /// and makes none.
+    TextNumber,
 }
 
 /// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
@@ -471,11 +486,15 @@ impl SymKind {
         matches!(self, SymKind::Join { .. } | SymKind::JoinWith { .. })
     }
 
-    /// Whether it reads text inputs: a join, an order.
+    /// Whether it reads text inputs: a join, an order, a text equality.
     pub fn reads_text(self) -> bool {
         matches!(
             self,
-            SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. }
+            SymKind::Join { .. }
+                | SymKind::JoinWith { .. }
+                | SymKind::Order { .. }
+                | SymKind::TextEquals { .. }
+                | SymKind::TextNumber
         )
     }
 
@@ -656,6 +675,8 @@ impl OpSpec {
             OpSpec::Sym(SymKind::Interpolate { n }) => 3 + INTERPOLATE_POINT_CELLS * *n as usize,
             OpSpec::Sym(SymKind::Grid) => usize::MAX,
             OpSpec::Sym(SymKind::MatrixSize { .. }) => 1,
+            OpSpec::Sym(SymKind::TextEquals { .. }) => 2,
+            OpSpec::Sym(SymKind::TextNumber) => 1,
             _ => unreachable!(),
         }
     }
@@ -866,6 +887,10 @@ mod arity {
             OpSpec::Sym(SymKind::MatrixSize { cols: true }),
             OpSpec::Sym(SymKind::ListItem),
             OpSpec::Sym(SymKind::ListCount),
+            OpSpec::Sym(SymKind::TextEquals {
+                case_insensitive: false,
+            }),
+            OpSpec::Sym(SymKind::TextNumber),
         ]);
         ops
     }
@@ -947,12 +972,14 @@ mod arity {
                     SymKind::MatrixSize { .. } => 34,
                     SymKind::ListItem => 35,
                     SymKind::ListCount => 36,
+                    SymKind::TextEquals { .. } => 37,
+                    SymKind::TextNumber => 38,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 65;
+    const N_TAGS: usize = 67;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

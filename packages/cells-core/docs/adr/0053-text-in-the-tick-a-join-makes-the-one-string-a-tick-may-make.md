@@ -154,6 +154,10 @@ concatenation in view.
 - *Done 2026-11-24:* a join with a separator, `SymKind::JoinWith`, the
   next text-valued operator: a section's full number ("2.1") and title
   ("Section 2.1") as text a reference reads (ADR 0058).
+- *Done 2026-11-24 (ADR 0067):* a concatenation, `JoinWith` with
+  `Sep::Empty`, a text answer's content of text and references; and two
+  operators that read strings and make none: `TextEquals`, comparing an
+  answer's texts, and `TextNumber`, a text read as a number.
 - *Done 2026-11-23:* a per-element entry width (decision 8). An element
   of a type whose entries are its operands' (`EntryKind::Any`) may decide
   its entries' kind: its plan's list is `ListLen::Entries(n, kind)`

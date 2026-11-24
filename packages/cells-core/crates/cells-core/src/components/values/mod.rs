@@ -295,6 +295,11 @@ pub mod number {
             displayBlanks: display,
             ..anchor
         }
+        attributes {
+            // Read where its children are planned: a boolean in them is 1
+            // or 0, the one place one is (D47).
+            convertBoolean: On,
+        }
         children: Value,
         planner: Props,
     }

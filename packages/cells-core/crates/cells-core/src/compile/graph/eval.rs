@@ -739,6 +739,12 @@ fn check_sequence(
     // Draw, the parameters, then the excludes; how many values must be
     // left to draw (none for a continuous distribution).
     let (names, need): (&[&str], f64) = match op {
+        // Its categories' sizes come after `numDraws`, read as excludes
+        // are; whether they describe a population is the draw's.
+        VecOp::Draws {
+            dist: Dist::MultivariateHypergeometric,
+            ..
+        } => (&["numDraws"], 0.0),
         VecOp::Draws {
             dist: Dist::Uniform,
             ..
@@ -763,15 +769,15 @@ fn check_sequence(
         }
         _ => (&["from", "step", "to"], 1.0),
     };
+    let rest = match op {
+        VecOp::Draws {
+            dist: Dist::MultivariateHypergeometric,
+            ..
+        } => "numInCategories",
+        _ => "exclude",
+    };
     for (i, &n) in ports[1..].iter().enumerate() {
-        constant_param(
-            k,
-            c,
-            tag,
-            node,
-            names.get(i).copied().unwrap_or("exclude"),
-            n,
-        )?;
+        constant_param(k, c, tag, node, names.get(i).copied().unwrap_or(rest), n)?;
     }
     if need == 0.0 {
         return Ok(());

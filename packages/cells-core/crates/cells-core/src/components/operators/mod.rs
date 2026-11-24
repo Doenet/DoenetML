@@ -32,6 +32,8 @@ pub(crate) mod over_math;
 pub(crate) mod round;
 pub(crate) mod variance;
 
+pub(crate) mod summary_statistics;
+
 pub(crate) mod index_of;
 pub(crate) mod scan;
 pub(crate) mod sort;

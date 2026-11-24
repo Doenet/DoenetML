@@ -546,15 +546,62 @@ pub enum Dist {
         /// The order of the values drawn.
         order: Order,
     },
+    /// (numDraws): how many of each category `numDraws` items drawn
+    /// without replacement take from a population of the categories'
+    /// sizes, the inputs after it (one value per category, a
+    /// `<sampleMultivariateRandomNumber type="hypergeometric">`'s; ADR
+    /// 0067). No value where the sizes are not whole numbers from 0, or
+    /// `numDraws` not one from 0 to their total.
+    MultivariateHypergeometric,
 }
 
 impl Dist {
     /// How many parameters it reads after the draw.
     pub const fn n_params(self) -> usize {
         match self {
+            Dist::MultivariateHypergeometric => 1,
             Dist::Uniform | Dist::Gaussian | Dist::Primes { .. } => 2,
             Dist::Sequence { .. } => 3,
         }
+    }
+}
+
+/// The most items a [`Dist::MultivariateHypergeometric`] draws one at a
+/// time; more is no value, as the current core refuses a draw too large to
+/// make promptly.
+const MAX_HYPERGEOMETRIC_DRAWS: f64 = 1e7;
+
+/// How many of each category `draws` items drawn without replacement
+/// take from a population of the sizes in `sizes`, into `out` (one per
+/// category): the items drawn one at a time, the `t`-th by the `t`-th
+/// value of the draw's stream. NaN throughout where the parameters
+/// describe no such population.
+fn multivariate_hypergeometric(draw: f64, draws: f64, sizes: &[f64], out: &mut [f64]) {
+    let whole = |v: f64| v.is_finite() && v >= 0.0 && v.fract() == 0.0;
+    let total: f64 = sizes.iter().sum();
+    if !sizes.iter().all(|&v| whole(v))
+        || !whole(draws)
+        || draws > total
+        || total > (1u64 << 53) as f64
+        || draws > MAX_HYPERGEOMETRIC_DRAWS
+    {
+        out.fill(f64::NAN);
+        return;
+    }
+    let mut left: Vec<u64> = sizes.iter().map(|&v| v as u64).collect();
+    let mut remaining = total as u64;
+    out.fill(0.0);
+    for t in 0..draws as usize {
+        let mut k = (draw_stream(draw, t) * remaining as f64) as u64;
+        for (o, n) in out.iter_mut().zip(left.iter_mut()) {
+            if k < *n {
+                *o += 1.0;
+                *n -= 1;
+                break;
+            }
+            k -= *n;
+        }
+        remaining -= 1;
     }
 }
 
@@ -622,6 +669,147 @@ pub enum Reduction {
         /// Whether the inputs may be in any order.
         unsorted: bool,
     },
+    /// One of a `<summaryStatistics>`' statistics of its finite inputs,
+    /// passing over every other (a missing one, a NaN, an infinity) as
+    /// missing data, as the current core does.
+    Statistic(Statistic),
+}
+
+/// A statistic of a column of numbers ([`Reduction::Statistic`]), as the
+/// current core's `<summaryStatistics>` computes it: of the finite values
+/// only, each but `Count` with no value over none.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Statistic {
+    /// The arithmetic mean.
+    Mean,
+    /// The sample standard deviation.
+    Stdev,
+    /// The sample variance (over one less than the count; 0 for one value).
+    Variance,
+    /// The standard error of the mean: the standard deviation over the
+    /// square root of the count.
+    Stderr,
+    /// How many values there are: 0 for none.
+    Count,
+    /// The least.
+    Minimum,
+    /// The 25th percentile, interpolated between the values around it.
+    Quartile1,
+    /// The middle value, or the midpoint of the two middle ones.
+    Median,
+    /// The 75th percentile, interpolated.
+    Quartile3,
+    /// The greatest.
+    Maximum,
+    /// The greatest less the least.
+    Range,
+    /// The sum, left to right.
+    Sum,
+}
+
+impl Statistic {
+    /// Every statistic, in the order the current core lists them.
+    pub const ALL: [Statistic; 12] = [
+        Statistic::Mean,
+        Statistic::Stdev,
+        Statistic::Variance,
+        Statistic::Stderr,
+        Statistic::Count,
+        Statistic::Minimum,
+        Statistic::Quartile1,
+        Statistic::Median,
+        Statistic::Quartile3,
+        Statistic::Maximum,
+        Statistic::Range,
+        Statistic::Sum,
+    ];
+
+    /// Its name, as `statisticsToDisplay` writes it (lower-cased).
+    pub const fn name(self) -> &'static str {
+        match self {
+            Statistic::Mean => "mean",
+            Statistic::Stdev => "stdev",
+            Statistic::Variance => "variance",
+            Statistic::Stderr => "stderr",
+            Statistic::Count => "count",
+            Statistic::Minimum => "minimum",
+            Statistic::Quartile1 => "quartile1",
+            Statistic::Median => "median",
+            Statistic::Quartile3 => "quartile3",
+            Statistic::Maximum => "maximum",
+            Statistic::Range => "range",
+            Statistic::Sum => "sum",
+        }
+    }
+
+    /// Its value over `inp`, of the finite inputs only.
+    pub fn eval(self, inp: &[f64]) -> f64 {
+        let mut xs: Vec<f64> = inp.iter().copied().filter(|v| v.is_finite()).collect();
+        let n = xs.len();
+        if self == Statistic::Count {
+            return n as f64;
+        }
+        if n == 0 {
+            return f64::NAN;
+        }
+        let sum = || xs.iter().fold(0.0, |a, &c| a + c);
+        let variance = |xs: &[f64]| {
+            if xs.len() == 1 {
+                return 0.0;
+            }
+            let mean = xs.iter().fold(0.0, |a, &c| a + c) / xs.len() as f64;
+            let squares = xs.iter().fold(0.0, |a, &c| a + (c - mean) * (c - mean));
+            squares / (xs.len() - 1) as f64
+        };
+        let least = |xs: &[f64]| xs.iter().copied().fold(f64::INFINITY, f64::min);
+        let most = |xs: &[f64]| xs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        match self {
+            Statistic::Mean => sum() / n as f64,
+            Statistic::Sum => sum(),
+            Statistic::Variance => variance(&xs),
+            Statistic::Stdev => variance(&xs).sqrt(),
+            Statistic::Stderr => variance(&xs).sqrt() / (n as f64).sqrt(),
+            Statistic::Minimum => least(&xs),
+            Statistic::Maximum => most(&xs),
+            Statistic::Range => most(&xs) - least(&xs),
+            Statistic::Quartile1 | Statistic::Median | Statistic::Quartile3 => {
+                xs.sort_by(f64::total_cmp);
+                match self {
+                    Statistic::Quartile1 => quantile(&xs, 0.25),
+                    Statistic::Quartile3 => quantile(&xs, 0.75),
+                    _ => {
+                        let m = n / 2;
+                        if n % 2 == 1 {
+                            xs[m]
+                        } else {
+                            // Summed first, exact for a normal double;
+                            // halved apart only where the sum overflows.
+                            let s = xs[m - 1] + xs[m];
+                            if s.is_finite() {
+                                s / 2.0
+                            } else {
+                                xs[m - 1] / 2.0 + xs[m] / 2.0
+                            }
+                        }
+                    }
+                }
+            }
+            Statistic::Count => unreachable!("counted above"),
+        }
+    }
+}
+
+/// The `p` quantile of sorted `xs`, interpolated linearly between the two
+/// values around position `p (n - 1)`, as math.js's `quantileSeq` does.
+fn quantile(xs: &[f64], p: f64) -> f64 {
+    let index = p * (xs.len() - 1) as f64;
+    let frac = index.fract();
+    let k = index.floor() as usize;
+    if frac == 0.0 {
+        xs[k]
+    } else {
+        xs[k] * (1.0 - frac) + xs[k + 1] * frac
+    }
 }
 
 impl Reduction {
@@ -751,6 +939,7 @@ impl Reduction {
                 }
                 index as f64
             }
+            Reduction::Statistic(stat) => stat.eval(inp),
             Reduction::Between => match *inp {
                 [x, l1, l2, strict] => {
                     let strict = strict != 0.0 && !strict.is_nan();
@@ -1123,6 +1312,9 @@ fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64
         return;
     }
     match dist {
+        Dist::MultivariateHypergeometric => {
+            multivariate_hypergeometric(draw, params[0], excludes, out);
+        }
         Dist::Uniform => {
             let (from, to) = (params[0], params[1]);
             for (i, o) in out.iter_mut().enumerate() {
@@ -1216,7 +1408,7 @@ fn moments(dist: Dist, params: &[f64], excludes: &[f64], out: &mut [f64]) {
                 }
             }
             Dist::Sequence { .. } => sequence_moments(params[0], params[1], params[2], excludes),
-            Dist::Primes { .. } => (f64::NAN, f64::NAN),
+            Dist::Primes { .. } | Dist::MultivariateHypergeometric => (f64::NAN, f64::NAN),
         }
     };
     out[0] = mean;
@@ -1556,6 +1748,7 @@ impl VecOp {
                     | Reduction::ArgMax
                     | Reduction::IndexOf
                     | Reduction::SearchSorted { .. }
+                    | Reduction::Statistic(_)
             ),
             _ => true,
         }
@@ -3405,5 +3598,53 @@ mod writes {
         let (next, got) = after(op, &inp, &desired).unwrap();
         assert_eq!(next, [1.0, 2.0, 0.0]);
         assert_eq!(got, [1.0, -4.0, 4.0, 2.0, 0.0]);
+    }
+}
+
+/// A multivariate hypergeometric draw (ADR 0067): its values sum to the
+/// draws, each at most its category's size, and over many seeds each
+/// category's mean is the population's share of the draws.
+#[cfg(test)]
+mod hypergeometric {
+    use super::*;
+
+    #[test]
+    fn draws_sum_to_the_draws_with_the_expected_means() {
+        let sizes = [5.0, 3.0, 2.0];
+        let mut totals = [0.0; 3];
+        let runs = 4000;
+        for r in 0..runs {
+            let draw = (r as f64 + 0.5) / runs as f64;
+            let mut out = [0.0; 3];
+            multivariate_hypergeometric(draw, 4.0, &sizes, &mut out);
+            assert_eq!(out.iter().sum::<f64>(), 4.0);
+            for (k, (&o, &s)) in out.iter().zip(&sizes).enumerate() {
+                assert!(o <= s);
+                totals[k] += o;
+            }
+        }
+        for (k, &s) in sizes.iter().enumerate() {
+            let mean = totals[k] / runs as f64;
+            assert!((mean - 4.0 * s / 10.0).abs() < 0.05, "{k}: {mean}");
+        }
+    }
+
+    #[test]
+    fn no_population_no_value() {
+        let mut out = [0.0; 2];
+        multivariate_hypergeometric(0.5, 11.0, &[5.0, 5.0], &mut out);
+        assert!(out.iter().all(|v| v.is_nan()));
+        multivariate_hypergeometric(0.5, 1.0, &[1.5, 5.0], &mut out);
+        assert!(out.iter().all(|v| v.is_nan()));
+    }
+
+    #[test]
+    fn statistics_pass_over_what_is_no_finite_number() {
+        let xs = [2.0, f64::NAN, 4.0, f64::INFINITY, 4.0, 10.0];
+        assert_eq!(Statistic::Count.eval(&xs), 4.0);
+        assert_eq!(Statistic::Variance.eval(&xs), 12.0);
+        assert_eq!(Statistic::Quartile1.eval(&xs), 3.5);
+        assert!(Statistic::Mean.eval(&[]).is_nan());
+        assert_eq!(Statistic::Count.eval(&[]), 0.0);
     }
 }
