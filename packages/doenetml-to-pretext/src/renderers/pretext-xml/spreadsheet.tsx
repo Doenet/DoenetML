@@ -72,7 +72,8 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     // is written it wants one per column, so write a `<col>` for every
     // column that is drawn (the generated row-number column included) as
     // soon as any column has a percentage width. A width in pixels has no
-    // PreTeXt equivalent and is dropped, as it is for a `<tabular>`.
+    // PreTeXt equivalent and is dropped, as it is for a `<tabular>`'s
+    // `<col>`.
     //
     // The printed table is meant to look like the one on screen. There the
     // percentages are shares of the width beside the fixed row-label strip,

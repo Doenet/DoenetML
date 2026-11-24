@@ -1819,9 +1819,11 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = "#_id_" + mathInput4Idx + " textarea";
 
+            // One `submitLabel`, used whether or not correctness is shown;
+            // `submitLabelNoCorrectness` is read as it (D66 decision 15).
             cy.get("#ans1 button").should("contain.text", "Check Work");
             cy.get("#ans2 button").should("contain.text", "Hit it!");
-            cy.get("#ans3 button").should("contain.text", "Check Work");
+            cy.get("#ans3 button").should("contain.text", "Guess");
             cy.get("#ans4 button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
@@ -1845,14 +1847,14 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#testRunner_toggleControls").click();
 
             cy.get("#ans1 button").should("contain.text", "Submit Response");
-            cy.get("#ans2 button").should("contain.text", "Submit Response");
+            cy.get("#ans2 button").should("contain.text", "Hit it!");
             cy.get("#ans3 button").should("contain.text", "Guess");
-            cy.get("#ans4 button").should("contain.text", "Guess");
+            cy.get("#ans4 button").should("contain.text", "Hit it!");
 
             cy.get("#ans1 button").should("contain.text", "Submit Response");
-            cy.get("#ans2 button").should("contain.text", "Submit Response");
+            cy.get("#ans2 button").should("contain.text", "Hit it!");
             cy.get("#ans3 button").should("contain.text", "Guess");
-            cy.get("#ans4 button").should("contain.text", "Guess");
+            cy.get("#ans4 button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
@@ -1909,9 +1911,11 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.get("#a").should("have.text", "a"); // to wait until loaded
 
+        // One `submitLabel`, used whether or not correctness is shown;
+        // `submitLabelNoCorrectness` is read as it (D66 decision 15).
         cy.get("#choiceInput1_button").should("contain.text", "Check Work");
         cy.get("#choiceInput2_button").should("contain.text", "Hit it!");
-        cy.get("#choiceInput3_button").should("contain.text", "Check Work");
+        cy.get("#choiceInput3_button").should("contain.text", "Guess");
         cy.get("#choiceInput4_button").should("contain.text", "Hit it!");
 
         cy.get("#choiceInput1").contains(`yes`).click({ force: true });
@@ -1938,23 +1942,17 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             "contain.text",
             "Submit Response",
         );
-        cy.get("#choiceInput2_button").should(
-            "contain.text",
-            "Submit Response",
-        );
+        cy.get("#choiceInput2_button").should("contain.text", "Hit it!");
         cy.get("#choiceInput3_button").should("contain.text", "Guess");
-        cy.get("#choiceInput4_button").should("contain.text", "Guess");
+        cy.get("#choiceInput4_button").should("contain.text", "Hit it!");
 
         cy.get("#choiceInput1_button").should(
             "contain.text",
             "Submit Response",
         );
-        cy.get("#choiceInput2_button").should(
-            "contain.text",
-            "Submit Response",
-        );
+        cy.get("#choiceInput2_button").should("contain.text", "Hit it!");
         cy.get("#choiceInput3_button").should("contain.text", "Guess");
-        cy.get("#choiceInput4_button").should("contain.text", "Guess");
+        cy.get("#choiceInput4_button").should("contain.text", "Hit it!");
 
         cy.get("#choiceInput1").contains(`yes`).click({ force: true });
         cy.get("#choiceInput2").contains(`yes`).click({ force: true });

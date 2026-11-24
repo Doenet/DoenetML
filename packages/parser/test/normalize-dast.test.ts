@@ -591,6 +591,46 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("renames submitLabelNoCorrectness to submitLabel (D66 decision 15)", () => {
+        // On an answer and on a scored section; where both are written,
+        // `submitLabel` is kept and the retired one dropped.
+        const source = `<answer submitLabelNoCorrectness="Guess">x</answer><p submitLabelNoCorrectness="Go">y</p><answer submitLabel="Hit it!" submitLabelNoCorrectness="Guess">z</answer>`;
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        expect(toXml(normalized)).toEqual(
+            '<document><answer submitLabel="Guess">x</answer><p submitLabel="Go">y</p><answer submitLabel="Hit it!">z</answer></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((x) => x.message)).toEqual([
+            "[deprecation] Attribute `submitLabelNoCorrectness` is deprecated; use `submitLabel` instead.",
+            "[deprecation] Attribute `submitLabelNoCorrectness` is deprecated; use `submitLabel` instead.",
+            "[deprecation] Attribute `submitLabelNoCorrectness` is deprecated and ignored because `submitLabel` is also specified.",
+        ]);
+    });
+
+    it("renames submitLabelNoCorrectness on the tags that take it from a div or a scored block", () => {
+        const tags = [
+            "statement",
+            "introduction",
+            "conclusion",
+            "cascadeMessage",
+            "pretzel",
+        ];
+        const source = tags
+            .map((tag) => `<${tag} submitLabelNoCorrectness="Go"/>`)
+            .join("");
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        const xml = toXml(normalized);
+        for (const tag of tags) {
+            expect(xml).toContain(`<${tag} submitLabel="Go"`);
+        }
+        expect(xml).not.toContain("submitLabelNoCorrectness");
+    });
+
     it("renames deprecated attributes regardless of case", () => {
         const source = `<selectPrimeNumbers MINvalue="5" maxVALUE="19" />`;
         const dast = lezerToDast(source);

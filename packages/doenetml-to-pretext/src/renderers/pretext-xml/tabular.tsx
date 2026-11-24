@@ -118,9 +118,9 @@ const TableSettingsContext = React.createContext<TableSettings>(
 
 /**
  * A `componentSize` as a PreTeXt width, or `undefined` when there is nothing
- * PreTeXt can say. PreTeXt expresses a tabular's and a column's width as a
- * percentage only, so an absolute size (`width="120px"`) has no equivalent
- * and is dropped rather than mistranslated.
+ * PreTeXt can say. PreTeXt expresses a tabular's width as a percentage only,
+ * so an absolute size (`width="120px"`) has no equivalent and yields
+ * `undefined`, leaving the caller to choose what to write instead.
  */
 function componentSizeToPretextWidth(
     size: { size: number; isAbsolute: boolean } | null | undefined,
@@ -176,8 +176,8 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
     // own: PreTeXt sets the table in a box that wide, and reads the column
     // widths as shares of the box. The padding is a larger share of a
     // narrower box, though, which is what `lineFraction` accounts for. A
-    // width in pixels is not written out (see below), so it counts as the
-    // full line.
+    // width in pixels is written as the full line (see below), so it counts
+    // as the full line here too.
     const percents = columnSpecs.map(({ width }) =>
         width && !width.isAbsolute && width.size > 0 ? width.size : null,
     );
@@ -200,14 +200,17 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
         rowOverridesColumnHalign: false,
     };
 
-    // A `<tabular>` is 100% wide unless the author says otherwise, and PreTeXt
-    // reads a missing `width` the same way, so the default stays unwritten.
-    // `height` has no PreTeXt counterpart at all and is dropped.
-    const width = componentSizeToPretextWidth(props.width);
+    // A `<tabular>` is 100% wide unless the author says otherwise, so its
+    // width is always written. PreTeXt reads a missing `width` differently:
+    // as a table of its natural width, centered on the line, which shifts
+    // each table by its own width. A width in pixels, which PreTeXt cannot
+    // express, is written as the full line, as `lineFraction` above counts
+    // it. `height` has no PreTeXt counterpart at all and is dropped.
+    const width = componentSizeToPretextWidth(props.width) ?? "100%";
 
     return (
         <tabular
-            width={width === "100%" ? undefined : width}
+            width={width}
             halign={halignIfChanged(
                 settings.halign,
                 DEFAULT_TABLE_SETTINGS.halign,

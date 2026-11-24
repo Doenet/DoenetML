@@ -1,4 +1,9 @@
 import BlockComponent from "../abstract/BlockComponent";
+import {
+    returnLabelAttributes,
+    returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
+} from "../../utils/label";
 
 export default class OrbitalDiagramInput extends BlockComponent {
     constructor(args) {
@@ -20,6 +25,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
     }
 
     static componentType = "orbitalDiagramInput";
+    // renders its `<label>` child (CTX-11, #1279)
+    static renderChildren = true;
     // An input, which stands for what it holds: a `<orbitalDiagram>`, an object, so it
     // is of that object's type (COLL-4, D46; `utils/componentKinds.ts`).
     static isValue = true;
@@ -33,6 +40,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+        // labeled as every input is (CTX-11, #1279)
+        Object.assign(attributes, returnLabelAttributes());
         attributes.prefill = {
             createComponentOfType: "orbitalDiagram",
             createStateVariable: "prefill",
@@ -49,8 +58,26 @@ export default class OrbitalDiagramInput extends BlockComponent {
         return attributes;
     }
 
+    static returnChildGroups() {
+        return [
+            ...super.returnChildGroups(),
+            {
+                group: "labels",
+                componentTypes: ["label"],
+            },
+        ];
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A `<label>` child labels it, as it does every input (CTX-11,
+        // #1279).
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelStateVariableDefinitions(),
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         stateVariableDefinitions.value = {
             description: "The current orbital diagram entered by the student.",

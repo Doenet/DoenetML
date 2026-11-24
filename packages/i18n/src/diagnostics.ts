@@ -306,6 +306,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0206": "award-content-several-inputs",
     "doenet-w0207": "award-content-for-answer-input",
     "doenet-w0208": "counted-boolean-compared-with-number",
+    "doenet-w0209": "answer-label-not-on-input",
+    "doenet-w0210": "choice-reference-in-choice-input",
+    "doenet-w0211": "action-target-not-a-component",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

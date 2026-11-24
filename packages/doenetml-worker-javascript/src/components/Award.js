@@ -11,6 +11,7 @@ import {
     returnCreditAttributeAndStateVariableDefinition,
     returnSimplifyExpandOnCompareWarning,
 } from "../utils/answer";
+import { answerContentType } from "../utils/answerContentType";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -209,6 +210,19 @@ export default class Award extends BaseComponent {
             excludeFromSchema: true,
         };
 
+        // Set by `answerTypesAtLoad.ts`, not by authors: the type of the
+        // `<answer>` this award belongs to, for an award that is not a child
+        // of the answer as written (one held by a composite in the answer, or
+        // an `<award copy>`), so that its plain text is read as the answer's
+        // type, as that of an award written in the answer is (ANS-4, D55;
+        // #1874, #2657 item 5). The answer's sugar also sets it on the awards
+        // of an `<answer copy>`, written or made, whose own attributes may
+        // not carry the type (#2657 item 9).
+        attributes._answerType = {
+            createPrimitiveOfType: "string",
+            excludeFromSchema: true,
+        };
+
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
@@ -233,6 +247,10 @@ export default class Award extends BaseComponent {
     }
 
     static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        retypeCopiedContent(
+            serializedChildren,
+            attributes._answerType?.primitive?.value,
+        );
         if (attributes._referencesArePotentialResponses?.primitive?.value) {
             addPotentialResponsesToReferences(serializedChildren);
         }
@@ -259,6 +277,7 @@ export default class Award extends BaseComponent {
         let wrapWithComponentTypeIfNeeded = function ({
             matchedChildren,
             parentAttributes,
+            componentAttributes,
             componentInfoObjects,
             nComponents,
             stateIdInfo,
@@ -298,35 +317,33 @@ export default class Award extends BaseComponent {
             for (let child of matchedChildren) {
                 if (typeof child !== "object") {
                     continue;
-                } else if (
-                    componentIsSpecifiedType(child, "math") ||
-                    componentIsSpecifiedType(child, "number") ||
-                    componentIsSpecifiedType(child, "mathList") ||
-                    componentIsSpecifiedType(child, "numberList")
-                ) {
+                }
+                const contentType = answerContentType((tag) =>
+                    componentIsSpecifiedType(child, tag),
+                );
+                if (contentType === "math") {
                     foundMath = true;
-                } else if (
-                    componentIsSpecifiedType(child, "text") ||
-                    componentIsSpecifiedType(child, "textList")
-                ) {
+                } else if (contentType === "text") {
                     foundText = true;
-                } else if (
-                    componentIsSpecifiedType(child, "boolean") ||
-                    componentIsSpecifiedType(child, "booleanList")
-                ) {
+                } else if (contentType !== undefined) {
+                    // a boolean, a `<booleanList>` or a `<when>`
                     foundBoolean = true;
                 }
             }
 
             // The answer's type, decided at load from its input or its
             // awards' typed content (D55, `answerTypesAtLoad.ts`), so that
-            // plain text in every award is read as one type.
+            // plain text in every award is read as one type: written on the
+            // answer, or on an award that isn't its child as written.
             let type;
-            if (parentAttributes.type) {
-                type = parentAttributes.type.value;
+            const answerType =
+                componentAttributes._answerType ?? parentAttributes.type;
+            if (answerType) {
+                type = answerType.value;
                 if (!["math", "text", "boolean"].includes(type)) {
-                    // Note: no need to send warning here, as answer sends a warning
-                    // (and is the location of the type attribute)
+                    // Note: no need to send warning here: a `type` that names
+                    // no type is reported at load, at the answer's `type`
+                    // attribute (`doenet-w0078`, `answerTypesAtLoad.ts`)
                     type = "math";
                 }
             } else {
@@ -996,7 +1013,41 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
     });
 }
 
+/**
+ * An `<award copy>` holds its source's content as the source's sugar read it:
+ * plain text wrapped in the type of the source's answer, or a math outside
+ * one. A copy in an answer of another type reads that plain text as its own
+ * answer's type instead, as the award written out there would (CPY-1, ANS-4;
+ * #2657 item 5). Only a wrapper the sugar made is changed, never a tag the
+ * author wrote (which `doenet-w0205` reports).
+ */
+function retypeCopiedContent(serializedChildren, answerType) {
+    if (!["math", "text", "boolean"].includes(answerType)) {
+        return;
+    }
+    const nonBlank = serializedChildren.filter(
+        (child) => typeof child !== "string" || child.trim() !== "",
+    );
+    const wrapper = nonBlank[0];
+    if (
+        nonBlank.length === 1 &&
+        typeof wrapper === "object" &&
+        wrapper.doenetAttributes?.createdFromSugar &&
+        ["math", "text", "boolean"].includes(wrapper.componentType) &&
+        wrapper.componentType !== answerType
+    ) {
+        wrapper.componentType = answerType;
+    }
+}
+
 function addResponsesToDescendantsWithReference(components, reference) {
+    if (reference.nodeIdx < 0) {
+        // A reference that names nothing gets the placeholder resolution every
+        // unresolvable reference shares. It is a blank, which equals nothing,
+        // so it marks no reference as a response, not even another one that
+        // names nothing (VAL-5, D37; #1853).
+        return;
+    }
     for (let component of components) {
         if (component.type === "serialized") {
             if (component.extending) {

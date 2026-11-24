@@ -105,10 +105,19 @@ export default class Matrix extends MathComponent {
 
             let foundRowsOrColumns = false;
 
-            for (let child of matchedChildren) {
-                if (typeof child === "string") {
-                    continue;
-                }
+            function isMath(child) {
+                return (
+                    typeof child === "object" &&
+                    componentInfoObjects.componentIsSpecifiedType(child, "math")
+                );
+            }
+
+            /**
+             * Make a `<row>` or `<column>` (written, or made with `copy` or
+             * `extend`) a row or column of the matrix. Returns whether it
+             * was one.
+             */
+            function renameRowOrColumn(child) {
                 if (!child.doenetAttributes) {
                     child.doenetAttributes = {};
                 }
@@ -116,11 +125,11 @@ export default class Matrix extends MathComponent {
                     child.doenetAttributes.createNameFromComponentType =
                         "column";
                     child.componentType = "matrixColumn";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (child.componentType === "row") {
                     child.doenetAttributes.createNameFromComponentType = "row";
                     child.componentType = "matrixRow";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (
                     child.attributes?._createComponentOfType?.primitive
                         .value === "column"
@@ -129,7 +138,7 @@ export default class Matrix extends MathComponent {
                         "column";
                     child.attributes._createComponentOfType.primitive.value =
                         "matrixColumn";
-                    foundRowsOrColumns = true;
+                    return true;
                 } else if (
                     child.attributes?._createComponentOfType?.primitive
                         .value === "row"
@@ -137,6 +146,90 @@ export default class Matrix extends MathComponent {
                     child.doenetAttributes.createNameFromComponentType = "row";
                     child.attributes._createComponentOfType.primitive.value =
                         "matrixRow";
+                    return true;
+                }
+                return false;
+            }
+
+            /**
+             * Rows and columns a composite written in the matrix expands to
+             * are the matrix's rows and columns, as if written in its place
+             * (COMP-1, #1873): a `<repeat>` of rows, a `<group>`, a case or
+             * an option holding them. Each is renamed, at any depth through
+             * composites and the options and cases of a `<select>` or
+             * `<conditionalContent>`. Returns whether any was found.
+             *
+             * Those it shows are counted in `numRowsShown`, and a `<math>`
+             * beside them in `numMathsInComposites`; not those in a
+             * `<setup>`, which shows nothing. A row in a `<setup>` is still
+             * renamed, so that `$r` copies it into the matrix as a row.
+             */
+            function renameRowsAndColumnsInComposite(
+                composite,
+                inSetup = false,
+            ) {
+                const hidden =
+                    inSetup ||
+                    componentInfoObjects.componentIsSpecifiedType(
+                        composite,
+                        "setup",
+                    );
+                let found = false;
+                for (const child of composite.children ?? []) {
+                    if (typeof child !== "object") {
+                        continue;
+                    }
+                    if (renameRowOrColumn(child)) {
+                        found = true;
+                        if (!hidden) {
+                            numRowsShown++;
+                        }
+                    } else if (isMath(child)) {
+                        if (!hidden) {
+                            numMathsInComposites++;
+                        }
+                    } else if (
+                        isWrittenComposite(child) ||
+                        ["option", "case", "else"].some((type) =>
+                            componentInfoObjects.componentIsSpecifiedType(
+                                child,
+                                type,
+                            ),
+                        )
+                    ) {
+                        found =
+                            renameRowsAndColumnsInComposite(child, hidden) ||
+                            found;
+                    }
+                }
+                return found;
+            }
+
+            let numRowsShown = 0;
+            let numMathsInComposites = 0;
+
+            /** Whether `child` is a composite written out, not a reference or a copy. */
+            function isWrittenComposite(child) {
+                return (
+                    child.componentType !== "_copy" &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "_composite",
+                    })
+                );
+            }
+
+            for (let child of matchedChildren) {
+                if (typeof child === "string") {
+                    continue;
+                }
+                if (renameRowOrColumn(child)) {
+                    foundRowsOrColumns = true;
+                    numRowsShown++;
+                } else if (
+                    isWrittenComposite(child) &&
+                    renameRowsAndColumnsInComposite(child)
+                ) {
                     foundRowsOrColumns = true;
                 }
 
@@ -144,9 +237,6 @@ export default class Matrix extends MathComponent {
             }
 
             const diagnostics = [];
-            const isMath = (child) =>
-                typeof child === "object" &&
-                componentInfoObjects.componentIsSpecifiedType(child, "math");
             const nonBlank = matchedChildren.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
@@ -155,7 +245,12 @@ export default class Matrix extends MathComponent {
             if (foundRowsOrColumns) {
                 // A `<math>` is the matrix's value only when it has no rows
                 // or columns.
-                if (mathChildren.length > 0) {
+                // A `<math>` beside rows only in a `<setup>` is the matrix's
+                // value.
+                if (
+                    numRowsShown > 0 &&
+                    (mathChildren.length > 0 || numMathsInComposites > 0)
+                ) {
                     diagnostics.push(
                         codedDiagnostic({
                             type: "warning",
@@ -163,6 +258,41 @@ export default class Matrix extends MathComponent {
                             args: { reason: "rows" },
                         }),
                     );
+                } else if (
+                    numRowsShown === 0 &&
+                    nonBlank.some((child) => typeof child === "string")
+                ) {
+                    // Rows only in a `<setup>`, which shows nothing: text
+                    // beside them is the matrix's value, made a `<math>`
+                    // as when there are no rows, and the `<setup>` is kept
+                    // beside it (`<matrix><setup><row name="r">1
+                    // 2</row></setup>x</matrix>` is `[[x]]`).
+                    function isSetup(child) {
+                        return (
+                            typeof child === "object" &&
+                            componentInfoObjects.componentIsSpecifiedType(
+                                child,
+                                "setup",
+                            )
+                        );
+                    }
+                    newChildren = [
+                        ...matchedChildren.filter(isSetup),
+                        {
+                            type: "serialized",
+                            componentType: "math",
+                            componentIdx: nComponents++,
+                            stateId: stateIdInfo
+                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                                : undefined,
+                            children: matchedChildren.filter(
+                                (child) => !isSetup(child),
+                            ),
+                            attributes: {},
+                            doenetAttributes: {},
+                            state: {},
+                        },
+                    ];
                 }
             } else if (nonBlank.length > 1 && nonBlank.every(isMath)) {
                 // A matrix uses one `<math>` child: of several written, the

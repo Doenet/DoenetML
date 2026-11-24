@@ -175,8 +175,9 @@ describe("content words follow the document locale @group4", () => {
     describe("default submit labels", () => {
         const doenetML = `
         <answer name="a">42</answer>
+        <answer name="b" showCorrectness="false">42</answer>
         <text name="withCorrectness" extend="$a.submitLabel" />
-        <text name="withoutCorrectness" extend="$a.submitLabelNoCorrectness" />
+        <text name="withoutCorrectness" extend="$b.submitLabel" />
         `;
         const names = ["withCorrectness", "withoutCorrectness"];
 
@@ -198,9 +199,10 @@ describe("content words follow the document locale @group4", () => {
             // The author chose these words for their document. Translating
             // them would be Doenet overwriting content it did not write.
             const authored = `
-            <answer name="a" submitLabel="¿Listo?" submitLabelNoCorrectness="Entregar">42</answer>
+            <answer name="a" submitLabel="¿Listo?">42</answer>
+            <answer name="b" submitLabel="Entregar" showCorrectness="false">42</answer>
             <text name="withCorrectness" extend="$a.submitLabel" />
-            <text name="withoutCorrectness" extend="$a.submitLabelNoCorrectness" />
+            <text name="withoutCorrectness" extend="$b.submitLabel" />
             `;
             const expected = {
                 withCorrectness: "¿Listo?",
@@ -275,6 +277,25 @@ describe("content words follow the document locale @group4", () => {
             const documentIdx = await resolvePathToNodeIdx("_document1");
             expect(stateVariables[documentIdx].stateValues.submitLabel).eq(
                 "Revisar",
+            );
+        });
+
+        it("reads the root document's own `lang` for its own button when correctness is not shown", async () => {
+            // One `submitLabel`, whose default depends on `showCorrectness`
+            // (D66 decision 15), still in the document's own language.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<document lang="es" sectionWideCheckWork showCorrectness="false">
+                  <answer name="a">42</answer>
+                </document>`,
+                documentLocale: "en",
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const documentIdx = await resolvePathToNodeIdx("_document1");
+            expect(stateVariables[documentIdx].stateValues.submitLabel).eq(
+                "Enviar respuesta",
             );
         });
 

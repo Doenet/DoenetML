@@ -64,18 +64,19 @@ function returnAggregateCreditDependencies(variableName) {
  * The weight-averaged credit over the scored descendants gathered by
  * `returnAggregateCreditDependencies(variableName)`.
  *
+ * A section whose total weight is not positive (it has no scored descendants,
+ * or they all have weight 0) has no average to take and gets full credit:
+ * nothing carries weight, so nothing can be lost. `creditAchieved`,
+ * `creditAchievedForProgress` and `creditAchievedIfSubmit` all come from here,
+ * so the credit a submission would record matches the `creditAchieved` it
+ * leads to. `creditAchievedForCheckWork`, which the section-wide button shows,
+ * has its own rule for this case; see {@link aggregateCreditForCheckWork}.
+ *
  * @param {object} dependencyValues - the resolved dependencies
  * @param {string} variableName - the same name passed to the dependency builder
- * @param {number} [creditWhenNothingScored] - the credit for a section with no
- *   scored descendants at all, where there is no average to take; full credit
- *   unless the caller says otherwise
  * @returns {number} a credit between 0 and 1
  */
-function aggregateCreditOverScoredDescendants(
-    dependencyValues,
-    variableName,
-    creditWhenNothingScored = 1,
-) {
+function aggregateCreditOverScoredDescendants(dependencyValues, variableName) {
     let creditSum = 0;
     let totalWeight = 0;
 
@@ -85,7 +86,7 @@ function aggregateCreditOverScoredDescendants(
         totalWeight += weight;
     }
 
-    return totalWeight > 0 ? creditSum / totalWeight : creditWhenNothingScored;
+    return totalWeight > 0 ? creditSum / totalWeight : 1;
 }
 
 /**
@@ -376,18 +377,8 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Check Work",
             groupName: "scoring",
             description:
-                "Label for the section-wide submit button when correctness is shown.",
+                "Label for the section-wide submit button. Its default is “Check Work” when correctness is shown and “Submit Response” when it is not.",
         },
-        submitLabelNoCorrectness: {
-            createComponentOfType: "text",
-            createStateVariable: "submitLabelNoCorrectnessPreLocalize",
-            // See the note on `submitLabel`.
-            defaultValue: "Submit Response",
-            groupName: "scoring",
-            description:
-                "Label for the section-wide submit button when correctness is not shown.",
-        },
-
         displayDigitsForCreditAchieved: {
             createComponentOfType: "integer",
             createStateVariable: "displayDigitsForCreditAchieved",
@@ -421,8 +412,8 @@ export function returnScoredSectionAttributes() {
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};
 
-    // The section-wide button carries the same two labels an `<answer>` does,
-    // and resolves them the same way.
+    // The section-wide button carries the same label an `<answer>` does, and
+    // resolves it the same way.
     Object.assign(
         stateVariableDefinitions,
         returnSubmitLabelStateVariableDefinitions({
@@ -921,13 +912,6 @@ export function returnScoredSectionStateVariableDefinition() {
                         aggregateCreditOverScoredDescendants(
                             dependencyValues,
                             "creditAchievedIfSubmit",
-                            // A section with nothing scored has always left
-                            // this at NaN — the `0 / 0` of the average it used
-                            // to take inline — where `creditAchieved` gives
-                            // full credit. Passed explicitly so extracting the
-                            // shared helper preserves the behavior rather than
-                            // quietly changing it.
-                            NaN,
                         ),
                 },
             };

@@ -26,9 +26,8 @@ A few caveats unusual among Doenet's input-shaped components:
   [`<award>{:dn}`](award2b) via `referencesAreResponses` plus a
   [`<when>{:dn}`](when) check.
 - It is block-level, so it cannot sit inside a [`<p>{:dn}`](p).
-- It currently accepts no children — including no
-  [`<label>{:dn}`](label) or [`<shortDescription>{:dn}`](shortDescription).
-  Place any prompt text in a sibling `<p>{:dn}` above the widget. See
+- Its one child is a [`<label>{:dn}`](label), shown above the widget, which it
+  names. It accepts no [`<shortDescription>{:dn}`](shortDescription). See
   [Doenet/DoenetML#1167](https://github.com/Doenet/DoenetML/issues/1167)
   for the accessibility follow-up.
 

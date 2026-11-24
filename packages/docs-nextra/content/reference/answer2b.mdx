@@ -129,7 +129,7 @@ show the credit achieved: $ans1.creditAchieved.)</p>
   showCorrectness="false" 
   symbolicEquality 
   forceFullCheckWorkButton 
-  submitLabelNoCorrectness="submit!"
+  submitLabel="submit!"
   >
   <label><m>\sqrt{529} = </m></label>
   23
@@ -253,11 +253,9 @@ The `disableAfterCorrect` attribute can be used to render  `<answer>{:dn}` compo
 </answer>
 ```
 
-The `submitLabel` attribute can be used to create a custom label for the "Check Work" button.
+The `submitLabel` attribute gives the submit button a custom label. Without it, the button
+says "Check Work" when correctness is shown, and "Submit Response" when it is not:
 
----
-
-### Example: submitLabelNoCorrectness
 ```doenet-example
 <p>Move the point.</p>
 <graph size="small">
@@ -265,13 +263,13 @@ The `submitLabel` attribute can be used to create a custom label for the "Check 
   <point name="p"/>
 </graph>
 
-<answer submitLabelNoCorrectness="Submit Point" showCorrectness="false">
+<answer showCorrectness="false">
   <award><when>$p != (0,0)</when></award>
 </answer>
 ```
 
-The `submitLabelNoCorrectness` attribute modifies the standard 
-"Submit Response" button label for answers where it is not desired to show correctness.
+An authored `submitLabel` is used either way. (The older `submitLabelNoCorrectness` is
+deprecated: it is read as `submitLabel`, with a warning.)
 
 ---
 
@@ -347,7 +345,9 @@ product must be separated by a space or a multiplication symbol.
 </p>
 ```
 
-The `expanded` attribute renders an expanded text box for answers with `type="text"`.
+The `expanded` attribute renders an expanded text box for the answer's `<textInput>{:dn}`: one
+written in it, or the one it adds when its type is text (with `type="text"`, or for awards
+whose content is text).
 
 ---
 

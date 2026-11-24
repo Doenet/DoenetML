@@ -2420,16 +2420,24 @@ property-type-undecided =
 
 # An `<answer>`'s type is its input's (ANS-4, D55): the awards compare their
 # content with the input written inside it. This `type` disagrees, so it is
-# ignored. $type is the `type` written, $input the input's tag (DoenetML, which
+# ignored. $typeWritten is the `type` as written (trimmed), $type the type it
+# names (`math`, `text` or `boolean`), $input the input's tag (DoenetML, which
 # stays in English), and $inputType the type it gives (`math`, `text` or
 # `boolean`, also DoenetML).
-answer-type-disagrees-with-input = This `<answer>` has `type="{ $type }"`, but the `<{ $input }>` written in it gives a `{ $inputType }`, and its awards compare their content with that input. The `type` is ignored: remove it, or use an input that gives a `{ $type }`.
+answer-type-disagrees-with-input = This `<answer>` has `type="{ $typeWritten }"`, but the `<{ $input }>` written in it gives a `{ $inputType }`, and its awards compare their content with that input. The `type` is ignored: remove it, or use an input that gives a `{ $type }`.
 
 # The content of an `<award>` (or written in the `<answer>`) is of another type
 # than the input it is compared with (ANS-4, D55), so it never earns credit.
-# $contentType is the content's type, $input the input's tag and $inputType
-# the type the input gives. All are DoenetML, which stays in English.
-award-content-type-mix = This `<{ $contentType }>` is compared with the answer's `<{ $input }>`, which gives a `{ $inputType }`, so it can never earn credit. Write it as a `{ $inputType }`, or use an input of its type.
+# $contentType is the content's tag, $type the type it gives (`math`, `text`
+# or `boolean`), $input the input's tag and $inputType the type the input
+# gives. $isReference is `true` when the content is a reference, named by the
+# value it gives (D67 decision 4), and $reference is then the reference as
+# written (`$ti`). All are DoenetML, which stays in English.
+award-content-type-mix =
+    { $isReference ->
+        [false] This `<{ $contentType }>` is compared with the answer's `<{ $input }>`, which gives a `{ $inputType }`, so it can never earn credit. Write it as a `{ $inputType }`, or use an input of its type.
+       *[true] `{ $reference }` gives a `{ $type }`, which is compared with the answer's `<{ $input }>`, which gives a `{ $inputType }`, so it can never earn credit. Compare a `{ $inputType }`, or use an input that gives a `{ $type }`.
+    }
 
 # An answer with more than one input compares an award's content with none of
 # them (ANS-4, D55). $numInputs is how many inputs are written in it.
@@ -2443,14 +2451,47 @@ award-content-several-inputs =
 
 # An answer with an input written outside it with `forAnswer` (ANS-4, D55): an
 # award reaches that input only through a `<when>`, so its content is compared
-# with an input the answer adds. $input is that added input's tag. $ownContent
-# is `true` when the content is written directly in the `<answer>` and `false`
-# when it is in an `<award>`. Tags and attribute names stay in English.
+# with an input the answer adds, or, when the answer adds none (it has a
+# `<considerAsResponses>`, or its content needs no input), with no input at
+# all. $inputAdded is `true` when the answer adds an input, and $input is then
+# its tag. $ownContent is `true` when the content is written directly in the
+# `<answer>` and `false` when it is in an `<award>`. Tags and attribute names
+# stay in English.
 award-content-for-answer-input =
-    { $ownContent ->
-        [true] The content written in this `<answer>` is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
-       *[false] This `<award>`'s content is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
+    { $inputAdded ->
+        [false] { $ownContent ->
+            [true] The content written in this `<answer>` is compared with no input: the answer adds none, and the input written with `forAnswer` is reached only through a `<when>`. Compare that input in a `<when>`, or move it inside the `<answer>`.
+           *[false] This `<award>`'s content is compared with no input: the answer adds none, and the input written with `forAnswer` is reached only through a `<when>`. Compare that input in a `<when>`, or move it inside the `<answer>`.
+        }
+       *[true] { $ownContent ->
+            [true] The content written in this `<answer>` is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
+           *[false] This `<award>`'s content is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
+        }
     }
+
+# An `<answer>`'s `<label>` labels its one input when the input is written out
+# and has no label of its own (D66 decision 2). Otherwise it labels no input:
+# with more than one input ($numInputs) it is shown only beside the answer's
+# own check-work button, which a section-wide check-work button replaces;
+# with one input ($input, its tag) that has a `<label>` of its own, it is not
+# shown. Tags stay in English.
+answer-label-not-on-input =
+    { $numInputs ->
+        [1] The `<{ $input }>` in this `<answer>` has a `<label>` of its own, so the answer's `<label>` is not shown. Remove one of the two labels.
+       *[other] This `<answer>` has { $numInputs } inputs, so its `<label>` labels none of them; it is shown only beside the answer's own check-work button, if it has one. Give each input a `<label>` of its own.
+    }
+
+# A bare reference to a `<choice>` (`$c1`) in a `<choiceInput>` is whether the
+# choice was submitted, a boolean (REF-1a, D21), not the choice, which can only
+# be copied (D42). $reference is the reference as written. Tags and attribute
+# names stay in English.
+choice-reference-in-choice-input = `{ $reference }` is whether that `<choice>` was submitted, not the choice, so it adds no choice to this `<choiceInput>`. To include the choice, write `<choice copy="{ $reference }"/>`.
+
+# The `target` of a `<callAction>` names a property after a component (`$p.x`,
+# `$p.styleDescription[1]`), so it names no component and the action does
+# nothing (NAME-2). $component is the action's tag, $reference the target as
+# written. Tags and attribute names stay in English.
+action-target-not-a-component = The `target` of this `<{ $component }>`, `{ $reference }`, names a property, not a component, so the action does nothing. Its `target` names the component to act on: remove the property.
 
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two

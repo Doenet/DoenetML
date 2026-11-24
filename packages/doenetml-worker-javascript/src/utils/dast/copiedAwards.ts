@@ -30,8 +30,13 @@ export type CopiedAward = {
     referencesAreResponses: boolean;
 };
 
-/** Every component in `serializedComponents`, attribute components included. */
-function allComponents(serializedComponents: (SerializedComponent | string)[]) {
+/**
+ * Every component in `serializedComponents`, attribute components included
+ * (also the walk of `answerTypesAtLoad.ts`).
+ */
+export function allComponents(
+    serializedComponents: (SerializedComponent | string)[],
+) {
     const found: SerializedComponent[] = [];
     const seen = new Set<SerializedComponent>();
     function visit(components: (SerializedComponent | string)[]) {
