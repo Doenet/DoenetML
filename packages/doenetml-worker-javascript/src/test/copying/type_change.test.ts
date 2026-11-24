@@ -581,10 +581,9 @@ describe("A reference written as a different tag is allowed only between related
     });
 
     it("a point made from a value reference follows its value both ways", async () => {
-        // `$g[1]` is the shown case, which holds only the value reference
+        // `$g` shows its case, which holds only the value reference
         // `$m.value` (`_ref`), which presents a math: its value is depended
-        // on as a math's is. (An index never selects the reference itself in
-        // a group, D27.)
+        // on as a math's is.
         for (const [start, point] of [
             ["x", "＿"],
             ["(1,2)", "(1, 2)"],
@@ -593,7 +592,7 @@ describe("A reference written as a different tag is allowed only between related
 <mathInput name="mi" prefill="${start}"/>
 <math name="m">$mi</math>
 <p><conditionalContent name="g"><case condition="true">$m.value</case></conditionalContent></p>
-<p name="p1"><point extend="$g[1]"/></p>
+<p name="p1"><point extend="$g"/></p>
 `);
             expect(await texts(["p1"])).eqls({ p1: point });
             const mi = await resolvePathToNodeIdx("mi");
@@ -1333,16 +1332,14 @@ describe("A related type is made from the value of what is referenced, not from 
 <conditionalContent name="nested"><case condition="true"><conditionalContent><case condition="true"><math>(3,4)</math></case></conditionalContent></case></conditionalContent>
 <conditionalContent name="cc5"><case condition="true"><math>(5,6)</math></case></conditionalContent>
 <group name="g">$cc5</group>
-<group name="h"><point extend="$cc5[1]"/></group>
+<group name="h"><point extend="$cc5"/></group>
 <p name="p1"><point extend="$cc"/></p>
-<p name="p2"><point extend="$cc[1]"/></p>
 <p name="p3"><point extend="$nested"/></p>
 <p name="p4"><point extend="$g"/></p>
 <p name="p5"><vector extend="$h"/></p>
 `);
-        expect(await texts(["p1", "p2", "p3", "p4", "p5"])).eqls({
+        expect(await texts(["p1", "p3", "p4", "p5"])).eqls({
             p1: "(1, 2)",
-            p2: "(1, 2)",
             p3: "(3, 4)",
             p4: "(5, 6)",
             p5: "(5, 6)",

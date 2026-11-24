@@ -350,7 +350,7 @@ describe("Fixed and fixLocation of references @group4", () => {
         await set("bm", true);
         await set("bm", false);
         await set("show", true);
-        await check({ m: false, early: true, "cc[1].late": true });
+        await check({ m: false, early: true, "cc.late": true });
 
         // a write to a component inside a copy changes it, wherever it sits
         await set("bx", true);
@@ -366,7 +366,7 @@ describe("Fixed and fixLocation of references @group4", () => {
 
         // a component inside a `copyWithState` made after the write has it
         await set("showCopy", true);
-        await check({ "cc2[1].sc.x": true });
+        await check({ "cc2.sc.x": true });
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -376,10 +376,10 @@ describe("Fixed and fixLocation of references @group4", () => {
         await check({
             m: false,
             early: true,
-            "cc[1].late": true,
+            "cc.late": true,
             "s.x": true,
             "s2.x": true,
-            "cc2[1].sc.x": true,
+            "cc2.sc.x": true,
         });
     });
 

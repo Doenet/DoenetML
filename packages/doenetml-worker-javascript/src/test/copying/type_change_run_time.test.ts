@@ -17,7 +17,8 @@ vi.mock("hyperformula");
 /**
  * The codes of the diagnostics a reference written as a tag reports: a type
  * change (D26), a reference that names nothing (D36), an index that
- * names nothing, and a composite that holds nothing now (D37).
+ * names nothing or can't be used (D74), and a composite that holds nothing
+ * now (D37).
  */
 const TYPE_CHANGE_CODES = [
     "doenet-e0062",
@@ -26,6 +27,7 @@ const TYPE_CHANGE_CODES = [
     "doenet-e0065",
     "doenet-e0066",
     "doenet-e0067",
+    "doenet-e0095",
     "doenet-i0053",
     "doenet-i0054",
     "doenet-i0055",
@@ -33,6 +35,7 @@ const TYPE_CHANGE_CODES = [
     "doenet-w0104",
     "doenet-w0105",
     "doenet-w0181",
+    "doenet-w0188",
 ];
 
 /**
@@ -315,9 +318,9 @@ describe("A reference written as a tag of a composite is decided when the docume
             expect(await d.replacedBy(p), p).eqls(["_error"]);
         }
         expect(await d.replacedBy("p8")).eqls(["math"]);
-        // A reference is an error, even while its value is 1. A literal
-        // index past what is picked names nothing whatever happens: the tag
-        // is missing, with a warning (D37).
+        // A reference is an error, even while its value is 1. An index
+        // after a select that picks one reaches into its pick (D72):
+        // `$s1[2]` of the math `x` names nothing, so the tag is missing.
         expect(d.newDiagnostics()).eqls([
             {
                 code: "doenet-e0064",
@@ -346,12 +349,6 @@ describe("A reference written as a tag of a composite is decided when the docume
                 line: 14,
                 message:
                     "A `<number>` can be made from `$sfs2` only when it always holds one component, and a `<selectFromSequence>` holds one only when its `numToSelect` is written as 1 or left out. To use its first pick, write `$sfs2[1]`. To read all it picks as one value, write `<number>$sfs2</number>`.",
-            },
-            {
-                code: "doenet-w0181",
-                type: "warning",
-                line: 16,
-                message: "`$s1[2]`: the `<select>` made only 1 pick.",
             },
         ]);
     });
@@ -465,7 +462,7 @@ describe("A reference written as a tag of a composite is decided when the docume
 </select>
 <p name="p1"><math extend="$rep[1]"/></p>
 <p name="p2"><math extend="$rep2[1]"/></p>
-<p name="p3"><math name="m3" extend="$s[1]"/></p>
+<p name="p3"><math name="m3" extend="$s"/></p>
 `);
         expect(await d.replacedBy("p1")).eqls(["math"]);
         expect(await d.replacedBy("p2")).eqls(["_error"]);
@@ -823,15 +820,15 @@ describe("A reference written as a tag of a composite is decided when the docume
         expect(d.errors()).eqls(["doenet-e0005"]);
     });
 
-    it("an index into a selector or a repeat named by several parts is read once", async () => {
-        // Each option names a pick of the next select, so following every
+    it("a selector named by several parts is read once", async () => {
+        // Each option names the pick of the next select, so following every
         // path would read the innermost select 2^30 times.
         const depth = 30;
         let doenetML = `<select name="s${depth}"><option><math>x</math></option></select>\n`;
         for (let k = depth - 1; k >= 0; k--) {
-            doenetML += `<select name="s${k}"><option>$s${k + 1}[1]</option><option>$s${k + 1}[1]</option></select>\n`;
+            doenetML += `<select name="s${k}"><option>$s${k + 1}</option><option>$s${k + 1}</option></select>\n`;
         }
-        doenetML += `<p name="p"><math extend="$s0[1]"/></p>`;
+        doenetML += `<p name="p"><math extend="$s0"/></p>`;
         const d = await setup(doenetML);
         expect(await d.texts(["p"])).eqls({ p: "x" });
         expect(d.newDiagnostics()).eqls([]);
@@ -922,12 +919,13 @@ describe("A reference written as a tag of a composite is decided when the docume
 <p name="p4"><math extend="$s[1]"/></p>
 `);
         // A copied else is an else; a copied case or option holding a text
-        // is one of the types the composite can hold.
+        // is one of the types the composite can hold, and one of the types
+        // an index after a one-pick select reaches into (D72, D74).
         expect(await d.texts(["p1"])).eqls({ p1: "2" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-e0066", 8],
             ["doenet-e0066", 9],
-            ["doenet-e0066", 10],
+            ["doenet-e0095", 10],
         ]);
     });
 
@@ -1772,7 +1770,7 @@ describe("A related type made from a value follows it, and writes back (#2440, #
 <conditionalContent name="cc"><case condition="$b1">$m</case><else>$m2</else></conditionalContent>
 <conditionalContent name="cc2"><case condition="$b1"><conditionalContent><case condition="$b2"><math>(1,2)</math></case></conditionalContent></case><else><math>(3,4)</math></else></conditionalContent>
 <group name="g">$cc</group>
-<group name="h"><point extend="$cc[1]"/></group>
+<group name="h"><point extend="$cc"/></group>
 <graph>
   <point extend="$cc" name="A"/>
   <point extend="$cc2" name="B"/>

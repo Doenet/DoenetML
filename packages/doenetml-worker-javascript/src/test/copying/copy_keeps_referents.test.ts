@@ -517,7 +517,7 @@ describe("A copy's references keep their referents @group4", () => {
             for (const g of groups) {
                 expected[`${g}.r[2].p`] = "2 1";
                 expected[`${g}.cc.p`] = `${cc} 1`;
-                expected[`${g}.s[1].p`] = "a 1";
+                expected[`${g}.s.p`] = "a 1";
             }
             expect(
                 await textsOf(

@@ -156,8 +156,10 @@ describe("Missing values and missing tags (D37) @group2", () => {
     });
 
     it("reports a literal index past the picks as a warning, bare or tag", async () => {
+        // (two picks: an index after a one-pick select reaches into the
+        // pick, D72)
         const { text, warnings, errors } = await shownAndReported(
-            `<select name="s"><option><math name="x">1</math></option></select><p name="p">[$s[2]][<math extend="$s[2]"/>][<math extend="$s[2].x"/>]</p>`,
+            `<select name="s" numToSelect="2"><option><math name="x">1</math></option><option><math name="x">2</math></option></select><p name="p">[$s[3]][<math extend="$s[3]"/>][<math extend="$s[3].x"/>]</p>`,
         );
         expect(text).eq("[＿][＿][＿]");
         expect(errors).eqls([]);
@@ -485,7 +487,7 @@ describe("Missing values and missing tags (D37) @group2", () => {
         // info `doenet-i0054` while the index names nothing now, or the
         // warning that says why it never does; the bare reference reports
         // only those warnings (its info is left for the new core, #2281).
-        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math><math>b</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
+        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math><math>b</math></group><select name="s" numToSelect="2"><option><math name="q">q</math></option><option><math name="q">r</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
         const pairs: [string, string, string, string[]][] = [
             ["$l[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$l[5]", "math", "＿", ["I doenet-i0054"]],
