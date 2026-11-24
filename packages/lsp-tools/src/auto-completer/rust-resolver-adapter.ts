@@ -216,7 +216,7 @@ function resolveThroughBranches(
         // (`$v.head` for a vector `v` in every branch) only when no
         // branch's declaration has an element by the next one; otherwise
         // a branch lacking it makes the path name nothing
-        // (`doenet-w0183`), as the run time decides it (`reach` in
+        // (`doenet-e0093`), as the run time decides it (`reach` in
         // `branchDeclaration`, `typeChangeAtLoad.ts`).
         if (
             consumed < names.length &&
@@ -1495,7 +1495,7 @@ export class RustResolverAdapter {
      * (`Ref::Branches`), to the active branch's declaration, when every
      * branch declares it with one tag (`branchDeclarations`); the first
      * branch's declaration is returned, standing for them all. Otherwise
-     * the runtime reports it missing (`doenet-w0183`, `doenet-w0184`), and
+     * the worker reports it as an error (`doenet-e0093`, `doenet-e0094`), and
      * it names none here.
      */
     async _resolveBareName(

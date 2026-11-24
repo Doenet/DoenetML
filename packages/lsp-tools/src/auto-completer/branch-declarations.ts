@@ -14,9 +14,9 @@
  * Whether the name then resolves is decided at load by the every-branch,
  * same-tag rule (`branchDeclaration` in
  * `doenetml-worker-javascript/src/utils/dast/typeChangeAtLoad.ts`): every
- * branch must declare it, once, with the same tag. Otherwise it is missing,
- * with `doenet-w0183` when a branch lacks it or `doenet-w0184` when the tags
- * differ. This module mirrors that rule on the raw DAST the language server
+ * branch must declare it, once, with the same tag. Otherwise it is an error
+ * (D74): `doenet-e0093` when a branch lacks it or `doenet-e0094` when the
+ * tags differ. This module mirrors that rule on the raw DAST the language server
  * has, so autocomplete offers exactly the names that resolve.
  *
  * The mirror is deliberately conservative: anything the language server
@@ -307,8 +307,8 @@ function declarationsBelow(
  *   container), when every branch declares the path once and the last
  *   name with the same tag, so that the reference resolves to the active
  *   branch's;
- * - `null` otherwise: a branch lacks it (`doenet-w0183`), the tags differ
- *   (`doenet-w0184`), a branch declares it twice, a child beside the
+ * - `null` otherwise: a branch lacks it (`doenet-e0093`), the tags differ
+ *   (`doenet-e0094`), a branch declares it twice, a child beside the
  *   branches declares it (`doenet-w0105` with the branches'), the
  *   container has no branches, or what a branch holds is not read here
  *   and is written with an element named `names[0]`.
@@ -441,7 +441,7 @@ export function sharedBranchNames(
  * The names an element in some branch declares where `sharedBranchNames`
  * (same arguments) leaves them out: below the container, or with `prefix`
  * below what some branch declares by it. A reference through the
- * container by one of them names nothing (`doenet-w0183`), not a property
+ * container by one of them names nothing (`doenet-e0093`), not a property
  * of the container or of the declarations by `prefix`, so neither is
  * offered for it. Read conservatively: every literal name in a branch,
  * hidden or not.

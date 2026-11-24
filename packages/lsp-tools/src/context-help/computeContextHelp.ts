@@ -1297,7 +1297,7 @@ async function helpForRefMemberByName(
     const { ownEntry, effectiveEntry } = entries;
 
     // A name some branch declares but not every one names nothing here,
-    // not a property (`doenet-w0183`).
+    // not a property (`doenet-e0093`).
     const prop = resolved.hiddenMemberNames?.includes(memberName)
         ? undefined
         : findSchemaProperty(effectiveEntry, memberName);

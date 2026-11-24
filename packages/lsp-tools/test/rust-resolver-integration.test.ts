@@ -583,8 +583,8 @@ describe.skipIf(!wasmAvailable)(
         // A name declared in the cases of a `<conditionalContent>` or the
         // options of a one-pick `<select>` is visible outside the container
         // when every branch declares it with the same tag (D13, D22, issue
-        // #2455). Otherwise it is missing at run time (`doenet-w0183` /
-        // `doenet-w0184`), and autocomplete leaves it out.
+        // #2455). Otherwise it is an error at load (`doenet-e0093` /
+        // `doenet-e0094`, D74), and autocomplete leaves it out.
 
         /** Labels `$` completion offers at the end of `source`. */
         async function refNameLabels(source: string) {
@@ -661,7 +661,7 @@ describe.skipIf(!wasmAvailable)(
             expect(labels).toContain("t");
         });
 
-        it("leaves out a name a branch lacks (w0183)", async () => {
+        it("leaves out a name a branch lacks (e0093)", async () => {
             const labels = await refNameLabels(
                 `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="y">2</math></else></conditionalContent>\n$`,
             );
@@ -669,7 +669,7 @@ describe.skipIf(!wasmAvailable)(
             expect(labels).not.toContain("y");
         });
 
-        it("leaves out a name branches declare with different tags (w0184)", async () => {
+        it("leaves out a name branches declare with different tags (e0094)", async () => {
             const labels = await refNameLabels(
                 `<conditionalContent><case condition="true"><math name="x">1</math></case><else><text name="x">2</text></else></conditionalContent>\n$`,
             );
@@ -979,7 +979,7 @@ describe.skipIf(!wasmAvailable)(
 
         it("leaves no property of a branch name when a branch names an element by it", async () => {
             // One vector `v` has a point named `head`, the other none:
-            // `$v.head` names nothing (runtime `doenet-w0183`), not the
+            // `$v.head` names nothing (runtime `doenet-e0093`), not the
             // vector's `head` property.
             const vectors = (head: string) =>
                 `<conditionalContent name="cc"><case condition="true"><vector name="v" head="(1,2)">${head}</vector></case><else><vector name="v" head="(3,4)"/></else></conditionalContent>\n<p>$v.head.`;
@@ -1015,7 +1015,7 @@ describe.skipIf(!wasmAvailable)(
 
         it("offers no property by a name only some branches declare", async () => {
             // One vector `v` has a point named `head`: `$v.head` names
-            // nothing (runtime `doenet-w0183`), not the vector's property.
+            // nothing (runtime `doenet-e0093`), not the vector's property.
             const vectors = (head: string) =>
                 `<conditionalContent name="cc"><case condition="true"><vector name="v" head="(1,2)">${head}</vector></case><else><vector name="v" head="(3,4)"/></else></conditionalContent>\n<p>$v.`;
             const named = vectors(`<point name="head">(5,6)</point>`);
@@ -1030,7 +1030,7 @@ describe.skipIf(!wasmAvailable)(
             expect(await refNameLabels(vectors(""))).toContain("head");
 
             // The same through the container: `$cc.hide` for a `hide` in
-            // one case names nothing (runtime `doenet-w0183`); with none,
+            // one case names nothing (runtime `doenet-e0093`); with none,
             // it is the property (runtime `[false]`).
             const cc = (name: string) =>
                 `<conditionalContent name="cc"><case condition="true"><math name="${name}">1</math></case><else><math name="z">2</math></else></conditionalContent>\n<p>$cc.`;
@@ -1864,7 +1864,7 @@ describe.skipIf(!wasmAvailable)(
 
         it("isNameAddressableFromOffset returns false for names inside else from outside", async () => {
             // Each name is declared in only one branch, so it names nothing
-            // from outside (`doenet-w0183`) and is left out.
+            // from outside (`doenet-e0093`) and is left out.
             const source = `<conditionalContent name="cc"><case condition="true"><text name="caseChild">a</text></case><else><text name="elseChild">b</text></else></conditionalContent>\n$`;
             const { adapter } = await createCoreAndAdapter(source);
 

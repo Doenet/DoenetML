@@ -577,7 +577,12 @@ export class Dependency {
                     stateVariables: mappedVarNames,
                     component: downComponent,
                     propIndex: this.propIndex,
-                    reportIndexIntoScalar: !this.definition.indexPastComposite,
+                    // A reference written as a tag the document found in
+                    // error when it loaded (`typeChangeAtLoad`) reports that
+                    // error alone (DIAG-5)
+                    reportIndexIntoScalar:
+                        !this.definition.indexPastComposite &&
+                        !inErrorAtLoad(referringComponent),
                     watch: {
                         owner: this.upstreamComponentIdx,
                         isCurrent: () =>
@@ -1672,4 +1677,15 @@ export class Dependency {
             }
         }
     }
+}
+
+/**
+ * Whether `component` is a reference written as a tag that the document
+ * found in error when it loaded (`doenetAttributes.typeChangeAtLoad`, D36):
+ * that error is all it reports (DIAG-5), not an index its reference leaves
+ * on what it reaches.
+ */
+export function inErrorAtLoad(component: any): boolean {
+    const code = component?.doenetAttributes?.typeChangeAtLoad?.code;
+    return typeof code === "string" && code.startsWith("doenet-e");
 }

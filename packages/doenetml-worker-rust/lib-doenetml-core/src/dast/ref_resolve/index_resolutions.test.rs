@@ -318,7 +318,7 @@ fn resolution_matches_largest_possible_when_index_present() {
 fn add_nodes_with_index_resolutions() {
     let dast_root = dast_root_no_position(
         r#"<e><a name="x">
-            <select name="s" />
+            <select name="s" numToSelect="2" />
         </a></e>
         <d name="y" /><f name="q" />"#,
     );
@@ -497,7 +497,7 @@ fn add_nodes_with_index_resolutions() {
 fn a_replace_range_past_the_end_fails_loudly() {
     let dast_root = dast_root_no_position(
         r#"<a name="x">
-            <select name="s" />
+            <select name="s" numToSelect="2" />
         </a>"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
@@ -525,7 +525,7 @@ fn a_replace_range_past_the_end_fails_loudly() {
 fn replace_nodes_with_index_resolutions() {
     let dast_root = dast_root_no_position(
         r#"<a name="x">
-            <select name="s" />
+            <select name="s" numToSelect="2" />
         </a>"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
@@ -1911,4 +1911,88 @@ fn a_group_made_by_a_copy_is_decided_from_its_content() {
         Some(h_idx),
         2,
     );
+}
+
+/// A `<conditionalContent>` and a one-pick `<select>` are not collections (D72): an index after
+/// one passes to what it shows, its one replacement, the `<group>` of the case or the pick,
+/// which passes it on to its one component. `$cc[2]` of a case holding `<m>` is `<m>` with the
+/// index left for it; `$cc[1]` never names the case itself. With nothing shown the index stays
+/// at the container, and a case of several components names nothing (D27).
+#[test]
+fn an_index_after_a_one_shown_thing_passes_to_what_it_shows() {
+    for (container, numbered) in [
+        (r#"<conditionalContent name="s" />"#, "conditionalContent"),
+        (r#"<select name="s" />"#, "select"),
+        (r#"<select name="s" numToSelect="1" />"#, "select"),
+    ] {
+        let dast_root = dast_root_no_position(&format!(r#"<a name="x">{container}</a><f/>"#));
+        let flat_root = FlatRoot::from_dast(&dast_root);
+        let a_idx = find(&flat_root, "a").unwrap();
+        let s_idx = find(&flat_root, numbered).unwrap();
+        let f_idx = find(&flat_root, "f").unwrap();
+
+        let mut resolver = Resolver::from_flat_root(&flat_root);
+
+        let path = |index: &'static str| {
+            make_path_with_indices(
+                &[TestPathPart {
+                    name: "s",
+                    indices: vec![index],
+                }],
+                None,
+            )
+        };
+        let unresolved = |index: &str| {
+            Some(vec![FlatPathPart {
+                name: "".into(),
+                index: vec![FlatIndex {
+                    value: vec![UntaggedContent::Text(index.into())],
+                    position: None,
+                    source_doc: None,
+                }],
+                position: None,
+                source_doc: None,
+            }])
+        };
+
+        // nothing shown yet: the index stays at the container
+        let referent = resolver.resolve(path("1"), a_idx, false).unwrap();
+        assert_eq!(referent.node_idx, s_idx);
+        assert_eq!(referent.unresolved_path, unresolved("1"));
+
+        // one component shown
+        let flat_fragment = flat_fragment_from_str(
+            r#"<group><m name="z" /></group>"#,
+            f_idx + 1,
+            Some(s_idx),
+        );
+        let g_idx = f_idx + 1;
+        let m_idx = f_idx + 2;
+        resolver.add_nodes(&flat_fragment, IndexResolution::ReplaceAll { parent: s_idx });
+
+        for index in ["1", "2"] {
+            let referent = resolver.resolve(path(index), a_idx, false).unwrap();
+            assert_eq!(referent.node_idx, m_idx, "{container} [{index}]");
+            assert_eq!(referent.unresolved_path, unresolved(index));
+            assert_eq!(
+                referent.nodes_in_resolved_path,
+                vec![a_idx, s_idx, g_idx, m_idx]
+            );
+        }
+
+        // the shown case or pick has no root name by index: `s:1` would not reach it
+        let root_names = resolver.calculate_root_names();
+        assert_eq!(root_names[g_idx], None, "{container}");
+
+        // several components shown: names nothing, at the group
+        let flat_fragment = flat_fragment_from_str(
+            r#"<group><m /><n /></group>"#,
+            f_idx + 3,
+            Some(s_idx),
+        );
+        let g2_idx = f_idx + 3;
+        resolver.add_nodes(&flat_fragment, IndexResolution::ReplaceAll { parent: s_idx });
+        let referent = resolver.resolve(path("2"), a_idx, false);
+        assert_stops_at_child_index(&referent, g2_idx, Some(f_idx + 5), 2);
+    }
 }

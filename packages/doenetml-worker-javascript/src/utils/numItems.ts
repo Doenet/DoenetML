@@ -282,3 +282,30 @@ export function makeCollectionSettingsOwn(
         }
     }
 }
+
+/**
+ * Whether `component` shows one thing and is not a collection (D72,
+ * COLL-1): a `<conditionalContent>`, or a chooser or sampler written to pick
+ * one (`onePick`, marked at load by `markOnePickChoosers`). It stands for
+ * what it shows: it has no `numItems`, and an index after it reaches into
+ * what it shows.
+ */
+export function showsOneThing(component: any): boolean {
+    return (
+        component?.componentType === "conditionalContent" ||
+        component?.doenetAttributes?.onePick === true
+    );
+}
+
+/**
+ * Whether the property `propName` after `component` is not its own though
+ * its class has it public: the `numItems` of a component that shows one
+ * thing ({@link showsOneThing}, D72), which passes to what it shows.
+ */
+export function propertyNotOwnOf(component: any, propName: string): boolean {
+    return (
+        typeof propName === "string" &&
+        propName.toLowerCase() === "numitems" &&
+        showsOneThing(component)
+    );
+}

@@ -1,4 +1,5 @@
 import { isWrapperOfSeveral } from "../utils/wrappers";
+import { propertyNotOwnOf } from "../utils/numItems";
 import type Core from "../Core";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { errorComponentState } from "../utils/dast/errors";
@@ -1457,7 +1458,10 @@ export function recursivelyReplaceCompositesWithReplacements({
                 componentClass: replacement.constructor,
             })[0];
 
-            if (!checkForPublic.startsWith("__not_public_")) {
+            if (
+                !checkForPublic.startsWith("__not_public_") &&
+                !propertyNotOwnOf(replacement, stopIfHaveProp)
+            ) {
                 // The composite has a public state variable that matches `stopIfHaveProp`.
                 // Therefore, we don't recurse to its replacements but treat the composite itself as the replacement.
                 newReplacements.push(replacement);

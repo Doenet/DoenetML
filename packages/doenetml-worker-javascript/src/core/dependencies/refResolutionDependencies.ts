@@ -984,6 +984,33 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
+        // A chooser written to pick one that makes a list of values
+        // (`<selectFromSequence>`, `<selectRandomNumbers>`, …) is not a
+        // collection (D72): it stands for its one value, so an index after it
+        // reaches into that value (`$s[k]` is `$s[1][k]`), and its `numItems`
+        // is the value's, which has none.
+        refResolution = this.intoOnePickValue(refResolution, listEntry);
+        if (refResolution.numItemsNotOwn) {
+            // `$s.numItems` of a one-pick chooser of values: its one value
+            // has no count, so it names nothing (D72)
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: { reference: getReferenceAsWritten() },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         // A value reference (`_ref`) a reference made in place of a value,
         // reached with an index left over, as an index after a group holding
         // only `$m` passes to what `$m` made (`$g[2]` of `<group
@@ -1197,11 +1224,66 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
+     * `refResolution`, read as it is after a chooser that picks one and
+     * makes a list of values (`onePick`, D72): an index right after the
+     * chooser reaches into its one value, as `[1]` before it would, and its
+     * `numItems` names nothing (`numItemsNotOwn`). `listEntry` is the entry of a list the
+     * resolution reached (`listEntryAtResolverNode`), whose index was
+     * written right after the list, if any. Any other resolution is returned
+     * as it is.
+     */
+    intoOnePickValue(refResolution: any, listEntry: any) {
+        const first = { value: ["1"] };
+        if (listEntry) {
+            const list = this.dependencyHandler._components[listEntry.listIdx];
+            if (!list?.doenetAttributes?.onePick) {
+                return refResolution;
+            }
+            // `refResolution` already reads the entry as an index after the
+            // list (above): the index written is the one after `[1]`
+            const [part, ...rest] = refResolution.unresolvedPath;
+            return {
+                ...refResolution,
+                unresolvedPath: [
+                    { ...part, index: [first, ...part.index] },
+                    ...rest,
+                ],
+            };
+        }
+        const target =
+            this.dependencyHandler._components[refResolution.nodeIdx];
+        if (
+            !target?.doenetAttributes?.onePick ||
+            (target.constructor as any).listEntryComponentType === undefined
+        ) {
+            return refResolution;
+        }
+        const [part, ...rest] = refResolution.unresolvedPath ?? [];
+        if (part?.name === "" && part.index?.length > 0) {
+            return {
+                ...refResolution,
+                unresolvedPath: [
+                    { ...part, index: [first, ...part.index] },
+                    ...rest,
+                ],
+            };
+        }
+        if (
+            typeof part?.name === "string" &&
+            part.name.toLowerCase() === "numitems"
+        ) {
+            return { ...refResolution, numItemsNotOwn: true };
+        }
+        return refResolution;
+    }
+
+    /**
      * Report that the index left on the reference of `composite`, which
      * stopped at the expanded composite `newRefComponent`, names nothing:
      * past the instances it made (`doenet-w0181`), or past what a group
-     * holding one reference made, or past the case a `<conditionalContent>`
-     * shows (`doenet-w0104`), at the level of what decides it (DIAG-2).
+     * holding one reference made, or after a `<conditionalContent>` while
+     * it shows no case (`doenet-w0104`), at the level of what decides it
+     * (DIAG-2).
      * `unresolvedPath` is what is left of the reference, starting with the
      * index.
      */
@@ -1270,19 +1352,11 @@ export class RefResolutionDependency extends Dependency {
             newRefComponent.componentType === "conditionalContent" &&
             !this.indexFromValue(composite)
         ) {
-            // A `<conditionalContent>` holds at most one item, the case
-            // it shows (D41). An index past it (`$cc[2]`) names nothing
-            // whatever is shown: a warning. `$cc[1]` names nothing only
-            // while no case is shown, which a value can decide (an
-            // input in a condition): then an info while it lasts
-            // (DIAG-2), so a reload agrees (DIAG-6).
-            const written = unresolvedPath[0].index?.[0]?.value;
-            const literal =
-                Array.isArray(written) &&
-                written.length === 1 &&
-                typeof written[0] === "string"
-                    ? Number(written[0].trim())
-                    : NaN;
+            // A `<conditionalContent>` stands for what it shows (D72): an
+            // index after it reaches into the shown case, and names nothing
+            // only while no case is shown, which a value can decide (an
+            // input in a condition): then an info while it lasts (DIAG-2),
+            // so a reload agrees (DIAG-6).
             this.reportNamesNothing(
                 composite,
                 codedDiagnostic({
@@ -1292,11 +1366,10 @@ export class RefResolutionDependency extends Dependency {
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
-                literal !== 1 ||
-                    !caseShownCanChange(
-                        newRefComponent,
-                        changeContext(this.dependencyHandler.core),
-                    ),
+                !caseShownCanChange(
+                    newRefComponent,
+                    changeContext(this.dependencyHandler.core),
+                ),
             );
         } else if (!referenced && this.indexFromValue(composite)) {
             // past the end of what a composite made, by an index from a

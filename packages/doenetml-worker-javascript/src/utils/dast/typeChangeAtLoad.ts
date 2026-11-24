@@ -71,6 +71,7 @@
  * Runs after sugar (which makes an `<else>` a `<case>`) and before the list
  * forms and value references, so that it sees the tags the author wrote.
  */
+import { isShownIndex } from "./oneShownIndexAtLoad";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
@@ -342,12 +343,13 @@ const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
 /**
  * The codes of what `checkTypeChangesAtLoad` finds that make a reference
  * written as a tag name nothing (D37): a literal index past the picks
- * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
- * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
+ * (`doenet-w0181`). The tag is then missing, with the warning. A name the
+ * every-branch rule rejects is an error (`doenet-e0093`, `doenet-e0094`,
+ * D74), as is an index into branches that do not each hold one component
+ * of one type (`doenet-e0095`).
  */
 export const MISSING_AT_LOAD_CODES = new Set([
     "doenet-w0181",
-    "doenet-w0183",
     // a name or a property after a collection (D59,
     // `namesAfterCollectionsAtLoad.ts`), marked before these checks
     "doenet-w0200",
@@ -375,8 +377,9 @@ export function typeChangeAtLoadDiagnostic({
     // `branchNameIssue`) is quoted as a reference.
     const args = [
         "doenet-w0181",
-        "doenet-w0183",
-        "doenet-w0184",
+        "doenet-e0093",
+        "doenet-e0094",
+        "doenet-e0095",
         "doenet-w0200",
     ].includes(mark.code)
         ? { reference: source, ...mark.args }
@@ -1742,7 +1745,9 @@ export function checkTypeChangesAtLoad({
         x: SerializedComponent,
         seen: Set<number>,
     ): Holding | undefined {
-        if (x.componentType === "select") {
+        if (x.componentType === "select" && !x.doenetAttributes?.onePick) {
+            // A pick of a select that picks one is not an instance an index
+            // selects: an index after it reaches into the pick (D72).
             return cachedHolding(instanceByIdx, x, seen, (seenBelow) =>
                 selectHolding(x, undefined, seenBelow),
             );
@@ -1765,13 +1770,6 @@ export function checkTypeChangesAtLoad({
                 return { types: new Set(), skip: true };
             }
             return { types: new Set([collected]) };
-        }
-        if (x.componentType === "conditionalContent") {
-            // The shown case (`$cc[1]`), which holds what one of its cases
-            // holds, as the `<conditionalContent>` itself does (REF-5).
-            return cachedHolding(heldByIdx, x, seen, (seenBelow) =>
-                holding(x, seenBelow),
-            );
         }
         if (
             x.componentType === "repeat" ||
@@ -2005,9 +2003,10 @@ export function checkTypeChangesAtLoad({
                     }),
                     // `$x[1]` names one component only of the composite named
                     // (`$s[1]`); of a list held alone (`entries`), the
-                    // list's first entry when `$x` is a group (`$g[1]`) or
-                    // an item (`$r[1][1]`), not a `<conditionalContent>` or
-                    // a `<select>` itself, whose `$cc[1]` is the case
+                    // list's first entry when `$x` is a group (`$g[1]`), an
+                    // item (`$r[1][1]`), or a `<conditionalContent>` or a
+                    // `<select>` holding it in a case or its one pick, which
+                    // an index reaches into (`$cc[1]`, D72)
                     indexSelectsOne:
                         (direct &&
                             tag === sourceTag &&
@@ -2016,7 +2015,10 @@ export function checkTypeChangesAtLoad({
                                     HOLD_ANY_NUMBER.has(tag)))) ||
                         (notOne.reason === "count" &&
                             notOne.part === "entries" &&
-                            (!direct || sourceTag === "group"))
+                            (!direct ||
+                                sourceTag === "group" ||
+                                sourceTag === "conditionalContent" ||
+                                sourceTag === "select"))
                             ? "true"
                             : "false",
                 },
@@ -2146,7 +2148,13 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const holder = namedHolder(nodeIdx, seen);
-        if (!holder) {
+        if (
+            !holder ||
+            // Not collections: an index after one reaches into what it
+            // shows (D72, `checkIndexIntoBranches`)
+            holder.componentType === "conditionalContent" ||
+            holder.doenetAttributes?.onePick
+        ) {
             return undefined;
         }
         const indexText = (index.value ?? []).every(
@@ -2172,17 +2180,6 @@ export function checkTypeChangesAtLoad({
                     },
                 };
             }
-        }
-        if (
-            holder.componentType === "conditionalContent" &&
-            indexText !== undefined &&
-            /^\d+$/.test(indexText) &&
-            Number(indexText) !== 1
-        ) {
-            // A `<conditionalContent>` shows one case at most, so a literal
-            // index other than 1 (`$cc[2]`) never names what a case holds,
-            // and is left to run time, which finds it names nothing.
-            return undefined;
         }
         const held = instanceHolding(holder, seen);
         if (!held || held.skip) {
@@ -2978,7 +2975,7 @@ export function checkTypeChangesAtLoad({
                 ? (declared.container as any).itemPlaces[declared.ordinal - 1]
                 : undefined;
             return {
-                code: "doenet-w0183",
+                code: "doenet-e0093",
                 args: {
                     name,
                     ...(place?.part
@@ -3001,7 +2998,7 @@ export function checkTypeChangesAtLoad({
         }
         const { container, hasName } = named(repeat ?? declared.container);
         return {
-            code: "doenet-w0184",
+            code: "doenet-e0094",
             args: {
                 name,
                 branch: repeat ? "item" : declared.branch,
@@ -3278,12 +3275,12 @@ export function checkTypeChangesAtLoad({
     /**
      * Decide the every-branch, same-type rule for the reference `copy`
      * (`branchDeclaration`). A reference written as a tag records what it
-     * finds on the copy (`typeChangeAtLoad`): types that differ are an
-     * error in its place, and a name a branch lacks, or a literal index past
-     * the picks, a warning with a missing tag (D37). A scalar tag made from a
-     * name no case may hold (no `<else>`) is allowed, and missing while no
-     * case is active. Any other reference names nothing, with a warning
-     * (`branchNameWarnings`). Returns whether it was decided here.
+     * finds on the copy (`typeChangeAtLoad`): types that differ, or a name
+     * a branch lacks, are an error in its place (D74), and a literal index
+     * past the picks a warning with a missing tag (D37). A scalar tag made
+     * from a name no case may hold (no `<else>`) is allowed, and missing
+     * while no case is active. Any other reference is an error in its place
+     * too (`branchNameWarnings`, D74). Returns whether it was decided here.
      */
     function checkBranchName(copy: SerializedComponent) {
         let declared = branchNameOf(copy);
@@ -3312,7 +3309,7 @@ export function checkTypeChangesAtLoad({
                 // (`doenet-e0066`, `decide`). A `<group>` tag holds whatever
                 // it is made from, which `decide` leaves be, so its type
                 // would change with the active branch: the difference is
-                // the error (`doenet-w0184`, below).
+                // the error (`doenet-e0094`, below).
                 return false;
             }
             if (
@@ -3373,7 +3370,9 @@ export function checkTypeChangesAtLoad({
         if (
             decision === "allowed" ||
             MISSING_AT_LOAD_CODES.has(decision.code) ||
-            decision.code === "doenet-w0184" ||
+            decision.code === "doenet-e0093" ||
+            decision.code === "doenet-e0094" ||
+            decision.code === "doenet-e0095" ||
             decision.code === "doenet-e0005"
         ) {
             return decision;
@@ -4279,24 +4278,34 @@ export function checkTypeChangesAtLoad({
         if (sourceType === undefined || sourceType.startsWith("_")) {
             return undefined;
         }
+        const indices = path[0]?.index ?? [];
+        // An index after a `<conditionalContent>` or a one-pick `<select>`,
+        // read here as one after what it shows (`[1]` before it,
+        // `oneShownIndexAtLoad.ts`), reaches into what it shows (D72)
+        const intoShown = isShownIndex(indices[0]);
         if (
             path.length === 1 &&
             path[0].name === "" &&
-            (path[0].index ?? []).length === 1 &&
-            // what shows one thing, whose shown case or pick stands for the
-            // component it holds (COLL-3), is left to run time
-            sourceType !== "conditionalContent" &&
-            sourceType !== "select"
+            indices.length - (intoShown ? 1 : 0) === 1 &&
+            // a copy of a `<select>`, which may pick one, is left to run
+            // time
+            (intoShown ||
+                (sourceType !== "conditionalContent" &&
+                    sourceType !== "select"))
         ) {
-            // An index: an item of what it indexes, never the tag. An entry
-            // of a list is a value, as the run time words it.
+            // An index: an item or an entry of what it indexes, never the
+            // tag (`<repeat extend="$cc[1]"/>` of a case holding a repeat is
+            // its first iteration). An entry of a list is a value, as the
+            // run time words it.
             return {
                 code: "doenet-e0071",
                 args: {
                     makes: "content",
                     sourceIs:
+                        !intoShown &&
                         allClasses[sourceType]?.listEntryComponentType !==
-                            undefined && !isComposite(sourceType)
+                            undefined &&
+                        !isComposite(sourceType)
                             ? "value"
                             : "other",
                 },
@@ -4746,6 +4755,137 @@ export function checkTypeChangesAtLoad({
         };
     }
 
+    /**
+     * An index right after a `<conditionalContent>` or a `<select>` that
+     * picks one reaches into what the case or pick shown holds (D72, read
+     * as `[1]` before it here, `oneShownIndexAtLoad.ts`). It means one thing
+     * whatever is shown only when every case or option holds at most one
+     * component, all of one type: otherwise it is an error at the reference,
+     * decided from every case or option (D74, DIAG-7): `doenet-e0095`, in
+     * the reference's place, bare (`branchNameWarnings`) or written as a tag
+     * (`typeChangeAtLoad`). A case or option holding a component whose type
+     * or count the DoenetML does not give is left to run time. Returns
+     * whether it was decided here.
+     *
+     * When it qualifies, a scalar tag made from it is typed here as made
+     * from an entry of what each holds, when that is a list or a math.
+     */
+    function checkIndexIntoBranches(copy: SerializedComponent) {
+        const ref = refOf(copy);
+        const [first] = ref?.unresolvedPath ?? [];
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            first?.name !== "" ||
+            !isShownIndex(first.index?.[0]) ||
+            (first.index?.length ?? 0) < 2
+        ) {
+            return false;
+        }
+        const container = branchContainerAt(ref.nodeIdx);
+        const branch = container && branchKind(container);
+        const parts = branch && partsOf(container!, branch);
+        if (!container || !branch || !parts || parts.length === 0) {
+            return false;
+        }
+        const held = parts.map(({ part }) => partItems(part));
+        if (
+            held.some(
+                (h) => h === null || (h.kind === "one" && h.type === undefined),
+            )
+        ) {
+            return false;
+        }
+        const several: { ordinal: number; isElse: boolean }[] = [];
+        const types: string[] = [];
+        let caseOrdinal = 0;
+        for (const [ind, h] of held.entries()) {
+            const isElse = branch === "case" && parts[ind].isElse;
+            if (!isElse) {
+                caseOrdinal++;
+            }
+            if (h!.kind === "several") {
+                several.push({ ordinal: caseOrdinal, isElse });
+            } else if (h!.kind === "one" && !types.includes(h!.type!)) {
+                types.push(h!.type!);
+            }
+        }
+        const containerName = literalText(container.attributes?.name);
+        const hasName =
+            containerName !== undefined &&
+            containerName !== "" &&
+            !containerName.startsWith("_");
+        const common = {
+            branch,
+            container: hasName ? containerName : container.componentType,
+            hasName: hasName ? "true" : "false",
+        };
+        let issue: TypeChangeAtLoadError | undefined;
+        if (several.length > 0) {
+            issue = {
+                code: "doenet-e0095",
+                args: {
+                    ...common,
+                    reason: "several",
+                    ordinals: several
+                        .filter((s) => !s.isElse)
+                        .map((s) => String(s.ordinal)) as any,
+                    withElse: several.some((s) => s.isElse) ? "true" : "false",
+                },
+            };
+        } else if (typesAs(new Set(types), undefined).length > 1) {
+            issue = {
+                code: "doenet-e0095",
+                args: {
+                    ...common,
+                    reason: "types",
+                    firstType: types[0],
+                    secondType: types[1],
+                    ordinals: [] as any,
+                    withElse: "false",
+                },
+            };
+        }
+        if (issue) {
+            if (isTag(copy)) {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: issue,
+                };
+            } else {
+                branchNameWarnings.push({ copy, ...issue } as any);
+            }
+            return true;
+        }
+        // Every one holds one component of one type, or nothing: a scalar
+        // tag made from one index into it (`$cc[2]`) is made from an entry
+        // of that type, decided here when it is a list's or a math's.
+        if (
+            types.length === 1 &&
+            first.index.length === 2 &&
+            ref.unresolvedPath.length === 1 &&
+            isScalarTag(copy)
+        ) {
+            const [type] = types;
+            const entry =
+                allClasses[type]?.listEntryComponentType ??
+                (type === "math" ? "math" : undefined);
+            const writtenType = tagType(copy);
+            if (entry !== undefined && writtenType !== undefined) {
+                const error = fixedTypeError(
+                    { types: new Set([entry]) },
+                    writtenType,
+                );
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: error ?? "allowed",
+                };
+                return true;
+            }
+        }
+        return false;
+    }
+
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
             if (typeof component !== "object") {
@@ -4779,7 +4919,8 @@ export function checkTypeChangesAtLoad({
                 // (D59, `namesAfterCollectionsAtLoad.ts`)
             } else if (
                 component.componentType === "_copy" &&
-                checkBranchName(component)
+                (checkIndexIntoBranches(component) ||
+                    checkBranchName(component))
             ) {
                 // decided by the every-branch rule
             } else if (component.componentType === "_copy") {

@@ -854,10 +854,10 @@ export function checkNamesAfterCollectionsAtLoad({
      *   (`branches.named`, COMP-11), one name at a time, up to the first
      *   collection: `$cc.r.P`, `$r.P` of a repeat in a case, `$s[1].t.T`. A
      *   name not every branch declares, or declared twice, is not followed
-     *   (it is `doenet-w0183` or ambiguous there). One naming components of
+     *   (it is `doenet-e0093` or ambiguous there). One naming components of
      *   different tags, or a collection in some branches only, is left to
-     *   that rule when it reports the whole reference (`doenet-w0183`,
-     *   `doenet-w0184`), and is otherwise the first collection among them
+     *   that rule when it reports the whole reference (`doenet-e0093`,
+     *   `doenet-e0094`), and is otherwise the first collection among them
      *   (`inSomeBranches`);
      * - one a name reaches after an index into the items of a repeat
      *   (`$o[1].t.T`), read the same way in what is written in it, but not
@@ -974,7 +974,7 @@ export function checkNamesAfterCollectionsAtLoad({
                 );
             }
             if (declared !== "ok") {
-                // a branch lacks it (`doenet-w0183`), or they declare it
+                // a branch lacks it (`doenet-e0093`), or they declare it
                 // twice, as decided by the checks after this
                 return undefined;
             }
@@ -1043,7 +1043,7 @@ export function checkNamesAfterCollectionsAtLoad({
      * which only some are collections in the branches of `container`, or
      * components of different tags: the first collection among them, so
      * that what follows it names nothing (D59), unless the every-branch rule
-     * reports the reference already (`doenet-w0183`, `doenet-w0184`), as it
+     * reports the reference already (`doenet-e0093`, `doenet-e0094`), as it
      * does when what the whole path names differs between branches. Without
      * this, such a reference would read a pick's items while one branch is
      * active and the component in another, with no warning.
@@ -1524,4 +1524,79 @@ function withIndex(
           ? `.${corrected}${source.substring(nameEnd, end)}`
           : source.substring(at, end);
     return `${dollars}${source.substring(start, at)}${index}${rest}`;
+}
+
+/**
+ * Whether `node` is a chooser or sampler written to pick one (`<select>`,
+ * `<selectFromSequence>`, … with no `numToSelect` or `numSamples`, or one
+ * written as a literal `1`), which is not a collection (D72, COLL-1): it
+ * stands for what it picks, so an index after it reaches into the pick, and
+ * it has no `numItems`. A tag written with `extend` or `copy` is left out,
+ * as the resolver leaves it out (`branch_container_kind` in Rust): it picks
+ * as many as the one it copies.
+ */
+export function isOnePickChooserWritten(
+    node: SerializedComponent,
+    componentInfoObjects: ComponentInfoObjects,
+): boolean {
+    if (node.componentType === "_copy" || node.extending) {
+        return false;
+    }
+    const componentClass = (
+        componentInfoObjects.allComponentClasses as Record<string, any>
+    )[node.componentType];
+    if (!componentClass) {
+        return false;
+    }
+    const attributes = componentClass.createAttributesObject();
+    if (!PICK_ATTRIBUTES.some((name) => name in attributes)) {
+        return false;
+    }
+    if (
+        Object.keys(node.attributes ?? {}).some((name) =>
+            ["copy", "extend", "copywithstate"].includes(name.toLowerCase()),
+        )
+    ) {
+        return false;
+    }
+    return (
+        collectionWritten(
+            node.componentType,
+            node,
+            () => undefined,
+            componentInfoObjects,
+        ) === undefined
+    );
+}
+
+/**
+ * Mark each chooser or sampler written to pick one
+ * ({@link isOnePickChooserWritten}) with `doenetAttributes.onePick`, which
+ * the worker reads as it runs (D72): its `numItems` is not its own, and an
+ * index after one that makes a list of values reaches into its one value.
+ */
+export function markOnePickChoosers(
+    components: (SerializedComponent | string)[],
+    componentInfoObjects: ComponentInfoObjects,
+) {
+    for (const component of components) {
+        if (typeof component !== "object" || component === null) {
+            continue;
+        }
+        if (isOnePickChooserWritten(component, componentInfoObjects)) {
+            component.doenetAttributes = {
+                ...component.doenetAttributes,
+                onePick: true,
+            };
+        }
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            const attr: any = attribute;
+            if (attr.type === "component" && attr.component) {
+                markOnePickChoosers([attr.component], componentInfoObjects);
+            } else if (Array.isArray(attr.children)) {
+                markOnePickChoosers(attr.children, componentInfoObjects);
+            }
+        }
+        markOnePickChoosers(component.children ?? [], componentInfoObjects);
+    }
 }

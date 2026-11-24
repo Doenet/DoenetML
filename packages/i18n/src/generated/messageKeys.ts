@@ -664,6 +664,9 @@ export type MessageKey =
     | "action-target-not-a-component"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
+    | "reference-name-missing-in-some-branch"
+    | "reference-name-type-changes-with-branch"
+    | "reference-index-into-branches"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1394,6 +1397,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "action-target-not-a-component",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
+    "reference-name-missing-in-some-branch",
+    "reference-name-type-changes-with-branch",
+    "reference-index-into-branches",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

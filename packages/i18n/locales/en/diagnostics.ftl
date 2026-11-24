@@ -2667,3 +2667,85 @@ sort-item-of-several = { $itemKind ->
         [sort] {" "}Use `<shuffle>` to keep each item's components together.
        *[other] {""}
     }
+
+# A reference to a name declared in the branches of a `<conditionalContent>`
+# (its `<case>`s and its `<else>`), of a `<select>` that picks one (its
+# `<option>`s), or of the items of a `<repeat>`'s `for` (COLL-5), where some
+# branch has no component of that name: what it names would change with the
+# branch shown, so it is an error (D74), shown in the reference's place. The
+# arguments are those of `reference-name-missing-in-branch`, which this
+# replaces.
+
+reference-name-missing-in-some-branch = `{ $reference }` can't be used: { $branch ->
+        [else] the `<else>`
+        [option] option { $ordinal }
+        [item] item { $ordinal } of the `for`
+        [someItem] an item of the `for`
+       *[case] case { $ordinal }
+    } of { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } has no `{ $name }`, so what it names would change with what is shown. Give it one, or use a name every { $branch ->
+        [option] option
+        [item] item
+        [someItem] item
+       *[other] case
+    } has.
+
+# As `reference-name-missing-in-some-branch`, where two branches declare $name
+# with different tags, $firstType and $secondType, which stay in English. The
+# arguments are those of `reference-name-types-differ-in-branches`, which this
+# replaces. $branch is `case`, `option` or `item`.
+
+reference-name-type-changes-with-branch = `{ $reference }` can't be used: `{ $name }` is a `<{ $firstType }>` in one { $branch ->
+        [option] option
+        [item] item of the `for`
+       *[other] case
+    } of { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } and a `<{ $secondType }>` in another, so its type would change with what is shown. Use the same type, or different names.
+
+# An index after a `<conditionalContent>` or a `<select>` that picks one,
+# which reaches into what the case or pick shown holds (D72), where that
+# would mean something different with what is shown (D74): $reason is
+# `several` when an option or case holds several components ($ordinals lists
+# the options, or the cases, not the `<else>`, that do, and $withElse is
+# `true` when the `<else>` does too), and `types` when they hold single
+# components of different tags, $firstType and $secondType, which stay in
+# English. $reference is the reference as written, with its `$`.
+# $container is the container's name when $hasName is `true`, else its tag
+# name. $branch is `option` or `case`.
+
+reference-index-into-branches = `{ $reference }` can't be used: an index after { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } reaches into what the { $branch ->
+        [option] pick
+       *[case] case shown
+    } holds, which must be one component of one type in every { $branch ->
+        [option] option
+       *[case] case
+    }, and { $reason ->
+        [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
+       *[several] { $branch ->
+            [option] { $ordinalsCount ->
+                [one] option { $ordinals } holds
+               *[other] options { $ordinals } hold
+            }
+           *[case] { $withElse ->
+                [true] { $ordinalsCount ->
+                    [0] the `<else>` holds
+                    [one] case { $ordinals } and the `<else>` hold
+                   *[other] cases { $ordinals } and the `<else>` hold
+                }
+               *[other] { $ordinalsCount ->
+                    [one] case { $ordinals } holds
+                   *[other] cases { $ordinals } hold
+                }
+            }
+        } several
+    }. { $reason ->
+        [types] Hold one type in each.
+       *[several] To use a component inside, give it a name in each and refer to it by that name.
+    }
