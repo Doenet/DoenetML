@@ -293,6 +293,25 @@ export class CellsDiagnostics {
         return this._gap(d, "built as an error, diagnostic");
     }
 
+    /** The first name of each reference at DAST node `node` or among its
+     * children, and of each reference inside their indices (`t` of
+     * `$t.categories`, `l` and `t` of `$l[$t[1]]`). */
+    referenceNames(node: number): string[] {
+        const n = this._node(node);
+        if (!n) return [];
+        const out: string[] = [];
+        const macro = (m: any) => {
+            if (m?.type !== "macro" || !Array.isArray(m.path)) return;
+            if (typeof m.path[0]?.name === "string") out.push(m.path[0].name);
+            for (const part of m.path)
+                for (const index of part?.index ?? [])
+                    for (const v of index?.value ?? []) macro(v);
+        };
+        for (const m of [n, ...(Array.isArray(n.children) ? n.children : [])])
+            macro(m);
+        return out;
+    }
+
     /** The gap behind a name that resolves to nothing: the error of an
      * element built as one (`errorNodes`, their DAST nodes) that the name
      * is given inside; null if there is none. */
