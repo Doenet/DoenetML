@@ -107,6 +107,17 @@ export class Reads {
             : this.cellText(cell, decimals);
     }
 
+    /** A number's `value` as text, rounded and written by its
+     * number-display settings, as the current core writes a number's
+     * `text` (ADR 0071); the blank when it is missing. */
+    numberText(c: number): string {
+        if (this.missing(c, "value")) return BLANK;
+        return this.table.core.number_display_text(
+            this.num(c, "value"),
+            displaySettings(this.table, c, (cell) => this.cell(cell)),
+        );
+    }
+
     /** LaTeX of the expression a math cell holds, from the core's own
      * engine; the blank expression when its handle is NaN. */
     exprLatex(c: number, name: string): string {
@@ -175,6 +186,24 @@ export class Reads {
         }
         return numberLatex(this.num(c, prop));
     }
+}
+
+/** Whether `c` is hidden by its `hide`: the nearest of it and its
+ * referents whose `hide` cell is given (not NaN) says, so an extend of a
+ * hidden value is hidden unless it says `hide="false"` (ADR 0071). The
+ * cells are read through `read`, so a change redraws. */
+export function hiddenByHide(
+    table: CellsTable,
+    c: number,
+    read: ReadCell = (cell) => table.value(cell),
+): boolean {
+    for (let k: number | null = c; k !== null; k = table.referent(k)) {
+        const cell = table.cell(k, "hide");
+        if (cell === undefined) return false;
+        const v = read(cell);
+        if (!Number.isNaN(v)) return v !== 0;
+    }
+    return false;
 }
 
 /** Whether a cascade may govern how `c` is shown (ADR 0062): it is a
@@ -267,20 +296,6 @@ function ownSetting(
     if (t === "false") return 0;
     const v = Number(t);
     return Number.isNaN(v) ? null : v;
-}
-
-/** The `displayDecimals` of `c` or the nearest of its referents writing
- * it ([`ownSetting`]), as text, or null, read so that a change of it
- * redraws. */
-function decimalsThrough(r: Reads, c: number): string | null {
-    const table = r.table;
-    for (let k: number | null = c; k !== null; k = table.referent(k)) {
-        const v = ownSetting(table, k, "displayDecimals", (cell) =>
-            r.cell(cell),
-        );
-        if (v !== null) return String(v);
-    }
-    return null;
 }
 
 /** Display setting `name` of `c` or the nearest of its referents writing
@@ -878,9 +893,7 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({ value: r.text(c, "value") }),
     },
     number: {
-        props: (r, c) => ({
-            text: r.numText(c, "value", decimalsThrough(r, c)),
-        }),
+        props: (r, c) => ({ text: r.numberText(c) }),
     },
     boolean: {
         props: (r, c) => ({ value: r.boolValue(c, "value") }),
