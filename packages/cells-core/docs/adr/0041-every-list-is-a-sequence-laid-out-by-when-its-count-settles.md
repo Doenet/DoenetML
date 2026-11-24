@@ -740,7 +740,14 @@ otherwise.
      done: the count follows the value with no cap, so such a list is
      structural (a rebuild per count), the structural list of step 4,
      which no planner reads yet. `<math>$mi</math>` reads the value
-     whole, as before.
+     whole, as before. Still open after the extrema (2026-11-24), with
+     `<pointList extend="$f.extrema"/>`, the same list over a prop's
+     value: a list element is laid out when outlining meets it, before
+     the type of what its one reference names is known, so a list that
+     is structural by its referent would be made a repeat-like element
+     with a body after the names settle (as `<repeat for>`'s item is),
+     and an operator reading one needs the items gathered per build, or
+     a symbolic reduction inside the handle instead of a rebuild.
    - A function's maxima, minima and extrema: *done 2026-11-24* (ADR
      0061). They have no cap the type knows (the current core searches a
      grid of a thousand cells and recurses, `utils/extrema.js`), so by
