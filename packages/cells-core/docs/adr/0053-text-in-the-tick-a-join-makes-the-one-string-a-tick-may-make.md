@@ -222,4 +222,12 @@ concatenation in view.
   (a bare copy aliases it): whether a copy shares its referent's draw is a
   copy rule for every load-time choice, not decided here. `selectedValue`,
   a choice's `selected` and `selectMultiple` are not modelled.
-
+- *2026-11-24 (ADR 0074):* the per-element entry kind is not only for a
+  type whose entries are its operands': a type whose entries follow its
+  `type` (`ComponentType::entries_by_type`: `<sequence>`,
+  `<selectFromSequence>`) declares entries of a number, and an element of
+  letters or math decides strings or expressions. A sequence of letters'
+  entry is `SymKind::Letters`, the letters of a number, which looks its
+  string up by text: the planner interns every string it can be, so it
+  makes none (decision 3's one maker stays the join). `SymKind::
+  LetterNumber` reads a text as its letters' number.

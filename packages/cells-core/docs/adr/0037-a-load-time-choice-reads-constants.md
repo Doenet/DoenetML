@@ -464,3 +464,9 @@ above, it is here.
   constant and leaves whether they describe a population to the draw,
   which gives no value where they do not. A copy shares the draw (ADR
   0059).
+- *Done 2026-11-24 (ADR 0074):* `<selectFromSequence type="letters">`
+  draws its run's numbers as one of numbers does (`Draws` of
+  `Dist::Sequence`, its parameters constants of the literal letters), each
+  entry the letters of its draw; `type="math"` draws places among values
+  computed when compiled, each entry a `Choose` by its place. A `<select
+  type>` is the select of the options the parser made of its pieces.

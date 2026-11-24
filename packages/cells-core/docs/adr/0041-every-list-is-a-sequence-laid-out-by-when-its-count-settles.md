@@ -340,7 +340,10 @@ otherwise.
    - An entry of a list reads as one point where points are read
      (`vertices="$q $pg.vertices[$k]"`); where a whole list is read (a
      list's items, `<pointList extend="$pg.vertices[$k]"/>`) it is
-     refused, as a literal entry already was.
+     refused, as a literal entry already was. *Done 2026-11-24* (ADR
+     0074, the user's decision): `<pointList extend="$pl.vertices[$k]"/>`
+     is a list of that entry or of none, a structural count of 0 or 1
+     settled once names resolve (`PointListEntry`).
 2. **Sequences in the type table.** `ListProp` generalized from points to
    any entry type; `<mathList>`, `<numberList>`, `<textList>`,
    `<booleanList>`, `<intervalList>`, `<pointList>` and `<vectorList>` as
@@ -659,9 +662,16 @@ otherwise.
      `numToSelect` other than 1 is done, and a select of one reads as a
      number by decision 1. `length` counts its sequence when every
      parameter is a literal. `excludeCombinations`, `coprime`, letters
-     and math are not done.
+     and math are not done. *Letters and math done 2026-11-24* (ADR 0074):
+     letters drawn as numbers, each entry their letters; math by place.
    - `type="letters"` and `type="math"` sequences, and `validSequence`,
-     are not done.
+     are not done. *Done 2026-11-24* (ADR 0074), but `validSequence`: a
+     sequence's entries follow its `type`, an element's own entry kind
+     (ADR 0053), its values counted when compiled from parameters written
+     as text with no reference (static), letters whose excludes follow a
+     text structural (`StructuralLetterSequence`, items texts); math
+     whose count follows a value stays refused. `<repeat for="1 2 3">`, a
+     literal list, is an anonymous static list (ADR 0074).
    - `<matrixInput>`, whose grid follows its size: *done 2026-11-24*
      (ADR 0045, Migration 3), a repeat of rows each a repeat of boxes,
      the matrix an aggregate over the boxes the build stamped.

@@ -95,7 +95,8 @@ ends at a port; what changed is how an element reads a port it extends.
   missing point when the index names none (static, but `Ps[1]` always
   exists, unlike the current core); (c) a list whose count is 0 or 1 by
   the index, structural, rebuilt when the index moves in or out of range
-  (ADR 0041 step 4).
+  (ADR 0041 step 4). *Done 2026-11-24* by (c), the user's decision (ADR
+  0074).
 - **A container copy through a select's pick** (`<p extend="$sel[1]"/>`,
   3 tests): the copy's clones would be of children in another template
   (the option's), named under the copy in this one. Outlining clones only

@@ -21,16 +21,19 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
 (and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
 `booleanList` (from text, references, element children and nested lists,
-literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
+literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041; a
+`pointList` extending one entry by an index, `extend="$l.points[$n]"`, a
+list of that point or of none, ADR 0074), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` or a lone `text` child,
 typed into a `textInput` child or one it makes, its content or awards
 compared as the current core compares texts, `caseInsensitiveMatch`, ADR 0067;
 or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `conditionalContent` (`case`, `else`) and
-`feedback`, `select` (`option`), `selectFromSequence` (bounds that are
+`feedback`, `select` (`option`, or pieces of text of its `type`), `selectFromSequence` (bounds that are
 constants, a literal `numToSelect`, `withReplacement` and `sort`; each pick a
-row, ADR 0041; a copy draws what its referent drew, ADR 0059), `hint`, `group` (and `label`), literal `text`, the sections
+row, ADR 0041; a copy draws what its referent drew, ADR 0059; `type="letters"`
+and `type="math"` from literal parameters, ADR 0074), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
-`functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler), `clampNumber`,
+`functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler, or a literal list in `for` of its `type`, ADR 0074), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
 `title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
 sections), `sideBySide`,
@@ -65,7 +68,8 @@ operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
 numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
-its count structural, ADR 0041), and
+its count structural, ADR 0041; `type="letters"`, its excludes possibly
+references, and `type="math"` from literal parameters, ADR 0074), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`; the distribution's `mean`, `variance` and `standardDeviation`),
 `selectPrimeNumbers`, `samplePrimeNumbers` and
