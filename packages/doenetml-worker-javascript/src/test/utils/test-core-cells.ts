@@ -648,7 +648,56 @@ function numericalFunction(x: Ctx): (v: number) => number {
     };
 }
 
+/** A number inside a held expression: a number as it is, else what the
+ * expression evaluates to (`Infinity` among them). */
+function treeNumber(t: unknown): number {
+    if (typeof t === "number") return t;
+    const v = me.fromAst(t as any).evaluate_to_constant();
+    return typeof v === "number" ? v : NaN;
+}
+
+/** A function's local extrema (ADR 0061): its math cell holds a list of
+ * points `(x, f(x))`, read as the current core's arrays of numbers. */
+function extremaPoints(prop: string): Reader {
+    return (_g, x) => {
+        const tree = JSON.parse(x.cells.core.expr_ast(x.cell(prop)!));
+        const points =
+            Array.isArray(tree) && tree[0] === "list" ? tree.slice(1) : [];
+        return points.map((p: unknown) =>
+            Array.isArray(p) ? p.slice(1).map(treeNumber) : [],
+        );
+    };
+}
+
+/** A function's global extremum (ADR 0061): a point `(x, f(x))`, or the
+ * empty list for none, read as the current core's `[x, y]` or `[]`. */
+function extremumPoint(prop: string): Reader {
+    return (_g, x) => {
+        const tree = JSON.parse(x.cells.core.expr_ast(x.cell(prop)!));
+        return Array.isArray(tree) && tree[0] === "tuple"
+            ? tree.slice(1).map(treeNumber)
+            : [];
+    };
+}
+
+/** What a function and a piecewise function hold of their extrema. */
+const extremaReaders: Record<string, Reader> = {
+    minima: extremaPoints("minima"),
+    maxima: extremaPoints("maxima"),
+    extrema: extremaPoints("extrema"),
+    numMinima: (g) => g("numMinima"),
+    numMaxima: (g) => g("numMaxima"),
+    numExtrema: (g) => g("numExtrema"),
+    globalMinimum: extremumPoint("globalMinimum"),
+    globalInfimum: extremumPoint("globalInfimum"),
+    globalMaximum: extremumPoint("globalMaximum"),
+    globalSupremum: extremumPoint("globalSupremum"),
+    xscale: (g) => g("xscale"),
+};
+
 const functionReaders: Record<string, Reader> = {
+    ...extremaReaders,
+    yscale: (g) => g("yscale"),
     domain: functionDomain,
     numericalfs: (_g, x) => [numericalFunction(x)],
     numericalf: (_g, x) => numericalFunction(x),
@@ -983,6 +1032,7 @@ const STATE: Record<string, Record<string, Reader>> = {
     function: functionReaders,
     derivative: functionReaders,
     piecewiseFunction: {
+        ...extremaReaders,
         domain: functionDomain,
         numericalfs: (_g, x) => [numericalFunction(x)],
     },
@@ -1869,6 +1919,54 @@ export async function createTestCoreCells({
     return {
         core: withJavascriptOnlyGaps(adapter, {
             _components: componentObjects(cells),
+            // A component's state variable read as the current core's
+            // `components[i].state.name.value`: the state value the
+            // table answers (`stateValue`), from the cells the core
+            // computes; any other field a gap.
+            components: new Proxy(
+                {},
+                {
+                    get(_target, key) {
+                        if (typeof key !== "string" || !/^\d+$/.test(key))
+                            return undefined;
+                        const c = Number(key);
+                        if (c >= table.length) return undefined;
+                        const type = table.componentType(c);
+                        const state = new Proxy(
+                            {},
+                            {
+                                get(_s, sv) {
+                                    if (typeof sv !== "string" || sv === "then")
+                                        return undefined;
+                                    return {
+                                        get value() {
+                                            return stateValue(c, type, sv);
+                                        },
+                                    };
+                                },
+                            },
+                        );
+                        return new Proxy(
+                            {},
+                            {
+                                get(_t, field) {
+                                    if (
+                                        typeof field !== "string" ||
+                                        field === "then"
+                                    )
+                                        return undefined;
+                                    if (field === "componentIdx") return c;
+                                    if (field === "componentType") return type;
+                                    if (field === "state") return state;
+                                    throw new CellsCoreGap(
+                                        `JavaScript core internals \`core.core.components[].${field}\``,
+                                    );
+                                },
+                            },
+                        );
+                    },
+                },
+            ),
             rendererInstructionBuilder: {
                 get rendererState() {
                     return rendererState();
