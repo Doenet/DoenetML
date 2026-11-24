@@ -120,6 +120,17 @@ describe("An answer's awards inside a composite (#1874, COMP-1) @group4", () => 
         expect(result.numAwards).toBe(1);
     });
 
+    it("content written on both sides of a setup is wrapped as one", async () => {
+        const result = await submit({
+            doenetML: `<answer name="a">x <setup><math name="m">y</math></setup> + $m</answer>`,
+            value: "x+y",
+        });
+        expect(result.credit).toBe(1);
+        expect(result.numAwards).toBe(1);
+        expect(result.inputTypes).toEqual(["mathInput"]);
+        expect(coded(result.core, /doenet-w0107/)).toEqual([]);
+    });
+
     it("an award in a composite reads its text as the answer's type", async () => {
         const result = await submit({
             doenetML: `<answer name="a"><textInput/><group><award>hello</award></group></answer>`,

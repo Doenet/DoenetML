@@ -725,6 +725,18 @@ export default class Answer extends InlineComponent {
                     ),
             );
 
+            // A `<setup>` shows nothing, so it is neither content to wrap in
+            // an award nor an award (#1874), wherever it is written. It is
+            // set aside, before what is left unwrapped, so that content
+            // written on both sides of it is wrapped as one
+            // (`<answer>x <setup>…</setup> + $m</answer>`).
+            const setupChildren = matchedChildren.filter((child) =>
+                componentIsSpecifiedType(child, "setup"),
+            );
+            matchedChildren = matchedChildren.filter(
+                (child) => !componentIsSpecifiedType(child, "setup"),
+            );
+
             // remove beginning and ending blank strings from matchedChildren
             const firstNonBlankInd = matchedChildren.findIndex(
                 (child) => typeof child !== "string" || child.trim() !== "",
@@ -852,10 +864,6 @@ export default class Answer extends InlineComponent {
                 } else if (componentIsSpecifiedType(child, "award")) {
                     childIsWrappable.push(false);
                     examineAward(child);
-                } else if (componentIsSpecifiedType(child, "setup")) {
-                    // A `<setup>` shows nothing, so it is neither content to
-                    // wrap in an award nor an award (#1874).
-                    childIsWrappable.push(false);
                 } else if (awardsInComposite(child).length > 0) {
                     // A composite holding awards expands to them (COMP-1,
                     // #1874): they are the answer's awards, not content.
@@ -917,7 +925,10 @@ export default class Answer extends InlineComponent {
                 matchedChildren = matchedChildren.filter(
                     (x) => typeof x !== "string" || x.trim() !== "",
                 );
-                if (matchedChildren.length !== nChoicesFound) {
+                if (
+                    matchedChildren.length !== nChoicesFound ||
+                    setupChildren.length > 0
+                ) {
                     return { success: false };
                 } else {
                     // wrap all choices in a choiceInput
@@ -997,7 +1008,7 @@ export default class Answer extends InlineComponent {
             }
 
             let childrenToWrap = [],
-                childrenToNotWrapBegin = labelChildren,
+                childrenToNotWrapBegin = [...labelChildren, ...setupChildren],
                 childrenToNotWrapEnd = [];
 
             if (childIsWrappable.filter((x) => !x).length === 0) {
@@ -1137,9 +1148,10 @@ export default class Answer extends InlineComponent {
                         ...wrappedContentPosition({
                             children: childrenAsWritten,
                             // the unwrapped children before it, after the
-                            // labels the sugar puts first
+                            // labels and setups the sugar puts first
                             previousSibling:
-                                childrenToNotWrapBegin.length > numLabelChildren
+                                childrenToNotWrapBegin.length >
+                                numLabelChildren + setupChildren.length
                                     ? childrenToNotWrapBegin[
                                           childrenToNotWrapBegin.length - 1
                                       ]

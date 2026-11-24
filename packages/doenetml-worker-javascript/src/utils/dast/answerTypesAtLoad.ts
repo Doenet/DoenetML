@@ -500,13 +500,15 @@ export function decideAnswerTypesAtLoad({
 
         // The answer's children as its sugar reads them (`Answer.js`): by
         // tag, a bare reference (`$x`) being content whatever it names;
-        // without labels and descriptions, and blanks at either end.
+        // without labels, descriptions and setups (which it sets aside, so
+        // content on both sides of a `<setup>` is one run), and blanks at
+        // either end.
         const sugarChildren = (answer.children ?? []).filter(
             (child) =>
                 !(
                     typeof child === "object" &&
-                    ["label", "description", "shortDescription"].some((tag) =>
-                        isTag(child, tag),
+                    ["label", "description", "shortDescription", "setup"].some(
+                        (tag) => isTag(child, tag),
                     )
                 ),
         );
