@@ -27,6 +27,8 @@ interface OrbitalDiagramInputSVs {
     rows: OrbitalRowData[];
     selectedRowIndex: number;
     selectedBoxIndex: number;
+    label?: string;
+    labelHasLatex?: boolean;
 }
 
 export default React.memo(function orbitalDiagramInput(
