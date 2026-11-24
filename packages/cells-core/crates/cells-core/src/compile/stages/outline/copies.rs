@@ -88,6 +88,11 @@ impl Outlining<'_> {
         if self.ar.refs[p.index()].prop.is_some() {
             return Ok(());
         }
+        // An extend that names nothing (warned where it is written) has
+        // nothing to clone: the copy is its own children (ADR 0068).
+        if self.ar.refs[p.index()].names_nothing() {
+            return Ok(());
+        }
         let r = self
             .rd()
             .plan_elem_target(&self.ar, t, p)

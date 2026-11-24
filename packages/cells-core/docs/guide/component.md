@@ -200,7 +200,9 @@ methods. Rules for planners:
   what an element becomes with an attribute; `settle: FromMathText(f)`,
   `Collects(Point)` or `CollectsByAttr(componentType)` for what outlining
   settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
-  `Expr(f)` or `List` for what `extend="$x.prop"` makes of a value;
+  `Expr(f)`, `List`, `Attr(name)` or `Children` for what
+  `extend="$x.prop"` makes of a value (the last two: the value given as
+  that attribute or as the children, for the planner, ADR 0068);
   `numbered:
   Titled(include, label, f)` for a section's number and title;
   `counted: Figures(number)` for a document-wide counter it takes a
@@ -320,7 +322,8 @@ candidate for a hook, or for removal.
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
 `rewrite`, `settle`, `submit`, `numbered`, `counted`, `gate`,
 `inner`, `item`, `structural`, `static_count`, `scored: Item(..)`
-and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
+and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)`, `List`,
+`Attr(..)` and `Children`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
 
 The baseline: 5 items for every type, 3 more with a planner, 20

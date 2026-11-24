@@ -71,6 +71,9 @@ macro_rules! value_list {
                 tags: [$tag],
                 flags: [copyable],
                 $(over_value: $over,)?
+                // `<numberList extend="$A.matrixSize"/>`: the value is
+                // its one child (ADR 0068).
+                extend_value: Children,
                 default_prop: $names,
                 props {
                     numComponents: list_len { rendered },

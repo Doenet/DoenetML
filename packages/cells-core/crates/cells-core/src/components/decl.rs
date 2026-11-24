@@ -603,6 +603,15 @@ pub(crate) enum ExtendValue {
     Expr(fn(crate::compile::ir::expr::ExprId) -> Vec<crate::compile::api::Source>),
     /// Its points are the value's list's, made when built (a point list).
     List,
+    /// The value is given as the attribute of this name, and the type's
+    /// planner plans the element as it would one that wrote it (a
+    /// vector's `displacement`, ADR 0068). An attribute the element writes
+    /// itself wins.
+    Attr(&'static str),
+    /// The value is given as the element's one child, a reference, and the
+    /// type's planner plans the element as it would one that wrote it (a
+    /// list's entries, ADR 0068). Children the element writes itself win.
+    Children,
 }
 
 /// One of a type's actions (ADR 0040): a name a renderer, a

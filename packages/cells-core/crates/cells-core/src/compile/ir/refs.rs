@@ -164,6 +164,14 @@ pub(crate) struct RefPlan {
     pub(crate) node: NodeId,
 }
 
+impl RefPlan {
+    /// Whether the plan names nothing (an unknown name or prop, ADR
+    /// 0046): an `extend` of it extends nothing (ADR 0068).
+    pub(crate) fn names_nothing(&self) -> bool {
+        matches!(self.steps[..], [Step::Nothing])
+    }
+}
+
 /// The port a reference plan names, resolved on the type the path
 /// reaches: `sel` of `of`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

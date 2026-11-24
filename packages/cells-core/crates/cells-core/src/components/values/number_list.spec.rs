@@ -113,4 +113,20 @@ spec! {
                   <numberList name="l">($a+1) 5</numberList>"#;
         expect { "l.numbers" = [3, 5] }
     }
+
+    case "an extend of a prop is the list of that prop's entries" {
+        // ADR 0068: the value is the list's one child.
+        doenet r#"<matrix name="A" numRows="2" numColumns="3"/>
+                  <numberList name="s" extend="$A.matrixSize"/>
+                  <numberList name="l">4 5 6</numberList>
+                  <numberList name="n" extend="$l.numbers"/>
+                  <numberList name="own" extend="$l.numbers">7</numberList>
+                  <mathInput name="mi" bindValueTo="$n[2]"><label>m</label></mathInput>"#;
+        expect {
+            "s.numbers" = [2, 3], "s.numComponents" = 2,
+            "n.numbers" = [4, 5, 6], "own.numComponents" = 1, "own.number1" = 7,
+        }
+        request { "mi.value" = 9 }
+        expect { "l.numbers" = [4, 9, 6] }
+    }
 }
