@@ -34,10 +34,9 @@ So, in a result:
 - `document.credit` is the document's own `creditAchievedIfSubmit`. The
   document weighs its parts itself, by their weights, and a section with
   `sectionWideCheckWork` counts as the one part it is; read this, do not add
-  up the answers. It is `NaN` (`null` in JSON) when the document weighs
-  nothing (no answers, or every weight 0), and also when a `<problem>` or
-  other aggregating section in it has no answers, whatever the rest earns
-  (each divides by the weight of what it holds, with no guard for none).
+  up the answers. A document, `<problem>` or other aggregating section that
+  weighs nothing (no answers, or every weight 0) gets full credit, as it does
+  in `creditAchieved`.
 
 `answers` are the document's scored parts in the order a reader meets them (a
 repeat's iteration by iteration, a select's in the order selected): each

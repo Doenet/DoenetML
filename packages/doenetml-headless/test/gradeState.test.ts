@@ -236,16 +236,20 @@ describe("gradeState", () => {
         }
     });
 
-    it("reports the document's credit as NaN when it weighs nothing", async () => {
+    it("gives full credit for whatever weighs nothing", async () => {
         // The document's own value, passed through (see the README)
-        for (const doenetML of [
-            `<p>No answers.</p>`,
-            `<answer name="a" weight="0">x</answer>`,
-            `<problem><p>Nothing to answer.</p></problem><answer name="a">x</answer>`,
-        ]) {
+        for (const [doenetML, credit] of [
+            [`<p>No answers.</p>`, 1],
+            [`<answer name="a" weight="0">x</answer>`, 1],
+            // The empty problem counts as full credit beside the unanswered answer
+            [
+                `<problem><p>Nothing to answer.</p></problem><answer name="a">x</answer>`,
+                0.5,
+            ],
+        ] as const) {
             const state = await stateAfter(doenetML, async () => {});
             const result = await gradeState(doenetML, 1, state);
-            expect(result.document.credit, doenetML).toBeNaN();
+            expect(result.document.credit, doenetML).toBe(credit);
         }
     });
 

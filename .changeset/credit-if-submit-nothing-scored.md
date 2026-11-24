@@ -2,8 +2,9 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+"@doenet/doenetml-headless": patch
 ---
 
-A document or section with nothing scored now gets full credit in `creditAchievedIfSubmit`, as it already does in `creditAchieved`. Before, a document or aggregating section with no answers, or whose answers all have `weight="0"`, had a `creditAchievedIfSubmit` of `NaN`, and the `NaN` spread to any document or aggregating section containing it: a document with an empty `<problem>` beside a correct `<answer>` had a `NaN` `creditAchievedIfSubmit`. A section-wide check work's `submitted` event reports this value as its `creditAchieved`, so that event now records 1 rather than `NaN` for such a section.
-
-Closes #2630.
+A document or aggregating section with nothing scored (no answers, or every answer `weight="0"`) now has a `creditAchievedIfSubmit` of 1 rather than `NaN`, matching `creditAchieved`. The `NaN` no longer spreads to the containers around it, and a section-wide check work over only weight-0 answers records a credit of 1 in its `submitted` event. `gradeState` in `@doenet/doenetml-headless` reports these documents with a credit rather than `NaN`.
