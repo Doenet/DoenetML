@@ -1138,6 +1138,8 @@ export const CONTRACTS: Record<string, Contract> = {
     br: { noChildren: true },
     hr: { noChildren: true },
     div: {},
+    // A page (ADR 0058): on screen a block around its children.
+    page: { name: () => "div" },
     pre: {},
     blockQuote: {},
     // Document-structure blocks beside the numbered divisions.
@@ -1617,6 +1619,7 @@ export const BLOCKS = new Set([
     "pretext",
     "article",
     "book",
+    "page",
 ]);
 
 /** Component types with no view of their own. */

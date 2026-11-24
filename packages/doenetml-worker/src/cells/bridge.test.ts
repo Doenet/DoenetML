@@ -1752,3 +1752,21 @@ describe("a line in text", () => {
         expect((updates[l].changedState as any).latex).toBe("0 = -5 x + 3 y");
     });
 });
+
+describe("a page", () => {
+    it("is a block around its children, and the sections in it are numbered as beside it", async () => {
+        const bridge = await load(
+            `<page><section><title>A</title></section></page><section><title>B</title></section>`,
+        );
+        const root = bridge.flatDast();
+        const [page] = byName(root, "div");
+        const divisions = byName(root, "division");
+        expect(page.children).toContainEqual(
+            expect.objectContaining({ id: divisions[0].data.id }),
+        );
+        expect(divisions.map((d) => (d.data as any).props.codeNumber)).toEqual([
+            "1",
+            "2",
+        ]);
+    });
+});

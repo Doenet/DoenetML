@@ -1107,7 +1107,38 @@ const STATE: Record<string, Record<string, Reader>> = {
                 );
         },
     },
+    // A page (ADR 0058): no item of a list itself, and its parent's
+    // `asList`, which it passes through, read off the core's cells.
+    page: {
+        isListItem: () => false,
+        asList: (_g, x) => passedAsList(x.cells, x.idx),
+    },
 };
+
+/** The types the list items' sequence passes through on its way to a
+ * section inside them (ADR 0054, ADR 0058): a page and the structure. */
+const PASSES_LIST_ITEMS = new Set([
+    "page",
+    "group",
+    "conditionalContent",
+    "case",
+    "select",
+    "option",
+    "repeat",
+    "repeatForSequence",
+]);
+
+/** The `asList` a type that passes the list items through takes from its
+ * parent: the cell of the nearest ancestor that is no such type, false
+ * when that one has none. */
+function passedAsList(cells: Cells, c: number): boolean {
+    for (let p = cells.table.parent(c); p !== null; p = cells.table.parent(p)) {
+        if (PASSES_LIST_ITEMS.has(cells.table.componentType(p))) continue;
+        const asList = cells.propCells(p, "asList");
+        return asList.length > 0 && cells.value(asList[0]) !== 0;
+    }
+    return false;
+}
 
 /** What `idx` holds among its children as the current core's
  * `activeChildren` lists them (ADR 0041, decision 4): its text children

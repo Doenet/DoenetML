@@ -467,6 +467,12 @@ impl ComponentDef {
         self.numbering = Some(super::Numbering::PassesDivisions);
         self
     }
+    /// Both sequences pass through it ([`super::Numbering`]): a flag,
+    /// `flags: [container, passes_both]`.
+    pub(super) const fn passes_both(mut self) -> Self {
+        self.numbering = Some(super::Numbering::PassesBoth);
+        self
+    }
     /// A sectioning component with no number ([`super::Numbering`]): a
     /// flag, `flags: [container, unnumbered_division]`.
     pub(super) const fn unnumbered_division(mut self) -> Self {

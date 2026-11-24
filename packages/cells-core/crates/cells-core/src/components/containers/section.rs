@@ -369,9 +369,9 @@ fn section_number(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, include: b
         Some(None) => return Source::absent(),
     };
     let with_parent = Source::computed(join_with(2, Sep::Dot), vec![parent, at.number]);
-    // Its parent (the nearest ancestor that is no structure) may make it a
-    // list item, which shows no parent's number.
-    match ctx.ancestor_prop(|ty| ty.structure_kind().is_none(), "asList") {
+    // Its parent (the nearest ancestor the list items do not pass through)
+    // may make it a list item, which shows no parent's number.
+    match ctx.ancestor_prop(|ty| !ty.passes_list_items(), "asList") {
         Some(Some(as_list)) => {
             let as_list = wiring.hidden(as_list);
             let pick = wiring.hidden(Source::computed_k(OpSpec::Add, as_list, 1.0));

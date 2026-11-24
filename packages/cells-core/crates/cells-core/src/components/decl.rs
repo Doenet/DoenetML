@@ -736,6 +736,11 @@ pub enum Numbering {
     /// a place among its parent's list items, none among the divisions,
     /// and bounds both.
     Unnumbered,
+    /// Both sequences pass through it (a `<page>`; ADR 0058): a division
+    /// and a list item inside it are numbered among those around it, and
+    /// its parent's `asList` reaches the sections inside it, as through a
+    /// structure. It is no structure otherwise: its children are its own.
+    PassesBoth,
 }
 
 /// A group of element children of given types (`constraints:

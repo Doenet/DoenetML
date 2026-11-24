@@ -82,6 +82,12 @@ containers! {
     /// numbered through as an `<introduction>` is.
     statement: ["statement"] with [passes_divisions];
 
+    /// `<page>`: the content of one printed page, on screen a block
+    /// around its children. Both sequences pass through it (ADR 0058): a
+    /// section inside it is numbered as if written beside it, and the
+    /// problems each on a page in a `<problems>` are its items.
+    page: ["page"] with [passes_both];
+
     /// `<figure>`: its content, then its `<caption>` under its name,
     /// "Figure 2", its number shared with the tables (ADR 0044) unless
     /// `number="false"`.

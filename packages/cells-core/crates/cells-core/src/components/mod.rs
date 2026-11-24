@@ -293,6 +293,7 @@ component_types! {
     Matrix => values::matrix::DEFINITION,
     MatrixRow => values::matrix::row::DEFINITION,
     MatrixColumn => values::matrix::column::DEFINITION,
+    Page => containers::blocks::page::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -930,6 +931,14 @@ impl ComponentType {
     /// list items, when it is neither numbered nor structure (ADR 0054).
     pub fn numbering(self) -> Option<Numbering> {
         self.def().numbering
+    }
+
+    /// Whether the list items' sequence passes through it (ADR 0054, ADR
+    /// 0058): a structure, or a type both sequences pass through (a
+    /// `<page>`). A section's parent, whose `asList` makes it a list item,
+    /// is its nearest ancestor that is neither.
+    pub fn passes_list_items(self) -> bool {
+        self.structure_kind().is_some() || self.numbering() == Some(Numbering::PassesBoth)
     }
 
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as

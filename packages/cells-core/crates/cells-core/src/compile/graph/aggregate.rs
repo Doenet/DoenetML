@@ -321,7 +321,7 @@ impl<'c> Stamp<'c> {
     /// list item (a `<part>`).
     fn has_list_item(&self, c: Comp) -> bool {
         self.children(c).into_iter().any(|k| {
-            if self.component_type(k).structure_kind().is_some() {
+            if self.component_type(k).passes_list_items() {
                 self.has_list_item(k)
             } else {
                 self.numbered_flag(k, |n| n.list_item)
@@ -370,6 +370,8 @@ impl<'c> Stamp<'c> {
                     }
                     self.numbers(k, gate, seq)
                 }
+                // A page: both sequences continue through it (ADR 0058).
+                None if ty.numbering() == Some(Numbering::PassesBoth) => self.numbers(k, gate, seq),
                 None if ty.numbering() == Some(Numbering::PassesDivisions) => {
                     // The divisions inside continue the sequence; the list
                     // items inside are counted among themselves.
