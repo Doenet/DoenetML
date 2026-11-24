@@ -488,3 +488,77 @@ fn a_copy_of_what_is_inside_a_later_copy_has_its_clones() {
         assert_eq!(doc.value("c.P", "x"), Some(3.0), "{src}");
     }
 }
+
+/// An extend of an extend with attributes of its own reads the value the
+/// chain starts from: each link takes what it does not write from its
+/// referent, which takes it from its own.
+#[test]
+fn an_extend_of_an_extend_reads_the_first_referents_value() {
+    for (tag, value, shown) in [
+        ("math", "6.5", "6.5"),
+        ("math", "x+1", "x + 1"),
+        ("number", "6.5", "6.5"),
+        ("text", "hi", "hi"),
+        ("boolean", "true", "true"),
+    ] {
+        for (b, c) in [
+            (r#" displayDecimals="5""#, r#" label="q""#),
+            (r#" displayDecimals="5""#, ""),
+            ("", r#" label="q""#),
+        ] {
+            let src = format!(
+                r#"<{tag} name="a">{value}</{tag}><{tag} extend="$a" name="b"{b}/><{tag} extend="$b" name="c"{c}/>
+                   <{tag} extend="$c" name="d" displayDigits="2"/><p name="p">$b; $c; $d</p>"#
+            );
+            let doc = load(&src).unwrap();
+            assert!(
+                doc.diagnostics().is_empty(),
+                "{src}: {:?}",
+                doc.diagnostics()
+            );
+            let p = doc.rendered_text(doc.resolve_path("p").unwrap());
+            assert_eq!(p, format!("{shown}; {shown}; {shown}"), "{src}");
+        }
+    }
+}
+
+/// Along a chain of extends, a math with no text reads the nearest text,
+/// with the nearest link's settings: across a repeat, through a bare
+/// link, from a link that writes text, and from a link that extends a
+/// value of another type.
+#[test]
+fn a_math_extend_chain_reads_the_nearest_text() {
+    for (src, shown) in [
+        (
+            r#"<repeatForSequence name="r" from="1" to="2" valueName="v"><math name="m">x+$v</math></repeatForSequence>
+               <math name="b" extend="$r[2].m" displayDecimals="3"/><math name="c" extend="$b" label="q"/>"#,
+            "x + 2; x + 2",
+        ),
+        (
+            r#"<math name="a" simplify>x+x</math><math extend="$a" name="b" displayDecimals="2"/><math extend="$b" name="c" label="q"/>"#,
+            "2 x; 2 x",
+        ),
+        (
+            r#"<math name="a">x+x</math><math extend="$a" name="b"/><math extend="$b" name="c" label="q"/>"#,
+            "x + x; x + x",
+        ),
+        (
+            r#"<math name="a">x</math><math extend="$a" name="b" simplify>y+y</math><math extend="$b" name="c" label="q"/>"#,
+            "2 y; 2 y",
+        ),
+        (
+            r#"<number name="a">3</number><math extend="$a" name="b"/><math extend="$b" name="c" label="q"/>"#,
+            "3; 3",
+        ),
+    ] {
+        let src = format!(r#"{src}<p name="p">$b; $c</p>"#);
+        let doc = load(&src).unwrap();
+        assert!(
+            doc.diagnostics().is_empty(),
+            "{src}: {:?}",
+            doc.diagnostics()
+        );
+        let p = doc.rendered_text(doc.resolve_path("p").unwrap());
+        assert_eq!(p, shown, "{src}");
+    }
+}

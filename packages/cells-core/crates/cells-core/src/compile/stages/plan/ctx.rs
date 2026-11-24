@@ -19,16 +19,18 @@ pub(crate) struct PlanCtx<'c, 'a> {
     /// The element's record: its own, merged under its `extend` referent's
     /// for a copy with overrides.
     record: record::Record,
-    /// The `extend` referent of a copy with overrides, in this template,
-    /// whose math text in the record is planned where it sits.
-    referent: Option<Base>,
+    /// The `extend` referents of a copy with overrides in this template,
+    /// the chain it stands on, nearest first: what the record holds from
+    /// each is planned where it sits.
+    referents: Vec<Base>,
+    /// For a `<math>` that writes no text, its referents' nearest text
+    /// (`Planning::inherit`).
+    inherited_math: Option<ParsedMath>,
 }
 
-/// The `extend` referent of a `Plan` type planned with overrides: an
+/// An `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
-    /// The referent.
-    elem: ElemId,
     /// Where its children are planned.
     scope: ElemId,
     /// Every node under it: what a planner reads from it rather than from
@@ -42,9 +44,10 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         t: TemplateId,
         e: ElemId,
         record: record::Record,
-        referent: Option<ElemId>,
+        referents: Vec<ElemId>,
+        inherited_math: Option<ParsedMath>,
     ) -> Self {
-        let referent = referent.map(|b| {
+        let referents = referents.into_iter().map(|b| {
             let Elem {
                 node, name_scope, ..
             } = *p.rd.referent_row(t, b);
@@ -63,17 +66,18 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 }
             }
             Base {
-                elem: b,
                 scope: name_scope,
                 subtree,
             }
         });
+        let referents = referents.collect();
         PlanCtx {
             p,
             t,
             e,
             record,
-            referent,
+            referents,
+            inherited_math,
         }
     }
 }
@@ -87,13 +91,13 @@ impl<'a> PlanCtx<'_, 'a> {
         self.elem().name_scope
     }
 
-    /// Where nodes are planned: the referent's scope for nodes under the
+    /// Where nodes are planned: a referent's scope for nodes under that
     /// referent (its children), else the element's.
     fn scope_for(&self, nodes: &[NodeId]) -> ElemId {
-        match (&self.referent, nodes.first()) {
-            (Some(b), Some(n)) if b.subtree.contains(n) => b.scope,
-            _ => self.scope(),
-        }
+        nodes
+            .first()
+            .and_then(|n| self.referents.iter().find(|b| b.subtree.contains(n)))
+            .map_or_else(|| self.scope(), |b| b.scope)
     }
 
     /// The element's record: every attribute its type declares and its
@@ -523,20 +527,14 @@ impl<'a> PlanCtx<'_, 'a> {
 
     /// The element's `<math>` text as it was parsed, or the
     /// error parsing it met. An extend that writes no text of its own reads
-    /// its referent's, whose references were planned where the referent
-    /// sits (REF-3, REF-6): math text is no attribute, so it is not in the
-    /// merged record.
+    /// the nearest text along the chain of referents it stands on, whose
+    /// references were planned where that referent sits (REF-3, REF-6):
+    /// math text is no attribute, so it is not in the merged record.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        let d = self.p.rd.dast;
-        let own_text = d
-            .children(self.node())
-            .iter()
-            .any(|&n| !self.p.rd.is_not_content(n));
-        let at = match &self.referent {
-            Some(b) if !own_text => b.elem,
-            _ => self.e,
-        };
-        match self.p.parsed.math(self.t, at) {
+        if let Some(math) = &self.inherited_math {
+            return Ok(math.clone());
+        }
+        match self.p.parsed.math(self.t, self.e) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }
