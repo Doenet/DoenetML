@@ -707,6 +707,12 @@ export default class Atom extends InlineComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * The property a message suggests in place of a type change this atom
+     * doesn't stand in as (D69, `valuePropertyFor`).
+     */
+    static valueProperties = { number: "atomicNumber" };
+
     static adapters = [
         "math",
         "name",

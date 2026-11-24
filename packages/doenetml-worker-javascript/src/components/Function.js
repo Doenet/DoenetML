@@ -4995,6 +4995,12 @@ export default class Function extends InlineComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * The property a message suggests in place of a type change this
+     * function doesn't stand in as (D69, `valuePropertyFor`).
+     */
+    static valueProperties = { text: "formula" };
+
     static adapters = [
         {
             stateVariable: "numericalfs",

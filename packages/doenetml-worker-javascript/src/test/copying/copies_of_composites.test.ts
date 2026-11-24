@@ -274,9 +274,10 @@ describe("Copies of composites @group3", () => {
 /**
  * A child written on a copy or extend that the component would not use
  * (#2486). Of a child a component reads only one of, the last written wins
- * on a copy (REF-4a); an extend shares its source's content, so there it is
- * ignored, as is any child a component has no use for beside its source's,
- * each with a warning (DIAG-1).
+ * on a copy (REF-4a), and any child a component has no use for beside its
+ * source's is ignored, with a warning (DIAG-1). An extend of a value or an
+ * object is what it holds, so a child written inside one is an error at
+ * load (`doenet-e0057`, D71), not ignored.
  */
 describe("Children a copy or extend does not use @group3", () => {
     async function load(doenetML: string) {
@@ -308,13 +309,12 @@ describe("Children a copy or extend does not use @group3", () => {
 <function name="fh" copy="$h">$f</function>
 <function name="fl" copy="$f"><label>L</label></function>`,
         );
-        expect(errors).eqls([]);
-        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
-            ["doenet-w0169", 6],
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 6],
         ]);
+        expect(warnings).eqls([]);
         expect((await sv("fc")).formula.tree).eqls(["^", "x", 3]);
         expect((await sv("fr")).formula.tree).eqls(["^", "x", 3]);
-        expect((await sv("fe")).formula.tree).eqls(["^", "x", 2]);
         expect((await sv("gr")).formula.tree).eqls(["^", "x", 3]);
         expect((await sv("fh")).formula.tree).eqls(["^", "x", 2]);
         // a label is not a formula, so the source's stays
@@ -322,7 +322,7 @@ describe("Children a copy or extend does not use @group3", () => {
         expect((await sv("fl")).label).eq("L");
     });
 
-    it("a function's or a pattern's formula written on a copy applies, and on an extend is ignored", async () => {
+    it("a function's or a pattern's formula written on a copy applies, and on an extend is an error", async () => {
         const { sv, errors, warnings } = await load(
             `<function name="f">x^2</function>
 <function name="fc" copy="$f">x^3</function>
@@ -332,12 +332,11 @@ describe("Children a copy or extend does not use @group3", () => {
 <piecewiseFunction name="pf"><function domain="(-10,0)">-x</function></piecewiseFunction>
 <piecewiseFunction name="pfc" copy="$pf"><function domain="[0,10)">x</function></piecewiseFunction>`,
         );
-        expect(errors).eqls([]);
-        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
-            ["doenet-w0169", 3],
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 3],
         ]);
+        expect(warnings).eqls([]);
         expect((await sv("fc")).formula.tree).eqls(["^", "x", 3]);
-        expect((await sv("fe")).formula.tree).eqls(["^", "x", 2]);
         expect((await sv("m")).value).eq(true);
         expect((await sv("mc")).value).eq(false);
         // A piece written on a copy of a piecewise function is added.
@@ -346,7 +345,7 @@ describe("Children a copy or extend does not use @group3", () => {
         expect((await sv("pfc")).numericalfs[0](2)).eq(2);
     });
 
-    it("a child of an extend of an input is ignored, and a label is not", async () => {
+    it("a child of an extend of an input is an error, and a label is not", async () => {
         const { sv, errors, warnings } = await load(
             `<mathInput name="mi" prefill="q"><label>a</label></mathInput>
 <mathInput name="mie" extend="$mi">x</mathInput>
@@ -354,13 +353,11 @@ describe("Children a copy or extend does not use @group3", () => {
 <booleanInput name="bie" extend="$bi">true</booleanInput>
 <mathInput name="mil" extend="$mi"><label>c</label></mathInput>`,
         );
-        expect(errors).eqls([]);
-        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
-            ["doenet-w0169", 2],
-            ["doenet-w0169", 4],
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 2],
+            ["doenet-e0057", 4],
         ]);
-        expect((await sv("mie")).value.tree).eq("q");
-        expect((await sv("bie")).value).eq(false);
+        expect(warnings).eqls([]);
         expect((await sv("mil")).label).eq("c");
     });
 
@@ -372,18 +369,18 @@ describe("Children a copy or extend does not use @group3", () => {
 <matrix name="Me" extend="$M"><math>$B</math></matrix>
 <matrix name="Mr" copy="$M"><row>5 6</row></matrix>`,
         );
-        expect(errors).eqls([]);
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 4],
+        ]);
         expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
             ["doenet-w0190", 3],
-            ["doenet-w0169", 4],
         ]);
         expect((await sv("Mc")).matrixSize).eqls([2, 2]);
         expect((await sv("Mc")).text).eq("[[1, 2], [3, 4]]");
-        expect((await sv("Me")).matrixSize).eqls([2, 2]);
         expect((await sv("Mr")).matrixSize).eqls([3, 2]);
     });
 
-    it("a math written on a matrix copy replaces its source's, and on an extend is ignored", async () => {
+    it("a math written on a matrix copy replaces its source's, and on an extend is an error", async () => {
         // #2546 item 1: a matrix takes one `<math>` child, the last written
         // (REF-4a), so one written on a copy replaces its source's. It was
         // ignored with `doenet-w0190`.
@@ -401,16 +398,15 @@ describe("Children a copy or extend does not use @group3", () => {
 <matrix name="Mg" copy="$M">$g</matrix>
 <matrix name="Mt" copy="$M">5</matrix>`,
         );
-        expect(errors).eqls([]);
-        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
-            ["doenet-w0169", 8],
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 8],
         ]);
+        expect(warnings).eqls([]);
         expect((await sv("Mc")).text).eq((await sv("written")).text);
         expect((await sv("Mc")).text).not.eq((await sv("M")).text);
         expect((await sv("Mb")).text).eq((await sv("B")).text);
         expect((await sv("Mb")).matrixSize).eqls([2, 2]);
         expect((await sv("Mm")).text).eq((await sv("B")).text);
-        expect((await sv("Me")).text).eq((await sv("M")).text);
         // A row written on a copy of a matrix whose value is a math is
         // added, and the rows give the copy its entries, as before.
         expect((await sv("Mr")).text).eq("[[5, 6]]");

@@ -100,7 +100,7 @@ describe("Boolean tag tests @group1", async () => {
         // decision 4, #2582): the boolean is missing, with a warning at load.
         // A `<boolean>` written in one is missing, so a comparison with it is
         // missing, which is false (D70). `true` and `false`, or a comparison,
-        // are the way to write them.
+        // are the way to write them. So is a text (D68).
         const mixes: Record<string, boolean> = {
             t3: false, // 1
             t4: false, // 10
@@ -115,6 +115,7 @@ describe("Boolean tag tests @group1", async () => {
             f21: false, // <math>2 > 1</math>
             f24: false, // <boolean>1</boolean> != true
             f25: false, // <boolean>0</boolean> != false
+            f26: false, // <text>true</text>: a text is not a boolean (D68)
             f27: false, // <math>true</math>
         };
 

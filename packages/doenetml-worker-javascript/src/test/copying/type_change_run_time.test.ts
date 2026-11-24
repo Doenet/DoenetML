@@ -1178,26 +1178,29 @@ describe("What still changes at run time, without changing what the component is
     });
 
     it("an index that names nothing makes the tag missing, without its own children, however the index came to name nothing", async () => {
+        // A container's extend, which may be given children (D71); an
+        // extend of a value can't be.
         const d = await setup(`
 <mathInput name="n"/>
-<repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
-<p name="p1"><text name="t" extend="$r[$n]">!</text></p>
+<repeat name="r" for="a b" valueName="v"><p>$v</p></repeat>
+<p name="p1" extend="$r[$n]">!</p>
 `);
         const names = ["p1"];
+        // a missing paragraph shows nothing, not its `!`
         const steps: [string, string, boolean][] = [
-            ["", "＿", true],
+            ["", "", true],
             ["1", "a!", false],
-            ["", "＿", true],
-            ["5", "＿", true],
+            ["", "", true],
+            ["5", "", true],
             ["2", "b!", false],
-            ["3", "＿", true],
+            ["3", "", true],
         ];
         for (const [step, [index, shown, info]] of steps.entries()) {
             if (step > 0) {
                 await d.setMath("n", index);
             }
             expect(await d.texts(names), `n=${index}`).eqls({ p1: shown });
-            expect(await d.typeOf("t")).eq("text");
+            expect(await d.typeOf("p1")).eq("p");
             const infos = getDiagnosticsByType((await d.core()) as any).infos;
             expect(
                 [...infos].map((x: any) => x.code),
@@ -1576,44 +1579,40 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         expect(d.newDiagnostics()).eqls([info(0)]);
     });
 
-    it("a boolean from a choiceInput of texts is missing, with an info, while the selection isn't true or false or isn't one", async () => {
-        // A boolean is made from a text, never a math (D47 decision 4), and
-        // is still checked against the selected value as it changes. It was
-        // `false`, silently, while what decides whether a tag is checked
-        // asked only whether it is checked against a math.
+    it("a boolean from a choiceInput of texts is an error, suggesting a comparison", async () => {
+        // A text is never read as a boolean (D68): it followed the
+        // selection, true while it was the word `true`.
         const d = await setup(`
 <choiceInput name="ci" preselectChoice="1"><label>c</label><choice>true</choice><choice>maybe</choice><choice>false</choice></choiceInput>
 <p name="p1"><boolean extend="$ci.selectedValues" name="B1"/></p>
 <p name="p2"><boolean extend="$ci" name="B2"/></p>
 `);
-        async function select(indices: number[]) {
-            await updateSelectedIndices({
-                componentIdx: await d.resolvePathToNodeIdx("ci"),
-                selectedIndices: indices,
-                core: await d.core(),
-            });
-        }
-        const names = ["p1", "p2"];
-        expect(await shown(d, names)).eqls({ p1: "true", p2: "true" });
-        expect(d.newDiagnostics()).eqls([]);
-
-        await select([2]);
-        expect(await shown(d, names)).eqls({ p1: "＿", p2: "＿" });
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 3],
-            ["doenet-i0053", 4],
+        expect(
+            d
+                .newDiagnostics()
+                .map((x) => [x.code, x.line, x.message])
+                .sort((a: any, b: any) => a[1] - b[1]),
+        ).eqls([
+            [
+                "doenet-e0065",
+                3,
+                "A `<boolean>` can't be made from `$ci.selectedValues`, which gives a `<text>`: a text is not true or false. To test it, write a comparison such as `<boolean>$ci.selectedValues = true</boolean>`.",
+            ],
+            [
+                "doenet-e0065",
+                4,
+                "A `<boolean>` can't be made from `$ci`, which gives a `<text>`: a text is not true or false. To test it, write a comparison such as `<boolean>$ci = true</boolean>`.",
+            ],
         ]);
-
-        await select([3]);
-        expect(await shown(d, names)).eqls({ p1: "false", p2: "false" });
+        expect(await d.typeOf("B1")).eq("_error");
+        expect(await d.typeOf("B2")).eq("_error");
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [3],
+            core: await d.core(),
+        });
         expect(d.newDiagnostics()).eqls([]);
-
-        await select([]);
-        expect(await shown(d, names)).eqls({ p1: "＿", p2: "＿" });
-        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0061", 3],
-            ["doenet-i0061", 4],
-        ]);
+        expect(await d.typeOf("B2")).eq("_error");
     });
 
     it("a point from a choiceInput with a text choice is an error at load, whatever is selected", async () => {
@@ -1744,27 +1743,23 @@ describe("A related type made from a value follows it, and writes back (#2440, #
     });
 
     // A number or a math is not made from a boolean input (D47 decision 3),
-    // an error at load (`copying/type_change.test.ts`)
-    it("a boolean from a text input follows and writes back", async () => {
+    // nor a boolean from a text input (D68): errors at load
+    // (`copying/type_change.test.ts`). A number from a text input follows it.
+    it("a number from a text input follows it, missing while it isn't a number", async () => {
         const d = await setup(`
-<textInput name="ti" prefill="true"/>
-<p name="p1"><boolean extend="$ti" name="B"/></p>
-<booleanInput name="biB" bindValueTo="$B"/>
+<textInput name="ti" prefill="2"/>
+<p name="p1"><number extend="$ti" name="N"/></p>
 `);
-        expect(await shown(d, ["p1"])).eqls({ p1: "true" });
+        expect(await shown(d, ["p1"])).eqls({ p1: "2" });
 
         await d.setText("ti", "maybe");
         expect(await shown(d, ["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-i0053", 3],
         ]);
-        await d.setText("ti", "False");
-        expect(await shown(d, ["p1"])).eqls({ p1: "false" });
+        await d.setText("ti", "5");
+        expect(await shown(d, ["p1"])).eqls({ p1: "5" });
         expect(d.newDiagnostics()).eqls([]);
-
-        // written back as the word
-        await d.setBoolean("biB", true);
-        expect(await shown(d, ["ti", "p1"])).eqls({ ti: "true", p1: "true" });
     });
 
     it("the one component a composite stands for through references follows it as it changes", async () => {

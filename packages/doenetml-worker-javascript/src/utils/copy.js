@@ -1006,8 +1006,12 @@ export async function verifyReplacementsMatchSpecifiedType({
  * tuple, a `<text>` a math). A boolean is `1` or `0` as a number or a math:
  * a `<number>` reads a boolean child so with `convertBoolean`, and a
  * `<math>` reads it through such a number, which writes `1` or `0` back as
- * `true` or `false`. A `<boolean>` reads a text as the word `true` or `false`
- * with `_textAsWord`. A component that is missing makes `wrapper` missing.
+ * `true` or `false` (that is done only where the author asked, with
+ * `<number convertBoolean>`; a type change from a boolean is an error, D47).
+ * An `<angle>` is its measure, a math (D69 decision 3): one made from a value
+ * takes it as its `radians` (D66 decision 17), and a value made from an angle
+ * reads it through a `<math>`. A component that is missing makes `wrapper`
+ * missing.
  */
 function wrapAsWrittenType({
     wrapper,
@@ -1050,17 +1054,51 @@ function wrapAsWrittenType({
     };
 
     if (
-        typeof wrapped === "object" &&
-        isOfType(wrapped.componentType, "text") &&
-        isOfType(wrapper.componentType, "boolean")
+        isOfType(wrapper.componentType, "angle") &&
+        !(
+            typeof wrapped === "object" &&
+            isOfType(wrapped.componentType, "angle")
+        )
     ) {
-        // read as the word `true` or `false`
-        wrapper.attributes._textAsWord = {
-            type: "primitive",
-            name: "_textAsWord",
-            primitive: { type: "boolean", value: true },
+        // An angle made from a math, a number or a text is that measure in
+        // radians (D66 decision 17), as `<angle>…</angle>` takes its content
+        // (`Angle.js`'s sugar).
+        wrapper.attributes.radians = {
+            type: "component",
+            name: "radians",
+            component: {
+                type: "serialized",
+                componentType: "math",
+                componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [wrapped],
+            },
         };
-        wrapper.children = [wrapped];
+        wrapper.children = [];
+        return { nComponents };
+    }
+    if (
+        typeof wrapped === "object" &&
+        isOfType(wrapped.componentType, "angle") &&
+        !isOfType(wrapper.componentType, "math")
+    ) {
+        // A value made from an angle reads its measure, a math (D69
+        // decision 3), which a `<text>` doesn't take from an angle itself.
+        wrapper.children = [
+            {
+                type: "serialized",
+                componentType: "math",
+                componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [wrapped],
+            },
+        ];
         return { nComponents };
     }
     if (
