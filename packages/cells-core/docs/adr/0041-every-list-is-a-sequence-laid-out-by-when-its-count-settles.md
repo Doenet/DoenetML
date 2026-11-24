@@ -768,6 +768,13 @@ otherwise.
      with a body after the names settle (as `<repeat for>`'s item is),
      and an operator reading one needs the items gathered per build, or
      a symbolic reduction inside the handle instead of a rebuild.
+     *Done 2026-11-24* (ADR 0063, the user's decision): such a list is
+     settled once names resolve, by its referent's type, a repeat-like
+     list over the value (its entries the value's read as a list's,
+     `SymKind::ListItem`), static over another list; an operator over one
+     math value reduces its entries inside the value (`Post::Reduce`).
+     A bare reference to one reads the value as a `<math>`; a list over
+     a value with any attribute beside `name` and `extend` stays static.
    - A function's maxima, minima and extrema: *done 2026-11-24* (ADR
      0061). They have no cap the type knows (the current core searches a
      grid of a thousand cells and recurses, `utils/extrema.js`), so by
@@ -776,8 +783,9 @@ otherwise.
      One search per direction (`SymKind::Extrema`, a port of the current
      core's) writes the local, global and infimum ones as one value its
      props are entries of. `<pointList extend="$f.extrema"/>`, a list
-     whose count follows that value, is the structural list of step 4,
-     not done. An interpolated function (a `<function>` through points,
+     whose count follows that value, is the structural list of step 4:
+     *done 2026-11-24* (ADR 0063), settled late as a list over the
+     value. An interpolated function (a `<function>` through points,
      maxima and minima) is a capped list of cubic pieces, its count `3 n +
      1` for `n` points given (ADR 0061), and its extrema its pieces'.
    - A matrix's entries (`$A[i][j]`) are not entries of a list head: the

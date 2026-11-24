@@ -68,10 +68,14 @@ search.
 - A `<function>`'s table gains `xscale` and ten extrema props; nothing
   is computed for a function whose extrema no one reads.
 - `$f.minima[2][1]` read by a `<math>` is the location. Read by a
-  `<number>` it is not yet evaluated (a number aliasing a math cell
-  holds its handle), the same gap `<number extend="$mi[2]"/>` has.
-- Not done: `<pointList extend="$f.extrema"/>`, a list whose count
-  follows a value (ADR 0041 step 4's structural list).
+  `<number>` it was not evaluated (a number aliasing a math cell held
+  its handle), the same gap `<number extend="$mi[2]"/>` had; *since
+  2026-11-24* a number reading what may be a math cell evaluates it
+  (`Planning::read_as_number`).
+- `<pointList extend="$f.extrema"/>`, a list whose count follows a
+  value (ADR 0041 step 4's structural list): *done 2026-11-24*, a list
+  over a math value settled late (ADR 0063). The extrema props declare
+  `expr_when`: each holds an expression.
 
 ## Interpolated functions
 
