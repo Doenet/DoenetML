@@ -251,9 +251,11 @@ A reference can name nothing: no referent, an index past the end, `$P.z` on a 2D
 `selectedIndex` before a choice is made. Such a reference is *missing*. Any component can be
 missing, and a tag whose source is missing is missing too (REF-0).
 - **(Tier 1)** A reference to one thing (a name, an index, a property, an iteration or a pick)
-  gives that thing, or a missing value. A reference to a collection (a list, a repeat, a collect,
-  a group, a `<conditionalContent>` with no case active) gives its members, possibly none. That
-  is the only way a reference shows nothing.
+  gives that thing, or a missing value. A reference to a collection (a list, a repeat, a collect)
+  or to a `<group>` gives its members, possibly none. That is the only way a reference shows
+  nothing (D73): an empty `<group>`, or an empty case that is shown, says nothing is there. A
+  `<conditionalContent>` is a reference to one thing (D72): `$cc` while no case is shown is `＿`.
+  **Known violation** (#2673): `$cc` with no case shown shows nothing.
 - **(Tier 1)** Missing shows as `＿` inline, and is not drawn in a graph: a missing point can't
   be dragged. `$ans.submittedResponse` is `＿` until a submission.
 - **(Tier 1, answers depend on it)** A missing value never equals anything: another missing

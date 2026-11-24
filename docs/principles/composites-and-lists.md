@@ -246,7 +246,9 @@ or a shown case. Authors see a `<group>` (COLL-1's last bullet); the others they
   `<setup>`, and is decided at load (NAME-2).
 - **Several:** reach a component by name (`$g.P`). An index or a property after the wrapper names
   nothing, with a warning that says to name the component.
-- **None:** the wrapper is missing (D37).
+- **None:** the wrapper shows nothing, bare or by reference: an empty `<group>` or case says
+  nothing is there (D73). A tag made from it (`<math extend="$g"/>`) is missing, since a tag needs
+  one component (D37), and an index into it names nothing.
 - **Its own settings** are its own either way: `$g.hide` is the group's.
 
 **Done by #2547** (`W/utils/wrappers.ts`): a property after a wrapper of several names nothing,
