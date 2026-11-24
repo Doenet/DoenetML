@@ -486,6 +486,26 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
         expect(d.errorCodes()).eqls(["doenet-e0064"]);
     });
 
+    it("a list beside another component counts its entries", async () => {
+        // the message counts all the group or iteration holds, not the list
+        const g = await load(
+            `<group name="g">${list}<math>4</math></group><math name="e" extend="$g"/>`,
+        );
+        expect(g.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from a `<group>` only when it holds one component, and `$g` holds 4. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<math>$g</math>`.",
+        ]);
+        const r = await load(
+            `<repeat name="r" for="1" valueName="v"><mathList>1 2</mathList><math>3</math></repeat><math name="e" extend="$r[1]"/>`,
+        );
+        expect(r.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can be made from `$r[1]` only when it always holds one component, and an iteration of the `<repeat>` holds 3. To read what it holds as one value, write `<math>$r[1]</math>`.",
+        ]);
+        const one = await load(
+            `<group name="g"><mathList>1</mathList><math>2</math></group><math name="e" extend="$g"/>`,
+        );
+        expect(one.errorCodes()).eqls(["doenet-e0064"]);
+    });
+
     it("is reported at load in a case that is not true yet (DIAG-7)", async () => {
         const d = await load(
             `<booleanInput name="b"/>${list}<conditionalContent><case condition="$b"><repeat name="r" for="1" valueName="v">$x</repeat><math name="e" extend="$r[1]"/></case></conditionalContent>`,

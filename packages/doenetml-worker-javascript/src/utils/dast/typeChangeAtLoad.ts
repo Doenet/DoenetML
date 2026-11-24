@@ -788,11 +788,18 @@ export function checkTypeChangesAtLoad({
 
     /**
      * How many components `h` always holds, or `undefined` when that is not
-     * one number (a count of a case, a `<repeat>`).
+     * one number (a count of a case, a `<repeat>`). A list the author writes
+     * always holds its entries (`listHolding`): a group of a `<mathList>`
+     * of two and a `<math>` holds three. With `listEntriesUnread`, such a
+     * list's count is left undecided, as for a name after a pick
+     * (`partItems`), where a list is one component.
      */
-    function countOf(h: Holding) {
+    function countOf(h: Holding, listEntriesUnread = false) {
         if (h.notOne === undefined) {
             return 1;
+        }
+        if (h.notOne.reason === "count" && h.notOne.part === "entries") {
+            return listEntriesUnread ? undefined : h.notOne.count;
         }
         return h.notOne.reason === "count" && h.notOne.part === "other"
             ? h.notOne.count
@@ -1696,8 +1703,12 @@ export function checkTypeChangesAtLoad({
         }
         return {
             notOne: { reason: "count", count: total, part: "other" },
+            // a list's entries and what is added are not the list's
             notOneTag:
-                held.notOne?.reason === "count" ? held.notOneTag : undefined,
+                held.notOne?.reason === "count" &&
+                held.notOne.part !== "entries"
+                    ? held.notOneTag
+                    : undefined,
             types,
             unknown,
         };
@@ -4166,7 +4177,7 @@ export function checkTypeChangesAtLoad({
             // the DoenetML in every variant (DIAG-7, Doenet/DoenetML#2654
             // item 6).
             const holding = itemHolding(item, new Set());
-            const count = holding.skip ? undefined : countOf(holding);
+            const count = holding.skip ? undefined : countOf(holding, true);
             if (count === 0) {
                 return { kind: "none" };
             }
