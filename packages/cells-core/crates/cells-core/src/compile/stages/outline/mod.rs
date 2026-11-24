@@ -361,17 +361,19 @@ impl<'a> Outlining<'a> {
             Some(t) => crate::components::values::typed_sequence::SeqKind::of(Some(&t)),
             None => crate::components::values::typed_sequence::SeqKind::Number,
         };
-        let component_type = component_type.laid_out(|attr| {
-            d.attr(el, attr).is_none_or(|a| {
-                self.rd().attr_text(a).is_some_and(|text| {
-                    (typed != crate::components::values::typed_sequence::SeqKind::Number
-                        && attr != "length")
-                        || text
-                            .split_whitespace()
-                            .all(|x| x.parse::<f64>().is_ok_and(f64::is_finite))
+        let component_type = component_type
+            .laid_out(|attr| {
+                d.attr(el, attr).is_none_or(|a| {
+                    self.rd().attr_text(a).is_some_and(|text| {
+                        (typed != crate::components::values::typed_sequence::SeqKind::Number
+                            && attr != "length")
+                            || text
+                                .split_whitespace()
+                                .all(|x| x.parse::<f64>().is_ok_and(f64::is_finite))
+                    })
                 })
             })
-        });
+            .typed(typed);
         // A case is a branch its choice makes, never an element of its own.
         if component_type.plays(Role::Case) {
             return Err(Error::Unsupported(component_type.free_owned_refusal()));

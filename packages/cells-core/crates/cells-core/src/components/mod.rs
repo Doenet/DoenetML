@@ -319,6 +319,9 @@ component_types! {
     /// A `<pointList>` of one entry of a point list chosen by an index, a
     /// count of 0 or 1 (ADR 0074).
     PointListEntry => geometry::point_list_entry::DEFINITION,
+    /// A `<sequence type="letters">` whose count follows a value: its
+    /// items texts (ADR 0074).
+    StructuralLetterSequence => values::structural_sequence::LETTERS,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

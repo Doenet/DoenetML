@@ -38,6 +38,26 @@ fn a_sequence_of_letters_counts_as_the_current_core_does() {
 }
 
 #[test]
+fn a_sequence_of_letters_whose_excludes_follow_a_text_is_structural() {
+    let mut doc = load(
+        r#"<p name="p"><sequence type="letters" length="10" exclude="$e  b f"/></p>
+           <textInput name="e"><label>e</label></textInput>
+           <p name="u"><sequence type="letters" from="C" to="F" exclude="$e"/></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "a, c, d, e, g, h, i, j");
+    assert_eq!(text(&doc, "u"), "C, D, E, F");
+    let i = doc.intern("i");
+    common::set(&mut doc, "e", "value", i);
+    assert_eq!(text(&doc, "p"), "a, c, d, e, g, h, j");
+    let d = doc.intern("d");
+    common::set(&mut doc, "e", "value", d);
+    assert_eq!(text(&doc, "p"), "a, c, e, g, h, i, j");
+    assert_eq!(text(&doc, "u"), "C, E, F");
+    assert_eq!(reference::check(&doc), None);
+}
+
+#[test]
 fn a_sequence_of_math_steps_symbolically() {
     let doc = load(
         r#"<sequence name="s" type="math" from="3x" to="3y" length="4"/>

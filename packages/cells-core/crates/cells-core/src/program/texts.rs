@@ -188,3 +188,17 @@ pub(crate) fn letters(n: u64, lowercase: bool) -> String {
     out.reverse();
     String::from_utf8(out).expect("ascii letters")
 }
+
+/// The number of the letters `s` is (`a` 1, `z` 26, `aa` 27, in either
+/// case), as the current core's `lettersToNumber`; None for anything else.
+pub(crate) fn letters_number(s: &str) -> Option<f64> {
+    let s = s.trim();
+    if s.is_empty() || !s.chars().all(|c| c.is_ascii_alphabetic()) {
+        return None;
+    }
+    Some(
+        s.to_ascii_uppercase()
+            .bytes()
+            .fold(0.0, |n, b| n * 26.0 + f64::from(b - b'A' + 1)),
+    )
+}

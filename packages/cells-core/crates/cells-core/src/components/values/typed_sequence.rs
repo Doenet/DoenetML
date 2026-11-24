@@ -66,6 +66,17 @@ impl crate::components::ComponentType {
     pub(crate) fn entry_by_type(self, ty: Option<&str>) -> Option<EntryKind> {
         self.entries_by_type().then(|| SeqKind::of(ty).entry())
     }
+
+    /// The type an element laid out as this type is when its `type` is
+    /// `kind` (ADR 0074): a structural sequence of letters is one whose
+    /// items are texts.
+    pub(crate) fn typed(self, kind: SeqKind) -> crate::components::ComponentType {
+        use crate::components::ComponentType as T;
+        match (self, kind) {
+            (T::StructuralSequence, SeqKind::Letters) => T::StructuralLetterSequence,
+            _ => self,
+        }
+    }
 }
 
 /// A sequence's parameters as written: each text, `length` a number.
@@ -124,16 +135,26 @@ impl LetterRun {
         Ok(numbers)
     }
 
-    /// The operator making an entry of its number: its letters.
-    pub(crate) fn op(&self) -> OpSpec {
-        OpSpec::Sym(SymKind::Letters {
-            lowercase: self.lowercase,
-        })
+    /// Whether its letters are lower case, as the second input of the
+    /// operator making an entry of a number (`SymKind::Letters`).
+    pub(crate) fn case(&self) -> f64 {
+        if self.lowercase { 1.0 } else { 0.0 }
     }
 
     /// An entry holding the letters of `v`, a constant.
     pub(crate) fn constant(&self, v: f64) -> Source {
-        Source::op(self.op(), vec![Arg::Const(v)])
+        Source::op(
+            OpSpec::Sym(SymKind::Letters),
+            vec![Arg::Const(v), Arg::Const(self.case())],
+        )
+    }
+
+    /// An entry holding the letters of the number port `n` holds.
+    pub(crate) fn of_port(&self, n: Port) -> Source {
+        Source::op(
+            OpSpec::Sym(SymKind::Letters),
+            vec![Arg::Own(n), Arg::Const(self.case())],
+        )
     }
 }
 
@@ -165,17 +186,7 @@ fn all_four() -> Error {
 
 /// The number of letters `s` (`a` 1, `z` 26, `aa` 27, in either case), as
 /// the current core's `lettersToNumber`; None for anything else.
-pub(crate) fn letters_to_number(s: &str) -> Option<f64> {
-    let s = s.trim();
-    if s.is_empty() || !s.chars().all(|c| c.is_ascii_alphabetic()) {
-        return None;
-    }
-    Some(
-        s.to_ascii_uppercase()
-            .bytes()
-            .fold(0.0, |n, b| n * 26.0 + f64::from(b - b'A' + 1)),
-    )
-}
+pub(crate) use crate::program::texts::letters_number as letters_to_number;
 
 /// A letters parameter (`from`, `to`, an exclude) as its number.
 fn letter(attr: &str, s: &str) -> Result<f64> {

@@ -273,10 +273,7 @@ fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<
                 params.extend(run.exclude.iter().map(|&x| constant(w, x)));
                 params
             });
-            picks
-                .into_iter()
-                .map(|p| Source::computed(run.op(), vec![p]).into())
-                .collect()
+            picks.into_iter().map(|p| run.of_port(p).into()).collect()
         }
         SeqKind::Math => {
             let values: Vec<Port> = math_values(&params)?
