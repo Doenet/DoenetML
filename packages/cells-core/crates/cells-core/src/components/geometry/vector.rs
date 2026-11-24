@@ -17,7 +17,7 @@ component! {
     tags: ["vector"],
     flags: [copyable, located],
     // `<vector extend="$r.direction"/>`: the value is its displacement
-    // (ADR 0068).
+    // (ADR 0073).
     extend_value: Attr(displacement),
     props {
         // A whole-vector drag requests both points; an end's drag, that

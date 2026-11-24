@@ -69,10 +69,14 @@ cells, and a planner type reads attributes and children, never a port.
 
 3. **An extend that names nothing extends nothing.** A reference that
    names nothing is planned as `Step::Nothing` and warned where it is
-   written (ADR 0046). Its `extend` is now no extend at all: a container
-   keeps its own children and takes no clones, and any element is planned
-   from its own record. `<p extend="$p.badProp"> there</p>` is the
-   paragraph " there", as in the current core.
+   written (ADR 0046). On a container, or on an element that writes
+   attributes or children of its own, its `extend` is now no extend at
+   all: a container keeps its own children and takes no clones, and the
+   element is planned from its own record. `<p extend="$p.badProp">
+   there</p>` is the paragraph " there", as in the current core, and
+   `<point extend="$nope" x="2"/>` the point it writes. A bare extend of
+   nothing by any other type (`<text extend="$nope"/>`) stays a copy of
+   nothing, the missing value, as ADR 0046 has it.
 
 4. **An index on a prop the type lacks names nothing.** `$p.noSuchProp[1]`
    is the unknown prop's warning, not a path too deep, so the element

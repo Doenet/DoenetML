@@ -166,7 +166,7 @@ pub(crate) struct RefPlan {
 
 impl RefPlan {
     /// Whether the plan names nothing (an unknown name or prop, ADR
-    /// 0046): an `extend` of it extends nothing (ADR 0068).
+    /// 0046): an `extend` of it extends nothing (ADR 0073).
     pub(crate) fn names_nothing(&self) -> bool {
         matches!(self.steps[..], [Step::Nothing])
     }

@@ -115,7 +115,7 @@ spec! {
     }
 
     case "an extend of a prop is the list of that prop's entries" {
-        // ADR 0068: the value is the list's one child.
+        // ADR 0073: the value is the list's one child.
         doenet r#"<matrix name="A" numRows="2" numColumns="3"/>
                   <numberList name="s" extend="$A.matrixSize"/>
                   <numberList name="l">4 5 6</numberList>

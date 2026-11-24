@@ -202,7 +202,7 @@ methods. Rules for planners:
   settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
   `Expr(f)`, `List`, `Attr(name)` or `Children` for what
   `extend="$x.prop"` makes of a value (the last two: the value given as
-  that attribute or as the children, for the planner, ADR 0068);
+  that attribute or as the children, for the planner, ADR 0073);
   `numbered:
   Titled(include, label, f)` for a section's number and title;
   `counted: Figures(number)` for a document-wide counter it takes a

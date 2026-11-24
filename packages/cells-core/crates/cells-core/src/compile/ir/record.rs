@@ -355,7 +355,7 @@ impl Record {
 
     /// The record with attribute `i` (its position among the type's
     /// declarations) given `value` where the element wrote none: an extend
-    /// of a prop read as that attribute (ADR 0068).
+    /// of a prop read as that attribute (ADR 0073).
     pub(crate) fn given_attr(mut self, i: usize, value: AttrValue) -> Record {
         if self.values.len() <= i {
             self.values.resize(i + 1, AttrValue::Absent);
@@ -370,7 +370,7 @@ impl Record {
     /// The record with reference `p` as its one child where the element
     /// wrote no content, read as a type that reads its children as a list
     /// (`List`) or as a value (`Value`) reads one: an extend of a prop
-    /// read as the children (ADR 0068). None for a type that reads them
+    /// read as the children (ADR 0073). None for a type that reads them
     /// otherwise.
     pub(crate) fn given_child_reference(mut self, p: RefId, kind: ChildrenKind) -> Option<Record> {
         if !matches!(self.children.content, Content::Absent) {
@@ -390,7 +390,7 @@ impl Record {
     }
 
     /// The record with `pieces` as its children, read as a list's, where
-    /// the element wrote no content (ADR 0068).
+    /// the element wrote no content (ADR 0073).
     pub(crate) fn given_children(mut self, pieces: Vec<ListPiece>) -> Record {
         if matches!(self.children.content, Content::Absent) {
             self.children.content = Content::List(pieces);

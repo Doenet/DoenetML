@@ -394,13 +394,14 @@ impl<'a> Planning<'a> {
         // Every `extend` was planned when outlining (ADR 0031). A container
         // copy got its clones then too.
         // An extend that names nothing (warned where it is written)
-        // extends nothing: the element is planned from its own record
-        // (ADR 0068).
-        let extend = self
-            .rd
-            .own_row(t, e)
-            .extend
-            .filter(|p| !self.ar.refs[p.index()].names_nothing());
+        // extends nothing where the element is a container or writes
+        // attributes or children of its own: it is planned from its own
+        // record (ADR 0073). A bare one of any other type stays a copy
+        // of nothing, the missing value (ADR 0046).
+        let extend = self.rd.own_row(t, e).extend.filter(|p| {
+            !self.ar.refs[p.index()].names_nothing()
+                || !(component_type.container() || self.writes_own(el))
+        });
         if let Some(p) = extend
             && component_type.container()
             && self.ar.refs[p.index()].prop.is_none()

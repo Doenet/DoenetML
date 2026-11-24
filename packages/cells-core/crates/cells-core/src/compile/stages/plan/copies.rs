@@ -55,7 +55,7 @@ impl<'a> Planning<'a> {
             }
             // `<vector extend="$v.displacement"/>`, `<numberList
             // extend="$A.matrixSize"/>`: the value given as an attribute or
-            // as the children, planned by the type's planner (ADR 0068).
+            // as the children, planned by the type's planner (ADR 0073).
             Some(ExtendValue::Attr(name)) => return self.plan_extend_prop_as_attr(t, e, p, name),
             Some(ExtendValue::Children) => return self.plan_extend_prop_as_children(t, e, p),
             None => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
@@ -406,6 +406,16 @@ impl<'a> Planning<'a> {
             (link_t, link) = (rt, r);
         }
         Ok((record, out))
+    }
+
+    /// Whether element node `el` writes an attribute other than `name` and
+    /// `extend`, or content, of its own.
+    pub(super) fn writes_own(&self, el: NodeId) -> bool {
+        let d = self.rd.dast;
+        d.attrs(el).any(|a| {
+            let n = d.attr_name(a);
+            n != "name" && n != "extend"
+        }) || self.writes_content(el)
     }
 
     /// Whether element node `el` writes content of its own: a child that

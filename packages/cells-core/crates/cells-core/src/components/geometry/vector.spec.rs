@@ -88,7 +88,7 @@ spec! {
     }
 
     case "an extend of a pair-valued prop is a vector of that displacement" {
-        // ADR 0068: the value is the vector's `displacement`; its tail is
+        // ADR 0073: the value is the vector's `displacement`; its tail is
         // its own, and a drag writes the displacement back to the source.
         doenet r#"<graph>
                     <vector name="v" tail="(1,2)" head="(3,5)"/>

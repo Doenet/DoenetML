@@ -511,7 +511,7 @@ fn a_failure_under_a_cloned_subtree_compiles_once() {
             "1+",
         ),
         // Fails while outlining, as a container copy of a repeat (an
-        // extend that names nothing no longer fails, ADR 0068); the unread
+        // extend that names nothing no longer fails, ADR 0073); the unread
         // attribute is boxed in place, and takes no plan of its own (ADR
         // 0030).
         (

@@ -89,7 +89,7 @@ impl Outlining<'_> {
             return Ok(());
         }
         // An extend that names nothing (warned where it is written) has
-        // nothing to clone: the copy is its own children (ADR 0068).
+        // nothing to clone: the copy is its own children (ADR 0073).
         if self.ar.refs[p.index()].names_nothing() {
             return Ok(());
         }
