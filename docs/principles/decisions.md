@@ -3746,6 +3746,12 @@ such DoenetML. Chosen after community feedback, over keeping D37's warnings for 
 3. **What decides "proves":** the load-time checks (DIAG-7). Where they can't tell, the
    reference stays a warning or info: a false error is worse than a missed one.
 4. Content in a case not shown is checked too (DIAG-7), so the error is the same in every state.
+5. **Not covered: wrong content inside a tag that is still made.** An invalid child is a warning
+   (`w0107`): the parent is made and the child left out. A type mix in content is the same kind
+   of thing, so it stays a warning with a blank in its place (D47): `<math><boolean>true</boolean>
+   +1</math>` and `<math>$b+1</math>` both give `＿ + 1` with `w0203`, as the two forms are
+   equivalent (VAL-3). So do award content that can never earn credit (`w0205`) and an ignored
+   attribute. A tag that can't be made at all (`<math extend="$b"/>`, REF-5) is already an error.
 
 Revises D37 item 6 and the part of D37 that reverted #2447's errors for `w0104`/`w0105` on a tag.
 Implementation: #2674 (PR 66).
