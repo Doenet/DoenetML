@@ -12,6 +12,23 @@ fn b(doc: &cells_core::Document, name: &str) -> f64 {
     v(doc, name, "value")
 }
 
+/// `prefill` checks an input at first, which a student then changes; a
+/// bound input ignores it, as the current core does.
+#[test]
+fn prefill_checks_an_input_at_first() {
+    let mut doc = load(
+        r#"<booleanInput name="on" prefill="true"/><booleanInput name="off" prefill="false"/>
+        <boolean name="b"/><booleanInput name="bound" prefill="true" bindValueTo="$b"/>"#,
+    )
+    .unwrap();
+    assert_eq!(b(&doc, "on"), 1.0);
+    assert_eq!(b(&doc, "off"), 0.0);
+    assert_eq!(b(&doc, "bound"), 0.0);
+    assert!(doc.is_essential(doc.cell("on", "value").unwrap()));
+    set(&mut doc, "on", "value", 0.0);
+    assert_eq!(b(&doc, "on"), 0.0);
+}
+
 /// An empty boolean is false; an input bound to it makes it state.
 #[test]
 fn empty_boolean_is_false_and_state_an_input_writes() {

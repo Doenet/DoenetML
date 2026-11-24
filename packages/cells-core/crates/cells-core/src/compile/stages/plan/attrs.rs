@@ -67,6 +67,12 @@ impl<'a> Planning<'a> {
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
+                    // A bound prop ignores the attribute that would have
+                    // given it a first value (`prefill`), as the current
+                    // core does: read, so not refused (ADR 0021).
+                    if let Some(first) = def.attr {
+                        d.attr(el, first);
+                    }
                     let bind = def.bind.unwrap();
                     let m = self.rd.single_macro(a).ok_or_else(|| Error::BadValue {
                         attr: bind.into(),
