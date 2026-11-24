@@ -85,6 +85,15 @@ The rule this follows: a declaration answers one question. When a second
 type wants half of a declaration, the declaration is split, not given a
 flag.
 
+*Note (ADR 0062):* a gate may also be set per child, by its place:
+`gate: Step(numCompleted, revealAll, hideFutureSections) { .. }` on
+`<cascade>` gates each of its steps by a prop it derives, and the walks
+that look through a case's gate look through a step's (scoring, what is
+shown, the text), but the numbering and the counters, which count every
+step. `gate: active` here is that declaration's whole-type form; the
+split of `StructureKind::Gate` (step 1) is still to do, and would put
+both in the one `gate` field.
+
 ### 2. A container provides props, and a planner reads the nearest one
 
 A container lists the props its descendants may read:

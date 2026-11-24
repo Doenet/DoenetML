@@ -151,7 +151,7 @@ by its entry (ADR 0017).
    bridge (rows of math inputs, the prototype having no renderer for one)
    and its size actions, and the parity adapter's readers. Departures:
 
-   - **A literal size is not static.** The current core's size controls
+   - **A literal size is not static** (the user's decision). The current core's size controls
      (`updateNumRows`, `updateNumColumns`, on by default) resize any matrix
      input, so a literal size, or none (1, or the prefill's size), is the
      first value of an essential cell the student writes (ADR 0018), and
@@ -159,8 +159,9 @@ by its entry (ADR 0017).
      section above is never taken.
    - **A bound matrix input is a type of its own** (`rewrite {
      bindValueTo: BoundMatrixInput }`), whose row and box read the bound
-     value: its size `SymKind::MatrixSize` and each box `SymKind::
-     MatrixEntry` of it, written back through (ADR 0060). `numRows`,
+     value: its size `SymKind::MatrixSize` and each box its entry by
+     row then column, two `SymKind::Entry` projections (ADR 0041 step 5),
+     written back through (ADR 0060). `numRows`,
      `numColumns`, `prefill` and `defaultEntry` are read and ignored, as
      in the current core.
    - Not done: a prefill or default entry by reference, a value bound by

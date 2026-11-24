@@ -5,6 +5,7 @@
 use crate::components::{ConstrainTarget, FUNCTION_PROPS, Role};
 use crate::document::{CellIdx, Child, CompIdx, Document};
 use crate::program::{DOMAIN_CELLS, PIECE_CELLS, eval_function};
+use crate::sym::Handle;
 
 impl Document {
     /// The cells of the function `c` is, as
@@ -54,11 +55,57 @@ impl Document {
         Some(f)
     }
 
+    /// An interpolated function's domain and pieces (ADR 0061), as
+    /// [`SymKind::EvalFunction`](crate::program::SymKind::EvalFunction)
+    /// reads them, from its `pieces`, the list of each piece's expression
+    /// and domain; `None` for a function that is none.
+    fn interpolated(&mut self, c: CompIdx) -> Option<Vec<f64>> {
+        use math_expressions::{Expr, MathConst, expr::SeqKind};
+        let cell =
+            |c: CompIdx, prop: &str| self.prop_cells(c, prop).and_then(|v| v.first().copied());
+        let pieces = self.cells[cell(c, "pieces")?.index()];
+        if pieces.is_nan() {
+            return None;
+        }
+        let var = self.cells[cell(c, FUNCTION_PROPS[0])?.index()];
+        let mut f: Vec<f64> = FUNCTION_PROPS[1..]
+            .iter()
+            .map(|p| cell(c, p).map(|k| self.cells[k.index()]))
+            .collect::<Option<_>>()?;
+        let engine = &mut self.math.engine;
+        let Expr::Seq(SeqKind::List, list) = engine.expr(Handle::from_value(pieces)).clone() else {
+            return None;
+        };
+        let number = |e: &Expr| match e {
+            Expr::Num(n) => n.to_f64(),
+            Expr::Const(MathConst::Inf) => f64::INFINITY,
+            Expr::Const(MathConst::NegInf) => f64::NEG_INFINITY,
+            _ => f64::NAN,
+        };
+        for piece in list {
+            let Expr::Seq(SeqKind::Tuple, parts) = piece else {
+                return None;
+            };
+            let [e, rest @ ..] = &parts[..] else {
+                return None;
+            };
+            f.push(engine.store(e.clone()).to_value());
+            f.push(var);
+            f.extend(rest.iter().map(number));
+        }
+        Some(f)
+    }
+
     /// The function `c` is, at `x` (ADR 0049), as an `<evaluate>` of it
     /// computes it: missing outside its domain, a piecewise function's
     /// first piece whose domain holds `x` there. `None` when `c` is no
     /// function of one variable (one of several, or no function).
     pub fn function_value(&mut self, c: CompIdx, x: f64) -> Option<f64> {
+        if let Some(f) = self.interpolated(c) {
+            let mut out = [f64::NAN];
+            eval_function(&mut self.math.engine, &f, &[x], &mut out);
+            return Some(out[0]);
+        }
         let cells = self.function_cells(c)?;
         let whole = [f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
         let f: Vec<f64> = cells

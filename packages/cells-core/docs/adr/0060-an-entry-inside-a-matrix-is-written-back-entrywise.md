@@ -1,6 +1,6 @@
 # An entry inside a matrix is written back entrywise
 
-Status: proposed 2026-11-24. Builds on ADR 0008 (symbolic instructions
+Status: accepted 2026-11-24. Builds on ADR 0008 (symbolic instructions
 in the tick), ADR 0018 (essential means a student can write it), ADR
 0041 (decisions 3, 6 and 8) and ADR 0045 (a type owns a fixed set of
 inner inputs, a matrix input's grid).
@@ -23,14 +23,19 @@ the same kind of request.
 
 ## Decision
 
-1. **An entry of a value is a projection with an inverse.**
-   `SymKind::MatrixEntry` reads entry (row, column) of a value read as a
-   matrix input reads one (a matrix; a tuple or vector as a column; a
-   transposed one as a row; anything else 1 by 1), and a request on it
-   writes the value with that entry replaced. `SymKind::MatrixSize`
-   reads its rows or columns, and a request on it writes the value
-   resized, a vector staying one while it stays a column. Both write
-   their input 0 (`SymKind::writes`).
+1. **An entry of a value is read by rows.** ADR 0041 step 5's entry
+   inside a handle (`SymKind::Entry`, whose inverse writes the value
+   with the entry replaced) reads a matrix by rows, row `k` a tuple of
+   its entries, and a transposed vector (`(a, b)^T`, `(a, b)'`) as its
+   one row; replacing a row writes that row of the matrix, or the vector
+   still transposed. Entry (row, column) is two such steps, which is how
+   a matrix input reads a value: a matrix; a tuple or vector as a column
+   (its entry `i` a scalar, whose one entry is itself); a transposed one
+   as a row; anything else 1 by 1. `SymKind::MatrixSize` reads its rows
+   or columns, and a request on it writes the value resized, a vector
+   staying one while it stays a column; it writes its input 0
+   (`SymKind::writes`). How many entries a math holds (`Count`,
+   `numDimensions`) is unchanged: a matrix is not counted by rows.
 2. **A matrix of entries inverts entrywise.** A `<matrix>`'s template
    (`Instantiate` with `Post::Matrix`) given a desired matrix of its own
    size writes each entry that is one cell alone and changed: the
@@ -39,11 +44,11 @@ the same kind of request.
    is. A matrix of another size is dropped. Its template writes every
    input (`u64::MAX` in the build, the template graph and the program), so
    the record finds its entries writable through it (ADR 0018).
-3. **`$A[i][j]` on a type that says so** (`flags: [entries_in_value]`,
-   a `<matrix>`): two index steps that end the path are an entry inside
-   the expression its default prop stands for, a `MatrixEntry` over that
-   cell and the two indices (literals or cells), typed math. A literal
-   past the size reads the blank.
+3. **`$A[i][j]` on a `<matrix>`** is two in-handle entry steps (ADR
+   0041 step 5: its default prop stands for an expression and it has no
+   list), by literals or cells, typed math; an index past the size reads
+   the blank. A write through it replaces the entry in the row, the row
+   in the matrix, and the matrix's entries (decision 2).
 
 ## Considered options
 

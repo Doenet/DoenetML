@@ -90,6 +90,18 @@ pub enum SymKind {
         /// Whether the numbers are booleans.
         booleans: bool,
     },
+    /// The text of each of `n` inputs, as `Join` writes each, joined with
+    /// `sep` (ADR 0058): a section's full number ("2.1") and its automatic
+    /// title ("Section 2.1"), which a count that changes in a tick changes.
+    /// A string id; it makes a string as a join does.
+    JoinWith {
+        /// How many inputs.
+        n: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+        /// What goes between two inputs' texts.
+        sep: crate::program::texts::Sep,
+    },
     /// The order of `n` inputs, as the current core's `<sort>` compares
     /// them (ADR 0041 decision 7): output `k` the 1-based position of the
     /// input that comes `k`-th. By value when every input is a number or
@@ -152,6 +164,44 @@ pub enum SymKind {
         /// How they compare.
         opts: crate::sym::CompareOpts,
     },
+    /// Entry `k` (input 1) of the value input 0 holds, inside the math
+    /// handle (ADR 0041, decision 2: a dynamic sequence with no cap): a
+    /// list's, tuple's or vector's entry, a scalar's one entry its own;
+    /// the missing value for an index that is no integer from 1 to the
+    /// count. Its inverse writes input 0 with that entry replaced, its
+    /// head kept.
+    Entry,
+    /// How many entries the value input 0 holds (`numDimensions`): a
+    /// list's, tuple's or vector's, 1 for a scalar, a number (no handle)
+    /// or the blank expression.
+    Count,
+    /// The local minima, the global minimum and the infimum of a function
+    /// of one variable (input 0 its `xscale`, then its domain and pieces as
+    /// [`SymKind::EvalFunction`] reads them), or its maxima, maximum and
+    /// supremum when `max` (ADR 0061): the tuple of a list of points `(x,
+    /// f(x))` and two points, each the empty list when there is none, as
+    /// the current core's `utils/extrema.js` searches. A `piecewise` one's
+    /// pieces are searched each on what of the domain is theirs.
+    Extrema {
+        /// The maxima.
+        max: bool,
+        /// What the pieces are.
+        of: crate::sym::extrema::Pieces,
+    },
+    /// The points of the lists in inputs 0 and 1 in order of their
+    /// locations: a function's minima and maxima as its extrema (ADR 0061).
+    MergeExtrema,
+    /// The pieces of the spline through `n` given points (ADR 0061): input
+    /// 0 the `xscale`, 1 the `yscale`, 2 the variable's math cell, then
+    /// [`INTERPOLATE_POINT_CELLS`] per point (its kind and which of its
+    /// coordinates and slope are given, then its `x`, `y` and slope).
+    /// Writes the pieces as one value (a list of tuples, for a reader),
+    /// then five cells per piece, as many as `3 n + 1`: its expression and
+    /// its domain, the rest left out.
+    Interpolate {
+        /// How many points are given.
+        n: u8,
+    },
     // A matrix input's grid (ADR 0045, ADR 0041 decision 8).
     /// The matrix of input 0 rows by input 1 columns whose entries, by
     /// row, are inputs 2.. (a math cell each, NaN the blank): a matrix
@@ -166,11 +216,10 @@ pub enum SymKind {
         /// Columns rather than rows.
         cols: bool,
     },
-    /// Entry (input 1, input 2), from 1, of input 0 read as `MatrixSize`
-    /// reads it; NaN past its size. Its inverse writes input 0 with the
-    /// entry replaced.
-    MatrixEntry,
 }
+
+/// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
+pub const INTERPOLATE_POINT_CELLS: usize = 4;
 
 /// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
 pub const BEZIER_POINT_CELLS: usize = 7;
@@ -349,6 +398,10 @@ impl SymKind {
             | SymKind::SampleFunction
             | SymKind::SampleBezier { .. } => SAMPLES,
             SymKind::Order { n, .. } => n as usize,
+            SymKind::Interpolate { n } => {
+                1 + crate::sym::interpolate::PIECE_OUT
+                    * crate::sym::interpolate::max_pieces(n as usize)
+            }
             _ => 1,
         }
     }
@@ -362,7 +415,8 @@ impl SymKind {
                 part: crate::sym::SubsetPart::Value,
                 ..
             } => 1,
-            SymKind::MatrixSize { .. } | SymKind::MatrixEntry => 1,
+            SymKind::Entry => 1,
+            SymKind::MatrixSize { .. } => 1,
             // A `<matrix>` of its entries writes each (ADR 0060).
             SymKind::Instantiate {
                 post: Post::Matrix { .. },
@@ -374,12 +428,15 @@ impl SymKind {
 
     /// Whether the output is a string id (a text cell): a join's.
     pub fn makes_text(self) -> bool {
-        matches!(self, SymKind::Join { .. })
+        matches!(self, SymKind::Join { .. } | SymKind::JoinWith { .. })
     }
 
     /// Whether it reads text inputs: a join, an order.
     pub fn reads_text(self) -> bool {
-        matches!(self, SymKind::Join { .. } | SymKind::Order { .. })
+        matches!(
+            self,
+            SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. }
+        )
     }
 
     /// This kind told what its inputs hold (`types`, in order), when it
@@ -395,6 +452,11 @@ impl SymKind {
                 n,
                 kinds: crate::program::texts::kinds_of(types),
             },
+            SymKind::JoinWith { n, sep, .. } => SymKind::JoinWith {
+                n,
+                kinds: crate::program::texts::kinds_of(types),
+                sep,
+            },
             k => k,
         }
     }
@@ -409,8 +471,10 @@ impl SymKind {
                 | SymKind::WrapFunctionPeriodic
                 | SymKind::DerivativeBy
                 | SymKind::Subset { .. }
+                | SymKind::Entry
+                | SymKind::Extrema { .. }
+                | SymKind::MergeExtrema
                 | SymKind::Grid
-                | SymKind::MatrixEntry
         )
     }
 }
@@ -525,22 +589,29 @@ impl OpSpec {
                 | SymKind::InstantiateBlank { .. }
                 | SymKind::SampleTape { .. },
             ) => usize::MAX,
-            OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
+            OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative | SymKind::Count) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
             OpSpec::Sym(
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
             OpSpec::Sym(SymKind::SampleQuadratic) => 5,
-            OpSpec::Sym(SymKind::Join { n, .. } | SymKind::Order { n, .. }) => *n as usize,
+            OpSpec::Sym(
+                SymKind::Join { n, .. } | SymKind::JoinWith { n, .. } | SymKind::Order { n, .. },
+            ) => *n as usize,
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
             OpSpec::Sym(
-                SymKind::DerivativeBy | SymKind::Subset { .. } | SymKind::Compare { .. },
+                SymKind::DerivativeBy
+                | SymKind::Subset { .. }
+                | SymKind::Compare { .. }
+                | SymKind::Entry,
             ) => 2,
+            OpSpec::Sym(SymKind::Extrema { .. }) => usize::MAX,
+            OpSpec::Sym(SymKind::MergeExtrema) => 2,
+            OpSpec::Sym(SymKind::Interpolate { n }) => 3 + INTERPOLATE_POINT_CELLS * *n as usize,
             OpSpec::Sym(SymKind::Grid) => usize::MAX,
             OpSpec::Sym(SymKind::MatrixSize { .. }) => 1,
-            OpSpec::Sym(SymKind::MatrixEntry) => 3,
             _ => unreachable!(),
         }
     }
@@ -563,6 +634,10 @@ impl OpSpec {
             }
             OpSpec::Sym(SymKind::SampleBezier { .. }) => {
                 n > 1 && (n - 1).is_multiple_of(BEZIER_POINT_CELLS)
+            }
+            // The `xscale`, the domain and any number of pieces.
+            OpSpec::Sym(SymKind::Extrema { .. }) => {
+                n > DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
             // Its size, then any number of entries.
             OpSpec::Sym(SymKind::Grid) => n >= 2,
@@ -672,9 +747,9 @@ mod arity {
                 n_exclude: 0,
             }),
             OpSpec::Vec(VecOp::BestFitLine { n: 3 }),
-            OpSpec::Vec(VecOp::IntersectLines {
-                segment1: true,
-                segment2: false,
+            OpSpec::Vec(VecOp::Intersect {
+                a: crate::program::Figure::Line { segment: true },
+                b: crate::program::Figure::Circle,
             }),
             OpSpec::Vec(VecOp::Parabola {
                 through: 2,
@@ -726,9 +801,25 @@ mod arity {
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
+            OpSpec::Sym(SymKind::Entry),
+            OpSpec::Sym(SymKind::Count),
+            OpSpec::Sym(SymKind::JoinWith {
+                n: 3,
+                kinds: 0,
+                sep: crate::program::texts::Sep::Dot,
+            }),
+            OpSpec::Vec(VecOp::Moments {
+                dist: crate::program::Dist::Uniform,
+                n_exclude: 0,
+            }),
+            OpSpec::Sym(SymKind::Extrema {
+                max: true,
+                of: crate::sym::extrema::Pieces::One,
+            }),
+            OpSpec::Sym(SymKind::MergeExtrema),
+            OpSpec::Sym(SymKind::Interpolate { n: 2 }),
             OpSpec::Sym(SymKind::Grid),
             OpSpec::Sym(SymKind::MatrixSize { cols: true }),
-            OpSpec::Sym(SymKind::MatrixEntry),
         ]);
         ops
     }
@@ -763,7 +854,7 @@ mod arity {
                 VecOp::Shuffle { .. } => 23,
                 VecOp::Draws { .. } => 24,
                 VecOp::BestFitLine { .. } => 25,
-                VecOp::IntersectLines { .. } => 26,
+                VecOp::Intersect { .. } => 26,
                 VecOp::Parabola { .. } => 27,
                 VecOp::IntoDomain => 44,
                 VecOp::DomainRange => 45,
@@ -772,6 +863,8 @@ mod arity {
                 VecOp::SequenceParams { .. } => 51,
                 VecOp::SequenceCount { .. } => 52,
                 VecOp::SequenceEntry { .. } => 53,
+                // After the symbolic operators 54 and 55.
+                VecOp::Moments { .. } => 57,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -797,15 +890,21 @@ mod arity {
                     SymKind::Subset { .. } => 21,
                     SymKind::Compare { .. } => 22,
                     // After the vector operators 51 to 53.
-                    SymKind::Grid => 26,
-                    SymKind::MatrixSize { .. } => 27,
-                    SymKind::MatrixEntry => 28,
+                    SymKind::Entry => 26,
+                    SymKind::Count => 27,
+                    SymKind::JoinWith { .. } => 28,
+                    // 29 would be vector tag 57 (Moments).
+                    SymKind::Extrema { .. } => 30,
+                    SymKind::MergeExtrema => 31,
+                    SymKind::Interpolate { .. } => 32,
+                    SymKind::Grid => 33,
+                    SymKind::MatrixSize { .. } => 34,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 57;
+    const N_TAGS: usize = 63;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -826,6 +925,7 @@ mod arity {
                 OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
+                OpSpec::Sym(SymKind::Extrema { .. }) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 _ if spec.arity() == usize::MAX => 2,
                 _ => spec.arity(),
             };

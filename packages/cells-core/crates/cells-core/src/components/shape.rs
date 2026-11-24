@@ -98,6 +98,16 @@ impl ListShape {
         start..start + n
     }
 
+    /// The position of the cell a made row of entry `k` (1-based) hides
+    /// by, in an element with `n_props` props: a capped list's companion
+    /// entry (ADR 0041, decision 2: 1 past the live length); None where a
+    /// row is never hidden by its list.
+    pub fn row_hide_slot(self, n_props: usize, k: usize) -> Option<usize> {
+        self.ty.list()?.live?;
+        let slots = self.companion_slots(n_props);
+        (k >= 1 && k <= slots.len()).then(|| slots.start + k - 1)
+    }
+
     /// The name of prop `pi` of an element with `n_props` public props:
     /// the table's, a list cell (`throughX2`; a point entry of a list
     /// whose type names one cell an entry, `value2_1` and `value2_2`), or

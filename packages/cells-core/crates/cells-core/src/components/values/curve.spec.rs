@@ -113,4 +113,32 @@ spec! {
         dropped(1)
         expect { "P.coords" = (-3.999996, -3.999996) }
     }
+
+    case "its extrema, searched as the current core searches them (ADR 0061)" {
+        doenet r#"<function name="f">x^4-8x^2+8</function>
+                  <number name="nmin" extend="$f.numMinima"/>
+                  <number name="nmax" extend="$f.numMaxima"/>
+                  <number name="next" extend="$f.numExtrema"/>
+                  <math name="m2" extend="$f.minima[2][1]"/>
+                  <math name="mv" extend="$f.maxima[1][2]"/>
+                  <math name="gl" extend="$f.globalMinimum[1]"/>
+                  <math name="gm" extend="$f.globalMaximum[1]"/>"#;
+        expect {
+            "f.minima" = "(-2, -8), (2, -8)",
+            "f.maxima" = "(0, 8)",
+            "f.extrema" = "(-2, -8), (0, 8), (2, -8)",
+            "f.globalMinimum" = "(-2, -8)",
+            "f.globalSupremum" = "(-100, 99920008)",
+            "nmin.value" = 2, "nmax.value" = 1, "next.value" = 3,
+            "m2.expr" = "2", "mv.expr" = "8", "gl.expr" = "-2", "gm.expr" = "＿",
+        }
+    }
+
+    case "extrema that follow an input, on a domain" {
+        doenet r#"<numberInput name="p" value="10"/>
+                  <function name="f" domain="[0, 20]">sin(2 pi x/$p)</function>"#;
+        expect { "f.numMaxima" = 2, "f.numMinima" = 2 }
+        request { "p.value" = 5 }
+        expect { "f.numMaxima" = 4, "f.numMinima" = 4 }
+    }
 }

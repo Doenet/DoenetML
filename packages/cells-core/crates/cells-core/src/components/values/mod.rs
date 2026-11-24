@@ -277,6 +277,13 @@ pub mod number {
         value: Number,
         props {
             value: children { rendered },
+            // How its value shows (ADR 0058).
+            displayDigits: display,
+            displayDecimals: display,
+            displaySmallAsZero: display,
+            padZeros: display,
+            avoidScientificNotation: display,
+            displayBlanks: display,
             ..anchor
         }
         children: Value,

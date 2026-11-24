@@ -121,7 +121,14 @@ impl Planning<'_> {
                 }
                 _ if ty.plays(Role::Index) => prop::number::Props {
                     value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
-                    // An iteration's index is never drawn in a graph.
+                    // An iteration's index shows as numbers do, and is
+                    // never drawn in a graph.
+                    displayDigits: Source::absent(),
+                    displayDecimals: Source::absent(),
+                    displaySmallAsZero: Source::absent(),
+                    padZeros: Source::absent(),
+                    avoidScientificNotation: Source::absent(),
+                    displayBlanks: Source::absent(),
                     anchorX: Source::constant(0.0),
                     anchorY: Source::constant(0.0),
                 }

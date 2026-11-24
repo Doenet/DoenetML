@@ -302,17 +302,20 @@ fn bound_row(ctx: &mut ItemCtx<'_>) -> bound_row::Planned {
     }
 }
 
-/// A box of a bound grid: its entry of the bound value, which typing
-/// writes back ([`SymKind::MatrixEntry`]).
+/// A box of a bound grid: entry (row, column) of the bound value, two
+/// entries inside its handle (`SymKind::Entry`, ADR 0041 decision 3: a
+/// matrix read by rows, a transposed vector as its one row, a vector's
+/// entry its own one), which typing writes back (ADR 0060).
 fn bound_cell(ctx: &mut ItemCtx<'_>) -> cell::Planned {
     let at = bound_row::Props::PORTS;
     let own = cell::Props::PORTS;
     let bound = ctx.owner(at.bound);
     let row = ctx.owner(at.rowIndex);
     let col = ctx.index();
+    let line = ctx.computed(OpSpec::Sym(SymKind::Entry), vec![bound, row]);
     cell::Planned {
         value: Wire::computed(OpSpec::Sym(SymKind::Evaluate), vec![own.expr]),
-        expr: Wire::computed(OpSpec::Sym(SymKind::MatrixEntry), vec![bound, row, col]),
+        expr: Wire::computed(OpSpec::Sym(SymKind::Entry), vec![line, col]),
     }
 }
 

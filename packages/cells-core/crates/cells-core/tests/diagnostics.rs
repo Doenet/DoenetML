@@ -703,3 +703,29 @@ fn several_type_failures_compile_twice() {
     assert!(doc.value("m", "value").unwrap().is_nan());
     assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()));
 }
+
+/// A line's equation inlines a `<math>` it names, so the reference is in
+/// no source of its plan: the read is recorded, and a math that is a box
+/// boxes the line with the math as its cause (ADR 0050, decision 2),
+/// whichever is written first, directly or through a math between them.
+#[test]
+fn a_line_that_inlines_a_boxed_math_is_boxed_with_it() {
+    let line = r#"<graph><line name="l">y = $b</line></graph>"#;
+    for maths in [
+        r#"<math name="b" bogus="1">2x + 1</math>"#,
+        r#"<math name="a" bogus="1">x</math><math name="b">2$a + x - x + 1</math>"#,
+    ] {
+        for src in [format!("{maths}{line}"), format!("{line}{maths}")] {
+            let (codes, plans) = error_codes_and_plans(&src);
+            assert_eq!(
+                codes,
+                ["cells-boxed-referent", "cells-unsupported-attribute"],
+                "{src}"
+            );
+            assert_eq!(plans, 1, "{src}");
+            let doc = load(&src).unwrap();
+            assert_eq!(doc.value("l", "slope"), None, "{src}");
+            assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()));
+        }
+    }
+}

@@ -48,7 +48,11 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let n = draw_count("numSamples", attrs.numSamples)?;
     let range = (attrs.from, attrs.to, attrs.exclude);
-    let mut wiring = plan_primes(ctx, n, range, true, Order::Unsorted)?;
+    let on = DrawOn {
+        attrs: &[attr::from, attr::to, attr::exclude, attr::numSamples],
+        children: false,
+    };
+    let mut wiring = plan_primes(ctx, n, range, true, Order::Unsorted, on)?;
     wiring.set_planned(Planned {});
     Ok(wiring)
 }

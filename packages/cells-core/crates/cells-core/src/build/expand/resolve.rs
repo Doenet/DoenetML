@@ -389,38 +389,10 @@ impl<'c> Builder<'c> {
             return self.targets_of(target, prop, plan, expected, scope);
         }
         let mut slots = self.targets_of(target, prop, plan, None, scope)?;
-        let mut it = entries.iter();
-        while let Some(entry) = it.next() {
-            slots = match (entry.width, &slots[..]) {
-                // `$A[i][j]` (ADR 0041, decision 3): entry (i, j) of the
-                // expression the cell holds, which a write writes back.
-                (0, &[held]) => {
-                    let col = it.next().expect("a row index is followed by a column's");
-                    let (i, j) = (
-                        self.index_slot(&entry.index, scope)?,
-                        self.index_slot(&col.index, scope)?,
-                    );
-                    let s = self.op_slot(OpSpec::Sym(SymKind::MatrixEntry), &[held, i, j], scope);
-                    self.typed_slots.push((s, crate::ValueType::Math));
-                    vec![s]
-                }
-                (0, _) => {
-                    it.next();
-                    vec![self.missing_slot()]
-                }
-                _ => self.entry_of(&slots, entry, scope)?,
-            };
+        for entry in entries {
+            slots = self.entry_of(&slots, entry, scope)?;
         }
         Ok(slots)
-    }
-
-    /// The slot holding index `ip`: the cell it names, or its value.
-    fn index_slot(&mut self, ip: &IndexPlan, scope: ScopeId) -> Result<SlotId> {
-        if let [IndexTerm::Cell(cell)] = ip.terms[..] {
-            return self.resolve_one(cell, scope);
-        }
-        let k = self.index_value(ip, scope);
-        Ok(self.const_slot(k as f64))
     }
 
     /// Entry `entry.index` of `slots` taken `entry.width` at a time: those
@@ -432,6 +404,9 @@ impl<'c> Builder<'c> {
         entry: &EntryIndex,
         scope: ScopeId,
     ) -> Result<Vec<SlotId>> {
+        if entry.in_handle() {
+            return self.entry_in_handle(slots, entry, scope);
+        }
         let width = usize::from(entry.width);
         let n = slots.len() / width;
         if let [IndexTerm::Cell(cell)] = entry.index.terms[..] {
@@ -451,6 +426,43 @@ impl<'c> Builder<'c> {
             Some(i) => slots[i * width..(i + 1) * width].to_vec(),
             None => vec![self.missing_slot(); width],
         })
+    }
+
+    /// Entry `entry.index` inside the value one slot holds (ADR 0041,
+    /// decision 2): a projection of the expression it stands for, else
+    /// the slot as a sequence of one.
+    fn entry_in_handle(
+        &mut self,
+        slots: &[SlotId],
+        entry: &EntryIndex,
+        scope: ScopeId,
+    ) -> Result<Vec<SlotId>> {
+        let &[slot] = slots else {
+            return Ok(vec![self.missing_slot()]);
+        };
+        let cell = match entry.index.terms[..] {
+            [IndexTerm::Cell(cell)] => Some(self.resolve_one(cell, scope)?),
+            _ => None,
+        };
+        if let Some(expr) = self.math_target(slot) {
+            let index = match cell {
+                Some(c) => c,
+                None => {
+                    let k = self.index_value(&entry.index, scope);
+                    self.const_slot(k as f64)
+                }
+            };
+            let s = self.op_slot(OpSpec::Sym(SymKind::Entry), &[expr, index], scope);
+            self.typed_slots.push((s, ValueType::Math));
+            return Ok(vec![s]);
+        }
+        Ok(vec![match cell {
+            Some(index) => self.choose_over(index, &[slot], scope),
+            None => match self.index_value(&entry.index, scope) {
+                1 => slot,
+                _ => self.missing_slot(),
+            },
+        }])
     }
 
     /// The one slot a reference names, and the label of a reader's edge to

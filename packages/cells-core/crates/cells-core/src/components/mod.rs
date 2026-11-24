@@ -298,6 +298,12 @@ component_types! {
     MatrixInputRow => inputs::matrix_input::row::DEFINITION,
     BoundMatrixInputRow => inputs::matrix_input::bound_row::DEFINITION,
     MatrixInputCell => inputs::matrix_input::cell::DEFINITION,
+    Page => containers::blocks::page::DEFINITION,
+    /// `<cascade>`: steps revealed as the ones before them are complete
+    /// (ADR 0062).
+    Cascade => containers::cascade::DEFINITION,
+    /// `<cascadeMessage>`: what a cascade shows for a gap between its steps.
+    CascadeMessage => containers::cascade::MESSAGE,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -765,6 +771,24 @@ impl ComponentType {
         usize::from(self.list().is_some_and(|l| l.companion.is_some()))
     }
 
+    /// The prop a bare `$x[k]` reads entries inside the expression of
+    /// (ADR 0041, decision 2): its default prop, when that is one cell that
+    /// stands for an expression (`expr_of`) and the type has no list (a
+    /// `<math>`'s, a `<mathInput>`'s `value`).
+    pub fn handle_sel(self) -> Option<PropSel> {
+        let sel = self.default_sel()?;
+        let PropSel::At(PropAt::Position(pi)) = sel else {
+            return None;
+        };
+        (self.list().is_none() && self.expr_of(pi).is_some()).then_some(sel)
+    }
+
+    /// The table position of a capped list's live length
+    /// ([`ListProp::live`], ADR 0041 decision 2), if the type's list is one.
+    pub fn live_len(self) -> Option<usize> {
+        self.prop_index(self.list()?.live?)
+    }
+
     /// How many public props an element with `n` list entries has after
     /// its table's: the entries' cells, then the companion sequence's
     /// ([`ListShape::list_props`]).
@@ -937,6 +961,14 @@ impl ComponentType {
         self.def().numbering
     }
 
+    /// Whether the list items' sequence passes through it (ADR 0054, ADR
+    /// 0058): a structure, or a type both sequences pass through (a
+    /// `<page>`). A section's parent, whose `asList` makes it a list item,
+    /// is its nearest ancestor that is neither.
+    pub fn passes_list_items(self) -> bool {
+        self.structure_kind().is_some() || self.numbering() == Some(Numbering::PassesBoth)
+    }
+
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
     /// its value, when `to` takes a value rather than a copy: `value` for a
     /// boolean of an input that reads as a boolean, else `from`'s default
@@ -1104,6 +1136,28 @@ impl ComponentType {
             Some(StructureKind::Gate { active }) => Some(active),
             _ => None,
         }
+    }
+
+    /// The gate the type sets on each of its children by its place
+    /// ([`StepGate`], ADR 0062): a `<cascade>`'s.
+    pub fn step_gate(self) -> Option<StepGate> {
+        self.def().gate
+    }
+
+    /// The [`StepGate`] whose message type the type is, when one is: what
+    /// shows a message of the type (ADR 0062).
+    pub fn message_of(self) -> Option<StepGate> {
+        static GATES: std::sync::OnceLock<Vec<StepGate>> = std::sync::OnceLock::new();
+        GATES
+            .get_or_init(|| {
+                ComponentType::ALL
+                    .iter()
+                    .filter_map(|t| t.step_gate())
+                    .collect()
+            })
+            .iter()
+            .copied()
+            .find(|g| g.message == self)
     }
 
     /// How a member of the type behaves in a sticky group: its shape, and where
@@ -1318,7 +1372,10 @@ mod tests {
         // sort compares and what a text joins. 38: ADR 0053 added
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
-        const PLAN_CTX_METHODS: usize = 38;
+        // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
+        // section's full number and title as text. 41: ADR 0062 added
+        // `is_step`, for a step of a cascade, which aggregates its scores.
+        const PLAN_CTX_METHODS: usize = 41;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1464,7 +1521,6 @@ mod tests {
             ConditionalContent,
             Case,
             Select,
-            SelectFromSequence,
             Group,
             Title,
             Ref,

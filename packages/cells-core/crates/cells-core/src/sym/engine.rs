@@ -84,6 +84,17 @@ impl Engine {
         h
     }
 
+    /// The expression `h` names, for an operation of the engine kept in a
+    /// module of its own (`sym::extrema`).
+    pub(crate) fn expr(&self, h: Handle) -> &Expr {
+        &self.exprs[h.index()]
+    }
+
+    /// Store `e` (`push`), for such an operation.
+    pub(crate) fn store(&mut self, e: Expr) -> Handle {
+        self.push(e)
+    }
+
     /// Bring a builder tree in. Cell leaves are kept as leaves, by number:
     /// only a tree whose leaves are cells makes a template `instantiate`
     /// can fill.
@@ -287,59 +298,6 @@ impl Engine {
         Some(self.push(e))
     }
 
-    /// `h` with entry (`row`, `col`), from 1, made `entry` (blank for
-    /// none): a matrix stays one, a tuple or vector one of a column, a
-    /// transposed one of a row, and anything else, at (1, 1), becomes the
-    /// entry. None when the entry is past `h`'s size.
-    pub fn with_matrix_entry(
-        &mut self,
-        h: Handle,
-        row: u32,
-        col: u32,
-        entry: Option<Handle>,
-    ) -> Option<Handle> {
-        let x = entry.map_or(Expr::Blank, |h| self.exprs[h.index()].clone());
-        let (r, c) = (row.checked_sub(1)?, col.checked_sub(1)?);
-        let e = match self.exprs[h.index()].clone() {
-            Expr::Matrix(m) => {
-                if r >= m.rows() || c >= m.cols() {
-                    return None;
-                }
-                let (rows, cols) = (m.rows(), m.cols());
-                let mut xs = m.into_entries();
-                xs[(r * cols + c) as usize] = x;
-                Expr::Matrix(me::Mat::new(rows, cols, xs)?)
-            }
-            Expr::Seq(kind, mut xs) if is_vector(kind) && c == 0 => {
-                *xs.get_mut(r as usize)? = x;
-                Expr::Seq(kind, xs)
-            }
-            Expr::Pow(base, t) if is_transpose(&base, &t) => {
-                let Expr::Seq(kind, mut xs) = *base else {
-                    return None;
-                };
-                if r != 0 {
-                    return None;
-                }
-                *xs.get_mut(c as usize)? = x;
-                Expr::Pow(Box::new(Expr::Seq(kind, xs)), t)
-            }
-            Expr::Prime(base) if matches!(&*base, Expr::Seq(kind, _) if is_vector(*kind)) => {
-                let Expr::Seq(kind, mut xs) = *base else {
-                    return None;
-                };
-                if r != 0 {
-                    return None;
-                }
-                *xs.get_mut(c as usize)? = x;
-                Expr::Prime(Box::new(Expr::Seq(kind, xs)))
-            }
-            _ if r == 0 && c == 0 => x,
-            _ => return None,
-        };
-        Some(self.push(e))
-    }
-
     /// `h` made `rows` by `cols`: its entries kept where both fit, the
     /// rest blank. A tuple or vector stays one while one column is asked
     /// for, a transposed one while one row is; anything else becomes a
@@ -432,6 +390,115 @@ impl Engine {
             .map(Expr::Matrix)
             .unwrap_or(Expr::Blank);
         self.push(e)
+    }
+
+    /// The entries of the value `e` (ADR 0041, decision 8): a list's,
+    /// tuple's, vector's or array's; a scalar is its one entry, the blank
+    /// expression none.
+    fn entries_of(e: &Expr) -> Option<&[Expr]> {
+        use me::expr::SeqKind;
+        match e {
+            Expr::Seq(
+                SeqKind::List
+                | SeqKind::Tuple
+                | SeqKind::Vector
+                | SeqKind::AltVector
+                | SeqKind::Array,
+                xs,
+            ) => Some(xs),
+            _ => None,
+        }
+    }
+
+    /// How many entries `h` holds: a list's, tuple's, vector's or
+    /// array's; 1 for a scalar or the blank expression, as the current
+    /// core counts a math's dimensions.
+    pub fn count(&self, h: Handle) -> usize {
+        Self::entries_of(&self.exprs[h.index()]).map_or(1, <[_]>::len)
+    }
+
+    /// The position (0-based) entry `k` (1-based) of `n` names: none for
+    /// an index that is no integer from 1 to `n` (ADR 0041, decision 3).
+    fn entry_at(k: f64, n: usize) -> Option<usize> {
+        (k.fract() == 0.0 && k >= 1.0 && k <= n as f64).then(|| k as usize - 1)
+    }
+
+    /// Entry `k` (1-based) of the value `h` holds, a projection inside
+    /// the handle (ADR 0041, decision 2): a scalar's first entry is
+    /// itself; none past the count or for an index that is no integer. A
+    /// matrix is read by rows, row `k` a tuple of its entries, and a
+    /// vector transposed (`(a, b)^T`, `(a, b)'`) as its one row, so `[i][j]`
+    /// is entry (i, j) of a matrix, as a matrix input reads a value (ADR
+    /// 0060).
+    pub fn entry(&mut self, h: Handle, k: f64) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        if let Some(rows) = rows_of(e) {
+            let x = rows.get(Self::entry_at(k, rows.len())?)?.clone();
+            return Some(self.push(x));
+        }
+        match Self::entries_of(e) {
+            Some(xs) => {
+                let x = xs[Self::entry_at(k, xs.len())?].clone();
+                Some(self.push(x))
+            }
+            None => Self::entry_at(k, 1).map(|_| h),
+        }
+    }
+
+    /// `h` with entry `k` (1-based) replaced by `d`, its head kept; a
+    /// scalar's first entry is `d` itself. None for an index that names
+    /// no entry. A matrix's row `k` takes `d`'s entries, as many as its
+    /// columns (one alone for one column); a transposed vector's one row
+    /// takes them all, still transposed (ADR 0060).
+    pub fn with_entry(&mut self, h: Handle, k: f64, d: Handle) -> Option<Handle> {
+        let e = &self.exprs[h.index()];
+        if matches!(e, Expr::Blank) {
+            return None;
+        }
+        let dx = &self.exprs[d.index()];
+        let d_entries = || match Self::entries_of(dx) {
+            Some(xs) => xs.to_vec(),
+            None => vec![dx.clone()],
+        };
+        let out = match e {
+            Expr::Matrix(m) => {
+                let i = Self::entry_at(k, m.rows() as usize)?;
+                let row = d_entries();
+                if row.len() != m.cols() as usize {
+                    return None;
+                }
+                let cols = m.cols() as usize;
+                let mut xs = m.entries().to_vec();
+                xs[i * cols..(i + 1) * cols].clone_from_slice(&row);
+                Expr::Matrix(me::Mat::new(m.rows(), m.cols(), xs)?)
+            }
+            Expr::Pow(base, t) if is_transpose(base, t) => {
+                Self::entry_at(k, 1)?;
+                let Expr::Seq(kind, _) = &**base else {
+                    return None;
+                };
+                Expr::Pow(Box::new(Expr::Seq(*kind, d_entries())), t.clone())
+            }
+            Expr::Prime(base) if matches!(&**base, Expr::Seq(kind, _) if is_vector(*kind)) => {
+                Self::entry_at(k, 1)?;
+                let Expr::Seq(kind, _) = &**base else {
+                    return None;
+                };
+                Expr::Prime(Box::new(Expr::Seq(*kind, d_entries())))
+            }
+            Expr::Seq(kind, xs) => {
+                Self::entries_of(e)?;
+                let i = Self::entry_at(k, xs.len())?;
+                let mut xs = xs.clone();
+                xs[i] = dx.clone();
+                Expr::Seq(*kind, xs)
+            }
+            _ => return Self::entry_at(k, 1).map(|_| d),
+        };
+        Some(self.push(out))
     }
 
     /// `h` simplified.
@@ -802,6 +869,29 @@ fn minus(a: Expr, b: Expr) -> Expr {
 
 /// A number as the engine spells it: the infinities are constants, since a
 /// float infinity does not evaluate.
+/// The rows of a value read by rows ([`Engine::entry`]): a matrix's,
+/// each a tuple, or a transposed vector's one, the vector; none for any
+/// other value.
+fn rows_of(e: &Expr) -> Option<Vec<Expr>> {
+    use me::expr::SeqKind;
+    match grid_of(e) {
+        Grid::Matrix(m) => Some(
+            (0..m.rows())
+                .map(|r| {
+                    let c = m.cols() as usize;
+                    let row = m.entries()[r as usize * c..(r as usize + 1) * c].to_vec();
+                    Expr::Seq(SeqKind::Tuple, row)
+                })
+                .collect(),
+        ),
+        Grid::Row(_) => match e {
+            Expr::Pow(base, _) | Expr::Prime(base) => Some(vec![(**base).clone()]),
+            _ => None,
+        },
+        Grid::Column(_) | Grid::One(_) => None,
+    }
+}
+
 /// A value as a matrix input reads it ([`Engine::matrix_size`]).
 enum Grid<'e> {
     Matrix(&'e me::Mat),
@@ -839,7 +929,7 @@ fn is_transpose(base: &Expr, t: &Expr) -> bool {
         && matches!(t, Expr::Sym(s) if s.name() == "T")
 }
 
-fn number(v: f64) -> Expr {
+pub(crate) fn number(v: f64) -> Expr {
     if v == f64::INFINITY {
         Expr::Const(me::MathConst::Inf)
     } else if v == f64::NEG_INFINITY {
@@ -857,7 +947,7 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
 }
 
 /// Whether `e` holds the blank expression anywhere.
-fn has_blank(e: &Expr) -> bool {
+pub(crate) fn has_blank(e: &Expr) -> bool {
     matches!(e, Expr::Blank) || e.children().into_iter().any(has_blank)
 }
 

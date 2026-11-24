@@ -612,6 +612,26 @@ impl<'a> SourceReader<'a> {
                             };
                             break;
                         }
+                        // `$f.maxima[1][2]`, `$S.points[2]`: entries inside
+                        // the value a one-cell prop holds, entry then entry
+                        // (ADR 0041, decision 2: a sequence with no cap stays
+                        // inside the handle; a number is a sequence of one).
+                        if let Some(one @ PropSel::At(PropAt::Position(_))) = sel
+                            && d.part_indices(part).next().is_some()
+                        {
+                            if i + 1 != parts.len() {
+                                return Err(Error::PathTooDeep(display.to_string()));
+                            }
+                            for expr in d.part_indices(part) {
+                                let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                                entries.push(EntryIndex {
+                                    index,
+                                    width: EntryIndex::IN_HANDLE,
+                                });
+                            }
+                            prop = Some(prop_of(one));
+                            break;
+                        }
                         if d.part_indices(part).next().is_some() {
                             return Err(Error::PathTooDeep(display.to_string()));
                         }
@@ -631,6 +651,20 @@ impl<'a> SourceReader<'a> {
                                 return Err(Error::PathTooDeep(display.to_string()));
                             }
                             prop = part_sel(j).map(prop_of);
+                            break;
+                        }
+                        // `$m.x2`, `$m.y`: an entry of the value a math
+                        // or a math input holds, by the current core's
+                        // names (ADR 0041).
+                        if sel.is_none()
+                            && let Some(hsel) = component_type.handle_sel()
+                            && let Some(k) = named_entry(name)
+                        {
+                            entries.push(EntryIndex {
+                                index: IndexPlan::constant(k),
+                                width: EntryIndex::IN_HANDLE,
+                            });
+                            prop = Some(prop_of(hsel));
                             break;
                         }
                         let Some(sel) = sel else {
@@ -655,28 +689,22 @@ impl<'a> SourceReader<'a> {
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
                 let ek = self.outlined_elem(cur_t, e)?.component_type;
-                // `$A[i][j]`: entry (i, j) of the expression a matrix holds
-                // (ADR 0041, decisions 3 and 9), two steps that end the
-                // path.
-                if ek.def().flags.entries_in_value {
-                    let mut indices = d.part_indices(part);
-                    let (Some(row), Some(col), None) =
-                        (indices.next(), indices.next(), indices.next())
-                    else {
-                        return Err(Error::PathTooDeep(display.to_string()));
-                    };
-                    if prop.is_some() || i + 1 != parts.len() {
+                // `$m[2]`, `$m[1][2]`: an entry of the value a math or a
+                // math input holds, entry then entry, a projection inside
+                // its handle (ADR 0041, decisions 2 and 3).
+                if let Some(hsel) = ek.handle_sel()
+                    && (prop.is_none() || entries.last().is_some_and(EntryIndex::in_handle))
+                {
+                    if i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display.to_string()));
                     }
-                    for expr in [row, col] {
-                        let index = self.plan_entry_index(ar, t, scope, expr, display)?;
-                        entries.push(EntryIndex { index, width: 0 });
-                    }
-                    // The expression its default prop stands for.
-                    prop = ek
-                        .box_expr()
-                        .map(|at| RefProp::of(ek, PropSel::At(PropAt::Position(at))));
-                    break;
+                    let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                    entries.push(EntryIndex {
+                        index,
+                        width: EntryIndex::IN_HANDLE,
+                    });
+                    prop = Some(RefProp::of(ek, hsel));
+                    continue;
                 }
                 // `$l[k]`: an entry of a value list (ADR 0041), whose
                 // count only the build knows.
@@ -1079,6 +1107,21 @@ fn is_names_nothing(e: &Error) -> bool {
             | Error::NotIndexable(_)
             | Error::PathTooDeep(_)
     )
+}
+
+/// The entry the current core's name for one names (`x`, `y`, `z`; `x1`,
+/// `x2`, ...): its number, 1-based.
+fn named_entry(name: &str) -> Option<i64> {
+    match name {
+        "x" => Some(1),
+        "y" => Some(2),
+        "z" => Some(3),
+        _ => name
+            .strip_prefix('x')?
+            .parse::<i64>()
+            .ok()
+            .filter(|&k| k >= 1),
+    }
 }
 
 #[cfg(test)]

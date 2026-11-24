@@ -410,46 +410,55 @@ impl RequestEngine<'_> {
                         _ => false,
                     }
                 }
-                // A matrix input's size or entry, read from a value it is
-                // bound to (ADR 0045): the value resized, or with the entry
-                // replaced, written to what it reads.
+                // A matrix input's size, read from a value it is bound to
+                // (ADR 0045, ADR 0060): the value resized, written to what
+                // it reads; dropped for a size that is no whole number.
                 Op::Sym(_, _, s, start)
                     if matches!(
                         self.program.syms[s.index()].kind,
-                        SymKind::MatrixSize { .. } | SymKind::MatrixEntry
+                        SymKind::MatrixSize { .. }
                     ) =>
                 {
-                    let kind = self.program.syms[s.index()].kind;
+                    let SymKind::MatrixSize { cols } = self.program.syms[s.index()].kind else {
+                        unreachable!("matched above")
+                    };
                     let d = desired[0].unwrap();
-                    let n = if kind == SymKind::MatrixEntry { 3 } else { 1 };
-                    let inputs = self.program.operands_at(start, n);
-                    let cur = self.cells[inputs[0].index()];
+                    let input = self.program.operands_at(start, 1)[0];
+                    let cur = self.cells[input.index()];
                     let engine = &mut *self.sym.engine;
                     let h = if cur.is_nan() {
                         engine.parse("").expect("the blank expression")
                     } else {
                         Handle::from_value(cur)
                     };
-                    let written = match kind {
-                        SymKind::MatrixSize { cols } => {
-                            (d.is_finite() && d >= 0.0 && d.fract() == 0.0).then(|| {
-                                let (r, c) = engine.matrix_size(h);
-                                let (r, c) = if cols { (r, d as u32) } else { (d as u32, c) };
-                                engine.resize_matrix(h, r, c)
-                            })
-                        }
-                        _ => {
-                            let (i, j) =
-                                (self.cells[inputs[1].index()], self.cells[inputs[2].index()]);
-                            let entry = (!d.is_nan()).then(|| Handle::from_value(d));
-                            (i >= 1.0 && j >= 1.0)
-                                .then(|| engine.with_matrix_entry(h, i as u32, j as u32, entry))
-                                .flatten()
-                        }
-                    };
+                    if d.is_finite() && d >= 0.0 && d.fract() == 0.0 {
+                        let (r, c) = engine.matrix_size(h);
+                        let (r, c) = if cols { (r, d as u32) } else { (d as u32, c) };
+                        produced.write(input, engine.resize_matrix(h, r, c).to_value());
+                        true
+                    } else {
+                        false
+                    }
+                }
+                // An entry inside a math handle (ADR 0041): the value
+                // with that entry replaced, its head kept, to what it
+                // reads; dropped for an index that names no entry.
+                Op::Sym(_, _, s, start) if self.program.syms[s.index()].kind == SymKind::Entry => {
+                    let inputs = self.program.operands_at(start, 2);
+                    let (h, k) = (self.cells[inputs[0].index()], self.cells[inputs[1].index()]);
+                    let d = desired[0].unwrap();
+                    let written = (!h.is_nan() && !d.is_nan())
+                        .then(|| {
+                            self.sym.engine.with_entry(
+                                Handle::from_value(h),
+                                k,
+                                Handle::from_value(d),
+                            )
+                        })
+                        .flatten();
                     match written {
-                        Some(h) => {
-                            produced.write(inputs[0], h.to_value());
+                        Some(w) => {
+                            produced.write(inputs[0], w.to_value());
                             true
                         }
                         None => false,

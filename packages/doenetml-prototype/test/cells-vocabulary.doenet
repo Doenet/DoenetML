@@ -65,6 +65,7 @@
 <exercises />
 <division type="section" />
 <introduction>i</introduction>
+<page><p>On a page.</p></page>
 <conclusion>c</conclusion>
 <aside><title>A</title><p>z</p></aside>
 <hint><p>h</p></hint>
@@ -190,6 +191,8 @@
         <interval>(1, 2)</interval>
         <subsetOfReals>(1, 2) union [3, 4]</subsetOfReals>
         <intervalList>(1, 2) [3, 4)</intervalList>
+        <matrix><row>a b</row><row>c d</row></matrix>
+        <matrix><column>1 3</column><column>2 4</column></matrix>
     </p>
 </section>
 

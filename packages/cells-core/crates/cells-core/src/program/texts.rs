@@ -124,3 +124,23 @@ pub(crate) fn compare_text(engine: &Engine, texts: Option<&Texts>, kind: u128, v
         _ => js_number_text(v),
     }
 }
+
+/// What a [`SymKind::JoinWith`](super::SymKind::JoinWith) puts between its
+/// inputs' texts (ADR 0058).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Sep {
+    /// `.`: a section's full number, "2.1".
+    Dot,
+    /// A space: a section's automatic title, "Section 2.1".
+    Space,
+}
+
+impl Sep {
+    /// The text it puts between two inputs.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Sep::Dot => ".",
+            Sep::Space => " ",
+        }
+    }
+}

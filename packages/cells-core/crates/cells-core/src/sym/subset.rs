@@ -154,6 +154,42 @@ impl Subset {
         }
     }
 
+    /// The interval from `lo` to `hi`, each end in or not, as the current
+    /// core's `buildSubsetFromMathExpression` reads one: an infinite end
+    /// is never in it, and the whole line is one piece (ADR 0061).
+    pub(crate) fn interval(lo: f64, hi: f64, lo_in: bool, hi_in: bool) -> Subset {
+        Subset::of(vec![Piece {
+            lo,
+            hi,
+            lo_in,
+            hi_in,
+        }])
+    }
+
+    /// The whole line.
+    pub(crate) fn whole_line() -> Subset {
+        Subset::real_line()
+    }
+
+    /// What `self` holds that `other` does not.
+    pub(crate) fn minus(self, other: Subset) -> Subset {
+        self.intersect(other.complement())
+    }
+
+    /// Its pieces, each its ends and whether each is in it (a point both
+    /// ends equal); none for no subset.
+    pub(crate) fn intervals(&self) -> Vec<(f64, f64, bool, bool)> {
+        match self {
+            Subset::Pieces(ps) => ps.iter().map(|p| (p.lo, p.hi, p.lo_in, p.hi_in)).collect(),
+            Subset::Invalid => Vec::new(),
+        }
+    }
+
+    /// The intersection of the two, as the current core intersects.
+    pub(crate) fn and(self, other: Subset) -> Subset {
+        self.intersect(other)
+    }
+
     /// The subset `e` names, its inequalities and memberships in `var`: an
     /// interval (`(a, b]`, its ends numbers or infinite), a point, `R`,
     /// `emptyset`, unions and intersections (`union`, `or`, a set or a

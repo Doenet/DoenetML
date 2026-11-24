@@ -1,0 +1,12 @@
+one number of the sequence, read as a number: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
+1 to 10 by default: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
+a length counts the sequence: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
+several, no value twice, sorted: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+several, decreasing, less what it excludes: cells 12 · essential 0 · constant 12 · instrs 0 · components 6
+with replacement, a value may come again: cells 11 · essential 0 · constant 11 · instrs 0 · components 5
+more than the sequence holds, without replacement, is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+a parameter from a constant: cells 14 · essential 0 · constant 14 · instrs 0 · components 6
+a parameter a student can change is refused: cells 3 · essential 1 · constant 2 · instrs 0 · components 4
+hidden: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
+an entry by index: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+more than sixteen, sorted: cells 27 · essential 0 · constant 27 · instrs 0 · components 22

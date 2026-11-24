@@ -1476,6 +1476,23 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect((await open(source)).texts()).toEqual(first);
     });
 
+    it("draws a selectFromSequence's picks, and a copy showing them differently draws the same (ADR 0059)", async () => {
+        const source = `<p><selectFromSequence name="s" from="1" to="1000" numToSelect="3"/></p>
+<p><selectFromSequence extend="$s" asList="false"/></p>
+<p><shuffle name="h">1 2 3 4 5 6</shuffle></p>
+<p><shuffle extend="$h" asList="false"/></p>
+<p><selectFromSequence from="5" to="5"/></p>`;
+        const [picks, joined, order, orderJoined, one] = (
+            await open(source)
+        ).texts();
+        const values = picks.split(", ");
+        expect(values).toHaveLength(3);
+        expect(new Set(values).size).toBe(3);
+        expect(joined).toBe(values.join(""));
+        expect(orderJoined).toBe(order.split(", ").join(""));
+        expect(one).toBe("5");
+    });
+
     it("draws a sort of texts and of maths as the text of its entries, and a joined text", async () => {
         const { texts } = await open(`
 <p><sort>pear apple fig</sort></p>
@@ -1533,6 +1550,24 @@ describe("function operators and triangles", () => {
         const payload = send("numberInput", "updateValue", { value: 1 });
         const resampled = payload[curves[1].data.id]?.changedState as any;
         expect(resampled.numericalVertices[199]).toEqual([2, 1]);
+    });
+
+    it("draws a function through points as a curve through its samples, which follow the points", async () => {
+        // A spline (ADR 0061): through P, (8,4) and a maximum at (5,6).
+        const { all, send } = await open(`<graph xmin="0" xmax="8">
+<point name="P">(0,5)</point>
+<function name="f" through="$P (8,4)" maxima="(5,6)"/>
+</graph>`);
+        const [curve] = all("polyline");
+        const samples = (curve.data as any).props.numericalVertices;
+        expect(samples).toHaveLength(200);
+        expect(samples[0][0]).toBe(0);
+        expect(samples[0][1]).toBeCloseTo(5);
+        expect(samples[199][1]).toBeCloseTo(4);
+        // A drag of a point it passes through resamples it.
+        const payload = send("point", "move", { x: 0, y: 3 });
+        const moved = payload[curve.data.id]?.changedState as any;
+        expect(moved.numericalVertices[0][1]).toBeCloseTo(3);
     });
 
     it("draws a triangle as a polygon and moves its vertices", async () => {
@@ -1648,6 +1683,34 @@ describe("derived geometry", () => {
         // It does not move.
         expect(send(crossing.data.id, "point", "move", { x: 5, y: 5 })).toEqual(
             {},
+        );
+    });
+
+    it("draws an intersection's points up to its live length (ADR 0041)", async () => {
+        const { all, send } = await open(`<graph>
+<point name="P">(3,4)</point>
+<circle name="c" center="$P" radius="1"/>
+<line name="l" through="(4,1) (4,-4)"/>
+<intersection name="int">$l $c</intersection>
+</graph>`);
+        const [graph] = all("graph");
+        // Tangent: one point, the second row hidden and not sent.
+        const [p, first, ...rest] = all("point");
+        expect(rest).toEqual([]);
+        expect(props(first)).toEqual({
+            x: { math_object: "4" },
+            y: { math_object: "4" },
+        });
+        const before = childIds(graph.children);
+        expect(before).toContain(first.data.id);
+        // Moved right: two points.
+        const payload = send(p.data.id, "point", "move", { x: 4, y: 5 });
+        const after = childIds(payload[graph.data.id].newChildren!);
+        expect(after.length).toBe(before.length + 1);
+        // Moved away: none.
+        const none = send(p.data.id, "point", "move", { x: 8, y: 5 });
+        expect(childIds(none[graph.data.id].newChildren!).length).toBe(
+            before.length - 1,
         );
     });
 
@@ -1779,5 +1842,96 @@ describe("a line in text", () => {
         }).payload as Record<number, ElementUpdate>;
         const l = lines[0].data.id;
         expect((updates[l].changedState as any).latex).toBe("0 = -5 x + 3 y");
+    });
+});
+
+describe("a page", () => {
+    it("is a block around its children, and the sections in it are numbered as beside it", async () => {
+        const bridge = await load(
+            `<page><section><title>A</title></section></page><section><title>B</title></section>`,
+        );
+        const root = bridge.flatDast();
+        const [page] = byName(root, "div");
+        const divisions = byName(root, "division");
+        expect(page.children).toContainEqual(
+            expect.objectContaining({ id: divisions[0].data.id }),
+        );
+        expect(divisions.map((d) => (d.data as any).props.codeNumber)).toEqual([
+            "1",
+            "2",
+        ]);
+    });
+});
+
+describe("number display settings", () => {
+    it("follow a setting given by a reference", async () => {
+        const bridge = await load(
+            `<booleanInput name="b" label="b"/><number name="n">2</number>
+<p><math displayDecimals="3" padZeros="$b">1.5</math> <number displayDecimals="$n">1.23456</number></p>`,
+        );
+        const root = bridge.flatDast();
+        const [math] = byName(root, "math");
+        const numbers = byName(root, "number");
+        expect((math.data as any).props.latex).toBe("1.5");
+        expect((numbers[1].data as any).props.text).toBe("1.23");
+        const [b] = byName(root, "booleanInput");
+        const payload = bridge.dispatch({
+            component: "booleanInput",
+            actionName: "updateBoolean",
+            componentIdx: b.data.id,
+            args: { boolean: true },
+        }).payload as Record<number, ElementUpdate>;
+        expect((payload[math.data.id]?.changedState as any).latex).toBe(
+            "1.500",
+        );
+    });
+});
+
+describe("a cascade (ADR 0062)", () => {
+    it("shows a held-back step's heading alone, and one message for the gap", async () => {
+        const bridge = await load(`<cascade boxAll>
+<section><title>One</title><answer><mathInput name="mi"><label>x</label></mathInput><award><when>$mi = 1</when></award></answer></section>
+<cascadeMessage><p>Finish the first part.</p></cascadeMessage>
+<section boxed="false"><title>Two</title><p>Revealed</p></section>
+</cascade>`);
+        let root = bridge.flatDast();
+        const [cascade, message] = byName(root, "div");
+        expect(message).toBeDefined();
+        const divisions = byName(root, "division");
+        expect(divisions.map((d) => (d.data as any).props.boxed)).toEqual([
+            true,
+            false,
+        ]);
+        // The held-back step keeps its heading and shows nothing it holds.
+        const kids = (e: (typeof divisions)[number]) =>
+            (e.children as any[]).filter(
+                (c) => typeof c !== "string" || c.trim(),
+            );
+        expect(kids(divisions[1])).toEqual([]);
+        expect(
+            (cascade.children as any[]).map((c) => c.id).filter(Boolean),
+        ).toContain(message.data.id);
+        const [mi] = byName(root, "mathInput");
+        const [answer] = byName(root, "answer");
+        bridge.dispatch({
+            component: "mathInput",
+            actionName: "updateValue",
+            componentIdx: mi.data.id,
+            args: { text: "1" },
+        });
+        bridge.dispatch({
+            component: "answer",
+            actionName: "submitAnswer",
+            componentIdx: answer.data.id,
+            args: {},
+        });
+        root = bridge.flatDast();
+        // Revealed: the step draws what it holds, and the message is gone.
+        const ids = (id: number) =>
+            ((root.elements[id] as any).children as any[])
+                .filter((c) => typeof c !== "string")
+                .map((c) => c.id);
+        expect(ids(cascade.data.id)).not.toContain(message.data.id);
+        expect(ids(divisions[1].data.id)).toHaveLength(1);
     });
 });

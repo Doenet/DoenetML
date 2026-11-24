@@ -1,7 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
 Status: proposed 2026-11-10. Step 1 of the Migration is done,
-step 2's first three pieces, step 3, step 4 in part, and step 6 in
+step 2's first three pieces, step 3, step 4 in part, step 5 in
+part (no point merge), and step 6 in
 part, with their
 departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
@@ -648,11 +649,17 @@ otherwise.
      collect, a repeat or a point list, and `maxNumber="$n"` are not
      done: each needs a list whose entries are gathered per build, the
      collect's machinery read as a sequence, which no planner reads yet.
-   - A sampler's `numToSelect`/`numSamples` stays a literal, and
-     `<selectFromSequence numToSelect>` other than 1 is still refused:
-     a count read from a constant (`numToSelect="$n"`, ADR 0037) is
-     known only once the check evaluates the constants, after the plans
-     are made.
+   - A sampler's `numToSelect`/`numSamples` stays a literal: a count
+     read from a constant (`numToSelect="$n"`, ADR 0037) is known only
+     once the check evaluates the constants, after the plans are made.
+     *2026-11-24*: `<selectFromSequence>` is a list like the samplers,
+     its picks its entries and rows (`values`, `number1`, ...), `value`
+     the first; one pick is the `SequencePick` it always was, several a
+     `Draws` of the sequence (`withReplacement`, `sort`), so a literal
+     `numToSelect` other than 1 is done, and a select of one reads as a
+     number by decision 1. `length` counts its sequence when every
+     parameter is a literal. `excludeCombinations`, `coprime`, letters
+     and math are not done.
    - `type="letters"` and `type="math"` sequences, and `validSequence`,
      are not done.
    - `<matrixInput>`, whose grid follows its size: *done 2026-11-24*
@@ -674,11 +681,13 @@ otherwise.
    rows and columns as named sequences.
 
    *`<matrix>`, continued 2026-11-24* (ADR 0060): `$A[i][j]` is decision
-   3's projection, entry then entry inside the expression a matrix holds
-   (`flags: [entries_in_value]`, an entry step of width 0 per index,
-   `SymKind::MatrixEntry`), by literals or cells, the blank past the
-   size, and a write through it writes the matrix's entry; a matrix's
-   template inverts entrywise. `extend="$x.value"` makes a matrix of the
+   3's projection, entry then entry inside the expression a matrix holds:
+   two of step 5's in-handle entry steps (`EntryIndex::IN_HANDLE`,
+   `SymKind::Entry`), the engine reading a matrix by rows (row `i` a
+   tuple, a transposed vector its one row), by literals or cells, the
+   blank past the size; a write through it writes the matrix's entry,
+   the row replaced in the matrix and the matrix's template inverting
+   entrywise. `extend="$x.value"` makes a matrix of the
    value, and one holding a copy of a value reads its size from it
    (`SymKind::MatrixSize`). `<matrixInput>` is done (ADR 0045).
    `matrix.test.ts` still waits on `<numberList extend="$A.matrixSize">`
@@ -689,6 +698,96 @@ otherwise.
    list, then maxima and intersections with their caps. Test:
    `point.test.ts` (dimension changes), `math.test.ts` ("components of
    math"), `functionTag.test.ts` (extrema).
+
+   The point, tuple and vector merge is deferred (the user's decision,
+   2026-11-24); the pieces below come first.
+
+   *The capped list, 2026-11-24.* A type's list may be capped
+   (`ListProp::live`, declared `capped: [x, y], live: numPoints, hidden:
+   hidden`): its entries are as many as the cap its planner makes, those
+   past the live length (a table prop the planner wires) the missing
+   value. The list's companion sequence (ADR 0053) is each entry's
+   `hide`, 1 past the live length, and a made row's `hide` aliases it
+   (`ListShape::row_hide_slot`), so a row past the live length is drawn
+   by no renderer; a path names no entry past it (`$int[3]`,
+   `Document::resolve_path`) and the list's text stops at it. The first
+   capped list is `<intersection>` (`components/geometry/intersection.rs`,
+   `VecOp::Intersect`): where two lines, segments, circles or polygons
+   (a `<polygon>`'s given vertices, a `<triangle>`'s three, a
+   `<rectangle>`'s four) meet, as the current core finds them, its cap
+   from the two figures (`Figure::cap`: one for two lines, two where a
+   circle meets a line or a circle, a polygon as many as its edges'), a
+   point found twice kept once where a polygon is one of them. Its
+   points are `point` rows, `points` the list, `numPoints` the live
+   length; a drag of one is dropped. Tested by `intersection.spec.rs`,
+   `tests/dynamic_sequences.rs` and the bridge test. Departures:
+
+   - A vector operator writes at most `MAX_VEC_IN` cells (an
+     intersection of two polygons of four vertices is 16 points and a
+     count, 33), the step's buffer taking the heap past 16.
+   - A `<polyline>` (a collect of its points, structural) and a
+     `<regularPolygon>` (its vertex count is its `numVertices`) are not
+     figures yet, and the intersection's warning when a third figure
+     appears in a case (`$cc.l3`) is the load's, not a tick's.
+
+   *A sequence inside the handle, 2026-11-24.* A value with no cap (a
+   mathInput's `1, 2, 3`, a `<math>` reading one, a subset's `points`)
+   stays inside its math cell, and `[k]` on it is an entry step of width
+   0 (`EntryIndex::IN_HANDLE`): on a type whose default prop is one cell
+   standing for an expression and that has no list
+   (`ComponentType::handle_sel`: `<math>`, `<mathInput>`), `$m[k]`,
+   `$m[i][j]` (entry then entry) and the current core's names `$m.x`,
+   `$m.y`, `$m.z`, `$m.x4`; on any one-cell prop, `$S.points[2]`,
+   `$f.maxima[1][2]`. Whether it is a projection is decided from the
+   port's type, the same in the type pass, the template graph and the
+   build (`math_target`): a cell that stands for an expression gives
+   `SymKind::Entry` over that expression and the index (a constant, an
+   iteration's index or a cell), the missing value for an index that is
+   no integer from 1 to the count; a number is a sequence of one (`$n[1]`
+   the cell, any other index the missing value, a cell index a `Choose`
+   with the integrality guard). A write through an entry writes the
+   value with that entry replaced, its head kept (the inverse of
+   `Entry`), so a `<mathInput bindValueTo="$m.y">` writes the input it
+   came from. `numDimensions` of a `<math>` and a `<mathInput>` counts
+   the entries (`SymKind::Count`; 1 for a scalar, a number or the blank
+   expression). `<repeat for="$mi">` has an iteration per entry: its
+   count is `$mi.numDimensions`, so a change of the count is a rebuild,
+   and its item a math value, `$mi[i]` by the iteration's index. Tested
+   by `tests/dynamic_sequences.rs`. Departures, and what is not done:
+
+   - A list or an operator reading `$mi` as its entries (`<mathList>$mi
+     </mathList>`, `<sum>$mi</sum>`, decision 5's projection) is not
+     done: the count follows the value with no cap, so such a list is
+     structural (a rebuild per count), the structural list of step 4,
+     which no planner reads yet. `<math>$mi</math>` reads the value
+     whole, as before. Still open after the extrema (2026-11-24), with
+     `<pointList extend="$f.extrema"/>`, the same list over a prop's
+     value: a list element is laid out when outlining meets it, before
+     the type of what its one reference names is known, so a list that
+     is structural by its referent would be made a repeat-like element
+     with a body after the names settle (as `<repeat for>`'s item is),
+     and an operator reading one needs the items gathered per build, or
+     a symbolic reduction inside the handle instead of a rebuild.
+   - A function's maxima, minima and extrema: *done 2026-11-24* (ADR
+     0061). They have no cap the type knows (the current core searches a
+     grid of a thousand cells and recurses, `utils/extrema.js`), so by
+     decision 2 they stay inside the handle, a math cell holding a list
+     of `(x, f(x))` tuples, which `$f.maxima[1][2]` addresses as above.
+     One search per direction (`SymKind::Extrema`, a port of the current
+     core's) writes the local, global and infimum ones as one value its
+     props are entries of. `<pointList extend="$f.extrema"/>`, a list
+     whose count follows that value, is the structural list of step 4,
+     not done. An interpolated function (a `<function>` through points,
+     maxima and minima) is a capped list of cubic pieces, its count `3 n +
+     1` for `n` points given (ADR 0061), and its extrema its pieces'.
+   - A matrix's entries (`$A[i][j]`) are not entries of a list head: the
+     engine's matrix is not a sequence of rows yet.
+   - A write through an entry of a `<math createVectors>$m</math>` is
+     dropped: its expression is an instantiation with a post, which has
+     no inverse (a `<math>$m</math>` is an alias of `$m`'s and writes
+     through). The current core writes the vector back to `$m`.
+   - A mathInput's `numListItems`, `list`, `vector` and `matrix` props,
+     and the entries of a mathInput's value as rows, are not done.
 6. **Order.** `<sort>` as a permutation aggregate with an order port;
    `<shuffle>` seeded. Test: `sort.test.ts`, `shuffle.test.ts`.
 

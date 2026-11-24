@@ -92,6 +92,13 @@ needs no cell of its own, and a point past the end the missing value
 (ADR 0016); or a set number of the table's own props (a line's `points`
 are `x1`, `y1` and `x2`, `y2`).
 
+**Capped list** — A list prop whose count follows a value at tick time
+(ADR 0041, decision 2, a dynamic sequence): as many entries as its cap,
+known from the type (two where a circle meets a line), those past its
+**live length**, a table prop, the missing value, their rows hidden. A
+count with no cap stays inside the math handle instead, and `[k]` on it
+is a projection (`$mi[2]`).
+
 **Component** — A DoenetML tag instance (`number`, `numberInput`, `graph`,
 `point`). Components own props and renderer identity but no computation of
 their own.
@@ -698,4 +705,6 @@ exactly, whatever a student did (`compare_versions`).
 **Document seed** — The one random seed a document is loaded with. Each
 load-time choice draws from its own stream derived from the seed and the
 choice's stable key and scope, so a choice draws the same way wherever it is
-rebuilt and in every version of the document that keeps its key.
+rebuilt and in every version of the document that keeps its key. A copy
+draws what its referent drew, unless it gives a parameter of the draw (ADR
+0059).

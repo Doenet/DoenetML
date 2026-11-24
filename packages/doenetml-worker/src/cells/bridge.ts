@@ -482,7 +482,20 @@ export class CellsBridge {
     ) {
         const contract = CONTRACTS[this.table.componentType(owner)];
         if (contract?.noChildren) return;
+        // A step a cascade holds back keeps its heading and shows nothing
+        // it holds but a message it is chosen to show (ADR 0062).
+        const held = reads.revealed(owner) === 1;
         for (const child of this.table.children(c)) {
+            if (
+                held &&
+                !(
+                    "component" in child &&
+                    this.table.componentType(child.component) ===
+                        "cascadeMessage"
+                )
+            ) {
+                continue;
+            }
             this._child(reads, child, out, owner);
         }
     }
@@ -513,6 +526,8 @@ export class CellsBridge {
             if (v !== 0 && !Number.isNaN(v)) return;
         }
         if (type === "case" && reads.num(k, "active") !== 1) return;
+        // A step a cascade does not show, a message it does not choose.
+        if (reads.revealed(k) === 2) return;
         if (TRANSPARENT.has(type)) {
             if (this._isList(k, type, owner)) {
                 this._listItems(reads, k, out, owner);

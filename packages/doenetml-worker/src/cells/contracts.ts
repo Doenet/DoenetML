@@ -117,6 +117,19 @@ export class Reads {
         return this.table.core.expr_latex(cell);
     }
 
+    /** How the cascade above `c` shows it (ADR 0062): 0 shown, 1 a
+     * held-back step that keeps its heading and hides what it holds, 2
+     * hidden. The cells the core read are recorded, so a step revealed
+     * recomputes the element. Asked only of a component a cascade may
+     * govern: a step, a message, a message inside a step. */
+    revealed(c: number): number {
+        if (!governedByCascade(this.table, c)) return 0;
+        for (const cell of this.table.core.reveal_reads(c) as Uint32Array) {
+            this.cell(cell);
+        }
+        return this.table.core.revealed(c);
+    }
+
     /** The number `c` takes from its document-wide counter (a figure's,
      * a table's, a footnote's; ADR 0044), null when it takes none. The
      * core counts it through the active cases; the cells it read are
@@ -133,7 +146,9 @@ export class Reads {
      * and written by its number-display settings, as the current core
      * writes a math's `latex`. */
     mathLatex(c: number): string {
-        const display = displaySettings(this.table, c);
+        const display = displaySettings(this.table, c, (cell) =>
+            this.cell(cell),
+        );
         const missing = this.missing(c, "value");
         const value = this.num(c, "value");
         // The expression as written when its cell holds one (`6/2`, ADR
@@ -160,6 +175,18 @@ export class Reads {
         }
         return numberLatex(this.num(c, prop));
     }
+}
+
+/** Whether a cascade may govern how `c` is shown (ADR 0062): it is a
+ * message, or a cascade is the nearest ancestor that stands as more than
+ * its children, or the one around it. */
+export function governedByCascade(table: CellsTable, c: number): boolean {
+    if (table.componentType(c) === "cascadeMessage") return true;
+    let p = table.parent(c);
+    while (p !== null && TRANSPARENT.has(table.componentType(p))) {
+        p = table.parent(p);
+    }
+    return p !== null && table.componentType(p) === "cascade";
 }
 
 export type Role =
@@ -210,23 +237,67 @@ export function numberLatex(v: number): string {
     return String(v);
 }
 
-/** An attribute of `c` or the nearest of its referents giving it, as a
- * number; `fallback` when none does or it is no number. A flag reads as 1
- * when present and not `false`, as 0 when `false`. */
-function numberAttrThrough(
+/** Reads a cell's value, recording the read where the caller records
+ * them. */
+type ReadCell = (cell: number) => number;
+
+/** Display setting `name` as `k` writes it, a number, or null when `k`
+ * writes none or it is no number. When `k`'s type has a cell for it (ADR
+ * 0058), that cell: the literal or the value a reference names, which a
+ * tick may change, and not given (NaN) where `k` writes none (a reference
+ * is no literal attribute, so the cell is what says `k` writes it). Else
+ * the literal attribute, a flag reading as `ifTrue` when present and not
+ * `false`, as 0 when `false`. */
+function ownSetting(
     table: CellsTable,
-    c: number,
+    k: number,
     name: string,
-    fallback: number,
+    read: ReadCell,
     ifTrue = 1,
-): number {
-    const text = table.attrThrough(c, name);
-    if (text === null) return fallback;
+): number | null {
+    const cell = table.cell(k, name);
+    if (cell !== undefined) {
+        const v = read(cell);
+        return Number.isNaN(v) ? null : v;
+    }
+    const text = table.attr(k, name);
+    if (text === null) return null;
     const t = text.trim().toLowerCase();
     if (t === "" || t === "true") return ifTrue;
     if (t === "false") return 0;
     const v = Number(t);
-    return Number.isNaN(v) ? fallback : v;
+    return Number.isNaN(v) ? null : v;
+}
+
+/** The `displayDecimals` of `c` or the nearest of its referents writing
+ * it ([`ownSetting`]), as text, or null, read so that a change of it
+ * redraws. */
+function decimalsThrough(r: Reads, c: number): string | null {
+    const table = r.table;
+    for (let k: number | null = c; k !== null; k = table.referent(k)) {
+        const v = ownSetting(table, k, "displayDecimals", (cell) =>
+            r.cell(cell),
+        );
+        if (v !== null) return String(v);
+    }
+    return null;
+}
+
+/** Display setting `name` of `c` or the nearest of its referents writing
+ * it ([`ownSetting`]); `fallback` when none does. */
+function settingThrough(
+    table: CellsTable,
+    c: number,
+    name: string,
+    fallback: number,
+    read: ReadCell,
+    ifTrue = 1,
+): number {
+    for (let k: number | null = c; k !== null; k = table.referent(k)) {
+        const v = ownSetting(table, k, name, read, ifTrue);
+        if (v !== null) return v;
+    }
+    return fallback;
 }
 
 /** The number-display settings of `c`, as the six numbers the core's
@@ -237,28 +308,32 @@ function numberAttrThrough(
  * `c` and its referents that gives either: there, the one it does not give
  * is off (digits 0, decimals none), so `<math extend="$m"
  * displayDigits="5"/>` rounds by digits alone; with neither anywhere, 3
- * digits and at least 2 decimals. */
-export function displaySettings(table: CellsTable, c: number): Float64Array {
+ * digits and at least 2 decimals. A setting given by a reference
+ * (`displayDigits="$n"`) is the value its cell holds (ADR 0058), read
+ * through `read`, so a change of it redraws. */
+export function displaySettings(
+    table: CellsTable,
+    c: number,
+    read: ReadCell = (cell) => table.value(cell),
+): Float64Array {
     let digits = 3;
     let decimals = 2;
     for (let k: number | null = c; k !== null; k = table.referent(k)) {
-        const ownDigits = table.attr(k, "displayDigits");
-        const ownDecimals = table.attr(k, "displayDecimals");
+        const ownDigits = ownSetting(table, k, "displayDigits", read);
+        const ownDecimals = ownSetting(table, k, "displayDecimals", read);
         if (ownDigits !== null || ownDecimals !== null) {
-            digits = ownDigits === null ? 0 : Number(ownDigits);
-            decimals = ownDecimals === null ? -Infinity : Number(ownDecimals);
-            if (Number.isNaN(digits)) digits = 0;
-            if (Number.isNaN(decimals)) decimals = -Infinity;
+            digits = ownDigits ?? 0;
+            decimals = ownDecimals ?? -Infinity;
             break;
         }
     }
     return Float64Array.from([
         digits,
         decimals,
-        numberAttrThrough(table, c, "displaySmallAsZero", 1e-14, 1e-14),
-        numberAttrThrough(table, c, "padZeros", 0),
-        numberAttrThrough(table, c, "avoidScientificNotation", 0),
-        numberAttrThrough(table, c, "displayBlanks", 1),
+        settingThrough(table, c, "displaySmallAsZero", 1e-14, read, 1e-14),
+        settingThrough(table, c, "padZeros", 0, read),
+        settingThrough(table, c, "avoidScientificNotation", 0, read),
+        settingThrough(table, c, "displayBlanks", 1, read),
     ]);
 }
 
@@ -276,7 +351,7 @@ export function pointLatex(r: Reads, c: number): string {
     for (const cell of cells) r.cell(cell!);
     return r.table.core.coords_latex(
         Uint32Array.from(cells as number[]),
-        displaySettings(r.table, c),
+        displaySettings(r.table, c, (cell) => r.cell(cell)),
     );
 }
 
@@ -364,6 +439,21 @@ export const SECTION_KINDS: [tag: string, word: string][] = [
 
 /** Divisions drawn boxed unless `boxed="false"`, as in the current core. */
 const BOXED_BY_DEFAULT = new Set(["objectives"]);
+
+/** Whether a division of tag `tag` is drawn boxed: its own `boxed`, else
+ * a cascade's `boxAll` when it is one of the cascade's steps (ADR 0062),
+ * else its tag's default, as in the current core. */
+export function sectionBoxed(table: CellsTable, c: number, tag: string) {
+    if (table.attr(c, "boxed") !== null) return flag(table, c, "boxed");
+    let p = table.parent(c);
+    while (p !== null && TRANSPARENT.has(table.componentType(p))) {
+        p = table.parent(p);
+    }
+    if (p !== null && table.componentType(p) === "cascade") {
+        if (flag(table, p, "boxAll")) return true;
+    }
+    return BOXED_BY_DEFAULT.has(tag);
+}
 
 /** The types numbered among their sibling divisions: the core's types
  * that declare `numbered`. */
@@ -789,11 +879,7 @@ export const CONTRACTS: Record<string, Contract> = {
     },
     number: {
         props: (r, c) => ({
-            text: r.numText(
-                c,
-                "value",
-                r.table.attrThrough(c, "displayDecimals"),
-            ),
+            text: r.numText(c, "value", decimalsThrough(r, c)),
         }),
     },
     boolean: {
@@ -1003,7 +1089,6 @@ export const CONTRACTS: Record<string, Contract> = {
                 "section",
                 "Section",
             ];
-            const boxed = r.table.attr(c, "boxed");
             return {
                 title: title === null ? null : r.idOf(title),
                 titlePrefix: "",
@@ -1017,10 +1102,7 @@ export const CONTRACTS: Record<string, Contract> = {
                     preferred_form: "Global",
                 },
                 collapsible: false,
-                boxed:
-                    boxed === null
-                        ? BOXED_BY_DEFAULT.has(tag)
-                        : flag(r.table, c, "boxed"),
+                boxed: sectionBoxed(r.table, c, tag),
                 open: true,
             };
         },
@@ -1138,6 +1220,8 @@ export const CONTRACTS: Record<string, Contract> = {
     br: { noChildren: true },
     hr: { noChildren: true },
     div: {},
+    // A page (ADR 0058): on screen a block around its children.
+    page: { name: () => "div" },
     pre: {},
     blockQuote: {},
     // Document-structure blocks beside the numbered divisions.
@@ -1396,12 +1480,11 @@ export const CONTRACTS: Record<string, Contract> = {
                 : {},
     },
     // Derived geometry, each drawn by the renderer of the shape it is: a
-    // best-fit line as a line; an intersection as a point, left out while
-    // it is hidden (no crossing); a parabola as a function's curve. An
+    // best-fit line as a line; a parabola as a function's curve (an
+    // intersection stands as its rows, each a point, ADR 0041). An
     // equilibrium point or line and an endpoint also send their flag as
     // the current core's renderers read it (`open`, `dashed`).
     bestFitLine: lineContract(),
-    intersection: { name: () => "point", props: pointProps },
     parabola: CURVE,
     equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
     endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
@@ -1519,6 +1602,14 @@ export const CONTRACTS: Record<string, Contract> = {
         name: () => "mathInput",
         props: (r, c, inGraph) => CONTRACTS.mathInput.props!(r, c, inGraph),
     },
+    // A cascade (ADR 0062): on screen a block around the steps it shows,
+    // its `<title>` not drawn; a message a block, when shown.
+    cascade: {
+        name: () => "div",
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "title",
+    },
+    cascadeMessage: { name: () => "div" },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -1565,6 +1656,10 @@ export const TRANSPARENT = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
+    // A capped list (ADR 0041, decision 2): its rows past its live
+    // length are hidden.
+    "intersection",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1596,6 +1691,10 @@ export const LIST_LIKE = new Set([
     "selectPrimeNumbers",
     "samplePrimeNumbers",
     "intervalList",
+    "selectFromSequence",
+    // A capped list (ADR 0041, decision 2): its rows past its live
+    // length are hidden.
+    "intersection",
 ]);
 
 /** List-like types whose items are the children of one scope (an
@@ -1632,6 +1731,7 @@ export const BLOCKS = new Set([
     "pretext",
     "article",
     "book",
+    "page",
 ]);
 
 /** Component types with no view of their own. */
@@ -1640,7 +1740,6 @@ export const OMITTED = new Set([
     "when",
     "response",
     "functionIterates",
-    "selectFromSequence",
     "setup",
     "label",
     "shortDescription",

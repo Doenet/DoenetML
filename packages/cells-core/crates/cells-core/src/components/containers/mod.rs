@@ -36,6 +36,7 @@ pub(crate) mod markup;
 pub mod section;
 
 pub(crate) mod blocks;
+pub(crate) mod cascade;
 
 pub use section::SECTION_TAGS;
 

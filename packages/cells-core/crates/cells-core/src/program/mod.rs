@@ -13,15 +13,16 @@ pub mod texts;
 mod vector;
 
 pub use instr::{
-    BEZIER_POINT_CELLS, DOMAIN_CELLS, Instr, InstrIdx, MemoIdx, OperandIdx, Operands, PIECE_CELLS,
-    Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx, in_domain,
+    BEZIER_POINT_CELLS, DOMAIN_CELLS, INTERPOLATE_POINT_CELLS, Instr, InstrIdx, MemoIdx,
+    OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx,
+    in_domain,
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
 pub use vector::{
-    Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
-    RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
+    Dist, Figure, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction,
+    Reflex, RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
     sequence_index,
 };
 pub use vector::{MAX_SEQUENCE, sequence_parameters, sequence_values};
@@ -358,8 +359,18 @@ impl Program {
             let SymEntry { kind, memo } = self.syms[s.index()];
             self.step_sym(kind, start, n as usize, memo, sym, ins.out, cells, changed);
         } else if let Op::Vec(..) = ins.op {
-            let mut buf = [0.0f64; 16];
+            let mut small = [0.0f64; 16];
             let n = ins.op.n_out();
+            // A capped list of many points (an intersection's), a draw of
+            // many values and a shuffle of many operands write more; they
+            // take the heap.
+            let mut large = Vec::new();
+            let buf: &mut [f64] = if n <= small.len() {
+                &mut small
+            } else {
+                large.resize(n, 0.0);
+                &mut large
+            };
             ins.op
                 .eval_vec(cells, &self.operands, &self.vecs, &mut buf[..n]);
             match changed {
@@ -583,6 +594,45 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::Entry => {
+            out[0] = handle(v(0))
+                .and_then(|h| engine.entry(h, v(1)))
+                .map_or(MISSING, Handle::to_value)
+        }
+        SymKind::Count => out[0] = handle(v(0)).map_or(1.0, |h| engine.count(h) as f64),
+        SymKind::Extrema { max, of } => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            let found = crate::sym::extrema::search(engine, &vals[1..], vals[0], max, of);
+            out[0] = engine.extrema_value(&found).to_value();
+        }
+        SymKind::Interpolate { n } => {
+            use crate::sym::interpolate::{Given, given_by};
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            let given: Vec<Given> = vals[3..]
+                .chunks_exact(INTERPOLATE_POINT_CELLS)
+                .take(n as usize)
+                .map(|p| {
+                    let (kind, has_x, has_y, has_slope) = given_by(p[0]);
+                    let at = |v: f64, has: bool| has.then_some(v);
+                    Given {
+                        kind,
+                        x: at(p[1], has_x),
+                        y: at(p[2], has_y),
+                        slope: at(p[3], has_slope),
+                    }
+                })
+                .collect();
+            match handle(vals[2]).and_then(|v| engine.symbol(v)) {
+                Some(var) => engine.interpolate(&given, vals[0], vals[1], &var, out),
+                None => out.fill(f64::NAN),
+            }
+        }
+        SymKind::MergeExtrema => {
+            out[0] = match (handle(v(0)), handle(v(1))) {
+                (Some(a), Some(b)) => engine.merge_extrema(a, b).to_value(),
+                _ => f64::NAN,
+            }
+        }
         SymKind::Compare { opts } => {
             out[0] = match (handle(v(0)), handle(v(1))) {
                 (Some(a), Some(b)) => engine.compare(a, b, opts),
@@ -617,20 +667,10 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             let (r, c) = handle(v(0)).map_or((1, 1), |h| engine.matrix_size(h));
             out[0] = f64::from(if cols { c } else { r });
         }
-        SymKind::MatrixEntry => {
-            out[0] = match handle(v(0)) {
-                Some(h)
-                    if v(1) >= 1.0 && v(2) >= 1.0 && v(1).fract() == 0.0 && v(2).fract() == 0.0 =>
-                {
-                    engine
-                        .matrix_entry(h, v(1) as u32, v(2) as u32)
-                        .map_or(f64::NAN, Handle::to_value)
-                }
-                _ => f64::NAN,
-            }
-        }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
-        SymKind::Join { .. } | SymKind::Order { .. } => unreachable!("text runs in step_sym"),
+        SymKind::Join { .. } | SymKind::JoinWith { .. } | SymKind::Order { .. } => {
+            unreachable!("text runs in step_sym")
+        }
         SymKind::SampleQuadratic => {
             let (a, b, c, lo, hi) = (v(0), v(1), v(2), v(3), v(4));
             if lo.is_finite() && hi.is_finite() {
@@ -697,7 +737,12 @@ fn run_text(
     use texts::{KIND_MATH, KIND_TEXT, kind_at};
     let v = |k: usize| cells[inputs[k].index()];
     match kind {
-        SymKind::Join { n, kinds, booleans } => {
+        SymKind::Join { .. } | SymKind::JoinWith { .. } => {
+            let (n, kinds, booleans, sep) = match kind {
+                SymKind::Join { n, kinds, booleans } => (n, kinds, booleans, ", "),
+                SymKind::JoinWith { n, kinds, sep } => (n, kinds, false, sep.as_str()),
+                _ => unreachable!(),
+            };
             if n == 0 {
                 out[0] = MISSING;
                 return;
@@ -705,7 +750,7 @@ fn run_text(
             let mut joined = String::new();
             for i in 0..n as usize {
                 if i > 0 {
-                    joined.push_str(", ");
+                    joined.push_str(sep);
                 }
                 let x = v(i);
                 if is_missing(x) {

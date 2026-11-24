@@ -17,7 +17,7 @@ component! {
     /// expression it names. `numRows`, `numColumns` and `matrixSize` are
     /// its size.
     tags: ["matrix"],
-    flags: [copyable, entries_in_value],
+    flags: [copyable],
     text: Math(expr, value),
     child_types { row: MatrixRow, column: MatrixColumn }
     extend_value: Expr(extended),

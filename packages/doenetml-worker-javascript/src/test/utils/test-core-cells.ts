@@ -33,6 +33,7 @@ import {
     LIST_LIKE,
     Reads,
     SECTION_KINDS,
+    sectionBoxed,
     TRANSPARENT,
     childrenLatex,
     mdLatex,
@@ -261,6 +262,8 @@ const mathReaders: Record<string, Reader> = {
     valueForDisplay: mathValue,
     text: (_g, x) => x.cells.core.component_text(x.idx),
     latex: mathLatex,
+    // How many entries its value holds (ADR 0041, inside the handle).
+    numDimensions: (g) => g("numDimensions"),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
@@ -413,6 +416,21 @@ function heldMath(cells: Cells, cell: number): unknown {
         ? exprOf(cells, cell)
         : M(cells.value(cell));
 }
+/** The order a select's literal `sort` asks for, as its planner reads it. */
+const sortAttr: Reader = (_g, x) => {
+    const text = x.cells.table.attr(x.idx, "sort");
+    if (text === null) return "unsorted";
+    const t = text.trim().toLowerCase();
+    if (t === "" || t === "true") return "increasing";
+    return t === "false" ? "unsorted" : t;
+};
+/** A random-number sampler's distribution's moments, which the core
+ * computes from its parameters. */
+const momentReaders: Record<string, Reader> = {
+    mean: (g) => g("mean"),
+    variance: (g) => g("variance"),
+    standardDeviation: (g) => g("standardDeviation"),
+};
 /** A part of a subset of the reals (`points`, `intervals`, ..): a math
  * cell holding a list of its entries, one entry alone, none empty. */
 function subsetPart(prop: string): Reader {
@@ -646,7 +664,56 @@ function numericalFunction(x: Ctx): (v: number) => number {
     };
 }
 
+/** A number inside a held expression: a number as it is, else what the
+ * expression evaluates to (`Infinity` among them). */
+function treeNumber(t: unknown): number {
+    if (typeof t === "number") return t;
+    const v = me.fromAst(t as any).evaluate_to_constant();
+    return typeof v === "number" ? v : NaN;
+}
+
+/** A function's local extrema (ADR 0061): its math cell holds a list of
+ * points `(x, f(x))`, read as the current core's arrays of numbers. */
+function extremaPoints(prop: string): Reader {
+    return (_g, x) => {
+        const tree = JSON.parse(x.cells.core.expr_ast(x.cell(prop)!));
+        const points =
+            Array.isArray(tree) && tree[0] === "list" ? tree.slice(1) : [];
+        return points.map((p: unknown) =>
+            Array.isArray(p) ? p.slice(1).map(treeNumber) : [],
+        );
+    };
+}
+
+/** A function's global extremum (ADR 0061): a point `(x, f(x))`, or the
+ * empty list for none, read as the current core's `[x, y]` or `[]`. */
+function extremumPoint(prop: string): Reader {
+    return (_g, x) => {
+        const tree = JSON.parse(x.cells.core.expr_ast(x.cell(prop)!));
+        return Array.isArray(tree) && tree[0] === "tuple"
+            ? tree.slice(1).map(treeNumber)
+            : [];
+    };
+}
+
+/** What a function and a piecewise function hold of their extrema. */
+const extremaReaders: Record<string, Reader> = {
+    minima: extremaPoints("minima"),
+    maxima: extremaPoints("maxima"),
+    extrema: extremaPoints("extrema"),
+    numMinima: (g) => g("numMinima"),
+    numMaxima: (g) => g("numMaxima"),
+    numExtrema: (g) => g("numExtrema"),
+    globalMinimum: extremumPoint("globalMinimum"),
+    globalInfimum: extremumPoint("globalInfimum"),
+    globalMaximum: extremumPoint("globalMaximum"),
+    globalSupremum: extremumPoint("globalSupremum"),
+    xscale: (g) => g("xscale"),
+};
+
 const functionReaders: Record<string, Reader> = {
+    ...extremaReaders,
+    yscale: (g) => g("yscale"),
     domain: functionDomain,
     numericalfs: (_g, x) => [numericalFunction(x)],
     numericalf: (_g, x) => numericalFunction(x),
@@ -846,10 +913,23 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     latex: { value: textOf, text: textOf },
     sequence: numberListReaders("sequenceValues"),
-    sampleRandomNumbers: numberListReaders("sampledValues"),
-    selectRandomNumbers: numberListReaders("selectedValues"),
+    sampleRandomNumbers: {
+        ...numberListReaders("sampledValues"),
+        ...momentReaders,
+    },
+    selectRandomNumbers: {
+        ...numberListReaders("selectedValues"),
+        ...momentReaders,
+    },
     samplePrimeNumbers: numberListReaders("sampledValues"),
-    selectPrimeNumbers: numberListReaders("selectedValues"),
+    selectPrimeNumbers: {
+        ...numberListReaders("selectedValues"),
+        sort: sortAttr,
+    },
+    selectFromSequence: {
+        ...numberListReaders("selectedValues"),
+        sort: sortAttr,
+    },
     ...Object.fromEntries(
         [
             "cumulativeSum",
@@ -981,6 +1061,7 @@ const STATE: Record<string, Record<string, Reader>> = {
     function: functionReaders,
     derivative: functionReaders,
     piecewiseFunction: {
+        ...extremaReaders,
         domain: functionDomain,
         numericalfs: (_g, x) => [numericalFunction(x)],
     },
@@ -1123,7 +1204,258 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
         immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
     },
+    // A page (ADR 0058): no item of a list itself, and its parent's
+    // `asList`, which it passes through, read off the core's cells.
+    page: {
+        isListItem: () => false,
+        asList: (_g, x) => passedAsList(x.cells, x.idx),
+    },
 };
+
+/** Whether `c` is hidden, as the current core's `hidden`: its own `hide`,
+ * or a component above it hidden, an inactive case above it, or a cascade
+ * that does not show it or holds back the step it is in (ADR 0062), read
+ * off the core's `revealed`. */
+function hiddenOf(cells: Cells, c: number): boolean {
+    const on = (x: number, prop: string) => {
+        const cell = cells.propCells(x, prop);
+        if (cell.length === 0) return false;
+        const v = cells.value(cell[0]);
+        return v !== 0 && !Number.isNaN(v);
+    };
+    for (let x: number | null = c; x !== null; x = cells.table.parent(x)) {
+        const type = cells.table.componentType(x);
+        if (on(x, "hide")) return true;
+        if (type === "case" && !on(x, "active")) return true;
+        if (cells.core.revealed(x) === 2) return true;
+        const p = cells.table.parent(x);
+        if (
+            p !== null &&
+            cells.core.revealed(p) === 1 &&
+            !["title", "setup", "cascadeMessage"].includes(type)
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** What a step of a cascade reads of it (ADR 0062): whether it is
+ * hidden, and whether it keeps its heading and hides what it holds. */
+const cascadeStepReaders: Record<string, Reader> = {
+    hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    hideChildren: (_g, x) => x.cells.core.revealed(x.idx) === 1,
+};
+
+for (const type of [
+    "section",
+    "subsection",
+    "subsubsection",
+    "problem",
+    "exercise",
+    "example",
+    "question",
+    "activity",
+    "definition",
+    "note",
+    "theorem",
+    "paragraphs",
+    "objectives",
+    "part",
+    "task",
+    "problems",
+    "exercises",
+]) {
+    STATE[type] = {
+        ...STATE[type],
+        ...cascadeStepReaders,
+        creditAchievedForProgress: (g) => g("creditAchievedForProgress"),
+    };
+}
+for (const type of ["aside", "proof", "p", "div", "number"]) {
+    STATE[type] = { ...STATE[type], ...cascadeStepReaders };
+}
+STATE.document = {
+    ...STATE.document,
+    creditAchieved: (g) => g("creditAchieved"),
+};
+// A cascade (ADR 0062): no section, so no title or number; its count of
+// the leading steps complete, its settings, and the `asList` it passes
+// through.
+STATE.cascade = {
+    ...cascadeStepReaders,
+    numCompleted: (g) => g("numCompleted"),
+    revealAll: (g) => g("revealAll") !== 0,
+    hideFutureSections: (g) => g("hideFutureSections") !== 0,
+    creditAchievedForProgress: (g) => g("creditAchievedForProgress"),
+    isListItem: () => false,
+    asList: (_g, x) => passedAsList(x.cells, x.idx),
+    text: textOf,
+};
+STATE.cascadeMessage = {
+    hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    text: textOf,
+};
+
+/** The nearest ancestor of `c` that stands as more than its children. */
+function ownerOf(cells: Cells, c: number): number | null {
+    let p = cells.table.parent(c);
+    while (p !== null && TRANSPARENT.has(cells.table.componentType(p))) {
+        p = cells.table.parent(p);
+    }
+    return p;
+}
+
+/** The component children of `c`, looked through what stands as its
+ * children, as the current core's composites expand in place. */
+function childComponents(cells: Cells, c: number): number[] {
+    return cells.table.children(c).flatMap((child) => {
+        if (!("component" in child)) return [];
+        const k = child.component;
+        return TRANSPARENT.has(cells.table.componentType(k))
+            ? childComponents(cells, k)
+            : [k];
+    });
+}
+
+/** The children a held-back step leaves alone: its title and what
+ * configures it. */
+const LEFT_ALONE = ["title", "setup"];
+
+/** A section's heading-bar color in light mode, as the current core's
+ * `titleColor` resolves it (`sectionTitleColors.js`): the color of its
+ * completion state (its `creditAchievedForProgress`, or its
+ * `creditAchieved` under `completedColorRequiresCredit`), its own literal
+ * attribute, else the nearest section or cascade above it that writes one,
+ * else the default. */
+function titleColorOf(g: Get, x: Ctx): string {
+    const nearest = (name: string): string | null => {
+        for (
+            let p: number | null = x.idx;
+            p !== null;
+            p = ownerOf(x.cells, p)
+        ) {
+            const type = x.cells.table.componentType(p);
+            if (
+                p !== x.idx &&
+                !["section", "aside", "proof", "cascade"].includes(type)
+            ) {
+                return null;
+            }
+            const text = x.cells.table.attr(p, name);
+            if (text !== null) return text.trim();
+        }
+        return null;
+    };
+    const requiresCredit = nearest("completedColorRequiresCredit");
+    const credit =
+        requiresCredit !== null && requiresCredit.toLowerCase() !== "false"
+            ? g("creditAchieved")
+            : g("creditAchievedForProgress");
+    const [state, fallback] =
+        credit === 1
+            ? ["completedColor", "var(--lightGreen)"]
+            : credit > 0
+              ? ["inProgressColor", "var(--mainGray)"]
+              : ["notStartedColor", "var(--mainGray)"];
+    return nearest(state) ?? fallback;
+}
+
+/** The step of cascade `c` chosen to show its own message for the gap
+ * (ADR 0062): the held-back step one of whose messages is shown. */
+function chosenStep(cells: Cells, c: number): number | null {
+    for (const k of childComponents(cells, c)) {
+        if (cells.core.revealed(k) !== 1) continue;
+        const shows = childComponents(cells, k).some(
+            (m) =>
+                cells.table.componentType(m) === "cascadeMessage" &&
+                cells.core.revealed(m) === 0,
+        );
+        if (shows) return k;
+    }
+    return null;
+}
+
+for (const type of [
+    "section",
+    "subsection",
+    "subsubsection",
+    "problem",
+    "exercise",
+    "example",
+    "question",
+    "activity",
+    "definition",
+    "note",
+    "theorem",
+    "paragraphs",
+    "objectives",
+    "part",
+    "task",
+    "problems",
+    "exercises",
+]) {
+    STATE[type] = {
+        ...STATE[type],
+        titleColor: titleColorOf,
+        boxed: (_g, x) =>
+            sectionBoxed(x.cells.table, x.idx, sectioningTag(x.cells, x.idx)),
+        // What a held-back step hides: all it holds but its title, its
+        // configuration and a message it shows; a message it does not.
+        childrenToHide: (_g, x) => {
+            const held = x.cells.core.revealed(x.idx) === 1;
+            return childComponents(x.cells, x.idx).filter((k) => {
+                const type = x.cells.table.componentType(k);
+                if (type === "cascadeMessage") {
+                    return x.cells.core.revealed(k) !== 0;
+                }
+                return held && !LEFT_ALONE.includes(type);
+            });
+        },
+    };
+}
+STATE.cascade = {
+    ...STATE.cascade,
+    // The steps and messages it does not show.
+    childrenToHide: (_g, x) =>
+        childComponents(x.cells, x.idx).filter(
+            (k) => x.cells.core.revealed(k) === 2,
+        ),
+    sectionToShowCascadeMessage: (_g, x) => chosenStep(x.cells, x.idx),
+};
+
+/** State variables a type does not have, as the current core's does not:
+ * a test asking whether one is there finds it is not. */
+const ABSENT: Record<string, string[]> = {
+    cascade: ["title", "sectionNumber"],
+};
+
+/** The types the list items' sequence passes through on its way to a
+ * section inside them (ADR 0054, ADR 0058): a page, a cascade and the
+ * structure. */
+const PASSES_LIST_ITEMS = new Set([
+    "cascade",
+    "page",
+    "group",
+    "conditionalContent",
+    "case",
+    "select",
+    "option",
+    "repeat",
+    "repeatForSequence",
+]);
+
+/** The `asList` a type that passes the list items through takes from its
+ * parent: the cell of the nearest ancestor that is no such type, false
+ * when that one has none. */
+function passedAsList(cells: Cells, c: number): boolean {
+    for (let p = cells.table.parent(c); p !== null; p = cells.table.parent(p)) {
+        if (PASSES_LIST_ITEMS.has(cells.table.componentType(p))) continue;
+        const asList = cells.propCells(p, "asList");
+        return asList.length > 0 && cells.value(asList[0]) !== 0;
+    }
+    return false;
+}
 
 /** What `idx` holds among its children as the current core's
  * `activeChildren` lists them (ADR 0041, decision 4): its text children
@@ -1207,6 +1539,12 @@ function componentObjects(cells: Cells) {
                                 return undefined;
                             if (field === "componentIdx") return idx;
                             if (field === "componentType") return componentType;
+                            // The type it is drawn as: its own, a math
+                            // value's a math (`presentedChildren`).
+                            if (field === "presentedComponentType")
+                                return componentType === "mathValue"
+                                    ? "math"
+                                    : componentType;
                             if (field === "constructor") return {};
                             throw new CellsCoreGap(
                                 `JavaScript core internals \`core.core._components[].${field}\``,
@@ -1454,6 +1792,7 @@ export async function createTestCoreCells({
                     // function.
                     if (typeof name !== "string" || name === "then")
                         return undefined;
+                    if (ABSENT[componentType]?.includes(name)) return undefined;
                     assertCurrent(
                         takenAt,
                         `\`${componentType}.${name}\``,
@@ -1935,6 +2274,54 @@ export async function createTestCoreCells({
     return {
         core: withJavascriptOnlyGaps(adapter, {
             _components: componentObjects(cells),
+            // A component's state variable read as the current core's
+            // `components[i].state.name.value`: the state value the
+            // table answers (`stateValue`), from the cells the core
+            // computes; any other field a gap.
+            components: new Proxy(
+                {},
+                {
+                    get(_target, key) {
+                        if (typeof key !== "string" || !/^\d+$/.test(key))
+                            return undefined;
+                        const c = Number(key);
+                        if (c >= table.length) return undefined;
+                        const type = table.componentType(c);
+                        const state = new Proxy(
+                            {},
+                            {
+                                get(_s, sv) {
+                                    if (typeof sv !== "string" || sv === "then")
+                                        return undefined;
+                                    return {
+                                        get value() {
+                                            return stateValue(c, type, sv);
+                                        },
+                                    };
+                                },
+                            },
+                        );
+                        return new Proxy(
+                            {},
+                            {
+                                get(_t, field) {
+                                    if (
+                                        typeof field !== "string" ||
+                                        field === "then"
+                                    )
+                                        return undefined;
+                                    if (field === "componentIdx") return c;
+                                    if (field === "componentType") return type;
+                                    if (field === "state") return state;
+                                    throw new CellsCoreGap(
+                                        `JavaScript core internals \`core.core.components[].${field}\``,
+                                    );
+                                },
+                            },
+                        );
+                    },
+                },
+            ),
             rendererInstructionBuilder: {
                 get rendererState() {
                     return rendererState();

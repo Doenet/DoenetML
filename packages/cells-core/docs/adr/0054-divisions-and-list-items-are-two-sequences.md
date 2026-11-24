@@ -156,10 +156,18 @@ as the current core's `mathDisplayString` writes it.
    `level` for the divisions, an aside and a proof.
 2. Open: `<cascade>` and `<page>` (pass-throughs of both sequences);
    `initializeCounters`; a section's title and number as references.
+   Done 2026-11-24 (ADR 0058): `<page>`, the third flag `passes_both`;
+   a section's `title` and `sectionNumber` as text a reference reads,
+   made as a join is. Still open: `<cascade>`, whose steps are revealed
+   by a derived count no gate the core has can follow (ADR 0058,
+   Migration), and `initializeCounters`.
 3. Done (2026-11-23): `sym::Display`, `Document::display_latex`, the wasm
    exports; the bridge's math, `<m>`, `<md>` and point LaTeX; the
    adapter's `latex` of a math, an interval, an `<m>`, an `<md>` and a
    point, and an `<m>`'s and `<me>`'s `text` and `renderMode`.
 4. Open: the settings as props (a reference, a sole child's); rounding in
    a math's `text`; numbered display math (the `equation` counter, ADR
-   0044).
+   0044). Done 2026-11-24 (ADR 0058): the settings as props of a
+   `<math>` and a `<number>`, so one given by a reference follows it.
+   Still open: a sole child's settings, and the props on a point and the
+   operators.

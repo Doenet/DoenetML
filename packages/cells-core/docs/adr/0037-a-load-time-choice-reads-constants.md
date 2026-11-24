@@ -437,6 +437,12 @@ above, it is here.
   `numToSelect` that differs between scopes are `cells-choice-domain`,
   naming the parameters' ranges ("its sequence can be empty (from is 1,
   step is 1, to is from -2 to 2)") rather than the draws that empty it.
+- **`<selectFromSequence numToSelect>`** (2026-11-24, ADR 0041 step 3):
+  a literal other than 1 draws a `Draws` of the sequence, whose domain
+  the check holds as a sampler's; a reference is still refused, as a
+  sampler's count is (the count is the number of the element's ports,
+  planned before the check evaluates constants). A copy shares the draw
+  (ADR 0059).
 - **Tests.** `tests/load_errors.rs` holds the documents of step 5 and 6,
   and the hold, gate, counted value and unstable read that decide a
   parameter's constancy (through the select's diagnostics rather than in

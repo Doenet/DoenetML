@@ -57,7 +57,7 @@ spec! {
         doenet r#"<matrix name="A"><row>a b</row><row>c d</row></matrix>
                   <number name="i">1</number><number name="j">2</number>
                   <math name="e">$A[$i][$j] + 1</math><math name="f">$A[3][1]</math>"#;
-        expect { "e.expr" = "b + 1", "f.expr" = "" }
+        expect { "e.expr" = "b + 1", "f.expr" = "＿" }
     }
 
     case "a size that follows a value is refused" {

@@ -75,7 +75,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 crate::limits::MAX_VEC_IN - 1
             )));
         }
-        let draw = wiring.hidden(Source::Leaf(Leaf::Scope(ScopeConst::Draw)));
+        // What decides the order drawn: the choices, and which of them
+        // are shuffled.
+        let draw = wiring.draw(DrawOn {
+            attrs: &[attr::shuffleOrder, attr::preserveLastChoice],
+            children: true,
+        });
         let mut args = vec![draw];
         args.extend((1..=shuffled).map(|k| wiring.hidden(Source::constant(k as f64))));
         let ports = wiring.hidden_vector(VecOp::Shuffle { n: byte(shuffled) }, args);
