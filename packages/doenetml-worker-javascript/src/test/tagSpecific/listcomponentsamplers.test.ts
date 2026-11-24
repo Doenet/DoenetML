@@ -393,7 +393,7 @@ describe("Samplers and sequences as list components @group4", async () => {
     <mathInput name="mim" bindValueTo="$l[2].math" />
     <mathInput name="min" bindValueTo="$l[3].number" />
     <p name="ppr"><samplePrimeNumbers name="pr" numSamples="1" minValue="2" maxValue="10" fixed="false" /></p>
-    <mathInput name="mipr" bindValueTo="$pr[1]" />
+    <mathInput name="mipr" bindValueTo="$pr" />
     <group fixed="false"><p name="pg"><sequence name="g" length="2" /></p></group>
     <mathInput name="mig" bindValueTo="$g[1]" />
     <p name="ps"><sequence name="s" length="2" /></p>
@@ -557,7 +557,7 @@ describe("Samplers and sequences as list components @group4", async () => {
     <cumulativeSum name="cs" displayDigits="2">1.23456 1</cumulativeSum>
     <p name="p1"><numberList>$s[1]</numberList></p>
     <p name="p2"><mathList>$s[2]</mathList></p>
-    <p name="p3"><numberList>$sel[1]</numberList></p>
+    <p name="p3"><numberList>$sel</numberList></p>
     <p name="p4"><numberList>$cs[1]</numberList></p>
     `,
         });
