@@ -1413,16 +1413,25 @@ type-change-unrelated =
 # $hasPrefill is "true" when the input has a `prefill` attribute. The form
 # suggested to edit the value is the input holding the reference, which shows
 # and writes to it as `bindValueTo` does (D65 decision 6); a `<choiceInput>`,
-# whose children are its choices, is bound with `bindValueTo`.
+# whose children are its choices, is bound with `bindValueTo`. $mix is
+# `none`, or, when the input's value would be a type mix with the source's
+# (D47, D68: a `<booleanInput>` of a number or a text, a `<mathInput>` of a
+# boolean), that mix, as for `type-change-unrelated`; the input that edits
+# the source, $fittingInput, is named instead.
 type-change-input-from-value =
-    { $hasPrefill ->
-        [true] { $componentType ->
-            [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
-           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
-        }
-       *[other] { $componentType ->
-            [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`.
-           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+    { $mix ->
+        [booleanAsNumber] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value, and true or false is not a number. To edit `{ $source }`, write `<{ $fittingInput }>{ $source }</{ $fittingInput }>`.
+        [numberAsBoolean] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value, and a number is not true or false. To edit `{ $source }`, write `<{ $fittingInput }>{ $source }</{ $fittingInput }>`.
+        [textAsBoolean] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value, and a text is not true or false. To edit `{ $source }`, write `<{ $fittingInput }>{ $source }</{ $fittingInput }>`.
+       *[none] { $hasPrefill ->
+            [true] { $componentType ->
+                [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
+               *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`. To start from its value, write `<{ $componentType } prefill="{ $source }"/>`.
+            }
+           *[other] { $componentType ->
+                [choiceInput] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType } bindValueTo="{ $source }"/>`.
+               *[other] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: an input isn't the same thing as its value. To edit `{ $source }`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            }
         }
     }
 

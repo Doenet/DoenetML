@@ -60,6 +60,14 @@ const INPUT_VALUE_TYPES = {
     booleanInput: "boolean",
 };
 
+/** The input that edits a value of each value type. */
+const FITTING_INPUTS = {
+    math: "mathInput",
+    number: "mathInput",
+    text: "textInput",
+    boolean: "booleanInput",
+};
+
 /**
  * The one type that is not a value type but is made from, and into, the
  * value types as one (D69 decision 3, D66 decision 17): an angle is its
@@ -129,6 +137,9 @@ function familyOf(componentType, componentInfoObjects) {
  * - `{ allowed: true, valueCheck: "tuple" | "number" }`, the check on the
  *   value of the source, or, for an input, of its value;
  * - `{ allowed: false, kind: "inputFromValue" | "container" | "unrelated" }`;
+ *   an `inputFromValue` whose input's value would be a type mix with the
+ *   source's also has that `mix` and the input that edits the source
+ *   (`fittingInput`, `<mathInput>` for a number);
  * - `{ allowed: false, kind: "mix", mix }`, a value as a type it isn't
  *   read as without the author asking: a boolean as a number or a math
  *   (`mix` is `"booleanAsNumber"`), a number or a math as a boolean
@@ -162,7 +173,23 @@ export function typeChangeRule({
 
     if (written.kind === "input") {
         if (source.kind === "value") {
-            return { allowed: false, kind: "inputFromValue" };
+            // An input whose value would be a type mix with the source's
+            // (`<booleanInput extend="$n"/>`, D47, D68) can't edit it
+            // either way, so the input that can is named (`fittingInput`).
+            const mix =
+                written.valueType &&
+                VALUE_TYPES.includes(source.type) &&
+                VALUE_TYPES.includes(written.valueType)
+                    ? valueMix(source.type, written.valueType)
+                    : undefined;
+            return mix
+                ? {
+                      allowed: false,
+                      kind: "inputFromValue",
+                      mix,
+                      fittingInput: FITTING_INPUTS[source.type],
+                  }
+                : { allowed: false, kind: "inputFromValue" };
         }
         return { allowed: false, kind: "unrelated" };
     }

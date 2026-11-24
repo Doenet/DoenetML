@@ -1925,6 +1925,8 @@ export function checkTypeChangesAtLoad({
                             {})
                             ? "true"
                             : "false",
+                    mix: rule.mix ?? "none",
+                    fittingInput: rule.fittingInput ?? "none",
                 },
             };
         }

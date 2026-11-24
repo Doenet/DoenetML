@@ -9129,6 +9129,8 @@ async function typeChangeStatus({
                         "prefill" in writtenClass.createAttributesObject()
                             ? "true"
                             : "false",
+                    mix: rule.mix ?? "none",
+                    fittingInput: rule.fittingInput ?? "none",
                 },
             });
         }

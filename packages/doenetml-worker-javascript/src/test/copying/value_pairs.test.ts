@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -70,6 +74,14 @@ async function load(doenetML: string) {
         });
     }
 
+    async function setBoolean(name: string, boolean: boolean) {
+        await updateBooleanInputValue({
+            boolean,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+    }
+
     /** Save the document's state and load it again from what was saved. */
     async function reload() {
         await core.saveImmediately();
@@ -87,6 +99,7 @@ async function load(doenetML: string) {
         text,
         setText,
         setMath,
+        setBoolean,
         reload,
     };
 }
@@ -681,6 +694,74 @@ describe("An input made from a value suggests the input holding it (D65 decision
         expect(d.diagnostics()).eqls([
             "doenet-e0062: A `<choiceInput>` can't be made from `$t`, a `<text>`: an input isn't the same thing as its value. To edit `$t`, write `<choiceInput bindValueTo=\"$t\"/>`.",
         ]);
+    });
+
+    // An input whose value would be a type mix with the source's can't
+    // edit it either way (D47, D68), so the input that can is named.
+    for (const [written, source, sourceType, reason, fitting] of [
+        [
+            "booleanInput",
+            '<number name="s">2</number>',
+            "number",
+            "a number is not true or false",
+            "mathInput",
+        ],
+        [
+            "booleanInput",
+            '<math name="s">x</math>',
+            "math",
+            "a number is not true or false",
+            "mathInput",
+        ],
+        [
+            "booleanInput",
+            '<text name="s">hi</text>',
+            "text",
+            "a text is not true or false",
+            "textInput",
+        ],
+        [
+            "mathInput",
+            '<boolean name="s">true</boolean>',
+            "boolean",
+            "true or false is not a number",
+            "booleanInput",
+        ],
+        [
+            "matrixInput",
+            '<boolean name="s">true</boolean>',
+            "boolean",
+            "true or false is not a number",
+            "booleanInput",
+        ],
+    ]) {
+        it(`<${written} extend> of a ${sourceType} names the <${fitting}>`, async () => {
+            const d = await load(`${source}<${written} name="x" extend="$s"/>`);
+            const expected = [
+                `doenet-e0062: A \`<${written}>\` can't be made from \`$s\`, a \`<${sourceType}>\`: an input isn't the same thing as its value, and ${reason}. To edit \`$s\`, write \`<${fitting}>$s</${fitting}>\`.`,
+            ];
+            expect(d.diagnostics()).eqls(expected);
+            await d.reload();
+            expect(d.diagnostics()).eqls(expected);
+        });
+    }
+
+    it("the input named edits the value", async () => {
+        const d = await load(`
+<number name="n">2</number>
+<text name="t">hi</text>
+<boolean name="b">true</boolean>
+<mathInput name="x1">$n</mathInput>
+<textInput name="x2">$t</textInput>
+<booleanInput name="x3">$b</booleanInput>
+`);
+        expect(d.diagnostics()).eqls([]);
+        await d.setMath("x1", "5");
+        expect(await d.text("n")).eq("5");
+        await d.setText("x2", "bye");
+        expect(await d.text("t")).eq("bye");
+        await d.setBoolean("x3", false);
+        expect(await d.stateValue("b", "value")).eq(false);
     });
 
     it("the suggested form edits the value", async () => {
