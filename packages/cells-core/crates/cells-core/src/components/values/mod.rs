@@ -192,6 +192,10 @@ pub(crate) fn plan_list_as(
                 let id = ctx.entry_math(&entry).expect("a reference is math");
                 Source::sym_expr(id, Post::None).into()
             }
+            // A math cell is read as the number it holds.
+            ListEntry::Ref(p) if kind == EntryKind::Number => {
+                ctx.entry_number(&mut wiring, p).into()
+            }
             ListEntry::Ref(p) => Source::reference(p).into(),
             ListEntry::Math(id) if kind == EntryKind::Number => Source::math(id).into(),
             ListEntry::Math(id) => {

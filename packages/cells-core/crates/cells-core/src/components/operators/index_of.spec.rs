@@ -46,10 +46,19 @@ spec! {
         expect { "no.value" = 0, "yes.value" = 3 }
     }
 
-    case "no target is a warning" {
-        doenet r#"<indexOf name="i">10 20 30</indexOf>"#;
-        diagnostics["cells-index-no-target"]
-        expect { "i.value" = f64::NAN }
+    // No position, as the current core's `listoperators.test.ts` has it.
+    case "no target is a warning, and no position" {
+        doenet r#"<indexOf name="i">10 20 30</indexOf>
+                  <searchSorted name="s">10 20 30</searchSorted>"#;
+        diagnostics["cells-index-no-target", "cells-index-no-target"]
+        expect { "i.value" = 0, "s.value" = 0 }
+    }
+
+    // A text is a string id, which no number comparison orders.
+    case "a text operand is refused" {
+        doenet r#"<textList name="tl">pear apple</textList>
+                  <argMin name="a">$tl</argMin>"#;
+        diagnostics["cells-unsupported"]
     }
 
     case "a target on argMin is refused" {

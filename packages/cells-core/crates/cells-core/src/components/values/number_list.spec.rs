@@ -113,4 +113,12 @@ spec! {
                   <numberList name="l">($a+1) 5</numberList>"#;
         expect { "l.numbers" = [3, 5] }
     }
+
+    // A math list's entry holds a handle: read as a number, its
+    // expression evaluated (`listoperators.test.ts`).
+    case "a math list's entries are the numbers they hold" {
+        doenet r#"<mathList name="ml">10 20 x</mathList>
+                  <numberList name="l">$ml 5</numberList>"#;
+        expect { "l.numbers" = [10.0, 20.0, f64::NAN, 5.0] }
+    }
 }

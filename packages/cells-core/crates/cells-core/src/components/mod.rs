@@ -1396,7 +1396,9 @@ mod tests {
         // 40: ADR 0058 added `ancestor_prop` and `last_child_text`, for a
         // section's full number and title as text. 41: ADR 0062 added
         // `is_step`, for a step of a cascade, which aggregates its scores.
-        const PLAN_CTX_METHODS: usize = 41;
+        // 42: ADR 0072 added `entry_number`, a list's entry read as a
+        // number, a math cell evaluated.
+        const PLAN_CTX_METHODS: usize = 42;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

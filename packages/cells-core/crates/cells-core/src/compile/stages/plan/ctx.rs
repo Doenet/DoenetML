@@ -364,6 +364,24 @@ impl<'a> PlanCtx<'_, 'a> {
         }
     }
 
+    /// Reference `p`, an entry of a list, read as a number: where it may
+    /// name a math cell (a math list's entry, an entry inside a handle),
+    /// the number that cell holds, its expression evaluated
+    /// ([`Flow::ValueOf`], picked by the type pass), through a hidden port
+    /// of `wiring`; otherwise the reference itself. A cell that holds math
+    /// holds a handle, which is no number to compute with.
+    pub(crate) fn entry_number(&self, wiring: &mut ElemWiring, p: RefId) -> Source {
+        if matches!(
+            self.entry_kind(&ListEntry::Ref(p)),
+            None | Some(ValueKind::Math)
+        ) {
+            let held = wiring.hidden(Source::reference(p));
+            Source::value_of(held, held)
+        } else {
+            Source::reference(p)
+        }
+    }
+
     /// The type of the element reference `p` names by a path of names
     /// alone (no prop, no entry), as the records tell: None for any
     /// other reference.
