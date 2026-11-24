@@ -3453,7 +3453,7 @@ export function checkTypeChangesAtLoad({
         const isList = copy.doenetAttributes?.forList !== undefined;
         if (!isList && !isScalarTag(copy)) {
             return (
-                groupFromCollectionError(copy) ??
+                groupSourceError(copy) ??
                 ownKindError(copy) ??
                 moduleTypeError(copy)
             );
@@ -3875,21 +3875,39 @@ export function checkTypeChangesAtLoad({
 
     /**
      * The error for a `<group>` made with `extend`, `copy` or
-     * `copyWithState` from a collection (`<group extend="$r"/>` of a
-     * `<repeat>`, a list, a `<collect>`, a select of several, …), decided by
-     * the tag as written (COLL-1, `collectionTagAsWritten`): a collection
-     * keeps its kind, and a `<group>` of it would be neither the same
-     * component (REF-7) nor one of D26's pairs (D64). The message names the
-     * forms that work: `<group>$r</group>`, a group holding it, and
-     * `<repeat extend="$r"/>`, the same collection again. A group made from
-     * a group, an iteration or a pick (`$r[1]`), or a tag that shows one
-     * thing (a `<conditionalContent>`, a one-pick `<select>`) is not one,
-     * and is left as it is. The reference is followed through names in what
-     * it names (`$cc.r`, `$sec.r`), also after one index into picks, a shown
-     * case or iterations (`$s[1].r`, `$outer[1].r`), but not through a
-     * property or an index after a name.
+     * `copyWithState` from anything but a composite that holds one thing or
+     * a group of things (D64, and the decision of November 24, 2026 on
+     * Doenet/DoenetML#2670), decided by the tag as written:
+     *
+     * - from a collection (`<group extend="$r"/>` of a `<repeat>`, a list,
+     *   a `<collect>`, a select of several, …; COLL-1,
+     *   `collectionTagAsWritten`): a collection keeps its kind, and a
+     *   `<group>` of it would be neither the same component (REF-7) nor one
+     *   of D26's pairs;
+     * - from a component that is not a composite (a value such as a
+     *   `<math>` or an input, an object such as a `<point>`, or a container
+     *   such as a `<p>` or a `<section>`, or the value of a repeat whose
+     *   `for` decides it, `$v`; `oneComponentTagAsWritten`): it is one
+     *   component, not a group, and keeps its kind too;
+     * - from a property or an entry of a list (`$m.value`, `$P.xs`,
+     *   `$ml[1]`), as the component or collection it gives, when the
+     *   DoenetML decides its type (`valueSourceOf`).
+     *
+     * The message names the forms that work: `<group>$m</group>`, a group
+     * holding it, and `<math extend="$m"/>`, the same component again. A
+     * group made from a group (or a `<module>`, built on one), an iteration
+     * or a pick (`$r[1]`), a tag that shows one thing (a
+     * `<conditionalContent>`, a one-pick `<select>`), or another composite
+     * (an `<intersection>`, a `<substitute>`) is left as it is, as are a
+     * property of a composite or one whose type the DoenetML does not
+     * decide, an entry of a selector or sampler or an item of a
+     * `<collect>`, a part of a choosing tag (`doenet-e0061`) and a
+     * component holding an error. The reference is followed through names
+     * in what it names (`$cc.r`, `$sec.m`), also after one index into
+     * picks, a shown case or iterations (`$s[1].r`, `$outer[1].m`), to a
+     * property or an entry at the end (`$sec.m.value`, `$r[1].ml[1]`).
      */
-    function groupFromCollectionError(
+    function groupSourceError(
         copy: SerializedComponent,
     ): TypeChangeAtLoadError | undefined {
         if (
@@ -3907,43 +3925,59 @@ export function checkTypeChangesAtLoad({
             typeof part.name === "string" &&
             part.name !== "" &&
             (part.index ?? []).length === 0;
-        let named: SerializedComponent[] | null | undefined;
-        if (path.length === 0) {
-            const node =
-                referents.componentsByIdx.get(ref.nodeIdx) ??
-                referents.copiesByCreatedIdx.get(ref.nodeIdx);
-            named = node ? [node] : undefined;
-        } else if (isIndexIntoPicks(path) && path.slice(1).every(isName)) {
-            // Names after an index into the picks of a select, the shown
-            // case of a conditionalContent (`$s[1].r`), or the iterations
-            // of a repeat (`$outer[1].r`): what is so named in each branch,
-            // or in the template, which each iteration makes.
-            const container = branchContainerAt(ref.nodeIdx, true);
-            named = container
-                ? visibleNamed(
-                      container,
-                      path.slice(1).map((part: any) => part.name),
-                  )
-                : ["repeat", "repeatForSequence"].includes(
-                        referents.referentType(ref.nodeIdx) ?? "",
-                    )
-                  ? descendantsNamed(ref.nodeIdx, path.slice(1))
-                  : undefined;
-        } else if (path.every(isName)) {
-            const container = branchContainerAt(ref.nodeIdx);
-            named = container
-                ? visibleNamed(
-                      container,
-                      path.map((part: any) => part.name),
-                  )
-                : descendantsNamed(ref.nodeIdx, path);
-        }
+        /**
+         * What the names `names` after the referent name: in each branch
+         * of what it shows or picks (`$cc.m`), else written below it
+         * (`$sec.m`); `undefined` for a path that isn't names alone or
+         * one index into picks, a shown case or iterations followed by
+         * names.
+         */
+        const namedBy = (
+            names: any[],
+        ): SerializedComponent[] | null | undefined => {
+            if (names.length === 0) {
+                const node =
+                    referents.componentsByIdx.get(ref.nodeIdx) ??
+                    referents.copiesByCreatedIdx.get(ref.nodeIdx);
+                return node ? [node] : undefined;
+            }
+            if (isIndexIntoPicks(names) && names.slice(1).every(isName)) {
+                // Names after an index into the picks of a select, the
+                // shown case of a conditionalContent (`$s[1].r`), or the
+                // iterations of a repeat (`$outer[1].r`): what is so named
+                // in each branch, or in the template, which each iteration
+                // makes.
+                const container = branchContainerAt(ref.nodeIdx, true);
+                return container
+                    ? visibleNamed(
+                          container,
+                          names.slice(1).map((part: any) => part.name),
+                      )
+                    : ["repeat", "repeatForSequence"].includes(
+                            referents.referentType(ref.nodeIdx) ?? "",
+                        )
+                      ? descendantsNamed(ref.nodeIdx, names.slice(1))
+                      : undefined;
+            }
+            if (names.every(isName)) {
+                const container = branchContainerAt(ref.nodeIdx);
+                return container
+                    ? visibleNamed(
+                          container,
+                          names.map((part: any) => part.name),
+                      )
+                    : descendantsNamed(ref.nodeIdx, names);
+            }
+            return undefined;
+        };
+        const named = namedBy(path);
+        const componentAt = (idx: number) =>
+            referents.componentsByIdx.get(idx) ??
+            referents.copiesByCreatedIdx.get(idx);
         for (const node of named ?? []) {
             const sourceType = collectionTagAsWritten(
                 node,
-                (idx) =>
-                    referents.componentsByIdx.get(idx) ??
-                    referents.copiesByCreatedIdx.get(idx),
+                componentAt,
                 componentInfoObjects,
             );
             if (sourceType !== undefined) {
@@ -3951,13 +3985,258 @@ export function checkTypeChangesAtLoad({
                     code: "doenet-e0065",
                     args: {
                         sourceType,
-                        collection: "true",
+                        groupFrom: "collection",
                         how: howWritten(copy),
                     },
                 };
             }
         }
-        return undefined;
+        // One component, not a composite, in every place the reference may
+        // name (each case of a `<conditionalContent>`): one tag, so that
+        // the message can name it.
+        const oneTypes = new Set(
+            (named ?? []).map((node) => oneComponentTagAsWritten(node)),
+        );
+        const [sourceType] = oneTypes;
+        if (oneTypes.size === 1 && sourceType !== undefined) {
+            return {
+                code: "doenet-e0065",
+                args: { sourceType, groupFrom: "one", how: howWritten(copy) },
+            };
+        }
+        if (named === null || (named !== undefined && named.length > 0)) {
+            return undefined;
+        }
+        // A property or an entry of a list, as the component it is
+        // (`valueSourceOf`).
+        const valueSource = valueSourceOf(path, namedBy);
+        return valueSource
+            ? {
+                  code: "doenet-e0065",
+                  args: { ...valueSource, how: howWritten(copy) },
+              }
+            : undefined;
+    }
+
+    /**
+     * What a reference that names no component, by the path `path` after
+     * its referent, gives, when that is a property or an entry of a list
+     * whose type the DoenetML decides (TYPE, D45; the decision of November
+     * 24, 2026 on Doenet/DoenetML#2670), with `namedBy` what names in the
+     * path name (`groupSourceError`):
+     *
+     * - an entry of a list (`$ml[1]`, `$sec.ml[1]`): one component of the
+     *   list's entry type (`groupFrom` `one`);
+     * - a property of a component that isn't a composite (`$m.value`,
+     *   `$P.x`, `$P.xs[1]`, `$sec.m.value`, `propertyTypesAtLoad.ts`): one
+     *   component of its type, or, for a property of several values
+     *   (`$P.xs`) or a list, a collection, named as the list tag that
+     *   holds them (`<mathList>`).
+     *
+     * `undefined` otherwise: an index into anything but a list (an
+     * iteration, a pick, a shown case, a `<collect>`, which hold what they
+     * hold), an entry of a selector or sampler (a pick), a property of a
+     * composite, one whose type the DoenetML does not decide, or a path
+     * that names several things of different kinds.
+     */
+    function valueSourceOf(
+        path: any[],
+        namedBy: (names: any[]) => SerializedComponent[] | null | undefined,
+    ): { sourceType: string; groupFrom: "one" | "collection" } | undefined {
+        const last = path[path.length - 1];
+        const lastIndex = last?.index ?? [];
+        const before = path.slice(0, -1);
+        if (!last || typeof last.name !== "string") {
+            return undefined;
+        }
+        const agreed = (
+            sources: (
+                | { sourceType: string; groupFrom: "one" | "collection" }
+                | undefined
+            )[],
+        ) => {
+            const keys = new Set(
+                sources.map((x) => x && `${x.groupFrom} ${x.sourceType}`),
+            );
+            return keys.size === 1 && sources[0] ? sources[0] : undefined;
+        };
+        if (last.name === "") {
+            // `$ml[1]`: an entry of the list named
+            if (before.length > 0 || lastIndex.length !== 1) {
+                return undefined;
+            }
+            const node = namedBy([])?.[0];
+            return node ? agreed([entrySource(node)]) : undefined;
+        }
+        const components = namedBy([...before, { ...last, index: [] }]);
+        if (components === null || components === undefined) {
+            return undefined;
+        }
+        if (components.length > 0) {
+            // `$sec.ml[1]`: an entry of the list named in each place
+            return lastIndex.length === 1
+                ? agreed(components.map(entrySource))
+                : undefined;
+        }
+        // a property of what the names before it name
+        const owners = namedBy(before);
+        if (!owners || owners.length === 0) {
+            return undefined;
+        }
+        return agreed(
+            owners.map((owner) => {
+                const componentType = referents.referentType(
+                    owner.componentIdx,
+                );
+                if (componentType === undefined || isComposite(componentType)) {
+                    return undefined;
+                }
+                const property = properties.propertyTypeOf({
+                    componentType,
+                    node:
+                        owner.componentType === "_placeholder"
+                            ? undefined
+                            : owner,
+                    name: last.name,
+                    numIndices: lastIndex.length,
+                    index: literalIndexOf(lastIndex[0]),
+                });
+                if (!property || "undecided" in property) {
+                    return undefined;
+                }
+                if (property.several) {
+                    const listTag = `${property.type}List`;
+                    return allClasses[listTag]?.listEntryComponentType ===
+                        property.type
+                        ? { sourceType: listTag, groupFrom: "collection" }
+                        : undefined;
+                }
+                return valueTypeSource(property.type);
+            }),
+        );
+    }
+
+    /**
+     * What an entry of the list `node` is, as a source of a `<group>`
+     * (`valueSourceOf`): one component of its entry type. `undefined` for
+     * what isn't a list, a selector or sampler (whose entries are picks),
+     * or a list whose entry type is not known.
+     */
+    function entrySource(
+        node: SerializedComponent,
+    ): { sourceType: string; groupFrom: "one" } | undefined {
+        const type = referents.referentType(node.componentIdx);
+        const listClass = type === undefined ? undefined : allClasses[type];
+        if (
+            !listClass ||
+            type!.startsWith("_") ||
+            type! in SELECTORS ||
+            listClass.listEntryComponentType === undefined
+        ) {
+            return undefined;
+        }
+        const entry =
+            node.componentType === "_copy"
+                ? listClass.listEntryTypeAttribute === undefined
+                    ? listClass.listEntryComponentType
+                    : undefined
+                : entryType(node);
+        const source = entry === undefined ? undefined : valueTypeSource(entry);
+        return source?.groupFrom === "one"
+            ? { ...source, groupFrom: "one" }
+            : undefined;
+    }
+
+    /**
+     * A value of the type `type`, as a source of a `<group>`: a list is a
+     * collection, a component that is not a composite one component;
+     * `undefined` for a composite or what is made for the document.
+     */
+    function valueTypeSource(
+        type: string,
+    ): { sourceType: string; groupFrom: "one" | "collection" } | undefined {
+        if (
+            type.startsWith("_") ||
+            !allClasses[type] ||
+            ["case", "else", "option"].includes(type)
+        ) {
+            return undefined;
+        }
+        if (allClasses[type].listEntryComponentType !== undefined) {
+            return { sourceType: type, groupFrom: "collection" };
+        }
+        return isComposite(type)
+            ? undefined
+            : { sourceType: type, groupFrom: "one" };
+    }
+
+    /** The index `piece` is written as, when it is a literal (`2`). */
+    function literalIndexOf(piece: any): number | undefined {
+        const value = piece?.value;
+        return Array.isArray(value) &&
+            value.length === 1 &&
+            typeof value[0] === "string" &&
+            /^\s*[1-9]\d*\s*$/.test(value[0])
+            ? Number(value[0])
+            : undefined;
+    }
+
+    /**
+     * The tag of `node` as written, following a reference written as a tag
+     * (`<math copy="$x"/>` is a `<math>`) or a bare reference (`$x`) to what
+     * it names, or the value of a repeat (`$v`, `$r[1].v`) as its `for`
+     * decides it (`referentType`), when that is one component that is not
+     * a composite (see `groupSourceError`); otherwise `undefined`: a
+     * composite, a list (a collection), anything else made for the
+     * document (`_`), a repeat's value whose type its `for` does not
+     * decide, a part of a choosing tag, a component holding an error, or a
+     * reference whose target the DoenetML does not give (a property,
+     * `$P.x`).
+     */
+    function oneComponentTagAsWritten(
+        node: SerializedComponent,
+        seen = new Set<number>(),
+    ): string | undefined {
+        if (seen.has(node.componentIdx)) {
+            return undefined;
+        }
+        seen.add(node.componentIdx);
+        let type: string | undefined = node.componentType;
+        if (type === "_copy") {
+            type = canonicalType(
+                literalText(node.attributes?._createComponentOfType),
+            );
+            if (type === undefined) {
+                const ref = refOf(node);
+                const target =
+                    ref &&
+                    ref.nodeIdx >= 0 &&
+                    (ref.unresolvedPath ?? []).length === 0
+                        ? (referents.componentsByIdx.get(ref.nodeIdx) ??
+                          referents.copiesByCreatedIdx.get(ref.nodeIdx))
+                        : undefined;
+                return target
+                    ? oneComponentTagAsWritten(target, seen)
+                    : undefined;
+            }
+        } else if (type === "_placeholder") {
+            // `$v`, the value of a repeat: what its `for` makes it, when the
+            // DoenetML decides that (COLL-5)
+            type = referents.referentType(node.componentIdx);
+        } else if (holdsError(node)) {
+            return undefined;
+        }
+        if (
+            type === undefined ||
+            type.startsWith("_") ||
+            !allClasses[type] ||
+            isComposite(type) ||
+            allClasses[type].listEntryComponentType !== undefined ||
+            ["case", "else", "option"].includes(type)
+        ) {
+            return undefined;
+        }
+        return type;
     }
 
     /**

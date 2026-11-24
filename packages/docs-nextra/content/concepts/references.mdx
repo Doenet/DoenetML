@@ -252,12 +252,25 @@ only between related types:
   `<text>$line.equation</text>{:dn}`, and a `<number>{:dn}` holding `$line` is
   a blank, with a warning.
 
-A `<group>` can be made from anything but a collection, and holds it. A
-collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
-`<sort>`, a `<shuffle>` or a `<select>` that picks several, keeps its kind:
-`<group extend="$r"/>{:dn}` of a `<repeat>` is an error. Write
-`<group>$r</group>{:dn}` for a group holding it, or `<repeat extend="$r"/>{:dn}`
-for the same repeat again.
+A `<group>` can be made from another `<group>`, an iteration (`$r[1]`), a
+pick, a `<conditionalContent>` or a `<select>` that picks one, and holds what
+it holds. Two kinds of source keep their kind, and a group made from one is an
+error:
+
+* one component that isn't a composite, whether a value, an input, a
+  `<point>` or a container such as a `<p>` or a `<section>`:
+  `<group extend="$m"/>{:dn}` of a `<math>` is an error. Write
+  `<group>$m</group>{:dn}` for a group holding it, or
+  `<math extend="$m"/>{:dn}` for the same math again. A property or an entry
+  of a list counts as the component it gives, so `<group extend="$m.value"/>{:dn}`
+  and `<group extend="$ml[1]"/>{:dn}` are errors too;
+* a collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
+  `<sort>`, a `<shuffle>` or a `<select>` that picks several:
+  `<group extend="$r"/>{:dn}` of a `<repeat>` is an error. Write
+  `<group>$r</group>{:dn}` for a group holding it, or
+  `<repeat extend="$r"/>{:dn}` for the same repeat again. So is a property
+  of several values, such as `<group extend="$P.xs"/>{:dn}`, which is a
+  `<mathList>`.
 
 Made by value, the tag follows the value, and writing to the tag writes it
 back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`

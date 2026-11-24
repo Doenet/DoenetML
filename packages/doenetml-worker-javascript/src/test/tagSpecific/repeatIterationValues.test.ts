@@ -387,7 +387,7 @@ describe("Repeat iteration values and indices @group3", async () => {
             doenetML: `
     <mathInput name="mi" prefill="3" />
     <repeatForSequence name="r" from="1" to="$mi" valueName="v">
-      <math name="m">$v^2</math>
+      <group name="m"><math>$v^2</math></group>
     </repeatForSequence>
     <p name="p">[<group extend="$r[2]"/>][<group extend="$r[2].m"/>]</p>
     `,
@@ -403,6 +403,8 @@ describe("Repeat iteration values and indices @group3", async () => {
             }
             texts.push(await textOf(core, resolvePathToNodeIdx, "p"));
         }
+        // `m` is a `<group>`: a `<group>` made from a `<math>` is
+        // `doenet-e0065`
         expect(texts).eqls(["[2²][2²]", "[][]", "[2²][2²]"]);
         expect(
             core.core!.diagnostics.filter((d: any) => d.type === "error"),

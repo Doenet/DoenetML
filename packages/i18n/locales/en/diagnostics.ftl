@@ -1379,12 +1379,16 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # all three are DoenetML, so they stay in English, as do `extend`, `copy`,
 # `bindValueTo`, `prefill`, `.text`, `true` and the property. A
 # `<variantControl>` shows nothing, so writing the reference by itself is no
-# advice for one; it is told why instead. $collection is "true" for a
-# `<group>` made from a collection (D64): a list, a `<repeat>`, a `<collect>`,
-# a `<select>` of several and so on, which is many things and keeps its kind;
-# the message names the two forms that work, a group holding it, and the
-# same collection again, written with $how (`extend`, `copy` or
-# `copyWithState`, as the author wrote it).
+# advice for one; it is told why instead. $groupFrom is set for a `<group>`
+# made from what a group can't be made from: `collection` for a collection
+# (D64), a list, a `<repeat>`, a `<collect>`, a `<select>` of several and so
+# on, which is many things and keeps its kind; `one` for one component that
+# isn't a composite, such as a `<math>`, an input, a `<point>` or a `<p>`,
+# which keeps its kind too. A property or an entry of a list counts as the
+# component it gives: `$m.value` and `$ml[1]` as a `<math>`, a property of
+# several values (`$P.xs`) as a `<mathList>`. The message names the two forms that work, a
+# group holding it, and the same component again, written with $how
+# (`extend`, `copy` or `copyWithState`, as the author wrote it).
 type-change-unrelated =
     { $mix ->
         [booleanAsNumber] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: true or false is not a number. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
@@ -1401,8 +1405,9 @@ type-change-unrelated =
             } To use its { $property }, write `<{ $componentType }>{ $source }.{ $property }</{ $componentType }>`.
         }
         [inContent] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it in a `<{ $componentType }>`, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-       *[other] { $collection ->
-            [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
+       *[other] { $groupFrom ->
+            [collection] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
+            [one] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
            *[other] { $sourceType ->
                 [variantControl] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. A `<variantControl>` shows nothing, and nothing can be read from it.
                *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
