@@ -1172,13 +1172,6 @@ export function checkBooleanNumberMixAtLoad({
     }
 
     /**
-     * Check the children of `component`, and then everything in it. `owner`
-     * and `attributeName` are the component and attribute it is the
-     * attribute component of, if it is one, `parentPosition` where its
-     * parent is reported, and `inAttribute` whether it is written in an
-     * attribute (an attribute component, or what it holds).
-     */
-    /**
      * Inside content of an `<answer>` reported as of another type than its
      * input (`doenet-w0205`, `answerTypesAtLoad.ts`), whose advice ("write it
      * as a boolean") resolves a mix too: a mix there is blanked, but not
@@ -1186,6 +1179,13 @@ export function checkBooleanNumberMixAtLoad({
      */
     let quiet = 0;
 
+    /**
+     * Check the children of `component`, and then everything in it. `owner`
+     * and `attributeName` are the component and attribute it is the
+     * attribute component of, if it is one, `parentPosition` where its
+     * parent is reported, and `inAttribute` whether it is written in an
+     * attribute (an attribute component, or what it holds).
+     */
     function visit(
         component: SerializedComponent,
         owner?: SerializedComponent,
