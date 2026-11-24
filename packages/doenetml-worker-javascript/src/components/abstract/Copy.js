@@ -8958,13 +8958,19 @@ async function typeChangeStatus({
         writtenValue &&
         componentInfoObjects.componentTypeAsWritten(writtenValue);
     const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
-    if (
-        !writtenClass ||
-        writtenClass.listEntryComponentType !== undefined ||
-        writtenType === "group"
-    ) {
-        // A list is made from what it copies by its own rules (#2231), and a
-        // `<group>` holds whatever it is made from.
+    if (!writtenClass || writtenClass.listEntryComponentType !== undefined) {
+        // A list is made from what it copies by its own rules (#2231).
+        return undefined;
+    }
+    if (writtenType === "group") {
+        // A `<group>` made from a collection, or from one component that
+        // isn't a composite (a `<math>`, a `<p>`, also as a property or an
+        // entry of a list, `$m.value`, `$ml[1]`), is an error decided when
+        // the document loads, from the tag the source is written as or the
+        // type the property has (D64, `groupSourceError` in
+        // `typeChangeAtLoad`), so that it is the same live and after a
+        // reload; made from anything else (a group, an iteration, a pick),
+        // it holds what it is made from.
         return undefined;
     }
 
@@ -9097,7 +9103,7 @@ async function typeChangeStatus({
         // nothing (REF-5, #2546).
         return mismatch({
             code: "doenet-e0071",
-            args: { makes: "content" },
+            args: { makes: "content", sourceIs: "value" },
         });
     }
 
@@ -9246,6 +9252,18 @@ async function typeChangeStatus({
             })
         ) {
             return null;
+        }
+        if (TAGS_MAKING_THEIR_CONTENT.has(writtenType)) {
+            // One code however the source is written (D48 decision 2): a
+            // component (`$n`) or an iteration (`$r[1]`) is no more a
+            // `<repeat>` than a property is, so naming its type would
+            // suggest another type might work, which none does. Decided
+            // when the document loads where the DoenetML gives it
+            // (`ownKindError` in `typeChangeAtLoad.ts`).
+            return mismatch({
+                code: "doenet-e0071",
+                args: { makes: "content", sourceIs: "other" },
+            });
         }
         return mismatch({ code: "doenet-e0065", args: { sourceType } });
     }

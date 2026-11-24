@@ -1322,14 +1322,27 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # as written (`$t`); all three are DoenetML, so they stay in English, as do
 # `extend`, `copy`, `bindValueTo`, `prefill` and `.text`. A
 # `<variantControl>` shows nothing, so writing the reference by itself is no
-# advice for one; it is told why instead.
+# advice for one; it is told why instead. $groupFrom is set for a `<group>`
+# made from what a group can't be made from: `collection` for a collection
+# (D64), a list, a `<repeat>`, a `<collect>`, a `<select>` of several and so
+# on, which is many things and keeps its kind; `one` for one component that
+# isn't a composite, such as a `<math>`, an input, a `<point>` or a `<p>`,
+# which keeps its kind too. A property or an entry of a list counts as the
+# component it gives: `$m.value` and `$ml[1]` as a `<math>`, a property of
+# several values (`$P.xs`) as a `<mathList>`. The message names the two forms that work, a
+# group holding it, and the same component again, written with $how
+# (`extend`, `copy` or `copyWithState`, as the author wrote it).
 type-change-unrelated =
     { $mix ->
         [booleanAsNumber] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: true or false is not a number. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
         [numberAsBoolean] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: a number is not true or false. To test it, write a comparison such as `<boolean>{ $source } != 0</boolean>`.
-       *[other] { $sourceType ->
-            [variantControl] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. A `<variantControl>` shows nothing, and nothing can be read from it.
-           *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+       *[other] { $groupFrom ->
+            [collection] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
+            [one] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
+           *[other] { $sourceType ->
+                [variantControl] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. A `<variantControl>` shows nothing, and nothing can be read from it.
+               *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+            }
         }
     }
 
@@ -1349,11 +1362,14 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # whose $attribute (`numToSelect` or `numSamples`) is not written as 1;
 # `anyNumber` for a composite such as a `<repeat>` or `<collect>`, which can
 # hold any number; and `count` when it, or one $part of it (`case`,
-# `option` or `iteration`), holds $count components. $sourceType is the tag
-# of the composite the reason is about, which may be one $source holds, or
-# the one `$source` indexes (an iteration of a `<repeat>`). $holdsNothing is
+# `option` or `iteration`), holds $count components, or (`entries`) it holds
+# a list alone whose entries, written out, are $count. $sourceType is the tag
+# of the composite the reason is about (with `entries`, of the list), which
+# may be one $source holds, or the one `$source` indexes (an iteration of a
+# `<repeat>`). $holdsNothing is
 # "true" when $count is zero. $indexSelectsOne is "true" when `$source[1]`
-# names one component, so the message suggests it. `numToSelect`, `<else>`
+# names one component (with `entries`, the list's first entry), so the
+# message suggests it; an entry has no name of its own. `numToSelect`, `<else>`
 # and the tags are DoenetML and stay in English.
 type-change-composite-not-one =
     { $reason ->
@@ -1378,6 +1394,10 @@ type-change-composite-not-one =
                 [true] nothing
                *[other] { $count }
             }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            [entries] { $indexSelectsOne ->
+                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]`. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write an index after the name of the `<{ $sourceType }>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+            }
            *[other] { $holdsNothing ->
                 [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
                *[other] { $indexSelectsOne ->
@@ -1396,10 +1416,15 @@ type-change-composite-not-one =
 # $componentType is a tag that makes its content itself, such as `<repeat>`,
 # `<select>` or `<collect>`, and `$source` is a property or an entry of a
 # property or a list (`$s.value`, `$l[2]`), which is a value, never such a tag
-# (#2546); otherwise it is `values`. The tags and `$source` are DoenetML and
-# stay in English.
+# (#2546); otherwise it is `values`. With `content`, $sourceIs is `value` for
+# such a value, and `other` for anything else that isn't the same tag: a
+# component of another type (`$n`), or an iteration or pick (`$r[1]`) (D48
+# decision 2). The tags and `$source` are DoenetML and stay in English.
 type-change-own-type-only = { $makes ->
-        [content] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a value. To show it as it is, write `{ $source }`.
+        [content] { $sourceIs ->
+            [other] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't one. To show it as it is, write `{ $source }`.
+           *[value] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a value. To show it as it is, write `{ $source }`.
+        }
        *[values] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
     }
 
