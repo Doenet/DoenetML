@@ -200,8 +200,17 @@ fn text_in_an_award_when() {
 
 #[test]
 fn text_never_compares_as_a_number() {
+    // Ordered, it can never hold (D58): missing, with a warning.
+    let doc = load(r#"<textInput name="ti"/><boolean name="b">$ti < 3</boolean>"#).unwrap();
+    assert!(
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.code == "cells-type-mix-order")
+    );
+    assert!(cells_core::program::is_missing(
+        doc.value("b", "value").unwrap()
+    ));
     for src in [
-        r#"<textInput name="ti"/><boolean>$ti < 3</boolean>"#,
         r#"<textInput name="ti"/><boolean>$ti + 1 = 2</boolean>"#,
         r#"<textInput name="ti"/><number name="n">3</number><boolean>$ti = $n</boolean>"#,
     ] {

@@ -191,8 +191,34 @@ its own, one per principle code, so the switch is a rename
    condition's spelled operand is checked by the seal (`SymText::plans`),
    so `<boolean>$P = (1,2)</boolean>` is a located diagnostic, not a
    failed load. Tests in `tests/principles.rs`.
-2. Open: §4, `PortType::Bool`, the mixes as missing with `w0203` and
-   `w0204`, and `convertBoolean`.
+2. **Done** (2026-11-24), without `PortType::Bool`: every mix the tests
+   reach is decided while planning, from what outlining settled of each
+   reference's referent (`ref_value_kind`, which counts an input that
+   reads as a boolean as one), and planned as the missing value with a
+   warning where the reference is written (`Arenas::type_mix`,
+   `Arenas::mix_ref`, ADR 0046's route for a reference that names
+   nothing). `cells-type-mix` (`w0203`): a boolean reference in math text
+   (`resolve_tokens`, unless `Arenas::booleans_in_math`, set for a
+   condition and a `<number convertBoolean>`); a boolean child of a
+   `<number>` (`plan_value_children`); a number, math or text alone in a
+   `<boolean>`, and a literal number there (`boolean.rs`); in a condition,
+   a lone operand that is not a boolean, a boolean compared with a value
+   that is not, and a boolean inside arithmetic (`CondParser`); a text
+   alone in a condition. `cells-type-mix-order` (`w0204`): a text ordered
+   with `<` or `>`. `<number convertBoolean>` reads booleans as 1 or 0.
+   Tests: `tests/principles.rs` (`d47_*`, `d58_*`); `tests/boolean.rs`,
+   `tests/cycles.rs`, `tests/rebuild_cycles.rs` and `tests/text_input.rs`
+   change to the principles (a literal `1` in a `<boolean>` is a mix; a
+   count over a boolean writes `convertBoolean`).
+   Left: a mix only the dataflow shows (an element child of an operator,
+   `<sum><boolean>true</boolean> 3</sum>`, is still 4; a reference through
+   an index or an interface name, which `ref_value_kind` can't type), for
+   which §4's `PortType::Bool` in the seal is still the plan; a boolean
+   attribute given a number (`hide="$n"`); `convertBoolean` over a
+   condition (`$n > 2`); `credit` as a `<number convertBoolean>`; and `=`
+   between a text and a number, still refused.
+5. Open: an answer's type comes from its input (D55):
+   `<answer><textInput/>…</answer>` is refused without `type="text"`.
 3. Open: §3's table in `ComponentType::conversion`, replacing
    `extends_as` and `extend_reads`, with the text parse and show
    instructions, and §5's codes.

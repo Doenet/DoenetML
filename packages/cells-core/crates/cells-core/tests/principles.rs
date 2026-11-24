@@ -328,7 +328,6 @@ fn type_a_text_is_never_read_as_its_string_id() {
     for src in [
         r#"<text name="t">hi</text><number name="n">$t</number>"#,
         r#"<text name="t">3</text><number name="n">$t</number>"#,
-        r#"<text name="t">true</text><boolean name="n">$t</boolean>"#,
     ] {
         let (code, message) = load_error(src);
         assert_eq!(code, "cells-unsupported", "{src}");
@@ -358,4 +357,70 @@ fn diag_1_a_point_in_a_condition_is_checked_at_load() {
         let (code, _) = load_error(src);
         assert_eq!(code, "cells-bad-math", "{src}");
     }
+}
+
+/// The warnings a document's load gave with `code`.
+fn warned(doc: &Document, code: &str) -> usize {
+    doc.diagnostics().iter().filter(|d| d.code == code).count()
+}
+
+/// Whether `name.prop` holds the missing value (VAL-5, ADR 0046).
+fn missing(doc: &Document, name: &str, prop: &str) -> bool {
+    cells_core::program::is_missing(v(doc, name, prop))
+}
+
+/// D47 decision 3: a boolean is 1 or 0 only where the author asks
+/// (`convertBoolean`); read as a number anywhere else it is a type mix, a
+/// blank in its place and a warning at load.
+#[test]
+fn d47_a_boolean_is_not_a_number() {
+    let doc = load(
+        r#"<boolean name="b">true</boolean><booleanInput name="bi"/>
+           <math name="m">$b + 1</math><number name="n">$b</number><math name="mb">$bi + 1</math>
+           <number name="c" convertBoolean>$b</number><number name="c2" convertBoolean>$b + 1</number>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "m"), "＿ + 1");
+    assert!(missing(&doc, "n", "value"));
+    assert_eq!(text(&doc, "mb"), "＿ + 1");
+    assert_eq!(v(&doc, "c", "value"), 1.0);
+    assert_eq!(v(&doc, "c2", "value"), 2.0);
+    assert_eq!(warned(&doc, "cells-type-mix"), 3);
+}
+
+/// D47 decision 4, D68: a number, a math or a text is not true or false;
+/// read as one it is a type mix. A comparison decides a boolean.
+#[test]
+fn d47_d68_a_number_or_a_text_is_not_a_boolean() {
+    let doc = load(
+        r#"<number name="n">2</number><text name="t">true</text><boolean name="b">true</boolean>
+           <boolean name="bn">$n</boolean><boolean name="lit">1</boolean><boolean name="bt">$t</boolean>
+           <boolean name="b1">$b = 1</boolean><boolean name="arith">$b + 1 = 2</boolean>
+           <boolean name="and">$b and $n</boolean>
+           <boolean name="cmp">$n != 0</boolean><boolean name="tcmp">$t = true</boolean>
+           <boolean name="bb">$b = true</boolean><boolean name="nb">not $b</boolean>"#,
+    )
+    .unwrap();
+    for name in ["bn", "lit", "bt", "b1", "arith", "and"] {
+        assert!(missing(&doc, name, "value"), "{name}");
+    }
+    assert_eq!(warned(&doc, "cells-type-mix"), 6);
+    assert_eq!(v(&doc, "cmp", "value"), 1.0);
+    assert_eq!(v(&doc, "tcmp", "value"), 1.0);
+    assert_eq!(v(&doc, "bb", "value"), 1.0);
+    assert_eq!(v(&doc, "nb", "value"), 0.0);
+}
+
+/// D58: a text ordered against a number can never hold: missing, with a
+/// warning of its own. `=` compares texts as before.
+#[test]
+fn d58_a_text_ordered_against_a_number_is_a_type_mix() {
+    let doc = load(
+        r#"<text name="t">10</text><number name="n">2</number>
+           <boolean name="gt">$t > $n</boolean><boolean name="eq">$t = 10</boolean>"#,
+    )
+    .unwrap();
+    assert!(missing(&doc, "gt", "value"));
+    assert_eq!(warned(&doc, "cells-type-mix-order"), 1);
+    assert_eq!(v(&doc, "eq", "value"), 1.0);
 }

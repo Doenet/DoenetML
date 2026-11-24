@@ -50,7 +50,7 @@ fn a_two_sided_neighbor_recurrence_is_a_cycle_at_every_count() {
 fn a_count_reading_its_own_iterations_is_a_cycle() {
     rejected(
         r#"<graph><repeatForSequence name="r" length="$k"><point name="p">(0,0)</point></repeatForSequence></graph>
-           <boolean name="b">$r[2].p.x > 0</boolean><number name="k">2 - $b</number>"#,
+           <boolean name="b">$r[2].p.x > 0</boolean><number name="k" convertBoolean>2 - $b</number>"#,
         "r",
     );
 }

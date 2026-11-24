@@ -54,6 +54,11 @@ pub(in crate::compile) struct Arenas {
     /// The planners' warnings about the source, which the compile reports
     /// with the boxes' errors.
     pub(in crate::compile) warnings: Vec<Diagnostic>,
+    /// Whether a boolean may be read inside the math being planned: in a
+    /// condition, where it is one, and in a `<number convertBoolean>`,
+    /// where the author asked for 1 or 0 (D47). Elsewhere it is a type mix
+    /// (ADR 0056, decision 4).
+    pub(in crate::compile) booleans_in_math: bool,
     /// Every string's canonical id, over the DAST table and then
     /// `extra_strings`; built when first needed. A cache.
     string_ids: Option<HashMap<String, StrId>>,
@@ -147,6 +152,28 @@ impl Arenas {
     pub(in crate::compile) fn push_ref(&mut self, plan: RefPlan) -> RefId {
         self.refs.push(plan);
         RefId::from_index(self.refs.len() - 1)
+    }
+
+    /// A type mix at `node` (D47, D68; ADR 0056, decision 4): warned where
+    /// it is written, and planned as the missing value in its place.
+    pub(in crate::compile) fn type_mix(&mut self, node: NodeId, message: &str) -> Source {
+        self.warn(node, "cells-type-mix", message);
+        Source::constant(crate::program::MISSING)
+    }
+
+    /// Reference `p`, replaced by one that names nothing: a type mix in
+    /// math text, read as the missing value wherever it stands.
+    pub(in crate::compile) fn mix_ref(&mut self, p: RefId, message: &str) -> RefId {
+        let node = self.refs[p.index()].node;
+        self.warn(node, "cells-type-mix", message);
+        self.push_ref(RefPlan {
+            hops: 0,
+            steps: vec![Step::Nothing],
+            prop: None,
+            entries: Vec::new(),
+            display: RefDisplay::Written,
+            node,
+        })
     }
 
     /// Plan `p`, to change: a prop named on it after it was planned.
