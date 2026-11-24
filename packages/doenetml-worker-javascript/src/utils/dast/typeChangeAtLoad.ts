@@ -92,6 +92,7 @@ import { ownSettingOfWrapper } from "../wrappers";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
 import {
     checkNamesAfterCollectionsAtLoad,
+    collectionTagAsWritten,
     type NameAfterCollection,
 } from "./namesAfterCollectionsAtLoad";
 import type { DiagnosticRecord } from "@doenet/utils";
@@ -270,12 +271,14 @@ type NotOne =
     | { reason: "anyNumber" }
     /**
      * a part (a case, an option, an iteration), or a composite itself
-     * (`other`), that holds `count`
+     * (`other`), that holds `count`; or a list the author writes, held in
+     * one, whose entries are `count` (`entries`), which is how many it
+     * stands for wherever it is held (`listHolding`)
      */
     | { reason: "count"; count: number; part: Part };
 
 /** What a count of `NotOne` is of. */
-type Part = "case" | "option" | "iteration" | "other";
+type Part = "case" | "option" | "iteration" | "other" | "entries";
 
 /**
  * What a composite, or a part of one, can hold, read from the DoenetML:
@@ -1007,13 +1010,43 @@ export function checkTypeChangesAtLoad({
             if (
                 allClasses[componentType]?.listEntryComponentType !== undefined
             ) {
-                // What a list stands for, its entries, can change without
-                // the composite holding it making anything new, so it is
-                // not decided here.
-                return { types: new Set(), skip: true };
+                return listHolding(item);
             }
             return componentHolding(componentType, item);
         });
+    }
+
+    /**
+     * What a list held in a composite, or named there by a reference
+     * (`<repeat for="1">$x</repeat>`), stands for: its entries (#2654 item
+     * 5). A list the author writes whose entries the DoenetML decides
+     * (`listEntryCountAtLoad`) is that many components of its entry type, as
+     * `<math extend="$x"/>` of it is decided (`authoredListCountError`), so
+     * a `<math>` made from an iteration holding a `<mathList>` of three is
+     * `doenet-e0064` too. Any other list's entries can change without the
+     * composite holding it making anything new, so it is not decided here.
+     */
+    function listHolding(list: SerializedComponent): Holding {
+        if (!isAuthoredListType(list.componentType, componentInfoObjects)) {
+            return { types: new Set(), skip: true };
+        }
+        const entries = listEntryCountAtLoad(
+            list,
+            componentInfoObjects,
+            componentAt,
+        );
+        const type = allClasses[list.componentType]?.listEntryComponentType;
+        if (entries?.kind !== "written" || typeof type !== "string") {
+            return { types: new Set(), skip: true };
+        }
+        if (entries.count === 1) {
+            return { types: new Set([type]) };
+        }
+        return {
+            notOne: { reason: "count", count: entries.count, part: "entries" },
+            notOneTag: list.componentType,
+            types: new Set([type]),
+        };
     }
 
     /**
@@ -1110,9 +1143,10 @@ export function checkTypeChangesAtLoad({
             if (
                 allClasses[referentType]?.listEntryComponentType !== undefined
             ) {
-                // a list, not decided here, as a list written there is not
-                // (`itemHolding`)
-                return { types: new Set(), skip: true };
+                // a list, as a list written there (`itemHolding`)
+                return node
+                    ? listHolding(node)
+                    : { types: new Set(), skip: true };
             }
             return componentHolding(referentType, node ?? undefined);
         });
@@ -1697,6 +1731,13 @@ export function checkTypeChangesAtLoad({
                 return { types: new Set(), skip: true };
             }
             return { types: new Set([collected]) };
+        }
+        if (x.componentType === "conditionalContent") {
+            // The shown case (`$cc[1]`), which holds what one of its cases
+            // holds, as the `<conditionalContent>` itself does (REF-5).
+            return cachedHolding(heldByIdx, x, seen, (seenBelow) =>
+                holding(x, seenBelow),
+            );
         }
         if (
             x.componentType === "repeat" ||
@@ -3059,15 +3100,15 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * Whether `held` is one component of the type `writtenType`, or of one
-     * that is a `writtenType`, as a tag that makes its list of values itself
-     * (`self`).
+     * Whether `held` is one component of the type `writtenType`, a tag that
+     * makes its list of values itself (`self`). It must be that very tag: a
+     * class built on another (a `<selectRandomNumbers>` on a
+     * `<sampleRandomNumbers>`, a `<selectFromSequence>` on a `<sequence>`)
+     * makes its values another way, so is another kind (D48 decision 2,
+     * #1986).
      */
     function isSelf(held: Holding, writtenType: string) {
-        return (
-            held.self !== undefined &&
-            typesAs(new Set([held.self]), writtenType).includes(writtenType)
-        );
+        return held.self !== undefined && held.self === writtenType;
     }
 
     /**
@@ -3354,7 +3395,11 @@ export function checkTypeChangesAtLoad({
         }
         const isList = copy.doenetAttributes?.forList !== undefined;
         if (!isList && !isScalarTag(copy)) {
-            return moduleTypeError(copy);
+            return (
+                groupFromCollectionError(copy) ??
+                ownKindError(copy) ??
+                moduleTypeError(copy)
+            );
         }
         const writtenType = isList ? undefined : tagType(copy);
         // The type of each entry of a list tag.
@@ -3731,6 +3776,189 @@ export function checkTypeChangesAtLoad({
                 // An index selects an entry of a list.
                 indexSelectsOne: "true",
             },
+        };
+    }
+
+    /**
+     * The attribute `copy` was written with: `extend`, `copy` or
+     * `copyWithState`.
+     */
+    function howWritten(copy: SerializedComponent) {
+        const extending: any = copy.extending ?? {};
+        return "CopyAttribute" in extending
+            ? "copy"
+            : "CopyWithStateAttribute" in extending
+              ? "copyWithState"
+              : "extend";
+    }
+
+    /**
+     * The error for a `<group>` made with `extend`, `copy` or
+     * `copyWithState` from a collection (`<group extend="$r"/>` of a
+     * `<repeat>`, a list, a `<collect>`, a select of several, …), decided by
+     * the tag as written (COLL-1, `collectionTagAsWritten`): a collection
+     * keeps its kind, and a `<group>` of it would be neither the same
+     * component (REF-7) nor one of D26's pairs (D64). The message names the
+     * forms that work: `<group>$r</group>`, a group holding it, and
+     * `<repeat extend="$r"/>`, the same collection again. A group made from
+     * a group, an iteration or a pick (`$r[1]`), or a tag that shows one
+     * thing (a `<conditionalContent>`, a one-pick `<select>`) is not one,
+     * and is left as it is. The reference is followed through names in what
+     * it names (`$cc.r`, `$sec.r`), but not through an index or a property.
+     */
+    function groupFromCollectionError(
+        copy: SerializedComponent,
+    ): TypeChangeAtLoadError | undefined {
+        if (
+            tagType(copy) !== "group" ||
+            literalText(copy.attributes._copyInChildren) !== "true"
+        ) {
+            return undefined;
+        }
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        let named: SerializedComponent[] | null | undefined;
+        if (path.length === 0) {
+            const node =
+                referents.componentsByIdx.get(ref.nodeIdx) ??
+                referents.copiesByCreatedIdx.get(ref.nodeIdx);
+            named = node ? [node] : undefined;
+        } else if (
+            path.every(
+                (part: any) =>
+                    typeof part.name === "string" &&
+                    part.name !== "" &&
+                    (part.index ?? []).length === 0,
+            )
+        ) {
+            const container = branchContainerAt(ref.nodeIdx);
+            named = container
+                ? visibleNamed(
+                      container,
+                      path.map((part: any) => part.name),
+                  )
+                : descendantsNamed(ref.nodeIdx, path);
+        }
+        for (const node of named ?? []) {
+            const sourceType = collectionTagAsWritten(
+                node,
+                (idx) =>
+                    referents.componentsByIdx.get(idx) ??
+                    referents.copiesByCreatedIdx.get(idx),
+                componentInfoObjects,
+            );
+            if (sourceType !== undefined) {
+                return {
+                    code: "doenet-e0065",
+                    args: {
+                        sourceType,
+                        collection: "true",
+                        how: howWritten(copy),
+                    },
+                };
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * The error for a tag that makes its content itself
+     * (`TAGS_MAKING_THEIR_CONTENT`: a `<repeat>`, a `<select>`, a
+     * `<collect>`, a `<sort>`, …) made with `extend` or `copy` from
+     * anything but the same tag (D48 decision 2): `doenet-e0071`, however
+     * the source is written, as for a property (`$n.value`), which the run
+     * time reports (`typeChangeStatus` in `Copy.js`). Decided here for a
+     * component the reference names with nothing left for run time
+     * (`<repeat extend="$n"/>`), and for an index into one (`$r[1]`, an
+     * iteration; `$l[2]`, an entry), which is an item, never the tag. A tag
+     * that makes its list of values itself (`<sequence>`) is decided as a
+     * scalar tag (`decide`). Left to run time, as for `moduleTypeError`: a
+     * reference to anything made for the document (`_`), a part of a
+     * choosing tag (`doenet-e0061`), a component holding an error, and an
+     * extend writing attributes or children of a tag that makes its content,
+     * which would change that content (`extendChangesContentErrors`).
+     */
+    function ownKindError(
+        copy: SerializedComponent,
+    ): TypeChangeAtLoadError | undefined {
+        const writtenType = tagType(copy);
+        if (
+            writtenType === undefined ||
+            writtenType === "group" ||
+            literalText(copy.attributes._copyInChildren) !== "true" ||
+            !TAGS_MAKING_THEIR_CONTENT.has(writtenType) ||
+            !isComposite(writtenType) ||
+            isSelfMadeList(writtenType)
+        ) {
+            return undefined;
+        }
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        const sourceType = referents.referentType(ref.nodeIdx);
+        if (sourceType === undefined || sourceType.startsWith("_")) {
+            return undefined;
+        }
+        if (
+            path.length === 1 &&
+            path[0].name === "" &&
+            (path[0].index ?? []).length === 1 &&
+            // what shows one thing, whose shown case or pick stands for the
+            // component it holds (COLL-3), is left to run time
+            sourceType !== "conditionalContent" &&
+            sourceType !== "select"
+        ) {
+            // An index: an item of what it indexes, never the tag. An entry
+            // of a list is a value, as the run time words it.
+            return {
+                code: "doenet-e0071",
+                args: {
+                    makes: "content",
+                    sourceIs:
+                        allClasses[sourceType]?.listEntryComponentType !==
+                            undefined && !isComposite(sourceType)
+                            ? "value"
+                            : "other",
+                },
+            };
+        }
+        if (path.length > 0) {
+            return undefined;
+        }
+        const node =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        if (
+            !node ||
+            sourceType === "setup" ||
+            ["case", "else", "option"].includes(sourceType) ||
+            holdsError(node) ||
+            sourceType === writtenType ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: sourceType,
+                baseComponentType: writtenType,
+            })
+        ) {
+            return undefined;
+        }
+        const writesAnything =
+            Object.keys(copy.attributes ?? {}).some(
+                (name) => !name.startsWith("_") && name !== "name",
+            ) ||
+            (copy.children ?? []).some(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+        if (writesAnything && TAGS_MAKING_THEIR_CONTENT.has(sourceType)) {
+            return undefined;
+        }
+        return {
+            code: "doenet-e0071",
+            args: { makes: "content", sourceIs: "other" },
         };
     }
 

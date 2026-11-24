@@ -216,7 +216,12 @@ only between related types:
 * a component as what it stands for wherever its own tag can't go, such as an
   `<angle>` as a `<math>`, or an `<ion>` as the `<text>` of its name.
 
-A `<group>` can be made from anything, and holds it.
+A `<group>` can be made from anything but a collection, and holds it. A
+collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
+`<sort>`, a `<shuffle>` or a `<select>` that picks several, keeps its kind:
+`<group extend="$r"/>{:dn}` of a `<repeat>` is an error. Write
+`<group>$r</group>{:dn}` for a group holding it, or `<repeat extend="$r"/>{:dn}`
+for the same repeat again.
 
 Made by value, the tag follows the value, and writing to the tag writes it
 back where the conversion runs backward: dragging `<point extend="$mi"/>{:dn}`
@@ -259,7 +264,9 @@ A list tag, such as `<mathList extend="$c"/>{:dn}`, takes any number of
 components, including none, as long as they are all of one type.
 
 A single tag made from a list, such as `<math extend="$ml"/>{:dn}`, needs the
-list to hold one entry, and is an error when it holds another number. When
+list to hold one entry, and is an error when it holds another number. So is one
+made from a composite holding the list, such as an iteration of
+`<repeat name="r" for="1">$ml</repeat>{:dn}`, `<math extend="$r[1]"/>{:dn}`. When
 the list's `maxNumber` is a value, such as `maxNumber="$n"`, the tag is
 missing instead while the list doesn't hold one entry (see
 [below](#what-still-changes-as-the-document-runs)).
@@ -351,6 +358,12 @@ points, or a `<function>{:dn}` through it, is missing too, until the point is
 there.
 
 Other errors, each with the form to write instead:
+
+* a tag that makes its content itself, such as a `<repeat>`, a `<select>`, a
+  `<collect>`, a `<sort>` or a `<sequence>`, can be made only from another of
+  the same tag: `<repeat extend="$n"/>{:dn}` of a `<number>`, or
+  `<repeat extend="$r[1]"/>{:dn}` of an iteration, is an error. Write `$n` to
+  show it as it is;
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write

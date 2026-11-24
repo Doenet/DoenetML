@@ -141,10 +141,17 @@ const documents: [string, string, string[]][] = [
         `<repeat name="rs" for="1 2" valueName="w"><sequence name="s" from="1" to="$w"/></repeat>${inCase(`<sequence extend="$rs[1].s" to="5"/>`)}`,
         ["doenet-e0056"],
     ],
+    // a group made from a collection keeps it a collection (D64)
     [
-        "a group in a case, of a repeat, with a child, made from what the repeat makes",
+        "a group in a case, of a repeat, with a child",
         `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inCase(`<group extend="$rr"><text>z</text></group>`)}`,
-        [],
+        ["doenet-e0065"],
+    ],
+    // a tag that makes its content itself, from another kind (D48)
+    [
+        "a repeat in a case, of a number",
+        `<number name="nn">2</number>${inCase(`<repeat extend="$nn"/>`)}`,
+        ["doenet-e0071"],
     ],
     // an award or a choice can only be copied (D42)
     [

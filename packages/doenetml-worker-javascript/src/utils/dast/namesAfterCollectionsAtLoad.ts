@@ -150,6 +150,101 @@ export function namesAfterCollectionsDiagnostics(
 const PICK_ATTRIBUTES = ["numToSelect", "numSamples"];
 
 /**
+ * The tag `componentType`, written as `node`, if it is a collection
+ * (COLL-1): a chooser or sampler picks as `node` says, or, when a copy
+ * doesn't say, as the one it copies (`copied`, the collection that is, if
+ * any), else one; any other tag is a collection whatever it holds (a list,
+ * a `<sequence>`, a `<repeat>`, a `<collect>`, …).
+ */
+export function collectionWritten(
+    componentType: string,
+    node: SerializedComponent,
+    copied: () => string | undefined,
+    componentInfoObjects: ComponentInfoObjects,
+): string | undefined {
+    const componentClass = (
+        componentInfoObjects.allComponentClasses as Record<string, any>
+    )[componentType];
+    if (!componentClass) {
+        return undefined;
+    }
+    const attributes = componentClass.createAttributesObject();
+    const pickAttribute = PICK_ATTRIBUTES.find((name) => name in attributes);
+    if (pickAttribute) {
+        const picks = attributeOf(node, pickAttribute);
+        if (picks === undefined) {
+            return node.componentType === "_copy" && copied() === componentType
+                ? componentType
+                : undefined;
+        }
+        return literalText(picks)?.trim() === "1" ? undefined : componentType;
+    }
+    return COMPOSITE_COLLECTIONS.has(componentType) ||
+        componentClass.listEntryComponentType !== undefined
+        ? componentType
+        : undefined;
+}
+
+/**
+ * The tag of the collection `node` is written as (COLL-1), or `undefined`
+ * when it is not one. Unlike a name after it (`collectionAt`), a `<group>`
+ * is not looked through: a `<group>` is a group, whatever it holds, so a
+ * tag made from it is made from a group (D64). A tag written with `copy` or
+ * `extend` is the tag written, and a bare reference stands for what it
+ * names.
+ */
+export function collectionTagAsWritten(
+    node: SerializedComponent,
+    componentAt: (idx: number) => SerializedComponent | undefined,
+    componentInfoObjects: ComponentInfoObjects,
+    seen: Set<number> = new Set(),
+): string | undefined {
+    if (seen.has(node.componentIdx)) {
+        return undefined;
+    }
+    seen.add(node.componentIdx);
+    if (node.componentType === "group") {
+        return undefined;
+    }
+    if (node.componentType !== "_copy") {
+        return collectionWritten(
+            node.componentType,
+            node,
+            () => undefined,
+            componentInfoObjects,
+        );
+    }
+    const ref = refOf(node);
+    const copied = () => {
+        const target =
+            ref && ref.nodeIdx >= 0 && !((ref.unresolvedPath?.length ?? 0) > 0)
+                ? componentAt(ref.nodeIdx)
+                : undefined;
+        return target
+            ? collectionTagAsWritten(
+                  target,
+                  componentAt,
+                  componentInfoObjects,
+                  seen,
+              )
+            : undefined;
+    };
+    const literal = literalText(node.attributes?._createComponentOfType);
+    const written =
+        literal === undefined
+            ? undefined
+            : componentInfoObjects.componentTypeAsWritten(literal);
+    if (written === undefined) {
+        // a bare reference stands for what it names
+        return copied();
+    }
+    if (written === "group") {
+        return undefined;
+    }
+    return collectionWritten(written, node, copied, componentInfoObjects);
+}
+
+/**
  * The warnings for a name or a property after a collection among
  * `serializedComponents` (`doenet-w0200`), each reference warned about made
  * to name nothing.
@@ -190,24 +285,6 @@ export function checkNamesAfterCollectionsAtLoad({
             componentType,
             includeNonStandard: true,
         });
-    }
-
-    /** The attribute of `component` that says how many it picks, if any. */
-    function pickAttributeName(componentType: string) {
-        const componentClass = allClasses[componentType];
-        if (!componentClass) {
-            return undefined;
-        }
-        const attributes = componentClass.createAttributesObject();
-        return PICK_ATTRIBUTES.find((name) => name in attributes);
-    }
-
-    /** Whether a tag of this type is a collection whatever it picks. */
-    function isCollectionType(componentType: string) {
-        return (
-            COMPOSITE_COLLECTIONS.has(componentType) ||
-            allClasses[componentType]?.listEntryComponentType !== undefined
-        );
     }
 
     /** Each name written in the document. */
@@ -433,7 +510,7 @@ export function checkNamesAfterCollectionsAtLoad({
                 }
                 return undefined;
             }
-            return collectionWritten(written, node, () =>
+            return collectionWrittenHere(written, node, () =>
                 ref &&
                 ref.nodeIdx >= 0 &&
                 !((ref.unresolvedPath?.length ?? 0) > 0)
@@ -454,33 +531,20 @@ export function checkNamesAfterCollectionsAtLoad({
             }
             return collectionOf(content[0], name, seen);
         }
-        return collectionWritten(node.componentType, node, () => undefined);
+        return collectionWrittenHere(node.componentType, node, () => undefined);
     }
 
-    /**
-     * The tag `componentType` written as `node`, if it is a collection: a
-     * chooser picks as `node` says, or, when it doesn't say, as the one it
-     * copies (`copied`), else one.
-     */
-    function collectionWritten(
+    function collectionWrittenHere(
         componentType: string,
         node: SerializedComponent,
         copied: () => string | undefined,
     ): string | undefined {
-        const pickAttribute = pickAttributeName(componentType);
-        if (pickAttribute) {
-            const picks = attributeOf(node, pickAttribute);
-            if (picks === undefined) {
-                return node.componentType === "_copy" &&
-                    copied() === componentType
-                    ? componentType
-                    : undefined;
-            }
-            return literalText(picks)?.trim() === "1"
-                ? undefined
-                : componentType;
-        }
-        return isCollectionType(componentType) ? componentType : undefined;
+        return collectionWritten(
+            componentType,
+            node,
+            copied,
+            componentInfoObjects,
+        );
     }
 
     /**
