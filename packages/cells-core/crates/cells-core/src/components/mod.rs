@@ -316,6 +316,9 @@ component_types! {
     /// `<sampleMultivariateRandomNumber>`: one number per category, drawn
     /// together at load.
     SampleMultivariateRandomNumber => structure::sample_multivariate_random_number::DEFINITION,
+    /// A `<pointList>` of one entry of a point list chosen by an index, a
+    /// count of 0 or 1 (ADR 0074).
+    PointListEntry => geometry::point_list_entry::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

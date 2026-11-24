@@ -142,6 +142,17 @@ impl Outlining<'_> {
         let Ok(p) = rd.plan_ref_naming(&mut self.ar, t, name_scope, m) else {
             return false;
         };
+        // One entry of a point list (`$l.points[$n]`): a list of it, or
+        // of none, by the index (ADR 0074).
+        if let Some(entry) = ty.over_entry()
+            && d.attr_peek(node, "extend").is_some()
+            && self.names_point_entry(p)
+        {
+            crate::compile::read::record_read(&mut self.work.reads, t, e, p);
+            self.outlined_mut(t).elems[e.index()].extend = None;
+            self.make_over_value(t, e, entry);
+            return true;
+        }
         if !self.names_math_value(t, p) {
             return false;
         }
@@ -151,6 +162,17 @@ impl Outlining<'_> {
         self.outlined_mut(t).elems[e.index()].extend = None;
         self.make_over_value(t, e, over);
         true
+    }
+
+    /// Whether reference `p` names one entry of a list of points by an
+    /// index that is no literal (`$l.points[$n]`, `$pg.vertices[$k]`): an
+    /// entry step of a point's width, the path's last, through elements
+    /// alone. (A literal index names a point prop, no entry.)
+    fn names_point_entry(&self, p: RefId) -> bool {
+        let plan = &self.ar.refs[p.index()];
+        matches!(&plan.entries[..], [entry] if entry.width == 2)
+            && plan.prop.is_some()
+            && plan.steps.iter().all(|s| matches!(s, Step::Elem(_)))
     }
 
     /// Whether reference `p`, planned from template `t`, names a math
