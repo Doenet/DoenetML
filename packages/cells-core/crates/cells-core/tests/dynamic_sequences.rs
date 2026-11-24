@@ -43,6 +43,31 @@ fn an_intersection_shows_its_points_up_to_its_live_length() {
     assert_eq!(reference::check(&doc), None);
 }
 
+#[test]
+fn an_index_into_a_capped_list_is_a_choose() {
+    let mut doc = load(
+        r#"<graph>
+             <point name="P">(4,5)</point>
+             <circle name="c" center="$P" radius="1"/>
+             <line name="l" through="(4,1) (4,-4)"/>
+             <intersection name="int">$l $c</intersection>
+           </graph>
+           <mathInput name="k" prefill="2"/>
+           <number name="y" extend="$int.points[$k].y"/>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "y", "value"), 4.0);
+    set(&mut doc, "k", "value", 1.0);
+    assert_eq!(v(&doc, "y", "value"), 6.0);
+    // Past the live length, or no integer: the missing value.
+    set(&mut doc, "k", "value", 1.5);
+    assert!(v(&doc, "y", "value").is_nan());
+    set(&mut doc, "k", "value", 2.0);
+    move_point(&mut doc, "P", 3.0, 5.0);
+    assert!(v(&doc, "y", "value").is_nan());
+    assert_eq!(reference::check(&doc), None);
+}
+
 /// The expression `name.prop` holds, as the engine prints it.
 fn expr(doc: &Document, name: &str, prop: &str) -> String {
     doc.math_text(doc.cell(name, prop).unwrap())
