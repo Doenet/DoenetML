@@ -38,7 +38,7 @@
  */
 
 import { vectorOperators } from "@doenet/utils";
-import { numberFromString } from "./valueFunctions/number";
+import { textToMath } from "./valueFunctions/text";
 
 /** The value types, which are made from one another. */
 const VALUE_TYPES = ["math", "number", "text", "boolean"];
@@ -402,7 +402,8 @@ function isContainer(componentType, componentInfoObjects) {
  * (`typeChangeRule`): a tuple or vector (`vectorOperators`, as `Point.js`
  * reads its coordinates, including `⟨1,2⟩`) for a point, vector or coords to
  * be made from it; for a number, made from a text, a text that reads as a
- * number, as a `<number>` reads one (`numberFromString`).
+ * number, as a `<number>` reads a text: through its `math` (`Text.js`'s
+ * `number`), so `1e3` or a blank is not one, though `Number()` reads it.
  */
 export function valueAllowsTypeChange(valueCheck, value) {
     const tree = value?.tree;
@@ -413,8 +414,20 @@ export function valueAllowsTypeChange(valueCheck, value) {
         if (typeof value !== "string") {
             return true;
         }
-        const number = numberFromString(value);
-        return !(typeof number === "number" && Number.isNaN(number));
+        const number = textToMath({
+            value,
+            isLatex: false,
+        }).evaluate_to_constant();
+        if (typeof number === "number") {
+            return !Number.isNaN(number);
+        }
+        // a complex number (`3+4i`)
+        return (
+            typeof number?.re === "number" &&
+            typeof number?.im === "number" &&
+            !Number.isNaN(number.re) &&
+            !Number.isNaN(number.im)
+        );
     }
     return true;
 }

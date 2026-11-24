@@ -323,7 +323,7 @@ describe("A component becomes only what it stands in as (D69, #2659) @group4", (
         [
             "<boolean> of an ion",
             `<ion name="i" symbol="Na"/><boolean name="x" extend="$i"/>`,
-            "A `<boolean>` can't be made from `$i`, which gives a `<ion>`: a `<ion>` is read only as one of `<math>`, `<text>`, not as anything that could be made from them. To show it as it is, write `$i`.",
+            "A `<boolean>` can't be made from `$i`, which gives a `<ion>`: a `<ion>` is read only as one of `<math>`, `<text>`, not as anything that could be made from them.",
         ],
         [
             "<number> of a label",
@@ -507,12 +507,33 @@ describe("A value that doesn't convert is missing, with an info (REF-5, #2659) @
         expect(await d.text("n")).eq("7");
     });
 
+    // `Number()` reads `1e3` and a blank as numbers, but a `<number>` reads a
+    // text through its math, where they are not: the check follows the
+    // `<number>`, so these are missing with the info, not a silent `NaN`.
+    for (const value of ["1e3", "   ", "0x10"]) {
+        it(`<number extend> of a text holding “${value}”`, async () => {
+            const d = await load(`
+<text name="t">${value}</text>
+<number name="n" extend="$t"/>
+<textInput name="ti" prefill="${value}"/>
+<number name="m" extend="$ti"/>
+`);
+            expect(d.codes()).eqls(["doenet-i0053", "doenet-i0053"]);
+            expect(await d.stateValue("n", "valueMissing")).eq(true);
+            expect(await d.stateValue("m", "valueMissing")).eq(true);
+        });
+    }
+
     it("<number extend> of a text that is a number has no info", async () => {
         const d = await load(
-            `<text name="t">3</text><number name="n" extend="$t"/>`,
+            `<text name="t">3</text><number name="n" extend="$t"/>
+<text name="t2">3+4i</text><number name="n2" extend="$t2"/>
+<text name="t3">Infinity</text><number name="n3" extend="$t3"/>`,
         );
         expect(d.diagnostics()).eqls([]);
         expect(await d.text("n")).eq("3");
+        expect(await d.text("n2")).eq("3 + 4 i");
+        expect(await d.text("n3")).eq("∞");
     });
 });
 

@@ -1365,7 +1365,8 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # doesn't stand in as (D69): $standsInAs lists the tags it does stand in as
 # (`<math>`, or several, such as `<math>`, `<text>`, with $standsInAsCount
 # their number), and $property is a property of it that gives what is meant
-# (`slope` of a `<line>` for a `<number>`), or empty for none. `inContent` is
+# (`slope` of a `<line>` for a `<number>`), or `none` where it has none, and
+# the message then suggests nothing. `inContent` is
 # for a container (a `<label>`, a `<p>`) made from a value or an object,
 # which it can hold instead. Any other value of $mix is any other pair.
 # $componentType is the tag the extend or copy is written as, $sourceType the
@@ -1388,7 +1389,7 @@ type-change-unrelated =
             [none] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: { $standsInAsCount ->
                 [one] a `<{ $sourceType }>` is read only as a { $standsInAs }, not as anything that could be made from one.
                *[other] a `<{ $sourceType }>` is read only as one of { $standsInAs }, not as anything that could be made from them.
-            } To show it as it is, write `{ $source }`.
+            }
            *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`: { $standsInAsCount ->
                 [one] a `<{ $sourceType }>` is read only as a { $standsInAs }, not as anything that could be made from one.
                *[other] a `<{ $sourceType }>` is read only as one of { $standsInAs }, not as anything that could be made from them.
