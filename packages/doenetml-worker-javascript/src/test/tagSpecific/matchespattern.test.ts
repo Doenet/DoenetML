@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { componentOrListEntry } from "../utils/list-entries";
+import { childOfInstanceAt, instanceOf } from "../utils/instance-children";
 import { cleanLatex } from "../utils/math";
 import {
     updateBooleanInputValue,
@@ -528,10 +529,13 @@ describe("MatchesPattern tag tests @group3", async () => {
   `,
         });
 
+        // The conditionalContent showing each set of matches. Its case holds
+        // several components, so no index names one of them (D72); reach them
+        // through the case shown.
         let matchNames = {
-            base: ["bm[1][1]", "bm[1][2]", "bm[1][3]"],
-            requireNumeric: ["rnm[1][1]", "rnm[1][2]", "rnm[1][3]"],
-            excludeX: ["exm[1][1]", "exm[1][2]", "exm[1][3]"],
+            base: "bm",
+            requireNumeric: "rnm",
+            excludeX: "exm",
         };
 
         let desiredResults = {
@@ -609,6 +613,16 @@ describe("MatchesPattern tag tests @group3", async () => {
 
             let dResults = desiredResults[expr];
 
+            async function matchAt(ccName: string, position: number) {
+                return stateVariables[
+                    childOfInstanceAt(
+                        core,
+                        await instanceOf(core, resolvePathToNodeIdx, ccName),
+                        position,
+                    )
+                ];
+            }
+
             for (let name in dResults) {
                 let res = dResults[name];
                 if (res) {
@@ -616,12 +630,7 @@ describe("MatchesPattern tag tests @group3", async () => {
                         stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.true;
-                    let match1 = await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        `${matchNames[name][0]}`,
-                    );
+                    let match1 = await matchAt(matchNames[name], 1);
 
                     if (match1.componentType === "copy") {
                         match1 =
@@ -630,12 +639,7 @@ describe("MatchesPattern tag tests @group3", async () => {
                             ];
                     }
                     expect(cleanLatex(match1.stateValues.latex)).eq(res[0]);
-                    let match2 = await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        `${matchNames[name][1]}`,
-                    );
+                    let match2 = await matchAt(matchNames[name], 2);
 
                     if (match2.componentType === "copy") {
                         match2 =
@@ -644,12 +648,7 @@ describe("MatchesPattern tag tests @group3", async () => {
                             ];
                     }
                     expect(cleanLatex(match2.stateValues.latex)).eq(res[1]);
-                    let match3 = await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        `${matchNames[name][2]}`,
-                    );
+                    let match3 = await matchAt(matchNames[name], 3);
                     if (match3.componentType === "copy") {
                         match3 =
                             stateVariables[
@@ -662,30 +661,9 @@ describe("MatchesPattern tag tests @group3", async () => {
                         stateVariables[await resolvePathToNodeIdx(`${name}`)]
                             .stateValues.value,
                     ).to.be.false;
-                    expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            `${matchNames[name][0]}`,
-                        ),
-                    ).eq(undefined);
-                    expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            `${matchNames[name][1]}`,
-                        ),
-                    ).eq(undefined);
-                    expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            `${matchNames[name][2]}`,
-                        ),
-                    ).eq(undefined);
+                    expect(await matchAt(matchNames[name], 1)).eq(undefined);
+                    expect(await matchAt(matchNames[name], 2)).eq(undefined);
+                    expect(await matchAt(matchNames[name], 3)).eq(undefined);
                 }
             }
         }

@@ -60,7 +60,7 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
                 "$s.sectionNumber",
             ],
             [
-                `$sel[1].q.x
+                `$sel.q.x
 <select name="sel"><option><point name="q">($s.sectionNumber,1)</point></option></select>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
@@ -105,7 +105,7 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
                 "$s.sectionNumber",
             ],
             [
-                `$sel[1].q
+                `$sel.q
 <select name="sel"><option><conditionalContent condition="$s.sectionNumber=1"><p name="q">a</p></conditionalContent></option></select>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",

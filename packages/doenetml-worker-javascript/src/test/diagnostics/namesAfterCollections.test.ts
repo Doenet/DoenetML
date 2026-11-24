@@ -355,7 +355,7 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
 <conditionalContent name="dd"><case condition="true"><pointList name="pl">(1,2) (3,4)</pointList></case></conditionalContent>
 <p name="p1">$cc.r.P</p><p name="p2">$r.P</p><p name="p3">$s.q.Q</p><p name="p4">$o[1].t.T</p>
 <p name="p5">$dd.pl.x</p><p name="p6">$dd.x</p><p name="p7">$dd[1].x</p>
-<p name="i1">$cc.r[2].P</p><p name="i2">$o[1].t[2].T</p><p name="i3">$dd[1][2].x</p><p name="i4">$cc.r.numItems</p>`,
+<p name="i1">$cc.r[2].P</p><p name="i2">$o[1].t[2].T</p><p name="i3">$dd[2].x</p><p name="i4">$cc.r.numItems</p>`,
             ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "i1", "i2", "i3", "i4"],
             { withMessages: true },
         );
@@ -368,7 +368,8 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
             p4: "＿",
             p5: "＿",
             p6: "＿",
-            p7: "＿",
+            // an index after `dd` reaches into the list it shows (D72)
+            p7: "1",
             i1: "(2, 1)",
             i2: "(2, 3)",
             i3: "3",
@@ -380,8 +381,7 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
         expect(suggestions).eqls([
             "$cc.r[1].P",
             "$dd.pl[1].x",
-            "$dd[1][1].x",
-            "$dd[1][1].x",
+            "$dd[1].x",
             "$o[1].t[1].T",
             "$r[1].P",
             "$s.q[1].Q",
@@ -414,14 +414,16 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
             p5: "＿",
             p6: "＿",
             p7: "＿",
-            p8: "＿",
+            // `w` is in one case of the inner conditionalContent only: an
+            // error at load, in the reference's place (D74)
+            p8: "",
             i1: "(2, 1)",
             i2: "(3, 1)",
             i3: "(2, 1)",
         });
         expect(diagnostics.map((d) => d.split(":")[0])).eqls([
-            // a name only some branches declare is left to `w0183`, as on main
-            "warning doenet-w0183",
+            // a name only some branches declare is left to `e0093` (D74)
+            "error doenet-e0093",
             ...Array(7).fill("warning doenet-w0200"),
         ]);
         expect(
@@ -448,25 +450,29 @@ describe("A collection followed by the every-branch rule (D59, COMP-11)", () => 
 <conditionalContent name="d1"><case condition="true">${repeat}</case><else><math name="r">x</math></else></conditionalContent>
 <conditionalContent name="d2"><case condition="true"><math name="r">x</math></case><else>${repeat}</else></conditionalContent>
 <p name="p1">$cc.x</p><p name="p2">$cc[1].x</p><p name="p3">$d1.r.P</p><p name="p4">$d2.r.P</p>
-<p name="i1">$cc[1][1][2].x</p>`,
+<p name="i1">$cc[2].x</p>`,
             ["p1", "p2", "p3", "p4", "i1"],
             { withMessages: true },
         );
-        // `$cc.x` and `$cc[1].x` were each entry's (`1, 3`), with no warning
-        expect(texts).eqls({ p1: "＿", p2: "＿", p3: "＿", p4: "＿", i1: "3" });
+        // `$cc.x` and `$cc[1].x` were each entry's (`1, 3`), with no warning.
+        // An index after `cc` now reaches through both conditionalContents
+        // into the list (D72), so `$cc[1].x` is its first entry's.
+        // `$d1.r.P` and `$d2.r.P` are errors at load, in the reference's
+        // place (D74).
+        expect(texts).eqls({ p1: "＿", p2: "1", p3: "", p4: "", i1: "3" });
         // the suggestion reaches an entry through each container
         expect(
             diagnostics
                 .filter((d) => d.includes("w0200"))
                 .map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
-        ).eqls(["$cc[1][1][1].x", "$cc[1][1][1].x"]);
+        ).eqls(["$cc[1].x"]);
         // A name a `<repeat>` in one case and a `<math>` in the other: the
         // every-branch rule decides it, whichever case comes first.
         expect(
             diagnostics
                 .filter((d) => !d.includes("w0200"))
                 .map((d) => d.split(":")[0]),
-        ).eqls(["warning doenet-w0183", "warning doenet-w0183"]);
+        ).eqls(["error doenet-e0093", "error doenet-e0093"]);
     });
 
     it("a repeat's value and index after an index, an item holding a list, and a collection in some cases only (review cycle 6)", async () => {
@@ -559,8 +565,9 @@ describe("A one-shown-thing tag stands for what it shows (D59 rule 2, COMP-11)",
 <p name="p">$A $B</p><p name="q">$s.P.x $s1.P.x $cc.P.x $cc.x $s.numItems</p>`,
             ["p", "q"],
         );
-        expect(texts).eqls({ p: "1 5", q: "1 1 5 5 1" });
-        expect(diagnostics).eqls([]);
+        // A one-pick select has no `numItems` (D72).
+        expect(texts).eqls({ p: "1 5", q: "1 1 5 5 ＿" });
+        expect(diagnostics).eqls(["warning doenet-w0104"]);
     });
 
     it("follows the case each item shows, read through an index", async () => {
@@ -663,20 +670,22 @@ describe("An index then a property past the items whose count follows an input (
 describe("Names after collections, round 2 (#2638)", () => {
     it("two indices into an item holding a branch container that holds a list (item 1)", async () => {
         // Before: `$o3[1][1].x` read each point's `x`, `1, 3`, with no
-        // warning.
+        // warning. An index after an iteration holding a conditionalContent
+        // or a one-pick select passes into what it shows (D72), so these
+        // were `$o3[1][1].x`, `$o3[1][1][1].x`, … with an index for the case.
         const { texts, diagnostics } = await both(
             `<repeat name="o3" for="1 2" valueName="v"><conditionalContent><case condition="true"><pointList>(1,2) (3,4)</pointList></case><else><pointList>(5,6)</pointList></else></conditionalContent></repeat>
 <repeat name="o4" for="1 2" valueName="v"><select><option><pointList>(1,2) (3,4)</pointList></option><option><pointList>(1,6)</pointList></option></select></repeat>
 <repeat name="o5" for="1 2" valueName="v"><conditionalContent><case condition="true"><point>(1,2)</point></case></conditionalContent></repeat>
-<p name="p1">$o3[1][1].x</p><p name="p2">$o3[1][1][1].x</p><p name="p3">$o3[1][1].numItems</p>
-<p name="p4">$o4[1][1].x</p><p name="p5">$o5[1][1].x</p>`,
+<p name="p1">$o3[1].x</p><p name="p2">$o3[1][1].x</p><p name="p3">$o3[1].numItems</p>
+<p name="p4">$o4[1].x</p><p name="p5">$o5[1].x</p>`,
             ["p1", "p2", "p3", "p4", "p5"],
             { withMessages: true },
         );
         expect(texts).eqls({ p1: "＿", p2: "1", p3: "2", p4: "＿", p5: "1" });
         expect(diagnostics).eqls([
-            "warning doenet-w0200: `$o3[1][1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o3[1][1][1].x`.",
-            "warning doenet-w0200: `$o4[1][1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o4[1][1][1].x`.",
+            "warning doenet-w0200: `$o3[1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o3[1][1].x`.",
+            "warning doenet-w0200: `$o4[1].x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$o4[1][1].x`.",
         ]);
     });
 
@@ -817,14 +826,13 @@ describe("Names after collections, round 2 (#2638)", () => {
         const { diagnostics } = await both(
             `<select name="s"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point></option></select>
 <conditionalContent name="cc"><case condition="true"><point>(1,2)</point></case><else><point>(1,2)</point><point>(3,4)</point></else></conditionalContent>
-<p name="p1">$s[1].x</p><p name="p2">$s.x</p><p name="p3">$cc.x</p>`,
-            ["p1", "p2", "p3"],
+<p name="p2">$s.x</p><p name="p3">$cc.x</p>`,
+            ["p2", "p3"],
             { withMessages: true },
         );
         expect(diagnostics).eqls([
             'warning doenet-w0191: `$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
             'warning doenet-w0191: `$s.x`: a property after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
-            'warning doenet-w0191: `$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
         ]);
     });
 });
