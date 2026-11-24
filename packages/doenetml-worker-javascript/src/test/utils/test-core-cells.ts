@@ -1107,6 +1107,22 @@ const STATE: Record<string, Record<string, Reader>> = {
                 );
         },
     },
+    // A matrix input (ADR 0045): the matrix its boxes make, its size its
+    // own cells. The core has no uncommitted value, so `immediateValue` is
+    // `value`.
+    matrixInput: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        numRows: (g) => g("numRows"),
+        numColumns: (g) => g("numColumns"),
+        matrixSize: (g) => [g("numRows"), g("numColumns")],
+        text: textOf,
+    },
+    // A matrix input's box: what its math cell holds.
+    _matrixComponentInput: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    },
 };
 
 /** What `idx` holds among its children as the current core's
@@ -1215,6 +1231,25 @@ const FIELDS: Record<
     string,
     Record<string, (cells: Cells, idx: number) => unknown>
 > = {
+    // A matrix input's boxes (ADR 0045), by row, as the current core's
+    // `activeChildren` list them for its actions.
+    matrixInput: {
+        activeChildren: (cells, idx) =>
+            cells.table.children(idx).flatMap((row) =>
+                "component" in row
+                    ? cells.table.children(row.component).flatMap((b) =>
+                          "component" in b
+                              ? [
+                                    {
+                                        componentIdx: b.component,
+                                        componentType: "_matrixComponentInput",
+                                    },
+                                ]
+                              : [],
+                      )
+                    : [],
+            ),
+    },
     fractionInput: {
         activeChildren: (cells, idx) =>
             cells.table.children(idx).flatMap((c) =>
@@ -1229,6 +1264,14 @@ const FIELDS: Record<
                     : [],
             ),
     },
+};
+
+/** What names a component's structure, by type: its boxes and its size,
+ * which only a rebuild changes, so a snapshot names them until one (a
+ * test finds a matrix input's boxes from a snapshot it took before
+ * typing into them, ADR 0045). */
+const STRUCTURE: Record<string, string[]> = {
+    matrixInput: ["activeChildren", "numRows", "numColumns"],
 };
 
 /** The current core's name of each button's press, carried out as the
@@ -1249,6 +1292,7 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     solution: ["revealSolution", "closeSolution"],
     curve: ["moveThroughPoint"],
     equilibriumCurve: ["moveThroughPoint", "switchCurve"],
+    matrixInput: ["updateNumRows", "updateNumColumns"],
 };
 
 function stripPositions(o: any): any {
@@ -1344,9 +1388,14 @@ export async function createTestCoreCells({
     };
 
     let actionCount = 0;
+    /** The action that last rebuilt the document. */
+    let rebuiltAt = 0;
     const rawValues = new Map<number, string>();
 
-    function assertCurrent(takenAt: number, what: string) {
+    function assertCurrent(takenAt: number, what: string, structural = false) {
+        // What names a component's structure (STRUCTURE) is as the snapshot
+        // had it until a rebuild changes the structure.
+        if (structural && rebuiltAt <= takenAt) return;
         if (takenAt !== actionCount) {
             throw new StaleSnapshotRead(
                 `${what}, from a snapshot taken before the last ${actionCount - takenAt} action(s)`,
@@ -1405,7 +1454,11 @@ export async function createTestCoreCells({
                     // function.
                     if (typeof name !== "string" || name === "then")
                         return undefined;
-                    assertCurrent(takenAt, `\`${componentType}.${name}\``);
+                    assertCurrent(
+                        takenAt,
+                        `\`${componentType}.${name}\``,
+                        STRUCTURE[componentType]?.includes(name),
+                    );
                     return stateValue(componentIdx, componentType, name);
                 },
                 has(_target, name) {
@@ -1422,6 +1475,11 @@ export async function createTestCoreCells({
             },
         );
         const unsupported = (field: string) => () => {
+            assertCurrent(
+                takenAt,
+                `\`${componentType}.${field}\``,
+                STRUCTURE[componentType]?.includes(field),
+            );
             const answer = FIELDS[componentType]?.[field] ?? ANY_FIELDS[field];
             if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
@@ -1448,6 +1506,7 @@ export async function createTestCoreCells({
         const vals = new Float64Array(reqs.map((r) => r[1]));
         if (points && reqs.length % 2 === 0) core.request_points(idx, vals);
         else core.request(idx, vals);
+        if (core.last_rebuilt()) rebuiltAt = actionCount;
         // A tick may move the cells (a rebuild makes every array anew).
         table.reload();
         // Any change ends an answer's `justSubmitted`, as an input's
@@ -1493,12 +1552,17 @@ export async function createTestCoreCells({
                 get(_target, key) {
                     if (typeof key !== "string" || !/^-?\d+$/.test(key))
                         return undefined;
-                    assertCurrent(takenAt, `component ${key}`);
                     const componentIdx = Number(key);
                     const componentType =
                         componentIdx >= 0 && componentIdx < table.length
                             ? table.tag(componentIdx)
                             : undefined;
+                    assertCurrent(
+                        takenAt,
+                        `component ${key}`,
+                        componentType !== undefined &&
+                            STRUCTURE[componentType] !== undefined,
+                    );
                     return componentType === undefined
                         ? undefined
                         : componentEntry(componentIdx, componentType, takenAt);
@@ -1724,9 +1788,13 @@ export async function createTestCoreCells({
                         expr !== undefined &&
                         core.cell_holds(expr) === "math" &&
                         core.cell_class(expr) !== "constant";
+                    // A matrix input's box always writes the expression
+                    // typed, as the bridge's math input does (`e` is the
+                    // symbol it reads as, not a number).
                     const numeric =
-                        !Number.isNaN(latexToNumber(latex)) ||
-                        latex.trim() === "";
+                        componentType !== "_matrixComponentInput" &&
+                        (!Number.isNaN(latexToNumber(latex)) ||
+                            latex.trim() === "");
                     if (
                         holdsMath &&
                         !(
