@@ -273,11 +273,12 @@ of a repeat holding the group and the list.
 **Known violations:**
 - (#2569, from #2548 item 6) a reference whose one item goes away keeps its value in a `<text>`,
   a `<math>`, an attribute or `bindValueTo`, where a `<p>` and a reload show nothing;
-- (#2649) a `<group>` made from a collection (`<group extend="$r"/>`, `copy`, `copyWithState`)
-  is allowed. Made from a list or a `<collect>`, it acts as the list (`$g[2]` is the second
-  entry), while a group made from a group of several refuses an index (`w0188`). Made from a
-  `<repeat>` or a select of several, it shows nothing, with no message. Decided (D64): it is
-  `e0065` at load, a list included, naming `<group>$r</group>` or `<repeat extend="$r"/>`.
+- **done by #2670** (closing #2649; D64, D77): a `<group>` made from a collection, a list
+  included, is `e0065` at load, naming `<group>$r</group>` or `<repeat extend="$r"/>`; so is one
+  made from one component that isn't a composite, also as a property or a list's entry. **Left**
+  (#2676): a pick of a selector whose type is decided (`$sfs[1]`), a name after an index inside a
+  case, and the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4) unchecked; whether
+  `<repeat extend="$cc"/>` of a case showing a repeat is allowed (recommended) is open.
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort

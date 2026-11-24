@@ -3400,6 +3400,7 @@ select of several shows nothing. #2649.
 Unchanged: a `<group>` made from a group, an iteration, a pick or a one-shown-thing tag; a scalar
 tag made from a composite the DoenetML guarantees holds one component; a list made from a
 collection whose items all match its entry type. Implementation: PR 50 of #2509, with #2594 item 2.
+**Done by #2670** (closing #2649 and #1986); extended by D77. Leftovers in #2676.
 
 ## D65. The decisions waiting in #2509's table (decided, November 2026)
 
@@ -3554,7 +3555,7 @@ conversion D47 decision 4 ruled out for a number: one the author didn't ask for.
 
 `<boolean extend="$ci"/>` of a `<choiceInput>` whose choices are "true" and "false" followed the
 selection (`type_change_run_time.test.ts`); it becomes `e0065`, suggesting `$ci = true`.
-Implementation: with PR 50 (#2659).
+Implementation: **done by #2672** (closing #2659). Leftovers in #2677 (items 2–4).
 
 ## D69. A component becomes only what it stands in as (decided, November 2026)
 
@@ -3590,8 +3591,9 @@ adapters a class declares (#2659).
 5. With D68, a text is never read as a boolean, so a label is never a boolean either.
 
 A value conversion that fails within an allowed pair is missing, with an info, as REF-5 already
-says (`<number extend="$t"/>` of `hello` is a silent `NaN` today: a known violation, #2659).
-Implementation: PR 50.
+says (`<number extend="$t"/>` of `hello` was a silent `NaN`).
+Implementation: **done by #2672** (closing #2659 and #478). Leftovers in #2677: content through a
+composite, an angle writing back, and whether an angle reads a text as a math (item 13, open).
 
 ## D70. A comparison with a missing operand is missing (decided, November 2026; revises D40)
 
@@ -3650,7 +3652,8 @@ fine and the other isn't.
    their children make one expression, and `<m>$e+1</m>` works the same way.
    `<m extend="$e">+1</m>` is an error suggesting it.
 
-Implementation: #2668, PR 50.
+Implementation: **done by #2672** (closing #2668). Leftovers in #2677; what children on a
+`copy` of a value do is open (#2677 item 12).
 
 ## D72. A one-shown-thing is not a collection: no item index, no `numItems` (decided, November 2026)
 
@@ -3786,3 +3789,23 @@ written (`mean` on a uniform `<sampleRandomNumbers>`, `<proof includeAutoNumber>
 
 Implementation: #2675 (PR 51).
 
+## D77. A `<group>` is made only from a composite (decided, November 2026, in #2670's review)
+
+**Why.** D64 made a `<group>` from a collection an error. #2670 found the other side: a group
+made from one component that isn't a composite (`<group extend="$m"/>` of a `<math>`, a `<p>`, a
+`<section>`) was a group holding that component, with no message, and from a `<choiceInput>` or
+an `<answer>` it showed nothing with an internal message. A tag made from a component keeps its
+kind (COLL-1, REF-7), and REF-5 has no pair making a group from a math.
+
+1. **A `<group>` made by `extend`, `copy` or `copyWithState` from one component that isn't a
+   composite is `doenet-e0065`** at load: a value, an input, an object, or a container. The
+   message names `<group>$m</group>` (a group holding it) and `<math extend="$m"/>` (the same
+   component again).
+2. **The same for a property or a list's entry, as what it gives:** `$m.value` and `$ml[1]` give
+   one component (the `one` message); a property of several values (`$P.xs`,
+   `$poly.vertices`) gives a collection (D64's message, naming the list tag, `<mathList
+   extend="$P.xs"/>`). An index past the end of a list whose type is known is `e0065` too.
+
+Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick `<select>`, a
+`<conditionalContent>`, and other composites. Implementation: **done by #2670**. Leftovers in
+#2676 (a pick whose type the DoenetML decides, a name after an index inside a case).

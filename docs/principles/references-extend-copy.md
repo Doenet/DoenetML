@@ -816,15 +816,15 @@ That is worth doing there, not retrofitting into the JavaScript core.
   - math, number and text among each other, and text from a boolean (shown as the word). **A
     text is not a boolean** (D68): `<boolean extend="$t"/>` is an error suggesting
     `<boolean>$t = true</boolean>`; a text where a boolean is wanted is a blank with `w0203`.
-    **Known violation** (#2659): `<boolean extend="$t"/>` converts the words `true`/`false`, and
-    the other forms are a silent `false`. **A boolean is not a number
+    **Done by #2672** (closing #2659). **Left** (#2677): a text in a `<group>` inside a
+    `<booleanList>` is still read as a boolean. **A boolean is not a number
     or a math** (D47 decision 3): `<math extend="$b"/>` is an error that suggests
     `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. A number
     is not a boolean either (D47 decision 4): `<boolean extend="$n"/>` is an error suggesting
     `<boolean>$n != 0</boolean>`. **Done by #2651** (closing #2582): `e0065` with the suggestion,
-    and a mix in content or an attribute is a blank with **`doenet-w0203`**. **Left:**
-    `<booleanList extend="$ml"/>` is `w0203` with a blank rather than `e0065`, and an index into
-    a `<conditionalContent>` isn't type-checked at load (PR 50, #2649);
+    and a mix in content or an attribute is a blank with **`doenet-w0203`**. A list from a list
+    of another kind (`<booleanList extend="$ml"/>`) is `e0065` (done by #2672), and an index into
+    a `<conditionalContent>` is type-checked at load (done by #2670);
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;
@@ -899,20 +899,13 @@ the list forms, which records `typeChangeAtLoad` on each `_copy` written as a ta
 `typeChangeRule` in `W/utils/typeChange.js`, applied only to author-written extends and copies.
 **A component becomes only what it stands in as** (D69): its adapters' types (`<math
 extend="$line"/>`, `<text extend="$ion"/>`, `<text extend="$l"/>` of a label), and no chain past
-them; an `<angle>` is a math. It also allows today, beyond that (**known violation**, #2659):
-- any pair an `adapter` gives, and from there any value type, such as `<text extend="$ion"/>` of an
-  `<ion>`, `<math extend="$line"/>` (its equation), and silently `<number extend="$line"/>`
-  (`NaN`), `<boolean extend="$ion"/>` (`false`) and `<boolean extend="$me"/>`;
-- an angle as a math, and a label as a text, and from there any value type (`<boolean
-  extend="$l"/>` of a `<label>` was `false`; it is `e0065` since #2658);
-- a `<label>` made from a value (`<label extend="$m"/>`).
-
-Some of these sources give a blank with a misleading `w0107` instead (`<text extend="$line"/>`,
-`<math extend="$l"/>`), and a value that doesn't convert is a silent `NaN` (`<number
-extend="$t"/>` of `hello`) where REF-5 asks for a missing value with an info. Under D69 each
-chain past the adapter is `e0065` naming the property to write (`$l.equation`, `$l.slope`,
-`$f.formula`, `$ion.name`), and the same chain in content (`<number>$line</number>`) a blank with
-a warning.
+them; an `<angle>` is a math, made only from a value. **Done by #2672** (closing #2659 and
+#478): each chain past an adapter is `e0065` naming the property to write (`$l.slope`,
+`$f.formula`), the same in content of a value tag a blank with `w0203`, a `<label>` from a value
+`e0065` suggesting `<label>$m</label>`, and a number from a text that isn't a number missing with
+`i0053`. **Left** (#2677): content through a composite (`<number>$cc</number>` showing a line) is
+not judged; `<number>$t</number>` of `hello` is still a silent `NaN`; an angle writes nothing back
+to its math; and whether an angle reads a text `x` as a math (recommended) is open.
 
 `<coords>` follows the point group, though it inherits from `<math>`.
 
@@ -974,9 +967,10 @@ Known violations:
 - **fixed by #2591:** a composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`, …) made
   from a property or an entry (`$s.value`, `$l[2]`) is `doenet-e0071` ("a `<repeat>` makes its
   content itself, so it can be made only from another `<repeat>`"); it showed nothing;
-- **left** (#2594): the same mismatch has two codes: `<repeat extend="$n"/>` and `$r[1]` are
-  `e0065`, while `$n.value` and `$l[2]` are `e0071`. Decided (D48 decision 2): `e0071` for every
-  tag that makes its own content, made from anything but the same tag; a tag made from a group whose only content is
+- **done by #2670** (#2594 item 2, D48 decision 2): `e0071` for every tag that makes its own
+  content, made from anything but the very same tag (`<repeat extend="$n"/>`, `$r[1]`), also
+  `<sampleRandomNumbers extend="$s"/>` of a `<selectRandomNumbers>` (closing #1986);
+- a tag made from a group whose only content is
   a case that comes to show an error is still `(0, 0)`; a point from a property whose entries'
   type appears only later (an answer's `submittedResponses` with a `<textInput>` response, a
   `<tally>`'s categories that start empty, a `<choiceInput>` whose text choices a `<repeat>`
@@ -1118,14 +1112,14 @@ the document renders.
   the list above, and for an attribute a module does not declare, such as `displayDigits` on a
   `<module extend>`, which is ignored. Under the Tier 1 rule an appearance attribute should take
   effect there instead.
-- **Known violation** (#2668): children written inside an extend of a value tag are appended,
-  silently changing its value: `<number extend="$n">5</number>` of `2` is `25`,
-  `<math extend="$m">+1</math>` is `x + 1`, `<point extend="$P">(3,4)</point>` is `(3, 4)`. The
-  Tier 1 rule above allows children only on a `<group>` or `<module>` extend. The error should
-  suggest the clearer form: a new tag holding the reference and the children
-  (`<math>$m+1</math>`), or `copy` for an object (`<point copy="$P">(3,4)</point>`). Proposed
-  (#2668, for a decision): content (`<p>`, sections, `<graph>`, …) may be extended with
-  children, appended as for a `<group>`.
+- **Done by #2672** (closing #2668; D71): children inside an extend of a value or an object are
+  `e0057`, suggesting `<math>$m+1</math>` for a value, a `<boolean>` joining them with `and`/`or`,
+  and `copy` for an object or an input (`<point copy="$P">(3,4)</point>`); a container's extend
+  takes children. **Left** (#2677): a list's extend given children is reported twice, some tags
+  get a form that doesn't work (`<slider>`, `<isNumber>`), and the children are not escaped. **To
+  decide** (#2677 item 12): `<number copy="$n">5</number>` of `2` is `25` while `<point
+  copy="$P">(3,4)</point>` replaces; recommended, children on a copy of a value or object replace
+  its content.
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
 - **Through a composite** (done by #2642): an extend of a `<conditionalContent>` holding the
