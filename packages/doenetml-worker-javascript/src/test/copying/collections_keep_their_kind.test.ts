@@ -337,6 +337,49 @@ describe("A <group> made from one component that isn't a composite is an error a
         }
     });
 
+    it("the value of a repeat, when its `for` decides one tag", async () => {
+        for (const [doenetML, source, tag] of [
+            [
+                `<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat><group name="g" extend="$r[1].v"/>`,
+                "$r[1].v",
+                "math",
+            ],
+            [
+                `<repeat name="r" for="a b" type="text" valueName="v"><text>$v</text></repeat><group name="g" extend="$r[1].v"/>`,
+                "$r[1].v",
+                "text",
+            ],
+            [
+                `<point name="A">(1,2)</point><point name="B">(3,4)</point><repeat name="r" for="$A $B" valueName="v"><p>$v</p></repeat><group name="g" extend="$r[1].v"/>`,
+                "$r[1].v",
+                "point",
+            ],
+            [
+                `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence><group name="g" extend="$r[1].v"/>`,
+                "$r[1].v",
+                "number",
+            ],
+            [
+                `<repeat name="r" for="1 2" valueName="v"><p><group extend="$v"/></p></repeat><group name="g" extend="$r[1].v"/>`,
+                "$v",
+                "math",
+            ],
+        ]) {
+            const d = await load(doenetML);
+            const expected = `doenet-e0065: A \`<group>\` can't be made from \`${source}\`, a \`<${tag}>\`: a \`<${tag}>\` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write \`<group>${source}</group>\`, with anything else the group holds beside it. To show the same \`<${tag}>\` again, write \`<${tag} extend="${source}"/>\`.`;
+            expect(d.diagnostics()).includes(expected);
+            expect(await d.typeOf("g")).eq("_error");
+            await d.reload();
+            expect(d.diagnostics()).includes(expected);
+        }
+        // the forms the message suggests work
+        const d = await load(
+            `<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat><p name="p"><group>$r[2].v</group> <math extend="$r[2].v"/></p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        expect(await d.text("p")).eq("2 2");
+    });
+
     it("is reported at load in a case that is not true yet (DIAG-7)", async () => {
         const d = await load(
             `<booleanInput name="b"/><math name="m">x</math><conditionalContent><case condition="$b"><group name="g" extend="$m"/></case></conditionalContent>`,
@@ -379,8 +422,8 @@ describe("A <group> made from one component that isn't a composite is an error a
             [],
         ],
         [
-            "the value of a repeatForSequence",
-            `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence><group name="g" extend="$r[1].v"/>`,
+            "the value of a repeat over groups",
+            `<group name="h"><math>1</math><math>2</math></group><repeat name="r" for="$h" valueName="v"><p>$v</p></repeat><group name="g" extend="$r[1].v"/>`,
             [],
         ],
     ];

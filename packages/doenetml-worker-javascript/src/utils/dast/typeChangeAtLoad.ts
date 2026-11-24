@@ -3857,8 +3857,9 @@ export function checkTypeChangesAtLoad({
      *   of D26's pairs;
      * - from a component that is not a composite (a value such as a
      *   `<math>` or an input, an object such as a `<point>`, or a container
-     *   such as a `<p>` or a `<section>`; `oneComponentTagAsWritten`): it is
-     *   one component, not a group, and keeps its kind too;
+     *   such as a `<p>` or a `<section>`, or the value of a repeat whose
+     *   `for` decides it, `$v`; `oneComponentTagAsWritten`): it is one
+     *   component, not a group, and keeps its kind too;
      * - from a property or an entry of a list (`$m.value`, `$P.xs`,
      *   `$ml[1]`), as the component or collection it gives, when the
      *   DoenetML decides its type (`valueSourceOf`).
@@ -4154,13 +4155,14 @@ export function checkTypeChangesAtLoad({
     /**
      * The tag of `node` as written, following a reference written as a tag
      * (`<math copy="$x"/>` is a `<math>`) or a bare reference (`$x`) to what
-     * it names, when that is one component that is not a composite (see
-     * `groupSourceError`); otherwise `undefined`: a composite, a list (a
-     * collection), anything made for the document (`_`, such as the
-     * `_placeholder` of a repeat's `valueName`, so `$v` and `$r[1].v` are
-     * left as they are), a part of a choosing tag, a component holding an
-     * error, or a reference whose target the DoenetML does not give (a
-     * property, `$P.x`).
+     * it names, or the value of a repeat (`$v`, `$r[1].v`) as its `for`
+     * decides it (`referentType`), when that is one component that is not
+     * a composite (see `groupSourceError`); otherwise `undefined`: a
+     * composite, a list (a collection), anything else made for the
+     * document (`_`), a repeat's value whose type its `for` does not
+     * decide, a part of a choosing tag, a component holding an error, or a
+     * reference whose target the DoenetML does not give (a property,
+     * `$P.x`).
      */
     function oneComponentTagAsWritten(
         node: SerializedComponent,
@@ -4188,6 +4190,10 @@ export function checkTypeChangesAtLoad({
                     ? oneComponentTagAsWritten(target, seen)
                     : undefined;
             }
+        } else if (type === "_placeholder") {
+            // `$v`, the value of a repeat: what its `for` makes it, when the
+            // DoenetML decides that (COLL-5)
+            type = referents.referentType(node.componentIdx);
         } else if (holdsError(node)) {
             return undefined;
         }
