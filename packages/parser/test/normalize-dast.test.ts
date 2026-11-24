@@ -611,6 +611,26 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("renames submitLabelNoCorrectness on the tags that take it from a div or a scored block", () => {
+        const tags = [
+            "statement",
+            "introduction",
+            "conclusion",
+            "cascadeMessage",
+            "pretzel",
+        ];
+        const source = tags
+            .map((tag) => `<${tag} submitLabelNoCorrectness="Go"/>`)
+            .join("");
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        const xml = toXml(normalized);
+        for (const tag of tags) {
+            expect(xml).toContain(`<${tag} submitLabel="Go"`);
+        }
+        expect(xml).not.toContain("submitLabelNoCorrectness");
+    });
+
     it("renames deprecated attributes regardless of case", () => {
         const source = `<selectPrimeNumbers MINvalue="5" maxVALUE="19" />`;
         const dast = lezerToDast(source);

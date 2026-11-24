@@ -254,13 +254,33 @@ const SCORED_SECTION_COLORING_RENAMES = renamedScoredSectionAttribute(
  * `submitLabelNoCorrectness` is retired (D66 decision 15, #349): one
  * `submitLabel`, whose default depends on `showCorrectness`, labels the button
  * whether or not correctness is shown. On `<answer>` and on every scored
- * section, which take the same pair of attributes.
+ * section, which take the same pair of attributes: those listed, and the
+ * tags that take them from a `<div>` or a scored block (`<statement>`,
+ * `<introduction>`, `<conclusion>`, `<cascadeMessage>`, `<pretzel>`), on
+ * which the attribute would otherwise be invalid.
  */
 const SUBMIT_LABEL_RENAMES: Record<
     string,
     Record<string, AttributeRenameRule>
 > = {
     ...renamedScoredSectionAttribute("submitLabelNoCorrectness", "submitLabel"),
+    ...Object.fromEntries(
+        [
+            "statement",
+            "introduction",
+            "conclusion",
+            "cascadeMessage",
+            "pretzel",
+        ].map((component) => [
+            component,
+            {
+                submitLabelNoCorrectness: {
+                    from: "submitLabelNoCorrectness",
+                    to: "submitLabel",
+                },
+            },
+        ]),
+    ),
     answer: {
         submitLabelNoCorrectness: {
             from: "submitLabelNoCorrectness",
