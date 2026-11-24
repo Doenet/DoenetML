@@ -33,6 +33,7 @@ import {
     LIST_LIKE,
     Reads,
     SECTION_KINDS,
+    sectionBoxed,
     TRANSPARENT,
     childrenLatex,
     mdLatex,
@@ -1117,9 +1118,229 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
 };
 
+/** Whether `c` is hidden, as the current core's `hidden`: its own `hide`,
+ * or a component above it hidden, an inactive case above it, or a cascade
+ * that does not show it or holds back the step it is in (ADR 0062), read
+ * off the core's `revealed`. */
+function hiddenOf(cells: Cells, c: number): boolean {
+    const on = (x: number, prop: string) => {
+        const cell = cells.propCells(x, prop);
+        if (cell.length === 0) return false;
+        const v = cells.value(cell[0]);
+        return v !== 0 && !Number.isNaN(v);
+    };
+    for (let x: number | null = c; x !== null; x = cells.table.parent(x)) {
+        const type = cells.table.componentType(x);
+        if (on(x, "hide")) return true;
+        if (type === "case" && !on(x, "active")) return true;
+        if (cells.core.revealed(x) === 2) return true;
+        const p = cells.table.parent(x);
+        if (
+            p !== null &&
+            cells.core.revealed(p) === 1 &&
+            !["title", "setup", "cascadeMessage"].includes(type)
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** What a step of a cascade reads of it (ADR 0062): whether it is
+ * hidden, and whether it keeps its heading and hides what it holds. */
+const cascadeStepReaders: Record<string, Reader> = {
+    hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    hideChildren: (_g, x) => x.cells.core.revealed(x.idx) === 1,
+};
+
+for (const type of [
+    "section",
+    "subsection",
+    "subsubsection",
+    "problem",
+    "exercise",
+    "example",
+    "question",
+    "activity",
+    "definition",
+    "note",
+    "theorem",
+    "paragraphs",
+    "objectives",
+    "part",
+    "task",
+    "problems",
+    "exercises",
+]) {
+    STATE[type] = {
+        ...STATE[type],
+        ...cascadeStepReaders,
+        creditAchievedForProgress: (g) => g("creditAchievedForProgress"),
+    };
+}
+for (const type of ["aside", "proof", "p", "div", "number"]) {
+    STATE[type] = { ...STATE[type], ...cascadeStepReaders };
+}
+STATE.document = {
+    ...STATE.document,
+    creditAchieved: (g) => g("creditAchieved"),
+};
+// A cascade (ADR 0062): no section, so no title or number; its count of
+// the leading steps complete, its settings, and the `asList` it passes
+// through.
+STATE.cascade = {
+    ...cascadeStepReaders,
+    numCompleted: (g) => g("numCompleted"),
+    revealAll: (g) => g("revealAll") !== 0,
+    hideFutureSections: (g) => g("hideFutureSections") !== 0,
+    creditAchievedForProgress: (g) => g("creditAchievedForProgress"),
+    isListItem: () => false,
+    asList: (_g, x) => passedAsList(x.cells, x.idx),
+    text: textOf,
+};
+STATE.cascadeMessage = {
+    hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    text: textOf,
+};
+
+/** The nearest ancestor of `c` that stands as more than its children. */
+function ownerOf(cells: Cells, c: number): number | null {
+    let p = cells.table.parent(c);
+    while (p !== null && TRANSPARENT.has(cells.table.componentType(p))) {
+        p = cells.table.parent(p);
+    }
+    return p;
+}
+
+/** The component children of `c`, looked through what stands as its
+ * children, as the current core's composites expand in place. */
+function childComponents(cells: Cells, c: number): number[] {
+    return cells.table.children(c).flatMap((child) => {
+        if (!("component" in child)) return [];
+        const k = child.component;
+        return TRANSPARENT.has(cells.table.componentType(k))
+            ? childComponents(cells, k)
+            : [k];
+    });
+}
+
+/** The children a held-back step leaves alone: its title and what
+ * configures it. */
+const LEFT_ALONE = ["title", "setup"];
+
+/** A section's heading-bar color in light mode, as the current core's
+ * `titleColor` resolves it (`sectionTitleColors.js`): the color of its
+ * completion state (its `creditAchievedForProgress`, or its
+ * `creditAchieved` under `completedColorRequiresCredit`), its own literal
+ * attribute, else the nearest section or cascade above it that writes one,
+ * else the default. */
+function titleColorOf(g: Get, x: Ctx): string {
+    const nearest = (name: string): string | null => {
+        for (
+            let p: number | null = x.idx;
+            p !== null;
+            p = ownerOf(x.cells, p)
+        ) {
+            const type = x.cells.table.componentType(p);
+            if (
+                p !== x.idx &&
+                !["section", "aside", "proof", "cascade"].includes(type)
+            ) {
+                return null;
+            }
+            const text = x.cells.table.attr(p, name);
+            if (text !== null) return text.trim();
+        }
+        return null;
+    };
+    const requiresCredit = nearest("completedColorRequiresCredit");
+    const credit =
+        requiresCredit !== null && requiresCredit.toLowerCase() !== "false"
+            ? g("creditAchieved")
+            : g("creditAchievedForProgress");
+    const [state, fallback] =
+        credit === 1
+            ? ["completedColor", "var(--lightGreen)"]
+            : credit > 0
+              ? ["inProgressColor", "var(--mainGray)"]
+              : ["notStartedColor", "var(--mainGray)"];
+    return nearest(state) ?? fallback;
+}
+
+/** The step of cascade `c` chosen to show its own message for the gap
+ * (ADR 0062): the held-back step one of whose messages is shown. */
+function chosenStep(cells: Cells, c: number): number | null {
+    for (const k of childComponents(cells, c)) {
+        if (cells.core.revealed(k) !== 1) continue;
+        const shows = childComponents(cells, k).some(
+            (m) =>
+                cells.table.componentType(m) === "cascadeMessage" &&
+                cells.core.revealed(m) === 0,
+        );
+        if (shows) return k;
+    }
+    return null;
+}
+
+for (const type of [
+    "section",
+    "subsection",
+    "subsubsection",
+    "problem",
+    "exercise",
+    "example",
+    "question",
+    "activity",
+    "definition",
+    "note",
+    "theorem",
+    "paragraphs",
+    "objectives",
+    "part",
+    "task",
+    "problems",
+    "exercises",
+]) {
+    STATE[type] = {
+        ...STATE[type],
+        titleColor: titleColorOf,
+        boxed: (_g, x) =>
+            sectionBoxed(x.cells.table, x.idx, sectioningTag(x.cells, x.idx)),
+        // What a held-back step hides: all it holds but its title, its
+        // configuration and a message it shows; a message it does not.
+        childrenToHide: (_g, x) => {
+            const held = x.cells.core.revealed(x.idx) === 1;
+            return childComponents(x.cells, x.idx).filter((k) => {
+                const type = x.cells.table.componentType(k);
+                if (type === "cascadeMessage") {
+                    return x.cells.core.revealed(k) !== 0;
+                }
+                return held && !LEFT_ALONE.includes(type);
+            });
+        },
+    };
+}
+STATE.cascade = {
+    ...STATE.cascade,
+    // The steps and messages it does not show.
+    childrenToHide: (_g, x) =>
+        childComponents(x.cells, x.idx).filter(
+            (k) => x.cells.core.revealed(k) === 2,
+        ),
+    sectionToShowCascadeMessage: (_g, x) => chosenStep(x.cells, x.idx),
+};
+
+/** State variables a type does not have, as the current core's does not:
+ * a test asking whether one is there finds it is not. */
+const ABSENT: Record<string, string[]> = {
+    cascade: ["title", "sectionNumber"],
+};
+
 /** The types the list items' sequence passes through on its way to a
- * section inside them (ADR 0054, ADR 0058): a page and the structure. */
+ * section inside them (ADR 0054, ADR 0058): a page, a cascade and the
+ * structure. */
 const PASSES_LIST_ITEMS = new Set([
+    "cascade",
     "page",
     "group",
     "conditionalContent",
@@ -1438,6 +1659,7 @@ export async function createTestCoreCells({
                     // function.
                     if (typeof name !== "string" || name === "then")
                         return undefined;
+                    if (ABSENT[componentType]?.includes(name)) return undefined;
                     assertCurrent(takenAt, `\`${componentType}.${name}\``);
                     return stateValue(componentIdx, componentType, name);
                 },
