@@ -1298,7 +1298,7 @@ mod tests {
         // sort compares and what a text joins. 38: ADR 0053 added
         // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
         // of its operands (`sortByProp`, a vector's displacement or tail).
-        // 41: ADR 0056 added `ref_kind`, `not_a_boolean` and `type_mix`, for
+        // 41: ADR 0064 added `ref_kind`, `not_a_boolean` and `type_mix`, for
         // a `<boolean>` of a number or a text, a type mix (D47, D68).
         const PLAN_CTX_METHODS: usize = 41;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");

@@ -347,7 +347,7 @@ fn type_a_tuple_with_a_symbol_is_a_math() {
 /// DIAG-1: a reference to a point compared in a condition is checked at
 /// load like any reference inside math, so the document loads with a
 /// located diagnostic instead of a build finding an error the load missed.
-/// (VAL-3 asks that it compare the coordinates: ADR 0056.)
+/// (VAL-3 asks that it compare the coordinates: ADR 0064.)
 #[test]
 fn diag_1_a_point_in_a_condition_is_checked_at_load() {
     for src in [

@@ -57,7 +57,7 @@ pub(in crate::compile) struct Arenas {
     /// Whether a boolean may be read inside the math being planned: in a
     /// condition, where it is one, and in a `<number convertBoolean>`,
     /// where the author asked for 1 or 0 (D47). Elsewhere it is a type mix
-    /// (ADR 0056, decision 4).
+    /// (ADR 0064, decision 4).
     pub(in crate::compile) booleans_in_math: bool,
     /// Every string's canonical id, over the DAST table and then
     /// `extra_strings`; built when first needed. A cache.
@@ -154,7 +154,7 @@ impl Arenas {
         RefId::from_index(self.refs.len() - 1)
     }
 
-    /// A type mix at `node` (D47, D68; ADR 0056, decision 4): warned where
+    /// A type mix at `node` (D47, D68; ADR 0064, decision 4): warned where
     /// it is written, and planned as the missing value in its place.
     pub(in crate::compile) fn type_mix(&mut self, node: NodeId, message: &str) -> Source {
         self.warn(node, "cells-type-mix", message);

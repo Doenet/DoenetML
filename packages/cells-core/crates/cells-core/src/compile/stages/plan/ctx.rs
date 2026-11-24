@@ -476,7 +476,7 @@ impl<'a> PlanCtx<'_, 'a> {
         not_a_boolean(&self.p.rd.dast.macro_display(node), kind)
     }
 
-    /// A type mix (D47, D68; ADR 0056): warned at reference `at`, or on the
+    /// A type mix (D47, D68; ADR 0064): warned at reference `at`, or on the
     /// element for its own content (a literal `1` in a `<boolean>`), and
     /// the missing value in its place.
     pub(crate) fn type_mix(&mut self, at: Option<RefId>, message: &str) -> Source {
