@@ -3513,8 +3513,10 @@ export function checkTypeChangesAtLoad({
          * branch (`$cc.y.r` of `<section name="y" copy="$s0"/>`), the first
          * decides; when it can't tell for that either (branches it doesn't
          * read, as an `<option copy="$o">` with children of its own),
-         * `unknownIsNamed` does: a false error is worse than a missed one
-         * (D75.3).
+         * `unknownIsNamed` does, and only when the first name is written
+         * somewhere in the container or in what a copy in it copies
+         * (`writtenWithin`), not only elsewhere in the document: a false
+         * error is worse than a missed one (D75.3).
          */
         const namedThrough = (
             container: SerializedComponent,
@@ -3526,7 +3528,68 @@ export function checkTypeChangesAtLoad({
                 (names.length > 1
                     ? visibleNamed(container, names.slice(0, 1))
                     : null);
-            return named === null ? unknownIsNamed : named.length > 0;
+            return named === null
+                ? unknownIsNamed && writtenWithin(container, names[0])
+                : named.length > 0;
+        };
+        /**
+         * Whether a component named `name` is written inside `container`,
+         * or inside what a copy there copies (`<option copy="$o">` with `o`
+         * holding it), through copies of those, not in the template of a
+         * repeat, whose names are private. A copy whose reference isn't
+         * resolved when the document loads is not looked into.
+         */
+        const writtenWithin = (
+            container: SerializedComponent,
+            name: string,
+        ) => {
+            const visited = new Set<number>();
+            const within = (
+                components: (SerializedComponent | string)[],
+            ): boolean =>
+                components.some((component) => {
+                    if (
+                        typeof component !== "object" ||
+                        visited.has(component.componentIdx)
+                    ) {
+                        return false;
+                    }
+                    visited.add(component.componentIdx);
+                    const attributes = component.attributes ?? {};
+                    if (
+                        literalText(attributes.name) === name ||
+                        literalText(attributes._createComponentName) === name
+                    ) {
+                        return true;
+                    }
+                    if (
+                        ["repeat", "repeatForSequence"].includes(
+                            component.componentType,
+                        )
+                    ) {
+                        // names in its template are private
+                        return false;
+                    }
+                    const inside = [...(component.children ?? [])];
+                    const copied =
+                        component.componentType === "_copy"
+                            ? refOf(component)
+                            : undefined;
+                    if (
+                        copied &&
+                        copied.nodeIdx >= 0 &&
+                        (copied.unresolvedPath ?? []).length === 0
+                    ) {
+                        const source =
+                            referents.componentsByIdx.get(copied.nodeIdx) ??
+                            referents.copiesByCreatedIdx.get(copied.nodeIdx);
+                        if (source) {
+                            inside.push(source);
+                        }
+                    }
+                    return within(inside);
+                });
+            return within(container.children ?? []);
         };
         /**
          * The branch container the names `parts` reach through from the
@@ -3662,7 +3725,8 @@ export function checkTypeChangesAtLoad({
                     if (container) {
                         // when its branches can't be read, counted as
                         // the direct route counts it (`$cc.r`) if the
-                        // reference names it, and not otherwise: the
+                        // reference names it and the name is written in
+                        // it (`namedThrough`), and not otherwise: the
                         // names may be written beside it
                         // (`$outer[1].inner`)
                         if (
@@ -3736,8 +3800,9 @@ export function checkTypeChangesAtLoad({
             // the container (`$cc.hidden`), decided as before
             const container = branchContainerAt(ref.nodeIdx);
             branch = container
-                ? // in branches it doesn't read, a name of the document
-                  // may be written; a property (`$cc.hidden`) is not
+                ? // in branches it doesn't read, a name written in the
+                  // container may be (`namedThrough`); a property
+                  // (`$cc.hidden`) is not
                   namedThrough(
                       container,
                       [path[0].name],

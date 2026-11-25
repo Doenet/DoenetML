@@ -774,6 +774,45 @@ describe("A tag that makes its own content is made only from a reference that al
         });
     }
 
+    it("a name written only outside branches that aren't read at load is decided as before", async () => {
+        // an option or a case copied with something of its own isn't read
+        // at load; the name is written beside the select or the
+        // conditionalContent, not in what is copied, so the reference
+        // names nothing in the branches
+        const o = `<setup><option name="o"><text>w</text></option></setup>`;
+        const unread = `<option copy="$o"><text>y</text></option><option><text>z</text></option>`;
+        let d = await load(
+            `${o}<select name="s">${unread}</select>${rA}<p name="p"><repeat name="r2" extend="$s.r"/></p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        d = await load(
+            `${o}<select name="s" numToSelect="2">${unread}</select>${rA}<p name="p"><repeat name="r2" extend="$s[1].r"/></p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        expect(d.warningCodes()).eqls(["doenet-w0193"]);
+        d = await load(
+            `${o}<repeat name="outer" for="1"><select name="s">${unread}</select></repeat>${rA}<p name="p"><repeat name="r2" extend="$outer[1].s.r"/></p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+        expect(d.warningCodes()).eqls(["doenet-w0193"]);
+        d = await load(
+            `<conditionalContent><case name="k1" condition="false"><text>w</text></case></conditionalContent><conditionalContent name="cc"><case copy="$k1" condition="true"/><else><text>z</text></else></conditionalContent>${rA}<p name="p"><repeat name="r2" extend="$cc.r"/></p>`,
+        );
+        expect(d.errorCodes()).eqls([]);
+
+        // written in what is copied, it is e0071
+        d = await load(
+            `<setup><option name="o">${rA}</option></setup><select name="s"><option copy="$o"><text>y</text></option><option>${rB}</option></select><p name="p"><repeat name="r2" extend="$s.r"/></p>`,
+        );
+        expect(d.diagnostics()).eqls([
+            shown("repeat", "$s.r", "option picked"),
+        ]);
+        d = await load(
+            `<conditionalContent><case name="k1" condition="false">${rA}</case></conditionalContent><conditionalContent name="cc"><case copy="$k1" condition="true"/><else>${rB}</else></conditionalContent><p name="p"><repeat name="r2" extend="$cc.r"/></p>`,
+        );
+        expect(d.diagnostics()).eqls([shown("repeat", "$cc.r", "case shown")]);
+    });
+
     // A name written in one branch only names that tag only while the
     // branch is shown, and nothing otherwise, so it is an error too.
     const oneBranch: [
