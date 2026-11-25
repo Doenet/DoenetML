@@ -234,8 +234,10 @@ fn census() {
     // `symbolic.doenet`'s two evaluates, both symbolic, 6 more, 3 of them
     // live (the substitution and the `Evaluate` the point's `y` reads).
     // A graph's `xScale` and `yScale` are a `Span` each over its ranges
-    // (ADR 0084): the golden set's 14 graphs have 28 more, all dead.
-    assert!(golden[0] <= 143 && golden[1] == 265, "{golden:?}");
+    // (ADR 0084): the golden set's 14 graphs have 28 more, all dead. A
+    // section is open while it is not collapsible, else by its own state
+    // (ADR 0084): 7 more, all dead.
+    assert!(golden[0] <= 143 && golden[1] == 272, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

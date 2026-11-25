@@ -104,6 +104,24 @@ impl Document {
             .unwrap_or_else(StyleTables::fallback)
     }
 
+    /// The heading colors of section `c` (ADR 0084), as JSON: `light`
+    /// and `dark`, each the colors of its completed, in-progress and
+    /// not-started states; none for a component that is no section.
+    pub fn heading_colors(&self, c: CompIdx) -> Option<String> {
+        let mut k = Some(c);
+        // A copy of a section has its referent's colors.
+        while let Some(r) = k {
+            let n = self.components.dast_node[r.index()];
+            if n != crate::dast::NodeId::NONE
+                && let Some(h) = self.loaded.styles.heading_colors(n)
+            {
+                return Some(h.to_string());
+            }
+            k = self.components.referent(r);
+        }
+        None
+    }
+
     /// The style of `c` (`selectedStyle`), every key, as JSON: the style
     /// its style number names in its scope, with the override attributes
     /// it, or the nearest of its referents, writes over it. Also the cells

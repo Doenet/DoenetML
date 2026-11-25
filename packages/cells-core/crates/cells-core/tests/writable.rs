@@ -70,9 +70,14 @@ fn census() {
     // `<repeat>` has a `hide` (ADR 0075): `sir.doenet`'s four repeats
     // count one literal default each. A point's `draggable` (ADR 0070,
     // ADR 0080) is an author's value at its default too: the golden set's
-    // thirty points and `sir.doenet`'s 609 count one each here.
-    assert_eq!(golden.0, 289, "the golden set as Context counted it");
-    assert_eq!(sir.0, 1257, "sir.doenet as Context counted it");
-    assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
-    assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
+    // thirty points and `sir.doenet`'s 609 count one each here. A
+    // section's `collapsible` and its open state (ADR 0084) are author's
+    // values at their defaults: the golden set's seven sections and
+    // `sir.doenet`'s two count two each here.
+    assert_eq!(golden.0, 303, "the golden set as Context counted it");
+    assert_eq!(sir.0, 1261, "sir.doenet as Context counted it");
+    // A collapsible section's open state is the reader's to write (ADR
+    // 0084): one each, where a section is collapsible or may be.
+    assert!(golden.1 > 0 && golden.1 <= 167, "golden set: {golden:?}");
+    assert!(sir.1 > 0 && sir.1 <= 18, "sir.doenet: {sir:?}");
 }

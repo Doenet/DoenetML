@@ -658,6 +658,18 @@ impl Core {
         self.doc.selected_style(CompIdx::new(idx)).0
     }
 
+    /// The heading colors of section `idx` (ADR 0084), as JSON: `light`
+    /// and `dark`, each its completed, in-progress and not-started colors.
+    /// Empty for a component that is no section.
+    pub fn heading_colors(&self, idx: u32) -> String {
+        if (idx as usize) >= self.doc.n_components() {
+            return String::new();
+        }
+        self.doc
+            .heading_colors(CompIdx::new(idx))
+            .unwrap_or_default()
+    }
+
     /// Text of the expression a math cell holds, rounded and written by
     /// the settings `display` (see `display_of`), as the current core
     /// writes a math's `text`.

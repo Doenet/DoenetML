@@ -235,7 +235,6 @@ impl ComponentType {
             | Pre
             | BlockQuote
             | Ol
-            | Proof
             | Solution
             | Introduction
             | Conclusion
@@ -304,8 +303,21 @@ impl ComponentType {
                 ("listItem", Is(Boolean)),
                 ("sectionNumber", Is(Text)),
                 ("title", Is(Text)),
+                ("collapsible", Is(Boolean)),
+                ("openState", Is(Boolean)),
+                ("notCollapsible", Is(Boolean)),
             ],
-            Aside => &[("label", Code)],
+            Aside => &[
+                ("label", Code),
+                ("collapsible", Is(Boolean)),
+                ("openState", Is(Boolean)),
+                ("notCollapsible", Is(Boolean)),
+            ],
+            Proof => &[
+                ("collapsible", Is(Boolean)),
+                ("openState", Is(Boolean)),
+                ("notCollapsible", Is(Boolean)),
+            ],
             Cascade => &[
                 ("numCompleted", Is(Integer)),
                 ("revealAll", Is(Boolean)),

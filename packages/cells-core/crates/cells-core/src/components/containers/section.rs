@@ -62,6 +62,13 @@ component! {
         // (ADR 0058). The renderer composes the heading itself.
         sectionNumber: by_planner { text },
         title: by_planner { text },
+        // Whether the reader may collapse it, and whether it is open: its
+        // own state (`startOpen` at first, ADR 0084) while collapsible,
+        // else always.
+        collapsible: by_planner,
+        openState: by_planner { interactive },
+        notCollapsible: computed(OpSpec::Not, [collapsible]),
+        open: computed(OpSpec::Max, [notCollapsible, openState]),
     }
     // How its heading reads: the renderer's, from its number and title;
     // the colors its heading bar shows its progress in (the steps of a
@@ -90,6 +97,8 @@ component! {
         includeAutoNameIfNoTitle: LiteralFlag,
         includeAutoNumberIfNoTitle: LiteralFlag,
         noAutoTitle: LiteralFlag,
+        collapsible: Flag(false),
+        startOpen: Flag(true),
     }
     planner: Plan(plan),
 }
@@ -352,6 +361,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         asList: Wire::constant(as_list),
         sectionNumber: section_number.into(),
         title: title.into(),
+        collapsible: Wire::scalar(attrs.collapsible, GivenId::Attr(attr::collapsible, 0)),
+        openState: Wire::scalar(attrs.startOpen, GivenId::Attr(attr::startOpen, 0)),
     });
     Ok(wiring)
 }

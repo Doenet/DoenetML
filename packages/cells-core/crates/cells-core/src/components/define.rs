@@ -331,6 +331,7 @@ pub(super) const fn definition(
             style_holder: false,
             style_definition: false,
             style_palette: false,
+            collapsible: false,
         },
         renders: super::Renders::Always,
         sticky: None,
@@ -580,6 +581,10 @@ impl ComponentDef {
     }
     pub(super) const fn style_palette(mut self) -> Self {
         self.flags.style_palette = true;
+        self
+    }
+    pub(super) const fn collapsible(mut self) -> Self {
+        self.flags.collapsible = true;
         self
     }
     /// Where a component of the type is drawn.

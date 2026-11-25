@@ -17,6 +17,7 @@ use crate::dast::{Dast, NodeId, NodeKind};
 use crate::diagnostics::Diagnostic;
 
 pub(crate) mod color;
+mod headings;
 mod names;
 mod palettes;
 mod table;
@@ -75,12 +76,22 @@ fn palette_styles(p: usize) -> BTreeMap<u32, Style> {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct StyleTables {
     scopes: HashMap<NodeId, Arc<Scope>>,
+    /// Each section's heading colors, by its node.
+    headings: BTreeMap<NodeId, headings::HeadingColors>,
 }
 
 impl StyleTables {
     /// The scope element `node` makes, when it is one.
     pub(crate) fn scope(&self, node: NodeId) -> Option<&Scope> {
         self.scopes.get(&node).map(|s| &**s)
+    }
+
+    /// The heading colors of the section at `node`, as JSON: `light` and
+    /// `dark`, each the colors of the completion states in
+    /// [`headings::STATES`]' order.
+    pub(crate) fn heading_colors(&self, node: NodeId) -> Option<serde_json::Value> {
+        let h = self.headings.get(&node)?;
+        Some(serde_json::json!({ "light": h.light, "dark": h.dark }))
     }
 
     /// The table of a document with no scope: the default palette's.
@@ -98,6 +109,7 @@ pub(crate) fn settle(dast: &Dast) -> (StyleTables, Vec<Diagnostic>) {
     let scope = scope_of(dast, Dast::ROOT, &root, &mut diags);
     tables.scopes.insert(Dast::ROOT, scope.clone());
     visit(dast, Dast::ROOT, &scope, &mut tables, &mut diags);
+    headings::settle(dast, &mut tables.headings, &mut diags);
     // The same finding read off a table and the tables inheriting it is
     // one diagnostic.
     let mut seen = std::collections::HashSet::new();
@@ -105,7 +117,7 @@ pub(crate) fn settle(dast: &Dast) -> (StyleTables, Vec<Diagnostic>) {
     (tables, diags)
 }
 
-fn element_type(d: &Dast, n: NodeId) -> Option<ComponentType> {
+pub(super) fn element_type(d: &Dast, n: NodeId) -> Option<ComponentType> {
     (d.kind(n) == NodeKind::Element)
         .then(|| ComponentType::from_tag(d.str(n)))
         .flatten()
@@ -135,7 +147,7 @@ fn visit(
 
 /// The literal text of attribute `name` of `n`, marked read; `Err` when
 /// it holds a reference.
-fn literal(d: &Dast, n: NodeId, name: &str) -> Option<Result<String, ()>> {
+pub(super) fn literal(d: &Dast, n: NodeId, name: &str) -> Option<Result<String, ()>> {
     let a = d.attr(n, name)?;
     let mut text = String::new();
     for &c in d.attr_children(a) {

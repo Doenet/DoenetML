@@ -57,13 +57,6 @@ mod page_spec;
 mod postpone_render_container_spec;
 
 containers! {
-    /// `<proof>`: a division with a heading, collapsed until opened
-    /// (`startOpen`), that takes no number: the sections inside it are
-    /// numbered among themselves. It takes a place among its parent's
-    /// list items, as every sectioning component does (ADR 0054).
-    proof: ["proof"] with [unnumbered_division, style_scope] {
-        presentation { startOpen, boxed, postponeRendering }
-    };
 
     /// `<solution>`: a block the reader reveals; `open` is its own state
     /// (0 or 1). The sections inside it are numbered among themselves.
@@ -121,4 +114,45 @@ containers! {
     footnote: ["footnote"] {
         counted: Footnotes,
     };
+}
+
+/// `<proof>`: its definition and its planner.
+pub(crate) mod proof {
+    use crate::compile::api::*;
+    use crate::components::ComponentType;
+    use crate::components::define::*;
+    use crate::error::Result;
+
+    component! {
+        /// `<proof>`: a division with a heading, collapsed until opened
+        /// (`startOpen`), that takes no number: the sections inside it are
+        /// numbered among themselves. It takes a place among its parent's
+        /// list items, as every sectioning component does (ADR 0054).
+        tags: ["proof"],
+        flags: [container, unnumbered_division, style_scope, collapsible],
+        props {
+            // Collapsible and closed unless it says otherwise (ADR 0084).
+            collapsible: by_planner,
+            openState: by_planner { interactive },
+            notCollapsible: computed(OpSpec::Not, [collapsible]),
+            open: computed(OpSpec::Max, [notCollapsible, openState]),
+        }
+        presentation { boxed, postponeRendering }
+        attributes {
+            collapsible: Flag(true),
+            startOpen: Flag(false),
+        }
+        planner: Plan(plan),
+    }
+
+    /// Its `collapsible` and its open state, from `startOpen`.
+    pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let attrs = Attrs::of(ctx.record());
+        let mut wiring = ElemWiring::of(ComponentType::Proof);
+        wiring.set_planned(Planned {
+            collapsible: Wire::scalar(attrs.collapsible, GivenId::Attr(attr::collapsible, 0)),
+            openState: Wire::scalar(attrs.startOpen, GivenId::Attr(attr::startOpen, 0)),
+        });
+        Ok(wiring)
+    }
 }

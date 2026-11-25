@@ -13,16 +13,23 @@ component! {
     /// section is (`number`, an aggregate). The renderer reads
     /// `startOpen`; the parser, `postponeRendering`.
     tags: ["aside"],
-    flags: [container, style_scope],
+    flags: [container, style_scope, collapsible],
     numbered: Titled(includeParentNumber, label, title_word),
     props {
         number: aggregate(Count, SectionsThrough) { rendered },
         includeParentNumber: by_planner { rendered },
         label: by_planner,
+        // Collapsible and closed unless it says otherwise (ADR 0084).
+        collapsible: by_planner,
+        openState: by_planner { interactive },
+        notCollapsible: computed(OpSpec::Not, [collapsible]),
+        open: computed(OpSpec::Max, [notCollapsible, openState]),
     }
-    presentation { startOpen, postponeRendering }
+    presentation { postponeRendering }
     attributes {
         includeParentNumber: LiteralFlag,
+        collapsible: Flag(true),
+        startOpen: Flag(false),
     }
     planner: Plan(plan),
 }
@@ -50,6 +57,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     wiring.set_planned(Planned {
         includeParentNumber: Wire::constant(include),
         label: Wire::constant(0.0),
+        collapsible: Wire::scalar(attrs.collapsible, GivenId::Attr(attr::collapsible, 0)),
+        openState: Wire::scalar(attrs.startOpen, GivenId::Attr(attr::startOpen, 0)),
     });
     Ok(wiring)
 }

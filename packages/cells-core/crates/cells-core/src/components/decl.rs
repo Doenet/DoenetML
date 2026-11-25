@@ -1097,6 +1097,9 @@ pub struct Flags {
     pub style_definition: bool,
     /// A `<stylePalette>`: the built-in palette a scope starts from.
     pub style_palette: bool,
+    /// A division that is collapsible, and starts closed, unless it says
+    /// otherwise (an aside, a proof).
+    pub collapsible: bool,
 }
 
 /// Where a prop's value comes from: an attribute, the children, an operator
