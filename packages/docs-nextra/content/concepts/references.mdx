@@ -434,7 +434,9 @@ Other errors, each with the form to write instead:
   the repeat the case shown holds, and follows the case, as
   `<repeat extend="$cc.r"/>{:dn}` does. A case or option holding several
   components, or one of another type, beside one holding a repeat, is an
-  error;
+  error. A reference written alone in a case, `$r` of a repeat, shows the
+  repeat's iterations, so it isn't a repeat there: write
+  `<repeat extend="$r"/>{:dn}` in the case instead;
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write

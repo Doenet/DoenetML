@@ -328,6 +328,7 @@ type Holding = {
 type ShownKind =
     | { kind: "match" }
     | { kind: "other"; type: string }
+    | { kind: "several" }
     | { kind: "mixed"; issue: TypeChangeAtLoadError }
     | { kind: "unknown" };
 
@@ -4608,8 +4609,11 @@ export function checkTypeChangesAtLoad({
      * tag that makes its own content, `writtenType`, made from the wrapper
      * (`wrapperShows`): one of that tag (`match`), something else
      * (`other`, of the tag `type` when it is one component), or, when it
-     * is itself a wrapper, what that shows. `unknown` when the DoenetML
-     * does not give what it is.
+     * is itself a wrapper, what that shows. A bare reference to a composite
+     * (`$r` of a repeat) shows what that composite holds, not the composite,
+     * as it does when the document runs: what a wrapper shows when it is
+     * one, else any number of components (`several`). `unknown` when the
+     * DoenetML does not give what it is.
      */
     function shownItemKind(
         item: SerializedComponent | string,
@@ -4631,6 +4635,17 @@ export function checkTypeChangesAtLoad({
                 : declared;
         if (type === undefined || type.startsWith("_")) {
             return { kind: "unknown" };
+        }
+        if (
+            item.componentType === "_copy" &&
+            literalText(item.attributes?._createComponentOfType) ===
+                undefined &&
+            componentInfoObjects.isCompositeComponent({
+                componentType: type,
+                includeNonStandard: true,
+            })
+        ) {
+            return wrapperShows(item, writtenType, seen) ?? { kind: "several" };
         }
         if (
             type === writtenType ||
@@ -4752,6 +4767,10 @@ export function checkTypeChangesAtLoad({
             const kind = shownItemKind(items[0], writtenType, seen);
             if (kind.kind === "unknown" || kind.kind === "mixed") {
                 return kind;
+            }
+            if (kind.kind === "several") {
+                several.push({ ordinal: caseOrdinal, isElse: elseCase });
+                continue;
             }
             if (kind.kind === "match") {
                 matches++;

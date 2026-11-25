@@ -9773,7 +9773,8 @@ async function typeChangeStatus({
                     sourceType: alone
                         ? typeStoodFor(lists[0])
                         : typeStoodFor(sourceComponent),
-                    part: alone ? "entries" : "other",
+                    // a list holding nothing has no entry to use
+                    part: alone && count > 0 ? "entries" : "other",
                     count,
                     holdsNothing: count === 0 ? "true" : "false",
                     indexSelectsOne: alone ? "true" : "false",

@@ -149,6 +149,19 @@ describe("A list reached through an iteration (#2676 items 1 and 2; REF-5, VAL-5
         expect(await d.text("e")).eq("1");
     });
 
+    it("a list holding nothing says so, with no entry to use", async () => {
+        const d = await load(
+            `<mathInput name="n" prefill="0"/><repeat name="r" for="1"><mathList><sequence length="$n"/></mathList></repeat><math name="e" extend="$r[1]"/>`,
+        );
+        expect(d.diagnostics()).eqls([
+            "doenet-e0064: A `<math>` can't be made from `$r[1]`, a `<mathList>` that holds nothing.",
+        ]);
+        expect(d.errorCodes()).eqls([]);
+        expect(await d.text("e")).eq("＿");
+        await d.setMath("n", "1");
+        expect(await d.text("e")).eq("1");
+    });
+
     it("a reference beside an entry is a blank with a warning, not the list in a math", async () => {
         const d = await load(
             `<math name="a">1</math><repeat name="r" for="1"><mathList>$a 2</mathList></repeat><math name="e" extend="$r[1]"/>`,
@@ -463,6 +476,42 @@ describe("A tag that makes its own content, made through a wrapper showing one o
         );
         expect(options.errorCodes()).eqls(["doenet-e0095"]);
         expect(options.diagnostics()[0]).contains("option 2 holds several");
+    });
+
+    it("a bare reference to a repeat in a case is its iterations, not a repeat, decided at load", async () => {
+        const rx = `<repeat name="rx" for="7 8" valueName="v"><text>x$v</text></repeat>`;
+        const beside = await load(
+            `${rx}${cc("$rx", rB)}<repeat name="r2" extend="$cc"/>`,
+        );
+        // before the case holding it is shown (DIAG-7)
+        expect(beside.diagnostics()).eqls([
+            "doenet-e0095: A `<repeat>` can't be made from `$cc`: it is made from the `<repeat>` the case shown holds, which must be one `<repeat>`, or nothing, in every case of `cc`, and case 1 holds several components. To show what it holds as it is, write `$cc`.",
+        ]);
+        expect(await beside.typeOf("r2")).eq("_error");
+
+        for (const doenetML of [
+            `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">$rx</case></conditionalContent>`,
+            `<group name="cc">$rx</group>`,
+        ]) {
+            const d = await load(
+                `${rx}${doenetML}<repeat name="r2" extend="$cc"/>`,
+            );
+            expect(d.errorCodes(), doenetML).eqls(["doenet-e0071"]);
+        }
+
+        // a bare reference to a wrapper is read through, as written there
+        for (const held of [
+            `<group name="g">${rA}</group>`,
+            `<select name="g"><option>${rA}</option></select>`,
+        ]) {
+            const d = await load(
+                `${held}${cc("$g", rB)}<p name="p"><repeat name="r2" extend="$cc"/></p>`,
+            );
+            expect(d.diagnostics(), held).eqls([]);
+            expect(await d.text("p")).eq("b4, b5");
+            await d.setBoolean("b", true);
+            expect(await d.text("p")).eq("a1, a2, a3");
+        }
     });
 
     const stillOwnKind: [string, string, string][] = [
