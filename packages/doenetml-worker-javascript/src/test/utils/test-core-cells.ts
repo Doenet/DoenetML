@@ -1003,7 +1003,19 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     p: containerReaders,
     group: containerReaders,
-    document: containerReaders,
+    document: {
+        ...containerReaders,
+        // The variant it was loaded as and what its variant components
+        // picked (ADR 0076).
+        generatedVariantInfo: (_g, x) => {
+            const v = JSON.parse(x.cells.core.generated_variant_json());
+            if (v === null)
+                throw new CellsCoreGap(
+                    "`document.generatedVariantInfo` of these variant components",
+                );
+            return v;
+        },
+    },
     conditionalContent: containerReaders,
     select: containerReaders,
     numberInput: valueReaders,
@@ -1323,6 +1335,13 @@ const STATE: Record<string, Record<string, Reader>> = {
             return choiceOrderOf(x).map((k) =>
                 x.cells.core.component_text(choices[k - 1]).trim(),
             );
+        },
+        // The text of the choice selected, by its place as shown.
+        selectedValues: (g, x) => {
+            const k = g("selectedIndex");
+            if (!(Number.isInteger(k) && k >= 1)) return [];
+            const texts = STATE.choiceInput.choiceTexts(g, x) as string[];
+            return k <= texts.length ? [texts[k - 1]] : [];
         },
     },
     intervalList: valueListReaders("intervals", (x, c) => heldMath(x.cells, c)),
@@ -1844,6 +1863,23 @@ const FIELDS: Record<
                     : [],
             ),
     },
+    // The variant the document was loaded as (ADR 0076), as the current
+    // core's shared parameters name it.
+    document: {
+        sharedParameters: (cells) => {
+            const v = JSON.parse(cells.core.variant_json());
+            if (v === null)
+                throw new CellsCoreGap("a document loaded with no variant");
+            return {
+                variantIndex: v.index,
+                variantName: v.name,
+                variantSeed: v.seed,
+                allPossibleVariants: v.allPossibleVariants,
+                allVariantNames: v.allVariantNames,
+                uniqueIndex: v.uniqueIndex ?? undefined,
+            };
+        },
+    },
 };
 
 /** What names a component's structure, by type: its boxes and its size,
@@ -1929,7 +1965,6 @@ export async function createTestCoreCells({
             throw new CellsCoreGap(`createTestCore option \`${option}\``);
         }
     }
-    // The variant index is the document seed (ADR 0009).
     if (Object.keys(initializeCounters).length > 0)
         throw new CellsCoreGap("`initializeCounters`");
     if (Object.keys(externalDoenetMLs).length > 0)
@@ -1954,7 +1989,15 @@ export async function createTestCoreCells({
         // what a renderer reads. `CELLS_PRUNE=1` loads as a browser does,
         // for timing (`packages/benchmark/scripts/perf-diff.sh`).
         const prune = process.env.CELLS_PRUNE === "1";
-        core = new mod.Core(bytes, requestedVariantIndex, prune, initialState);
+        // The document loads as the variant asked for (ADR 0076), whose
+        // seed is the document's.
+        core = new mod.Core(
+            bytes,
+            0,
+            prune,
+            initialState,
+            requestedVariantIndex,
+        );
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
