@@ -94,6 +94,11 @@ pub struct ComponentDef {
     /// children contributes its entries; None for a record it cannot
     /// count.
     pub(crate) static_count: Option<fn(&crate::compile::api::Record) -> Option<usize>>,
+    /// How many entries a static sequence counted from an attribute has
+    /// (a `<tally>`'s, one per category; a `<binCounts>`'s, one per bin;
+    /// ADR 0078): the pieces of its record it counts, each reference to a
+    /// static sequence among them its entries, and its count from theirs.
+    pub(crate) counted_entries: Option<CountedEntries>,
     /// What an answer's response is, for what reads an answer's responses
     /// (not for its submit, which is an action).
     pub submit: Option<Submit>,
@@ -1246,4 +1251,14 @@ impl PropDef {
     pub fn attr_name(&self) -> &'static str {
         self.attr.unwrap_or(self.name)
     }
+}
+
+/// How a static sequence counts its entries from what its record names
+/// ([`ComponentDef::counted_entries`], ADR 0078).
+#[derive(Clone, Copy)]
+pub(crate) struct CountedEntries {
+    /// The pieces it counts: an attribute's, as the record parsed them.
+    pub(crate) pieces: fn(&crate::compile::api::Record) -> Vec<crate::compile::api::ListPiece>,
+    /// Its count, from the record and how many entries the pieces make.
+    pub(crate) count: fn(&crate::compile::api::Record, usize) -> usize,
 }

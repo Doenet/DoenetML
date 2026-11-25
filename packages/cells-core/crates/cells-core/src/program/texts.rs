@@ -125,6 +125,59 @@ pub(crate) fn compare_text(engine: &Engine, texts: Option<&Texts>, kind: u128, v
     }
 }
 
+/// What a `<tally>` compares a value or a category by
+/// ([`SymKind::Tally`](super::SymKind::Tally), ADR 0078): a number, or
+/// its text.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum TallyKey {
+    /// A number: one by kind, or an expression that evaluates to one.
+    Number(f64),
+    /// Text: a string, or an expression as the engine prints it.
+    Text(String),
+}
+
+impl TallyKey {
+    /// Whether two keys are equal: two numbers by value, two texts as
+    /// written, a number and a text by the number as JavaScript writes
+    /// it, as the current core's `compareExtractedValues` compares them.
+    pub(crate) fn equals(&self, other: &TallyKey) -> bool {
+        match (self, other) {
+            (TallyKey::Number(a), TallyKey::Number(b)) => a == b,
+            (TallyKey::Text(a), TallyKey::Text(b)) => a == b,
+            (TallyKey::Number(a), TallyKey::Text(b)) | (TallyKey::Text(b), TallyKey::Number(a)) => {
+                js_number_text(*a) == *b
+            }
+        }
+    }
+}
+
+/// What a tally compares the input `v` of `kind` by; none for a number
+/// that is none (NaN, the missing value) or no expression, which equals
+/// nothing (a malformed `<number>`, as the current core leaves it out).
+pub(crate) fn tally_key(
+    engine: &mut Engine,
+    texts: Option<&Texts>,
+    kind: u128,
+    v: f64,
+) -> Option<TallyKey> {
+    match kind {
+        KIND_TEXT => texts
+            .and_then(|t| t.get(v))
+            .map(|s| TallyKey::Text(s.trim().to_string())),
+        _ if v.is_nan() => None,
+        KIND_MATH => {
+            let h = Handle::from_value(v);
+            let x = engine.evaluate(h, None);
+            Some(if x.is_nan() {
+                TallyKey::Text(engine.text(h))
+            } else {
+                TallyKey::Number(x)
+            })
+        }
+        _ => Some(TallyKey::Number(v)),
+    }
+}
+
 /// `text` as an answer compares it
 /// ([`SymKind::TextEquals`](super::SymKind::TextEquals)), as the current
 /// core's `trim().replace(/\s+/, " ")`: trimmed, and its first run of
