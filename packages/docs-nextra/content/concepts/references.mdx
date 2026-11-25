@@ -774,7 +774,15 @@ each level (below); an entry of a list, or of a value such as the tuple of a
 with nothing to index, such as a `<number>{:dn}` holding one number or a
 `<p>{:dn}`. A `<group>{:dn}` and a pick of a [`<select>`](../reference/select)
 do the same, and so does a reference as that one component: with
-`<group name="g">$nl</group>{:dn}`, `$g[2]` is the second entry of `nl`.
+`<group name="g">$nl</group>{:dn}`, `$g[2]` is the second entry of `nl`. Blank text and a `<setup>{:dn}` don't count, but any
+other text does. When an iteration or a group holds several components, or text
+beside one, a further index names nothing, and DoenetML gives a warning that
+says how many it holds and shows the name to use. A property after it names
+nothing too: with two points in `<group name="g">{:dn}`, `$g.x` is `＿`, with a
+warning. Name the point you mean, such as `<point name="P">{:dn}`, and write
+`$g.P.x` (or `$rep[1].P.x`, `$cc.P.x`, and `$s.P.x` of a `<select>{:dn}`
+that picks one, `$s[1].P.x` of one that picks several). The group's own settings, such
+as `$g.hide`, `$g.fixed` and `$g.disabled`, are still its own.
 
 A `<conditionalContent>{:dn}`, and a `<select>{:dn}` that picks one, aren't
 collections: each stands for what it shows, so an index right after one
@@ -786,14 +794,7 @@ unless every case (or option) holds at most one component, all of one type:
 otherwise what it reaches would change with what is shown. While no case is
 shown, or the one shown holds nothing, it names nothing. The same holds for a
 `<selectFromSequence>{:dn}` or other chooser that picks one: `$s` is its one
-value, and an index after it reaches into that value. Blank text and a `<setup>{:dn}` don't count, but any
-other text does. When an iteration or a group holds several components, or text
-beside one, a further index names nothing, and DoenetML gives a warning that
-says how many it holds and shows the name to use. A property after it names
-nothing too: with two points in `<group name="g">{:dn}`, `$g.x` is `＿`, with a
-warning. Name the point you mean, such as `<point name="P">{:dn}`, and write
-`$g.P.x` (or `$rep[1].P.x`, `$s[1].P.x`, `$cc.P.x`). The group's own settings, such
-as `$g.hide`, `$g.fixed` and `$g.disabled`, are still its own.
+value, and an index after it reaches into that value.
 
 A `<group>` that extends or copies an iteration, such as
 `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes

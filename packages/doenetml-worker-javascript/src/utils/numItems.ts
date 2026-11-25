@@ -286,7 +286,8 @@ export function makeCollectionSettingsOwn(
 /**
  * Whether `component` shows one thing and is not a collection (D72,
  * COLL-1): a `<conditionalContent>`, or a chooser or sampler written to pick
- * one (`onePick`, marked at load by `markOnePickChoosers`). It stands for
+ * one (`onePick`, marked at load by `markOnePickChoosers`, and for a tag
+ * written with `copy` by `decideOnePickOfCopy` in `Copy.js`). It stands for
  * what it shows: it has no `numItems`, and an index after it reaches into
  * what it shows.
  */

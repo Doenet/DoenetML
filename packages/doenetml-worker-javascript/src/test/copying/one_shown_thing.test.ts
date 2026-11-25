@@ -114,6 +114,17 @@ describe("An index after a one-shown-thing reaches into what it shows (D72) @gro
         expect(await d.text("n")).eq("2");
     });
 
+    it("through a group holding a reference to one", async () => {
+        const d = await load(
+            `<conditionalContent name="cc"><case condition="true"><math>(1,2)</math></case></conditionalContent><select name="s"><option><math>(3,4)</math></option></select><group name="g">$cc</group><group name="h">$s</group><p name="p1">$g[1]</p><p name="p2">$g[2]</p><p name="p3">$h[1]</p><p name="p4">$h[2]</p>`,
+        );
+        expect(await d.text("p1")).eq("1");
+        expect(await d.text("p2")).eq("2");
+        expect(await d.text("p3")).eq("3");
+        expect(await d.text("p4")).eq("4");
+        expect(d.codes()).eqls([]);
+    });
+
     it("into a case holding a repeat is an iteration", async () => {
         const d = await load(
             `<conditionalContent name="cc"><case condition="true"><repeat for="5 6" valueName="v"><math>$v</math></repeat></case></conditionalContent><p name="p">$cc[2]</p><repeat name="e" extend="$cc[1]"/>`,
