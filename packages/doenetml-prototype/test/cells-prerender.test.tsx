@@ -60,6 +60,9 @@ const NOT_PLACED = new Set([
     "constrainTo",
     "constrainToGrid",
     "attractTo",
+    "attractToGrid",
+    "constrainToGraph",
+    "constrainToInterior",
     "bezierControls",
     "controlVectors",
 ]);

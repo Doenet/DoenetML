@@ -223,6 +223,9 @@
     <circle name="c" />
     <point>(1,2)<constraints><constrainTo>$c</constrainTo></constraints></point>
     <point>(2,1)<constraints><attractTo>$c</attractTo></constraints></point>
+    <point>(3,1)<constraints><attractToGrid dx="2" dy="2" /></constraints></point>
+    <point>(3,2)<constraints><constrainToGraph /></constraints></point>
+    <point>(0,0)<constraints><constrainToInterior>$c</constrainToInterior></constraints></point>
     $P1 $P2 $P3 $l1 $l2
     <lineSegment />
     <polygon name="poly" vertices="(0,0) (1,0) (0,1)" />
