@@ -4756,18 +4756,21 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * The `<conditionalContent>` or one-pick `<select>` an index of the
+     * The `<conditionalContent>`s or one-pick `<select>`s an index of the
      * reference of `copy` comes right after, for `checkIndexIntoBranches`:
-     * read as `[1]` before it when the resolver stopped at it
-     * (`oneShownIndexAtLoad.ts`), or after names it left unresolved that
-     * name one such container through a copy (`$m2.s[1]` of a `<module
-     * name="m2" extend="$m"/>`). `realIndices` is how many indices the author
-     * wrote there, and `whole` whether nothing follows them. `undefined` for
-     * any other reference.
+     * the one container read as `[1]` before the index when the resolver
+     * stopped at it (`oneShownIndexAtLoad.ts`), or the containers that names
+     * it left unresolved name, the last name with the index: one through a
+     * copy (`$m2.s[1]` of a `<module name="m2" extend="$m"/>`), or one in
+     * each branch or item the names pass through (`$s.cc[1]` of a one-pick
+     * select, `$outer.cc[1]`, `$s[2].cc[1]` of a select of several,
+     * `$r[1].cc[1]`), all of which the index may reach (D74). `realIndices`
+     * is how many indices the author wrote there, and `whole` whether
+     * nothing follows them. `undefined` for any other reference.
      */
     function indexIntoBranchesOf(copy: SerializedComponent):
         | {
-              container: SerializedComponent;
+              containers: SerializedComponent[];
               realIndices: number;
               whole: boolean;
           }
@@ -4777,46 +4780,91 @@ export function checkTypeChangesAtLoad({
         if (!ref || ref.nodeIdx < 0 || path.length === 0) {
             return undefined;
         }
+        const start =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        let names = path;
         const [first] = path;
         if (first.name === "") {
+            if (isShownIndex(first.index?.[0])) {
+                if ((first.index?.length ?? 0) < 2) {
+                    return undefined;
+                }
+                const container = branchContainerAt(ref.nodeIdx);
+                return container
+                    ? {
+                          containers: [container],
+                          realIndices: first.index.length - 1,
+                          whole: path.length === 1,
+                      }
+                    : undefined;
+            }
+            // an index into the items of a repeat or the picks of a select
+            // of several, then names (`$r[1].cc[1]`, `$s[2].cc[1]`)
             if (
-                !isShownIndex(first.index?.[0]) ||
-                (first.index?.length ?? 0) < 2
+                path.length < 2 ||
+                (first.index?.length ?? 0) !== 1 ||
+                !start ||
+                !(
+                    start.componentType === "repeat" ||
+                    start.componentType === "repeatForSequence" ||
+                    (start.componentType === "select" &&
+                        !start.doenetAttributes?.onePick)
+                )
             ) {
                 return undefined;
             }
-            const container = branchContainerAt(ref.nodeIdx);
-            return container
-                ? {
-                      container,
-                      realIndices: first.index.length - 1,
-                      whole: path.length === 1,
-                  }
-                : undefined;
+            names = path.slice(1);
         }
-        // names, the last with an index (`$m2.s[1]`), through a copy
-        const at = path.findIndex((part) => (part.index ?? []).length > 0);
-        if (at < 0 || path.slice(0, at + 1).some((part) => !part.name)) {
+        const at = names.findIndex((part) => (part.index ?? []).length > 0);
+        if (at < 0 || names.slice(0, at + 1).some((part) => !part.name)) {
             return undefined;
         }
         const named = descendantsNamed(ref.nodeIdx, [
-            ...path.slice(0, at),
-            { ...path[at], index: [] },
+            ...names.slice(0, at),
+            { ...names[at], index: [] },
         ]);
-        if (!named || named.length !== 1) {
+        if (!named || named.length === 0) {
             return undefined;
         }
-        const [node] = named;
+        // Several are reached only through what holds one in each branch or
+        // item; a name the branches declare with different tags is left to
+        // the every-branch rule (`checkBranchName`).
+        const throughBranches =
+            names !== path ||
+            start?.componentType === "conditionalContent" ||
+            start?.doenetAttributes?.onePick === true;
+        if (named.length > 1 && !throughBranches) {
+            return undefined;
+        }
+        if (throughBranches && start) {
+            // one in each case, option or item, else left to the
+            // every-branch rule, which reports a branch that lacks it
+            const kind =
+                start.componentType === "conditionalContent"
+                    ? "case"
+                    : start.componentType === "select"
+                      ? "option"
+                      : undefined;
+            const expected = kind ? partsOf(start, kind)?.length : 1;
+            if (named.length !== expected) {
+                return undefined;
+            }
+        }
         if (
-            node.componentType !== "conditionalContent" &&
-            !node.doenetAttributes?.onePick
+            named.some(
+                (node) =>
+                    node.componentType !== named[0].componentType ||
+                    (node.componentType !== "conditionalContent" &&
+                        !node.doenetAttributes?.onePick),
+            )
         ) {
             return undefined;
         }
         return {
-            container: node,
-            realIndices: path[at].index.length,
-            whole: at === path.length - 1,
+            containers: named,
+            realIndices: names[at].index.length,
+            whole: at === names.length - 1,
         };
     }
 
@@ -4840,34 +4888,55 @@ export function checkTypeChangesAtLoad({
         if (!found) {
             return false;
         }
-        const { container, realIndices, whole } = found;
-        const branch = container && branchKind(container);
-        const parts = branch && partsOf(container!, branch);
-        if (!container || !branch || !parts || parts.length === 0) {
+        const { containers, realIndices, whole } = found;
+        // What each container's cases or options hold; the index may reach
+        // into any of them.
+        const branch = branchKind(containers[0]);
+        if (!branch) {
             return false;
         }
-        const held = parts.map(({ part }) => partItems(part));
-        if (
-            held.some(
-                (h) => h === null || (h.kind === "one" && h.type === undefined),
-            )
-        ) {
-            return false;
-        }
-        const several: { ordinal: number; isElse: boolean }[] = [];
+        // the first container with a branch of several, which the message
+        // names, with its cases or options that hold several
+        let severalIn: SerializedComponent | undefined;
+        let several: { ordinal: number; isElse: boolean }[] = [];
         const types: string[] = [];
-        let caseOrdinal = 0;
-        for (const [ind, h] of held.entries()) {
-            const isElse = branch === "case" && parts[ind].isElse;
-            if (!isElse) {
-                caseOrdinal++;
+        for (const container of containers) {
+            if (branchKind(container) !== branch) {
+                return false;
             }
-            if (h!.kind === "several") {
-                several.push({ ordinal: caseOrdinal, isElse });
-            } else if (h!.kind === "one" && !types.includes(h!.type!)) {
-                types.push(h!.type!);
+            const parts = partsOf(container, branch);
+            if (!parts || parts.length === 0) {
+                return false;
+            }
+            const held = parts.map(({ part }) => partItems(part));
+            if (
+                held.some(
+                    (h) =>
+                        h === null ||
+                        (h.kind === "one" && h.type === undefined),
+                )
+            ) {
+                return false;
+            }
+            const severalHere: { ordinal: number; isElse: boolean }[] = [];
+            let caseOrdinal = 0;
+            for (const [ind, h] of held.entries()) {
+                const isElse = branch === "case" && parts[ind].isElse;
+                if (!isElse) {
+                    caseOrdinal++;
+                }
+                if (h!.kind === "several") {
+                    severalHere.push({ ordinal: caseOrdinal, isElse });
+                } else if (h!.kind === "one" && !types.includes(h!.type!)) {
+                    types.push(h!.type!);
+                }
+            }
+            if (!severalIn && severalHere.length > 0) {
+                severalIn = container;
+                several = severalHere;
             }
         }
+        const container = severalIn ?? containers[0];
         const containerName = literalText(container.attributes?.name);
         const hasName =
             containerName !== undefined &&

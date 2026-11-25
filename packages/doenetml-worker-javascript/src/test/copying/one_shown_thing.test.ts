@@ -301,6 +301,31 @@ describe("A reference whose meaning depends on the branch shown is an error (D74
         }
     });
 
+    it("an index after one named in each branch or item, decided from all of them", async () => {
+        // `cc` is named in each option of `s` (and of `s2`, which picks
+        // several), in each case of `outer`, and in the item of `r`: an
+        // index after `cc` may reach into any of them
+        const inner = (a: string, b: string) =>
+            `<conditionalContent name="cc"><case condition="$b">${a}</case><else>${b}</else></conditionalContent>`;
+        const several = inner("<math>1</math><math>2</math>", "<math>3</math>");
+        const d = await load(
+            `<booleanInput name="b"/><select name="s"><option>${several}</option><option>${several}</option></select><select name="s2" numToSelect="2"><option>${several}</option><option>${several}</option></select><conditionalContent name="outer"><case condition="true">${several}</case><else>${several}</else></conditionalContent><repeat name="r" for="1 2">${several}</repeat><select name="t"><option>${inner("<math>1</math>", "<math>2</math>")}</option><option>${inner("<text>a</text>", "<text>b</text>")}</option></select><p name="p1">$s.cc[1]</p><p name="p2">$s2[2].cc[1]</p><p name="p3">$outer.cc[1]</p><p name="p4">$r[1].cc[1]</p><math name="e" extend="$s.cc[1]"/><p name="p5">$t.cc[1]</p>`,
+        );
+        const severalMessage = (reference: string) =>
+            `doenet-e0095: \`${reference}\` can't be used: an index after \`cc\` reaches into what the case shown holds, which must be one component of one type in every case, and case 1 holds several. To use a component inside, give it a name in each and refer to it by that name.`;
+        // decided at load, in the case not shown
+        expect(d.diagnostics()).eqls([
+            severalMessage("$s.cc[1]"),
+            severalMessage("$s2[2].cc[1]"),
+            severalMessage("$outer.cc[1]"),
+            severalMessage("$r[1].cc[1]"),
+            "doenet-e0095: `$t.cc[1]` can't be used: an index after `cc` reaches into what the case shown holds, which must be one component of one type in every case, and one holds a `<math>` and another a `<text>`. Hold one type in each.",
+            // the tag's, reported as it is made
+            severalMessage("$s.cc[1]"),
+        ]);
+        expect(await d.typeOf("e")).eq("_error");
+    });
+
     it("a name inside the cases of one type, and an index into one type, are fine", async () => {
         const d = await load(
             `${cc('<math name="x">(1,2)</math>', '<math name="x">(3,4)</math>')}<p name="p">$cc.x $cc[1]</p>`,
