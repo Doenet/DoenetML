@@ -1,0 +1,3 @@
+a width in pixels or percent is the nearest preset's: cells 12 · essential 0 · constant 12 · instrs 0 · components 7
+an invalid setting is its default, with a warning: cells 9 · essential 0 · constant 9 · instrs 0 · components 2
+its rotation follows a value: cells 10 · essential 1 · constant 8 · instrs 1 · components 4

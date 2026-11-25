@@ -67,7 +67,12 @@ drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences` (expressions over math, per element, ADR 0075), the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
-numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
+numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`),
+`sortIndices` (the positions `sort` puts its operands in), the count
+operators `tally` (declared `categories`) and `binCounts` (`bins`,
+`closed`; ADR 0078), `image` and `video` (outside a graph: their
+`size`, `width`, `horizontalAlign` and `displayMode`, settled when
+compiled, ADR 0078), `sequence` (numbers; a parameter that is a reference or math makes
 its count structural, ADR 0041; `type="letters"`, its excludes possibly
 references, and `type="math"` from literal parameters, ADR 0074), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,

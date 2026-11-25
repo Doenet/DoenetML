@@ -34,9 +34,12 @@ pub(crate) mod variance;
 
 pub(crate) mod summary_statistics;
 
+pub(crate) mod bin_counts;
 pub(crate) mod index_of;
 pub(crate) mod scan;
 pub(crate) mod sort;
+pub(crate) mod sort_indices;
+pub(crate) mod tally;
 
 use crate::compile::api::{
     ChildValue, ElemWiring, GivenId, ListEntry, PlanCtx, Port, Source, ValueChildren, Wire,

@@ -31,9 +31,12 @@ macro_rules! containers {
     )*};
 }
 
+pub(crate) mod image;
 pub(crate) mod layout;
 pub(crate) mod markup;
+pub(crate) mod media;
 pub mod section;
+pub(crate) mod video;
 
 pub(crate) mod blocks;
 pub(crate) mod cascade;

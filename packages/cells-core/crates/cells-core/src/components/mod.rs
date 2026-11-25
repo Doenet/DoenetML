@@ -331,6 +331,17 @@ component_types! {
     PolylineOverIterations => geometry::over_iterations::polyline::DEFINITION,
     /// A `<polygon>` whose vertices are a repeat's points (ADR 0075).
     PolygonOverIterations => geometry::over_iterations::polygon::DEFINITION,
+    /// `<sortIndices>`: the positions of its operands in sorted order.
+    SortIndices => operators::sort_indices::DEFINITION,
+    /// `<binCounts>`: how many operands fall in each bin (ADR 0078).
+    BinCounts => operators::bin_counts::DEFINITION,
+    /// `<tally>`: how many operands equal each declared category (ADR
+    /// 0078).
+    Tally => operators::tally::DEFINITION,
+    /// `<image>`: an image laid out in the flow (ADR 0078).
+    Image => containers::image::DEFINITION,
+    /// `<video>`: a video laid out in the flow (ADR 0078).
+    Video => containers::video::DEFINITION,
     /// `<variantControl>`: the document's or a section's variants, read
     /// when compiled (ADR 0076).
     VariantControl => structure::variant_control::DEFINITION,
