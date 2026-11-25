@@ -27,7 +27,7 @@ import {
  * (`enforce-valid-names.ts`), the sugar, the reference resolver (`name`,
  * `extend`, `copy`, `copyWithState`, a repeat's `for`, `valueName` and
  * `indexName`) and the JavaScript core. It knows only what the schema lists,
- * so on a tag the schema doesn't list (`<h>`, `<panel>`, `<embed>`) it
+ * so on a tag the schema doesn't list (`<h>`, `<embed>`) it
  * corrects only `name`, `extend`, `copy` and `copyWithState`, which every tag
  * has and the resolver reads; any other attribute the schema hides
  * (`<subsetOfRealsInput xmin>`, `<h Hide>`) is renamed, with the same warning,

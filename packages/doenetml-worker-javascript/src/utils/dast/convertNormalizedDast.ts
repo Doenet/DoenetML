@@ -252,7 +252,7 @@ export async function normalizedDastToSerializedComponents(
      * release (D51's migration). The parser (`attribute-name-case.ts`) has
      * renamed those the schema lists, before anything read them; this is the
      * backstop for those it does not know of, an attribute the schema hides
-     * and every attribute of a tag it hides (`<panel>`), so that every
+     * and every attribute of a tag it hides (`<embed>`), so that every
      * attribute applied before names were case-sensitive still is, for now.
      * Those it renamed are matched here as written, so are not warned of
      * twice. It runs before anything in the core reads an attribute: the

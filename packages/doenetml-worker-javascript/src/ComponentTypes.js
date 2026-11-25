@@ -105,7 +105,6 @@ import AttractToConstraint from "./components/AttractToConstraint";
 import ConstrainToInterior from "./components/ConstrainToInterior";
 // import AttractSegmentTo from "./components/AttractSegmentTo";
 import Intersection from "./components/Intersection";
-import Panel from "./components/Panel";
 import ConstrainToAngles from "./components/ConstrainToAngles";
 import AttractToAngles from "./components/AttractToAngles";
 import ConditionalContent from "./components/ConditionalContent";
@@ -323,7 +322,6 @@ const componentTypeArray = [
     Table,
     Figure,
     Markers,
-    Panel,
     Repeat,
     RepeatForSequence,
     RepeatValues,
