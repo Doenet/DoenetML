@@ -1135,14 +1135,15 @@ mod arity {
                     // 48 would be vector tag 76 (Constrain).
                     SymKind::SubstituteFunction { .. } => 49,
                     SymKind::Pack { .. } => 50,
-                    SymKind::TallyDistinct { .. } => 51,
-                    SymKind::LineCoeffs => 52,
+                    // 51 would be vector tag 79 (Span).
+                    SymKind::TallyDistinct { .. } => 52,
+                    SymKind::LineCoeffs => 53,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 81;
+    const N_TAGS: usize = 82;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
