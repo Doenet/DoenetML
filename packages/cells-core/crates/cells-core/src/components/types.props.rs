@@ -400,8 +400,10 @@ impl ComponentType {
             ChoiceInput => &[
                 ("preliminaryIndex", Is(Integer)),
                 ("selectedIndex", Is(Integer)),
+                ("selectedChoice", Is(Integer)),
+                ("selectedValue", Is(Text)),
             ],
-            Choice => &[],
+            Choice => &[("selected", Is(Boolean))],
             Angle => &[
                 ("radians", Is(Math)),
                 ("degrees", Is(Math)),
