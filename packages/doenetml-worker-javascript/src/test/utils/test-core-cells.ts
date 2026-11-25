@@ -41,6 +41,7 @@ import {
     hiddenByHide,
     mdLatex,
     pointLatex,
+    vertexCells,
 } from "../../../../doenetml-worker/src/cells/contracts";
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import { latexToText } from "../../utils/math";
@@ -368,13 +369,28 @@ const choiceOrderOf = (x: Ctx): number[] =>
     );
 const containerReaders: Record<string, Reader> = { text: textOf };
 
-/** A polygon's vertices; a triangle reads as one. */
+/** A shape's vertices' coordinates: its list's (`x1`, `y1`, ...), or,
+ * over a repeat's points, the points of its iterations (ADR 0075). */
+function vertexValues(g: Get, x: Ctx): number[][] {
+    const n = g("numVertices");
+    if (n === 0 || x.cells.propCells(x.idx, "x1").length > 0) {
+        return items("x", "y", n).map(([a, b]) => npt(g, a, b));
+    }
+    return vertexCells(x.cells.table, x.idx).map(([a, b]) => [
+        x.cells.value(a),
+        x.cells.value(b),
+    ]);
+}
+
+/** A polygon's vertices; a triangle and a polyline read as one. A
+ * coordinate with no value is the blank, as the current core shows it. */
 const polygonReaders: Record<string, Reader> = {
     numVertices: (g) => g("numVertices"),
-    vertices: (g) =>
-        items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
-    numericalVertices: (g) =>
-        items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
+    vertices: (g, x) =>
+        vertexValues(g, x).map((v) =>
+            v.map((c) => (Number.isNaN(c) ? me.fromAst(BLANK) : M(c))),
+        ),
+    numericalVertices: (g, x) => vertexValues(g, x),
     center: (g) => pt(g, "cx", "cy"),
     // What a drag may move (ADR 0070), 0/1 cells.
     draggable: (g) => g("draggable") !== 0,
@@ -953,6 +969,8 @@ const STATE: Record<string, Record<string, Reader>> = {
         numDimensions: () => 2,
     },
     polygon: polygonReaders,
+    // A polygon that is not closed, with its length (ADR 0075).
+    polyline: { ...polygonReaders, length: (g) => g("length") },
     triangle: polygonReaders,
     rectangle: rectangleReaders,
     regularPolygon: regularPolygonReaders,
@@ -1847,6 +1865,7 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     // Drags the bridge gates by what they may move (ADR 0070), and a
     // segment's end that holds the other when a slope or midpoint places it.
     polygon: ["movePolygon"],
+    polyline: ["movePolyline"],
     triangle: ["movePolygon"],
     lineSegment: ["moveLineSegment"],
 };
