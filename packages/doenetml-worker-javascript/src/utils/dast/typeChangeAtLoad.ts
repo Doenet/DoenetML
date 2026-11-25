@@ -1406,14 +1406,16 @@ export function checkTypeChangesAtLoad({
             if (!source) {
                 return undefined;
             }
-            const sourceIsElse =
-                source.componentType === "else" ||
-                attributeOf(source, "condition") === undefined;
-            if (kind === "case" && sourceIsElse !== (written === "else")) {
-                // a case copying an else, or an else copying a case
-                return undefined;
-            }
-            parts.push({ part: source, isElse: sourceIsElse });
+            // Sugar makes an `<else>`, one written with `copy` too, a
+            // `<case>` with no `condition`, and a part written with `copy`
+            // has no attributes of its own (`copiedPart`): it is an else
+            // when what it copies is (`<else copy="$e"/>`).
+            parts.push({
+                part: source,
+                isElse:
+                    source.componentType === "else" ||
+                    attributeOf(source, "condition") === undefined,
+            });
         }
         return parts;
     }
@@ -2517,8 +2519,25 @@ export function checkTypeChangesAtLoad({
         }
         if (perPart.some((found) => found.length > 1)) {
             // Declared twice in one branch: the reference is ambiguous,
-            // which the run time reports when that branch is active.
-            return { status: "skip" };
+            // which the run time reports when that branch is active. A
+            // branch that lacks it is decided here all the same.
+            const lacking = perPart.findIndex((found) => found.length === 0);
+            if (lacking < 0) {
+                return { status: "skip" };
+            }
+            const isElse = kind === "case" && parts[lacking].isElse;
+            return {
+                status: "missing",
+                container,
+                branch: isElse ? "else" : kind,
+                ordinal: isElse
+                    ? 1
+                    : parts
+                          .slice(0, lacking + 1)
+                          .filter((part) => kind !== "case" || !part.isElse)
+                          .length,
+                name: names[0],
+            };
         }
         // How many of the names each branch is known to declare, in turn
         // (`$h.x.y`: 1 for an `h` lacking `x`, 2 for an `h.x` lacking `y`,
@@ -4829,55 +4848,24 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const lookup = [...names.slice(0, at), { ...names[at], index: [] }];
-        let named = descendantsNamed(ref.nodeIdx, lookup);
+        if (!start) {
+            return undefined;
+        }
+        // After a pick of a select of several (`names !== path`), the names
+        // are looked up in each of its options, as in each case or option
+        // of a container that shows one; after an item of a repeat, in the
+        // repeat.
+        const named = reachedInEach(
+            start,
+            lookup,
+            names === path
+                ? branchKind(start)
+                : start.componentType === "select"
+                  ? "option"
+                  : undefined,
+        );
         if (!named || named.length === 0) {
             return undefined;
-        }
-        // Several are reached only through what holds one in each branch or
-        // item; a name the branches declare with different tags is left to
-        // the every-branch rule (`checkBranchName`).
-        const throughBranches =
-            names !== path ||
-            start?.componentType === "conditionalContent" ||
-            start?.doenetAttributes?.onePick === true;
-        if (named.length > 1 && !throughBranches) {
-            return undefined;
-        }
-        if (throughBranches && start) {
-            // one in each case, option or item, else left to the
-            // every-branch rule, which reports a branch that lacks it
-            const kind =
-                start.componentType === "conditionalContent"
-                    ? "case"
-                    : start.componentType === "select"
-                      ? "option"
-                      : undefined;
-            if (!kind) {
-                if (named.length !== 1) {
-                    return undefined;
-                }
-            } else {
-                // each case or option counted once (two `<option
-                // copy="$o"/>` are one option written), and holding one
-                const parts = partsOf(start, kind);
-                if (!parts) {
-                    return undefined;
-                }
-                const counted = new Set<number>();
-                const inEach: SerializedComponent[] = [];
-                for (const { part } of parts) {
-                    if (counted.has(part.componentIdx)) {
-                        continue;
-                    }
-                    counted.add(part.componentIdx);
-                    const inPart = descendantsNamedIn(part, lookup);
-                    if (!inPart || inPart.length !== 1) {
-                        return undefined;
-                    }
-                    inEach.push(...inPart);
-                }
-                named = [...new Set(inEach)];
-            }
         }
         const [firstNamed] = named;
         if (
@@ -4895,6 +4883,102 @@ export function checkTypeChangesAtLoad({
             realIndices: names[at].index.length,
             whole: at === names.length - 1,
         };
+    }
+
+    /**
+     * The components the names `lookup` reach from `node`, for
+     * `indexIntoBranchesOf`, as the run time looks them up: in each case or
+     * option of `node` when it has them (`kind`), and of each
+     * `<conditionalContent>` or one-pick `<select>` a name before the last
+     * names (`$outer.s.cc[1]`), counting a case or option once however
+     * often it is copied (two `<option copy="$o"/>`); otherwise the one
+     * component written with the name in what is looked in
+     * (`descendantsNamedIn`). `undefined` when one looked in holds other
+     * than one so named (none, which the every-branch rule reports,
+     * `checkBranchName`, or several), or that is not known from the
+     * DoenetML.
+     */
+    function reachedInEach(
+        node: SerializedComponent,
+        lookup: any[],
+        kind: "case" | "option" | undefined,
+    ): SerializedComponent[] | undefined {
+        if (kind) {
+            const parts = partsOf(node, kind);
+            if (!parts) {
+                return undefined;
+            }
+            const counted = new Set<number>();
+            const reached: SerializedComponent[] = [];
+            for (const { part } of parts) {
+                if (counted.has(part.componentIdx)) {
+                    continue;
+                }
+                counted.add(part.componentIdx);
+                const inPart = reachedInEach(part, lookup, undefined);
+                if (!inPart) {
+                    return undefined;
+                }
+                reached.push(...inPart);
+            }
+            return [...new Set(reached)];
+        }
+        if (lookup.length === 0) {
+            return [node];
+        }
+        const named = descendantsNamedIn(node, lookup.slice(0, 1));
+        if (!named || named.length === 0) {
+            return undefined;
+        }
+        if (named.length > 1) {
+            // several in the cases or options of one container that shows
+            // one written in `node` without the name (`<select>` in a case,
+            // `$outer.cc[1]`), whose names are seen from outside it
+            const holder = branchHolderOf(node.children ?? [], named);
+            return holder
+                ? reachedInEach(holder, lookup, branchKind(holder))
+                : undefined;
+        }
+        const [next] = named;
+        return reachedInEach(
+            next,
+            lookup.slice(1),
+            lookup.length > 1 ? branchKind(next) : undefined,
+        );
+    }
+
+    /**
+     * The `<conditionalContent>` or one-pick `<select>` among `components`,
+     * or in a component among them that is not a repeat or a select or
+     * option (whose names are not seen from outside), that holds each of
+     * `named`, for `reachedInEach`, or `undefined` if there is none.
+     */
+    function branchHolderOf(
+        components: (SerializedComponent | string)[],
+        named: SerializedComponent[],
+    ): SerializedComponent | undefined {
+        for (const component of components) {
+            if (
+                typeof component !== "object" ||
+                !named.every((node) => contains(component, node.componentIdx))
+            ) {
+                continue;
+            }
+            if (branchKind(component)) {
+                return component;
+            }
+            if (
+                component.componentType === "repeat" ||
+                component.componentType === "repeatForSequence" ||
+                component.componentType === "select" ||
+                component.componentType === "option" ||
+                component.componentType === "_copy"
+            ) {
+                return undefined;
+            }
+            return branchHolderOf(component.children ?? [], named);
+        }
+        return undefined;
     }
 
     /**

@@ -334,6 +334,44 @@ describe("A reference whose meaning depends on the branch shown is an error (D74
         expect(d.codes()).eqls(["doenet-e0095"]);
     });
 
+    it("an index after one named through another that shows one, decided from each of their branches", async () => {
+        // `cc` is named in each option of an `s` named in each case of
+        // `outer` (and of `m2`, a copy, and in a repeat's item, and in a
+        // select's pick), and in each option of a select with no name in a
+        // case of `outer2`: the index may reach into any `cc`
+        const inner = (a: string) =>
+            `<conditionalContent name="cc"><case condition="$b">${a}</case><else><math>(3,4)</math></else></conditionalContent>`;
+        const several = inner("<math>1</math><math>2</math>");
+        const one = inner("<math>(1,2)</math>");
+        const s = (a: string, b: string) =>
+            `<select name="s"><option>${a}</option><option>${b}</option></select>`;
+        const d = await load(
+            `<booleanInput name="b"/><conditionalContent name="outer"><case condition="$b">${s(several, one)}</case><else>${s(one, one)}</else></conditionalContent><module name="m">${s(several, one)}</module><module name="m2" extend="$m"/><repeat name="r" for="1 2">${s(several, one)}</repeat><select name="t" numToSelect="2"><option>${s(several, one)}</option><option>${s(one, one)}</option></select><conditionalContent name="outer2"><case condition="$b"><select><option>${several}</option><option>${one}</option></select></case><else>${one}</else></conditionalContent><conditionalContent name="ok"><case condition="$b">${s(one, one)}</case><else>${s(one, one)}</else></conditionalContent><p name="p1">$outer.s.cc[1]</p><p name="p2">$m2.s.cc[1]</p><p name="p3">$r[1].s.cc[1]</p><p name="p4">$t[2].s.cc[1]</p><p name="p5">$outer2.cc[1]</p><p name="p6">$ok.s.cc[1]</p><math name="m6" extend="$ok.s.cc[1]"/>`,
+        );
+        // decided at load, in the case not shown
+        expect(d.codes()).eqls([
+            "doenet-e0095",
+            "doenet-e0095",
+            "doenet-e0095",
+            "doenet-e0095",
+            "doenet-e0095",
+        ]);
+        expect(await d.text("p6")).eq("3");
+        expect(await d.typeOf("m6")).eq("math");
+        expect(await d.text("m6")).eq("3");
+    });
+
+    it("an index after one with an else written with copy, decided at load", async () => {
+        const d = await load(
+            `<conditionalContent name="c0"><case condition="false"><math>1</math></case><else name="e"><math>1</math><math>2</math></else></conditionalContent><conditionalContent name="c1"><case condition="false"><math>1</math></case><else name="e2"><math>(5,6)</math></else></conditionalContent><conditionalContent name="cc"><case condition="false"><math>3</math></case><else copy="$e"/></conditionalContent><conditionalContent name="cc2"><case condition="false"><math>3</math></case><else copy="$e2"/></conditionalContent><p name="p">$cc[1]</p><p name="p2">$cc2[1]</p><math name="m2" extend="$cc2[1]"/>`,
+        );
+        expect(d.diagnostics()).eqls([
+            "doenet-e0095: `$cc[1]` can't be used: an index after `cc` reaches into what the case shown holds, which must be one component of one type in every case, and the `<else>` holds several. To use a component inside, give it a name in each and refer to it by that name.",
+        ]);
+        expect(await d.text("p2")).eq("5");
+        expect(await d.typeOf("m2")).eq("math");
+    });
+
     it("a name inside the cases of one type, and an index into one type, are fine", async () => {
         const d = await load(
             `${cc('<math name="x">(1,2)</math>', '<math name="x">(3,4)</math>')}<p name="p">$cc.x $cc[1]</p>`,

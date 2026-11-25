@@ -750,6 +750,40 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
         ]);
     });
 
+    it("a branch lacking a name is reported, though another declares it twice", async () => {
+        // The case's `x` is ambiguous, which the run time reports while it
+        // is shown; the else has none, which is decided at load
+        const { text, toggle, diagnostics } = await setUp(`
+<conditionalContent name="cc">
+    <case condition="$b"><math name="x">1</math><section><math name="x">2</math></section></case>
+    <case condition="true"><math>3</math></case>
+</conditionalContent>
+<p name="p">[$cc.x]</p>`);
+        expect(await text()).eq("[]");
+        await toggle(true);
+        expect(await text()).eq("[]");
+        expect(diagnostics.errors.map((w) => w.message)).eqls([
+            "`$cc.x` can't be used: case 2 of `cc` has no `x`, so what it names would change with what is shown. Give it one, or use a name every case has.",
+        ]);
+    });
+
+    it("an else written with copy is held to the rule as an else", async () => {
+        const { text, diagnostics } = await setUp(`
+<conditionalContent name="c0">
+    <case condition="false"><math>1</math></case>
+    <else name="e"><math>2</math></else>
+</conditionalContent>
+<conditionalContent name="cc">
+    <case condition="true"><math name="x">3</math></case>
+    <else copy="$e"/>
+</conditionalContent>
+<p name="p">[$cc.x]</p>`);
+        expect(await text()).eq("[]");
+        expect(diagnostics.errors.map((w) => w.message)).eqls([
+            "`$cc.x` can't be used: the `<else>` of `cc` has no `x`, so what it names would change with what is shown. Give it one, or use a name every case has.",
+        ]);
+    });
+
     it("a copy in a branch is not evidence that a name after it is a name", async () => {
         const { text, toggle, diagnostics } = await setUp(`
 <math name="m">7</math>
