@@ -740,6 +740,14 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             )
             .to_value();
         }
+        SymKind::LineCoeffs => {
+            let var = |k| handle(v(k)).and_then(|h| engine.symbol(h));
+            let coeffs = match (handle(v(0)), var(1), var(2)) {
+                (Some(h), Some(vx), Some(vy)) => engine.line_coeffs(h, &vx, &vy),
+                _ => None,
+            };
+            out[..3].copy_from_slice(&coeffs.unwrap_or([f64::NAN; 3]));
+        }
         SymKind::Pack { .. } => {
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
             out[0] = engine.pack(&vals).to_value();

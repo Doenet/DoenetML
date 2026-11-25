@@ -346,6 +346,38 @@ impl<'a> PlanCtx<'_, 'a> {
         )
     }
 
+    /// An equation whose math text is one reference and nothing else
+    /// (`$equation`), its `=` in the value the reference names, read in
+    /// the tick (ADR 0083, `SymKind::LineCoeffs`): as math cells, the
+    /// expression the reference stands for (an alias of it, as a math of
+    /// that reference alone is) and the symbols `vx` and `vy`. `None` for
+    /// any other text.
+    pub(crate) fn equation_value(
+        &mut self,
+        nodes: &[NodeId],
+        vx: &str,
+        vy: &str,
+    ) -> Result<Option<[Source; 3]>> {
+        let (toks, _) = self.math_tokens(nodes)?;
+        let [Token::Cell(p)] = toks[..] else {
+            return Ok(None);
+        };
+        let ar = &mut self.p.ar;
+        let eq = ar.arena.push(Expr::Cell(p));
+        ar.sym_text.insert(eq, SymText::Leaf(p));
+        let mut symbol = |name: &str| {
+            let id = ar.arena.push(Expr::Sym(name.to_string()));
+            ar.sym_text.insert(id, SymText::Spelled(name.to_string()));
+            Source::sym_expr(id, crate::program::Post::None)
+        };
+        let (x, y) = (symbol(vx), symbol(vy));
+        Ok(Some([
+            Source::sym_expr(eq, crate::program::Post::None),
+            x,
+            y,
+        ]))
+    }
+
     /// The canonical string id of `text`.
     pub(crate) fn intern(&mut self, text: &str) -> StrId {
         self.p.ar.intern_literal(self.p.rd.dast, text)

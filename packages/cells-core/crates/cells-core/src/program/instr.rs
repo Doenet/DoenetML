@@ -293,6 +293,14 @@ pub enum SymKind {
         /// How many inputs.
         n: u8,
     },
+    // A line's equation read in the tick (ADR 0083).
+    /// The coefficients `(a, b, c)` of `a v1 + b v2 + c = 0` that the
+    /// equation input 0 holds, linear in the symbols inputs 1 and 2 hold
+    /// (math cells): three outputs, `a`, `b` and `c`, each NaN when the
+    /// value is no such equation (no `=`, not linear in them, another
+    /// free symbol). A `<line>` whose equation is a math value, a math
+    /// input's.
+    LineCoeffs,
 }
 
 /// What input 1 of a [`SymKind::SubstituteFunction`] says is done to the
@@ -519,6 +527,7 @@ impl SymKind {
             | SymKind::SampleBezier { .. } => SAMPLES,
             SymKind::Order { n, .. } => n as usize,
             SymKind::Tally { k, .. } => k as usize,
+            SymKind::LineCoeffs => 3,
             SymKind::Interpolate { n } => {
                 1 + crate::sym::interpolate::PIECE_OUT
                     * crate::sym::interpolate::max_pieces(n as usize)
@@ -764,6 +773,7 @@ impl OpSpec {
             OpSpec::Sym(SymKind::LetterNumber) => 1,
             OpSpec::Sym(SymKind::SubstituteFunction { k }) => 9 + *k as usize,
             OpSpec::Sym(SymKind::Pack { n }) => *n as usize,
+            OpSpec::Sym(SymKind::LineCoeffs) => 3,
             _ => unreachable!(),
         }
     }
@@ -998,6 +1008,7 @@ mod arity {
             OpSpec::Vec(VecOp::Constrain { n_in: 7 }),
             OpSpec::Sym(SymKind::SubstituteFunction { k: 2 }),
             OpSpec::Sym(SymKind::Pack { n: 4 }),
+            OpSpec::Sym(SymKind::LineCoeffs),
         ]);
         ops
     }
@@ -1098,12 +1109,13 @@ mod arity {
                     // 48 would be vector tag 76 (Constrain).
                     SymKind::SubstituteFunction { .. } => 49,
                     SymKind::Pack { .. } => 50,
+                    SymKind::LineCoeffs => 51,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 79;
+    const N_TAGS: usize = 80;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

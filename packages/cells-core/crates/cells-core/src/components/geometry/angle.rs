@@ -257,9 +257,28 @@ fn between_lines(
     };
     Ok(Some(match lines.as_slice() {
         [line] => {
-            let mut args = vec![Arg::Const(0.0), Arg::Const(0.0)];
-            args.extend(line.iter().map(|&p| Arg::Own(p)));
-            let v = wiring.hidden_vector_args(VecOp::ProjectLine, args);
+            // The point nearest the origin from the line's coefficients,
+            // `-(a c, b c) / (a² + b²)`, as the current core's
+            // `nearestPoint` computes it, so a line `y = 2x + 1` meets it
+            // at (-0.4, 0.2) exactly (ADR 0083).
+            let ListPiece::Reference(p) = &pieces[0] else {
+                unreachable!("a line is a reference")
+            };
+            let [a, b, c] = ["coeffvar1", "coeffvar2", "coeff0"]
+                .map(|prop| ctx.with_prop(*p, prop).map(Source::reference));
+            let [a, b, c] = [wiring.hidden(a?), wiring.hidden(b?), wiring.hidden(c?)];
+            let op = |wiring: &mut ElemWiring, op, args| wiring.hidden(Source::computed(op, args));
+            let aa = op(wiring, OpSpec::Mul, vec![a, a]);
+            let bb = op(wiring, OpSpec::Mul, vec![b, b]);
+            let denom = op(wiring, OpSpec::Add, vec![aa, bb]);
+            let ac = op(wiring, OpSpec::Mul, vec![a, c]);
+            let bc = op(wiring, OpSpec::Mul, vec![b, c]);
+            let x = op(wiring, OpSpec::Div, vec![ac, denom]);
+            let y = op(wiring, OpSpec::Div, vec![bc, denom]);
+            let v = [
+                op(wiring, OpSpec::Negate, vec![x]),
+                op(wiring, OpSpec::Negate, vec![y]),
+            ];
             let toward = step(wiring, [v[0], v[1]], *line);
             // A unit from the vertex toward that step: the turn of nothing.
             let first = wiring.hidden_vector_args(
