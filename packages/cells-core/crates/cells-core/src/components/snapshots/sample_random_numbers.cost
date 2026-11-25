@@ -2,3 +2,10 @@ samples of a discrete uniform: cells 17 · essential 0 · constant 17 · instrs 
 one sample by default: cells 10 · essential 0 · constant 10 · instrs 0 · components 4
 a sample count that is no whole number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
 the distribution's moments: cells 13 · essential 0 · constant 13 · instrs 0 · components 5
+a hypergeometric drawing the whole population (ADR 0079): cells 13 · essential 0 · constant 13 · instrs 0 · components 5
+a binomial is a fair trial by default (ADR 0079): cells 17 · essential 0 · constant 17 · instrs 0 · components 7
+a poisson's mean is 1 by default (ADR 0079): cells 16 · essential 0 · constant 16 · instrs 0 · components 7
+a log-normal with no spread is one value (ADR 0079): cells 14 · essential 0 · constant 14 · instrs 0 · components 6
+a normal mixture's moments, a single spread for every component (ADR 0079): cells 20 · essential 0 · constant 20 · instrs 0 · components 7
+parameters that describe no distribution are the current core's warning (ADR 0079): cells 10 · essential 0 · constant 10 · instrs 0 · components 3
+a normal mixture's lists of other lengths are its warning (ADR 0079): cells 8 · essential 0 · constant 8 · instrs 0 · components 3

@@ -1,6 +1,6 @@
 //! `<sampleRandomNumbers>`: its definition and its planner.
 
-use super::select_random_numbers::{RandomParams, draw_count, plan_random};
+use super::select_random_numbers::{RandomParams, draw_count, plan_random, plan_random_sampler};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::Result;
@@ -8,11 +8,11 @@ use crate::error::Result;
 component! {
     /// `<sampleRandomNumbers type from to step mean standardDeviation
     /// exclude numSamples>`: as `<selectRandomNumbers>`, `numSamples`
-    /// values. The samples are drawn from the document seed, so a fresh
-    /// build of the same document under the same seed draws them again, and
-    /// their parameters must be constants (ADR 0037); the current core's
-    /// `resample` action and samples that follow a changing parameter are
-    /// not supported.
+    /// values, of the same distributions (ADR 0079). The samples are drawn
+    /// from the document seed, so a fresh build of the same document under
+    /// the same seed draws them again, and their parameters must be
+    /// constants (ADR 0037); the current core's `resample` action and
+    /// samples that follow a changing parameter are not supported.
     tags: ["sampleRandomNumbers"],
     flags: [copyable],
     default_prop: numbers,
@@ -22,6 +22,15 @@ component! {
         mean: by_planner,
         variance: by_planner,
         standardDeviation: by_planner,
+        // The parameters of a distribution that has them (ADR 0079).
+        logMean: by_planner,
+        logStandardDeviation: by_planner,
+        logVariance: by_planner,
+        numTotal: by_planner,
+        numSuccesses: by_planner,
+        numDraws: by_planner,
+        numTrials: by_planner,
+        probability: by_planner,
     }
     list {
         names: [numbers, values],
@@ -44,6 +53,18 @@ component! {
         variance: Scalar,
         exclude: Scalars,
         numSamples: Literal(1.0),
+        logMean: Scalar,
+        logStandardDeviation: Scalar,
+        logVariance: Scalar,
+        means: Scalars,
+        standardDeviations: Scalars,
+        variances: Scalars,
+        weights: Scalars,
+        numTotal: Scalar,
+        numSuccesses: Scalar,
+        numDraws: Scalar,
+        numTrials: Scalar,
+        probability: Scalar,
     }
     static_count: count,
     children: None,
@@ -55,37 +76,7 @@ component! {
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let n = draw_count("numSamples", attrs.numSamples)?;
-    let params = RandomParams {
-        kind: attrs.r#type,
-        from: attrs.from,
-        to: attrs.to,
-        step: attrs.step,
-        mean: attrs.mean,
-        standard_deviation: attrs.standardDeviation,
-        variance: attrs.variance,
-        exclude: attrs.exclude,
-        on: DrawOn {
-            attrs: &[
-                attr::r#type,
-                attr::from,
-                attr::to,
-                attr::step,
-                attr::mean,
-                attr::standardDeviation,
-                attr::variance,
-                attr::exclude,
-                attr::numSamples,
-            ],
-            children: false,
-        },
-    };
-    let (mut wiring, [mean, variance, sd]) = plan_random(ctx, n, params)?;
-    wiring.set_planned(Planned {
-        mean: Wire::own(mean),
-        variance: Wire::own(variance),
-        standardDeviation: Wire::own(sd),
-    });
-    Ok(wiring)
+    plan_random_sampler!(ctx, attrs, n, numSamples)
 }
 
 #[cfg(test)]

@@ -753,6 +753,28 @@ fn check_sequence(
             dist: Dist::Gaussian,
             ..
         } => (&["mean", "standardDeviation"], 0.0),
+        // The other distributions' (ADR 0079): a normal mixture's
+        // parameters are named by the list each is in, below.
+        VecOp::Draws {
+            dist: Dist::LogNormal,
+            ..
+        } => (&["logMean", "logStandardDeviation"], 0.0),
+        VecOp::Draws {
+            dist: Dist::Hypergeometric,
+            ..
+        } => (&["numTotal", "numSuccesses", "numDraws"], 0.0),
+        VecOp::Draws {
+            dist: Dist::Binomial,
+            ..
+        } => (&["numTrials", "probability"], 0.0),
+        VecOp::Draws {
+            dist: Dist::Poisson,
+            ..
+        } => (&["mean"], 0.0),
+        VecOp::Draws {
+            dist: Dist::NormalMixture { .. },
+            ..
+        } => (&[], 0.0),
         VecOp::Draws {
             dist: Dist::Sequence { replace, .. } | Dist::Primes { replace, .. },
             n,
@@ -776,13 +798,35 @@ fn check_sequence(
         } => "numInCategories",
         _ => "exclude",
     };
+    // Past the parameters and the excludes, the combinations a selection
+    // avoids (ADR 0079), which the draw reads as they are.
+    let (n_params, n_exclude) = match op {
+        VecOp::Draws {
+            dist, n_exclude, ..
+        } => (dist.n_params(), n_exclude as usize),
+        VecOp::SequencePick { n_exclude } => (3, n_exclude as usize),
+        _ => (names.len(), ports.len() - 1 - names.len()),
+    };
+    let mixture = ["means", "standardDeviations", "weights"];
     for (i, &n) in ports[1..].iter().enumerate() {
-        constant_param(k, c, tag, node, names.get(i).copied().unwrap_or(rest), n)?;
+        let name = match op {
+            VecOp::Draws {
+                dist: Dist::NormalMixture { k: parts },
+                ..
+            } if i < n_params => mixture[i / (parts as usize).max(1)],
+            _ if i < n_params => names.get(i).copied().unwrap_or(rest),
+            _ if i < n_params + n_exclude => rest,
+            _ => "excludeCombinations",
+        };
+        constant_param(k, c, tag, node, name, n)?;
     }
     if need == 0.0 {
         return Ok(());
     }
-    let r: Vec<Range> = ports[1..].iter().map(|&n| k.range(n)).collect();
+    let r: Vec<Range> = ports[1..=n_params + n_exclude]
+        .iter()
+        .map(|&n| k.range(n))
+        .collect();
     let domain = |reason: String| Error::ChoiceDomain {
         tag: tag.into(),
         reason,

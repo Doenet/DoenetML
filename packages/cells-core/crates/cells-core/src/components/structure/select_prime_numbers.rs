@@ -1,11 +1,13 @@
 //! `<selectPrimeNumbers>`: its definition and its planner, and what
 //! `<samplePrimeNumbers>` shares with it ([`plan_primes`]).
 
-use super::select_random_numbers::{draw_count, plan_draws};
+use super::combinations::{self, ComboEntry};
+use super::select_random_numbers::{draw_count, plan_draws_avoiding};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::program::{Dist, Order};
+use crate::limits::byte;
+use crate::program::{Avoid, Dist, Order, primes_between};
 
 component! {
     /// `<selectPrimeNumbers from to exclude numToSelect withReplacement
@@ -16,7 +18,9 @@ component! {
     /// `decreasing`. The parameters may read any value no student can
     /// change (ADR 0037), which the check makes sure of, with every draw
     /// possible. `numToSelect` is a literal: the list's length is a fact
-    /// of the source.
+    /// of the source. Several primes avoid the combinations
+    /// `excludeCombinations` names (`(2 _)`, `_` any prime), drawn again
+    /// until they do (ADR 0079).
     tags: ["selectPrimeNumbers"],
     flags: [copyable],
     default_prop: numbers,
@@ -41,7 +45,7 @@ component! {
         numToSelect: Literal(1.0),
         withReplacement: Bool(false),
         sort: Text,
-        excludeCombinations: Written,
+        excludeCombinations: Entries,
     }
     static_count: count,
     children: None,
@@ -67,23 +71,65 @@ pub(super) fn order(sort: Option<String>) -> Result<Order> {
 }
 
 /// A prime sampler's list of `n` primes from `from` to `to` less the
-/// excludes ([`plan_draws`]).
+/// excludes ([`plan_draws_avoiding`]), avoiding the combinations `combos`
+/// (ADR 0079): refused, as the current core refuses them before it draws,
+/// when the parameters are literals and the combinations exclude over 70%
+/// of the draws (`doenet-e0051`).
 pub(super) fn plan_primes(
     ctx: &mut PlanCtx<'_, '_>,
     n: usize,
     (from, to, exclude): (Option<Source>, Option<Source>, Vec<Source>),
     replace: bool,
     order: Order,
+    combos: Vec<Vec<ComboEntry>>,
     on: DrawOn,
 ) -> Result<ElemWiring> {
     let from = from.unwrap_or_else(|| Source::constant(2.0));
     let to = to.unwrap_or_else(|| Source::constant(100.0));
-    plan_draws(
+    let lit = |s: &Source| match s {
+        Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(*v),
+        _ => None,
+    };
+    let number = |t: &str| t.parse::<f64>().ok();
+    let excluded: Option<Vec<f64>> = exclude.iter().map(lit).collect();
+    if let (Some(lits), Some(f), Some(t), Some(ex)) = (
+        combinations::literal(&combos, number),
+        lit(&from),
+        lit(&to),
+        excluded,
+    ) && let Some(primes) = primes_between(f, t)
+    {
+        let left = primes
+            .iter()
+            .filter(|&&p| !ex.contains(&(p as f64)))
+            .count() as f64;
+        let merged = combinations::merged(lits);
+        if combinations::too_many(&merged, left, left, replace, n) {
+            return Err(Error::ChoiceDomain {
+                tag: "selectPrimeNumbers".into(),
+                reason: "Excluded over 70% of combinations in selectPrimeNumbers".into(),
+            });
+        }
+    }
+    let avoid = if combos.is_empty() {
+        Avoid::Nothing
+    } else {
+        Avoid::Combinations {
+            m: byte(combos.len()),
+        }
+    };
+    let combos = combinations::sources(&combos, number)?;
+    plan_draws_avoiding(
         ctx,
-        Dist::Primes { replace, order },
+        Dist::Primes {
+            replace,
+            order,
+            avoid,
+        },
         n,
         vec![from, to],
         exclude,
+        combos,
         on,
     )
     .map(|(wiring, _)| wiring)
@@ -91,13 +137,10 @@ pub(super) fn plan_primes(
 
 /// Its list: `numToSelect` primes ([`plan_primes`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let attrs = Attrs::of(ctx.record());
-    if attrs.excludeCombinations {
-        return Err(Error::Unsupported(
-            "<selectPrimeNumbers excludeCombinations>".into(),
-        ));
-    }
+    let mut attrs = Attrs::of(ctx.record());
     let n = draw_count("numToSelect", attrs.numToSelect)?;
+    let written = std::mem::take(&mut attrs.excludeCombinations);
+    let combos = combinations::parse(ctx, written, n)?;
     let order = order(attrs.sort)?;
     let range = (attrs.from, attrs.to, attrs.exclude);
     // The order is not the draw's: a copy sorting what its referent drew
@@ -109,10 +152,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             attr::exclude,
             attr::numToSelect,
             attr::withReplacement,
+            attr::excludeCombinations,
         ],
         children: false,
     };
-    let mut wiring = plan_primes(ctx, n, range, attrs.withReplacement, order, on)?;
+    let replace = attrs.withReplacement;
+    let mut wiring = plan_primes(ctx, n, range, replace, order, combos, on)?;
     wiring.set_planned(Planned {});
     Ok(wiring)
 }

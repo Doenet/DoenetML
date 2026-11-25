@@ -17,6 +17,9 @@ pub(crate) mod sample_random_numbers;
 pub(crate) mod select_prime_numbers;
 pub(crate) mod select_random_numbers;
 
+pub(crate) mod combinations;
+pub(crate) mod distributions;
+
 pub(crate) mod sample_multivariate_random_number;
 
 pub(crate) mod repeat_for_sequence {

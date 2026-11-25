@@ -577,8 +577,9 @@ impl ComponentType {
             Intersection => &[("hidden", ListOf(Boolean))],
             Sequence | NumberList | TextList | BooleanList | MathList | PointList
             | CumulativeSum | CumulativeProduct | CumulativeMin | CumulativeMax | Differences
-            | SelectRandomNumbers | SampleRandomNumbers | SelectPrimeNumbers
-            | SamplePrimeNumbers | IntervalList | MatrixRow | MatrixColumn => &[],
+            | SelectPrimeNumbers | SamplePrimeNumbers | IntervalList | MatrixRow | MatrixColumn => {
+                &[]
+            }
             SortIndices | BinCounts => &[],
             // What it counts into, of its `type` (ADR 0078).
             Tally => &[("categories", ByElement)],
@@ -599,6 +600,18 @@ impl ComponentType {
                 ("sum", Is(Number)),
                 // Which statistics it shows, as bits.
                 ("statisticsShown", Code),
+            ],
+            // The parameters of the distribution it draws from, those it
+            // has (ADR 0079).
+            SelectRandomNumbers | SampleRandomNumbers => &[
+                ("logMean", Is(Number)),
+                ("logStandardDeviation", Is(Number)),
+                ("logVariance", Is(Number)),
+                ("numTotal", Is(Integer)),
+                ("numSuccesses", Is(Integer)),
+                ("numDraws", Is(Integer)),
+                ("numTrials", Is(Integer)),
+                ("probability", Is(Number)),
             ],
 
             #[cfg(test)]

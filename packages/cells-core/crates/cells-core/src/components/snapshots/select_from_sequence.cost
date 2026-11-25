@@ -12,3 +12,8 @@ an entry by index: cells 12 · essential 0 · constant 12 · instrs 0 · compone
 more than sixteen, sorted: cells 47 · essential 0 · constant 47 · instrs 0 · components 22
 a math value of the sequence (ADR 0074): cells 14 · essential 0 · constant 14 · instrs 0 · components 5
 letters, a draw too large for the run, is refused (ADR 0074): cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+excluded combinations are avoided, `_` any value (ADR 0079): cells 25 · essential 0 · constant 25 · instrs 0 · components 14
+combinations excluding over 70% of the draws are refused (ADR 0079): cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+coprime values share no factor (ADR 0079): cells 17 · essential 0 · constant 17 · instrs 0 · components 7
+coprime values from values that all share a factor are refused (ADR 0079): cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+coprime beside excludeCombinations or on letters is ignored, with a warning (ADR 0079): cells 13 · essential 0 · constant 13 · instrs 0 · components 4

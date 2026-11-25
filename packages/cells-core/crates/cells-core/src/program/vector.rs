@@ -606,6 +606,8 @@ pub enum Dist {
         replace: bool,
         /// The order of the values drawn.
         order: Order,
+        /// What the values drawn together avoid.
+        avoid: Avoid,
     },
     /// (from, to): a prime from `from` to `to` less the excludes; without
     /// replacement, no prime twice.
@@ -614,6 +616,8 @@ pub enum Dist {
         replace: bool,
         /// The order of the values drawn.
         order: Order,
+        /// What the values drawn together avoid.
+        avoid: Avoid,
     },
     /// (numDraws): how many of each category `numDraws` items drawn
     /// without replacement take from a population of the categories'
@@ -622,15 +626,70 @@ pub enum Dist {
     /// 0067). No value where the sizes are not whole numbers from 0, or
     /// `numDraws` not one from 0 to their total.
     MultivariateHypergeometric,
+    /// (logMean, logStandardDeviation): the exponential of a normal value
+    /// (ADR 0079).
+    LogNormal,
+    /// (`k` means, `k` standard deviations, `k` weights): a normal value
+    /// of the component a draw picks in proportion to its weight (ADR
+    /// 0079).
+    NormalMixture {
+        /// How many components.
+        k: u8,
+    },
+    /// (numTotal, numSuccesses, numDraws): the successes among `numDraws`
+    /// items drawn without replacement (ADR 0079).
+    Hypergeometric,
+    /// (numTrials, probability): the trials that succeed (ADR 0079).
+    Binomial,
+    /// (mean): a Poisson value (ADR 0079).
+    Poisson,
+}
+
+/// What the values a [`Dist::Sequence`] or [`Dist::Primes`] draws
+/// together avoid (ADR 0079): the current core draws again, up to 200
+/// times, until they avoid it, and gives no value when they never do.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Avoid {
+    /// Nothing: the values as drawn.
+    Nothing,
+    /// A common factor: their greatest common divisor is 1 (`coprime`).
+    Factor,
+    /// `m` combinations, each as many inputs as values drawn after the
+    /// excludes, an entry NaN matching any value (`excludeCombinations`).
+    Combinations {
+        /// How many combinations.
+        m: u8,
+    },
 }
 
 impl Dist {
     /// How many parameters it reads after the draw.
     pub const fn n_params(self) -> usize {
         match self {
-            Dist::MultivariateHypergeometric => 1,
-            Dist::Uniform | Dist::Gaussian | Dist::Primes { .. } => 2,
-            Dist::Sequence { .. } => 3,
+            Dist::MultivariateHypergeometric | Dist::Poisson => 1,
+            Dist::Uniform
+            | Dist::Gaussian
+            | Dist::Primes { .. }
+            | Dist::LogNormal
+            | Dist::Binomial => 2,
+            Dist::Sequence { .. } | Dist::Hypergeometric => 3,
+            Dist::NormalMixture { k } => 3 * k as usize,
+        }
+    }
+
+    /// How many inputs the combinations it avoids take, after the
+    /// excludes, for `n` values drawn.
+    pub const fn n_avoid(self, n: u8) -> usize {
+        match self {
+            Dist::Sequence {
+                avoid: Avoid::Combinations { m },
+                ..
+            }
+            | Dist::Primes {
+                avoid: Avoid::Combinations { m },
+                ..
+            } => m as usize * n as usize,
+            _ => 0,
         }
     }
 }
@@ -1310,7 +1369,7 @@ pub fn primes_between(from: f64, to: f64) -> Option<Vec<u64>> {
 
 /// The standard normal quantile of `p` in `(0, 1)` (Acklam's rational
 /// approximation, with one step of Halley's method).
-fn normal_quantile(p: f64) -> f64 {
+pub(super) fn normal_quantile(p: f64) -> f64 {
     const A: [f64; 6] = [
         -3.969_683_028_665_376e1,
         2.209_460_984_245_205e2,
@@ -1471,8 +1530,10 @@ fn shuffle(draw: f64, values: &[f64], out: &mut [f64]) {
 
 /// What a [`VecOp::Draws`] gives, into `out`: one value per output, every
 /// one NaN when the distribution cannot give them.
-fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64]) {
+fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], combos: &[f64], out: &mut [f64]) {
     let n = out.len();
+    // A normal mixture's parameters are checked as its own; a missing
+    // hypergeometric parameter is no value, as any other's.
     if !draw.is_finite() || params.iter().any(|v| !v.is_finite()) {
         out.fill(f64::NAN);
         return;
@@ -1489,6 +1550,10 @@ fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64
         }
         Dist::Gaussian => {
             let (mean, sd) = (params[0], params[1]);
+            if sd < 0.0 {
+                out.fill(f64::NAN);
+                return;
+            }
             let scale = (1u64 << 53) as f64;
             for (i, o) in out.iter_mut().enumerate() {
                 // Off 0, which has no quantile.
@@ -1496,60 +1561,125 @@ fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64
                 *o = mean + sd * normal_quantile(u);
             }
         }
-        Dist::Sequence { replace, order } => {
+        Dist::LogNormal => super::dists::lognormal(draw, params[0], params[1], out),
+        Dist::NormalMixture { k } => super::dists::normal_mixture(draw, params, k as usize, out),
+        Dist::Hypergeometric => {
+            super::dists::hypergeometric(draw, params[0], params[1], params[2], out);
+        }
+        Dist::Binomial => super::dists::binomial(draw, params[0], params[1], out),
+        Dist::Poisson => super::dists::poisson(draw, params[0], out),
+        Dist::Sequence {
+            replace,
+            order,
+            avoid,
+        } => {
             let (from, step, to) = (params[0], params[1], params[2]);
             let count = sequence_count(from, step, to);
-            let picks = (step != 0.0 && count >= 1.0 && count < u64::MAX as f64)
-                .then(|| {
-                    let mut excluded: Vec<u64> = excludes
-                        .iter()
-                        .filter_map(|&x| sequence_index(from, step, count, x))
-                        .collect();
-                    excluded.sort_unstable();
-                    excluded.dedup();
-                    pick_positions(draw, count as u64, &excluded, n, replace)
-                })
-                .flatten();
-            match picks {
-                Some(picks) => {
-                    for (o, k) in out.iter_mut().zip(picks) {
-                        *o = from + step * k as f64;
-                    }
-                    sort_values(out, order);
-                }
-                None => out.fill(f64::NAN),
-            }
+            let valid = step != 0.0 && count >= 1.0 && count < u64::MAX as f64;
+            let mut excluded: Vec<u64> = if valid {
+                excludes
+                    .iter()
+                    .filter_map(|&x| sequence_index(from, step, count, x))
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            excluded.sort_unstable();
+            excluded.dedup();
+            let pick = |draw: f64| {
+                let picks = pick_positions(draw, count as u64, &excluded, n, replace)?;
+                Some(picks.into_iter().map(|k| from + step * k as f64).collect())
+            };
+            avoiding(valid, draw, avoid, combos, pick, order, out);
         }
-        Dist::Primes { replace, order } => {
-            let picks = primes_between(params[0], params[1]).and_then(|primes| {
-                let mut excluded: Vec<u64> = excludes
+        Dist::Primes {
+            replace,
+            order,
+            avoid,
+        } => {
+            let primes = primes_between(params[0], params[1]);
+            let mut excluded: Vec<u64> = match &primes {
+                Some(primes) => excludes
                     .iter()
                     .filter(|x| x.fract() == 0.0 && **x >= 0.0)
                     .filter_map(|&x| primes.binary_search(&(x as u64)).ok())
                     .map(|k| k as u64)
-                    .collect();
-                excluded.sort_unstable();
-                excluded.dedup();
+                    .collect(),
+                None => Vec::new(),
+            };
+            excluded.sort_unstable();
+            excluded.dedup();
+            let valid = primes.is_some();
+            let primes = primes.unwrap_or_default();
+            let pick = |draw: f64| {
                 let picks = pick_positions(draw, primes.len() as u64, &excluded, n, replace)?;
                 Some(
                     picks
                         .into_iter()
-                        .map(|k| primes[k as usize])
-                        .collect::<Vec<_>>(),
+                        .map(|k| primes[k as usize] as f64)
+                        .collect(),
                 )
-            });
-            match picks {
-                Some(picks) => {
-                    for (o, p) in out.iter_mut().zip(picks) {
-                        *o = p as f64;
-                    }
-                    sort_values(out, order);
-                }
-                None => out.fill(f64::NAN),
-            }
+            };
+            avoiding(valid, draw, avoid, combos, pick, order, out);
         }
     }
 }
+
+/// How many times values drawn together are drawn again until they avoid
+/// what they must, as the current core's 200 chances.
+const AVOID_TRIES: usize = 200;
+
+/// The values `pick` draws from the stream `draw` seeds, drawn again from
+/// streams of their own until they avoid what `avoid` says (`combos` the
+/// excluded combinations), then put in `order`, into `out`; NaN when the
+/// distribution is no distribution (`valid` false), `pick` finds too few
+/// values, or no draw avoids it. Without anything to avoid the first draw
+/// is the values, as it always was.
+fn avoiding(
+    valid: bool,
+    draw: f64,
+    avoid: Avoid,
+    combos: &[f64],
+    pick: impl Fn(f64) -> Option<Vec<f64>>,
+    order: Order,
+    out: &mut [f64],
+) {
+    out.fill(f64::NAN);
+    if !valid {
+        return;
+    }
+    let tries = if avoid == Avoid::Nothing {
+        1
+    } else {
+        AVOID_TRIES
+    };
+    for t in 0..tries {
+        // Each try past the first from a stream of its own, seeded far
+        // past any number of the draw's own stream a pick reads.
+        let d = if t == 0 {
+            draw
+        } else {
+            draw_stream(draw, AVOID_STREAM + t)
+        };
+        let Some(values) = pick(d) else {
+            return;
+        };
+        let avoided = match avoid {
+            Avoid::Nothing => true,
+            Avoid::Factor => super::dists::gcd(&values) == 1.0,
+            Avoid::Combinations { .. } => !super::dists::matches_combination(&values, combos),
+        };
+        if avoided {
+            out.copy_from_slice(&values);
+            sort_values(out, order);
+            return;
+        }
+    }
+}
+
+/// Where in a draw's stream the seeds of the tries [`avoiding`] makes
+/// past the first start.
+const AVOID_STREAM: usize = 1 << 20;
 
 /// What a [`VecOp::Moments`] gives, into `out`: the mean, the variance
 /// and the standard deviation of the distribution `dist` with
@@ -1575,6 +1705,13 @@ fn moments(dist: Dist, params: &[f64], excludes: &[f64], out: &mut [f64]) {
             }
             Dist::Sequence { .. } => sequence_moments(params[0], params[1], params[2], excludes),
             Dist::Primes { .. } | Dist::MultivariateHypergeometric => (f64::NAN, f64::NAN),
+            Dist::LogNormal => super::dists::lognormal_moments(params[0], params[1]),
+            Dist::NormalMixture { k } => super::dists::normal_mixture_moments(params, k as usize),
+            Dist::Hypergeometric => {
+                super::dists::hypergeometric_moments(params[0], params[1], params[2])
+            }
+            Dist::Binomial => super::dists::binomial_moments(params[0], params[1]),
+            Dist::Poisson => super::dists::poisson_moments(params[0]),
         }
     };
     out[0] = mean;
@@ -1735,9 +1872,9 @@ impl VecOp {
             VecOp::SegmentMeasures => 4,
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } => n as usize,
             VecOp::Shuffle { n } => n as usize + 1,
-            VecOp::Draws {
-                dist, n_exclude, ..
-            } => 1 + dist.n_params() + n_exclude as usize,
+            VecOp::Draws { dist, n, n_exclude } => {
+                1 + dist.n_params() + n_exclude as usize + dist.n_avoid(n)
+            }
             VecOp::Moments { dist, n_exclude } => dist.n_params() + n_exclude as usize,
             VecOp::BestFitLine { n } => 2 * n as usize,
             VecOp::Intersect { a, b } => a.n_in() + b.n_in(),
@@ -2102,12 +2239,12 @@ impl VecOp {
                 sort_values(out, order);
             }
             VecOp::Shuffle { n } => shuffle(inp[0], &inp[1..=n as usize], out),
-            VecOp::Draws {
-                dist, n_exclude, ..
-            } => {
+            VecOp::Draws { dist, n, n_exclude } => {
                 let k = dist.n_params();
-                let excludes = &inp[1 + k..1 + k + n_exclude as usize];
-                draws(dist, inp[0], &inp[1..=k], excludes, out);
+                let at = 1 + k + n_exclude as usize;
+                let excludes = &inp[1 + k..at];
+                let combos = &inp[at..at + dist.n_avoid(n)];
+                draws(dist, inp[0], &inp[1..=k], excludes, combos, out);
             }
             VecOp::Moments { dist, n_exclude } => {
                 let k = dist.n_params();
@@ -3473,6 +3610,7 @@ mod writes {
                 dist: Dist::Sequence {
                     replace: false,
                     order: Order::Increasing,
+                    avoid: Avoid::Nothing,
                 },
                 n: 2,
                 n_exclude: 1,
@@ -3481,6 +3619,7 @@ mod writes {
                 dist: Dist::Primes {
                     replace: true,
                     order: Order::Unsorted,
+                    avoid: Avoid::Nothing,
                 },
                 n: 2,
                 n_exclude: 1,
@@ -3489,8 +3628,28 @@ mod writes {
                 dist: Dist::Sequence {
                     replace: true,
                     order: Order::Unsorted,
+                    avoid: Avoid::Nothing,
                 },
                 n_exclude: 1,
+            },
+            VecOp::Draws {
+                dist: Dist::Sequence {
+                    replace: true,
+                    order: Order::Unsorted,
+                    avoid: Avoid::Combinations { m: 1 },
+                },
+                n: 2,
+                n_exclude: 0,
+            },
+            VecOp::Draws {
+                dist: Dist::NormalMixture { k: 2 },
+                n: 2,
+                n_exclude: 0,
+            },
+            VecOp::Draws {
+                dist: Dist::Hypergeometric,
+                n: 2,
+                n_exclude: 0,
             },
             VecOp::BestFitLine { n: 3 },
             VecOp::Intersect {

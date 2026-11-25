@@ -51,7 +51,18 @@ spec! {
     }
 
     case "an unknown type is refused" {
-        doenet r#"<selectRandomNumbers name="s" type="poisson"/>"#;
+        doenet r#"<selectRandomNumbers name="s" type="cauchy"/>"#;
+        diagnostics["cells-unsupported"]
+    }
+
+    case "a binomial's moments, and its parameters (ADR 0079)" {
+        doenet r#"<selectRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numToSelect="4"/>
+                  <isBetween name="in" limits="0 10">$s[2]</isBetween>"#;
+        expect { "s.mean" = 3, "s.variance" = 2.1, "s.numTrials" = 10, "s.probability" = 0.3, "in.value" = 1 }
+    }
+
+    case "another distribution's parameter is refused (ADR 0079)" {
+        doenet r#"<selectRandomNumbers name="s" type="poisson" numTrials="3"/>"#;
         diagnostics["cells-unsupported"]
     }
 
