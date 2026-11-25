@@ -1594,6 +1594,30 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect(all("text")).toEqual([]);
     });
 
+    // An image and a video draw their box by the size the core settled
+    // (ADR 0078).
+    it("draws an image and a video by their settled layout", async () => {
+        const { all } =
+            await open(`<image source="a.png" width="30%" horizontalAlign="left" decorative rotate="1" />
+<video youtube="abc" displayMode="inline"><shortDescription>v</shortDescription></video>`);
+        expect((all("image")[0].data as any).props).toMatchObject({
+            width: { size: 255, isAbsolute: true },
+            horizontalAlign: "left",
+            displayMode: "block",
+            decorative: true,
+            rotate: 1,
+            source: "a.png",
+            aspectRatio: null,
+        });
+        expect((all("video")[0].data as any).props).toMatchObject({
+            width: { size: 850, isAbsolute: true },
+            horizontalAlign: "center",
+            displayMode: "inline",
+            youtube: "abc",
+            shortDescription: "",
+        });
+    });
+
     it("draws a selectFromSequence's picks, and a copy showing them differently draws the same (ADR 0059)", async () => {
         const source = `<p><selectFromSequence name="s" from="1" to="1000" numToSelect="3"/></p>
 <p><selectFromSequence extend="$s" asList="false"/></p>
