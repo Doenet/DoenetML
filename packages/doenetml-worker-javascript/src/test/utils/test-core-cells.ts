@@ -1212,6 +1212,12 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (_g, x) => heldMath(x.cells, x.cell("value")!),
         text: textOf,
     },
+    // An evaluation, written or a function macro `$$f(x)` (ADR 0075): its
+    // value as its cell holds it, and its text.
+    evaluate: {
+        value: (_g, x) => heldMath(x.cells, x.cell("value")!),
+        text: textOf,
+    },
     // Function machinery (ADR 0049).
     function: functionReaders,
     derivative: functionReaders,

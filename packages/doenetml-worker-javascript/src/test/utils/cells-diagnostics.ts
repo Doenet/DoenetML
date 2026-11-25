@@ -148,7 +148,16 @@ function dastNodes(root: any): any[] {
                     field(attr, "children", nodes);
             } else if (key === "children") {
                 nodes(v);
+            } else if (key === "input" && n.type === "function") {
+                if (Array.isArray(v)) for (const arg of v) nodes(arg);
             }
+        }
+        // A function macro, `$$f(a, b)`, is read as the `<evaluate>` it
+        // stands for: a macro of its path, a comma between two arguments,
+        // then the element, each at the function macro's position.
+        if (n.type === "function") {
+            const args = Array.isArray(n.input) ? n.input.length : 0;
+            for (let k = 0; k < Math.max(args, 1); k++) out.push(n);
         }
         out.push(n);
     };
