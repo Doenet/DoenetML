@@ -190,6 +190,7 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | VariantControl
             | Title
             | Ref
             | List

@@ -469,6 +469,7 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | VariantControl
             | StickyGroup
             | Section
             | Title
