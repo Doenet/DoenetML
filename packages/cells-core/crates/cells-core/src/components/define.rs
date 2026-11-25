@@ -352,6 +352,7 @@ pub(super) const fn definition(
         inner: &[],
         item: None,
         static_count: None,
+        counted_entries: None,
         submit: None,
         roles: &[],
         structure_kind: None,
@@ -521,6 +522,12 @@ impl ComponentDef {
     /// The component it makes per iteration ([`super::ItemDecl`], ADR 0040).
     pub(super) const fn item(mut self, item: super::ItemDecl) -> Self {
         self.item = Some(item);
+        self
+    }
+    /// How it counts its entries from what its record names
+    /// ([`super::ComponentDef::counted_entries`]).
+    pub(super) const fn counted_entries(mut self, counted: super::decl::CountedEntries) -> Self {
+        self.counted_entries = Some(counted);
         self
     }
     /// How many entries its record makes ([`super::ComponentDef::static_count`]).
@@ -1060,6 +1067,7 @@ macro_rules! component {
         $(params { $($param:ident),* $(,)? })?
         $(inner { $($iname:ident : $ity:ident),* $(,)? })?
         $(static_count: $scfn:path,)?
+        $(counted_entries { pieces: $cepieces:path, count: $cecount:path $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(machinery: $mach:ident,)?
         $(owner: $owner:ident,)?
@@ -1170,6 +1178,10 @@ macro_rules! component {
                     ty: $crate::components::ComponentType::$ity,
                 }),*]))?
                 $(.static_count($scfn))?
+                $(.counted_entries($crate::components::CountedEntries {
+                    pieces: $cepieces,
+                    count: $cecount,
+                }))?
                 $(.machinery($crate::components::Machinery::$mach))?
                 $(.owner($crate::components::ComponentType::$owner))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));

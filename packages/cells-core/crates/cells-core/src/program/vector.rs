@@ -77,6 +77,8 @@
 //! |                          | how many values are not excluded      |                                                                      |                   |
 //! | `SequenceEntry{m}`       | (k, from, step, length, m excludes) → | none                                                                 | none              |
 //! |                          | the k-th value not excluded           |                                                                      |                   |
+//! | `BinCounts{e, v, right}` | (e cut points, v values) → how many   | none: a count is not set by a request                                | none              |
+//! |                          | values fall in each bin between them  |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -472,6 +474,22 @@ pub enum VecOp {
     SequenceEntry {
         /// How many excluded values follow `length`.
         n_exclude: u8,
+    },
+    /// Inputs `edges` cut points then `values` values; outputs how many
+    /// of the values fall in each of the `edges - 1` bins between them
+    /// (`<binCounts>`, ADR 0078), as the current core's
+    /// `countValuesInBins` counts: a bin `[a, b)`, its last closed, or
+    /// `(a, b]` when `right`, its first closed; a value that is no number
+    /// in none. Cut points that do not ascend (one below the one before
+    /// it, or no number) describe no bins: every output the missing
+    /// value. No inverse: a count is not set by a request.
+    BinCounts {
+        /// How many cut points.
+        edges: u8,
+        /// How many values.
+        values: u8,
+        /// Whether a bin holds its upper cut point instead of its lower.
+        right: bool,
     },
 }
 
@@ -1351,6 +1369,34 @@ fn scan(op: Scan, inp: &[f64], out: &mut [f64]) {
     }
 }
 
+/// How many of `values` fall in each bin between the cut points `cuts`,
+/// into `out` (one per bin), as the current core's `countValuesInBins`
+/// (`utils/binning.ts`) counts: a bin `[a, b)`, the last closed at its
+/// upper cut point, or `(a, b]` when `right`, the first closed at its
+/// lower one; a value that is no number (NaN, the missing value) in no
+/// bin. Cut points that do not ascend, one below the one before it or no
+/// number, describe no bins: every count the missing value.
+fn bin_counts(cuts: &[f64], values: &[f64], right: bool, out: &mut [f64]) {
+    if cuts.iter().any(|c| c.is_nan()) || !cuts.windows(2).all(|w| w[1] >= w[0]) {
+        out.fill(crate::program::MISSING);
+        return;
+    }
+    let mut sorted: Vec<f64> = values.iter().copied().filter(|v| !v.is_nan()).collect();
+    sorted.sort_by(f64::total_cmp);
+    let below = |x: f64| sorted.partition_point(|&v| v < x);
+    let at_most = |x: f64| sorted.partition_point(|&v| v <= x);
+    let last = out.len().saturating_sub(1);
+    for (k, o) in out.iter_mut().enumerate() {
+        let (lo, hi) = (cuts[k], cuts[k + 1]);
+        let (from, to) = if right {
+            (if k == 0 { below(lo) } else { at_most(lo) }, at_most(hi))
+        } else {
+            (below(lo), if k == last { at_most(hi) } else { below(hi) })
+        };
+        *o = to.saturating_sub(from) as f64;
+    }
+}
+
 /// `values` permuted by the stream `draw` seeds (Fisher and Yates), into
 /// `out`.
 fn shuffle(draw: f64, values: &[f64], out: &mut [f64]) {
@@ -1648,6 +1694,7 @@ impl VecOp {
             VecOp::SequenceParams { given } => given.count_ones() as usize,
             VecOp::SequenceCount { n_exclude } => 3 + n_exclude as usize,
             VecOp::SequenceEntry { n_exclude } => 4 + n_exclude as usize,
+            VecOp::BinCounts { edges, values, .. } => edges as usize + values as usize,
         }
     }
 
@@ -1687,7 +1734,8 @@ impl VecOp {
             VecOp::DomainRange | VecOp::DomainHull { .. } => 0,
             VecOp::SequenceParams { .. }
             | VecOp::SequenceCount { .. }
-            | VecOp::SequenceEntry { .. } => 0,
+            | VecOp::SequenceEntry { .. }
+            | VecOp::BinCounts { .. } => 0,
         }
     }
 
@@ -1791,6 +1839,7 @@ impl VecOp {
             VecOp::DomainHull { .. } => 4,
             VecOp::SequenceParams { .. } => 3,
             VecOp::SequenceCount { .. } | VecOp::SequenceEntry { .. } => 1,
+            VecOp::BinCounts { edges, .. } => (edges as usize).saturating_sub(1),
         }
     }
 
@@ -1812,6 +1861,7 @@ impl VecOp {
             | VecOp::SequenceParams { .. }
             | VecOp::SequenceCount { .. }
             | VecOp::SequenceEntry { .. }
+            | VecOp::BinCounts { .. }
             | VecOp::Intersect { .. } => false,
             VecOp::Reduce { op, .. } => !matches!(
                 op,
@@ -2068,6 +2118,14 @@ impl VecOp {
                     crate::program::MISSING
                 };
             }
+            VecOp::BinCounts {
+                edges,
+                values,
+                right,
+            } => {
+                let (cuts, vals) = inp.split_at(edges as usize);
+                bin_counts(cuts, &vals[..values as usize], right, out);
+            }
         }
     }
 
@@ -2294,7 +2352,8 @@ impl VecOp {
             | VecOp::DomainHull { .. }
             | VecOp::SequenceParams { .. }
             | VecOp::SequenceCount { .. }
-            | VecOp::SequenceEntry { .. } => false,
+            | VecOp::SequenceEntry { .. }
+            | VecOp::BinCounts { .. } => false,
             VecOp::Parabola { through, vertex } => {
                 // A vertex asked for keeps `a`.
                 let abc = if desired[3].is_some() || desired[4].is_some() {
@@ -3396,6 +3455,11 @@ mod writes {
             VecOp::SequenceParams { given: 0b0110 },
             VecOp::SequenceCount { n_exclude: 1 },
             VecOp::SequenceEntry { n_exclude: 1 },
+            VecOp::BinCounts {
+                edges: 3,
+                values: 2,
+                right: false,
+            },
         ]
     }
 
@@ -3528,7 +3592,8 @@ mod writes {
             | VecOp::DomainHull { .. }
             | VecOp::SequenceParams { .. }
             | VecOp::SequenceCount { .. }
-            | VecOp::SequenceEntry { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::SequenceEntry { .. }
+            | VecOp::BinCounts { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

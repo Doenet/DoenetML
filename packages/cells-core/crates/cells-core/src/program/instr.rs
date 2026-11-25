@@ -114,6 +114,22 @@ pub enum SymKind {
         /// What each input holds, filled in when it is bound.
         kinds: u128,
     },
+    /// How many of `n` values equal each of `k` categories, as the
+    /// current core's `<tally>` compares them (ADR 0078): inputs the
+    /// values, then the categories; output `j` how many values equal
+    /// category `j`. A number or an expression that evaluates to one
+    /// compares by value with another, anything else by its text (a
+    /// number as JavaScript writes it, an expression as the engine prints
+    /// it); a value or category that is no number by kind (NaN, the
+    /// missing value) equals nothing. `kinds` as for `Join`.
+    Tally {
+        /// How many values.
+        n: u8,
+        /// How many categories, and outputs.
+        k: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+    },
     // Functions of one variable with domains (ADR 0049). A function is
     // given as its domain and its pieces: `D` is four cells, an
     // interval's lower and upper endpoints and whether each is closed
@@ -465,6 +481,7 @@ impl SymKind {
             | SymKind::SampleFunction
             | SymKind::SampleBezier { .. } => SAMPLES,
             SymKind::Order { n, .. } => n as usize,
+            SymKind::Tally { k, .. } => k as usize,
             SymKind::Interpolate { n } => {
                 1 + crate::sym::interpolate::PIECE_OUT
                     * crate::sym::interpolate::max_pieces(n as usize)
@@ -508,6 +525,7 @@ impl SymKind {
             SymKind::Join { .. }
                 | SymKind::JoinWith { .. }
                 | SymKind::Order { .. }
+                | SymKind::Tally { .. }
                 | SymKind::TextEquals { .. }
                 | SymKind::TextNumber
                 | SymKind::Letters
@@ -526,6 +544,11 @@ impl SymKind {
             },
             SymKind::Order { n, .. } => SymKind::Order {
                 n,
+                kinds: crate::program::texts::kinds_of(types),
+            },
+            SymKind::Tally { n, k, .. } => SymKind::Tally {
+                n,
+                k,
                 kinds: crate::program::texts::kinds_of(types),
             },
             SymKind::JoinWith { n, sep, .. } => SymKind::JoinWith {
@@ -677,6 +700,7 @@ impl OpSpec {
             OpSpec::Sym(
                 SymKind::Join { n, .. } | SymKind::JoinWith { n, .. } | SymKind::Order { n, .. },
             ) => *n as usize,
+            OpSpec::Sym(SymKind::Tally { n, k, .. }) => *n as usize + *k as usize,
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
@@ -870,6 +894,11 @@ mod arity {
                 booleans: false,
             }),
             OpSpec::Sym(SymKind::Order { n: 3, kinds: 0 }),
+            OpSpec::Sym(SymKind::Tally {
+                n: 2,
+                k: 2,
+                kinds: 0,
+            }),
             OpSpec::Sym(SymKind::EvalFunction),
             OpSpec::Sym(SymKind::SampleFunction),
             OpSpec::Sym(SymKind::DerivativeBy),
@@ -890,6 +919,11 @@ mod arity {
             OpSpec::Vec(VecOp::SequenceParams { given: 0b0110 }),
             OpSpec::Vec(VecOp::SequenceCount { n_exclude: 1 }),
             OpSpec::Vec(VecOp::SequenceEntry { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::BinCounts {
+                edges: 3,
+                values: 2,
+                right: true,
+            }),
             OpSpec::Sym(SymKind::Entry),
             OpSpec::Sym(SymKind::Count),
             OpSpec::Sym(SymKind::JoinWith {
@@ -968,6 +1002,7 @@ mod arity {
                 VecOp::SegmentPolar => 69,
                 VecOp::SegmentMirror => 70,
                 VecOp::SegmentMeasures => 71,
+                VecOp::BinCounts { .. } => 74,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -1010,12 +1045,14 @@ mod arity {
                     // and attract operators).
                     SymKind::Letters => 44,
                     SymKind::LetterNumber => 45,
+                    // 46 would be vector tag 74 (BinCounts).
+                    SymKind::Tally { .. } => 47,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 74;
+    const N_TAGS: usize = 76;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

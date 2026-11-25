@@ -1677,7 +1677,41 @@ export const CONTRACTS: Record<string, Contract> = {
         },
         noChildren: true,
     },
+    // An image and a video laid out in the flow (ADR 0078): their width
+    // in pixels, from the size the core settled, and their settings.
+    image: {
+        props: (r, c) => ({
+            ...mediaLayout(r, c),
+            decorative: r.bool(c, "decorative"),
+            rotate: r.num(c, "rotate"),
+            source: r.text(c, "source"),
+            aspectRatio: Number.isNaN(r.num(c, "aspectRatio"))
+                ? null
+                : r.num(c, "aspectRatio"),
+        }),
+    },
+    video: {
+        props: (r, c) => ({
+            ...mediaLayout(r, c),
+            youtube: r.text(c, "youtube") || null,
+            source: r.text(c, "source") || null,
+            aspectRatio: 16 / 9,
+            state: "initializing",
+            time: 0,
+        }),
+    },
 };
+
+/** What an image and a video draw their box by (ADR 0078). */
+function mediaLayout(r: Reads, c: number) {
+    return {
+        width: { size: r.num(c, "width"), isAbsolute: true },
+        horizontalAlign: r.text(c, "horizontalAlign"),
+        displayMode: r.text(c, "displayMode"),
+        shortDescription: r.table.attr(c, "shortDescription") ?? "",
+        hidden: false,
+    };
+}
 
 /** A summary statistics' statistics, in the order its `statisticsShown`
  * mask names them (bit `k` the `k`th): its props, by the names the current
@@ -1749,6 +1783,10 @@ export const TRANSPARENT = new Set([
     "intersection",
     // A multivariate sample, one number per category (ADR 0067).
     "sampleMultivariateRandomNumber",
+    // The positions of a sort's operands, and counts (ADR 0078): numbers.
+    "sortIndices",
+    "tally",
+    "binCounts",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1786,6 +1824,10 @@ export const LIST_LIKE = new Set([
     "intersection",
     // A multivariate sample, one number per category (ADR 0067).
     "sampleMultivariateRandomNumber",
+    // The positions of a sort's operands, and counts (ADR 0078): numbers.
+    "sortIndices",
+    "tally",
+    "binCounts",
 ]);
 
 /** List-like types whose items are the children of one scope (an

@@ -110,6 +110,16 @@ are all `Section`). Not to be confused with a *value type* (number, math,
 text), which is the kind of value a cell or prop holds.
 _Avoid_: kind (the current core and DoenetML's docs say component type)
 
+**Author type** — What a component, an entry or a reference *is*, in words an
+author would use: a tag (`math`, `point`; all content is one type), a list of
+a type, or a tuple (`AuthorType`, ADR 0076). Decided from the DoenetML alone,
+the same in every variant. Three relations connect types: *is a* (an integer
+is a number, a number is a math), *stands in as* (an input as its value) and
+*converts to* (a text to a number); `fit` judges a value of one where another
+is wanted. Anything finer (how the value is held, how many entries it has,
+whether it is numeric now) is a *refinement*, never a type.
+_Avoid_: value type, for this (a value type is how a cell holds a value)
+
 **Role** — A part the core needs some component type to play: the root, a
 refused element's box, an iteration's index, value and item, a list's point,
 a case, an answer's response and its implicit input, a `$ref` child's number

@@ -1,0 +1,12 @@
+left-closed bins, the last closed at its upper cut point: cells 22 · essential 0 · constant 22 · instrs 0 · components 14
+the result is an ordinary list: cells 33 · essential 0 · constant 33 · instrs 0 · components 22
+right-closed bins, the first closed at its lower cut point: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
+bare math is read as numbers, and values outside every bin are not counted: cells 14 · essential 0 · constant 14 · instrs 0 · components 4
+zero-width bins: cells 22 · essential 0 · constant 22 · instrs 0 · components 14
+a value that is no number lands in no bin: cells 12 · essential 0 · constant 12 · instrs 0 · components 6
+recounts when a value changes: cells 12 · essential 1 · constant 9 · instrs 1 · components 6
+cut points that come not to ascend make every count missing: cells 13 · essential 1 · constant 9 · instrs 2 · components 7
+omitting bins gives no counts: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
+fewer than two cut points gives no counts: cells 7 · essential 0 · constant 7 · instrs 0 · components 4
+written cut points that decrease, or are no number, give no counts: cells 3 · essential 0 · constant 3 · instrs 0 · components 3
+texts are no numbers to count: every count is 0: cells 11 · essential 0 · constant 11 · instrs 0 · components 7

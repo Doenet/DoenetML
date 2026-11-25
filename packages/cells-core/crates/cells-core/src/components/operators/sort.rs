@@ -28,7 +28,7 @@
 use super::operands;
 use crate::compile::api::*;
 use crate::components::define::*;
-use crate::components::{ComponentDef, EntryKind};
+use crate::components::{ComponentDef, ComponentType, EntryKind};
 use crate::error::{Error, Result};
 use crate::limits::byte;
 use crate::program::{OpSpec, Post, SymKind, VecOp};
@@ -93,7 +93,7 @@ pub(crate) const INVALID_TYPE: &str = "cells-invalid-type";
 
 /// What the operands are read as, decided once per element.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Mode {
+pub(crate) enum Mode {
     Number,
     Math,
     Text,
@@ -103,7 +103,7 @@ enum Mode {
 
 /// How bare text among the children is read.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Pieces {
+pub(crate) enum Pieces {
     Number,
     Math,
     Text,
@@ -112,52 +112,78 @@ enum Pieces {
 
 /// What an operand is, as far as the records tell, and the reference it
 /// is read through when that is not its own (a vector's displacement).
-struct Operand {
-    entry: ListEntry,
-    kind: ValueKind,
+pub(crate) struct Operand {
+    pub(crate) entry: ListEntry,
+    pub(crate) kind: ValueKind,
 }
 
 /// The order port and an entry per position over the operands: see the
 /// module documentation.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let ty = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
     let as_list = !matches!(attrs.asList, Some(Some(false)));
-    let by_component = attrs.sortByComponent?;
-    let by_tail = attrs
+    let how = How {
+        r#type: attrs.r#type,
+        sortByComponent: attrs.sortByComponent?,
+        sortVectorsBy: attrs.sortVectorsBy,
+        sortByProp: attrs.sortByProp,
+        children: attrs.children,
+    };
+    let drawn = *ctx.component_type().variant::<Order>() == Order::Drawn;
+    let mut wiring = wire_order(ctx, how, if drawn { Out::Shuffled } else { Out::Sorted })?;
+    wiring.set_planned(Planned {
+        asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
+    });
+    Ok(wiring)
+}
+
+/// What a type ordering its operands reads of its record: its `type`,
+/// its `sortByComponent`, `sortVectorsBy` and `sortByProp`, and its
+/// children.
+#[allow(non_snake_case)]
+pub(crate) struct How {
+    pub(crate) r#type: Option<String>,
+    pub(crate) sortByComponent: f64,
+    pub(crate) sortVectorsBy: Option<String>,
+    pub(crate) sortByProp: Option<String>,
+    pub(crate) children: Vec<ListPiece>,
+}
+
+/// What a type ordering its operands lists.
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum Out {
+    /// Its operands in increasing order: a `<sort>`'s.
+    Sorted,
+    /// Its operands in an order drawn at load: a `<shuffle>`'s.
+    Shuffled,
+    /// The positions of its operands in increasing order, numbers: a
+    /// `<sortIndices>`'s.
+    Indices,
+}
+
+/// The wiring of a type ordering its operands as `how` says, its list
+/// what `out` names; the type's own props are left for its planner.
+pub(crate) fn wire_order(ctx: &mut PlanCtx<'_, '_>, how: How, out: Out) -> Result<ElemWiring> {
+    let ty = ctx.component_type();
+    let by_component = how.sortByComponent;
+    let by_tail = how
         .sortVectorsBy
         .as_deref()
         .is_some_and(|s| s.trim().eq_ignore_ascii_case("tail"));
-    let by_prop = attrs
+    let by_prop = how
         .sortByProp
         .as_deref()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty());
-    let entries = ctx.list_entries(attrs.children, f64::INFINITY)?;
+    let entries = ctx.list_entries(how.children, f64::INFINITY)?;
     let n = entries.len();
-    let pieces = pieces_of(ctx, attrs.r#type.as_deref(), &entries);
+    let pieces = pieces_of(ctx, how.r#type.as_deref(), &entries);
     let ops = operands_of(ctx, entries, pieces)?;
-    let has = |k: ValueKind| ops.iter().any(|o| o.kind == k);
-    let mode = if has(ValueKind::Point) {
-        if !ops.iter().all(|o| o.kind == ValueKind::Point) {
-            return Err(Error::Unsupported(format!(
-                "points or vectors among other values in a <{}>: its entries are one kind",
-                ty.tag()
-            )));
-        }
-        Mode::Point
-    } else if n > 0 && ops.iter().all(|o| o.kind == ValueKind::Boolean) {
-        Mode::Boolean
-    } else if has(ValueKind::Text) || has(ValueKind::Boolean) {
-        Mode::Text
-    } else if has(ValueKind::Math) {
-        Mode::Math
-    } else {
-        Mode::Number
-    };
-    let mut wiring = match mode {
-        Mode::Point => ElemWiring::with_entries(ty, n, EntryKind::Point),
-        Mode::Boolean => ElemWiring::with_entries(ty, n, EntryKind::Boolean),
+    let mode = mode_of(ty, &ops)?;
+    let mut wiring = match (out, mode) {
+        (Out::Indices, _) => ElemWiring::with_list(ty, n),
+        (_, Mode::Point) => ElemWiring::with_entries(ty, n, EntryKind::Point),
+        (_, Mode::Boolean) => ElemWiring::with_entries(ty, n, EntryKind::Boolean),
         _ => ElemWiring::with_list(ty, n),
     };
     if n > 0 {
@@ -189,7 +215,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 (cells, keys)
             }
             _ => {
-                let ports = operand_ports(ctx, &mut wiring, &ops, mode)?;
+                let ports = operand_ports(ctx, &mut wiring, &ops, mode, false)?;
                 let keys = ports.iter().map(|&p| Some(p)).collect();
                 (ports.into_iter().map(|p| vec![p]).collect(), keys)
             }
@@ -204,8 +230,13 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 .map(|k| k.unwrap_or_else(|| wiring.hidden(Source::constant(NO_VALUE))))
                 .collect(),
         };
-        let drawn = *ty.variant::<Order>() == Order::Drawn;
+        let drawn = out == Out::Shuffled;
         let order = order_ports(&mut wiring, drawn, &keys);
+        if out == Out::Indices {
+            // The positions themselves, which no request changes.
+            wiring.set_entries(order.iter().map(|&o| Wire::own(o)).collect());
+            return Ok(wiring);
+        }
         // A sort's entry is chosen by an order the operand it shows
         // decides, so a write through it would move it: each branch is
         // shown, and a request on an entry dropped. A shuffle's order is
@@ -234,15 +265,39 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         // a shuffle's `componentOrder`, and a sort's.
         wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
     }
-    wiring.set_planned(Planned {
-        asList: Wire::constant(if as_list { 1.0 } else { 0.0 }),
-    });
     Ok(wiring)
+}
+
+/// What the operands `ops` of an element of type `ty` are read as, one
+/// kind for them all: see the module documentation.
+pub(crate) fn mode_of(ty: ComponentType, ops: &[Operand]) -> Result<Mode> {
+    let has = |k: ValueKind| ops.iter().any(|o| o.kind == k);
+    Ok(if has(ValueKind::Point) {
+        if !ops.iter().all(|o| o.kind == ValueKind::Point) {
+            return Err(Error::Unsupported(format!(
+                "points or vectors among other values in a <{}>: its entries are one kind",
+                ty.tag()
+            )));
+        }
+        Mode::Point
+    } else if !ops.is_empty() && ops.iter().all(|o| o.kind == ValueKind::Boolean) {
+        Mode::Boolean
+    } else if has(ValueKind::Text) || has(ValueKind::Boolean) {
+        Mode::Text
+    } else if has(ValueKind::Math) {
+        Mode::Math
+    } else {
+        Mode::Number
+    })
 }
 
 /// What bare text among `entries` is read as: `type`, else what every
 /// piece looks like. An invalid `type` is warned of and dropped.
-fn pieces_of(ctx: &mut PlanCtx<'_, '_>, ty: Option<&str>, entries: &[ListEntry]) -> Pieces {
+pub(crate) fn pieces_of(
+    ctx: &mut PlanCtx<'_, '_>,
+    ty: Option<&str>,
+    entries: &[ListEntry],
+) -> Pieces {
     match ty.map(|t| t.trim().to_ascii_lowercase()) {
         Some(t) if t == "number" => Pieces::Number,
         Some(t) if t == "math" => Pieces::Math,
@@ -275,7 +330,7 @@ fn pieces_of(ctx: &mut PlanCtx<'_, '_>, ty: Option<&str>, entries: &[ListEntry])
 /// text as `pieces` reads it; a reference as its referent's type says, a
 /// vector its displacement (a point), one they do not tell a number, as
 /// it was.
-fn operands_of(
+pub(crate) fn operands_of(
     ctx: &mut PlanCtx<'_, '_>,
     entries: Vec<ListEntry>,
     pieces: Pieces,
@@ -364,12 +419,15 @@ fn prop_key(ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, e: &ListEntry, n
 /// given value a write may change (a number, an expression as written,
 /// a boolean or a string, as `mode` reads it), a reference its alias,
 /// made a math cell in math mode and its text in text mode when it is not
-/// already one.
-fn operand_ports(
+/// already one; a number is kept a number in text mode when
+/// `raw_numbers`, for an operator that tells a malformed number from the
+/// text `NaN` (`<tally>`).
+pub(crate) fn operand_ports(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
     ops: &[Operand],
     mode: Mode,
+    raw_numbers: bool,
 ) -> Result<Vec<Port>> {
     let mut ports = Vec::with_capacity(ops.len());
     for o in ops {
@@ -416,6 +474,9 @@ fn operand_ports(
                     let id = ctx.entry_math(&e).expect("a reference is math");
                     let m = wiring.hidden(Source::sym_expr(id, Post::None));
                     wiring.hidden(Source::computed(text_of(false), vec![m]))
+                }
+                (Mode::Text, ValueKind::Number) if raw_numbers => {
+                    operands(ctx, wiring, vec![e], super::PieceKind::Number, false)?[0]
                 }
                 (Mode::Text, ValueKind::Number | ValueKind::Boolean) => {
                     let p = operands(ctx, wiring, vec![e], super::PieceKind::Number, false)?[0];
@@ -485,7 +546,7 @@ fn outputs(wiring: &mut ElemWiring, head: Port, n: usize) -> Vec<Port> {
 /// The number a piece of bare text is to the engine, when it is a real
 /// one (`2`, `1/2`, `pi`, `nCr(4,2)`): what makes a list of pieces
 /// numbers, as the current core's `tokenIsRealNumber` decides.
-fn real_number(text: &str) -> Option<f64> {
+pub(crate) fn real_number(text: &str) -> Option<f64> {
     let mut engine = crate::sym::Engine::new();
     let h = engine.parse(text.trim()).ok()?;
     let v = engine.evaluate(h, None);

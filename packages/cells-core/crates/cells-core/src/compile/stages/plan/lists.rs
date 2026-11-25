@@ -120,6 +120,23 @@ impl<'a> Planning<'a> {
             return count(record);
         }
         visiting.push((t, x));
+        // A sequence counted from an attribute's entries (ADR 0078).
+        if let Some(counted) = el.component_type.def().counted_entries {
+            let mut n = 0;
+            for piece in &(counted.pieces)(record) {
+                n += match piece {
+                    ListPiece::Text(_) | ListPiece::Math(_) => 1,
+                    ListPiece::Reference(q) | ListPiece::Element(q) => {
+                        match self.splice_within(t, *q, visiting, points) {
+                            Splice::Value | Splice::Nothing => 1,
+                            Splice::Entries(k) => k,
+                        }
+                    }
+                };
+            }
+            visiting.pop();
+            return Some((counted.count)(record, n));
+        }
         let pieces = record.list_pieces();
         let n = match (pieces, el.extend) {
             // A copy with no children of its own has its referent's.
@@ -388,6 +405,7 @@ impl<'a> Planning<'a> {
 /// as its list declares (`from_children`).
 fn is_value_list(ty: ComponentType, points: bool) -> bool {
     (ty.def().static_count.is_some()
+        || ty.def().counted_entries.is_some()
         || ty.def().children.kind == crate::components::ChildrenKind::List
             && ty.list_from_children().is_some())
         && ty

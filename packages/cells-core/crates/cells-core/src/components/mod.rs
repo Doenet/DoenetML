@@ -22,11 +22,13 @@ mod shape;
 pub(crate) mod structure;
 #[cfg(test)]
 pub(crate) mod test_only;
+pub mod types;
 pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
 pub use decl::*;
 pub use shape::ListShape;
+pub use types::{AuthorType, Fit, PropType, StandsIn, TypeDecl, TypeKind, Typing};
 
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any element. Every other attribute must be read by the type's
@@ -331,6 +333,17 @@ component_types! {
     PolylineOverIterations => geometry::over_iterations::polyline::DEFINITION,
     /// A `<polygon>` whose vertices are a repeat's points (ADR 0075).
     PolygonOverIterations => geometry::over_iterations::polygon::DEFINITION,
+    /// `<sortIndices>`: the positions of its operands in sorted order.
+    SortIndices => operators::sort_indices::DEFINITION,
+    /// `<binCounts>`: how many operands fall in each bin (ADR 0078).
+    BinCounts => operators::bin_counts::DEFINITION,
+    /// `<tally>`: how many operands equal each declared category (ADR
+    /// 0078).
+    Tally => operators::tally::DEFINITION,
+    /// `<image>`: an image laid out in the flow (ADR 0078).
+    Image => containers::image::DEFINITION,
+    /// `<video>`: a video laid out in the flow (ADR 0078).
+    Video => containers::video::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

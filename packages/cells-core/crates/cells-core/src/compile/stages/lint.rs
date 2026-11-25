@@ -32,6 +32,10 @@ fn accessibility(d: &Dast, el: NodeId, component_type: ComponentType) -> Option<
             "doenet-a0001",
             "For accessibility, `<{tag}>` must either have a short description or be specified as decorative.",
         ),
+        Some(Needs::ShortDescription) if !described => (
+            "doenet-a0002",
+            "For accessibility, `<{tag}>` must have a short description.",
+        ),
         Some(Needs::Label)
             if !described
                 && !has_child("label")

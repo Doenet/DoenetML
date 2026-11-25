@@ -1739,6 +1739,35 @@ STATE.sampleMultivariateRandomNumber = {
     numTotal: (g) => g("numTotal"),
     numDraws: (g) => g("numDraws"),
 };
+// The positions of a sort's operands, and the counting operators (ADR
+// 0078): lists of numbers; a tally's categories its second sequence,
+// each a text or a number as its cell holds it.
+// An image and a video (ADR 0078): their layout, texts the core settled,
+// and the width in pixels of their size.
+const mediaReaders: Record<string, Reader> = {
+    size: (_g, x) => x.cells.text(x.cell("size")!),
+    width: (g) => ({ size: g("width"), isAbsolute: true }),
+    horizontalAlign: (_g, x) => x.cells.text(x.cell("horizontalAlign")!),
+    displayMode: (_g, x) => x.cells.text(x.cell("displayMode")!),
+};
+STATE.image = {
+    ...mediaReaders,
+    decorative: (g) => g("decorative") !== 0,
+    rotate: (g) => g("rotate"),
+    source: (_g, x) => x.cells.text(x.cell("source")!),
+};
+STATE.video = mediaReaders;
+STATE.sortIndices = numberListReaders("sortedIndices");
+STATE.binCounts = numberListReaders("countingResults");
+STATE.tally = {
+    ...numberListReaders("countingResults"),
+    categories: (_g, x) =>
+        Array.from(x.cells.propCells(x.idx, "categories")).map((c) =>
+            x.cells.core.cell_holds(c) === "text"
+                ? x.cells.text(c)
+                : x.cells.value(c),
+        ),
+};
 
 /** State variables a type does not have, as the current core's does not:
  * a test asking whether one is there finds it is not. */
