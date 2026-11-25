@@ -643,8 +643,19 @@ describe("v06 to v07 update", () => {
         correctSource = `<group name="g"><math>a</math></group><group extend="$g" componentIndex="" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // A `<select>` that picks one, and a `<conditionalContent>`, stand for
+        // what they show (D72): v0.6's `componentIndex="1"`, the pick or the
+        // case, is the reference to it, and any other index has no
+        // counterpart.
         source = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><copy source="s" componentIndex="1" /><sequence name="q" length="3" /><copy source="q" componentIndex="2" />`;
-        correctSource = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><group extend="$s[1]" /><sequence name="q" length="3" /><number extend="$q[2]" />`;
+        correctSource = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select>$s<sequence name="q" length="3" /><number extend="$q[2]" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        source = `<select name="s"><option><math>a</math></option></select><copy source="s" componentIndex="1" name="c" /><conditionalContent name="cc"><case condition="true"><math>b</math></case></conditionalContent><copy source="cc" componentIndex="1" /><copy source="cc" componentIndex="2" />`;
+        correctSource = `<select name="s"><option><math>a</math></option></select><select extend="$s" name="c" /><conditionalContent name="cc"><case condition="true"><math>b</math></case></conditionalContent>$cc<copy source="cc" componentIndex="2" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        // A select that picks several is still indexed by its picks
+        source = `<select name="s" numToSelect="2"><option><math>a</math></option><option><math>b</math></option></select><copy source="s" componentIndex="2" />`;
+        correctSource = `<select name="s" numToSelect="2"><option><math>a</math></option><option><math>b</math></option></select><group extend="$s[2]" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
         // A group holding one component stands for it in v0.7, and an index

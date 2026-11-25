@@ -218,27 +218,30 @@ impl Resolver {
             } else {
                 &index_data.index_resolutions
             };
-            for edge in index_resolutions.iter().enumerate().filter_map(
-                |(index, index_resolution)| match index_resolution {
-                    None => None,
-                    Some(res_index) => {
-                        // the setup a repeat adds is not reached by an index
-                        if visited[*res_index]
-                            || self.node_resolver_data[*res_index + 1].iteration_aliases
-                        {
-                            None
-                        } else {
-                            visited[*res_index] = true;
-                            Some(ResolverEdge {
-                                origin,
-                                origin_source,
-                                referent: *res_index,
-                                edge_type: ResolverEdgeType::Index(index),
-                            })
+            for edge in
+                index_resolutions
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(index, index_resolution)| match index_resolution {
+                        None => None,
+                        Some(res_index) => {
+                            // the setup a repeat adds is not reached by an index
+                            if visited[*res_index]
+                                || self.node_resolver_data[*res_index + 1].iteration_aliases
+                            {
+                                None
+                            } else {
+                                visited[*res_index] = true;
+                                Some(ResolverEdge {
+                                    origin,
+                                    origin_source,
+                                    referent: *res_index,
+                                    edge_type: ResolverEdgeType::Index(index),
+                                })
+                            }
                         }
-                    }
-                },
-            ) {
+                    })
+            {
                 queue.push_back((NodeOrRoot::Node(edge.referent), origin_source));
                 edges_encountered.push(edge)
             }

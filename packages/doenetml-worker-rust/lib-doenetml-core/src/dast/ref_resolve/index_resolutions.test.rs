@@ -1961,14 +1961,14 @@ fn an_index_after_a_one_shown_thing_passes_to_what_it_shows() {
         assert_eq!(referent.unresolved_path, unresolved("1"));
 
         // one component shown
-        let flat_fragment = flat_fragment_from_str(
-            r#"<group><m name="z" /></group>"#,
-            f_idx + 1,
-            Some(s_idx),
-        );
+        let flat_fragment =
+            flat_fragment_from_str(r#"<group><m name="z" /></group>"#, f_idx + 1, Some(s_idx));
         let g_idx = f_idx + 1;
         let m_idx = f_idx + 2;
-        resolver.add_nodes(&flat_fragment, IndexResolution::ReplaceAll { parent: s_idx });
+        resolver.add_nodes(
+            &flat_fragment,
+            IndexResolution::ReplaceAll { parent: s_idx },
+        );
 
         for index in ["1", "2"] {
             let referent = resolver.resolve(path(index), a_idx, false).unwrap();
@@ -1985,13 +1985,13 @@ fn an_index_after_a_one_shown_thing_passes_to_what_it_shows() {
         assert_eq!(root_names[g_idx], None, "{container}");
 
         // several components shown: names nothing, at the group
-        let flat_fragment = flat_fragment_from_str(
-            r#"<group><m /><n /></group>"#,
-            f_idx + 3,
-            Some(s_idx),
-        );
+        let flat_fragment =
+            flat_fragment_from_str(r#"<group><m /><n /></group>"#, f_idx + 3, Some(s_idx));
         let g2_idx = f_idx + 3;
-        resolver.add_nodes(&flat_fragment, IndexResolution::ReplaceAll { parent: s_idx });
+        resolver.add_nodes(
+            &flat_fragment,
+            IndexResolution::ReplaceAll { parent: s_idx },
+        );
         let referent = resolver.resolve(path("2"), a_idx, false);
         assert_stops_at_child_index(&referent, g2_idx, Some(f_idx + 5), 2);
     }

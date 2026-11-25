@@ -293,7 +293,20 @@ async function resolveCopyTags(
                     componentIndex === undefined
                         ? undefined
                         : await groupContent(core, source);
-                const standsForGroup = componentIndex === "1" && content === 1;
+                // A `<conditionalContent>` or a `<select>` that picks one
+                // stands for what it shows (D72): v0.6's `componentIndex="1"`,
+                // the case or the pick, is the reference to it, and an index
+                // after it reaches into what it shows.
+                const oneShown =
+                    componentIndex !== undefined &&
+                    (await showsOneThingAt(core, source));
+                if (oneShown && componentIndex !== "1") {
+                    throw new Error(
+                        `"${source}" shows one thing, and an index after it reaches into what it shows`,
+                    );
+                }
+                const standsForGroup =
+                    componentIndex === "1" && (content === 1 || oneShown);
                 if (content !== undefined && !standsForGroup) {
                     // Any other `componentIndex` into a `<group>` has no v0.7
                     // counterpart: an index after a group never selects a
@@ -340,8 +353,10 @@ async function resolveCopyTags(
             } = await referentPromise;
 
             // The group stands for its one component, which the v0.6 copy made, so
-            // the reference to the group says it all, as v0.6's macro did. With
-            // anything more to say, it is an extend of the group.
+            // the reference to the group says it all, as v0.6's macro did, as does
+            // the reference to a `<conditionalContent>` or one-pick `<select>` for
+            // the case or pick v0.6 made. With anything more to say, it is an
+            // extend of the group (or of the container).
             if (standsForGroup && onlySaysWhatItCopies(node, consumedKeys)) {
                 parent.children.splice(parent.children.indexOf(node), 1, {
                     type: "macro",
@@ -534,6 +549,29 @@ function copyReference(node: DastElement):
         consumedKeys.push(propKey);
     }
     return { referentName, consumedKeys, source, componentIndex };
+}
+
+/**
+ * Whether `source` names a `<conditionalContent>` or a chooser that picks one
+ * (`doenetAttributes.onePick`), which is not a collection (D72): an index after
+ * it reaches into what it shows, so v0.6's `componentIndex="1"`, which meant
+ * the case or the pick, is the reference to it alone.
+ */
+async function showsOneThingAt(
+    core: Awaited<ReturnType<typeof createCoreForLookup>>,
+    source: string,
+): Promise<boolean> {
+    let idx: number;
+    try {
+        idx = await core.resolvePathToNodeIdx(source.replace(/^\$/, ""));
+    } catch (e) {
+        return false;
+    }
+    const component = core.core.core?.components?.[idx] as any;
+    return (
+        component?.componentType === "conditionalContent" ||
+        component?.doenetAttributes?.onePick === true
+    );
 }
 
 /**
