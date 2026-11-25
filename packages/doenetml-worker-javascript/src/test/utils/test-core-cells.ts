@@ -848,14 +848,37 @@ function counterNameReaders(
 }
 
 /** A function's domain (ADR 0049) as the current core's `domain`: one
- * interval, its endpoints and whether each is closed. */
-const functionDomain: Reader = (g) => [
-    me.fromAst([
-        "interval",
-        ["tuple", g("domainMin"), g("domainMax")],
-        ["tuple", g("domainMinClosed") === 1, g("domainMaxClosed") === 1],
-    ]),
-];
+ * interval, its endpoints and whether each is closed; a function of
+ * several variables' one per variable, from the four numbers per variable
+ * its `domainsExpr` holds (ADR 0081). */
+const functionDomain: Reader = (g, x) => {
+    const interval = (lo: number, hi: number, loc: number, hic: number) =>
+        me.fromAst([
+            "interval",
+            ["tuple", lo, hi],
+            ["tuple", loc === 1, hic === 1],
+        ]);
+    const n = x.cell("numInputs") !== undefined ? g("numInputs") : 1;
+    const cell = x.cell("domainsExpr");
+    if (n > 1 && cell !== undefined && !Number.isNaN(x.cells.value(cell))) {
+        const tree = JSON.parse(x.cells.core.expr_ast(cell));
+        const v: number[] =
+            Array.isArray(tree) && tree[0] === "tuple"
+                ? tree.slice(1).map(treeNumber)
+                : [];
+        return Array.from({ length: n }, (_, i) =>
+            interval(v[4 * i], v[4 * i + 1], v[4 * i + 2], v[4 * i + 3]),
+        );
+    }
+    return [
+        interval(
+            g("domainMin"),
+            g("domainMax"),
+            g("domainMinClosed"),
+            g("domainMaxClosed"),
+        ),
+    ];
+};
 
 /** A function of one variable at `x`, as the cells core's own engine
  * evaluates it (`function_value`); a gap for one it does not evaluate. */
@@ -870,6 +893,66 @@ function numericalFunction(x: Ctx): (v: number) => number {
         return y;
     };
 }
+
+/** The trees of a function's outputs from the JSON tree its evaluation
+ * gives (ADR 0081): the entries of a vector for a function of several
+ * outputs, else the one; the blank for an output it does not give. */
+function outputTrees(json: string, m: number): unknown[] {
+    const tree = JSON.parse(json);
+    if (m === 1) return [tree];
+    const entries =
+        Array.isArray(tree) && (tree[0] === "vector" || tree[0] === "tuple")
+            ? tree.slice(1)
+            : [];
+    return Array.from({ length: m }, (_, i) => entries[i] ?? BLANK);
+}
+
+/** A function's outputs at expressions, as the cells core's engine
+ * substitutes them when an `<evaluate>` of it is symbolic (ADR 0081,
+ * `function_symbolic`); a gap for one it does not substitute into. */
+function symbolicFunctions(g: Get, x: Ctx): ((...v: any[]) => any)[] {
+    const m = g("numOutputs");
+    return Array.from({ length: m }, (_, i) => (...vs: any[]) => {
+        const texts = vs.map((v) =>
+            me.fromAst(v?.tree !== undefined ? v.tree : v).toString(),
+        );
+        const out = x.cells.core.function_symbolic(x.idx, texts);
+        if (out === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.symbolicfs: not a function with a formula`,
+            );
+        }
+        return me.fromAst(outputTrees(out, m)[i] as any);
+    });
+}
+
+/** A function's outputs at numbers, as the cells core evaluates them
+ * (ADR 0081): one of one variable and one output through
+ * `function_value`, which reads a piecewise or interpolated function's
+ * pieces; else `function_numeric`. */
+function numericalFunctions(g: Get, x: Ctx): ((...v: number[]) => number)[] {
+    const n = g("numInputs");
+    const m = g("numOutputs");
+    if (!(n > 1) && !(m > 1)) return [numericalFunction(x)];
+    return Array.from({ length: m }, (_, i) => (...vs: number[]) => {
+        const out = x.cells.core.function_numeric(x.idx, Float64Array.from(vs));
+        if (out === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.numericalfs: not a function with a formula`,
+            );
+        }
+        return treeNumber(outputTrees(out, m)[i]);
+    });
+}
+
+/** A function's variables (ADR 0081): the entries of the tuple its
+ * `variablesExpr` holds for several, else its one. */
+const functionVariables: Reader = (_g, x) => {
+    const tree = JSON.parse(x.cells.core.expr_ast(x.cell("variablesExpr")!));
+    return Array.isArray(tree) && (tree[0] === "tuple" || tree[0] === "vector")
+        ? tree.slice(1).map((v: unknown) => me.fromAst(v as any))
+        : [me.fromAst(tree)];
+};
 
 /** A number inside a held expression: a number as it is, else what the
  * expression evaluates to (`Infinity` among them). */
@@ -922,10 +1005,34 @@ const functionReaders: Record<string, Reader> = {
     ...extremaReaders,
     yscale: (g) => g("yscale"),
     domain: functionDomain,
-    numericalfs: (_g, x) => [numericalFunction(x)],
-    numericalf: (_g, x) => numericalFunction(x),
+    numericalfs: (g, x) => numericalFunctions(g, x),
+    numericalf: (g, x) => numericalFunctions(g, x)[0],
     formula: (_g, x) => exprOf(x.cells, x.cell("expr")!),
-    variables: (_g, x) => [exprOf(x.cells, x.cell("variable")!)],
+    variables: functionVariables,
+    // How it evaluates (ADR 0081).
+    symbolic: (g) => g("symbolic") === 1,
+    numInputs: (g) => g("numInputs"),
+    numOutputs: (g) => g("numOutputs"),
+    symbolicfs: (g, x) => symbolicFunctions(g, x),
+    symbolicf: (g, x) => symbolicFunctions(g, x)[0],
+    // Its outputs as the current core's `fs`: symbolic when it is, else
+    // its numbers as math.
+    fs: (g, x) =>
+        g("symbolic") === 1
+            ? symbolicFunctions(g, x)
+            : numericalFunctions(g, x).map(
+                  (f) =>
+                      (...vs: any[]) =>
+                          me.fromAst(
+                              f(
+                                  ...vs.map((v) =>
+                                      treeNumber(
+                                          v?.tree !== undefined ? v.tree : v,
+                                      ),
+                                  ),
+                              ),
+                          ),
+              ),
 };
 
 /** A curve's type, as the current core names it (ADR 0049). */
@@ -1315,8 +1422,11 @@ const STATE: Record<string, Record<string, Reader>> = {
     // An evaluation, written or a function macro `$$f(x)` (ADR 0075): its
     // value as its cell holds it, and its text.
     evaluate: {
-        value: (_g, x) => heldMath(x.cells, x.cell("value")!),
+        // Its expression when symbolic, else its number (ADR 0081).
+        value: mathValue,
         text: textOf,
+        // A number, or an expression when symbolic (ADR 0081).
+        latex: mathLatex,
     },
     // Function machinery (ADR 0049).
     function: functionReaders,

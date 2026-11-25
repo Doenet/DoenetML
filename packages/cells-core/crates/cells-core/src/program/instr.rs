@@ -269,6 +269,43 @@ pub enum SymKind {
     /// sequence of letters' exclude that is a reference (ADR 0074). Reads
     /// the strings and makes none.
     LetterNumber,
+    // A function evaluated at its inputs (ADR 0081).
+    /// The function whose expression is input 7 and whose variables input
+    /// 8 holds (a symbol, or a tuple of them) at the `k` inputs from 9 on
+    /// (math cells): symbolically when input 0 is 1, its variables
+    /// replaced by the inputs, simplified and expanded as input 1 says
+    /// ([`substitute_post`]), else numerically, its value at the inputs'
+    /// values, NaN where one has none. One input with entries is spread
+    /// over several variables; inputs that do not match the variables in
+    /// number, or a blank one, give the blank. Input 6 holds the domains,
+    /// four numbers per variable as [`SymKind::EvalFunction`] reads `D`
+    /// ([`SymKind::Pack`]), or, NaN, inputs 2 to 5 are the one variable's:
+    /// where every input is a number and one is outside its variable's,
+    /// the blank symbolically, NaN numerically. A math cell, a tuple of
+    /// outputs a vector.
+    SubstituteFunction {
+        /// How many inputs.
+        k: u8,
+    },
+    /// The tuple of its `n` inputs, numbers: a function's domains, four
+    /// per variable (ADR 0081).
+    Pack {
+        /// How many inputs.
+        n: u8,
+    },
+}
+
+/// What input 1 of a [`SymKind::SubstituteFunction`] says is done to the
+/// substituted expression: bit 0 simplifies, bit 1 expands, as a
+/// `<function>`'s `simplify` (on unless `none` or `false`) and `expand`.
+pub fn substitute_post(code: f64) -> Post {
+    let code = if code.is_nan() { 0 } else { code as u32 };
+    match (code & 1 != 0, code & 2 != 0) {
+        (true, true) => Post::SimplifyExpand,
+        (true, false) => Post::Simplify,
+        (false, true) => Post::Expand,
+        (false, false) => Post::None,
+    }
 }
 
 /// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
@@ -575,6 +612,11 @@ impl SymKind {
                 | SymKind::Extrema { .. }
                 | SymKind::MergeExtrema
                 | SymKind::Grid
+                | SymKind::SubstituteFunction { .. }
+                | SymKind::Pack { .. }
+                // Its first output, the pieces as one value (ADR 0061),
+                // which an evaluation reads (ADR 0081).
+                | SymKind::Interpolate { .. }
         )
     }
 }
@@ -720,6 +762,8 @@ impl OpSpec {
             OpSpec::Sym(SymKind::TextNumber) => 1,
             OpSpec::Sym(SymKind::Letters) => 2,
             OpSpec::Sym(SymKind::LetterNumber) => 1,
+            OpSpec::Sym(SymKind::SubstituteFunction { k }) => 9 + *k as usize,
+            OpSpec::Sym(SymKind::Pack { n }) => *n as usize,
             _ => unreachable!(),
         }
     }
@@ -952,6 +996,8 @@ mod arity {
             OpSpec::Sym(SymKind::Letters),
             OpSpec::Sym(SymKind::LetterNumber),
             OpSpec::Vec(VecOp::Constrain { n_in: 7 }),
+            OpSpec::Sym(SymKind::SubstituteFunction { k: 2 }),
+            OpSpec::Sym(SymKind::Pack { n: 4 }),
         ]);
         ops
     }
@@ -1049,12 +1095,15 @@ mod arity {
                     SymKind::LetterNumber => 45,
                     // 46 would be vector tag 74 (BinCounts).
                     SymKind::Tally { .. } => 47,
+                    // 48 would be vector tag 76 (Constrain).
+                    SymKind::SubstituteFunction { .. } => 49,
+                    SymKind::Pack { .. } => 50,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 77;
+    const N_TAGS: usize = 79;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

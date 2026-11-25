@@ -339,6 +339,15 @@ pub(crate) fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
             while i < chars.len() && chars[i].is_alphanumeric() {
                 i += 1;
             }
+            // A subscript of letters and digits is part of the name
+            // (`x_1`, a function's default variable, ADR 0081), which the
+            // engine reads as the subscripted symbol.
+            if chars.get(i) == Some(&'_') && chars.get(i + 1).is_some_and(|c| c.is_alphanumeric()) {
+                i += 1;
+                while i < chars.len() && chars[i].is_alphanumeric() {
+                    i += 1;
+                }
+            }
             let s: String = chars[start..i].iter().collect();
             out.push(match s.as_str() {
                 "pi" => Token::Num(std::f64::consts::PI),

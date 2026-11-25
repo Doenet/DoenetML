@@ -529,6 +529,16 @@ impl ComponentType {
                 // An interpolated function's pieces as one value, for a
                 // reader.
                 ("pieces", Code),
+                // How it evaluates (ADR 0081).
+                ("symbolic", Is(Boolean)),
+                ("symbolicExpr", Code),
+                ("substitutePost", Code),
+                ("evalExpr", Code),
+                ("numInputs", Is(Integer)),
+                ("numOutputs", Is(Integer)),
+                ("variablesExpr", Code),
+                ("multiExpr", Code),
+                ("domainsExpr", Code),
             ],
 
             // Lists and structure.

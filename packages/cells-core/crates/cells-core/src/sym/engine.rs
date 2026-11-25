@@ -615,6 +615,117 @@ impl Engine {
         self.push(e)
     }
 
+    /// `h` with the symbol `var` replaced by `with`'s expression: a
+    /// function evaluated symbolically (ADR 0081).
+    pub fn substitute(&mut self, h: Handle, var: &str, with: Handle) -> Handle {
+        let mut subs = HashMap::with_capacity(1);
+        subs.insert(var.to_string(), self.exprs[with.index()].clone());
+        let e = me::substitute(&self.exprs[h.index()], &subs);
+        self.push(e)
+    }
+
+    /// The names of the symbols `h` is, a function's variables (ADR
+    /// 0081): one symbol, or a tuple or vector of them; none for anything
+    /// else.
+    pub fn symbols(&self, h: Handle) -> Option<Vec<String>> {
+        // A subscripted one (`x_1`) by its flat name, as the current core
+        // reads a variable.
+        let name = |x: &Expr| match me::subscripts_to_strings(x) {
+            Expr::Sym(s) => Some(s.name()),
+            _ => None,
+        };
+        let e = &self.exprs[h.index()];
+        match Self::entries_of(e) {
+            Some(xs) => xs.iter().map(name).collect(),
+            None => name(e).map(|n| vec![n]),
+        }
+    }
+
+    /// The entries of the value `h` holds, each stored: a list's, tuple's
+    /// or vector's; none for a scalar.
+    pub fn entries(&mut self, h: Handle) -> Option<Vec<Handle>> {
+        let xs = Self::entries_of(&self.exprs[h.index()])?.to_vec();
+        Some(xs.into_iter().map(|x| self.push(x)).collect())
+    }
+
+    /// `h` with each symbol of `names` replaced by the expression of the
+    /// handle at its place in `with`, all at once (ADR 0081), a tuple it
+    /// gives made a vector, as the current core gives a function's
+    /// several outputs.
+    pub fn substitute_all(&mut self, h: Handle, names: &[String], with: &[Handle]) -> Handle {
+        let subs: HashMap<String, Expr> = names
+            .iter()
+            .zip(with)
+            .map(|(n, w)| (n.clone(), self.exprs[w.index()].clone()))
+            .collect();
+        // Its subscripted symbols by their flat names, as the variables
+        // are (`symbols`), and back.
+        let flat = me::subscripts_to_strings(&self.exprs[h.index()]);
+        let e = me::strings_to_subscripts(&me::substitute(&flat, &subs));
+        self.push(as_vector(e))
+    }
+
+    /// `h` evaluated with each symbol of `names` bound to the number at
+    /// its place in `values` (ADR 0081): a number, or a vector of numbers
+    /// when `h` is a tuple or vector, each entry evaluated; NaN where it
+    /// has no real value.
+    pub fn evaluate_all(&mut self, h: Handle, names: &[String], values: &[f64]) -> Handle {
+        let b: HashMap<String, f64> = names.iter().cloned().zip(values.iter().copied()).collect();
+        let at = |e: &Expr| {
+            if has_blank(e) {
+                f64::NAN
+            } else {
+                real(me::evaluate_fast_f64(e, &b))
+            }
+        };
+        let flat = me::subscripts_to_strings(&self.exprs[h.index()]);
+        let e = match Self::entries_of(&flat) {
+            Some(xs) => Expr::Seq(
+                me::expr::SeqKind::Vector,
+                xs.iter().map(|x| number(at(x))).collect(),
+            ),
+            None => number(at(&flat)),
+        };
+        self.push(e)
+    }
+
+    /// The tuple of the numbers `vs` (ADR 0081: a function's domains).
+    pub fn pack(&mut self, vs: &[f64]) -> Handle {
+        let e = Expr::Seq(
+            me::expr::SeqKind::Tuple,
+            vs.iter().map(|&v| number(v)).collect(),
+        );
+        self.push(e)
+    }
+
+    /// The numbers the tuple `h` holds ([`Engine::pack`]): an entry that
+    /// is no number NaN; none for no tuple.
+    pub fn numbers(&self, h: Handle) -> Option<Vec<f64>> {
+        let Expr::Seq(me::expr::SeqKind::Tuple, xs) = &self.exprs[h.index()] else {
+            return None;
+        };
+        Some(
+            xs.iter()
+                .map(|x| match x {
+                    Expr::Num(n) => n.to_f64(),
+                    Expr::Const(me::MathConst::Inf) => f64::INFINITY,
+                    Expr::Const(me::MathConst::NegInf) => f64::NEG_INFINITY,
+                    _ => f64::NAN,
+                })
+                .collect(),
+        )
+    }
+
+    /// The blank expression, `＿`.
+    pub fn blank(&mut self) -> Handle {
+        self.push(Expr::Blank)
+    }
+
+    /// Whether `h` is or holds the blank expression.
+    pub fn is_blank(&self, h: Handle) -> bool {
+        has_blank(&self.exprs[h.index()])
+    }
+
     /// The derivative of `h` with respect to `var`.
     pub fn derivative(&mut self, h: Handle, var: &str) -> Handle {
         let e = me::derivative(&self.exprs[h.index()], var);
@@ -1055,6 +1166,14 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
     match c {
         Some(z) if z.im.abs() <= 1e-12 * z.re.abs().max(1.0) => z.re,
         _ => f64::NAN,
+    }
+}
+
+/// `e`, a tuple made a vector.
+fn as_vector(e: Expr) -> Expr {
+    match e {
+        Expr::Seq(me::expr::SeqKind::Tuple, xs) => Expr::Seq(me::expr::SeqKind::Vector, xs),
+        e => e,
     }
 }
 

@@ -133,6 +133,11 @@ pub(crate) enum Flow {
     /// 0043, ADR 0075): an alias of its own port `expr` when that port is
     /// math, the expression itself, else of its own port `numeric`.
     HeldOf(Port, Port),
+    /// A value whose kind another element's type decides (ADR 0081): an
+    /// alias of its own port `math` when its own port `by` is math, else
+    /// of its own port `numeric`. An `<evaluate>` is symbolic as the
+    /// function it evaluates is, `by` aliasing that function's port.
+    HeldBy(Port, Port, Port),
     /// An operator over a collection of components around the element:
     /// credit over the scored items, a section's number among its
     /// siblings, a collect's count of what it gathers.
@@ -258,6 +263,11 @@ impl Source {
     pub(crate) fn held_of(expr: Port, numeric: Port) -> Self {
         Source::Flow(Flow::HeldOf(expr, numeric))
     }
+    /// `math` when the type pass types `by` math, else `numeric`
+    /// ([`Flow::HeldBy`]).
+    pub(crate) fn held_by(by: Port, math: Port, numeric: Port) -> Self {
+        Source::Flow(Flow::HeldBy(by, math, numeric))
+    }
     /// A math cell when math text `id` is symbolic, else no value
     /// ([`Flow::MathHandle`]).
     pub(crate) fn math_handle(id: ExprId, post: Post) -> Self {
@@ -292,6 +302,9 @@ pub(crate) fn port_name(
         }
         Source::Flow(Flow::ValueOf(a, b) | Flow::HeldOf(a, b)) => {
             a.index() == pi || b.index() == pi
+        }
+        Source::Flow(Flow::HeldBy(a, b, c)) => {
+            a.index() == pi || b.index() == pi || c.index() == pi
         }
         Source::Flow(Flow::Op(_, args)) => args
             .iter()

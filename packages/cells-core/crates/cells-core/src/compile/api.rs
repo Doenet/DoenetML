@@ -3,7 +3,7 @@
 //! here and nothing else of the compile.
 
 pub(crate) use super::ir::RefId;
-pub(crate) use super::ir::expr::{ExprId, Token, function_variables, tuple_entries};
+pub(crate) use super::ir::expr::{ExprId, Token, tuple_entries};
 pub(crate) use super::ir::record::{
     ChildValue, ListPiece, Member, PieceFrag, PointAttr, Record, ValueChildren,
 };

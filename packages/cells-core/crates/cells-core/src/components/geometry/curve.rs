@@ -6,7 +6,8 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::components::values::curve::{
-    self as function, FunctionParts, function_curve, plan_domain, referenced_function, whole_line,
+    self as function, FunctionParts, first_variable, function_curve, plan_domain,
+    referenced_function, whole_line,
 };
 use crate::error::{Error, Result};
 use crate::program::{BEZIER_POINT_CELLS, SymKind, bezier_controls};
@@ -142,14 +143,14 @@ fn coordinates(
     }
     for member in &attrs.functions {
         let f = function::Attrs::of(&member.record);
-        let nodes = f.children.unwrap_or_default();
+        let nodes = f.children.clone().unwrap_or_default();
         if let Some(f) = referenced_function(ctx, &nodes)? {
             out.push(f);
             continue;
         }
-        let var = match f.variables {
-            Some(_) => ctx.symbol(&function_variables(f.variables.clone()).remove(0)),
-            None => variable.clone(),
+        let var: Wire = match first_variable(ctx, &f)? {
+            Some(v) => v.wire,
+            None => variable.clone().into(),
         };
         let (domain, _) = plan_domain(ctx, wiring, f.domain.as_deref())?;
         let (toks, _) = ctx.math_tokens(&nodes)?;
@@ -159,7 +160,7 @@ fn coordinates(
             out.push((
                 ctx.sym_tokens(&entry)?,
                 FunctionParts {
-                    variable: var.clone().into(),
+                    variable: var.clone(),
                     domain: domain.clone(),
                     plain: false,
                 },

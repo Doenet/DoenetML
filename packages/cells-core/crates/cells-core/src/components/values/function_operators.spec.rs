@@ -10,9 +10,9 @@ spec! {
     case "clamp: between 0 and 1 by default" {
         doenet r#"<function name="f">x^3</function>
                   <clampFunction name="c">$f</clampFunction>
-                  <evaluate name="a" function="$c" input="-2"/>
-                  <evaluate name="b" function="$c" input="0.5"/>
-                  <evaluate name="d" function="$c" input="2"/>"#;
+                  <evaluate forceNumeric name="a" function="$c" input="-2"/>
+                  <evaluate forceNumeric name="b" function="$c" input="0.5"/>
+                  <evaluate forceNumeric name="d" function="$c" input="2"/>"#;
         expect {
             "c.lowerValue" = 0, "c.upperValue" = 1,
             "a.value" = 0, "b.value" = 0.125, "d.value" = 1,
@@ -23,9 +23,9 @@ spec! {
         doenet r#"<function name="f">x^3</function>
                   <numberInput name="lo" value="-3"/>
                   <clampFunction name="c" lowerValue="$lo" upperValue="5">$f</clampFunction>
-                  <evaluate name="a" function="$c" input="-2"/>
-                  <evaluate name="b" function="$c" input="1.5"/>
-                  <evaluate name="d" function="$c" input="2"/>"#;
+                  <evaluate forceNumeric name="a" function="$c" input="-2"/>
+                  <evaluate forceNumeric name="b" function="$c" input="1.5"/>
+                  <evaluate forceNumeric name="d" function="$c" input="2"/>"#;
         expect { "a.value" = -3, "b.value" = 3.375, "d.value" = 5 }
         request { "lo.value" = -10 }
         expect { "c.lowerValue" = -10, "a.value" = -8, "d.value" = 5 }
@@ -33,8 +33,8 @@ spec! {
 
     case "clamp: of math in x, not a function" {
         doenet r#"<clampFunction name="c" lowerValue="-1" upperValue="1">2 sin(x)</clampFunction>
-                  <evaluate name="a" function="$c" input="0.25"/>
-                  <evaluate name="b" function="$c" input="1"/>"#;
+                  <evaluate forceNumeric name="a" function="$c" input="0.25"/>
+                  <evaluate forceNumeric name="b" function="$c" input="1"/>"#;
         expect { "a.value" = 0.4948079185090459, "b.value" = 1 }
     }
 
@@ -42,7 +42,7 @@ spec! {
         doenet r#"<function name="f">x^3</function>
                   <clampFunction name="c">$f</clampFunction>
                   <derivative name="dc">$c</derivative>
-                  <evaluate name="a" function="$dc" input="0.5"/>"#;
+                  <evaluate forceNumeric name="a" function="$dc" input="0.5"/>"#;
         expect { "a.value" = 0.75 }
     }
 
@@ -62,8 +62,8 @@ spec! {
     case "wrap: into [0, 1) by default" {
         doenet r#"<function name="f">x^3</function>
                   <wrapFunctionPeriodic name="w">$f</wrapFunctionPeriodic>
-                  <evaluate name="a" function="$w" input="1.2"/>
-                  <evaluate name="b" function="$w" input="-1"/>"#;
+                  <evaluate forceNumeric name="a" function="$w" input="1.2"/>
+                  <evaluate forceNumeric name="b" function="$w" input="-1"/>"#;
         expect { "a.value" = 0.7279999999999998, "b.value" = 0 }
     }
 
@@ -71,10 +71,10 @@ spec! {
         doenet r#"<function name="f">x^3</function>
                   <wrapFunctionPeriodic name="w" lowerValue="-2" upperValue="3">$f</wrapFunctionPeriodic>
                   <wrapFunctionPeriodic name="v" lowerValue="3" upperValue="-2">$f</wrapFunctionPeriodic>
-                  <evaluate name="a" function="$w" input="1.6"/>
-                  <evaluate name="b" function="$w" input="-1.2"/>
-                  <evaluate name="d" function="$w" input="2"/>
-                  <evaluate name="e" function="$v" input="1.6"/>"#;
+                  <evaluate forceNumeric name="a" function="$w" input="1.6"/>
+                  <evaluate forceNumeric name="b" function="$w" input="-1.2"/>
+                  <evaluate forceNumeric name="d" function="$w" input="2"/>
+                  <evaluate forceNumeric name="e" function="$v" input="1.6"/>"#;
         expect {
             "a.value" = -0.903999999999999, "b.value" = -1.728, "d.value" = -2,
             "e.value" = -0.903999999999999,
@@ -83,7 +83,7 @@ spec! {
 
     case "wrap: equal bounds hold every value there" {
         doenet r#"<wrapFunctionPeriodic name="w" lowerValue="2" upperValue="2">x</wrapFunctionPeriodic>
-                  <evaluate name="a" function="$w" input="7"/>"#;
+                  <evaluate forceNumeric name="a" function="$w" input="7"/>"#;
         expect { "a.value" = 2 }
     }
 }

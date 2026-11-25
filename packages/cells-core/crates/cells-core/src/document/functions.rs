@@ -4,7 +4,9 @@
 
 use crate::components::{ConstrainTarget, FUNCTION_PROPS, Role};
 use crate::document::{CellIdx, Child, CompIdx, Document};
-use crate::program::{DOMAIN_CELLS, PIECE_CELLS, eval_function};
+use crate::program::{
+    DOMAIN_CELLS, PIECE_CELLS, eval_function, eval_function_at, spline_pieces, substitute_post,
+};
 use crate::sym::Handle;
 
 impl Document {
@@ -60,7 +62,6 @@ impl Document {
     /// reads them, from its `pieces`, the list of each piece's expression
     /// and domain; `None` for a function that is none.
     fn interpolated(&mut self, c: CompIdx) -> Option<Vec<f64>> {
-        use math_expressions::{Expr, MathConst, expr::SeqKind};
         let cell =
             |c: CompIdx, prop: &str| self.prop_cells(c, prop).and_then(|v| v.first().copied());
         let pieces = self.cells[cell(c, "pieces")?.index()];
@@ -72,28 +73,96 @@ impl Document {
             .iter()
             .map(|p| cell(c, p).map(|k| self.cells[k.index()]))
             .collect::<Option<_>>()?;
-        let engine = &mut self.math.engine;
-        let Expr::Seq(SeqKind::List, list) = engine.expr(Handle::from_value(pieces)).clone() else {
-            return None;
-        };
-        let number = |e: &Expr| match e {
-            Expr::Num(n) => n.to_f64(),
-            Expr::Const(MathConst::Inf) => f64::INFINITY,
-            Expr::Const(MathConst::NegInf) => f64::NEG_INFINITY,
-            _ => f64::NAN,
-        };
-        for piece in list {
-            let Expr::Seq(SeqKind::Tuple, parts) = piece else {
-                return None;
-            };
-            let [e, rest @ ..] = &parts[..] else {
-                return None;
-            };
-            f.push(engine.store(e.clone()).to_value());
-            f.push(var);
-            f.extend(rest.iter().map(number));
-        }
+        f.extend(spline_pieces(
+            &mut self.math.engine,
+            Handle::from_value(pieces),
+            var,
+        )?);
         Some(f)
+    }
+
+    /// The cells of the function `c` is, as [`eval_function`] reads
+    /// them, with a piece's domain on the whole line where it has none.
+    fn function_values(&self, c: CompIdx) -> Option<Vec<f64>> {
+        let cells = self.function_cells(c)?;
+        let whole = [f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
+        Some(
+            cells
+                .iter()
+                .enumerate()
+                .map(|(k, cell)| match cell {
+                    Some(cell) => self.cells[cell.index()],
+                    None => whole[(k - DOMAIN_CELLS) % PIECE_CELLS - 2],
+                })
+                .collect(),
+        )
+    }
+
+    /// The function `c` is at the expressions the math texts `xs` write,
+    /// symbolically, as an `<evaluate>` of it computes it when symbolic
+    /// (ADR 0081): its expression with its variables replaced by them, as
+    /// its `simplify` and `expand` say, the blank where one input is a
+    /// number outside its domain; as the JavaScript math tree, in JSON.
+    /// `None` when `c` is no function with a formula, or an input no math.
+    pub fn function_symbolic(&mut self, c: CompIdx, xs: &[&str]) -> Option<String> {
+        let cell = |prop: &str| {
+            self.prop_cells(c, prop)
+                .and_then(|v| v.first().copied())
+                .map(|k| self.cells[k.index()])
+        };
+        let expr = cell("expr")?;
+        let vars = cell("variablesExpr")?;
+        let domains = cell("domainsExpr")?;
+        let domain: Vec<f64> = FUNCTION_PROPS[1..]
+            .iter()
+            .map(|p| cell(p))
+            .collect::<Option<_>>()?;
+        let post = cell("substitutePost").unwrap_or(1.0);
+        let engine = &mut self.math.engine;
+        let inputs: Vec<f64> = xs
+            .iter()
+            .map(|x| engine.parse(x).ok().map(|h| h.to_value()))
+            .collect::<Option<_>>()?;
+        let h = eval_function_at(
+            engine,
+            true,
+            substitute_post(post),
+            &domain,
+            [domains, expr, vars],
+            &inputs,
+        );
+        Some(engine.ast_json(h))
+    }
+
+    /// The function `c` is at the numbers `xs`, numerically, as an
+    /// `<evaluate>` of it computes it when numeric (ADR 0081): a number,
+    /// or a vector of numbers for one of several outputs, as the
+    /// JavaScript math tree in JSON. `None` when `c` is no function with a
+    /// formula.
+    pub fn function_numeric(&mut self, c: CompIdx, xs: &[f64]) -> Option<String> {
+        let cell = |prop: &str| {
+            self.prop_cells(c, prop)
+                .and_then(|v| v.first().copied())
+                .map(|k| self.cells[k.index()])
+        };
+        let expr = cell("expr")?;
+        let vars = cell("variablesExpr")?;
+        let domains = cell("domainsExpr")?;
+        let domain: Vec<f64> = FUNCTION_PROPS[1..]
+            .iter()
+            .map(|p| cell(p))
+            .collect::<Option<_>>()?;
+        let engine = &mut self.math.engine;
+        let inputs: Vec<f64> = xs.iter().map(|&x| engine.num(x).to_value()).collect();
+        let h = eval_function_at(
+            engine,
+            false,
+            crate::program::Post::None,
+            &domain,
+            [domains, expr, vars],
+            &inputs,
+        );
+        Some(engine.ast_json(h))
     }
 
     /// The function `c` is, at `x` (ADR 0049), as an `<evaluate>` of it
@@ -106,16 +175,7 @@ impl Document {
             eval_function(&mut self.math.engine, &f, &[x], &mut out);
             return Some(out[0]);
         }
-        let cells = self.function_cells(c)?;
-        let whole = [f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
-        let f: Vec<f64> = cells
-            .iter()
-            .enumerate()
-            .map(|(k, cell)| match cell {
-                Some(cell) => self.cells[cell.index()],
-                None => whole[(k - DOMAIN_CELLS) % PIECE_CELLS - 2],
-            })
-            .collect();
+        let f = self.function_values(c)?;
         let mut out = [f64::NAN];
         eval_function(&mut self.math.engine, &f, &[x], &mut out);
         Some(out[0])

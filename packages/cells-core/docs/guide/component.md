@@ -156,7 +156,7 @@ methods. Rules for planners:
   (`reads_as: Math` on `<mathInput>`, ADR 0025); the build then makes a
   `<math>` aliasing the input's props for `$mi`, and `<math
   extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
-  referent's default prop ([`ComponentType::extends_as`](crate::components::ComponentType::extends_as)).
+  referent's default prop ([`extend_as`](crate::components::types::extend_as)).
 - A type the core makes or recognizes without a tag says which part it
   plays (`roles: [Root]` on `<document>`, `roles: [ImplicitInput]` on
   `<mathInput>`, ADR 0038): the root, a refused element's box, an
