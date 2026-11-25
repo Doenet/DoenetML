@@ -16,6 +16,7 @@ import {
     xy,
 } from "./jsxgraph/use-graph-objects";
 import { look } from "./jsxgraph/look";
+import { OpenPolygonInGraph } from "./graph-polygon";
 
 type PolylineData = {
     props: {
@@ -38,6 +39,21 @@ type PolylineData = {
  * dashed while it is unstable, which a click on a switchable one switches.
  */
 export const PolylineInGraph: BasicComponent<PolylineData> = ({ node }) => {
+    // A polyline the core sends drag flags for is a shape (ADR 0075),
+    // drawn and dragged as an open polygon.
+    if ((node.data.props as { draggable?: boolean }).draggable !== undefined) {
+        return <OpenPolygonInGraph node={node as any} ancestors="" />;
+    }
+    return <Curve node={node} />;
+};
+
+/** A curve through its vertices: a function's samples, a curve through
+ * points. */
+function Curve({
+    node,
+}: {
+    node: React.ComponentProps<BasicComponent<PolylineData>>["node"];
+}) {
     const board = React.useContext(GraphContext);
     const dispatch = useAppDispatch();
     const id = node.data.id;
@@ -106,4 +122,4 @@ export const PolylineInGraph: BasicComponent<PolylineData> = ({ node }) => {
         },
     });
     return null;
-};
+}

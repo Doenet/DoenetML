@@ -33,11 +33,34 @@ type PolygonData = {
  * one, each only where the core's flags allow it. A change in the number
  * of vertices draws it anew.
  */
-export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
+export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => (
+    <Shape node={node} closed actionName="movePolygon" />
+);
+
+/**
+ * A polyline that is a shape (ADR 0075): a polygon that is not closed,
+ * dragged as a polygon is (`movePolyline`).
+ */
+export const OpenPolygonInGraph: BasicComponent<PolygonData> = ({ node }) => (
+    <Shape node={node} closed={false} actionName="movePolyline" />
+);
+
+function Shape({
+    node,
+    closed,
+    actionName,
+}: {
+    node: React.ComponentProps<BasicComponent<PolygonData>>["node"];
+    closed: boolean;
+    actionName: "movePolygon" | "movePolyline";
+}) {
     const board = React.useContext(GraphContext);
     const dispatch = useAppDispatch();
     const id = node.data.id;
     const { numericalVertices } = node.data.props;
+    // Read when a side is dragged, after the props the shape was made with.
+    const latest = React.useRef(node.data.props);
+    latest.current = node.data.props;
 
     useGraphObjects(board, node.data.props, {
         ready: ({ numericalVertices: v }) => isPoints(v) && v.length > 0,
@@ -49,12 +72,17 @@ export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
             const polygon: JSG.Polygon = board.create(
                 "polygon",
                 vertices,
-                look.polygon(),
+                closed ? look.polygon() : look.openPolygon(),
             );
+            // An open one has no side from its last vertex to its first.
+            if (!closed) {
+                const borders = (polygon as any).borders as JSG.Segment[];
+                borders[borders.length - 1]?.setAttribute({ visible: false });
+            }
             const move = (pointCoords: Record<number, [number, number]>) => {
                 const action: Action = {
-                    component: "polygon",
-                    actionName: "movePolygon",
+                    component: node.name,
+                    actionName,
                     componentIdx: id,
                     args: { pointCoords },
                 };
@@ -63,10 +91,28 @@ export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
             polygon.on("drag", () =>
                 move(Object.fromEntries(vertices.map((v, i) => [i, xy(v)]))),
             );
+            // JSXGraph drags a side by its two vertices alone: a side's drag
+            // is the whole shape's, every vertex moved as far as the side.
+            const borders = (polygon as any).borders as JSG.Segment[];
+            borders.forEach((border, i) =>
+                border.on("drag", () => {
+                    const from = latest.current.numericalVertices;
+                    const [x, y] = xy(vertices[i]);
+                    const [dx, dy] = [x - from[i][0], y - from[i][1]];
+                    move(
+                        Object.fromEntries(
+                            from.map(([vx, vy], j) => [j, [vx + dx, vy + dy]]),
+                        ),
+                    );
+                }),
+            );
             vertices.forEach((v, i) =>
                 v.on("drag", () => move({ [i]: xy(v) })),
             );
             const objects = [polygon, ...vertices];
+            for (const border of borders) {
+                border.on("up", resync);
+            }
             for (const o of objects) {
                 o.on("up", resync);
             }
@@ -82,6 +128,9 @@ export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
             // A vertex that may not be dragged on its own has no handle:
             // fixing it would stop the whole shape's drag as well.
             setFixed(polygon, draggable === false);
+            for (const border of (polygon as any).borders as JSG.Segment[]) {
+                setFixed(border, draggable === false);
+            }
             for (const v of vertices) {
                 setVisible(v, verticesDraggable !== false);
             }
@@ -94,4 +143,4 @@ export const PolygonInGraph: BasicComponent<PolygonData> = ({ node }) => {
         },
     });
     return null;
-};
+}
