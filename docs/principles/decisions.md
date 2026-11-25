@@ -2982,6 +2982,16 @@ and that `<list>` would be content, not a collection.
    `0.3333…`, and the display would flip as a piece changed (`1/2, 3` showing `0.5, 3`, then
    `1/2, 3, x`). `type="number"` asks for numbers.
 
+9. **A math whose value is a list is always merged into the list** (decided, November 2026;
+   `mergeMathLists` is removed). An entry of a math list is one math that isn't itself a list,
+   as a list inside a list is flattened (item 1, COLL-4). Today a `<math>` holding `b,c,d` is one
+   entry, shown `a, b, c, d` with no sign of the grouping, unless it is the only child or
+   `mergeMathLists` is written; so adding a second child changed the first's count, and
+   `mergeMathLists="$bi"` changed it as the reader clicked. Merged, `<list><math>b,c,d</math></list>`
+   is what `<list>b,c,d</list>` already is. A tuple (`(1,2)`) is one thing and stays one entry.
+   A list's count may then follow a value (a `<mathInput>` typed `1,2` holds two entries), as a
+   `<sequence length="$n">` does; the load decides the count only where the DoenetML does.
+
 Implementation: #2678 (PR 69; stage 2 with the converter, #2457).
 
 ## D47. Decisions from the review of #2571–#2576 (November 2026)
