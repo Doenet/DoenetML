@@ -35,6 +35,20 @@ impl Outlining<'_> {
         let el = self.outlined(t).elems[e.index()].node;
         let text_answer =
             self.rd().reject_answer_attrs(el)? || self.rd().answer_text_child(t, e, el).is_some();
+        // A boolean answer with no input of its own checks one it makes
+        // (ADR 0077).
+        if self.rd().answer_is_boolean(t, e, el) {
+            let has_input = self.rd().elem_children(t, e).into_iter().any(|k| {
+                self.outlined(t).elems[k.index()]
+                    .component_type
+                    .response()
+                    .is_some()
+            });
+            if !has_input {
+                self.add_implicit_input(t, e, Role::ImplicitBooleanInput);
+            }
+            return Ok(());
+        }
         // A text answer with no input of its own types into one it makes
         // (ADR 0067).
         if text_answer {
@@ -52,6 +66,12 @@ impl Outlining<'_> {
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         for k in self.rd().elem_children(t, e) {
+            if self
+                .rd()
+                .is_presentation_child(self.outlined(t).elems[k.index()].node)
+            {
+                continue;
+            }
             match self.outlined(t).elems[k.index()].component_type {
                 ty if matches!(ty.response(), Some(ResponseKind::Index(_))) => return Ok(()),
                 ty if ty.response().is_some() => inputs.push(k),
@@ -61,7 +81,7 @@ impl Outlining<'_> {
         }
         let mut forms = Vec::with_capacity(awards.len());
         for &a in &awards {
-            forms.push(self.rd().award_form(t, a)?);
+            forms.push(self.rd().award_form(&self.ar, t, a)?);
         }
         let needs_input =
             !self.rd().content_nodes(el).is_empty() || forms.iter().any(|f| f.when.is_none());

@@ -31,6 +31,7 @@ mod sections;
 mod state;
 mod sticky;
 pub(crate) mod table;
+mod variants;
 
 pub use act::ActionView;
 pub use cascade::Revealed;
@@ -139,6 +140,8 @@ pub struct Loaded {
     pub(crate) version: u64,
     /// The compile's diagnostics.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
+    /// The document's variant components and variants (ADR 0085).
+    pub(crate) variants: Arc<crate::compile::variants::Variants>,
 }
 
 /// The built document: its cells and program, which are essential or constant,
@@ -238,6 +241,7 @@ impl Loaded {
             structural_depth: compiled.plans.structural_depth,
             version: compiled.plans.version,
             diagnostics: compiled.diagnostics.clone(),
+            variants: compiled.plans.variants.clone(),
             compiled: compiled.plans.has_repeats().then_some(compiled),
         }
     }

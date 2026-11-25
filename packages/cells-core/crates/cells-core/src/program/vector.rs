@@ -742,7 +742,20 @@ pub enum Reduction {
     /// passing over every other (a missing one, a NaN, an infinity) as
     /// missing data, as the current core does.
     Statistic(Statistic),
+    /// An answer's credit from its awards' (`numAwardsCredited`, ADR
+    /// 0077): the sum of the `k` greatest inputs, a NaN passed over, and 1
+    /// when the sum is within round-off of 1 or more, as the current
+    /// core's `creditAchievedIfSubmit`.
+    TopSum {
+        /// How many awards are credited.
+        k: u8,
+    },
 }
+
+/// How far below 1 an answer's summed credit still counts as 1: the
+/// current core's `CREDIT_ROUNDOFF_TOLERANCE`, so six awards of `1/6`
+/// give full credit.
+pub(crate) const CREDIT_ROUNDOFF: f64 = 1e-12;
 
 /// A statistic of a column of numbers ([`Reduction::Statistic`]), as the
 /// current core's `<summaryStatistics>` computes it: of the finite values
@@ -1009,6 +1022,16 @@ impl Reduction {
                 index as f64
             }
             Reduction::Statistic(stat) => stat.eval(inp),
+            Reduction::TopSum { k } => {
+                let mut v: Vec<f64> = inp.iter().copied().filter(|x| !x.is_nan()).collect();
+                v.sort_by(|a, b| b.total_cmp(a));
+                let sum: f64 = v.iter().take(usize::from(k)).sum();
+                if sum > 1.0 - CREDIT_ROUNDOFF {
+                    1.0
+                } else {
+                    sum
+                }
+            }
             Reduction::Between => match *inp {
                 [x, l1, l2, strict] => {
                     let strict = strict != 0.0 && !strict.is_nan();
@@ -1110,8 +1133,41 @@ pub fn sequence_index(from: f64, step: f64, count: f64, x: f64) -> Option<u64> {
     ((k - r).abs() <= 1e-10 * r.abs().max(1.0) && r >= 0.0 && r < count).then_some(r as u64)
 }
 
+/// A draw that names its picks rather than drawing them: what a
+/// document's variant decides (ADR 0085). `digits`, each below `base`, are
+/// the picks in order (a selection's positions in its sequence, from 0; a
+/// shuffle's order, from 0); the draw is below 0, `-(1 + digits in base
+/// `base`, least first)`, which no draw in `[0, 1)` is.
+pub(crate) fn forced_draw(digits: &[u64], base: u64) -> f64 {
+    let base = base.max(1);
+    let code = digits
+        .iter()
+        .rev()
+        .fold(0u64, |a, &d| a.saturating_mul(base).saturating_add(d));
+    -(1.0 + code as f64)
+}
+
+/// The `n` picks a [`forced_draw`] names, each below `base`; None for a
+/// draw in `[0, 1)`.
+fn forced_picks(draw: f64, n: usize, base: u64) -> Option<Vec<u64>> {
+    if draw.is_nan() || draw >= 0.0 || base == 0 {
+        return None;
+    }
+    let mut code = (-draw - 1.0) as u64;
+    Some(
+        (0..n)
+            .map(|_| {
+                let d = code % base;
+                code /= base;
+                d
+            })
+            .collect(),
+    )
+}
+
 /// The value a draw in `[0, 1)` picks from `from, from + step, ..., to`
-/// less `excludes`; NaN when there is none.
+/// less `excludes`; NaN when there is none. A forced draw names the
+/// position it picks.
 fn sequence_pick(draw: f64, from: f64, step: f64, to: f64, excludes: &[f64]) -> f64 {
     if step == 0.0 || [draw, from, step, to].iter().any(|v| !v.is_finite()) {
         return f64::NAN;
@@ -1119,6 +1175,9 @@ fn sequence_pick(draw: f64, from: f64, step: f64, to: f64, excludes: &[f64]) -> 
     let count = sequence_count(from, step, to);
     if count < 1.0 {
         return f64::NAN;
+    }
+    if let Some(k) = forced_picks(draw, 1, count as u64) {
+        return from + step * k[0] as f64;
     }
     let mut out: Vec<u64> = excludes
         .iter()
@@ -1171,6 +1230,9 @@ fn pick_positions(
     replace: bool,
 ) -> Option<Vec<u64>> {
     let left = count.checked_sub(excluded.len() as u64)?;
+    if let Some(picks) = forced_picks(draw, n, count) {
+        return Some(picks);
+    }
     let mut blocked = excluded.to_vec();
     let mut picks = Vec::with_capacity(n);
     for i in 0..n {
@@ -1392,6 +1454,13 @@ fn shuffle(draw: f64, values: &[f64], out: &mut [f64]) {
     out.copy_from_slice(values);
     if !draw.is_finite() {
         out.fill(f64::NAN);
+        return;
+    }
+    // The order a document's variant names (ADR 0085).
+    if let Some(order) = forced_picks(draw, values.len(), values.len() as u64) {
+        for (o, &k) in out.iter_mut().zip(&order) {
+            *o = values[k as usize];
+        }
         return;
     }
     for i in (1..out.len()).rev() {
@@ -1864,6 +1933,7 @@ impl VecOp {
                     | Reduction::IndexOf
                     | Reduction::SearchSorted { .. }
                     | Reduction::Statistic(_)
+                    | Reduction::TopSum { .. }
             ),
             _ => true,
         }

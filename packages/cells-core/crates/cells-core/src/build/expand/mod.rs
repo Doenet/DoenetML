@@ -4,6 +4,7 @@
 //! operator over slots).
 
 use super::*;
+use crate::compile::variants::Desired;
 use crate::components::{Collection, PropAt, PropSel};
 
 mod aggregate;
@@ -11,6 +12,7 @@ mod choice;
 mod math;
 mod resolve;
 mod rows;
+mod variants;
 
 // ---------------------------------------------------------------------------
 // Expansion state
@@ -233,6 +235,12 @@ pub(in crate::build) struct Builder<'c> {
     /// The node of the element whose expansion or resolution failed; none
     /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
+    /// What the document's variant picks, by the choice's scope and
+    /// element (ADR 0085).
+    pub(in crate::build) desired: HashMap<(ScopeId, TemplateId, ElemId), Desired>,
+    /// The variant index the document's variant gives a section with a
+    /// control, by its scope and element.
+    pub(in crate::build) section_index: HashMap<(ScopeId, TemplateId, ElemId), u64>,
 }
 
 /// What expand made, which the stages after it (define, emit) read: the
@@ -605,6 +613,8 @@ impl<'c> Builder<'c> {
             instantiated: HashMap::new(),
             lowered: HashMap::new(),
             failed_node: None,
+            desired: HashMap::new(),
+            section_index: HashMap::new(),
         }
     }
 
@@ -806,6 +816,7 @@ impl<'c> Builder<'c> {
     // ---- expansion -----------------------------------------------------------
 
     pub(in crate::build) fn expand_all(&mut self) -> Result<()> {
+        self.assign_document_variant();
         self.enter_scope(ScopeId::DOCUMENT, TemplateId::new(0));
         let kids = self.expand(TemplateId::new(0), ScopeId::DOCUMENT, CompIdx::NONE)?;
         self.root = kids
@@ -1617,7 +1628,6 @@ impl<'c> Builder<'c> {
         let comp = inst.comp;
         let s = self.slot(comp, pi);
         let component_type = self.components.component_type[comp.index()];
-        let c = self.compiled.plans;
         Ok(match plan {
             Source::Specialize(..) => unreachable!("a nested specialization"),
             Source::Leaf(leaf) => match leaf {
@@ -1633,11 +1643,20 @@ impl<'c> Builder<'c> {
                 }
                 // A number in [0, 1) from the high bits of the select's
                 // stream, which its pick indexes the sequence by.
+                // What the document's variant picks, when it decides them
+                // (ADR 0085).
                 Leaf::Scope(ScopeConst::Draw) => {
-                    let key =
-                        c.templates[inst.template.index()].sealed.elems[inst.elem.index()].key;
-                    let h = choice::splitmix(self.seeded_stream(inst.scope, key));
-                    BuiltSource::Const((h >> 11) as f64 / (1u64 << 53) as f64)
+                    match self.forced_draw(inst.scope, inst.template, inst.elem) {
+                        Some(v) => BuiltSource::Const(v),
+                        None => {
+                            let h = choice::splitmix(self.seeded_stream(
+                                inst.scope,
+                                inst.template,
+                                inst.elem,
+                            ));
+                            BuiltSource::Const((h >> 11) as f64 / (1u64 << 53) as f64)
+                        }
+                    }
                 }
                 Leaf::Scope(ScopeConst::Seed(p)) => {
                     let from = self

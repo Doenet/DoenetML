@@ -1,7 +1,7 @@
 # A type is what an author can name: one typing stage, three relations, and refinements beneath
 
-Status: proposed 2026-11-25. Migration step 1 is begun and step 2 is
-done: the declarations and `fit`, which nothing reads yet. Replaces the framing of ADR 0064 (its §3, one conversion
+Status: proposed 2026-11-25. Migration steps 1 to 3 are done: the
+declarations, `fit` and the typing stage's reads. Replaces the framing of ADR 0064 (its §3, one conversion
 table, and §4, `PortType::Bool`, become instances of the relations here;
 its §1, §2 and §5 stand). Builds on ADR 0027 (the compile runs in
 stages), ADR 0032 (plans are typed ports), ADR 0041 (every list is a
@@ -189,8 +189,8 @@ A component definition (`component!`) declares, as data:
 - for each attribute and each child position, the type it wants (§4).
 
 These declarations are the one table. The typing stage reads it,
-`cells-docgen` exports it, and the schema and the language server read
-the export (D45 decision 2). `EntryKind`, `TextKind`, `PropDef::text`,
+`components::types::export` gives it as data, and the schema and the
+language server read that (D45 decision 2). `EntryKind`, `TextKind`, `PropDef::text`,
 `ResponseKind`, `reads_as`, `extends_as`, `extend_reads` and
 `input_from_value` are restated in it and removed.
 
@@ -309,7 +309,7 @@ be carried back to them:
 - How a place that wants "the same as another place" is ordered when
   the other place's type itself depends on a third (an award in an
   answer whose input is a composite).
-- Whether `cells-docgen`'s export replaces `packages/static-assets`'
+- Whether the declarations' export replaces `packages/static-assets`'
   schema generation or feeds it.
 
 ## Migration
@@ -319,7 +319,7 @@ Each step leaves the tests passing.
 1. The declarations (§7) beside today's flags, with a test that they
    agree with `EntryKind`, `text`, `reads_as` and the rest for every
    type.
-   **Begun** (2026-11-25): each type's own declaration
+   **Done** (2026-11-25). Each type's own declaration
    (`ComponentType::type_decl`, `components/types.rs`): its kind, what it
    *is a*, what it *stands in as* and in which form, what it *converts
    to* and each conversion's direction; or a list of a type; or another
@@ -353,8 +353,16 @@ Each step leaves the tests passing.
    `allIteratesWithInitial` (lengths of what the current core holds as
    lists); a renderer's sample runs (`curve`, `samples`, `samplesX`) are
    codes too.
-   Left: the type each attribute and child position wants (§4, §7);
-   `cells-docgen`'s export.
+   What each place wants (`types.places.rs`, `ComponentType::wants`):
+   an attribute that gives a prop wants the prop's type; another
+   attribute what its parse form takes (a value of a type, or a literal
+   read at load: `Bool`, `On`, `Number`, `Text`; `Written` is refused);
+   children the type of the prop they give, or the list's entries;
+   rendered children content; a group the components it declares.
+   `OVERRIDES` declares the rest (an `<updateValue>`'s `newValue` wants
+   its `target`'s type). The export (`components::types::export`) is
+   every type's declarations as JSON: §7 named `cells-docgen` for it,
+   which is the generator of synthetic documents, not an exporter.
 2. `fit` (§3, §4) as a function over the declarations, tested against
    REF-5's table and ADR 0064's probe table, called by nothing.
    **Done** (2026-11-25), but for a line's equation (step 1): `fit` and
@@ -369,6 +377,23 @@ Each step leaves the tests passing.
    positions are the same type, not merely related by *is a*.
 3. The typing stage, computing its table and compared against what
    outlining, planning and the seal decide today, reporting nothing.
+   **Done** (2026-11-25) as the stage's reads, a function of what
+   outlining settled and the declarations (`compile/read/types.rs`):
+   every element's type (a composite's by §5: a group of one stands in
+   as it, a choice's branches join at the one type each *is a*), and
+   every reference's, walked along its path through names, iterations,
+   gathered items, picks and interface names (typed over every branch),
+   then the prop and each `[k]` (§6). A place's fit is `Want::fit`.
+   Planning's type question (`ref_value_kind`) asserts in debug builds
+   that the typing stage allows its answer (`PropType::allows`, §9's
+   representations), so every document the suite loads compares the two:
+   about 15,000 comparisons, none disagreeing once a composite's own
+   props (`$c.count` of a `<collect>`) were typed on it rather than on
+   what it holds. The table is filled per reference as it is asked:
+   references are planned while planning, so a table made before it
+   waits for the path walk before planning (Consequences). Not compared:
+   outlining's `ref_target`, which reads an interface name off its first
+   branch, and the seal's port types, which are step 7's assertion.
 4. The stage's diagnostics replace outlining's and planning's, one place
    kind at a time: a tag over an extend, a child, an attribute, a math
    leaf, a condition's operand.

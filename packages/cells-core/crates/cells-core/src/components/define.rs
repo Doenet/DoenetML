@@ -54,6 +54,7 @@ const BLANK: PropDef = PropDef {
     bind: None,
     ref_prop: None,
     text: false,
+    boolean: false,
     interactive: false,
     written_by_action: false,
     rendered: false,
@@ -182,6 +183,12 @@ impl Prop {
     /// The prop holds text, a string id, whatever gives it.
     pub(super) const fn text(mut self) -> Self {
         self.def.text = true;
+        self
+    }
+    /// The prop holds a boolean, 1 or 0, and shows as `true` or `false`
+    /// (a `<choice>`'s `selected`, ADR 0077).
+    pub(super) const fn boolean(mut self) -> Self {
+        self.def.boolean = true;
         self
     }
     /// A renderer may request this prop: a student's action writes it.

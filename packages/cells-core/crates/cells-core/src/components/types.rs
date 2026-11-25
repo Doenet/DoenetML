@@ -7,7 +7,7 @@
 //! one), and [`fit`] is the one judgment of a value of one type where
 //! another is wanted. Nothing reads either yet: they sit beside the flags
 //! they replace (`reads_as`, `extends_as`, `extend_reads`,
-//! `input_from_value`, [`EntryKind`], [`TextKind`], [`ResponseKind`]), and
+//! `input_from_value`, [`EntryKind`](crate::components::EntryKind), [`TextKind`](crate::components::TextKind), [`ResponseKind`](crate::components::ResponseKind)), and
 //! this module's tests hold the two in agreement (ADR 0076, Migration steps
 //! 1 and 2). Anything finer the core knows about a value (its
 //! representation, whether it is numeric now, how many entries it has) is
@@ -431,16 +431,15 @@ impl ComponentType {
             | SampleRandomNumbers
             | SelectPrimeNumbers
             | SamplePrimeNumbers
-            | SampleMultivariateRandomNumber
-            | SortIndices
-            | BinCounts
-            | Tally => ListOf(Number),
+            | SampleMultivariateRandomNumber => ListOf(Number),
             MathList | CumulativeSum | CumulativeProduct | CumulativeMin | CumulativeMax
             | Differences | MatrixRow | MatrixColumn => ListOf(Math),
             TextList => ListOf(Text),
             BooleanList => ListOf(Boolean),
             PointList | Intersection => ListOf(Point),
             IntervalList => ListOf(Interval),
+            // Indices and counts (ADR 0078).
+            SortIndices | Tally | BinCounts => ListOf(Integer),
 
             // What the core makes of an element the author named otherwise.
             MathValue | Tuple => Presents(Math),
@@ -470,6 +469,7 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | VariantControl
             | StickyGroup
             | Section
             | Title
@@ -553,6 +553,25 @@ impl ComponentType {
 mod props;
 pub use props::{COMMON, PropType};
 
+#[path = "types.places.rs"]
+mod places;
+pub use places::{OVERRIDES, Place, Want};
+
+#[path = "types.export.rs"]
+mod export;
+pub use export::export;
+
 #[cfg(test)]
 #[path = "types.test.rs"]
 mod tests;
+
+/// The type of a composite whose branches may be any of `types` (ADR 0076
+/// §5): the one type every branch *is a*, if there is one. A number beside
+/// a math is a math; a point beside a vector is no type, though each
+/// converts to the other.
+pub fn join(types: &[ComponentType]) -> Option<ComponentType> {
+    let (&first, rest) = types.split_first()?;
+    supertypes(first)
+        .into_iter()
+        .find(|&s| rest.iter().all(|&t| is_a(t, s)))
+}

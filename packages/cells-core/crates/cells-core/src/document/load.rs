@@ -12,6 +12,12 @@ pub struct LoadOptions {
     /// The document seed load-time choices draw from: one seed gives one
     /// variant of the document.
     pub seed: u64,
+    /// The variant to load (ADR 0085), any number as the current core's
+    /// `requestedVariantIndex` takes it: rounded and wrapped into the
+    /// document's variants. Given, the variant's seed replaces `seed`, and
+    /// with unique variants it decides every load-time choice; None loads
+    /// the document at `seed`, as it always did.
+    pub variant: Option<f64>,
     /// Sample curves through the engine instead of tapes compiled at build
     /// time; for checking the tapes and for measuring. Only with the
     /// `testing` feature.
@@ -81,6 +87,7 @@ impl Default for LoadOptions {
     fn default() -> Self {
         LoadOptions {
             seed: 0,
+            variant: None,
             #[cfg(feature = "testing")]
             sample_with_engine: false,
             #[cfg(feature = "testing")]
@@ -236,7 +243,7 @@ impl Document {
     /// Compile, then build until the structure settles; with the document,
     /// its structural depth as the check bounded it.
     fn settle_load(dast: Dast, options: LoadOptions) -> crate::Result<(Document, u32)> {
-        let session = Session {
+        let mut session = Session {
             #[cfg(feature = "testing")]
             sample_with_engine: options.sample_with_engine,
             ..Session::new(options.seed)
@@ -253,6 +260,12 @@ impl Document {
                 options.shares(),
             )?
         };
+        // The variant asked for: its seed is the document's (ADR 0085).
+        if let Some(requested) = options.variant {
+            let chosen = compiled.plans.variants.choose(requested, options.seed);
+            session.seed = chosen.draw_seed();
+            session.variant = Some(Arc::new(chosen));
+        }
         // After the first pass no student has changed a value yet, so a
         // seeded cell takes its seed again, from the counts the pass stamps.
         let mut math = MathStore::default();

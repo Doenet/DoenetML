@@ -8,7 +8,7 @@
  * element is recomputed when one changes) and, in development and tests,
  * checks it is an output (ADR 0019).
  */
-import { CellsTable } from "./table";
+import { CellsTable, NONE } from "./table";
 
 /** The blank expression the other cores show for an empty math. */
 const BLANK = "＿";
@@ -392,7 +392,18 @@ export function label(table: CellsTable, c: number): string {
         return nameAsLabel(table, c);
     }
     const referent = table.referent(c);
-    return referent === null ? "" : label(table, referent);
+    if (referent !== null) return label(table, referent);
+    // The input an answer makes (no source of its own) shows the answer's
+    // label (ADR 0077).
+    const parent = table.parent(c);
+    if (
+        table.node(c) === NONE &&
+        parent !== null &&
+        table.componentType(parent) === "answer"
+    ) {
+        return label(table, parent);
+    }
+    return "";
 }
 
 /** A label made from a name (`labelIsName`), as the current core makes

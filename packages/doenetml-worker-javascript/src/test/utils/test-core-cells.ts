@@ -107,6 +107,10 @@ type Cells = {
     /** The cells of a prop by name, as the core resolves it (combined and
      * list props, alternate names); empty for no such prop. */
     propCells: (idx: number, prop: string) => Uint32Array;
+    /** The tag the author wrote for a component (`feedback` for the
+     * conditional content it is), read from the source; null for one the
+     * compile made. */
+    elementName: (idx: number) => string | null;
 };
 type Reader = (get: Get, x: Ctx) => unknown;
 
@@ -164,6 +168,44 @@ const mathValue: Reader = (g, x) => {
     return M(g("value"));
 };
 
+/** The text of the choice a choice input shows at place `k` (from 1),
+ * through its `choiceOrder` (ADR 0053); null for no such place. A copy's
+ * choices are its referent's. */
+function choiceTextAt(cells: Cells, ci: number, k: number): string | null {
+    const order = Array.from(cells.propCells(ci, "choiceOrder")).map((c) =>
+        cells.value(c),
+    );
+    const choicesOf = (c: number): number[] =>
+        cells.table
+            .children(c)
+            .flatMap((ch) =>
+                "component" in ch &&
+                cells.table.componentType(ch.component) === "choice"
+                    ? [ch.component]
+                    : [],
+            );
+    let choices = choicesOf(ci);
+    for (
+        let r = cells.table.referent(ci);
+        choices.length === 0 && r !== null;
+        r = cells.table.referent(r)
+    ) {
+        choices = choicesOf(r);
+    }
+    if (!Number.isInteger(k) || k < 1 || k > order.length) return null;
+    const choice = choices[order[k - 1] - 1];
+    return choice === undefined
+        ? null
+        : cells.core.component_text(choice).trim();
+}
+
+/** The responses a choice input gives at place `k`: the chosen choice's
+ * text, or none (ADR 0077). */
+function choiceResponses(cells: Cells, ci: number, k: number): string[] {
+    const text = choiceTextAt(cells, ci, k);
+    return text === null ? [] : [text];
+}
+
 /** The live response one input holds: its expression, or a boolean. */
 function responseOf(cells: Cells, input: number): unknown {
     if (cells.table.tag(input) === "booleanInput") {
@@ -193,13 +235,25 @@ function attrFlag(
  * the current core's is while what its credit reads is. */
 const justSubmitted = new Map<number, string>();
 
+/** An answer's current responses: each input's, a choice input's the
+ * chosen choice's text, or none. */
+function currentResponsesOf(cells: Cells, answer: number): unknown[] {
+    return Array.from(cells.core.answer_inputs(answer) as Uint32Array).flatMap(
+        (i) =>
+            cells.table.tag(i) === "choiceInput"
+                ? choiceResponses(
+                      cells,
+                      i,
+                      cells.value(cells.propCells(i, "selectedIndex")[0]),
+                  )
+                : [responseOf(cells, i)],
+    );
+}
+
 /** An answer's current responses, as one key to compare. */
 function responsesKey(cells: Cells, answer: number): string {
     return JSON.stringify(
-        Array.from(cells.core.answer_inputs(answer) as Uint32Array).map((i) => {
-            const r = responseOf(cells, i) as any;
-            return r?.tree ?? r;
-        }),
+        currentResponsesOf(cells, answer).map((r: any) => r?.tree ?? r),
     );
 }
 
@@ -218,10 +272,7 @@ const answerReaders: Record<string, Reader> = {
                 componentIdx: i,
                 componentType: x.cells.table.tag(i),
             })),
-    currentResponses: (_g, x) =>
-        Array.from(x.cells.core.answer_inputs(x.idx) as Uint32Array).map((i) =>
-            responseOf(x.cells, i),
-        ),
+    currentResponses: (_g, x) => currentResponsesOf(x.cells, x.idx),
     numResponses: (_g, x) => x.cells.core.answer_inputs(x.idx).length,
     submittedResponses: (g, x) => {
         if (g("numSubmissions") === 0) return [];
@@ -230,12 +281,16 @@ const answerReaders: Record<string, Reader> = {
         );
         return Array.from(
             x.cells.core.answer_submitted(x.idx) as Uint32Array,
-        ).map((cell, k) =>
-            x.cells.table.tag(inputs[k]) === "booleanInput"
-                ? x.cells.value(cell) !== 0
-                : x.cells.table.tag(inputs[k]) === "textInput"
-                  ? x.cells.text(cell)
-                  : exprOf(x.cells, cell),
+        ).flatMap((cell, k) =>
+            x.cells.table.tag(inputs[k]) === "choiceInput"
+                ? choiceResponses(x.cells, inputs[k], x.cells.value(cell))
+                : [
+                      x.cells.table.tag(inputs[k]) === "booleanInput"
+                          ? x.cells.value(cell) !== 0
+                          : x.cells.table.tag(inputs[k]) === "textInput"
+                            ? x.cells.text(cell)
+                            : exprOf(x.cells, cell),
+                  ],
         );
     },
     // The `showCorrectness` flag is not modelled: the attribute on the
@@ -253,6 +308,9 @@ const answerReaders: Record<string, Reader> = {
         return !(attrFlag(x.cells, x.idx, "handGraded") ?? false);
     },
     handGraded: (_g, x) => attrFlag(x.cells, x.idx, "handGraded") ?? false,
+    // Its `<label>` child's text, which the input it makes shows too
+    // (ADR 0077).
+    label: (_g, x) => label(x.cells.table, x.idx),
 };
 
 const awardReaders: Record<string, Reader> = {
@@ -1028,7 +1086,19 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     p: containerReaders,
     group: containerReaders,
-    document: containerReaders,
+    document: {
+        ...containerReaders,
+        // The variant it was loaded as and what its variant components
+        // picked (ADR 0085).
+        generatedVariantInfo: (_g, x) => {
+            const v = JSON.parse(x.cells.core.generated_variant_json());
+            if (v === null)
+                throw new CellsCoreGap(
+                    "`document.generatedVariantInfo` of these variant components",
+                );
+            return v;
+        },
+    },
     conditionalContent: containerReaders,
     select: containerReaders,
     numberInput: valueReaders,
@@ -1318,6 +1388,15 @@ const STATE: Record<string, Record<string, Reader>> = {
             return Number.isInteger(k) && k >= 1 ? [k] : [];
         },
         choiceOrder: (_g, x) => choiceOrderOf(x),
+        // The chosen choice's text (ADR 0077): the one value, or none.
+        selectedValues: (g, x) =>
+            g("selectedChoice") >= 1
+                ? [x.cells.text(x.cell("selectedValue")!)]
+                : [],
+        selectedValue: (g, x) =>
+            g("selectedChoice") >= 1
+                ? x.cells.text(x.cell("selectedValue")!)
+                : undefined,
         // Literal flags, as the document gives them.
         inline: (_g, x) => attrFlag(x.cells, x.idx, "inline") ?? false,
         shuffleOrder: (_g, x) =>
@@ -1348,6 +1427,13 @@ const STATE: Record<string, Record<string, Reader>> = {
             return choiceOrderOf(x).map((k) =>
                 x.cells.core.component_text(choices[k - 1]).trim(),
             );
+        },
+        // The text of the choice selected, by its place as shown.
+        selectedValues: (g, x) => {
+            const k = g("selectedIndex");
+            if (!(Number.isInteger(k) && k >= 1)) return [];
+            const texts = STATE.choiceInput.choiceTexts(g, x) as string[];
+            return k <= texts.length ? [texts[k - 1]] : [];
         },
     },
     intervalList: valueListReaders("intervals", (x, c) => heldMath(x.cells, c)),
@@ -1414,6 +1500,13 @@ const STATE: Record<string, Record<string, Reader>> = {
         b: (g) => g("b"),
         c: (g) => g("c"),
         vertex: (g) => pt(g, "vertexX", "vertexY"),
+    },
+    // A choice (ADR 0077): its credit, its children's text, and whether
+    // its input has it chosen, cells of the core.
+    choice: {
+        credit: (g) => g("credit"),
+        text: (_g, x) => x.cells.text(x.cell("text")!),
+        selected: (g) => g("selected") === 1,
     },
 };
 
@@ -1500,6 +1593,18 @@ STATE.cascade = {
 STATE.cascadeMessage = {
     hidden: (_g, x) => hiddenOf(x.cells, x.idx),
     text: textOf,
+};
+// A `<feedback>` (a conditional content, ADR 0077) is hidden while none
+// of its cases is active, as the current core's is while its condition
+// does not hold; a conditional content otherwise as any component.
+STATE.conditionalContent = {
+    ...STATE.conditionalContent,
+    hidden: (g, x) => {
+        if (hiddenOf(x.cells, x.idx)) return true;
+        if (x.cells.elementName(x.idx) !== "feedback") return false;
+        const k = g("choice");
+        return !(k >= 1);
+    },
 };
 
 /** The nearest ancestor of `c` that stands as more than its children. */
@@ -1898,6 +2003,23 @@ const FIELDS: Record<
                     : [],
             ),
     },
+    // The variant the document was loaded as (ADR 0085), as the current
+    // core's shared parameters name it.
+    document: {
+        sharedParameters: (cells) => {
+            const v = JSON.parse(cells.core.variant_json());
+            if (v === null)
+                throw new CellsCoreGap("a document loaded with no variant");
+            return {
+                variantIndex: v.index,
+                variantName: v.name,
+                variantSeed: v.seed,
+                allPossibleVariants: v.allPossibleVariants,
+                allVariantNames: v.allVariantNames,
+                uniqueIndex: v.uniqueIndex ?? undefined,
+            };
+        },
+    },
 };
 
 /** What names a component's structure, by type: its boxes and its size,
@@ -1983,7 +2105,6 @@ export async function createTestCoreCells({
             throw new CellsCoreGap(`createTestCore option \`${option}\``);
         }
     }
-    // The variant index is the document seed (ADR 0009).
     if (Object.keys(initializeCounters).length > 0)
         throw new CellsCoreGap("`initializeCounters`");
     if (Object.keys(externalDoenetMLs).length > 0)
@@ -2008,7 +2129,15 @@ export async function createTestCoreCells({
         // what a renderer reads. `CELLS_PRUNE=1` loads as a browser does,
         // for timing (`packages/benchmark/scripts/perf-diff.sh`).
         const prune = process.env.CELLS_PRUNE === "1";
-        core = new mod.Core(bytes, requestedVariantIndex, prune, initialState);
+        // The document loads as the variant asked for (ADR 0085), whose
+        // seed is the document's.
+        core = new mod.Core(
+            bytes,
+            0,
+            prune,
+            initialState,
+            requestedVariantIndex,
+        );
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
@@ -2049,6 +2178,7 @@ export async function createTestCoreCells({
                 : table.string(id);
         },
         propCells: (idx, prop) => core.prop_cells(idx, prop) as Uint32Array,
+        elementName: (idx) => diagnostics._node(table.node(idx))?.name ?? null,
     };
 
     let actionCount = 0;

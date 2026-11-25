@@ -247,6 +247,18 @@ describe("references and copies", () => {
             "3.142",
         ]);
     });
+
+    // The input an answer makes shows the answer's label; an input the
+    // author wrote keeps its own (ADR 0077).
+    it("labels the input an answer makes with the answer's label", async () => {
+        const bridge = await load(`<answer><label>Enter x:</label>x</answer>
+<answer><label>Enter y:</label><mathInput/>y</answer>`);
+        const root = bridge.flatDast();
+        const labels = byName(root, "mathInput").map(
+            (e) => (e.data as any).props.label,
+        );
+        expect(labels).toEqual(["Enter x:", ""]);
+    });
 });
 
 describe("values and lists", () => {

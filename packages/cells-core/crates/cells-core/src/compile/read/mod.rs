@@ -11,7 +11,8 @@
 //! - [`refs`]: reference plans, a name looked up through the template
 //!   scopes and a `$a.b[k].c` path;
 //! - [`rebase`]: a record read from another template, through a path;
-//! - [`answer`]: what outlining and planning read of an `<answer>`.
+//! - [`answer`]: what outlining and planning read of an `<answer>`;
+//! - [`types`]: every element's and reference's author type (ADR 0076).
 //!
 //! An element's record, which parsing reads with them, is
 //! [`record`](super::ir::record), beside the type it makes.
@@ -23,6 +24,7 @@ mod reader;
 mod rebase;
 mod refs;
 mod source;
+mod types;
 mod values;
 
 pub(in crate::compile) use answer::AwardForm;

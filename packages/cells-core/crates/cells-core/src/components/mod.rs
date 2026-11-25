@@ -28,7 +28,7 @@ pub(crate) mod values;
 pub use containers::SECTION_TAGS;
 pub use decl::*;
 pub use shape::ListShape;
-pub use types::{AuthorType, Fit, PropType, StandsIn, TypeDecl, TypeKind, Typing};
+pub use types::{AuthorType, Fit, Place, PropType, StandsIn, TypeDecl, TypeKind, Typing, Want};
 
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any element. Every other attribute must be read by the type's
@@ -347,6 +347,9 @@ component_types! {
     Image => containers::image::DEFINITION,
     /// `<video>`: a video laid out in the flow (ADR 0078).
     Video => containers::video::DEFINITION,
+    /// `<variantControl>`: the document's or a section's variants, read
+    /// when compiled (ADR 0085).
+    VariantControl => structure::variant_control::DEFINITION,
     /// `<attractToGrid>` among a point's constraints (ADR 0080).
     AttractToGrid => geometry::attract_to_grid::DEFINITION,
     /// `<constrainToGraph>` among a point's constraints (ADR 0080).
@@ -578,9 +581,15 @@ impl ComponentType {
     }
 
     /// What a `$ref` child naming `sel` of this type shows as, when the
-    /// port alone says: an entry of a boolean list is a boolean (ADR 0041).
+    /// port alone says: an entry of a boolean list is a boolean (ADR 0041),
+    /// and so is a prop declared to hold one (ADR 0077).
     pub fn shows_as(self, sel: PropSel) -> Option<Role> {
         match sel {
+            PropSel::At(PropAt::Position(i))
+                if self.prop_defs().get(i).is_some_and(|d| d.boolean) =>
+            {
+                Some(Role::BooleanValue)
+            }
             PropSel::At(PropAt::List | PropAt::Item(_) | PropAt::Coord(..))
                 if self.list_entry() == Some(EntryKind::Boolean) =>
             {
@@ -1029,6 +1038,33 @@ impl ComponentType {
                 .is_some_and(|vt| vt == from || ComponentType::extends_as(from, vt))
     }
 
+    /// What the type is to the document's variants (ADR 0085): the
+    /// current core's types that create variants, and how each counts
+    /// them.
+    pub fn creates_variants(self) -> Option<VariantDecl> {
+        use ComponentType::*;
+        Some(match self {
+            Document => VariantDecl::Document,
+            RepeatForSequence => VariantDecl::Repeat,
+            ChoiceInput => VariantDecl::ChoiceInput,
+            Choice => VariantDecl::Choice,
+            ConditionalContent => VariantDecl::Repeat,
+            Select => VariantDecl::Select,
+            SelectFromSequence => VariantDecl::Sequence,
+            Group => VariantDecl::Product,
+            Section => VariantDecl::Section,
+            RepeatFor => VariantDecl::Repeat,
+            Shuffle => VariantDecl::Shuffle,
+            SelectRandomNumbers => VariantDecl::Uncounted,
+            SampleRandomNumbers => VariantDecl::Sampler,
+            SelectPrimeNumbers => VariantDecl::Uncounted,
+            SamplePrimeNumbers => VariantDecl::Sampler,
+            SampleMultivariateRandomNumber => VariantDecl::Sampler,
+            VariantControl => VariantDecl::Control,
+            _ => return None,
+        })
+    }
+
     /// How the type is structure rather than content, if it is.
     pub fn structure_kind(self) -> Option<StructureKind> {
         self.def().structure_kind
@@ -1461,7 +1497,8 @@ mod tests {
         // ADR 0074 added `source_text`, a sequence's letters or math as
         // written.
         // ADR 0075 added `children_joined`, a label's text as a value.
-        const PLAN_CTX_METHODS: usize = 47;
+        // ADR 0077 added `place_among`, a choice's place among its input's.
+        const PLAN_CTX_METHODS: usize = 48;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

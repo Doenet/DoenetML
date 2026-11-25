@@ -2,7 +2,7 @@ counts declared categories, in the order declared: cells 28 · essential 0 · co
 the result is an ordinary list: cells 34 · essential 0 · constant 34 · instrs 0 · components 21
 a category written as an expression names its number: cells 16 · essential 0 · constant 16 · instrs 0 · components 8
 texts compare as text: cells 16 · essential 0 · constant 16 · instrs 0 · components 9
-booleans compare as true and false: cells 13 · essential 0 · constant 13 · instrs 0 · components 8
+booleans compare as true and false: cells 16 · essential 0 · constant 16 · instrs 0 · components 8
 math compares by value when it is a number, else by its text: cells 18 · essential 0 · constant 18 · instrs 0 · components 10
 a value that is no number equals no category: cells 18 · essential 0 · constant 18 · instrs 0 · components 12
 categories given as components: cells 12 · essential 0 · constant 12 · instrs 0 · components 11

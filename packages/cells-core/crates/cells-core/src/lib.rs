@@ -136,6 +136,7 @@ pub use compile::compare::{
     EditFailure, EditReport, compare_signatures, compare_versions, input_signature,
 };
 pub use compile::lint::lint;
+pub use compile::variants::ChosenVariant;
 pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
