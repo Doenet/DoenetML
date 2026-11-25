@@ -104,8 +104,12 @@ section; ADR 0084): `styleDefinition` (literal values, in a scope, its
 palette, cycled through by an out-of-range style number); a component's
 `styleNumber` (its own, a referent's or its parent's) and its style with
 its marker, line and fill override attributes over it; the contrast
-diagnostics. A `graph`'s `xScale` and `yScale` (a request keeps the
-midpoint) and `identicalAxisScales` with or without an `aspectRatio`.
+diagnostics. A division's heading colors (and their contrast diagnostics),
+`collapsible` and open state (`startOpen`, `revealSection`). Where a list
+item's number lines up (`li`, an untitled list-item section, and the
+wrappers, answers and panels that forward the lead). A `graph`'s `xScale`
+and `yScale` (a request keeps the midpoint), `identicalAxisScales` with or
+without an `aspectRatio`, and its parent graph's ranges when nested.
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
 `intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
 entry; a literal size, ADR 0055; `$A[i][j]` its entry, written back
