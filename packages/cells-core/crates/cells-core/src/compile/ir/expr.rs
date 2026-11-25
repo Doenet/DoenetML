@@ -293,7 +293,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             Expr::Sub(a, b) => self.fold2(*a, *b, |x, y| x - y),
             Expr::Mul(a, b) => self.fold2(*a, *b, |x, y| x * y),
             Expr::Div(a, b) => self.fold2(*a, *b, |x, y| x / y),
-            Expr::Pow(a, b) => self.fold2(*a, *b, f64::powf),
+            Expr::Pow(a, b) => self.fold2(*a, *b, crate::program::math_pow),
             Expr::Neg(a) => match self.nodes[a.index()] {
                 Expr::Num(x) => Some(Expr::Num(-x)),
                 _ => None,

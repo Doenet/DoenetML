@@ -49,7 +49,9 @@ ADR 0008 (no symbolic inverse).
    through one is dropped, as through `Pow`). A call over literals folds
    when parsed, so `<point>(1, 5sin(1))</point>` is a point of two given
    values that drags. Where math lowers, `e` is Euler's number and
-   `infinity` (`Infinity`, `∞`) is infinite; `π` is `pi`. This is the
+   `infinity` (`Infinity`, `∞`) is infinite; `π` is `pi`. A power that is
+   an indeterminate form (`0^0`, `∞^0`, `1^∞`) is NaN, as
+   `evaluate_to_constant` gives, where `f64::powf` gives 1. This is the
    smaller of the two designs ADR 0075 names: the lowering covers every
    test that met the gap, and an `Evaluate` of the instantiated expression
    would add a symbolic instruction per such math and change the graph,

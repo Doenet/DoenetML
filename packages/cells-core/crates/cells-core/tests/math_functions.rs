@@ -151,6 +151,24 @@ fn named_constants_and_division_by_zero_are_numbers() {
     assert!(close(v(&doc, "ee", "value"), std::f64::consts::E.powi(2)));
 }
 
+/// An indeterminate form is NaN, as the current core evaluates it.
+#[test]
+fn indeterminate_forms_are_nan() {
+    let doc = load(
+        r#"<number name="a">0^0</number>
+           <number name="b">Infinity^0</number>
+           <number name="c">1^Infinity</number>
+           <number name="z">0</number>
+           <number name="d">$z^$z</number>
+           <number name="e">2^3</number>"#,
+    )
+    .unwrap();
+    for n in ["a", "b", "c", "d"] {
+        assert!(v(&doc, n, "value").is_nan(), "{n}");
+    }
+    assert_eq!(v(&doc, "e", "value"), 8.0);
+}
+
 /// A condition comparing calls over a math input stays the engine's, as
 /// it was before the lowering read them.
 #[test]

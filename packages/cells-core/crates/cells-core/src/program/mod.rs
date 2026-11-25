@@ -21,6 +21,7 @@ pub use instr::{
     in_domain, substitute_post,
 };
 pub use range::Range;
+pub(crate) use scalar::math_pow;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
 pub use vector::Statistic;

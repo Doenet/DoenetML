@@ -143,6 +143,15 @@ pub(super) fn modulo(a: f64, b: f64) -> f64 {
     a - b * q
 }
 
+/// `a` to the power `b`, as the current core evaluates math text
+/// (`evaluate_to_constant`): an indeterminate form (`0^0`, `∞^0`, `1^∞`)
+/// is NaN where `f64::powf` gives 1 (ADR 0083).
+pub(crate) fn math_pow(a: f64, b: f64) -> f64 {
+    let indeterminate =
+        (b == 0.0 && (a == 0.0 || a.is_infinite())) || (a.abs() == 1.0 && b.is_infinite());
+    if indeterminate { f64::NAN } else { a.powf(b) }
+}
+
 /// The sign of `a`: -1, 0 or 1, and NaN for NaN (unlike `f64::signum`,
 /// which is 1 at 0).
 #[inline]
@@ -268,7 +277,7 @@ scalar_ops! {
     }
     /// `a` to the power `b`.
     Pow(a, b) {
-        eval: a.powf(b),
+        eval: math_pow(a, b),
         drops,
     }
     /// The square root of `a`, NaN below 0: a regular polygon's
