@@ -1049,6 +1049,8 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({
             numericalCenter: [r.num(c, "cx"), r.num(c, "cy")],
             numericalRadius: r.num(c, "radius"),
+            // A presentation attribute, as written, sent when set.
+            ...(flagOr(r.table, c, "filled", false) ? { filled: true } : {}),
         }),
     }),
     polygon: POLYGON,

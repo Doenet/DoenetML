@@ -19,6 +19,9 @@ component! {
     // `<vector extend="$r.direction"/>`: the value is its displacement
     // (ADR 0073).
     extend_value: Attr(displacement),
+    // A bare reference reads its displacement, as the current core's
+    // vector adapts to its displacement's coordinates.
+    default_prop: displacement,
     props {
         // A whole-vector drag requests both points; an end's drag, that
         // end and the other where it is.

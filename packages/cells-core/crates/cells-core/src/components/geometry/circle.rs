@@ -52,6 +52,8 @@ component! {
         centerX2: centerY,
     }
     // A point constrained to a circle is projected onto it.
+    // Whether the renderer fills it.
+    presentation { filled }
     constrain_target { ports: [cx, cy, radius], shape: Circle }
     attributes {
         center: Point,
