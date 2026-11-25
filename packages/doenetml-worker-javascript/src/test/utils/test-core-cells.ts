@@ -415,6 +415,12 @@ const vectorReaders: Record<string, Reader> = {
     displacementCoords: (g) => vec2(g, "x", "y"),
     value: (g) => vec2(g, "x", "y"),
     numDimensions: () => 2,
+    // As the bridge draws it (ADR 0024).
+    label: (_g, x) => label(x.cells.table, x.idx),
+    // What a drag may move (ADR 0070), 0/1 cells.
+    draggable: (g) => g("draggable") !== 0,
+    headDraggable: (g) => g("headDraggable") !== 0,
+    tailDraggable: (g) => g("tailDraggable") !== 0,
 };
 
 const rayReaders: Record<string, Reader> = {
@@ -899,6 +905,10 @@ const STATE: Record<string, Record<string, Reader>> = {
         // The text of its `<label>` child, a component (ADR 0024), else
         // its `label` attribute, as the bridge draws it.
         label: (_g, x) => label(x.cells.table, x.idx),
+        // Whether any of its constraints applied (ADR 0080), and whether
+        // a drag may move it (ADR 0070): 0/1 cells.
+        constraintUsed: (g) => g("constraintUsed") === 1,
+        draggable: (g) => g("draggable") !== 0,
     },
     circle: {
         center: (g) => pt(g, "cx", "cy"),
@@ -947,6 +957,8 @@ const STATE: Record<string, Record<string, Reader>> = {
             ]),
         variables: () => [me.fromAst("x"), me.fromAst("y")],
         numDimensions: () => 2,
+        // As the bridge draws it (ADR 0024).
+        label: (_g, x) => label(x.cells.table, x.idx),
     },
     lineSegment: {
         // A coordinate the core cannot compute (an end a midpoint at the
@@ -2301,6 +2313,15 @@ export async function createTestCoreCells({
             }
             switch (actionName) {
                 case "movePoint":
+                    // A point its `draggable` forbids to drag stays, as the
+                    // bridge's resolver keeps it (ADR 0070).
+                    if (
+                        table.cell(componentIdx, "draggable") !== undefined &&
+                        table.value(table.cell(componentIdx, "draggable")!) ===
+                            0
+                    ) {
+                        return;
+                    }
                     request(
                         pointRequests(componentIdx, componentType, "x", "y", [
                             args.x,
