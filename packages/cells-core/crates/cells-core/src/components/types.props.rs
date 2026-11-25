@@ -260,6 +260,24 @@ impl ComponentType {
             | AttractTo
             | BezierControls
             | ControlVectors => &[],
+            Image => &[
+                ("size", Is(Text)),
+                ("width", Is(Number)),
+                ("horizontalAlign", Is(Text)),
+                ("displayMode", Is(Text)),
+                ("decorative", Is(Boolean)),
+                ("rotate", Is(Number)),
+                ("source", Is(Text)),
+                ("aspectRatio", Is(Number)),
+            ],
+            Video => &[
+                ("size", Is(Text)),
+                ("width", Is(Number)),
+                ("horizontalAlign", Is(Text)),
+                ("displayMode", Is(Text)),
+                ("youtube", Is(Text)),
+                ("source", Is(Text)),
+            ],
 
             Graph => &[],
             StickyGroup => &[
@@ -553,24 +571,6 @@ impl ComponentType {
             SortIndices | BinCounts => &[],
             // What it counts into, of its `type` (ADR 0078).
             Tally => &[("categories", ByElement)],
-            Image => &[
-                ("size", Is(Text)),
-                ("width", Is(Number)),
-                ("horizontalAlign", Is(Text)),
-                ("displayMode", Is(Text)),
-                ("decorative", Is(Boolean)),
-                ("rotate", Is(Number)),
-                ("source", Is(Text)),
-                ("aspectRatio", Is(Number)),
-            ],
-            Video => &[
-                ("size", Is(Text)),
-                ("width", Is(Number)),
-                ("horizontalAlign", Is(Text)),
-                ("displayMode", Is(Text)),
-                ("youtube", Is(Text)),
-                ("source", Is(Text)),
-            ],
             SampleMultivariateRandomNumber => &[
                 ("numCategories", Is(Integer)),
                 ("numTotal", Is(Integer)),
