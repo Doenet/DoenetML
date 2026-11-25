@@ -386,9 +386,9 @@ impl ComponentType {
             Evaluate | Abs | Sign | Floor | Ceil | Round | SetSmallToZero | Sum | Product
             | Mean | Median | Min | Max | Mod | Gcd | Lcm | Count | Variance
             | StandardDeviation | Matrix | Interval | SubsetOfReals => value(&[Math]),
-            ClampNumber | WrapNumberPeriodic | ArgMin | ArgMax | IndexOf | SearchSorted => {
-                value(&[Number])
-            }
+            ClampNumber | WrapNumberPeriodic => value(&[Number]),
+            // An index is an integer.
+            ArgMin | ArgMax | IndexOf | SearchSorted => value(&[Integer]),
             IntComma => value(&[Integer]),
             Pluralize => value(&[Text]),
             And | Or | Xor | Iff | Implies | Not | IsInteger | IsNumber | IsBetween | When => {
@@ -542,6 +542,10 @@ impl ComponentType {
         }
     }
 }
+
+#[path = "types.props.rs"]
+mod props;
+pub use props::{COMMON, PropType};
 
 #[cfg(test)]
 #[path = "types.test.rs"]

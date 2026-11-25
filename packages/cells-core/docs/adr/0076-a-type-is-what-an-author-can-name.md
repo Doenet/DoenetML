@@ -334,8 +334,27 @@ Each step leaves the tests passing.
    What the tests found: an `<angle>` is its measure (D69), where today
    nothing reads it as one; a `<clampNumber>` declares no text; a line
    has no `equation` prop, so it declares no stand-in yet.
-   Left: each prop's type, and the type each attribute and child
-   position wants (§4, §7); `cells-docgen`'s export.
+   Each prop's type (2026-11-25, `types.props.rs`): every single-cell,
+   combined and list prop of every type has one (`ComponentType::prop_type`):
+   a type, a list of a type, or given by the element (an answer's
+   response, a `<sort>`'s values, a structural sequence's `from`). A name
+   that means one thing everywhere (`hide`, `anchorX`, `numComponents`,
+   the display settings) is declared once (`COMMON`), the rest per type,
+   and a list type's list and items follow its `ListOf`. Tests hold them
+   to `PropDef::text`, `expr_of`, `ListLen`, the on/off attributes,
+   `TextKind`, `ResponseKind` and each type's bare reference. They agreed
+   everywhere once `argMin`, `argMax`, `indexOf` and `searchSorted`
+   were integers. Some props are a **code**, a number the core reads where
+   an author would name something else, with no type until it is held as
+   one: a curve's `curveType` (a text in the current core), a section's
+   and an aside's `label` (its tag), a function's `pieces`, a
+   `<summaryStatistics>`'s `statisticsShown`, an `<updateValue>`'s
+   `target`, and a `<functionIterates>`'s `iterates` and
+   `allIteratesWithInitial` (lengths of what the current core holds as
+   lists); a renderer's sample runs (`curve`, `samples`, `samplesX`) are
+   codes too.
+   Left: the type each attribute and child position wants (§4, §7);
+   `cells-docgen`'s export.
 2. `fit` (§3, §4) as a function over the declarations, tested against
    REF-5's table and ADR 0064's probe table, called by nothing.
    **Done** (2026-11-25), but for a line's equation (step 1): `fit` and

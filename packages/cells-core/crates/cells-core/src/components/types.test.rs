@@ -494,3 +494,182 @@ fn fit_allows_every_extend_the_flags_allow() {
         }
     }
 }
+
+// --- Step 1: each prop's type agrees with today's flags. ---
+
+/// Every name `$x.name` reads on a type: its single-cell props, its
+/// combined props and its list's names.
+fn prop_names(t: ComponentType) -> Vec<&'static str> {
+    let def = t.def();
+    let mut names: Vec<&'static str> = t.prop_defs().iter().map(|p| p.name).collect();
+    names.extend(def.combined_props.iter().map(|(n, _)| *n));
+    if let Some(list) = t.list() {
+        names.extend(list.names.iter().copied());
+    }
+    names
+}
+
+/// `t` is the value type `want`, or a type that *is a* it.
+fn is(t: Option<PropType>, want: ComponentType) -> bool {
+    matches!(t, Some(PropType::Is(x)) if is_a(x, want)) || t == Some(PropType::ByElement)
+}
+
+#[test]
+fn every_prop_has_a_type() {
+    let mut missing = Vec::new();
+    for &t in ComponentType::ALL {
+        for name in prop_names(t) {
+            if t.prop_type(name).is_none() {
+                missing.push(format!("{t:?}.{name}"));
+            }
+        }
+    }
+    assert!(missing.is_empty(), "no type declared: {missing:?}");
+}
+
+/// A type declares only names it has, and none [`COMMON`] already says.
+#[test]
+fn a_types_declarations_are_its_own() {
+    let mut wrong = Vec::new();
+    for &t in ComponentType::ALL {
+        let names = prop_names(t);
+        for &(name, ty) in t.declared_props() {
+            if !names.contains(&name) {
+                wrong.push(format!("{t:?} declares `{name}`, which it does not have"));
+            }
+            if COMMON.contains(&(name, ty)) {
+                wrong.push(format!("{t:?} declares `{name}` as COMMON does"));
+            }
+        }
+    }
+    assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+}
+
+#[test]
+fn an_items_type_is_its_lists_entry() {
+    assert_eq!(
+        C::Polygon.prop_type("vertex2"),
+        Some(PropType::Is(C::Point))
+    );
+    assert_eq!(
+        C::NumberList.prop_type("number3"),
+        Some(PropType::Is(C::Number))
+    );
+    assert_eq!(
+        C::NumberList.prop_type("values"),
+        Some(PropType::ListOf(C::Number))
+    );
+    assert_eq!(C::Sort.prop_type("values"), Some(PropType::ByElement));
+    assert_eq!(C::Line.prop_type("point1"), Some(PropType::Is(C::Point)));
+    assert_eq!(C::Polygon.prop_type("vertex"), None);
+}
+
+/// A prop held as text is a text; one that stands for an expression is a
+/// math; a list's length is an integer; one an on/off attribute gives is
+/// a boolean.
+#[test]
+fn a_props_type_agrees_with_how_it_is_held() {
+    use crate::components::{AttrKind, PropFrom};
+    for &t in ComponentType::ALL {
+        for (i, p) in t.prop_defs().iter().enumerate() {
+            let ty = t.prop_type(p.name);
+            let at = format!("{t:?}.{} is {ty:?}", p.name);
+            if p.text {
+                assert!(is(ty, C::Text), "{at}, held as text");
+            }
+            if t.expr_of(i).is_some() {
+                assert!(is(ty, C::Math), "{at}, an expression prop");
+            }
+            if p.from == PropFrom::ListLen {
+                assert_eq!(ty, Some(PropType::Is(C::Integer)), "{at}, a list's length");
+            }
+            let attr = p.attr.unwrap_or(p.name);
+            let on_off = t.def().attributes.iter().any(|a| {
+                a.name == attr
+                    && matches!(
+                        a.kind,
+                        AttrKind::Flag { .. } | AttrKind::Bool { .. } | AttrKind::LiteralFlag
+                    )
+            });
+            if on_off {
+                assert_eq!(
+                    ty,
+                    Some(PropType::Is(C::Boolean)),
+                    "{at}, an on/off attribute"
+                );
+            }
+        }
+    }
+}
+
+/// The props a type's text shows, and an answer's response reads, are of
+/// the kind they are shown or read as.
+#[test]
+fn shown_and_read_props_are_their_kind() {
+    for &t in ComponentType::ALL {
+        let of = |pi: usize| t.prop_type(t.prop_defs()[pi].name);
+        let shown: Vec<(usize, ComponentType)> = match t.text_kind() {
+            Some(TextKind::Number(v) | TextKind::Grouped(v)) => vec![(v, C::Number)],
+            Some(TextKind::Text(v)) => vec![(v, C::Text)],
+            Some(TextKind::Boolean(v)) => vec![(v, C::Boolean)],
+            Some(TextKind::Math(e, v)) => vec![(e, C::Math), (v, C::Math)],
+            Some(TextKind::Held(v)) => vec![(v, C::Math)],
+            Some(TextKind::Pair(x, y)) => vec![(x, C::Number), (y, C::Number)],
+            Some(TextKind::Tuple(n, _)) => vec![(n, C::Integer)],
+            _ => vec![],
+        };
+        for (pi, want) in shown {
+            assert!(is(of(pi), want), "{t:?} shows {:?} as a {want:?}", of(pi));
+        }
+        let read = match t.response() {
+            Some(ResponseKind::Math(pi)) => Some((pi, C::Math)),
+            Some(ResponseKind::Boolean(pi)) => Some((pi, C::Boolean)),
+            Some(ResponseKind::Text(pi)) => Some((pi, C::Text)),
+            Some(ResponseKind::Index(pi)) => Some((pi, C::Integer)),
+            None => None,
+        };
+        if let Some((pi, want)) = read {
+            assert!(
+                is(of(pi), want),
+                "a response reads {t:?}'s {:?} as a {want:?}",
+                of(pi)
+            );
+        }
+    }
+}
+
+/// The nearest of the five value types `t` *is a*.
+fn value_base(t: ComponentType) -> Option<ComponentType> {
+    supertypes(t)
+        .into_iter()
+        .find(|s| matches!(s, C::Integer | C::Number | C::Math | C::Text | C::Boolean))
+}
+
+/// A bare reference reads a prop of the element's own type: a value's is
+/// its value type, an input's or an angle's what it stands in as, a list's
+/// its list.
+#[test]
+fn a_bare_reference_reads_a_prop_of_the_elements_type() {
+    for &t in ComponentType::ALL {
+        let Some(default) = t.default_prop() else {
+            continue;
+        };
+        let have = t.prop_type(default);
+        let want = match t.type_decl() {
+            TypeDecl::Named(x) => match x.stands_in {
+                Some(s) => Some(PropType::Is(s.ty())),
+                None if x.kind == TypeKind::Value => value_base(t).map(PropType::Is),
+                // An object's bare reference is a prop of its own (a
+                // point's coordinates, a function's expression).
+                None => None,
+            },
+            TypeDecl::ListOf(entry) => Some(PropType::ListOf(entry)),
+            TypeDecl::ByElement => Some(PropType::ByElement),
+            // A list over a math value reads as the value (ADR 0063).
+            TypeDecl::Presents(_) => None,
+        };
+        if let Some(want) = want {
+            assert_eq!(have, Some(want), "{t:?}'s bare reference `{default}`");
+        }
+    }
+}
