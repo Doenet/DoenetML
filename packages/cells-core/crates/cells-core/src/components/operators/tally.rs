@@ -13,34 +13,41 @@
 //! `<number>x</number>`) equals no category. Two written categories that
 //! compare equal are the current core's warning.
 //!
-//! The categories are the ones declared: a count of them is a static
-//! sequence. Counting the distinct values when none are declared, a
-//! count that follows the values, is not supported (ADR 0078), but for
-//! no operands, which have none.
+//! Its list is capped (ADR 0041 decision 2, ADR 0086): with declared
+//! categories, one entry per category, all live; with none, one entry
+//! per operand, the first as many as there are distinct values
+//! (`numComponents`, the live length) counting each in order
+//! ([`SymKind::TallyDistinct`]), the rest the missing value and their
+//! rows hidden, and `categories` the distinct values themselves.
 
-use super::sort::{Mode, mode_of, operand_ports, operands_of, pieces_of, real_number};
+use super::sort::{Mode, Operand, mode_of, operand_ports, operands_of, pieces_of, real_number};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::{Error, Result};
 use crate::limits::byte;
-use crate::program::{OpSpec, SymKind};
+use crate::program::{OpSpec, SymKind, VecOp};
 
 component! {
     /// `<tally categories="4 3 2 1">1 4 1 2 2 2 4</tally>`: how many of
     /// its operands equal each category (`2, 0, 3, 2`), as a list of
     /// numbers (`numbers`, `number1`, ...), and the categories in the
-    /// same order (`categories`). A request cannot change a count.
+    /// same order (`categories`). With no `categories`, the categories
+    /// are the distinct values in order (`<tally>1 4 1</tally>` is `2, 1`
+    /// of `1, 4`), a capped list as long as its operands whose live
+    /// length is `numComponents`. A request cannot change a count.
     tags: ["tally"],
     flags: [copyable],
     default_prop: numbers,
     props {
-        numComponents: list_len { rendered },
+        // How many categories: the live length.
+        numComponents: by_planner { rendered },
     }
     list {
         names: [numbers, values],
         item: number,
         values: number of Number,
         rendered: true,
+        live: numComponents,
         sequences: [categories],
     }
     alternate_names {
@@ -57,12 +64,18 @@ component! {
     planner: Plan(plan),
 }
 
-/// Its declared categories, which it counts one entry each (ADR 0078).
+/// Its declared categories, which it counts one entry each (ADR 0078);
+/// with none, its operands, at most one category each (ADR 0086).
 fn categories(record: &Record) -> Vec<ListPiece> {
-    Attrs::of(record).categories
+    let attrs = Attrs::of(record);
+    if attrs.categories.is_empty() {
+        attrs.children
+    } else {
+        attrs.categories
+    }
 }
 
-/// One count per category.
+/// One count per category, or per operand.
 fn one_each(_: &Record, n: usize) -> usize {
     n
 }
@@ -86,16 +99,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let entries = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let n = entries.len();
-    if attrs.categories.is_empty() {
-        if n > 0 {
-            return Err(Error::Unsupported(
-                "<tally> with no `categories`: counting the distinct values, a count that follows the values".into(),
-            ));
-        }
+    if attrs.categories.is_empty() && n == 0 {
         // No operands: nothing to count, and no category.
         let mut wiring = ElemWiring::with_list(ty, 0);
         wiring.set_sequence("categories", Vec::new());
-        wiring.set_planned(Planned {});
+        wiring.set_hides(Vec::new());
+        wiring.set_planned(Planned {
+            numComponents: Wire::constant(0.0),
+        });
         return Ok(wiring);
     }
     let pieces = pieces_of(ctx, attrs.r#type.as_deref(), &entries);
@@ -106,6 +117,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             "a <tally> of points or vectors: only numbers, texts, math and booleans are counted"
                 .into(),
         ));
+    }
+    if attrs.categories.is_empty() {
+        return plan_distinct(ctx, ops, mode);
     }
     let cats = ctx.list_entries(attrs.categories, f64::INFINITY)?;
     let k = cats.len();
@@ -189,7 +203,59 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     wiring.set_entries(counts);
     wiring.set_sequence("categories", shown);
-    wiring.set_planned(Planned {});
+    // Every declared category is live.
+    wiring.set_hides((0..k).map(|_| Wire::constant(0.0)).collect());
+    wiring.set_planned(Planned {
+        numComponents: Wire::constant(k as f64),
+    });
+    Ok(wiring)
+}
+
+/// A tally with no declared categories (ADR 0086): a capped list, one
+/// entry per operand, of [`SymKind::TallyDistinct`]'s outputs: as many
+/// live as there are distinct values, each counting one in order, its
+/// category the first operand equal to it (shown: a request on it is
+/// dropped), the rest the missing value and their rows hidden.
+fn plan_distinct(ctx: &mut PlanCtx<'_, '_>, ops: Vec<Operand>, mode: Mode) -> Result<ElemWiring> {
+    let ty = ctx.component_type();
+    let n = ops.len();
+    if n > 64 {
+        return Err(Error::Unsupported(format!(
+            "<{}> of more than 64 operands with no `categories`",
+            ty.tag()
+        )));
+    }
+    let mut wiring = ElemWiring::with_list(ty, n);
+    let values = operand_ports(ctx, &mut wiring, &ops, mode, true)?;
+    let head = wiring.hidden(Source::computed(
+        OpSpec::Sym(SymKind::TallyDistinct {
+            n: byte(n),
+            kinds: 0,
+        }),
+        values.clone(),
+    ));
+    let out = |wiring: &mut ElemWiring, j: usize| {
+        wiring.hidden(Source::Flow(Flow::VecOut(head, byte(j))))
+    };
+    let shown: Vec<Port> = values
+        .iter()
+        .map(|&v| wiring.hidden(Source::computed(OpSpec::Shown, vec![v])))
+        .collect();
+    let mut categories = Vec::with_capacity(n);
+    let mut counts = Vec::with_capacity(n);
+    for k in 0..n {
+        let first = out(&mut wiring, 1 + k);
+        let mut args = vec![first];
+        args.extend(&shown);
+        categories.push(Source::computed(OpSpec::Vec(VecOp::Choose { n: byte(n) }), args).into());
+        counts.push(Wire::own(out(&mut wiring, 1 + n + k)));
+    }
+    wiring.set_entries(counts);
+    wiring.set_sequence("categories", categories);
+    wiring.hide_past(head, None);
+    wiring.set_planned(Planned {
+        numComponents: Wire::own(head),
+    });
     Ok(wiring)
 }
 
