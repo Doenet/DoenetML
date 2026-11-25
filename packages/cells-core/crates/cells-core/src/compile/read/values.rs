@@ -60,6 +60,22 @@ impl<'a> SourceReader<'a> {
         t: TemplateId,
         p: RefId,
     ) -> Option<ValueKind> {
+        let kind = self.ref_value_kind_held(ar, t, p);
+        // The typing stage's answer allows planning's (ADR 0076, Migration
+        // step 3): every document a test loads compares the two.
+        #[cfg(debug_assertions)]
+        if let (Some(kind), super::types::Typed::Is(ty)) = (kind, self.ref_type(ar, t, p)) {
+            debug_assert!(
+                ty.allows(kind),
+                "the typing stage types `{}` as {ty:?}, planning reads it as {kind:?}",
+                display_of(self.dast, &ar.refs[p.index()])
+            );
+        }
+        kind
+    }
+
+    /// [`Self::ref_value_kind`], read off how the referent's prop is held.
+    fn ref_value_kind_held(&self, ar: &Arenas, t: TemplateId, p: RefId) -> Option<ValueKind> {
         let r = &ar.refs[p.index()];
         let mut last = None;
         for step in &r.steps {
