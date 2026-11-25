@@ -354,8 +354,8 @@ export function Cell({ idx }: { idx: number }) {
  * sets its target to its new value's current value, all in one tick. */
 export function TriggerSet({ idx }: { idx: number }) {
     const store = useStore();
-    // `<label>` is a group in the core.
-    const label = childrenOfType(store, idx, "group")[0];
+    // `<label>` stands as its children in the core (ADR 0075).
+    const label = childrenOfType(store, idx, "label")[0];
     function press() {
         store.trigger(idx);
     }

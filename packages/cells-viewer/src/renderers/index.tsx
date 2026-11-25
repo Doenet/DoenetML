@@ -128,6 +128,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
         // A point list's children are points aliasing a shape's own points.
         case "pointList":
         case "group":
+        case "label":
         case "stickyGroup":
             return <Children idx={idx} inGraph={inGraph} />;
         case "p":

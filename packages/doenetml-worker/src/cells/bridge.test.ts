@@ -1544,13 +1544,15 @@ describe("random selections, sequences, reordering and list operators", () => {
         });
         expect((all("indexOf")[0].data as any).props.latex).toBe("3");
 
+        // A scan's entries are math values (ADR 0075): numbers here, drawn
+        // as math, as the current core's math renderer draws them.
         const payload = send("numberInput", "updateValue", { value: 10 });
         const [sum] = all("p") as any[];
         expect(
             sum.children
                 .filter((c: any) => typeof c !== "string")
                 .map((c: any) => payload[c.id]?.changedState),
-        ).toEqual([undefined, { text: "11" }, { text: "13" }]);
+        ).toEqual([undefined, { latex: "11" }, { latex: "13" }]);
     });
 
     it("draws the numbers a sampler or a shuffle drew, the same on every load", async () => {

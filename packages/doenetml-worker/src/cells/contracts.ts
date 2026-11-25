@@ -370,9 +370,10 @@ export function pointLatex(r: Reads, c: number): string {
     );
 }
 
-/** The `<label>` children of `c`: the core makes each a group. */
+/** The `<label>` children of `c`, each a label component standing as its
+ * children (ADR 0075). */
 function labelChildren(table: CellsTable, c: number): number[] {
-    return childrenOfType(table, c, "group");
+    return childrenOfType(table, c, "label");
 }
 
 /** A label: the text of the last `<label>` child (of several, the last
@@ -1702,6 +1703,8 @@ export const TRANSPARENT = new Set([
     "repeatForSequence",
     "collect",
     "group",
+    // A component's label, drawn as a group's children (ADR 0075).
+    "label",
     "pointList",
     "stickyGroup",
     "conditionalContent",
