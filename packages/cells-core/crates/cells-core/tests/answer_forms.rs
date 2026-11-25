@@ -296,5 +296,14 @@ fn a_choices_selected_inside_it_is_no_cycle() {
     assert_eq!(doc.value("c1", "selected"), Some(1.0));
     let value = doc.text_value(doc.cell("ci", "selectedValue").unwrap());
     assert!(value.starts_with("cat "), "{value}");
+    // Shown in text as a boolean.
+    let p = load_unpruned(
+        r#"<choiceInput name="ci"><choice name="c1">cat</choice><choice>dog</choice></choiceInput><p name="p">$c1.selected</p>"#,
+    )
+    .unwrap();
+    assert_eq!(
+        p.rendered_text(p.resolve_path("p").unwrap()).trim(),
+        "false"
+    );
     assert_eq!(reference::check(&doc), None);
 }

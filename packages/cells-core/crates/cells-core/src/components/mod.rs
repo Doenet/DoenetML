@@ -569,9 +569,15 @@ impl ComponentType {
     }
 
     /// What a `$ref` child naming `sel` of this type shows as, when the
-    /// port alone says: an entry of a boolean list is a boolean (ADR 0041).
+    /// port alone says: an entry of a boolean list is a boolean (ADR 0041),
+    /// and so is a prop declared to hold one (ADR 0077).
     pub fn shows_as(self, sel: PropSel) -> Option<Role> {
         match sel {
+            PropSel::At(PropAt::Position(i))
+                if self.prop_defs().get(i).is_some_and(|d| d.boolean) =>
+            {
+                Some(Role::BooleanValue)
+            }
             PropSel::At(PropAt::List | PropAt::Item(_) | PropAt::Coord(..))
                 if self.list_entry() == Some(EntryKind::Boolean) =>
             {
