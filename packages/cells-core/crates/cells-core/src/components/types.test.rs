@@ -2,7 +2,7 @@
 //! step 1), and [`fit`] gives REF-5's answers and ADR 0064's (step 2).
 
 use super::*;
-use crate::components::{EntryKind, PropAt, PropSel, ResponseKind, TextKind};
+use crate::components::{ChildrenKind, EntryKind, PropAt, PropSel, ResponseKind, TextKind};
 use ComponentType as C;
 
 /// Every type an author can name: none the builder makes.
@@ -673,4 +673,148 @@ fn a_bare_reference_reads_a_prop_of_the_elements_type() {
             assert_eq!(have, Some(want), "{t:?}'s bare reference `{default}`");
         }
     }
+}
+
+// --- Step 1: what each place wants. ---
+
+#[test]
+fn every_place_wants_something() {
+    for &t in ComponentType::ALL {
+        for place in t.places() {
+            assert!(t.wants(place).is_some(), "{t:?}'s {place:?}");
+        }
+    }
+    for &(t, place, want) in OVERRIDES {
+        assert!(
+            t.places().contains(&place),
+            "{t:?} has no {place:?} to override"
+        );
+        if let Want::SameAs(other) = want {
+            assert!(
+                t.places().contains(&other),
+                "{t:?}'s {place:?} names {other:?}"
+            );
+        }
+    }
+}
+
+/// An on/off attribute wants a boolean, a point attribute a point, a list
+/// of points a list of them, whatever prop it gives.
+#[test]
+fn a_places_want_agrees_with_its_parse_form() {
+    use crate::components::AttrKind as K;
+    for &t in ComponentType::ALL {
+        for a in t.def().attributes {
+            let want = t.wants(Place::Attr(a.name));
+            let at = format!("{t:?}'s `{}` ({:?}) wants {want:?}", a.name, a.kind);
+            let value = |w: Option<Want>, f: &dyn Fn(PropType) -> bool| matches!(w, Some(Want::Value(p)) if f(p));
+            match a.kind {
+                K::Flag { .. } => {
+                    assert_eq!(want, Some(Want::Value(PropType::Is(C::Boolean))), "{at}")
+                }
+                K::Point => assert!(
+                    value(want, &|p| is(Some(p), C::Point)
+                        || p == PropType::Is(C::Math)),
+                    "{at}"
+                ),
+                K::Points { .. } => assert!(
+                    value(want, &|p| p == PropType::ListOf(C::Point)
+                        || p == PropType::ByElement),
+                    "{at}"
+                ),
+                K::Bool { .. } | K::LiteralFlag => {
+                    assert_eq!(want, Some(Want::Literal(C::Boolean)), "{at}")
+                }
+                K::Text => assert_eq!(want, Some(Want::Literal(C::Text)), "{at}"),
+                _ => {}
+            }
+        }
+    }
+}
+
+/// A value's children, where it reads them as a value, want a value of one
+/// of the five value types.
+#[test]
+fn a_values_children_want_a_value() {
+    for &t in ComponentType::ALL {
+        let Some(typing) = t.typing() else { continue };
+        let reads = matches!(
+            t.def().children.kind,
+            ChildrenKind::Value | ChildrenKind::Math
+        );
+        if typing.kind != TypeKind::Value || !reads {
+            continue;
+        }
+        let want = t.wants(Place::Children);
+        assert!(
+            matches!(want, Some(Want::Value(PropType::Is(v))) if value_base(v) == Some(v))
+                || matches!(want, Some(Want::Value(PropType::ByElement))),
+            "{t:?}'s children want {want:?}"
+        );
+    }
+}
+
+#[test]
+fn some_places_and_what_they_want() {
+    use PropType::*;
+    let wants = |t: ComponentType, p| t.wants(p).unwrap();
+    assert_eq!(
+        wants(C::Number, Place::Children),
+        Want::Value(Is(C::Number))
+    );
+    assert_eq!(
+        wants(C::Boolean, Place::Children),
+        Want::Value(Is(C::Boolean))
+    );
+    assert_eq!(wants(C::Point, Place::Children), Want::Value(Is(C::Point)));
+    assert_eq!(
+        wants(C::NumberList, Place::Children),
+        Want::Value(ListOf(C::Number))
+    );
+    assert_eq!(wants(C::Sort, Place::Children), Want::Value(ByElement));
+    assert_eq!(wants(C::P, Place::Children), Want::Content);
+    assert_eq!(
+        wants(C::Point, Place::Attr("x")),
+        Want::Value(Is(C::Number))
+    );
+    assert_eq!(
+        wants(C::Point, Place::Attr("hide")),
+        Want::Value(Is(C::Boolean))
+    );
+    assert_eq!(
+        wants(C::MathInput, Place::Attr("prefill")),
+        Want::Value(Is(C::Math))
+    );
+    assert_eq!(
+        wants(C::MathInput, Place::Attr("bindValueTo")),
+        Want::Value(Is(C::Math))
+    );
+    assert_eq!(
+        wants(C::Polygon, Place::Attr("vertices")),
+        Want::Value(ListOf(C::Point))
+    );
+    assert_eq!(
+        wants(C::UpdateValue, Place::Attr("newValue")),
+        Want::SameAs(Place::Attr("target"))
+    );
+    assert_eq!(C::Number.wants(Place::Attr("nope")), None);
+}
+
+#[test]
+fn the_export_holds_every_type() {
+    let all = export();
+    let n = all["types"].as_object().unwrap().len() + all["internal"].as_object().unwrap().len();
+    assert_eq!(n, ComponentType::ALL.len());
+    let math = &all["types"]["math"];
+    assert_eq!(math["type"]["kind"], "value");
+    assert_eq!(math["props"]["value"], serde_json::json!({ "is": "math" }));
+    assert_eq!(
+        all["types"]["mathInput"]["type"]["standsIn"],
+        serde_json::json!({ "prop": "value", "as": "math", "form": "isItsValue" })
+    );
+    assert_eq!(
+        all["types"]["numberList"]["props"]["numbers"],
+        serde_json::json!({ "listOf": "number" })
+    );
+    assert!(all["internal"]["BoundMatrixInput"].is_object());
 }

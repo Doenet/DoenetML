@@ -551,6 +551,14 @@ impl ComponentType {
 mod props;
 pub use props::{COMMON, PropType};
 
+#[path = "types.places.rs"]
+mod places;
+pub use places::{OVERRIDES, Place, Want};
+
+#[path = "types.export.rs"]
+mod export;
+pub use export::export;
+
 #[cfg(test)]
 #[path = "types.test.rs"]
 mod tests;
