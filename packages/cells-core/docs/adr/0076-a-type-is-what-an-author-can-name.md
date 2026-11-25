@@ -1,7 +1,7 @@
 # A type is what an author can name: one typing stage, three relations, and refinements beneath
 
-Status: proposed 2026-11-25. A draft for review: nothing in it is
-implemented. Replaces the framing of ADR 0064 (its §3, one conversion
+Status: proposed 2026-11-25. Migration step 1 is begun and step 2 is
+done: the declarations and `fit`, which nothing reads yet. Replaces the framing of ADR 0064 (its §3, one conversion
 table, and §4, `PortType::Bool`, become instances of the relations here;
 its §1, §2 and §5 stand). Builds on ADR 0027 (the compile runs in
 stages), ADR 0032 (plans are typed ports), ADR 0041 (every list is a
@@ -319,8 +319,35 @@ Each step leaves the tests passing.
 1. The declarations (§7) beside today's flags, with a test that they
    agree with `EntryKind`, `text`, `reads_as` and the rest for every
    type.
+   **Begun** (2026-11-25): each type's own declaration
+   (`ComponentType::type_decl`, `components/types.rs`): its kind, what it
+   *is a*, what it *stands in as* and in which form, what it *converts
+   to* and each conversion's direction; or a list of a type; or another
+   type's element as the author named it (`Presents`: a list over a math
+   value is a `<mathList>`, a math held as a tuple a `<math>`); or typed
+   by what is written in it (`ByElement`: a composite, a `<sequence>` by
+   its `type`, a `<sort>`, an answer's response). They are one
+   exhaustive match rather than a field of `component!`, so a type
+   without one does not compile; they move into the definitions when the
+   flags go (step 5). Tests (`types.test.rs`) hold them to `reads_as`,
+   `EntryKind`, `ResponseKind`, `TextKind` and each type's default prop.
+   What the tests found: an `<angle>` is its measure (D69), where today
+   nothing reads it as one; a `<clampNumber>` declares no text; a line
+   has no `equation` prop, so it declares no stand-in yet.
+   Left: each prop's type, and the type each attribute and child
+   position wants (§4, §7); `cells-docgen`'s export.
 2. `fit` (§3, §4) as a function over the declarations, tested against
    REF-5's table and ADR 0064's probe table, called by nothing.
+   **Done** (2026-11-25), but for a line's equation (step 1): `fit` and
+   `is_a` (`components/types.rs`), tested against REF-5's pairs and ADR
+   0064 §3's table, and against today's flags: every extend
+   `extends_as` allows fits, reading the prop `extend_reads` names, and
+   every input `input_from_value` refuses to make from a value is a
+   mismatch. Three choices the ADR left open: a conversion straight to
+   the wanted type is chosen over one to a type that *is a* it (a text
+   wanted as a math is parsed as a math, not as a number); a list made
+   from its scalar runs backward; a tuple is a list only when its
+   positions are the same type, not merely related by *is a*.
 3. The typing stage, computing its table and compared against what
    outlining, planning and the seal decide today, reporting nothing.
 4. The stage's diagnostics replace outlining's and planning's, one place
