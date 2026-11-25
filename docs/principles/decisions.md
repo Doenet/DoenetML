@@ -3854,17 +3854,21 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
 
 ## D78. Decisions from the leftovers of #2670 and #2672 (decided, November 2026)
 
-1. **A tag that makes its own content is made only from that very tag, never through a wrapper**
-   (#2676 item 9; refines D48 decision 2). `<repeat extend="$cc"/>`, where the shown case holds a
-   `<repeat>`, stays `e0071`, as do a one-pick `<select>` whose pick holds one and a `<group>`
-   holding only one. **Why:** such a tag's identity is how it makes its content (`for`, its
-   template, its options), not a value. Two cases holding two different repeats are not one
-   repeat, and the source could change kind as the case changes, which a tag written as
-   `<repeat>` must not do (COLL-1). Nothing is lost: `$cc` shows what the case shows, `$cc[1]`
-   reaches into it (D72), and a repeat named alike in each case is `<repeat extend="$cc.r"/>`
-   (D74 decides whether the cases agree). A value tag made from a one-shown-thing
-   (`<math extend="$cc"/>`) and a list made from one whose items match (D26) stay allowed: they
-   take a value, which may change, not a tag's way of making content.
+1. **A tag that makes its own content may be made through a one-shown-thing or a group of one
+   that holds that tag** (#2676 item 9; refines D48 decision 2; **revised** the same week, see
+   below). `<repeat extend="$cc"/>`, where every case of `cc` holds one `<repeat>`, is that
+   repeat, and follows the case shown, as `<repeat extend="$cc.r"/>` does; the same for a
+   one-pick `<select>` whose options each hold one, and a `<group>` holding only one. D74 decides
+   whether the branches qualify: a branch holding several components, or another type, is
+   `e0095`; a branch lacking `r` is `e0093`. **Why:** under D74 neither `$cc` nor `$cc.r` can
+   change kind when the case changes; each can only show a different repeat, as a math can show
+   a different value. D72 already makes `$cc` stand for what it shows (`$cc[2]` is the shown
+   repeat's second iteration), so refusing `<repeat extend="$cc"/>` while allowing
+   `<repeat extend="$cc.r"/>` and `$cc[2]` had no reason behind it. It is the same look-through
+   as `<math extend="$cc"/>` (REF-5, COLL-3). D48 decision 2's "only from that very tag" reads
+   through these wrappers; anything else is still `e0071`.
+   *First decided* as "never through a wrapper" (`e0071`), on the grounds that the source could
+   change kind; that was withdrawn because the same holds for `$cc.r`, which D74 already allows.
 2. **Children written on a `copy` of a value or an object replace the source's content**
    (#2677 item 12; REF-4a). The children that make its value (a number's or a math's
    expression, a point's coordinates, a list's entries) are one thing the component uses only
@@ -3881,5 +3885,5 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
    `<math extend="$t"/>` makes. It is missing with `i0053` only when that math is not a measure
    (a tuple, a list, a set).
 
-Implementation: items 2 and 3 with #2677 (PR 68). Item 1 needs no code change: #2670 already
-gives `e0071`; PR 67 pins it with a test.
+Implementation: items 2 and 3 with #2677 (PR 68); item 1 with #2676 item 9 (PR 67): `Copy.js`
+builds the extend from the component the branch shows.
