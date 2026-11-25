@@ -509,8 +509,8 @@ Known violations:
 - **left** (#2669): two false `e0005`s (a group extended with children of its own in an option,
   and a point extended in a `<p>` read in a `<text>` in a label); a composite between the
   container and the tag, and a point's own label in a container, found only after load;
-  `disabled` and `styleNumber` cycles report one of two; a `<p>` in a `<panel>` throws when its
-  state is read (DIAG-5);
+  `disabled` and `styleNumber` cycles report one of two (a `<p>` in a `<panel>` threw;
+  `<panel>` is removed by #2681);
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
@@ -548,7 +548,8 @@ hold nothing, the tag is missing while it does:
 
 | Cause | Diagnostic | While it lasts |
 |---|---|---|
-| no referent, an ambiguous name, a property the type doesn't have, a literal index that names nothing, a name D22's every-branch rule rejects | the same warning as the bare reference (`w0104`, `w0105`, `w0181`, `w0183`) | missing, for good |
+| no referent, an ambiguous name, a property the type doesn't have, a literal index that names nothing | the same warning as the bare reference (`w0104`, `w0105`, `w0181`); an error under D75 (#2674) | missing, for good |
+| a name or index D74's every-branch rule rejects | the same error as the bare reference (`e0093`–`e0095`, since #2679) | in error |
 | no case active, a `<conditionalContent>` with no `<else>`, a case or option holding nothing | info | missing while no case holds one |
 | an index that names nothing because of its value | info `i0054` | missing until it names one |
 | a value that does not convert (`<point extend="$mi"/>` while mi is not a tuple) | info `i0053` | missing until it converts |

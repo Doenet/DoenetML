@@ -160,9 +160,10 @@ The kinds, precisely (Tier 2):
 - **One shown thing:** a `<conditionalContent>`, and a `<select>` or other random chooser with no
   `numToSelect`, or a literal `1`. It is not a collection (D72): an index after it reaches into
   what it shows, as after a `<group>` of one (`$cc[2]` of a shown `(1,2)` is `2`), and through a
-  case or pick of several it names nothing. It has no `numItems`. **Known violation** (#2673):
-  `$cc[1]` is the shown case, `$cc[2]` names nothing, and `$cc.numItems` is 0 or 1; `$s[2]` of a
-  one-pick select already reaches into the pick, but with a `w0181` that says it names nothing.
+  case or pick of several it names nothing. It has no `numItems`. **Done by #2679** (closing
+  #2673). **Left** (#2682): a select written with `extend`, or with `copy` and no
+  `numToSelect`, of a one-pick select is still a collection, and a copy writing
+  `numToSelect="1"` isn't read as one at load.
 - **Wrappers:** `<group>`, an iteration, a pick and a shown case. A wrapper is not indexable
   itself (COLL-3).
 
@@ -351,7 +352,7 @@ so a `<choiceInput>` of text choices beside a `<number>` is `e0076` at load (it 
 - So `$v` has one type in every iteration, and the template is checked at load.
 - **A name after `$v`** when the items are wrappers follows COLL-2 and COMP-11: `$v.P` resolves
   when every item declares `P` with one type, decided at load. If an item lacks it, it names
-  nothing in every iteration (`w0183`); two types are an error. A repeat's iterations satisfy
+  nothing in every iteration (an error, `e0093`, since #2679); two types are an error. A repeat's iterations satisfy
   this by construction, so a repeat over another repeat goes over records.
 
 **Done by #2600** (closing #2567):
@@ -365,16 +366,16 @@ so a `<choiceInput>` of text choices beside a `<number>` is `e0076` at load (it 
   `<repeat type="text" for="$n">`, are `e0081`;
 - `$v` is typed for the checks at load: `<point extend="$v"/>` over texts is `e0065`, and a
   `<sort>` of `$v` beside a `<text>` in a repeat over maths is `e0076`;
-- a name after `$v` follows the every-item rule: an item lacking it is `w0183` and a blank in
-  every iteration, two tags are `w0184`, each naming the item ("item 2 of the `for`") where its
+- a name after `$v` follows the every-item rule: an item lacking it is `e0093`, two tags are
+  `e0094` (since #2679; they were `w0183` and `w0184`), each naming the item ("item 2 of the `for`") where its
   place is fixed;
 - a `<group>` written as an `extend` or `copy` of another, with children of its own, holds the
   other's children and its own (REF-4), also in a `<sort>` or `<shuffle>`.
 
 **Known violations** (#2569): `$r[2].d.P` (a name after the value, from outside the iteration)
 names nothing, and its `w0193` suggests `$r[2].d.P.P`, which names nothing either; a property
-after a repeat in error (`$rmix.x`) adds `w0104` (DIAG-5); the `item` wording of `w0183` and
-`w0184` is English only. **Fixed by #2602:** a `<slider>` or `<choiceInput>` in `for` is checked at
+after a repeat in error (`$rmix.x`) adds `w0104` (DIAG-5); the `item` wording of `e0093` and
+`e0094` is English only. **Fixed by #2602:** a `<slider>` or `<choiceInput>` in `for` is checked at
 load with its type.
 
 ---
@@ -732,10 +733,10 @@ is shown again is compared again, not trusted (SAVE-1).
   - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
     `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
   - If a case or the `<else>` has no `x`, it is an **error** at the reference, bare or on a tag,
-    decided at load (D74): there is nothing reasonable to show in the branches without it. Today
-    this is warning `w0183` with a blank (**known violation**, #2673).
+    decided at load (D74): there is nothing reasonable to show in the branches without it:
+    **`doenet-e0093`** (done by #2679; it was warning `w0183`).
   - If two of them declare `x` with different types, it is an **error** at the reference, bare
-    or on a tag, decided at load (`w0184` bare, `e0066` on a scalar tag; DIAG-7). A type error is
+    or on a tag, decided at load (`e0094` bare, `e0066` on a scalar tag; DIAG-7). A type error is
     the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
   - So a reference's type, and whether a parent accepts it as a child, never change with the
     active case.
@@ -744,7 +745,10 @@ is shown again is compared again, not trusted (SAVE-1).
   one type. A branch holding several, or single components of different types, is an **error** at
   the reference, decided at load. While the shown branch holds nothing, or no case is shown, the
   index names nothing (a missing value, as `<math extend="$cc"/>` is). The same holds for a
-  one-pick `<select>`'s options.
+  one-pick `<select>`'s options. **Done by #2679:** **`doenet-e0095`**, decided at load, also
+  through names that reach one in each option, case or item. **Left** (#2682): a tag made from
+  a case or pick that holds a `<conditionalContent>` or one-pick `<select>` is a blank with no
+  message.
 - **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
   beside the `<conditionalContent>` does (`doenet-w0105`).
 - **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types is an error. A missing
@@ -761,6 +765,9 @@ is shown again is compared again, not trusted (SAVE-1).
   Give it one, or use a name every case has"). Two tags are **`doenet-w0184`** ("`x` is a
   `<math>` in one case of `cc` and a `<text>` in another"). Both name the reference, which names
   nothing.
+- **Since #2679 (D74):** both are errors and both codes are retired: a branch with no `x` is
+  `doenet-e0093`, two tags `doenet-e0094`, an index into branches that don't qualify
+  `doenet-e0095`. The items below are the history.
 - **Since #2458 (D37):** `w0183` is a warning, bare or on a tag, and the reference is missing
   (`＿`). A mix of types is an **error in both forms**: a bare reference the branches declare
   with different types (`w0184`) is an error shown in its place at load, as `<math extend="$x"/>`

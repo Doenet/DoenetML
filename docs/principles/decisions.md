@@ -3708,7 +3708,7 @@ nothing.
 4. Wording that taught `$s[1]` for a one-pick select (REF-5: "before they learn `$s[1]`") is
    revised.
 
-Implementation: #2673 (PR 65).
+Implementation: **done by #2679** (closing #2673). Leftovers in #2682.
 
 ## D73. A wrapper or conditional with nothing to show shows nothing (decided, November 2026)
 
@@ -3728,8 +3728,8 @@ which disagreed with VAL-5's listing of a `<group>` among the collections.
 3. A tag made from an empty wrapper (`<math extend="$g"/>`) is still missing, since a tag needs one
    component (D37), and an index into one names nothing.
 
-Revises D37 item 2 (the list of what shows nothing) and COLL-3's "None". Implementation: #2673
-(PR 65).
+Revises D37 item 2 (the list of what shows nothing) and COLL-3's "None". Implementation: **done by
+#2679**.
 
 ## D74. A reference whose meaning depends on the branch shown is an error (decided, November 2026)
 
@@ -3754,7 +3754,8 @@ every-branch rule a warning with a blank; this moves it.
 4. These are errors in both forms, bare and on a tag (REF-1), shown in the reference's place
    (DIAG-5). The codes are errors' codes.
 
-Revises D37 item 6 for the every-branch rule. Implementation: #2673 (PR 65).
+Revises D37 item 6 for the every-branch rule. Implementation: **done by #2679** (`e0093`–`e0095`;
+`w0183` and `w0184` retired). Leftovers in #2682 and #2674.
 
 ## D75. A reference the DoenetML proves can never give anything is an error (decided, November 2026)
 

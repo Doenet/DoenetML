@@ -20,8 +20,9 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - **a reference the DoenetML proves can never give anything** (D75): a name with no referent
     (a typo), an ambiguous name, a property the component doesn't have, a literal `$l[0]`, an
     index into a group of several, a name after a collection, a name or index whose meaning
-    depends on the branch shown (D74). There is nothing reasonable to show. **Known violation**
-    (#2674): these are warnings today, shown as a blank.
+    depends on the branch shown (D74). There is nothing reasonable to show. The branch cases are
+    errors since #2679 (`e0093`–`e0095`). **Known violation** (#2674): the others are warnings
+    today, shown as a blank.
 - **Error, too: an attribute the tag doesn't have** (`doenet-e0004`), in every form, on a `copy`,
   `copyWithState` or `extend` too (D76). **Known violation** (#2675): there it is warning
   `doenet-w0187`.
@@ -264,7 +265,7 @@ DoenetML.
 is, also in a case not yet true, an iteration not yet made or an option not picked, and the same
 error is kept once when the content is made (`T/diagnostics/errorsDecidedAtLoad.test.ts`). That
 covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad` in
-`typeChangeAtLoad.ts`), a bare reference of mixed types (`w0184`), a tag extending the
+`typeChangeAtLoad.ts`), a bare reference of mixed types (`e0094`), a tag extending the
 `<conditionalContent>` holding it (`e0005`), and a conversion error such as an unknown tag
 (`e0002`).
 
