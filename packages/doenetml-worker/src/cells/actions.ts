@@ -179,6 +179,19 @@ function polygonDrag(resolver: Resolver): Resolver {
 const fixed: Resolver = () => ({ kind: "none" });
 
 /** Keyed by component type, then action name. */
+/** A division a reader opens and closes (ADR 0084): its own open state,
+ * which shows while it is collapsible. */
+const DIVISION: Record<string, Resolver> = {
+    revealSection: (t, c) => ({
+        kind: "request",
+        pairs: [[cellOf(t, c, "openState"), 1]],
+    }),
+    closeSection: (t, c) => ({
+        kind: "request",
+        pairs: [[cellOf(t, c, "openState"), 0]],
+    }),
+};
+
 export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     // A click or a focus changes nothing of a point: the core's action of
     // that name, which a button may wait on (ADR 0042). The prototype's
@@ -408,6 +421,10 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     triggerSet: {
         triggerActions: (_t, c) => ({ kind: "trigger", component: c }),
     },
+    // A division a reader opens and closes (ADR 0084).
+    section: DIVISION,
+    aside: DIVISION,
+    proof: DIVISION,
     // Derived geometry: what the renderers of the shapes they are drawn as
     // send. An equilibrium point or line and an endpoint move as a point
     // or a line does, and switch their flag on the current core's switch
