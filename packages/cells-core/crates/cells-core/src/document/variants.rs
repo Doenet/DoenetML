@@ -1,4 +1,4 @@
-//! What variant a loaded document is (ADR 0076), as the current core
+//! What variant a loaded document is (ADR 0085), as the current core
 //! reports it: `generatedVariantInfo`.
 
 use serde_json::{Value, json};

@@ -1099,7 +1099,7 @@ pub fn sequence_index(from: f64, step: f64, count: f64, x: f64) -> Option<u64> {
 }
 
 /// A draw that names its picks rather than drawing them: what a
-/// document's variant decides (ADR 0076). `digits`, each below `base`, are
+/// document's variant decides (ADR 0085). `digits`, each below `base`, are
 /// the picks in order (a selection's positions in its sequence, from 0; a
 /// shuffle's order, from 0); the draw is below 0, `-(1 + digits in base
 /// `base`, least first)`, which no draw in `[0, 1)` is.
@@ -1421,7 +1421,7 @@ fn shuffle(draw: f64, values: &[f64], out: &mut [f64]) {
         out.fill(f64::NAN);
         return;
     }
-    // The order a document's variant names (ADR 0076).
+    // The order a document's variant names (ADR 0085).
     if let Some(order) = forced_picks(draw, values.len(), values.len() as u64) {
         for (o, &k) in out.iter_mut().zip(&order) {
             *o = values[k as usize];

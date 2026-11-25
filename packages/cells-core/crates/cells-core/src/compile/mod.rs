@@ -330,7 +330,7 @@ impl Compiler {
             stages::outline::outline(dast, Boxes::new(boxed));
         boxes.restart_if_needed().map_err(one)?;
         // The document's variants, from outlining's elements and the
-        // source's literal attributes (ADR 0076).
+        // source's literal attributes (ADR 0085).
         let variants = variants::analyze(dast, &settled);
         // From here on, every stage reads what outlining settled and none
         // changes it: the element set is outlining's (ADR 0030, ADR 0031),

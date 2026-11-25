@@ -26,7 +26,7 @@ impl Outlining<'_> {
         // (condition attribute, body nodes, weight) per branch, and its key.
         let mut branches: Vec<(Option<AttrId>, Vec<NodeId>, f64)> = Vec::new();
         let mut branch_keys: Vec<Box<str>> = Vec::new();
-        // Each option's `selectForVariants` (ADR 0076).
+        // Each option's `selectForVariants` (ADR 0085).
         let mut for_variants: Vec<Vec<String>> = Vec::new();
         // A case's or option's key (ADR 0017): its name, else its tag and
         // its position among the branches with that tag.

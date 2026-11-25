@@ -343,7 +343,7 @@ component_types! {
     /// `<video>`: a video laid out in the flow (ADR 0078).
     Video => containers::video::DEFINITION,
     /// `<variantControl>`: the document's or a section's variants, read
-    /// when compiled (ADR 0076).
+    /// when compiled (ADR 0085).
     VariantControl => structure::variant_control::DEFINITION,
     ;
     #[cfg(test)] {
@@ -1021,7 +1021,7 @@ impl ComponentType {
                 .is_some_and(|vt| vt == from || ComponentType::extends_as(from, vt))
     }
 
-    /// What the type is to the document's variants (ADR 0076): the
+    /// What the type is to the document's variants (ADR 0085): the
     /// current core's types that create variants, and how each counts
     /// them.
     pub fn creates_variants(self) -> Option<VariantDecl> {

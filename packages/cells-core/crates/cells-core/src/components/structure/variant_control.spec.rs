@@ -1,4 +1,4 @@
-//! `<variantControl>`: the document's variants (ADR 0076;
+//! `<variantControl>`: the document's variants (ADR 0085;
 //! `tests/variants.rs` loads each variant and reads what it picked).
 
 use crate::spec;

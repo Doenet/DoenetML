@@ -12,7 +12,7 @@ pub struct LoadOptions {
     /// The document seed load-time choices draw from: one seed gives one
     /// variant of the document.
     pub seed: u64,
-    /// The variant to load (ADR 0076), any number as the current core's
+    /// The variant to load (ADR 0085), any number as the current core's
     /// `requestedVariantIndex` takes it: rounded and wrapped into the
     /// document's variants. Given, the variant's seed replaces `seed`, and
     /// with unique variants it decides every load-time choice; None loads
@@ -260,7 +260,7 @@ impl Document {
                 options.shares(),
             )?
         };
-        // The variant asked for: its seed is the document's (ADR 0076).
+        // The variant asked for: its seed is the document's (ADR 0085).
         if let Some(requested) = options.variant {
             let chosen = compiled.plans.variants.choose(requested, options.seed);
             session.seed = chosen.draw_seed();

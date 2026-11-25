@@ -1,4 +1,4 @@
-//! A document's variants (ADR 0076): a load names a variant index, which
+//! A document's variants (ADR 0085): a load names a variant index, which
 //! picks the variant's name and seed, and, with unique variants, the
 //! combination of picks of every load-time choice.
 

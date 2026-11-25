@@ -117,7 +117,7 @@ variants its `variantControl` (`numVariants`, `variantNames`, `seeds`,
 `variantsToInclude`, `variantsToExclude`, `uniqueVariants`; also in a
 section) gives it, each naming a combination of its load-time choices
 where they can be counted; an `option`'s `selectForVariants` picks it for
-its variant (ADR 0076). `fixtures/sir.doenet` is a document using most of these.
+its variant (ADR 0085). `fixtures/sir.doenet` is a document using most of these.
 
 ## Running locally
 

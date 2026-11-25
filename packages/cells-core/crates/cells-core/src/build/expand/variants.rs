@@ -1,4 +1,4 @@
-//! Variants at expansion (ADR 0076): what each load-time choice picks in
+//! Variants at expansion (ADR 0085): what each load-time choice picks in
 //! the variant the load asked for, handed down the document as it is
 //! expanded, and the seed a draw takes from the section it sits in.
 

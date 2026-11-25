@@ -1,4 +1,4 @@
-//! A document's variants (ADR 0076): which variants it has, their names
+//! A document's variants (ADR 0085): which variants it has, their names
 //! and seeds, and, where every load-time choice in it can be counted, the
 //! combination of picks each variant index names, as the current core
 //! (`utils/variants.ts`, each type's `determineNumberOfUniqueVariants` and
@@ -117,7 +117,7 @@ pub(crate) struct Variants {
     pub(crate) free_draws: HashSet<(TemplateId, ElemId)>,
 }
 
-/// The variant a load picked for the document (ADR 0076).
+/// The variant a load picked for the document (ADR 0085).
 #[derive(Debug, Clone, Default)]
 pub struct ChosenVariant {
     /// Its index, from 1.
@@ -149,7 +149,7 @@ impl ChosenVariant {
 }
 
 /// The draw seed of a variant seed's text (FNV-1a, which no Rust release
-/// or platform changes): a section's or the document's (ADR 0076).
+/// or platform changes): a section's or the document's (ADR 0085).
 pub(crate) fn seed_hash(seed: &str) -> u64 {
     let h = seed.bytes().fold(0xcbf2_9ce4_8422_2325u64, |h, b| {
         (h ^ b as u64).wrapping_mul(0x0100_0000_01b3)
@@ -1300,7 +1300,7 @@ fn section_variants(control: &Control, product: Option<f64>) -> SectionVariants 
 
 /// The first `max_index` of the unique combinations `1..=n`, shuffled: a
 /// partial Fisher and Yates over a fixed stream, so a document asking for
-/// more variants keeps the ones it had (ADR 0076). The current core
+/// more variants keeps the ones it had (ADR 0085). The current core
 /// shuffles with its own generator (`seedrandom.alea("0")`), so a variant
 /// index names another combination there.
 fn unique_order(n: u64, max_index: u64) -> Vec<u64> {

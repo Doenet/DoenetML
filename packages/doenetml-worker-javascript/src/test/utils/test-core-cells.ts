@@ -1006,7 +1006,7 @@ const STATE: Record<string, Record<string, Reader>> = {
     document: {
         ...containerReaders,
         // The variant it was loaded as and what its variant components
-        // picked (ADR 0076).
+        // picked (ADR 0085).
         generatedVariantInfo: (_g, x) => {
             const v = JSON.parse(x.cells.core.generated_variant_json());
             if (v === null)
@@ -1892,7 +1892,7 @@ const FIELDS: Record<
                     : [],
             ),
     },
-    // The variant the document was loaded as (ADR 0076), as the current
+    // The variant the document was loaded as (ADR 0085), as the current
     // core's shared parameters name it.
     document: {
         sharedParameters: (cells) => {
@@ -2018,7 +2018,7 @@ export async function createTestCoreCells({
         // what a renderer reads. `CELLS_PRUNE=1` loads as a browser does,
         // for timing (`packages/benchmark/scripts/perf-diff.sh`).
         const prune = process.env.CELLS_PRUNE === "1";
-        // The document loads as the variant asked for (ADR 0076), whose
+        // The document loads as the variant asked for (ADR 0085), whose
         // seed is the document's.
         core = new mod.Core(
             bytes,

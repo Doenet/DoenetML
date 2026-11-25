@@ -236,7 +236,7 @@ pub(in crate::build) struct Builder<'c> {
     /// when the failure has no element.
     pub(in crate::build) failed_node: Option<NodeId>,
     /// What the document's variant picks, by the choice's scope and
-    /// element (ADR 0076).
+    /// element (ADR 0085).
     pub(in crate::build) desired: HashMap<(ScopeId, TemplateId, ElemId), Desired>,
     /// The variant index the document's variant gives a section with a
     /// control, by its scope and element.
@@ -1637,7 +1637,7 @@ impl<'c> Builder<'c> {
                 // A number in [0, 1) from the high bits of the select's
                 // stream, which its pick indexes the sequence by.
                 // What the document's variant picks, when it decides them
-                // (ADR 0076).
+                // (ADR 0085).
                 Leaf::Scope(ScopeConst::Draw) => {
                     match self.forced_draw(inst.scope, inst.template, inst.elem) {
                         Some(v) => BuiltSource::Const(v),

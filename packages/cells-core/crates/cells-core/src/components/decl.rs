@@ -147,7 +147,7 @@ pub struct ComponentDef {
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
 
-/// What a type is to the document's variants (ADR 0076), as the current
+/// What a type is to the document's variants (ADR 0085), as the current
 /// core's `createsVariants` types count their unique variants
 /// (`compile/variants.rs`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

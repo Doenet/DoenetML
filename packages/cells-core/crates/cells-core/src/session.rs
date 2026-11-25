@@ -21,7 +21,7 @@ use crate::sym::{Engine, Handle};
 pub struct Session {
     /// The document seed load-time choices draw from.
     pub seed: u64,
-    /// The variant the load picked, when it asked for one (ADR 0076): its
+    /// The variant the load picked, when it asked for one (ADR 0085): its
     /// name and seed, and with unique variants what every load-time choice
     /// picks. Every build reads it.
     pub variant: Option<Arc<crate::compile::variants::ChosenVariant>>,

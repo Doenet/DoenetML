@@ -71,7 +71,7 @@ impl Core {
     /// With `state`, `save_state`'s JSON, the document comes back where the
     /// session left it. With `variant`, a variant index as the current
     /// core's `requestedVariantIndex` takes it, the document loads as that
-    /// variant (ADR 0076), whose seed replaces `seed`.
+    /// variant (ADR 0085), whose seed replaces `seed`.
     #[wasm_bindgen(constructor)]
     pub fn new(
         dast: Vec<u8>,
@@ -103,7 +103,7 @@ impl Core {
         })
     }
 
-    /// The variant the document was loaded as (ADR 0076), as JSON:
+    /// The variant the document was loaded as (ADR 0085), as JSON:
     /// `{index, name, seed, allPossibleVariants, allVariantNames,
     /// uniqueIndex}`; `null` for a document loaded at a seed.
     pub fn variant_json(&self) -> String {
@@ -122,7 +122,7 @@ impl Core {
     }
 
     /// What the document's variant components picked, as the current
-    /// core's `generatedVariantInfo` (ADR 0076), as JSON; `null` when this
+    /// core's `generatedVariantInfo` (ADR 0085), as JSON; `null` when this
     /// core does not report it.
     pub fn generated_variant_json(&self) -> String {
         self.doc

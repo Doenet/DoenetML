@@ -33,7 +33,7 @@ impl<'c> Builder<'c> {
                 let m = picked.entry(b).or_insert(0);
                 *m += 1;
                 let s = self.scope_for(scope, node, pick_position(b, *m));
-                // What the variant picks in this option (ADR 0076).
+                // What the variant picks in this option (ADR 0085).
                 self.assign_option(scope, def.at, j, b, s);
                 self.enter_scope(s, def.branches[b]);
                 kids.extend(self.expand(def.branches[b], s, comp)?);
@@ -163,7 +163,7 @@ impl<'c> Builder<'c> {
             return Vec::new();
         }
         let (t, e) = def.at;
-        // What the document's variant picks (ADR 0076).
+        // What the document's variant picks (ADR 0085).
         if let Some(indices) = self.desired_indices(scope, t, e)
             && indices.iter().all(|&i| i >= 1 && i as usize <= n)
         {
@@ -172,7 +172,7 @@ impl<'c> Builder<'c> {
         let mut h = self.seeded_stream(scope, t, e);
         // The number the check evaluated (ADR 0037).
         let num_to_select = self.compiled.plans.num_to_select(cid);
-        // The options picked for the variant it is in (ADR 0076), in an
+        // The options picked for the variant it is in (ADR 0085), in an
         // order drawn when it picks more than one.
         if !def.for_variants.is_empty()
             && let Some(name) = self.variant_name(scope, t, e)
@@ -283,7 +283,7 @@ impl<'c> Builder<'c> {
     /// every version of the document that keeps the element's key.
     ///
     /// Inside a section with a `<variantControl>`, the section's variant
-    /// seed takes the document seed's place (ADR 0076).
+    /// seed takes the document seed's place (ADR 0085).
     pub(super) fn seeded_stream(&self, scope: ScopeId, t: TemplateId, e: ElemId) -> u64 {
         let key = self.compiled.plans.templates[t.index()].sealed.elems[e.index()].key;
         let seed = self.enclosing_seed(scope, t, e);

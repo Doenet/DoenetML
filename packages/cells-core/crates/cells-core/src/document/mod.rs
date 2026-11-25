@@ -140,7 +140,7 @@ pub struct Loaded {
     pub(crate) version: u64,
     /// The compile's diagnostics.
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
-    /// The document's variant components and variants (ADR 0076).
+    /// The document's variant components and variants (ADR 0085).
     pub(crate) variants: Arc<crate::compile::variants::Variants>,
 }
 
