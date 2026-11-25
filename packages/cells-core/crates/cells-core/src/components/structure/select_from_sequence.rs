@@ -1,15 +1,18 @@
 //! `<selectFromSequence>`: its definition and its planner.
 
+use super::combinations::{self, ComboEntry};
 use super::select_prime_numbers::order;
-use super::select_random_numbers::{draw_count, plan_draws};
+use super::select_random_numbers::{draw_count, plan_draws_avoiding};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::components::values::typed_sequence::{
-    SeqKind, TypedParams, choose, letter_run, math_port, math_values,
+    SeqKind, TypedParams, choose, letter_run, letters_to_number, math_port, math_values_probed,
 };
 use crate::error::{Error, Result};
 use crate::limits::{MAX_VEC_IN, byte};
-use crate::program::{Dist, Order, VecOp, sequence_parameters};
+use crate::program::{
+    Avoid, Dist, Order, VecOp, sequence_count, sequence_index, sequence_parameters,
+};
 
 component! {
     /// `<selectFromSequence from to step length exclude numToSelect
@@ -26,7 +29,9 @@ component! {
     /// parameter of its own (ADR 0059). `type="letters"` and `type="math"`
     /// draw among the values a `<sequence>` of that type lists, counted
     /// when the document is compiled, which a draw of their places picks
-    /// (ADR 0074). `excludeCombinations` and `coprime` are not supported.
+    /// (ADR 0074). Several values avoid the combinations
+    /// `excludeCombinations` names (`(1 _ 3)`, `_` any value) and, with
+    /// `coprime`, a common factor: drawn again until they do (ADR 0079).
     tags: ["selectFromSequence"],
     flags: [copyable],
     default_prop: values,
@@ -54,8 +59,8 @@ component! {
         numToSelect: Literal(1.0),
         r#type: Text,
         exclude: Entries,
-        excludeCombinations: Written,
-        coprime: Written,
+        excludeCombinations: Entries,
+        coprime: Bool(false),
         sort: Text,
         withReplacement: Bool(false),
         hide: Flag(false),
@@ -83,6 +88,7 @@ const DRAW_ON: DrawOn = DrawOn {
         attr::exclude,
         attr::excludeCombinations,
         attr::withReplacement,
+        attr::coprime,
     ],
     children: false,
 };
@@ -97,7 +103,14 @@ fn bounds(attrs: &Attrs) -> Result<(Source, Source, Source)> {
         Some(Source::Leaf(Leaf::Given(v) | Leaf::Const(v))) => Some(Some(*v)),
         Some(_) => None,
     };
-    if let (Some(to), None) = (&attrs.to, &attrs.length) {
+    // With no `from`, literal `to` and `step` count the run down from
+    // `to` toward 1, as a `<sequence>` counts it, below.
+    let counted_down = attrs.from.is_none()
+        && literal(&attrs.to).flatten().is_some()
+        && literal(&attrs.step).is_some();
+    if let (Some(to), None) = (&attrs.to, &attrs.length)
+        && !counted_down
+    {
         let one = || Source::constant(1.0);
         return Ok((
             attrs.from.clone().unwrap_or_else(one),
@@ -137,37 +150,56 @@ fn bounds(attrs: &Attrs) -> Result<(Source, Source, Source)> {
 /// pick is a `VecOp::SequencePick` over hidden ports, the draw, `from`,
 /// `step`, `to` and each exclude, which the draw, a scope constant,
 /// indexes; several are a `VecOp::Draws` of the sequence over the same
-/// ports ([`plan_draws`]). Either folds where its parameters are
+/// ports ([`plan_draws_avoiding`]). Either folds where its parameters are
 /// constants of its scope or one around it. The planner does no
 /// arithmetic on a parameter that is no literal: whether the sequence is
 /// ever too short is the check's.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let mut attrs = Attrs::of(ctx.record());
-    for (banned, written) in [
-        ("excludeCombinations", attrs.excludeCombinations),
-        ("coprime", attrs.coprime),
-    ] {
-        if written {
-            return Err(Error::Unsupported(format!("<selectFromSequence {banned}>")));
-        }
-    }
     let kind = SeqKind::of(attrs.r#type.as_deref());
+    let n = draw_count(
+        "numToSelect",
+        std::mem::replace(&mut attrs.numToSelect, Ok(1.0)),
+    )?;
+    let written = std::mem::take(&mut attrs.excludeCombinations);
+    let has_combos = !written.is_empty();
+    let combos = combinations::parse(ctx, written, n)?;
+    // `coprime` is the current core's warning, and ignored, beside
+    // `excludeCombinations` and on letters or math (ADR 0079).
+    let mut coprime = attrs.coprime;
+    if coprime && kind != SeqKind::Number {
+        ctx.warn(
+            "doenet-w0051",
+            "coprime ignored since not selecting numbers",
+        );
+        coprime = false;
+    } else if coprime && has_combos {
+        ctx.warn(
+            "doenet-w0052",
+            "coprime ignored since excludeCombinations specified",
+        );
+        coprime = false;
+    }
     if kind != SeqKind::Number {
-        return plan_typed(ctx, attrs, kind);
+        return plan_typed(ctx, attrs, kind, n, combos);
     }
     let exclude = exclude_sources(ctx, std::mem::take(&mut attrs.exclude))?;
     let (from, step, to) = bounds(&attrs)?;
-    let n = draw_count("numToSelect", attrs.numToSelect)?;
     let order = order(attrs.sort)?;
     let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
-    let mut wiring = if n == 1 {
+    let replace = attrs.withReplacement;
+    let avoid = avoid_numbers(&combos, coprime, n, replace, (&from, &step, &to), &exclude)?;
+    let mut wiring = if n == 1 && avoid == Avoid::Nothing {
         one_pick(ctx, from, step, to, exclude)?
     } else {
         let dist = Dist::Sequence {
-            replace: attrs.withReplacement,
+            replace,
             order,
+            avoid,
         };
-        plan_draws(ctx, dist, n, vec![from, step, to], exclude, DRAW_ON)?.0
+        let combos = combinations::sources(&combos, |t| t.parse().ok())?;
+        let params = vec![from, step, to];
+        plan_draws_avoiding(ctx, dist, n, params, exclude, combos, DRAW_ON)?.0
     };
     let value = if n == 0 {
         Wire::absent()
@@ -176,6 +208,111 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     wiring.set_planned(Planned { value, hide });
     Ok(wiring)
+}
+
+/// The most values of a sequence of literal parameters the planner lists
+/// to decide, as the current core does before it draws, whether a
+/// selection can avoid what it must; past it, the draw decides.
+const MAX_LISTED: f64 = 100_000.0;
+
+/// What a selection of `n` numbers from the sequence `from, step, to`,
+/// less `exclude`, avoids (ADR 0079): the combinations `combos`, else,
+/// with `coprime` and more than one value, a common factor, else nothing.
+/// What the current core refuses before it draws is refused here when the
+/// parameters are literals: combinations excluding over 70% of the draws
+/// (`doenet-e0044`), and a `coprime` selection from values that are no
+/// positive whole numbers (`doenet-e0041`), whose `from` and `step` share
+/// a factor (`doenet-e0042`), of a single value but 1 (`doenet-e0043`), or
+/// of values that all share one (`doenet-e0045`).
+fn avoid_numbers(
+    combos: &[Vec<ComboEntry>],
+    coprime: bool,
+    n: usize,
+    replace: bool,
+    (from, step, to): (&Source, &Source, &Source),
+    exclude: &[Source],
+) -> Result<Avoid> {
+    let lit = |s: &Source| match s {
+        Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(*v),
+        _ => None,
+    };
+    let domain = |reason: &str| Error::ChoiceDomain {
+        tag: "selectFromSequence".into(),
+        reason: reason.into(),
+    };
+    let excluded: Option<Vec<f64>> = exclude.iter().map(lit).collect();
+    let params = match (lit(from), lit(step), lit(to)) {
+        (Some(f), Some(s), Some(t)) if s != 0.0 => Some((f, s, sequence_count(f, s, t))),
+        _ => None,
+    };
+    // The values left to draw, when every parameter is a literal.
+    let left: Option<Vec<f64>> = match (params, &excluded) {
+        (Some((f, s, count)), Some(ex)) if count <= MAX_LISTED => {
+            let hit: Vec<u64> = ex
+                .iter()
+                .filter_map(|&x| sequence_index(f, s, count, x))
+                .collect();
+            Some(
+                (0..count.max(0.0) as u64)
+                    .filter(|k| !hit.contains(k))
+                    .map(|k| f + s * k as f64)
+                    .collect(),
+            )
+        }
+        _ => None,
+    };
+    if !combos.is_empty() {
+        let number = |t: &str| t.parse::<f64>().ok();
+        if let (Some(lits), Some((_, _, count)), Some(ex), Some(left)) = (
+            combinations::literal(combos, number),
+            params,
+            &excluded,
+            &left,
+        ) {
+            let listed = count - ex.len() as f64;
+            let merged = combinations::merged(lits);
+            if combinations::too_many(&merged, listed, left.len() as f64, replace, n) {
+                return Err(domain(
+                    "Excluded over 70% of combinations in selectFromSequence",
+                ));
+            }
+        }
+        return Ok(Avoid::Combinations {
+            m: byte(combos.len()),
+        });
+    }
+    if !coprime {
+        return Ok(Avoid::Nothing);
+    }
+    if let Some((f, s, count)) = params {
+        let last = f + (count - 1.0) * s;
+        if f.fract() != 0.0 || s.fract() != 0.0 || f <= 0.0 || last <= 0.0 {
+            return Err(domain(
+                "Cannot select coprime combinations as not selecting positive integers.",
+            ));
+        }
+        if combinations::gcd(&[f, s]) != 1.0 {
+            return Err(domain(
+                "Cannot select coprime numbers. All possible values share a common factor. (Specified values of \"from\" or \"to\" must be coprime with \"step\".)",
+            ));
+        }
+    }
+    if n <= 1 {
+        return Ok(Avoid::Nothing);
+    }
+    if let (Some((f, _, count)), Some(ex), Some(left)) = (params, &excluded, &left) {
+        if count - ex.len() as f64 <= 1.0 && (f > 1.0 || ex.contains(&1.0)) && left.len() <= 1 {
+            return Err(domain(
+                "Cannot select coprime combinations from a single number that is not 1.",
+            ));
+        }
+        if !left.is_empty() && combinations::gcd(left) != 1.0 {
+            return Err(domain(
+                "Could not select coprime numbers. All possible values share a common factor.",
+            ));
+        }
+    }
+    Ok(Avoid::Factor)
 }
 
 /// Its excludes, each piece a number or a reference, as a list writes
@@ -211,7 +348,13 @@ fn exclude_sources(ctx: &mut PlanCtx<'_, '_>, pieces: Vec<ListPiece>) -> Result<
 /// compiled, each a hidden port shown (a pick is fixed), and the draw is
 /// of their places, each entry the value at its place ([`choose`]); math
 /// is never sorted, as the current core leaves it.
-fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<ElemWiring> {
+fn plan_typed(
+    ctx: &mut PlanCtx<'_, '_>,
+    attrs: Attrs,
+    kind: SeqKind,
+    n: usize,
+    combos: Vec<Vec<ComboEntry>>,
+) -> Result<ElemWiring> {
     let tag = ctx.component_type().tag();
     let written = attrs.r#type.as_deref().unwrap_or("").trim().to_string();
     let text = |ctx: &PlanCtx<'_, '_>, name: &str, source: &Option<Source>| match source {
@@ -248,7 +391,6 @@ fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<
         length,
         exclude,
     };
-    let n = draw_count("numToSelect", attrs.numToSelect)?;
     let hide = Wire::scalar(attrs.hide, GivenId::Attr(attr::hide, 0));
     let replace = attrs.withReplacement;
     let mut wiring = ElemWiring::with_entries(ctx.component_type(), n, kind.entry());
@@ -264,7 +406,11 @@ fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<
                 )));
             }
             let order = order(attrs.sort)?;
-            let picks = draws(&mut wiring, n, replace, order, |w| {
+            let letters = |t: &str| letters_to_number(t);
+            let numbers = run.numbers()?;
+            avoid_typed(&combos, letters, numbers.len(), replace, n)?;
+            let combos = combinations::sources(&combos, letters)?;
+            let picks = draws(&mut wiring, n, replace, order, combos, |w| {
                 let mut params = vec![
                     constant(w, run.from),
                     constant(w, run.step),
@@ -276,12 +422,29 @@ fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<
             picks.into_iter().map(|p| run.of_port(p).into()).collect()
         }
         SeqKind::Math => {
-            let values: Vec<Port> = math_values(&params)?
+            // Each combination's entry is the place of the value it equals
+            // (from 1), 0 for none, which no draw is.
+            let probes: Vec<String> = combos
+                .iter()
+                .flatten()
+                .filter_map(|e| match e {
+                    ComboEntry::Text(t) => Some(t.clone()),
+                    _ => None,
+                })
+                .collect();
+            let (trees, places) = math_values_probed(&params, &probes)?;
+            let place = |t: &str| {
+                let k = probes.iter().position(|p| p == t)?;
+                Some(places[k].map_or(0.0, |i| (i + 1) as f64))
+            };
+            avoid_typed(&combos, place, trees.len(), replace, n)?;
+            let combos = combinations::sources(&combos, place)?;
+            let values: Vec<Port> = trees
                 .into_iter()
                 .map(|t| math_port(&mut wiring, t))
                 .collect();
             let m = values.len() as f64;
-            let picks = draws(&mut wiring, n, replace, Order::Unsorted, |w| {
+            let picks = draws(&mut wiring, n, replace, Order::Unsorted, combos, |w| {
                 let one = constant(w, 1.0);
                 vec![one, one, constant(w, m)]
             });
@@ -302,6 +465,38 @@ fn plan_typed(ctx: &mut PlanCtx<'_, '_>, attrs: Attrs, kind: SeqKind) -> Result<
     Ok(wiring)
 }
 
+/// What the current core refuses before it draws letters or math avoiding
+/// `combos` (each entry the number `number` reads it as, ADR 0079):
+/// combinations excluding over 70% of the draws of `n` of `left` values.
+/// A combination naming a value by a reference is not supported here.
+fn avoid_typed(
+    combos: &[Vec<ComboEntry>],
+    number: impl Fn(&str) -> Option<f64>,
+    left: usize,
+    replace: bool,
+    n: usize,
+) -> Result<()> {
+    if combos
+        .iter()
+        .flatten()
+        .any(|e| matches!(e, ComboEntry::Ref(_)))
+    {
+        return Err(Error::Unsupported(
+            "<selectFromSequence excludeCombinations> naming letters or math by a reference".into(),
+        ));
+    }
+    if let Some(lits) = combinations::literal(combos, number) {
+        let merged = combinations::merged(lits);
+        if combinations::too_many(&merged, left as f64, left as f64, replace, n) {
+            return Err(Error::ChoiceDomain {
+                tag: "selectFromSequence".into(),
+                reason: "Excluded over 70% of combinations in selectFromSequence".into(),
+            });
+        }
+    }
+    Ok(())
+}
+
 /// `n` values drawn (`VecOp::Draws` of `Dist::Sequence`) from the run
 /// whose `from`, `step`, `to` and excludes `params` makes, hidden ports of
 /// `wiring`; none for none.
@@ -310,6 +505,7 @@ fn draws(
     n: usize,
     replace: bool,
     order: Order,
+    combos: Vec<Source>,
     params: impl FnOnce(&mut ElemWiring) -> Vec<Port>,
 ) -> Vec<Port> {
     if n == 0 {
@@ -317,13 +513,27 @@ fn draws(
     }
     let draw = wiring.draw(DRAW_ON);
     let params = params(wiring);
+    // The combinations its values avoid, as many entries each as values
+    // drawn (ADR 0079).
+    let avoid = if combos.is_empty() {
+        Avoid::Nothing
+    } else {
+        Avoid::Combinations {
+            m: byte(combos.len() / n),
+        }
+    };
     let op = VecOp::Draws {
-        dist: Dist::Sequence { replace, order },
+        dist: Dist::Sequence {
+            replace,
+            order,
+            avoid,
+        },
         n: byte(n),
         n_exclude: byte(params.len() - 3),
     };
     let mut args = vec![draw];
     args.extend(params);
+    args.extend(combos.into_iter().map(|s| wiring.hidden(s)));
     wiring.hidden_vector(op, args)
 }
 

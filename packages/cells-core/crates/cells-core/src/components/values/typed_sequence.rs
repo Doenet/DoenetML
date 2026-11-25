@@ -263,6 +263,16 @@ pub(crate) fn letter_run(p: &TypedParams) -> Result<LetterRun> {
 /// number (none when it is no number, as the current core takes it), less
 /// the values equal to an exclude.
 pub(crate) fn math_values(p: &TypedParams) -> Result<Vec<Tree<RefId>>> {
+    Ok(math_values_probed(p, &[])?.0)
+}
+
+/// A math sequence's values, and the places [`math_values_probed`] found.
+pub(crate) type Probed = (Vec<Tree<RefId>>, Vec<Option<usize>>);
+
+/// [`math_values`], and the place among them (from 0) of the value each
+/// of `probes`, math text, equals; None for one equal to none (ADR 0079:
+/// a combination a selection of math avoids).
+pub(crate) fn math_values_probed(p: &TypedParams, probes: &[String]) -> Result<Probed> {
     let mut en = Engine::new();
     let parse = |en: &mut Engine, attr: &str, s: &str| {
         en.parse(s).map_err(|reason| Error::BadMath {
@@ -324,8 +334,13 @@ pub(crate) fn math_values(p: &TypedParams) -> Result<Vec<Tree<RefId>>> {
         .iter()
         .map(|x| parse(&mut en, "exclude", x))
         .collect::<Result<Vec<_>>>()?;
+    let probes = probes
+        .iter()
+        .map(|x| parse(&mut en, "excludeCombinations", x))
+        .collect::<Result<Vec<_>>>()?;
     let (f, s) = (en.text(from), en.text(step));
     let mut values = Vec::new();
+    let mut places = vec![None; probes.len()];
     for k in 0..whole_length(length)? {
         let v = if k == 0 {
             from
@@ -337,6 +352,11 @@ pub(crate) fn math_values(p: &TypedParams) -> Result<Vec<Tree<RefId>>> {
         if exclude.iter().any(|&x| en.equals(x, v)) {
             continue;
         }
+        for (place, &x) in places.iter_mut().zip(&probes) {
+            if place.is_none() && en.equals(x, v) {
+                *place = Some(values.len());
+            }
+        }
         values.push(en.export(v).ok_or_else(|| {
             Error::Unsupported(format!(
                 "a math sequence's value '{}' a math cell cannot hold",
@@ -344,7 +364,7 @@ pub(crate) fn math_values(p: &TypedParams) -> Result<Vec<Tree<RefId>>> {
             ))
         })?);
     }
-    Ok(values)
+    Ok((values, places))
 }
 
 /// A hidden port of `wiring` showing the expression `tree`, which no

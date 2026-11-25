@@ -1068,6 +1068,11 @@ impl<'a> Analysis<'a> {
         if d.attr_peek(n, "excludeCombinations").is_some() {
             return None;
         }
+        // Coprime picks are counted only when `coprime` is literally false,
+        // as the current core counts them (ADR 0079).
+        if text("coprime")?.is_some_and(|s| !s.eq_ignore_ascii_case("false")) {
+            return None;
+        }
         let value = |s: &str| -> Option<f64> {
             if letters_type {
                 letters_number(s)

@@ -1,11 +1,12 @@
 //! `<selectRandomNumbers>`: its definition and its planner, and what the
 //! samplers of random and prime numbers share ([`plan_draws`]).
 
+use super::distributions::{self, MoreParams, Reported};
 use crate::compile::api::*;
 use crate::components::define::*;
 use crate::error::{Error, Result};
 use crate::limits::{MAX_VEC_IN, byte};
-use crate::program::{Dist, Order, VecOp};
+use crate::program::{Avoid, Dist, Order, VecOp};
 
 component! {
     /// `<selectRandomNumbers type from to step mean standardDeviation
@@ -13,7 +14,9 @@ component! {
     /// drawn at load from the document seed: `uniform` between `from` and
     /// `to` (0 and 1 by default), `discreteUniform` from `from, from +
     /// step, ..., to` less what it excludes, with replacement, or
-    /// `gaussian` about `mean` with `standardDeviation`. The parameters
+    /// `gaussian` about `mean` with `standardDeviation`, or `logNormal`,
+    /// `normalMixture`, `hypergeometric`, `binomial` or `poisson` with the
+    /// current core's parameters (ADR 0079). The parameters
     /// may read any value no student can change (ADR 0037), which the
     /// check makes sure of, with every draw possible. `numToSelect` is a
     /// literal: the list's length is a fact of the source.
@@ -26,6 +29,15 @@ component! {
         mean: by_planner,
         variance: by_planner,
         standardDeviation: by_planner,
+        // The parameters of a distribution that has them (ADR 0079).
+        logMean: by_planner,
+        logStandardDeviation: by_planner,
+        logVariance: by_planner,
+        numTotal: by_planner,
+        numSuccesses: by_planner,
+        numDraws: by_planner,
+        numTrials: by_planner,
+        probability: by_planner,
     }
     list {
         names: [numbers, values],
@@ -48,6 +60,18 @@ component! {
         variance: Scalar,
         exclude: Scalars,
         numToSelect: Literal(1.0),
+        logMean: Scalar,
+        logStandardDeviation: Scalar,
+        logVariance: Scalar,
+        means: Scalars,
+        standardDeviations: Scalars,
+        variances: Scalars,
+        weights: Scalars,
+        numTotal: Scalar,
+        numSuccesses: Scalar,
+        numDraws: Scalar,
+        numTrials: Scalar,
+        probability: Scalar,
     }
     static_count: count,
     children: None,
@@ -68,8 +92,28 @@ pub(super) struct RandomParams {
     /// not given.
     pub(super) variance: Option<Source>,
     pub(super) exclude: Vec<Source>,
+    /// The parameters of the distributions [`super::distributions`]
+    /// plans (ADR 0079).
+    pub(super) more: MoreParams,
     /// What decides the draw: every parameter, and how many are drawn.
     pub(super) on: DrawOn,
+}
+
+/// What a random-number sampler reports of its distribution: its moments,
+/// and the parameters of a distribution that has them, each absent for one
+/// that does not (ADR 0079).
+pub(super) struct RandomProps {
+    pub(super) mean: Wire,
+    pub(super) variance: Wire,
+    pub(super) standard_deviation: Wire,
+    pub(super) log_mean: Wire,
+    pub(super) log_standard_deviation: Wire,
+    pub(super) log_variance: Wire,
+    pub(super) num_total: Wire,
+    pub(super) num_successes: Wire,
+    pub(super) num_draws: Wire,
+    pub(super) num_trials: Wire,
+    pub(super) probability: Wire,
 }
 
 /// How many values a sampler draws, from its literal count attribute
@@ -86,12 +130,12 @@ pub(super) fn draw_count(attr: &str, n: Result<f64>) -> Result<usize> {
 }
 
 /// A random-number sampler's list of `n` values ([`plan_draws`]), from
-/// the distribution `p` names.
+/// the distribution `p` names, and what it reports of it.
 pub(super) fn plan_random(
     ctx: &mut PlanCtx<'_, '_>,
     n: usize,
     p: RandomParams,
-) -> Result<(ElemWiring, [Port; 3])> {
+) -> Result<(ElemWiring, RandomProps)> {
     let kind = p.kind.as_deref().map(|t| t.trim().to_ascii_lowercase());
     let tag = ctx.component_type().tag();
     let refuse_unused = |unused: &[(&str, bool)], kind: &str| -> Result<()> {
@@ -107,15 +151,24 @@ pub(super) fn plan_random(
         ("standardDeviation", p.standard_deviation.is_some()),
         ("variance", p.variance.is_some()),
     ];
+    let range_attrs = [
+        ("from", p.from.is_some()),
+        ("to", p.to.is_some()),
+        ("step", p.step.is_some()),
+        ("exclude", !p.exclude.is_empty()),
+    ];
+    let more_attrs = p.more.given();
     // A default `to` is one past a literal `from`: by 1 for a uniform, by
     // the step for a discrete one.
     let one_past = |from: &Source, by: f64| match from {
         Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(Source::constant(v + by)),
         _ => None,
     };
+    let mut reported = Vec::new();
     let (dist, params, excludes) = match kind.as_deref().unwrap_or("uniform") {
         "uniform" => {
             refuse_unused(&gaussian_attrs, "uniform")?;
+            refuse_unused(&more_attrs, "uniform")?;
             refuse_unused(
                 &[
                     ("step", p.step.is_some()),
@@ -139,6 +192,7 @@ pub(super) fn plan_random(
         }
         "discreteuniform" => {
             refuse_unused(&gaussian_attrs, "discreteUniform")?;
+            refuse_unused(&more_attrs, "discreteUniform")?;
             let (from, step, to) =
                 discrete_bounds(p.from, p.step, p.to, &p.exclude).ok_or_else(|| {
                     Error::Unsupported(format!(
@@ -148,19 +202,13 @@ pub(super) fn plan_random(
             let dist = Dist::Sequence {
                 replace: true,
                 order: Order::Unsorted,
+                avoid: Avoid::Nothing,
             };
             (dist, vec![from, step, to], p.exclude)
         }
         "gaussian" => {
-            refuse_unused(
-                &[
-                    ("from", p.from.is_some()),
-                    ("to", p.to.is_some()),
-                    ("step", p.step.is_some()),
-                    ("exclude", !p.exclude.is_empty()),
-                ],
-                "gaussian",
-            )?;
+            refuse_unused(&range_attrs, "gaussian")?;
+            refuse_unused(&more_attrs, "gaussian")?;
             let mean = p.mean.unwrap_or_else(|| Source::constant(0.0));
             let sd = match (p.standard_deviation, p.variance) {
                 (Some(sd), _) => sd,
@@ -175,13 +223,76 @@ pub(super) fn plan_random(
                     )));
                 }
             };
+            let literal = |s: &Source| match s {
+                Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => Some(*v),
+                _ => None,
+            };
+            if let (Some(m), Some(d)) = (literal(&mean), literal(&sd))
+                && !crate::program::dists::valid_normal(m, d)
+            {
+                ctx.warn(
+                    "doenet-w0126",
+                    &format!(
+                        "Invalid mean ({m}) or standardDeviation ({d}) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled."
+                    ),
+                );
+            }
             (Dist::Gaussian, vec![mean, sd], Vec::new())
         }
-        other => return Err(Error::Unsupported(format!("<{tag} type=\"{other}\">"))),
+        other => {
+            // A poisson's rate is `mean`; no other of these reads the
+            // gaussian's parameters or a range.
+            let own: &[&str] = match other {
+                "lognormal" => &["logMean", "logStandardDeviation", "logVariance"],
+                "normalmixture" => &["means", "standardDeviations", "variances", "weights"],
+                "hypergeometric" => &["numTotal", "numSuccesses", "numDraws"],
+                "binomial" => &["numTrials", "probability"],
+                _ => &[],
+            };
+            let others: Vec<(&str, bool)> = more_attrs
+                .iter()
+                .filter(|(name, _)| !own.contains(name))
+                .copied()
+                .collect();
+            let gaussian_unused = if other == "poisson" {
+                &gaussian_attrs[1..]
+            } else {
+                &gaussian_attrs[..]
+            };
+            let Some(planned) = distributions::plan(ctx, other, p.more, p.mean)? else {
+                return Err(Error::Unsupported(format!("<{tag} type=\"{other}\">")));
+            };
+            refuse_unused(gaussian_unused, other)?;
+            refuse_unused(&range_attrs, other)?;
+            refuse_unused(&others, other)?;
+            reported = planned.reported;
+            (planned.dist, planned.params, Vec::new())
+        }
     };
     let (mut wiring, inputs) = plan_draws(ctx, dist, n, params, excludes, p.on)?;
-    let moments = moments(&mut wiring, dist, inputs);
-    Ok((wiring, moments))
+    let [mean, variance, sd] = moments(&mut wiring, dist, inputs.clone());
+    let report = |name: &str| -> Wire {
+        match reported.iter().find(|(n, _)| *n == name).map(|(_, r)| r) {
+            Some(Reported::Param(k)) => Wire::own(inputs[*k]),
+            Some(Reported::Value(v)) => Source::constant(*v).into(),
+            Some(Reported::Square(k)) => Wire::computed(OpSpec::Mul, vec![inputs[*k], inputs[*k]]),
+            None => Wire::absent(),
+        }
+    };
+    let props = RandomProps {
+        mean: Wire::own(mean),
+        variance: Wire::own(variance),
+        standard_deviation: Wire::own(sd),
+        log_mean: report("logMean"),
+        log_standard_deviation: report("logStandardDeviation"),
+        log_variance: report("logVariance"),
+        num_total: report("numTotal"),
+        num_successes: report("numSuccesses"),
+        num_draws: report("numDraws"),
+        num_trials: report("numTrials"),
+        probability: report("probability"),
+    };
+    Ok((wiring, props))
 }
 
 /// A discrete uniform sampler's `from`, `step` and `to`, defaulted as the
@@ -252,10 +363,25 @@ pub(super) fn plan_draws(
     excludes: Vec<Source>,
     on: DrawOn,
 ) -> Result<(ElemWiring, Vec<Port>)> {
+    plan_draws_avoiding(ctx, dist, n, params, excludes, Vec::new(), on)
+}
+
+/// As [`plan_draws`], the draw also reading, after the excludes, the
+/// combinations its values avoid (`combos`, as many as `dist` declares,
+/// ADR 0079), which the ports given back leave out.
+pub(super) fn plan_draws_avoiding(
+    ctx: &mut PlanCtx<'_, '_>,
+    dist: Dist,
+    n: usize,
+    params: Vec<Source>,
+    excludes: Vec<Source>,
+    combos: Vec<Source>,
+    on: DrawOn,
+) -> Result<(ElemWiring, Vec<Port>)> {
     let ty = ctx.component_type();
-    if 1 + params.len() + excludes.len() > MAX_VEC_IN {
+    if 1 + params.len() + excludes.len() + combos.len() > MAX_VEC_IN {
         return Err(Error::Unsupported(format!(
-            "<{}> excluding more than {} values",
+            "<{}> excluding more than {} values and combinations' entries",
             ty.tag(),
             MAX_VEC_IN - 1 - params.len()
         )));
@@ -272,7 +398,13 @@ pub(super) fn plan_draws(
         .chain(excludes)
         .map(|s| wiring.hidden(param(s)))
         .collect();
+    let avoided: Vec<Port> = combos
+        .into_iter()
+        .map(|s| wiring.hidden(param(s)))
+        .collect();
     if let Some(draw) = draw {
+        let mut inputs = inputs.clone();
+        inputs.extend(avoided);
         let op = VecOp::Draws {
             dist,
             n: byte(n),
@@ -295,42 +427,89 @@ fn moments(wiring: &mut ElemWiring, dist: Dist, inputs: Vec<Port>) -> [Port; 3] 
     [ports[0], ports[1], ports[2]]
 }
 
+/// A random-number sampler's planner after its count `n`: its record's
+/// parameters ([`RandomParams`]), every one deciding its draw with the
+/// count attribute `$count`, planned by [`plan_random`], and its table's
+/// props from what that reports. Each sampler's `Attrs`, `attr` and
+/// `Planned` are its own, so this is a macro over their names.
+macro_rules! plan_random_sampler {
+    ($ctx:ident, $attrs:ident, $n:ident, $count:ident) => {{
+        let more = $crate::components::structure::distributions::MoreParams {
+            log_mean: $attrs.logMean,
+            log_standard_deviation: $attrs.logStandardDeviation,
+            log_variance: $attrs.logVariance,
+            means: $attrs.means,
+            standard_deviations: $attrs.standardDeviations,
+            variances: $attrs.variances,
+            weights: $attrs.weights,
+            num_total: $attrs.numTotal,
+            num_successes: $attrs.numSuccesses,
+            num_draws: $attrs.numDraws,
+            num_trials: $attrs.numTrials,
+            probability: $attrs.probability,
+        };
+        let params = RandomParams {
+            kind: $attrs.r#type,
+            from: $attrs.from,
+            to: $attrs.to,
+            step: $attrs.step,
+            mean: $attrs.mean,
+            standard_deviation: $attrs.standardDeviation,
+            variance: $attrs.variance,
+            exclude: $attrs.exclude,
+            more,
+            on: DrawOn {
+                attrs: &[
+                    attr::r#type,
+                    attr::from,
+                    attr::to,
+                    attr::step,
+                    attr::mean,
+                    attr::standardDeviation,
+                    attr::variance,
+                    attr::exclude,
+                    attr::$count,
+                    attr::logMean,
+                    attr::logStandardDeviation,
+                    attr::logVariance,
+                    attr::means,
+                    attr::standardDeviations,
+                    attr::variances,
+                    attr::weights,
+                    attr::numTotal,
+                    attr::numSuccesses,
+                    attr::numDraws,
+                    attr::numTrials,
+                    attr::probability,
+                ],
+                children: false,
+            },
+        };
+        let (mut wiring, p) = plan_random($ctx, $n, params)?;
+        wiring.set_planned(Planned {
+            mean: p.mean,
+            variance: p.variance,
+            standardDeviation: p.standard_deviation,
+            logMean: p.log_mean,
+            logStandardDeviation: p.log_standard_deviation,
+            logVariance: p.log_variance,
+            numTotal: p.num_total,
+            numSuccesses: p.num_successes,
+            numDraws: p.num_draws,
+            numTrials: p.num_trials,
+            probability: p.probability,
+        });
+        Ok(wiring)
+    }};
+}
+pub(super) use plan_random_sampler;
+
 /// Its list: `numToSelect` values from the distribution its `type`
 /// names ([`plan_random`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let attrs = Attrs::of(ctx.record());
     let n = draw_count("numToSelect", attrs.numToSelect)?;
-    let params = RandomParams {
-        kind: attrs.r#type,
-        from: attrs.from,
-        to: attrs.to,
-        step: attrs.step,
-        mean: attrs.mean,
-        standard_deviation: attrs.standardDeviation,
-        variance: attrs.variance,
-        exclude: attrs.exclude,
-        on: DrawOn {
-            attrs: &[
-                attr::r#type,
-                attr::from,
-                attr::to,
-                attr::step,
-                attr::mean,
-                attr::standardDeviation,
-                attr::variance,
-                attr::exclude,
-                attr::numToSelect,
-            ],
-            children: false,
-        },
-    };
-    let (mut wiring, [mean, variance, sd]) = plan_random(ctx, n, params)?;
-    wiring.set_planned(Planned {
-        mean: Wire::own(mean),
-        variance: Wire::own(variance),
-        standardDeviation: Wire::own(sd),
-    });
-    Ok(wiring)
+    plan_random_sampler!(ctx, attrs, n, numToSelect)
 }
 
 #[cfg(test)]

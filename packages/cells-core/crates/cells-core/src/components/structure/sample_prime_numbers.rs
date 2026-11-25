@@ -52,7 +52,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         attrs: &[attr::from, attr::to, attr::exclude, attr::numSamples],
         children: false,
     };
-    let mut wiring = plan_primes(ctx, n, range, true, Order::Unsorted, on)?;
+    let mut wiring = plan_primes(ctx, n, range, true, Order::Unsorted, Vec::new(), on)?;
     wiring.set_planned(Planned {});
     Ok(wiring)
 }

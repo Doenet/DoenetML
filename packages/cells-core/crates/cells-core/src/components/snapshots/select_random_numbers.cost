@@ -6,6 +6,8 @@ a parameter from a constant: cells 14 · essential 0 · constant 14 · instrs 0 
 a parameter a student can change is refused: cells 3 · essential 1 · constant 2 · instrs 0 · components 4
 a discrete sequence that excludes every value is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
 an unknown type is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+a binomial's moments, and its parameters (ADR 0079): cells 17 · essential 0 · constant 17 · instrs 0 · components 7
+another distribution's parameter is refused (ADR 0079): cells 2 · essential 0 · constant 2 · instrs 0 · components 2
 the distribution's moments: uniform: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
 the distribution's moments: discrete, less what it excludes: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
 a gaussian by its variance: cells 9 · essential 0 · constant 9 · instrs 0 · components 3

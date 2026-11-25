@@ -83,4 +83,34 @@ spec! {
         doenet r#"<selectFromSequence name="s" type="letters" from="a" to="b" numToSelect="3"/>"#;
         diagnostics["cells-choice-domain"]
     }
+
+    case "excluded combinations are avoided, `_` any value (ADR 0079)" {
+        doenet r#"<selectFromSequence name="s" from="1" to="2" numToSelect="2" excludeCombinations="(1 2)"/>
+                  <selectFromSequence name="t" from="1" to="3" numToSelect="2" excludeCombinations="(1 _) (_ 1)" sort="increasing"/>
+                  <numberList name="ec">1 3</numberList>
+                  <number name="e">3</number>
+                  <selectFromSequence name="u" from="1" to="3" numToSelect="2" excludeCombinations="$ec ($e 1) (2 1) (2 3) (3 2)"/>"#;
+        expect { "s.values" = [2, 1], "t.values" = [2, 3], "u.values" = [1, 2] }
+    }
+
+    case "combinations excluding over 70% of the draws are refused (ADR 0079)" {
+        doenet r#"<selectFromSequence name="s" from="1" to="3" numToSelect="3" excludeCombinations="(1 _ _) (_ 1 _) (_ _ 1)"/>"#;
+        diagnostics["cells-choice-domain"]
+    }
+
+    case "coprime values share no factor (ADR 0079)" {
+        doenet r#"<selectFromSequence name="s" from="2" to="3" numToSelect="2" coprime sort="increasing"/>
+                  <selectFromSequence name="t" from="1" to="1" numToSelect="2" coprime withReplacement/>"#;
+        expect { "s.values" = [2, 3], "t.values" = [1, 1] }
+    }
+
+    case "coprime values from values that all share a factor are refused (ADR 0079)" {
+        doenet r#"<selectFromSequence name="s" from="2" to="4" exclude="3" numToSelect="2" coprime/>"#;
+        diagnostics["cells-choice-domain"]
+    }
+
+    case "coprime beside excludeCombinations or on letters is ignored, with a warning (ADR 0079)" {
+        doenet r#"<selectFromSequence name="s" type="letters" from="a" to="b" numToSelect="2" coprime/>"#;
+        diagnostics["doenet-w0051"]
+    }
 }

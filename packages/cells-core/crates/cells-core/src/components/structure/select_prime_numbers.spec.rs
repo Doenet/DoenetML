@@ -43,8 +43,13 @@ spec! {
         expect { "s.numbers" = 7 }
     }
 
-    case "excludeCombinations is refused" {
-        doenet r#"<selectPrimeNumbers name="s" numToSelect="2" excludeCombinations="(2, 3)"/>"#;
-        diagnostics["cells-unsupported"]
+    case "excluded combinations are avoided (ADR 0079)" {
+        doenet r#"<selectPrimeNumbers name="s" numToSelect="2" to="3" excludeCombinations="(2, 3)"/>"#;
+        expect { "s.numbers" = [3, 2] }
+    }
+
+    case "combinations excluding over 70% of the draws are refused (ADR 0079)" {
+        doenet r#"<selectPrimeNumbers name="s" numToSelect="2" to="3" excludeCombinations="(2 _) (3 _)"/>"#;
+        diagnostics["cells-choice-domain"]
     }
 }

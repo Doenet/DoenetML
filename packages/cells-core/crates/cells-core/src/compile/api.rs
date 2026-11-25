@@ -5,7 +5,7 @@
 pub(crate) use super::ir::RefId;
 pub(crate) use super::ir::expr::{ExprId, Token, function_variables, tuple_entries};
 pub(crate) use super::ir::record::{
-    ChildValue, ListPiece, Member, PointAttr, Record, ValueChildren,
+    ChildValue, ListPiece, Member, PieceFrag, PointAttr, Record, ValueChildren,
 };
 pub(crate) use super::ir::{
     Arg, Attr, DefaultPoint, DrawOn, ElemWiring, Flow, GivenId, GivenPoint, Leaf, MathText,
