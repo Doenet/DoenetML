@@ -71,6 +71,7 @@
  * Runs after sugar (which makes an `<else>` a `<case>`) and before the list
  * forms and value references, so that it sees the tags the author wrote.
  */
+import { isShownIndex } from "./oneShownIndexAtLoad";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
@@ -342,12 +343,13 @@ const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
 /**
  * The codes of what `checkTypeChangesAtLoad` finds that make a reference
  * written as a tag name nothing (D37): a literal index past the picks
- * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
- * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
+ * (`doenet-w0181`). The tag is then missing, with the warning. A name the
+ * every-branch rule rejects is an error (`doenet-e0093`, `doenet-e0094`,
+ * D74), as is an index into branches that do not each hold one component
+ * of one type (`doenet-e0095`).
  */
 export const MISSING_AT_LOAD_CODES = new Set([
     "doenet-w0181",
-    "doenet-w0183",
     // a name or a property after a collection (D59,
     // `namesAfterCollectionsAtLoad.ts`), marked before these checks
     "doenet-w0200",
@@ -375,8 +377,9 @@ export function typeChangeAtLoadDiagnostic({
     // `branchNameIssue`) is quoted as a reference.
     const args = [
         "doenet-w0181",
-        "doenet-w0183",
-        "doenet-w0184",
+        "doenet-e0093",
+        "doenet-e0094",
+        "doenet-e0095",
         "doenet-w0200",
     ].includes(mark.code)
         ? { reference: source, ...mark.args }
@@ -1176,7 +1179,15 @@ export function checkTypeChangesAtLoad({
         const start =
             referents.componentsByIdx.get(nodeIdx) ??
             referents.copiesByCreatedIdx.get(nodeIdx);
-        let nodes: SerializedComponent[] = start ? [start] : [];
+        return start ? descendantsNamedIn(start, path) : [];
+    }
+
+    /** `descendantsNamed`, of the component `start`. */
+    function descendantsNamedIn(
+        start: SerializedComponent,
+        path: any[],
+    ): SerializedComponent[] | null {
+        let nodes: SerializedComponent[] = [start];
         for (const part of path) {
             if (part.name === "" || (part.index ?? []).length > 0) {
                 return [];
@@ -1395,14 +1406,16 @@ export function checkTypeChangesAtLoad({
             if (!source) {
                 return undefined;
             }
-            const sourceIsElse =
-                source.componentType === "else" ||
-                attributeOf(source, "condition") === undefined;
-            if (kind === "case" && sourceIsElse !== (written === "else")) {
-                // a case copying an else, or an else copying a case
-                return undefined;
-            }
-            parts.push({ part: source, isElse: sourceIsElse });
+            // Sugar makes an `<else>`, one written with `copy` too, a
+            // `<case>` with no `condition`, and a part written with `copy`
+            // has no attributes of its own (`copiedPart`): it is an else
+            // when what it copies is (`<else copy="$e"/>`).
+            parts.push({
+                part: source,
+                isElse:
+                    source.componentType === "else" ||
+                    attributeOf(source, "condition") === undefined,
+            });
         }
         return parts;
     }
@@ -1468,11 +1481,36 @@ export function checkTypeChangesAtLoad({
         }
         return combineParts(
             options.map(({ part }) =>
-                childrenHolding(part.children, "option", seen),
+                partHolding(part, part.children, "option", seen),
             ),
             notOne,
             "select",
             "option",
+        );
+    }
+
+    /**
+     * What the case or option `part`, whose children are `children`, holds,
+     * for `selectHolding` and `holding`. `skip` when it is being found
+     * already: a part written with `copy` that copies one it is in
+     * (`<option copy="$k"/>` in an option `k`), whose cycle is reported
+     * when the document runs (`doenet-e0005`).
+     */
+    function partHolding(
+        part: SerializedComponent,
+        children: (SerializedComponent | string)[] | undefined,
+        kind: Part,
+        seen: Set<number>,
+    ): Holding {
+        trail.push(part.componentIdx);
+        if (seen.has(part.componentIdx)) {
+            seenHits++;
+            return { types: new Set(), skip: true };
+        }
+        return childrenHolding(
+            children ?? [],
+            kind,
+            new Set(seen).add(part.componentIdx),
         );
     }
 
@@ -1489,7 +1527,8 @@ export function checkTypeChangesAtLoad({
             const hasElse = cases.some(({ isElse }) => isElse);
             return combineParts(
                 cases.map(({ part }) =>
-                    childrenHolding(
+                    partHolding(
+                        part,
                         withoutSugarGroup(part.children),
                         "case",
                         seen,
@@ -1742,7 +1781,9 @@ export function checkTypeChangesAtLoad({
         x: SerializedComponent,
         seen: Set<number>,
     ): Holding | undefined {
-        if (x.componentType === "select") {
+        if (x.componentType === "select" && !x.doenetAttributes?.onePick) {
+            // A pick of a select that picks one is not an instance an index
+            // selects: an index after it reaches into the pick (D72).
             return cachedHolding(instanceByIdx, x, seen, (seenBelow) =>
                 selectHolding(x, undefined, seenBelow),
             );
@@ -1765,13 +1806,6 @@ export function checkTypeChangesAtLoad({
                 return { types: new Set(), skip: true };
             }
             return { types: new Set([collected]) };
-        }
-        if (x.componentType === "conditionalContent") {
-            // The shown case (`$cc[1]`), which holds what one of its cases
-            // holds, as the `<conditionalContent>` itself does (REF-5).
-            return cachedHolding(heldByIdx, x, seen, (seenBelow) =>
-                holding(x, seenBelow),
-            );
         }
         if (
             x.componentType === "repeat" ||
@@ -2005,9 +2039,10 @@ export function checkTypeChangesAtLoad({
                     }),
                     // `$x[1]` names one component only of the composite named
                     // (`$s[1]`); of a list held alone (`entries`), the
-                    // list's first entry when `$x` is a group (`$g[1]`) or
-                    // an item (`$r[1][1]`), not a `<conditionalContent>` or
-                    // a `<select>` itself, whose `$cc[1]` is the case
+                    // list's first entry when `$x` is a group (`$g[1]`), an
+                    // item (`$r[1][1]`), or a `<conditionalContent>` or a
+                    // `<select>` holding it in a case or its one pick, which
+                    // an index reaches into (`$cc[1]`, D72)
                     indexSelectsOne:
                         (direct &&
                             tag === sourceTag &&
@@ -2016,7 +2051,10 @@ export function checkTypeChangesAtLoad({
                                     HOLD_ANY_NUMBER.has(tag)))) ||
                         (notOne.reason === "count" &&
                             notOne.part === "entries" &&
-                            (!direct || sourceTag === "group"))
+                            (!direct ||
+                                sourceTag === "group" ||
+                                sourceTag === "conditionalContent" ||
+                                sourceTag === "select"))
                             ? "true"
                             : "false",
                 },
@@ -2146,7 +2184,13 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const holder = namedHolder(nodeIdx, seen);
-        if (!holder) {
+        if (
+            !holder ||
+            // Not collections: an index after one reaches into what it
+            // shows (D72, `checkIndexIntoBranches`)
+            holder.componentType === "conditionalContent" ||
+            holder.doenetAttributes?.onePick
+        ) {
             return undefined;
         }
         const indexText = (index.value ?? []).every(
@@ -2172,17 +2216,6 @@ export function checkTypeChangesAtLoad({
                     },
                 };
             }
-        }
-        if (
-            holder.componentType === "conditionalContent" &&
-            indexText !== undefined &&
-            /^\d+$/.test(indexText) &&
-            Number(indexText) !== 1
-        ) {
-            // A `<conditionalContent>` shows one case at most, so a literal
-            // index other than 1 (`$cc[2]`) never names what a case holds,
-            // and is left to run time, which finds it names nothing.
-            return undefined;
         }
         const held = instanceHolding(holder, seen);
         if (!held || held.skip) {
@@ -2512,8 +2545,25 @@ export function checkTypeChangesAtLoad({
         }
         if (perPart.some((found) => found.length > 1)) {
             // Declared twice in one branch: the reference is ambiguous,
-            // which the run time reports when that branch is active.
-            return { status: "skip" };
+            // which the run time reports when that branch is active. A
+            // branch that lacks it is decided here all the same.
+            const lacking = perPart.findIndex((found) => found.length === 0);
+            if (lacking < 0) {
+                return { status: "skip" };
+            }
+            const isElse = kind === "case" && parts[lacking].isElse;
+            return {
+                status: "missing",
+                container,
+                branch: isElse ? "else" : kind,
+                ordinal: isElse
+                    ? 1
+                    : parts
+                          .slice(0, lacking + 1)
+                          .filter((part) => kind !== "case" || !part.isElse)
+                          .length,
+                name: names[0],
+            };
         }
         // How many of the names each branch is known to declare, in turn
         // (`$h.x.y`: 1 for an `h` lacking `x`, 2 for an `h.x` lacking `y`,
@@ -2978,7 +3028,7 @@ export function checkTypeChangesAtLoad({
                 ? (declared.container as any).itemPlaces[declared.ordinal - 1]
                 : undefined;
             return {
-                code: "doenet-w0183",
+                code: "doenet-e0093",
                 args: {
                     name,
                     ...(place?.part
@@ -3001,7 +3051,7 @@ export function checkTypeChangesAtLoad({
         }
         const { container, hasName } = named(repeat ?? declared.container);
         return {
-            code: "doenet-w0184",
+            code: "doenet-e0094",
             args: {
                 name,
                 branch: repeat ? "item" : declared.branch,
@@ -3278,12 +3328,12 @@ export function checkTypeChangesAtLoad({
     /**
      * Decide the every-branch, same-type rule for the reference `copy`
      * (`branchDeclaration`). A reference written as a tag records what it
-     * finds on the copy (`typeChangeAtLoad`): types that differ are an
-     * error in its place, and a name a branch lacks, or a literal index past
-     * the picks, a warning with a missing tag (D37). A scalar tag made from a
-     * name no case may hold (no `<else>`) is allowed, and missing while no
-     * case is active. Any other reference names nothing, with a warning
-     * (`branchNameWarnings`). Returns whether it was decided here.
+     * finds on the copy (`typeChangeAtLoad`): types that differ, or a name
+     * a branch lacks, are an error in its place (D74), and a literal index
+     * past the picks a warning with a missing tag (D37). A scalar tag made
+     * from a name no case may hold (no `<else>`) is allowed, and missing
+     * while no case is active. Any other reference is an error in its place
+     * too (`branchNameWarnings`, D74). Returns whether it was decided here.
      */
     function checkBranchName(copy: SerializedComponent) {
         let declared = branchNameOf(copy);
@@ -3312,7 +3362,7 @@ export function checkTypeChangesAtLoad({
                 // (`doenet-e0066`, `decide`). A `<group>` tag holds whatever
                 // it is made from, which `decide` leaves be, so its type
                 // would change with the active branch: the difference is
-                // the error (`doenet-w0184`, below).
+                // the error (`doenet-e0094`, below).
                 return false;
             }
             if (
@@ -3373,7 +3423,9 @@ export function checkTypeChangesAtLoad({
         if (
             decision === "allowed" ||
             MISSING_AT_LOAD_CODES.has(decision.code) ||
-            decision.code === "doenet-w0184" ||
+            decision.code === "doenet-e0093" ||
+            decision.code === "doenet-e0094" ||
+            decision.code === "doenet-e0095" ||
             decision.code === "doenet-e0005"
         ) {
             return decision;
@@ -4279,24 +4331,34 @@ export function checkTypeChangesAtLoad({
         if (sourceType === undefined || sourceType.startsWith("_")) {
             return undefined;
         }
+        const indices = path[0]?.index ?? [];
+        // An index after a `<conditionalContent>` or a one-pick `<select>`,
+        // read here as one after what it shows (`[1]` before it,
+        // `oneShownIndexAtLoad.ts`), reaches into what it shows (D72)
+        const intoShown = isShownIndex(indices[0]);
         if (
             path.length === 1 &&
             path[0].name === "" &&
-            (path[0].index ?? []).length === 1 &&
-            // what shows one thing, whose shown case or pick stands for the
-            // component it holds (COLL-3), is left to run time
-            sourceType !== "conditionalContent" &&
-            sourceType !== "select"
+            indices.length - (intoShown ? 1 : 0) === 1 &&
+            // a copy of a `<select>`, which may pick one, is left to run
+            // time
+            (intoShown ||
+                (sourceType !== "conditionalContent" &&
+                    sourceType !== "select"))
         ) {
-            // An index: an item of what it indexes, never the tag. An entry
-            // of a list is a value, as the run time words it.
+            // An index: an item or an entry of what it indexes, never the
+            // tag (`<repeat extend="$cc[1]"/>` of a case holding a repeat is
+            // its first iteration). An entry of a list is a value, as the
+            // run time words it.
             return {
                 code: "doenet-e0071",
                 args: {
                     makes: "content",
                     sourceIs:
+                        !intoShown &&
                         allClasses[sourceType]?.listEntryComponentType !==
-                            undefined && !isComposite(sourceType)
+                            undefined &&
+                        !isComposite(sourceType)
                             ? "value"
                             : "other",
                 },
@@ -4746,6 +4808,356 @@ export function checkTypeChangesAtLoad({
         };
     }
 
+    /**
+     * The `<conditionalContent>`s or one-pick `<select>`s an index of the
+     * reference of `copy` comes right after, for `checkIndexIntoBranches`:
+     * the one container read as `[1]` before the index when the resolver
+     * stopped at it (`oneShownIndexAtLoad.ts`), or the containers that names
+     * it left unresolved name, the last name with the index: one through a
+     * copy (`$m2.s[1]` of a `<module name="m2" extend="$m"/>`), or one in
+     * each branch or item the names pass through (`$s.cc[1]` of a one-pick
+     * select, `$outer.cc[1]`, `$s[2].cc[1]` of a select of several,
+     * `$r[1].cc[1]`), all of which the index may reach (D74). `realIndices`
+     * is how many indices the author wrote there, and `whole` whether
+     * nothing follows them. `undefined` for any other reference.
+     */
+    function indexIntoBranchesOf(copy: SerializedComponent):
+        | {
+              containers: SerializedComponent[];
+              realIndices: number;
+              whole: boolean;
+          }
+        | undefined {
+        const ref = refOf(copy);
+        const path: any[] = ref?.unresolvedPath ?? [];
+        if (!ref || ref.nodeIdx < 0 || path.length === 0) {
+            return undefined;
+        }
+        const start =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        let names = path;
+        const [first] = path;
+        if (first.name === "") {
+            if (isShownIndex(first.index?.[0])) {
+                if ((first.index?.length ?? 0) < 2) {
+                    return undefined;
+                }
+                const container = branchContainerAt(ref.nodeIdx);
+                return container
+                    ? {
+                          containers: [container],
+                          realIndices: first.index.length - 1,
+                          whole: path.length === 1,
+                      }
+                    : undefined;
+            }
+            // an index into the items of a repeat or the picks of a select
+            // of several, then names (`$r[1].cc[1]`, `$s[2].cc[1]`)
+            if (
+                path.length < 2 ||
+                (first.index?.length ?? 0) !== 1 ||
+                !start ||
+                !(
+                    start.componentType === "repeat" ||
+                    start.componentType === "repeatForSequence" ||
+                    (start.componentType === "select" &&
+                        !start.doenetAttributes?.onePick)
+                )
+            ) {
+                return undefined;
+            }
+            names = path.slice(1);
+        }
+        const at = names.findIndex((part) => (part.index ?? []).length > 0);
+        if (at < 0 || names.slice(0, at + 1).some((part) => !part.name)) {
+            return undefined;
+        }
+        const lookup = [...names.slice(0, at), { ...names[at], index: [] }];
+        if (!start) {
+            return undefined;
+        }
+        // After a pick of a select of several (`names !== path`), the names
+        // are looked up in each of its options, as in each case or option
+        // of a container that shows one; after an item of a repeat, in the
+        // repeat.
+        const named = reachedInEach(
+            start,
+            lookup,
+            names === path
+                ? branchKind(start)
+                : start.componentType === "select"
+                  ? "option"
+                  : undefined,
+        );
+        if (!named || named.length === 0) {
+            return undefined;
+        }
+        const [firstNamed] = named;
+        if (
+            named.some(
+                (node) =>
+                    node.componentType !== firstNamed.componentType ||
+                    (node.componentType !== "conditionalContent" &&
+                        !node.doenetAttributes?.onePick),
+            )
+        ) {
+            return undefined;
+        }
+        return {
+            containers: named,
+            realIndices: names[at].index.length,
+            whole: at === names.length - 1,
+        };
+    }
+
+    /**
+     * The components the names `lookup` reach from `node`, for
+     * `indexIntoBranchesOf`, as the run time looks them up: in each case or
+     * option of `node` when it has them (`kind`), and of each
+     * `<conditionalContent>` or one-pick `<select>` a name before the last
+     * names (`$outer.s.cc[1]`), counting a case or option once however
+     * often it is copied (two `<option copy="$o"/>`); otherwise the one
+     * component written with the name in what is looked in
+     * (`descendantsNamedIn`). `undefined` when one looked in holds other
+     * than one so named (none, which the every-branch rule reports,
+     * `checkBranchName`, or several), or that is not known from the
+     * DoenetML, as when a case or option copies one it is in (`onPath`, the
+     * containers looked in on the way), a cycle the run time reports.
+     */
+    function reachedInEach(
+        node: SerializedComponent,
+        lookup: any[],
+        kind: "case" | "option" | undefined,
+        onPath: Set<number> = new Set(),
+    ): SerializedComponent[] | undefined {
+        if (kind) {
+            if (onPath.has(node.componentIdx)) {
+                return undefined;
+            }
+            onPath = new Set(onPath).add(node.componentIdx);
+            const parts = partsOf(node, kind);
+            if (!parts) {
+                return undefined;
+            }
+            const counted = new Set<number>();
+            const reached: SerializedComponent[] = [];
+            for (const { part } of parts) {
+                if (counted.has(part.componentIdx)) {
+                    continue;
+                }
+                counted.add(part.componentIdx);
+                const inPart = reachedInEach(part, lookup, undefined, onPath);
+                if (!inPart) {
+                    return undefined;
+                }
+                reached.push(...inPart);
+            }
+            return [...new Set(reached)];
+        }
+        if (lookup.length === 0) {
+            return [node];
+        }
+        const named = descendantsNamedIn(node, lookup.slice(0, 1));
+        if (!named || named.length === 0) {
+            return undefined;
+        }
+        if (named.length > 1) {
+            // several in the cases or options of one container that shows
+            // one written in `node` without the name (`<select>` in a case,
+            // `$outer.cc[1]`), whose names are seen from outside it
+            const holder = branchHolderOf(node.children ?? [], named);
+            return holder
+                ? reachedInEach(holder, lookup, branchKind(holder), onPath)
+                : undefined;
+        }
+        const [next] = named;
+        return reachedInEach(
+            next,
+            lookup.slice(1),
+            lookup.length > 1 ? branchKind(next) : undefined,
+        );
+    }
+
+    /**
+     * The `<conditionalContent>` or one-pick `<select>` among `components`,
+     * or in a component among them that is not a repeat or a select or
+     * option (whose names are not seen from outside), that holds each of
+     * `named`, for `reachedInEach`, or `undefined` if there is none.
+     */
+    function branchHolderOf(
+        components: (SerializedComponent | string)[],
+        named: SerializedComponent[],
+    ): SerializedComponent | undefined {
+        for (const component of components) {
+            if (
+                typeof component !== "object" ||
+                !named.every((node) => contains(component, node.componentIdx))
+            ) {
+                continue;
+            }
+            if (branchKind(component)) {
+                return component;
+            }
+            if (
+                component.componentType === "repeat" ||
+                component.componentType === "repeatForSequence" ||
+                component.componentType === "select" ||
+                component.componentType === "option" ||
+                component.componentType === "_copy"
+            ) {
+                return undefined;
+            }
+            return branchHolderOf(component.children ?? [], named);
+        }
+        return undefined;
+    }
+
+    /**
+     * An index right after a `<conditionalContent>` or a `<select>` that
+     * picks one reaches into what the case or pick shown holds (D72, read
+     * as `[1]` before it here, `oneShownIndexAtLoad.ts`). It means one thing
+     * whatever is shown only when every case or option holds at most one
+     * component, all of one type: otherwise it is an error at the reference,
+     * decided from every case or option (D74, DIAG-7): `doenet-e0095`, in
+     * the reference's place, bare (`branchNameWarnings`) or written as a tag
+     * (`typeChangeAtLoad`). A case or option holding a component whose type
+     * or count the DoenetML does not give is left to run time. Returns
+     * whether it was decided here.
+     *
+     * When it qualifies, a scalar tag made from it is typed here as made
+     * from an entry of what each holds, when that is a list or a math.
+     */
+    function checkIndexIntoBranches(copy: SerializedComponent) {
+        const found = indexIntoBranchesOf(copy);
+        if (!found) {
+            return false;
+        }
+        const { containers, realIndices, whole } = found;
+        // What each container's cases or options hold; the index may reach
+        // into any of them.
+        const branch = branchKind(containers[0]);
+        if (!branch) {
+            return false;
+        }
+        // the first container with a branch of several, which the message
+        // names, with its cases or options that hold several
+        let severalIn: SerializedComponent | undefined;
+        let several: { ordinal: number; isElse: boolean }[] = [];
+        const types: string[] = [];
+        for (const container of containers) {
+            if (branchKind(container) !== branch) {
+                return false;
+            }
+            const parts = partsOf(container, branch);
+            if (!parts || parts.length === 0) {
+                return false;
+            }
+            const held = parts.map(({ part }) => partItems(part));
+            if (
+                held.some(
+                    (h) =>
+                        h === null ||
+                        (h.kind === "one" && h.type === undefined),
+                )
+            ) {
+                return false;
+            }
+            const severalHere: { ordinal: number; isElse: boolean }[] = [];
+            let caseOrdinal = 0;
+            for (const [ind, h] of held.entries()) {
+                const isElse = branch === "case" && parts[ind].isElse;
+                if (!isElse) {
+                    caseOrdinal++;
+                }
+                if (h!.kind === "several") {
+                    severalHere.push({ ordinal: caseOrdinal, isElse });
+                } else if (h!.kind === "one" && !types.includes(h!.type!)) {
+                    types.push(h!.type!);
+                }
+            }
+            if (!severalIn && severalHere.length > 0) {
+                severalIn = container;
+                several = severalHere;
+            }
+        }
+        const container = severalIn ?? containers[0];
+        const containerName = literalText(container.attributes?.name);
+        const hasName =
+            containerName !== undefined &&
+            containerName !== "" &&
+            !containerName.startsWith("_");
+        const common = {
+            branch,
+            container: hasName ? containerName : container.componentType,
+            hasName: hasName ? "true" : "false",
+        };
+        let issue: TypeChangeAtLoadError | undefined;
+        if (several.length > 0) {
+            issue = {
+                code: "doenet-e0095",
+                args: {
+                    ...common,
+                    reason: "several",
+                    ordinals: several
+                        .filter((s) => !s.isElse)
+                        .map((s) => String(s.ordinal)) as any,
+                    withElse: several.some((s) => s.isElse) ? "true" : "false",
+                },
+            };
+        } else if (typesAs(new Set(types), undefined).length > 1) {
+            issue = {
+                code: "doenet-e0095",
+                args: {
+                    ...common,
+                    reason: "types",
+                    firstType: types[0],
+                    secondType: types[1],
+                    ordinals: [] as any,
+                    withElse: "false",
+                },
+            };
+        }
+        if (issue) {
+            if (isTag(copy)) {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: issue,
+                };
+            } else {
+                branchNameWarnings.push({ copy, ...issue } as any);
+            }
+            return true;
+        }
+        // Every one holds one component of one type, or nothing: a scalar
+        // tag made from one index into it (`$cc[2]`) is made from an entry
+        // of that type, decided here when it is a list's or a math's.
+        if (
+            types.length === 1 &&
+            realIndices === 1 &&
+            whole &&
+            isScalarTag(copy)
+        ) {
+            const [type] = types;
+            const entry =
+                allClasses[type]?.listEntryComponentType ??
+                (type === "math" ? "math" : undefined);
+            const writtenType = tagType(copy);
+            if (entry !== undefined && writtenType !== undefined) {
+                const error = fixedTypeError(
+                    { types: new Set([entry]) },
+                    writtenType,
+                );
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    typeChangeAtLoad: error ?? "allowed",
+                };
+                return true;
+            }
+        }
+        return false;
+    }
+
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
             if (typeof component !== "object") {
@@ -4779,7 +5191,8 @@ export function checkTypeChangesAtLoad({
                 // (D59, `namesAfterCollectionsAtLoad.ts`)
             } else if (
                 component.componentType === "_copy" &&
-                checkBranchName(component)
+                (checkIndexIntoBranches(component) ||
+                    checkBranchName(component))
             ) {
                 // decided by the every-branch rule
             } else if (component.componentType === "_copy") {

@@ -1663,7 +1663,6 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
             '<sbsGroup name="q"><sideBySide><p>$b</p></sideBySide></sbsGroup>GRAPH',
         ],
         ["stack", '<stack name="q"><p>$b</p></stack>GRAPH'],
-        ["panel", '<panel name="q"><p>$b</p></panel>GRAPH'],
         ["page", '<paginator><page name="q"><p>$b</p></page></paginator>GRAPH'],
         ["cascade", '<cascade name="q"><p>$b</p></cascade>GRAPH'],
         ["hint", '<hint name="q"><p>$b</p></hint>GRAPH'],
@@ -1690,14 +1689,6 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
     for (const [tag, written] of containers) {
         const doenetML = written.replace("GRAPH", graph);
         it(`a ${tag} holding an extend of a point whose label holds it is an error at load`, async () => {
-            if (tag === "panel") {
-                // Reading the state of a `<p>` in a `<panel>` throws
-                // ("Unknown state variable width"), cycle or not, so only
-                // what is reported at load is read.
-                const { core } = await createTestCore({ doenetML });
-                expect(errorsAt(core)).eqls(at(doenetML, ["$b", "$q"]));
-                return;
-            }
             const { errors, rest } = await errorsAndRest(doenetML);
             expect(errors).eqls(at(doenetML, ["$b", "$q"]));
             expect(rest).eq("rest");

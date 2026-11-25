@@ -14,8 +14,43 @@ export async function childOfInstance(
     path: string,
     position: number,
 ): Promise<number> {
+    return childOfInstanceAt(core, await resolvePathToNodeIdx(path), position);
+}
+
+/**
+ * The index of the `position`th (from 1) instance the composite `path` names
+ * made: an iteration of a repeat, a pick of a `<select>`, or the case a
+ * `<conditionalContent>` shows (`position` 1). An index after a
+ * `<conditionalContent>` or a one-pick `<select>` reaches into what it shows
+ * (D72), so no reference names the case or the pick itself; a test reaches
+ * one this way. `-1` if there is none.
+ */
+export async function instanceOf(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    path: string,
+    position = 1,
+): Promise<number> {
     const components = (core as any).core._components;
-    const groupIdx = await resolvePathToNodeIdx(path);
+    const composite = components[await resolvePathToNodeIdx(path)];
+    const replacements = composite?.replacements ?? [];
+    const numWithheld = composite?.replacementsToWithhold ?? 0;
+    const shown = replacements
+        .slice(0, replacements.length - numWithheld)
+        .filter((replacement: any) => typeof replacement !== "string");
+    return shown[position - 1]?.componentIdx ?? -1;
+}
+
+/**
+ * As `childOfInstance`, of the iteration, pick, shown case or `<group>` whose
+ * index is `groupIdx`.
+ */
+export function childOfInstanceAt(
+    core: PublicDoenetMLCore,
+    groupIdx: number,
+    position: number,
+): number {
+    const components = (core as any).core._components;
     const group = components[groupIdx];
     if (!group) {
         return -1;

@@ -45,7 +45,11 @@ import {
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
-import { namesAfterCollectionsDiagnostics } from "./namesAfterCollectionsAtLoad";
+import { readIndexIntoWhatIsShownAtLoad } from "./oneShownIndexAtLoad";
+import {
+    markOnePickChoosers,
+    namesAfterCollectionsDiagnostics,
+} from "./namesAfterCollectionsAtLoad";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { decideAnswerTypesAtLoad } from "./answerTypesAtLoad";
@@ -252,7 +256,7 @@ export async function normalizedDastToSerializedComponents(
      * release (D51's migration). The parser (`attribute-name-case.ts`) has
      * renamed those the schema lists, before anything read them; this is the
      * backstop for those it does not know of, an attribute the schema hides
-     * and every attribute of a tag it hides (`<panel>`), so that every
+     * and every attribute of a tag it hides (`<embed>`), so that every
      * attribute applied before names were case-sensitive still is, for now.
      * Those it renamed are matched here as written, so are not warned of
      * twice. It runs before anything in the core reads an attribute: the
@@ -1047,6 +1051,16 @@ export async function normalizedDastToSerializedComponents(
         });
     }
 
+    // A chooser written to pick one is not a collection (D72): marked for the
+    // worker, which reads it as the document runs.
+    markOnePickChoosers(sugarResult.components, componentInfoObjects);
+    // An index right after one, or after a `<conditionalContent>`, reaches
+    // into what it shows: read so by the checks at load, up to the value
+    // references (`oneShownIndexAtLoad.ts`).
+    const restoreIndicesIntoWhatIsShown = readIndexIntoWhatIsShownAtLoad(
+        sugarResult.components,
+    );
+
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
@@ -1065,18 +1079,15 @@ export async function normalizedDastToSerializedComponents(
         sources: normalized_root.sources,
     });
     // A reference to a name the branches of a `<conditionalContent>` or a
-    // one-pick `<select>` do not all declare with one tag names nothing
-    // (D13, D22), so that what it names never changes type with the active
-    // branch. A name the branches declare with different types is an error,
-    // shown in place of the reference, as it is for the reference written as
-    // a tag (`doenet-e0066`): only a name a branch lacks is a warning, with a
-    // blank (D37).
+    // one-pick `<select>` do not all declare with one tag would name
+    // something different, or nothing, with the active branch (D13, D22):
+    // an error, shown in place of the reference, as it is for the reference
+    // written as a tag (D74, DIAG-5).
     for (const { copy, code, args } of branchNameWarnings) {
         const ref: any = (copy.extending as any)?.Ref;
         const originalPath = ref?.originalPath;
-        const isError = code === "doenet-w0184";
         const diagnostic = codedDiagnostic({
-            type: isError ? "error" : "warning",
+            type: "error",
             code: code as any,
             args: {
                 ...args,
@@ -1088,40 +1099,20 @@ export async function normalizedDastToSerializedComponents(
             position: copy.position,
             sourceDoc: copy.sourceDoc,
         });
-        if (isError) {
-            // Reported now, as the `_error` may be made only after an
-            // interaction (in a case not yet true), and again, the same, kept
-            // once, when the `_error` is made (`ComponentBuilder`).
-            diagnostics.push(diagnostic);
-            const errorComponent = copy as any;
-            errorComponent.componentType = "_error";
-            errorComponent.state = errorComponentState(
-                diagnostic.message,
-                diagnostic,
-            );
-            errorComponent.attributes = {};
-            errorComponent.children = [];
-            errorComponent.doenetAttributes = {};
-            delete errorComponent.extending;
-            continue;
-        }
+        // Reported now, as the `_error` may be made only after an
+        // interaction (in a case not yet true), and again, the same, kept
+        // once, when the `_error` is made (`ComponentBuilder`).
         diagnostics.push(diagnostic);
-        if (ref) {
-            copy.extending = {
-                Ref: {
-                    ...ref,
-                    nodeIdx: -1,
-                    unresolvedPath: null,
-                    nodesInResolvedPath: [],
-                },
-            } as any;
-            // a blank, as a reference to one thing that names nothing is
-            // (D37, `Copy.js`)
-            copy.doenetAttributes = {
-                ...copy.doenetAttributes,
-                noReferent: true,
-            };
-        }
+        const errorComponent = copy as any;
+        errorComponent.componentType = "_error";
+        errorComponent.state = errorComponentState(
+            diagnostic.message,
+            diagnostic,
+        );
+        errorComponent.attributes = {};
+        errorComponent.children = [];
+        errorComponent.doenetAttributes = {};
+        delete errorComponent.extending;
     }
 
     // A reference to a `<variantControl>` names nothing, with a warning that
@@ -1316,6 +1307,8 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
         }),
     );
+
+    restoreIndicesIntoWhatIsShown();
 
     // After sugar, so that each reference is judged by the parent it will
     // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar

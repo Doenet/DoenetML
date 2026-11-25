@@ -228,7 +228,7 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
         // The fallback returns null and the panel goes blank, rather
         // than guessing at the schema and surfacing wrong help.
         // Tightens the fix from #1182 in response to a Copilot review.
-        const source = `<select name="s"><option><math name="t">x</math></option><option><text name="t">b</text></option></select>\n$s[1].t`;
+        const source = `<select name="s" numToSelect="2"><option><math name="t">x</math></option><option><text name="t">b</text></option></select>\n$s[1].t`;
         const completer = await buildCompleterWithAdapter(source, {
             resolveResult: {
                 nodeIdx: 0, // <select>
@@ -407,32 +407,38 @@ describe("computeContextHelp — resolver-backed takesIndex semantics", () => {
     });
 
     it("resolves $s[1].t on a <select> whose option branches each declare the same descendant name", async () => {
-        // Two `<option>` branches each declare `<text name="t">`. Every
-        // option declares it with one tag (`sharedBranchNames`), so "t"
-        // lands in `visibleDescendantNames` — but `getNamedDescendant` on
-        // the `<select>` returns null because "t" isn't uniquely
-        // addressable. The branch fallback in `resolveRefMemberDescendantHelp`
-        // (`branchDeclarations`) returns the first option's declaration,
-        // which shares its tag with the others, so it yields the right help
-        // payload.
+        // A `<select>` that picks two, whose `<option>` branches each
+        // declare `<text name="t">`. Every option declares it with one tag
+        // (`sharedBranchNames`), so "t" lands in `visibleDescendantNames` —
+        // but `getNamedDescendant` on the `<select>` returns null because
+        // "t" isn't uniquely addressable. The branch fallback in
+        // `resolveRefMemberDescendantHelp` (`branchDeclarations`) returns
+        // the first option's declaration, which shares its tag with the
+        // others, so it yields the right help payload.
         // Closes #1179.
-        const source = `<select name="s"><option><text name="t">a</text></option><option><text name="t">b</text></option></select>\n$s[1].t`;
-        const completer = await buildCompleterWithAdapter(source, {
-            resolveResult: {
-                nodeIdx: 0, // <select>
-                nodesInResolvedPath: [0],
-                unresolvedPath: null,
-                originalPath: [{ name: "s" }],
-            },
-            takesIndexComponentTypes: new Set(["select"]),
-        });
-        const help = await computeContextHelp(completer, source.length);
-        expect(help).toMatchObject({
+        const help = async (attrs: string) => {
+            const source = `<select name="s"${attrs}><option><text name="t">a</text></option><option><text name="t">b</text></option></select>\n$s[1].t`;
+            const completer = await buildCompleterWithAdapter(source, {
+                resolveResult: {
+                    nodeIdx: 0, // <select>
+                    nodesInResolvedPath: [0],
+                    unresolvedPath: null,
+                    originalPath: [{ name: "s" }],
+                },
+                takesIndexComponentTypes: new Set(["select"]),
+            });
+            return computeContextHelp(completer, source.length);
+        };
+        expect(await help(' numToSelect="2"')).toMatchObject({
             kind: "refName",
             refName: "t",
             displayPath: "s[1].t",
             targetElementName: "text",
         });
+        // A `<select>` that picks one is not a collection (D72): `$s[1]`
+        // reaches into what the pick holds, so `.t` is not the option's `t`
+        // (`$s.t` is), and no help is given for it.
+        expect(await help("")).toEqual({ kind: "none" });
     });
 });
 

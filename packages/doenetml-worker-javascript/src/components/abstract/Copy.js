@@ -3041,6 +3041,15 @@ export default class Copy extends CompositeComponent {
                 applyConditionToOnlyCase(repl, attributesFromComposite);
             }
 
+            // Whether a chooser picks one (`onePick`, D72) is decided by the
+            // tag as written, not taken from its source: a tag written with
+            // `copy` or `extend` picks one only when its own `numToSelect`
+            // or `numSamples` is written as `1`, as the resolver reads it
+            // (`branch_container_kind`).
+            if (copyInChildren) {
+                decideOnePickOfCopy(repl, component, componentInfoObjects);
+            }
+
             // The choice error a `<select>` was marked with when the document
             // loaded (`choiceErrorAtLoad`, `choiceErrorsAtLoad.ts`) is of what
             // its source wrote. A copy that writes attributes or children of
@@ -3124,6 +3133,7 @@ export default class Copy extends CompositeComponent {
         components,
         workspace,
         componentInfoObjects,
+        allDoenetMLs,
 
         resolveItem,
         publicAliasSubstitutions,
@@ -3849,6 +3859,7 @@ export default class Copy extends CompositeComponent {
 
                 let results = await this.recreateReplacements({
                     component,
+                    allDoenetMLs,
                     sourceNum,
                     numReplacementsSoFar,
                     numNonStringReplacementsSoFar,
@@ -3937,6 +3948,7 @@ export default class Copy extends CompositeComponent {
 
             let results = await this.createReplacementForSource({
                 component,
+                allDoenetMLs,
                 sourceNum,
                 components,
                 nComponents,
@@ -4162,6 +4174,7 @@ export default class Copy extends CompositeComponent {
 
     static async recreateReplacements({
         component,
+        allDoenetMLs,
         sourceNum,
         numReplacementsSoFar,
         numNonStringReplacementsSoFar,
@@ -4178,6 +4191,7 @@ export default class Copy extends CompositeComponent {
 
         let results = await this.createReplacementForSource({
             component,
+            allDoenetMLs,
             sourceNum,
             numReplacementsSoFar,
             numNonStringReplacementsSoFar,
@@ -8663,6 +8677,44 @@ function missingInPlaceOfCopiedError({
             change.serializedReplacements = swap(change.serializedReplacements);
         }
     }
+}
+
+/**
+ * Mark `repl`, the chooser or sampler a tag written with `copy` or `extend`
+ * (`component`) makes, as picking one (`doenetAttributes.onePick`, D72) only
+ * when the tag writes its own `numToSelect` or `numSamples` as a literal
+ * `1`, as the resolver reads it (`branch_container_kind` in Rust,
+ * `isOnePickChooserWritten` at load). Without one it picks as many as its
+ * source, which the resolver can't see, so it is left a collection; the
+ * mark its source carries is not its own.
+ */
+function decideOnePickOfCopy(repl, component, componentInfoObjects) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[repl.componentType];
+    const classAttributes = componentClass?.createAttributesObject?.() ?? {};
+    const pickAttribute = ["numToSelect", "numSamples"].find(
+        (name) => name in classAttributes,
+    );
+    if (!pickAttribute) {
+        return;
+    }
+    const written = component.attributes?.[pickAttribute];
+    const children = written?.children ?? written?.component?.children;
+    const text =
+        written?.primitive !== undefined
+            ? String(written.primitive.value)
+            : Array.isArray(children) &&
+                children.every((child) => typeof child === "string")
+              ? children.join("")
+              : undefined;
+    const onePick = text?.trim() === "1";
+    const doenetAttributes = { ...repl.doenetAttributes };
+    if (onePick) {
+        doenetAttributes.onePick = true;
+    } else {
+        delete doenetAttributes.onePick;
+    }
+    repl.doenetAttributes = doenetAttributes;
 }
 
 /** A `_missing` (`Missing.js`), as the one replacement of a copy. */

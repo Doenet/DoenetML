@@ -143125,12 +143125,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "numItems",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },

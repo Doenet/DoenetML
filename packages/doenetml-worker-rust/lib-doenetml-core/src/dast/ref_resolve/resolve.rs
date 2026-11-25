@@ -655,18 +655,48 @@ impl Resolver {
                     _ => None,
                 };
 
-                if literal.is_some() {
+                loop {
+                    // A `<conditionalContent>` or a one-pick `<select>` is not a collection
+                    // (D72): it stands for what it shows, its one replacement (the `<group>` of
+                    // the case or the pick), and an index after it passes to that, whatever
+                    // the index. With nothing shown (or not expanded yet) the index stays here,
+                    // for the worker to decide.
+                    if node_data.branch_kind.is_some() {
+                        match node_data.index_resolutions.first() {
+                            Some(Some(shown_idx)) => {
+                                current_idx = *shown_idx;
+                                if !nodes_in_resolved_path.contains(&current_idx) {
+                                    nodes_in_resolved_path.push(current_idx);
+                                }
+                                node_data = &self.node_resolver_data[current_idx + 1];
+                                continue;
+                            }
+                            _ => {
+                                return Ok(RefResolution {
+                                    node_idx: current_idx,
+                                    unresolved_path: Some(unresolved_from_here("")),
+                                    original_path,
+                                    nodes_in_resolved_path,
+                                    child_index: None,
+                                });
+                            }
+                        }
+                    }
                     // An index after a group whose whole content is one component passes to
                     // that component, which decides what the index means (NAME-2). While that
                     // component is a reference not yet expanded, the index passes to the
                     // reference, and waits for it.
-                    while let Some(child_idx) = self.pass_through_child(current_idx, true) {
+                    if literal.is_some()
+                        && let Some(child_idx) = self.pass_through_child(current_idx, true)
+                    {
                         current_idx = child_idx;
                         if !nodes_in_resolved_path.contains(&current_idx) {
                             nodes_in_resolved_path.push(current_idx);
                         }
                         node_data = &self.node_resolver_data[current_idx + 1];
+                        continue;
                     }
+                    break;
                 }
 
                 // The first of the node's `index_resolutions` an index selects among,

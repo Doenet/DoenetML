@@ -183,7 +183,24 @@ impl Resolver {
             // `<group>`) keeps the root name its place in the group gives it (`g:1`), as
             // nothing else takes that name.
             let mut index_data = current_data;
+            let mut no_index_edges = false;
             if let NodeOrRoot::Node(mut idx) = origin {
+                // A `<conditionalContent>` or a one-pick `<select>` passes an index to what it
+                // shows (D72): its index edges are those of the component its one replacement
+                // passes an index to, when that produces instances, else it has none (`$cc[1]`
+                // never names the shown case itself).
+                if current_data.branch_kind.is_some() {
+                    match current_data.index_resolutions.first() {
+                        Some(Some(shown_idx)) => {
+                            idx = *shown_idx;
+                            index_data = &self.node_resolver_data[idx + 1];
+                            no_index_edges = true;
+                        }
+                        _ => {
+                            no_index_edges = true;
+                        }
+                    }
+                }
                 while let Some(child_idx) = self.pass_through_child(idx, false) {
                     let child_data = &self.node_resolver_data[child_idx + 1];
                     if !child_data.index_kind.is_instances()
@@ -193,29 +210,38 @@ impl Resolver {
                     }
                     idx = child_idx;
                     index_data = child_data;
+                    no_index_edges = false;
                 }
             }
-            for edge in index_data.index_resolutions.iter().enumerate().filter_map(
-                |(index, index_resolution)| match index_resolution {
-                    None => None,
-                    Some(res_index) => {
-                        // the setup a repeat adds is not reached by an index
-                        if visited[*res_index]
-                            || self.node_resolver_data[*res_index + 1].iteration_aliases
-                        {
-                            None
-                        } else {
-                            visited[*res_index] = true;
-                            Some(ResolverEdge {
-                                origin,
-                                origin_source,
-                                referent: *res_index,
-                                edge_type: ResolverEdgeType::Index(index),
-                            })
+            let index_resolutions: &[Option<Index>] = if no_index_edges {
+                &[]
+            } else {
+                &index_data.index_resolutions
+            };
+            for edge in
+                index_resolutions
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(index, index_resolution)| match index_resolution {
+                        None => None,
+                        Some(res_index) => {
+                            // the setup a repeat adds is not reached by an index
+                            if visited[*res_index]
+                                || self.node_resolver_data[*res_index + 1].iteration_aliases
+                            {
+                                None
+                            } else {
+                                visited[*res_index] = true;
+                                Some(ResolverEdge {
+                                    origin,
+                                    origin_source,
+                                    referent: *res_index,
+                                    edge_type: ResolverEdgeType::Index(index),
+                                })
+                            }
                         }
-                    }
-                },
-            ) {
+                    })
+            {
                 queue.push_back((NodeOrRoot::Node(edge.referent), origin_source));
                 edges_encountered.push(edge)
             }

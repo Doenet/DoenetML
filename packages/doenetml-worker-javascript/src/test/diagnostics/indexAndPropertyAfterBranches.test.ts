@@ -142,15 +142,15 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
         expect(await d.text("t")).eq("＿");
     });
 
-    it("a one-pick select, and a property after an index into the picks", async () => {
+    it("a one-pick select, and a property after an index into what it picks", async () => {
         const d =
             await setup(`<select name="s"><option><math>x</math></option><option><text>hi</text></option></select>
 <p name="p">[$s.x] [$s[1].x]</p>`);
-        // the same in every variant, whichever option is picked
-        expect(d.codes()).eqls([
-            "warning doenet-w0192",
-            "warning doenet-w0192",
-        ]);
+        // the same in every variant, whichever option is picked. An index
+        // after a one-pick select reaches into what it picks (D72), and the
+        // options hold components of different types, so it is an error at
+        // load (D74).
+        expect(d.codes()).eqls(["warning doenet-w0192", "error doenet-e0095"]);
     });
 
     it("on a tag: the same warning, and the tag follows the case shown", async () => {
@@ -218,26 +218,31 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
     it("a property and an index after a conditionalContent", async () => {
         const d = await setup(`<booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><point>(1,2)</point></case><else><point>(3,4)</point><point>(5,6)</point></else></conditionalContent>
-<p name="p">[$cc.x] [$cc[1][2]] [$cc[1].x]</p>`);
-        const atLoad = d
-            .diagnostics()
-            .filter((x: any) => x.code === "doenet-w0191");
-        expect(atLoad.map((x: any) => x.message)).eqls([
-            '`$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
-            '`$cc[1].x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P.x`.',
-            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+<p name="p">[$cc.x] [$cc[2]]</p>`);
+        // A property is a warning; an index, which reaches into what the
+        // case shown holds (D72), an error in its place (D74).
+        // (The `<else>` shown adds the info `w0193` at run time.)
+        const decided = () =>
+            d.diagnostics().filter((x: any) => x.code !== "doenet-w0193");
+        const atLoad = decided();
+        expect(atLoad.map((x: any) => [x.type, x.code, x.message])).eqls([
+            [
+                "warning",
+                "doenet-w0191",
+                '`$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
+            ],
+            [
+                "error",
+                "doenet-e0095",
+                "`$cc[2]` can't be used: an index after `cc` reaches into what the case shown holds, which must be one component of one type in every case, and the `<else>` holds several. To use a component inside, give it a name in each and refer to it by that name.",
+            ],
         ]);
-        expect(atLoad.every((x: any) => x.type === "warning")).eq(true);
 
         await d.setBoolean("b", true);
-        expect(await d.text()).eq("[1] [2] [1]");
-        expect(
-            d.diagnostics().filter((x: any) => x.code === "doenet-w0191"),
-        ).eqls(atLoad);
+        expect(await d.text()).eq("[1] []");
+        expect(decided()).eqls(atLoad);
         await d.reload();
-        expect(
-            d.diagnostics().filter((x: any) => x.code === "doenet-w0191"),
-        ).eqls(atLoad);
+        expect(decided()).eqls(atLoad);
     });
 
     it("an index and a property after a select names the options holding several", async () => {
@@ -282,50 +287,53 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
 });
 
 describe("An index after options or cases that hold several, decided at load (Doenet/DoenetML#2643 items 4 and 5)", () => {
-    it("every case holds several: one warning at load, nothing more as the case changes", async () => {
+    it("every case holds several: one error at load, nothing more as the case changes", async () => {
         const d = await setup(`<booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math><math>4</math></else></conditionalContent>
-<p name="p">[$cc[1][2]]</p>`);
+<p name="p">[$cc[2]]</p>`);
         const atLoad = [
-            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and case 1 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+            "`$cc[2]` can't be used: an index after `cc` reaches into what the case shown holds, which must be one component of one type in every case, and case 1 and the `<else>` hold several. To use a component inside, give it a name in each and refer to it by that name.",
         ];
         expect(d.diagnostics().map((x: any) => x.message)).eqls(atLoad);
-        expect(d.codes()).eqls(["warning doenet-w0191"]);
-        expect(await d.text()).eq("[＿]");
+        expect(d.codes()).eqls(["error doenet-e0095"]);
+        expect(await d.text()).eq("[]");
         await d.setBoolean("b", true);
-        expect(await d.text()).eq("[＿]");
-        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[]");
+        expect(d.codes()).eqls(["error doenet-e0095"]);
         await d.reload();
-        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(d.codes()).eqls(["error doenet-e0095"]);
     });
 
-    it("every option holds several, in a group or not: the same warning in every variant", async () => {
+    it("every option holds several, in a group or not: the same error in every variant", async () => {
         for (const doenetML of [
             `<select name="s"><option><math>1</math><math>2</math></option><option><math>3</math><math>4</math></option></select>
-<p name="p">[$s[1][2]]</p>`,
+<p name="p">[$s[2]]</p>`,
             `<select name="s"><option><group><math>1</math><math>2</math></group></option><option><group><math>3</math><math>4</math></group></option></select>
-<p name="p">[$s[1][2]]</p>`,
+<p name="p">[$s[2]]</p>`,
         ]) {
             for (const requestedVariantIndex of [1, 2]) {
                 const { core } = await createTestCore({
                     doenetML,
                     requestedVariantIndex,
                 });
-                const { warnings, infos } = getDiagnosticsByType(core);
+                const { errors, warnings, infos } = getDiagnosticsByType(core);
                 expect(
-                    warnings.map((x) => x.code),
+                    errors.map((x) => x.code),
                     `${doenetML}, variant ${requestedVariantIndex}`,
-                ).eqls(["doenet-w0191"]);
+                ).eqls(["doenet-e0095"]);
+                expect(warnings.map((x) => x.code)).eqls([]);
                 expect(infos.map((x) => x.code)).eqls([]);
             }
         }
     });
 
-    it("options of different shapes: the warning at load in every variant, the pick of several an info", async () => {
+    it("options of different shapes: the error at load in every variant", async () => {
         // the option holding several written as a group was counted as one
         // component, so only the variants picking it were told, at run time;
         // so was a group written with `extend` or `copy`, or a bare `$g2`,
-        // read through the group it names (Doenet/DoenetML#2654 item 6)
+        // read through the group it names (Doenet/DoenetML#2654 item 6).
+        // An index after a one-pick select reaches into what it picks (D72),
+        // an error in its place when an option holds several (D74).
 
         // `g1` extends `g2`, so an extend of `g1` reads through both
         const groups = `<setup><group name="g2"><math>3</math><math>4</math></group><group name="g1" extend="$g2"/></setup>`;
@@ -339,7 +347,7 @@ describe("An index after options or cases that hold several, decided at load (Do
             `$g2`,
         ]) {
             const doenetML = `${second.includes("$g") ? groups : ""}<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
-<p name="p">[$s[1][2]]</p>`;
+<p name="p">[$s[2]]</p>`;
             const texts = new Set<string>();
             for (const requestedVariantIndex of [1, 2]) {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -354,23 +362,25 @@ describe("An index after options or cases that hold several, decided at load (Do
                     stateVariables[await resolvePathToNodeIdx("p")].stateValues
                         .text;
                 texts.add(text);
-                const { warnings, infos } = getDiagnosticsByType(core);
-                expect(warnings.map((x) => x.message)).eqls([
-                    '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 2 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+                const { errors, warnings, infos } = getDiagnosticsByType(core);
+                expect(
+                    errors.map((x) => x.message),
+                    second,
+                ).eqls([
+                    "`$s[2]` can't be used: an index after `s` reaches into what the pick holds, which must be one component of one type in every option, and option 2 holds several. To use a component inside, give it a name in each and refer to it by that name.",
                 ]);
-                expect(infos.map((x) => x.code)).eqls(
-                    text === "[2]" ? [] : ["doenet-w0188"],
-                );
+                expect(errors.map((x) => x.code)).eqls(["doenet-e0095"]);
+                expect(warnings).eqls([]);
+                expect(infos).eqls([]);
             }
-            expect([...texts].sort()).eqls(["[2]", "[＿]"]);
+            expect([...texts]).eqls(["[]"]);
         }
     });
 
-    it("a case written as an extend of a group holding several: the warning at load, whichever case is shown", async () => {
+    it("a case written as an extend of a group holding several: the error at load, whichever case is shown", async () => {
         // read through what it extends, as is a bare `$g2`
-        // (Doenet/DoenetML#2654 item 6), as a group written in the case is:
-        // the case showing the group adds the
-        // info that the index names nothing in it
+        // (Doenet/DoenetML#2654 item 6), as a group written in the case is
+        // (D74)
         for (const second of [
             `<group extend="$g2"/>`,
             `<group copy="$g2"/>`,
@@ -380,15 +390,12 @@ describe("An index after options or cases that hold several, decided at load (Do
             const d =
                 await setup(`<setup><group name="g2"><math>3</math><math>4</math></group></setup><booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><math>(1,2)</math></case><else>${second}</else></conditionalContent>
-<p name="p">[$cc[1][2]]</p>`);
-            expect(d.codes(), second).eqls([
-                "info doenet-w0188",
-                "warning doenet-w0191",
-            ]);
-            expect(await d.text()).eq("[＿]");
+<p name="p">[$cc[2]]</p>`);
+            expect(d.codes(), second).eqls(["error doenet-e0095"]);
+            expect(await d.text()).eq("[]");
             await d.setBoolean("b", true);
-            expect(await d.text()).eq("[2]");
-            expect(d.codes(), second).eqls(["warning doenet-w0191"]);
+            expect(await d.text()).eq("[]");
+            expect(d.codes(), second).eqls(["error doenet-e0095"]);
         }
     });
 
@@ -396,7 +403,7 @@ describe("An index after options or cases that hold several, decided at load (Do
         // read through what it extends (Doenet/DoenetML#2654 item 6), as a
         // group written there is
         const doenetML = `<setup><group name="g2"><math>(3,4)</math></group></setup><select name="s"><option><math>(1,2)</math></option><option><group extend="$g2"/></option></select>
-<p name="p">[$s[1][2]]</p>`;
+<p name="p">[$s[2]]</p>`;
         const texts = new Set<string>();
         for (const requestedVariantIndex of [1, 2]) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -631,64 +638,69 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 
 describe("An index read from an iteration whose count follows an input (DIAG-2, DIAG-6)", () => {
     it("is an info that goes with the iteration, as a reload shows", async () => {
-        const d = await setup(`<mathInput name="mi" prefill="2"/>
-<select name="s"><option><point>(1,2)</point></option></select>
+        // A select that picks several: an index after a one-pick select
+        // reaches into its pick (D72), so `w0181` does not arise for it.
+        const d = await setup(`<mathInput name="mi" prefill="3"/>
+<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>
 <repeatForSequence from="1" to="$mi" indexName="i"><math>$s[$i].x</math></repeatForSequence>
 <p name="p">done</p>`);
         expect(d.codes()).eqls(["info doenet-w0181"]);
         // Was: the w0181 warning stayed, and a w0104 warning came from the
         // iteration going away.
-        await d.setMath("mi", "1");
+        await d.setMath("mi", "2");
         expect(d.codes()).eqls([]);
         await d.reload();
         expect(d.codes()).eqls([]);
-        await d.setMath("mi", "2");
+        await d.setMath("mi", "3");
         expect(d.codes()).eqls(["info doenet-w0181"]);
     });
 
     it("with a fixed number of iterations it stays a warning", async () => {
         const d =
-            await setup(`<select name="s"><option><point>(1,2)</point></option></select>
-<repeatForSequence from="1" to="2" indexName="i"><math>$s[$i].x</math></repeatForSequence>`);
+            await setup(`<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>
+<repeatForSequence from="1" to="3" indexName="i"><math>$s[$i].x</math></repeatForSequence>`);
         expect(d.codes()).eqls(["warning doenet-w0181"]);
     });
 });
 
-describe("An index past what a conditionalContent shows names nothing (#2520 item 2)", () => {
-    it("is not applied to what the shown case holds", async () => {
+describe("An index after a conditionalContent reaches into the case shown (#2520 item 2, D72)", () => {
+    it("is an error at load when a case holds several, also through a group", async () => {
         const d = await setup(`<booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><math>(6,7)</math><math>(8,9)</math></case><else><math>(1,2)</math></else></conditionalContent>
 <group name="e"><conditionalContent><case condition="$b"><math>(6,7)</math><math>(8,9)</math></case><else><math>(1,2)</math></else></conditionalContent></group>
-<p name="p">[$cc[2]] [$e[2]] [$cc[1]]</p>`);
-        // was `2` (and `7, 9` with the case shown)
-        expect(await d.text()).eq("[＿] [＿] [(1, 2)]");
+<p name="p">[$cc[2]] [$e[2]] [$cc]</p>`);
+        // was `2` (and `7, 9` with the case shown); then a blank, the index
+        // not applied to what the shown case holds (#2520 item 2). Now an
+        // index reaches into the case shown (D72), and a case holding
+        // several makes it an error in its place, whichever is shown (D74).
+        expect(await d.text()).eq("[] [] [(1, 2)]");
         await d.setBoolean("b", true);
-        expect(await d.text()).eq("[＿] [＿] [(6, 7)(8, 9)]");
+        expect(await d.text()).eq("[] [] [(6, 7)(8, 9)]");
         await d.setBoolean("b", false);
-        expect(await d.text()).eq("[＿] [＿] [(1, 2)]");
+        expect(await d.text()).eq("[] [] [(1, 2)]");
         await d.reload();
-        expect(await d.text()).eq("[＿] [＿] [(1, 2)]");
-        expect(d.codes()).eqls([
-            "warning doenet-w0104",
-            "warning doenet-w0104",
-        ]);
+        expect(await d.text()).eq("[] [] [(1, 2)]");
+        expect(d.codes()).eqls(["error doenet-e0095", "error doenet-e0095"]);
     });
 
-    it("`$cc[1]` with no case shown is an info that follows the case", async () => {
+    it("with no case shown, `$cc` shows nothing and an index into it is an info that follows the case", async () => {
         const d = await setup(`<booleanInput name="b"/>
 <conditionalContent name="cc"><case condition="$b"><math>(6,7)</math></case></conditionalContent>
-<p name="p">[$cc[1]] [$cc[2]]</p>`);
-        expect(d.codes()).eqls(["info doenet-w0104", "warning doenet-w0104"]);
+<p name="p">[$cc] [$cc[2]]</p>`);
+        // `$cc` with no case shown shows nothing (D73); an index into it
+        // names nothing (D74)
+        expect(await d.text()).eq("[] [＿]");
+        expect(d.codes()).eqls(["info doenet-w0104"]);
         await d.setBoolean("b", true);
-        expect(await d.text()).eq("[(6, 7)] [＿]");
-        expect(d.codes()).eqls(["warning doenet-w0104"]);
+        expect(await d.text()).eq("[(6, 7)] [7]");
+        expect(d.codes()).eqls([]);
         await d.reload();
-        expect(d.codes()).eqls(["warning doenet-w0104"]);
+        expect(d.codes()).eqls([]);
         await d.setBoolean("b", false);
-        expect(await d.text()).eq("[＿] [＿]");
-        expect(d.codes()).eqls(["info doenet-w0104", "warning doenet-w0104"]);
+        expect(await d.text()).eq("[] [＿]");
+        expect(d.codes()).eqls(["info doenet-w0104"]);
         await d.reload();
-        expect(d.codes()).eqls(["info doenet-w0104", "warning doenet-w0104"]);
+        expect(d.codes()).eqls(["info doenet-w0104"]);
     });
 });
 
@@ -723,13 +735,15 @@ describe("An index past a repeat through a group holding a reference to it (#252
     });
 });
 
+// An index after a one-pick select or a conditionalContent reaches into
+// what it shows (D72): these were `$s[1][1]` and `$cc[1][1]`.
 describe("An index into a scalar through a pick (#2520 item 4)", () => {
     it("`<option>$g</option>` gives the same level as `<option>$m</option>`", async () => {
         for (const doenetML of [
             `<group name="g"><math>5</math></group><select name="s"><option>$g</option></select>
-<p name="p">[$s[1][1]]</p>`,
+<p name="p">[$s[1]]</p>`,
             `<math name="m">5</math><select name="s"><option>$m</option></select>
-<p name="p">[$s[1][1]]</p>`,
+<p name="p">[$s[1]]</p>`,
         ]) {
             const d = await setup(doenetML);
             expect(d.codes()).eqls(["warning doenet-w0100"]);
@@ -740,7 +754,7 @@ describe("An index into a scalar through a pick (#2520 item 4)", () => {
         const d =
             await setup(`<booleanInput name="b"/><group name="g"><math>5</math></group>
 <conditionalContent name="cc"><case condition="$b">$g</case><else><math>(1,2)</math></else></conditionalContent>
-<p name="p">[$cc[1][1]]</p>`);
+<p name="p">[$cc[1]]</p>`);
         await d.setBoolean("b", true);
         expect(d.codes()).eqls(["info doenet-w0100"]);
     });

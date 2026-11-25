@@ -4,7 +4,7 @@
  * component it reads. Part of Doenet/DoenetML#2128.
  */
 
-import { Dependency } from "./Dependency";
+import { Dependency, inErrorAtLoad } from "./Dependency";
 import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 import {
@@ -190,10 +190,13 @@ export class ReferentDependency extends Dependency {
                 return undefined;
             }
 
-            const referenceText = doenetMLStringForReference(
-                referringComponent?.refResolution?.originalPath,
-                core.allDoenetMLs,
-            );
+            // A tag in error at load reports that error alone (DIAG-5)
+            const referenceText = inErrorAtLoad(referringComponent)
+                ? undefined
+                : doenetMLStringForReference(
+                      referringComponent?.refResolution?.originalPath,
+                      core.allDoenetMLs,
+                  );
 
             [variableName] = await arrayEntryNamesFromPropIndex({
                 core,

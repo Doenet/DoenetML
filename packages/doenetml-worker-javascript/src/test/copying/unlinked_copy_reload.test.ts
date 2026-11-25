@@ -897,8 +897,8 @@ describe("A copy of a name in a case through a reload @group4", () => {
     }
 
     for (const form of ["copy", "copyWithState"]) {
-        it(`${form}: of a case's content by index, keeps the case`, async () => {
-            // `$cc[1]` is the content of the case active when the copy is
+        it(`${form}: of what the case shows, keeps the case`, async () => {
+            // `$cc` is the content of the case active when the copy is
             // made; a reload makes it again from that case.
             const r = await reloader(`
     <mathInput name="n" prefill="1"/>
@@ -906,7 +906,7 @@ describe("A copy of a name in a case through a reload @group4", () => {
       <case condition="$n = 1"><p name="p">one: <mathInput name="a"/></p></case>
       <else><p name="p">other: <mathInput name="a"/></p></else>
     </conditionalContent>
-    <group ${form}="$cc[1]" name="gc"/>
+    <group ${form}="$cc" name="gc"/>
     `);
             await updateMathInputValue({
                 latex: "5",
@@ -999,8 +999,9 @@ describe("A copy of a name in a case through a reload @group4", () => {
     }
 
     it("of a name inside a group in a case, keeps the case", async () => {
-        // A name in only some cases names nothing, in any case, so is not
-        // made from one (`$cc.y` of a `y` only in the first case).
+        // A name in only some cases is an error at load, in the copy's
+        // place (`$cc.y` of a `y` only in the first case, D74), so is not
+        // made from one.
         const doenetML = `
     <mathInput name="n" prefill="1"/>
     <conditionalContent name="cc">
@@ -1016,13 +1017,13 @@ describe("A copy of a name in a case through a reload @group4", () => {
         expect((await r.sv("cc.x")).stateValues.value).eq("other");
         expect((await r.sv("cgx")).stateValues.value).eq("one");
         expect((await r.sv("cx")).stateValues.value).eq("one");
-        expect((await r.sv("cy")).stateValues.value).eq("");
+        expect((await r.sv("cy")).componentType).eq("_error");
 
         await r.reload();
         expect((await r.sv("cc.x")).stateValues.value).eq("other");
         expect((await r.sv("cgx")).stateValues.value).eq("one");
         expect((await r.sv("cx")).stateValues.value).eq("one");
-        expect((await r.sv("cy")).stateValues.value).eq("");
+        expect((await r.sv("cy")).componentType).eq("_error");
     });
 
     it("of a name in a nested conditionalContent, keeps both cases", async () => {

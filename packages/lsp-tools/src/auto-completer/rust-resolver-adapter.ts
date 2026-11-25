@@ -216,7 +216,7 @@ function resolveThroughBranches(
         // (`$v.head` for a vector `v` in every branch) only when no
         // branch's declaration has an element by the next one; otherwise
         // a branch lacking it makes the path name nothing
-        // (`doenet-w0183`), as the run time decides it (`reach` in
+        // (`doenet-e0093`), as the run time decides it (`reach` in
         // `branchDeclaration`, `typeChangeAtLoad.ts`).
         if (
             consumed < names.length &&
@@ -1025,6 +1025,18 @@ export class RustResolverAdapter {
                             ],
                         ),
                     );
+                // An index after a `<conditionalContent>` or a one-pick
+                // `<select>` reaches into what the branch shown holds, not
+                // the branch (D72): `$cc[1].x` is an index into the case's
+                // component, then `.x`, not the case's `x`. What it is
+                // depends on what the cases hold, so nothing is offered.
+                if (indexed && branchContainerKind(coreResolvedNode, false)) {
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                        visibleDescendantNames: [],
+                    };
+                }
                 const through = resolveThroughBranches(
                     coreResolvedNode,
                     unresolvedPathParts,
@@ -1127,9 +1139,10 @@ export class RustResolverAdapter {
                 effectivePathPartHasIndex[resolvedPathPartIndex] ?? false;
             // Strict-rule shorthand from issue #1181: a select-family
             // container whose count attribute is absent or literal "1"
-            // resolves `$s.t` like `$s[1].t`. Both the takesIndex-block
-            // and the composite-children branches treat that as if the
-            // bracket index were authored.
+            // resolves `$s.t` to the `t` in its pick. Both the
+            // takesIndex-block and the composite-children branches treat
+            // that as if the pick were reached (an authored index, D72,
+            // reaches into the pick instead: see below).
             const resolvedPartHasEffectiveIndex =
                 resolvedPartHasIndex || hasImplicitIndex(resolvedNode);
 
@@ -1153,6 +1166,22 @@ export class RustResolverAdapter {
             if (
                 !this._componentTakesIndex(resolvedNode.name) &&
                 resolvedPartHasIndex
+            ) {
+                return {
+                    node: null,
+                    unresolvedPathParts: [],
+                    visibleDescendantNames: [],
+                };
+            }
+
+            // An index after a `<conditionalContent>` or a one-pick
+            // `<select>` reaches into what the branch shown holds, not the
+            // branch (D72): a name after it (`$sel[1].a`, or `$s[1].a` for
+            // a one-pick `s` in every case) is not a name in the branches.
+            // What it is depends on what they hold, so none is offered.
+            if (
+                resolvedPartHasIndex &&
+                branchContainerKind(resolvedNode, false)
             ) {
                 return {
                     node: null,
@@ -1495,7 +1524,7 @@ export class RustResolverAdapter {
      * (`Ref::Branches`), to the active branch's declaration, when every
      * branch declares it with one tag (`branchDeclarations`); the first
      * branch's declaration is returned, standing for them all. Otherwise
-     * the runtime reports it missing (`doenet-w0183`, `doenet-w0184`), and
+     * the worker reports it as an error (`doenet-e0093`, `doenet-e0094`), and
      * it names none here.
      */
     async _resolveBareName(

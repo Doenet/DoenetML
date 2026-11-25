@@ -146,6 +146,26 @@ export function addNodesToFlatFragment({
 
                         break;
 
+                    case "literal": {
+                        // An attribute held as a literal (`literalAttribute.ts`)
+                        // is given to the resolver as the text written, which
+                        // it reads to decide whether a `<select>` picks one
+                        // (`numToSelect="2"`, `branch_container_kind`, D72).
+                        const text =
+                            attribute.text ??
+                            (attribute.value !== undefined &&
+                            typeof attribute.value !== "object"
+                                ? String(attribute.value)
+                                : undefined);
+                        flatElement.attributes.push({
+                            type: "attribute",
+                            name: attrName,
+                            parent: componentIdx,
+                            children: text === undefined ? [] : [text],
+                            sourceDoc: attribute.sourceDoc,
+                        });
+                        break;
+                    }
                     case "unresolved":
                         flatElement.attributes.push({
                             type: "attribute",

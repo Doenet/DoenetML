@@ -219,18 +219,18 @@ describe("a repeat's for holds one type @group4", () => {
     });
 
     it("a name after the value of items of several is what every item declares, with one tag", async () => {
-        // An item lacking the name: it names nothing in every iteration,
-        // with a warning at load.
+        // An item lacking the name: an error in place of the reference in
+        // every iteration, decided at load (D74).
         const missing = await bothBuilds(
             `<group name="a"><point name="P">(1,2)</point><text>x</text></group>
 <group name="b"><text name="Q">y</text><text>z</text></group>
 <p name="p"><repeat for="$a $b" valueName="d">[$d.P]</repeat></p>`,
             ["p"],
         );
-        expect(missing.texts.p).eq("[＿], [＿]");
-        expect(missing.errors).eqls([]);
-        expect(missing.warnings).eqls([
-            "doenet-w0183: `$d.P` names nothing: item 2 of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+        expect(missing.texts.p).eq("[], []");
+        expect(missing.warnings).eqls([]);
+        expect(missing.errors).eqls([
+            "doenet-e0093: `$d.P` can't be used: item 2 of the `for` of the `<repeat>` has no `P`, so what it names would change with what is shown. Give it one, or use a name every item has.",
         ]);
 
         // An item that is an option is named as the option; an item after
@@ -245,12 +245,12 @@ describe("a repeat's for holds one type @group4", () => {
             ["p1", "p2"],
         );
         expect(unplaced.texts).eqls({
-            p1: "[＿]",
-            p2: "[＿], [＿], [＿], [＿]",
+            p1: "[]",
+            p2: "[], [], [], []",
         });
-        expect(unplaced.warnings).eqls([
-            "doenet-w0183: `$d.P` names nothing: option 2 of `s` has no `P`. Give it one, or use a name every option has.",
-            "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+        expect(unplaced.errors).eqls([
+            "doenet-e0093: `$d.P` can't be used: option 2 of `s` has no `P`, so what it names would change with what is shown. Give it one, or use a name every option has.",
+            "doenet-e0093: `$d.P` can't be used: an item of the `for` of the `<repeat>` has no `P`, so what it names would change with what is shown. Give it one, or use a name every item has.",
         ]);
 
         // So is an item after anything in `for` but a reference to a group
@@ -274,26 +274,26 @@ describe("a repeat's for holds one type @group4", () => {
             ["p1", "p2", "p3", "p4", "p5", "p6"],
         );
         expect(unplacedToo.texts).eqls({
-            p1: "[＿], [＿], [＿], [＿]",
-            p2: "[＿], [＿], [＿]",
-            p3: "[＿], [＿]",
-            p4: "[＿], [＿]",
-            p5: "[＿], [＿], [＿], [＿]",
+            p1: "[], [], [], []",
+            p2: "[], [], []",
+            p3: "[], []",
+            p4: "[], []",
+            p5: "[], [], [], []",
             // a group written with two composites that hold nothing now
             // is no item
-            p6: "[＿], [＿]",
+            p6: "[], []",
         });
         const someItem =
-            "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.";
+            "doenet-e0093: `$d.P` can't be used: an item of the `for` of the `<repeat>` has no `P`, so what it names would change with what is shown. Give it one, or use a name every item has.";
         expect(
-            unplacedToo.warnings.filter((w) => w.startsWith("doenet-w0183")),
+            unplacedToo.errors.filter((w) => w.startsWith("doenet-e0093")),
         ).eqls([
             someItem,
             someItem,
             someItem,
             someItem,
             // before the shuffle, places are known
-            "doenet-w0183: `$d.P` names nothing: item 2 of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+            "doenet-e0093: `$d.P` can't be used: item 2 of the `for` of the `<repeat>` has no `P`, so what it names would change with what is shown. Give it one, or use a name every item has.",
             someItem,
         ]);
 
@@ -306,7 +306,7 @@ describe("a repeat's for holds one type @group4", () => {
         );
         expect(types.texts.p).eq("[], []");
         expect(types.errors).eqls([
-            "doenet-w0184: `$d.P` names nothing: `P` is a `<point>` in one item of the `for` of the `<repeat>` and a `<text>` in another. Use the same type, or different names.",
+            "doenet-e0094: `$d.P` can't be used: `P` is a `<point>` in one item of the `for` of the `<repeat>` and a `<text>` in another, so its type would change with what is shown. Use the same type, or different names.",
         ]);
     });
 

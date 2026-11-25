@@ -7,6 +7,7 @@
 import { Dependency } from "./Dependency";
 import { recursivelyReplaceCompositesWithReplacements } from "../CompositeExpander";
 import { isWrapperOfSeveral } from "../../utils/wrappers";
+import { propertyNotOwnOf } from "../../utils/numItems";
 
 /**
  * The collections built as composites, and a `<conditionalContent>`, which
@@ -169,7 +170,10 @@ export class ReplacementDependency extends Dependency {
                     componentClass: composite.constructor,
                 })[0];
 
-            if (!checkForPublic.startsWith("__not_public_")) {
+            if (
+                !checkForPublic.startsWith("__not_public_") &&
+                !propertyNotOwnOf(composite, this.stopIfHaveProp)
+            ) {
                 // We found that the composite has a public state variable matching `stopIfHaveProp`.
                 // Therefore, we treat the composite itself as the "replacement",
                 // and don't even check if the composite is expanded or get its replacements.

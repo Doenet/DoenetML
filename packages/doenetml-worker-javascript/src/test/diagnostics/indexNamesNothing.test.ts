@@ -180,11 +180,12 @@ describe("An index that names nothing @group4", async () => {
 
     it("warns for a property that does not exist after an index into picks or iterations", async () => {
         // The index is resolved at run time, and what follows it is a
-        // property of what it picks, not a name of the document.
+        // property of what it picks, not a name of the document. A one-pick
+        // select stands for its pick (D72), so the property follows `$s`.
         for (const { body, reference } of [
             {
-                body: `<select name="s"><option><math name="x">1</math></option></select>[$s[1].nonexistent]`,
-                reference: "$s[1].nonexistent",
+                body: `<select name="s"><option><math name="x">1</math></option></select>[$s.nonexistent]`,
+                reference: "$s.nonexistent",
             },
             {
                 body: `<select name="s" numToSelect="2"><option><math name="x">1</math></option><option><math name="x">2</math></option></select>[$s[2].nonexistent]`,
@@ -221,7 +222,7 @@ describe("An index that names nothing @group4", async () => {
         // A property the picked component has, or a name, stays silent.
         const { text, warnings, errors, infos } = await shownAndReported(
             inParagraph(
-                `<select name="s"><option><math name="x">1</math></option></select>[$s[1].value][$s[1].x]`,
+                `<select name="s"><option><math name="x">1</math></option></select>[$s.value][$s.x]`,
             ),
         );
         expect(text).eq("[1][1]");

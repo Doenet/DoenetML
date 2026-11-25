@@ -573,9 +573,9 @@ describe("Conditional content tag tests @group2", async () => {
                     .text,
             ).eqls(math);
 
-            // `c` is in one case only, so `$cc2.c` and `$cc3.c` name nothing
-            // whichever case is active (#2450), and `c1`, written as a tag,
-            // is missing, with a warning (checked below). The `c` of the active case is
+            // `c` is in one case only, so `$cc2.c` and `$cc3.c` can't be used
+            // whichever case is active, an error at load (D74), and `c1`,
+            // written as a tag, is an `_error` (checked below). The `c` of the active case is
             // still there, reached through the container.
             if (optional) {
                 expect(
@@ -601,14 +601,16 @@ describe("Conditional content tag tests @group2", async () => {
                     undefined,
                 );
             }
+            // `$cc2.c` and `$cc3.c` are errors at load, an `_error` in their
+            // place, whose text is "" (D74).
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc2`)].stateValues
                     .text,
-            ).eq("＿");
+            ).eq("");
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pc3`)].stateValues
                     .text,
-            ).eq("＿");
+            ).eq("");
 
             expect(stateVariables[await resolvePathToNodeIdx(`cc3.d`)]).eq(
                 undefined,
@@ -653,28 +655,35 @@ describe("Conditional content tag tests @group2", async () => {
         });
         await check_items("mouse", "z");
 
-        // A name not in every case names nothing: a warning for each
-        // reference, whether bare or written as a tag, which is then
-        // missing (#2450, D37)
+        // A name not in every case can't be used: an error at load for each
+        // reference, whether bare or written as a tag, shown in its place
+        // (D74).
         const { warnings, errors } = getDiagnosticsByType(core);
         // `d` is no name of the document, so it is a property. Every case
         // holds several components, so a property after `cc` names nothing
         // whichever is shown, a warning at load (D41 decision 3,
         // `doenet-w0191`).
         expect(warnings.map((w) => w.message)).eqls([
-            "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             '`$cc.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
             '`$cc2.d`: a property after the case shown by `cc` passes into it only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
-            "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
         ]);
-        expect(errors.map((e) => e.message)).eqls([]);
+        expect(errors.map((e) => e.message)).eqls([
+            "`$cc2.c` can't be used: case 2 of `cc` has no `c`, so what it names would change with what is shown. Give it one, or use a name every case has.",
+            "`$cc3.c` can't be used: case 2 of `cc` has no `c`, so what it names would change with what is shown. Give it one, or use a name every case has.",
+            "`$cc.c` can't be used: case 2 of `cc` has no `c`, so what it names would change with what is shown. Give it one, or use a name every case has.",
+        ]);
+        expect(errors.map((e) => e.code)).eqls([
+            "doenet-e0093",
+            "doenet-e0093",
+            "doenet-e0093",
+        ]);
         const stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["c1", "d1"]) {
-            const component = stateVariables[await resolvePathToNodeIdx(name)];
-            expect(component.componentType, name).eq("text");
-            expect(component.stateValues.valueMissing, name).eq(true);
-        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].componentType,
+        ).eq("_error");
+        const d1 = stateVariables[await resolvePathToNodeIdx("d1")];
+        expect(d1.componentType).eq("text");
+        expect(d1.stateValues.valueMissing).eq(true);
     }
 
     it("case/else with text, math, and optional", async () => {
@@ -1337,10 +1346,10 @@ describe("Conditional content tag tests @group2", async () => {
 
   <p name="pPieces" >pieces: <conditionalContent extend="$cc" name="cc2" /></p>
 
-  <p name="pb1">b1: <text extend="$cc[1][1]" name="b1" /></p>
-  <p name="pc1">c1: <text extend="$cc[1][2]" name="c1" /></p>
-  <p name="pd1">d1: <text extend="$cc[1][3]" name="d1" /></p>
-  <p name="pe1">e1: <text extend="$cc[1][4]" name="e1" /></p>
+  <p name="pb1">b1: <text extend="$cc[1]" name="b1" /></p>
+  <p name="pc1">c1: <text extend="$cc[2]" name="c1" /></p>
+  <p name="pd1">d1: <text extend="$cc[3]" name="d1" /></p>
+  <p name="pe1">e1: <text extend="$cc[4]" name="e1" /></p>
 
   `,
         });
@@ -1364,39 +1373,17 @@ describe("Conditional content tag tests @group2", async () => {
                     .stateValues.text,
             ).eq(`pieces: The ${animal} ${verb}.`);
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pb1")].stateValues
-                    .text,
-            ).eq("b1: ＿");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
-                    .text,
-            ).eq("c1: ＿");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pd1")].stateValues
-                    .text,
-            ).eq("d1: ＿");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pe1")].stateValues
-                    .text,
-            ).eq("e1: ＿");
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("b1")].stateValues
-                    .text,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("c1")].stateValues
-                    .text,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("d1")].stateValues
-                    .text,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("e1")].stateValues
-                    .text,
-            ).eq("");
+            // Each index is an error at load, its tag an `_error` (D74).
+            for (const piece of ["b1", "c1", "d1", "e1"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`p${piece}`)]
+                        .stateValues.text,
+                ).eq(`${piece}: `);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(piece)]
+                        .componentType,
+                ).eq("_error");
+            }
         }
 
         await check_items("elephant", "trumpets");
@@ -1417,30 +1404,30 @@ describe("Conditional content tag tests @group2", async () => {
         });
         await check_items("elephant", "trumpets");
 
-        // An index never selects a child of what the conditionalContent
-        // shows (D27): each of these names nothing. The case and the
-        // `<else>` each hold several pieces, as written, so that is decided
-        // when the document loads, a warning whichever case is shown, and
-        // nothing more is reported as it changes (DIAG-7, Doenet/DoenetML#2643
-        // item 4).
-        const { warnings, infos } = getDiagnosticsByType(core);
+        // An index after a conditionalContent reaches into what the case
+        // shown holds (D72). The case and the `<else>` each hold several
+        // pieces, as written, so each index is an error decided when the
+        // document loads, whichever case is shown, and nothing more is
+        // reported as it changes (D74).
+        const { warnings, errors, infos } = getDiagnosticsByType(core);
         expect(infos.filter((w) => w.code === "doenet-w0188")).eqls([]);
+        expect(warnings).eqls([]);
         expect(
-            warnings
+            errors
                 .map((w) => [w.code, w.args?.reference])
                 .sort((a, b) => String(a[1]).localeCompare(String(b[1]))),
         ).eqls([
-            ["doenet-w0191", "$cc[1][1]"],
-            ["doenet-w0191", "$cc[1][2]"],
-            ["doenet-w0191", "$cc[1][3]"],
-            ["doenet-w0191", "$cc[1][4]"],
+            ["doenet-e0095", "$cc[1]"],
+            ["doenet-e0095", "$cc[2]"],
+            ["doenet-e0095", "$cc[3]"],
+            ["doenet-e0095", "$cc[4]"],
         ]);
     });
 
     it("names reach the pieces of what is shown in case and else", async () => {
-        // The named form of the test above: an index selects what the
-        // conditionalContent shows, and a name inside it reaches a piece of
-        // it, whichever case is shown (D27).
+        // The named form of the test above: a name after the
+        // conditionalContent reaches a piece of what it shows, whichever case
+        // is shown.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <setup>
@@ -1454,8 +1441,8 @@ describe("Conditional content tag tests @group2", async () => {
     <else>The <text name="animal" extend="$animal2" /> <text name="verb" extend="$verb2" />.</else>
   </conditionalContent></p>
 
-  <p name="pc1">c1: <text extend="$cc[1].animal" name="c1" /></p>
-  <p name="pd1">d1: <text extend="$cc[1].verb" name="d1" /></p>
+  <p name="pc1">c1: <text extend="$cc.animal" name="c1" /></p>
+  <p name="pd1">d1: <text extend="$cc.verb" name="d1" /></p>
   `,
         });
 
