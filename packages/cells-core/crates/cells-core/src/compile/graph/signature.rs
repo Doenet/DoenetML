@@ -503,10 +503,8 @@ impl<'a, 'c> Signer<'a, 'c> {
                 } = &self.g.templates[i as usize];
                 // A lowered math's value comes first, before the leaves.
                 let inputs = if *blank { &inputs[1..] } else { inputs };
-                let text = self.c.plans.sym_text[expr].spell(self.c.dast);
-                let tree = self
-                    .engine
-                    .parse_tree::<RefId>(&text)
+                let tree = self.c.plans.sym_text[expr]
+                    .parse_tree::<RefId>(self.c.dast, &mut self.engine)
                     .expect("a symbolic template parses");
                 // Leaf k is input k: numbered by the first input of its
                 // cell.

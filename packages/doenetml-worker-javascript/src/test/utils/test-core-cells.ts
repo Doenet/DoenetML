@@ -414,6 +414,9 @@ const mathReaders: Record<string, Reader> = {
     numDimensions: (g) => g("numDimensions"),
     ...displaySettingReaders,
     hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    // Whether its value is a finite number, as the current core's
+    // `isNumber` reads the value's tree.
+    isNumber: (g, x) => Number.isFinite((mathValue(g, x) as any).tree),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
@@ -497,7 +500,9 @@ function exprOr(exprProp: string, prop: string): Reader {
     return (g, x) => {
         const e = x.cell(exprProp);
         if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
-            return me.fromText(x.cells.core.expr_text(e));
+            // Its tree, not its text: text the current core's parser
+            // reads again splits a function it does not apply (`min`).
+            return heldExpr(x.cells, e);
         }
         return M(g(prop));
     };

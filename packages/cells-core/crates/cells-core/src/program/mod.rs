@@ -21,6 +21,7 @@ pub use instr::{
     in_domain, substitute_post,
 };
 pub use range::Range;
+pub(crate) use scalar::math_pow;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
 pub use texts::Texts;
 pub use vector::Statistic;
@@ -740,6 +741,14 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 &vals[9..],
             )
             .to_value();
+        }
+        SymKind::LineCoeffs => {
+            let var = |k| handle(v(k)).and_then(|h| engine.symbol(h));
+            let coeffs = match (handle(v(0)), var(1), var(2)) {
+                (Some(h), Some(vx), Some(vy)) => engine.line_coeffs(h, &vx, &vy),
+                _ => None,
+            };
+            out[..3].copy_from_slice(&coeffs.unwrap_or([f64::NAN; 3]));
         }
         SymKind::Pack { .. } => {
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();

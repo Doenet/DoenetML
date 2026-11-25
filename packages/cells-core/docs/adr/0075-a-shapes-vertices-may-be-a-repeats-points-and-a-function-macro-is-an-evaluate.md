@@ -117,3 +117,6 @@ Done 2026-11-25, all four. Tested by `polyline.spec.rs`, `polygon.spec.rs`,
 `label.spec.rs`, `scan.spec.rs`, `tests/function_macros.rs`,
 `tests/label_references.rs`, `tests/symbolic_operators.rs`,
 `tests/wire.rs`, `tests/iterates.rs` and the bridge tests.
+
+The found-and-not-done math text calling a function (`5 sin($x)`, `sin(1)`)
+is done by ADR 0083, by lowering rather than an `Evaluate`.

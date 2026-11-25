@@ -537,7 +537,8 @@ impl<'a> Outlining<'a> {
             .settle
         {
             Some(Settle::FromMathText(settled)) => {
-                let mt = self.rd().math_text(d.children(el));
+                let read = self.math_read(el);
+                let mt = self.rd().own_math_text(d.children(el), read);
                 if let Ok(mt) = &mt {
                     self.outlined_mut(t).elems[e.index()].component_type = settled(mt.tokens());
                 }
@@ -557,6 +558,27 @@ impl<'a> Outlining<'a> {
         };
         self.outlined_mut(t).elems[e.index()].body = Body::Collect { component_type };
         Ok(())
+    }
+
+    /// How a `<math>`'s own text is read, from its literal `format`,
+    /// `splitSymbols` and `functionSymbols` (ADR 0083). One written with a
+    /// reference is read by default here; its record refuses it.
+    fn math_read(&self, el: NodeId) -> MathRead {
+        let d = self.dast;
+        let text = |name: &str| d.attr(el, name).and_then(|a| self.rd().attr_text(a));
+        let opts = crate::sym::ParseOpts {
+            latex: text("format").is_some_and(|f| f.trim().eq_ignore_ascii_case("latex")),
+            no_split: text("splitSymbols").is_some_and(|s| s.trim().eq_ignore_ascii_case("false")),
+            function_symbols: text("functionSymbols").map(|s| {
+                s.split(|c: char| c.is_whitespace() || c == ',')
+                    .filter(|f| !f.is_empty())
+                    .map(str::to_string)
+                    .collect()
+            }),
+        };
+        MathRead {
+            opts: (!opts.is_default()).then_some(opts),
+        }
     }
 
     fn add_children(

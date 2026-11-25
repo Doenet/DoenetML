@@ -357,8 +357,11 @@ impl Share<'_> {
             None => String::new(),
             Some(SymText::Leaf(p)) => format!("\u{1}{}", self.refs.class(&self.c.refs, *p)),
             Some(SymText::Spelled(s)) => format!("\u{2}{s}"),
-            Some(SymText::Nodes { nodes, plans }) => {
-                let mut text = String::new();
+            Some(SymText::Nodes { nodes, plans, opts }) => {
+                // Text read with options is not the same text read without.
+                let mut text = opts
+                    .as_ref()
+                    .map_or(String::new(), |o| format!("\u{3}{o:?}"));
                 let mut plans = plans.iter();
                 for &n in nodes.iter() {
                     match self.dast.kind(n) {
@@ -704,7 +707,7 @@ fn expr_classes<'c>(
                 .map(|xs| K::Call(*f as u8, xs)),
             // Its text says what it is: its own class.
             // A shape's head is in its text, not here: its own class.
-            Expr::Operator(_) | Expr::Shape(_) => None,
+            Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => None,
         };
         let class = match key {
             Some(k) => *seen.entry(k).or_insert(id),

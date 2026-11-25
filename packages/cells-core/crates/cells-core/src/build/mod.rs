@@ -35,7 +35,7 @@ use std::sync::Arc;
 use crate::sym::{Engine, Handle, Tree};
 
 use crate::compile::Failure;
-use crate::compile::ir::expr::{Arena, Expr, ExprId, Func};
+use crate::compile::ir::expr::{Arena, Expr, ExprId, Func, Lowered};
 use crate::compile::ir::*;
 use crate::compile::keys::pick_position;
 use crate::components::{ComponentType, Role, StructureKind};

@@ -4,7 +4,7 @@ a measure in radians, in degrees, or as children: cells 14 · essential 0 · con
 degrees from a number follow it, and an input on them writes it: cells 8 · essential 1 · constant 6 · instrs 1 · components 4
 fewer than three points and no measure: a right angle: cells 10 · essential 0 · constant 10 · instrs 0 · components 3
 between two lines: at where they meet, a step along each (ADR 0080): cells 26 · essential 8 · constant 5 · instrs 11 · components 4
-along one line: at its point nearest the origin, turned by the measure: cells 19 · essential 4 · constant 7 · instrs 6 · components 3
+along one line: at its point nearest the origin, turned by the measure: cells 31 · essential 4 · constant 7 · instrs 19 · components 3
 between three lines: no angle, an info: cells 19 · essential 12 · constant 7 · instrs 0 · components 5
 a measure written as math is an expression, kept as written (ADR 0043): cells 20 · essential 0 · constant 20 · instrs 0 · components 6
 a number, or points: no expression: cells 10 · essential 0 · constant 10 · instrs 0 · components 3

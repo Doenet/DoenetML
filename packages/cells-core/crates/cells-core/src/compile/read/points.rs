@@ -77,6 +77,12 @@ impl<'a> SourceReader<'a> {
                     i += 1;
                 }
                 other => {
+                    // Points written as vector arithmetic (ADR 0083).
+                    if let Some(points) =
+                        self.vector_point_list(ar, t, d.attr_children(a), &toks)?
+                    {
+                        return Ok(points);
+                    }
                     return Err(Error::BadMath {
                         text: src.text(d),
                         reason: format!("unexpected {other:?} in a point list"),

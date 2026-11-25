@@ -472,6 +472,10 @@ impl RequestEngine<'_> {
                         None => false,
                     }
                 }
+                // A symbolic operator of several outputs asked through
+                // others than its first (a line's coefficients, ADR 0083):
+                // none has an inverse.
+                _ if desired[0].is_none() => false,
                 _ => match ins.op.invert(self.cells, desired[0].unwrap()) {
                     Some((c, v)) => {
                         produced.write(c, v);

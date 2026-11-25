@@ -28,12 +28,40 @@ impl SourceReader<'_> {
             toks,
             macros,
             nodes: nodes.into(),
+            read: None,
+        })
+    }
+
+    /// A `<math>`'s own text, as [`Self::math_text`], read as `read` says
+    /// (ADR 0083): a run of text the tokenizer does not read is one
+    /// [`Token::Opaque`], for the engine to read when the math is parsed.
+    pub(in crate::compile) fn own_math_text(
+        &self,
+        nodes: &[NodeId],
+        read: MathRead,
+    ) -> Result<MathText> {
+        let (toks, macros) = self.tokenize_math_as(nodes, true)?;
+        Ok(MathText {
+            toks,
+            macros,
+            nodes: nodes.into(),
+            read: Some(read),
         })
     }
 
     /// The tokens of `nodes`, each `$ref` a placeholder, and the `$ref`
     /// nodes in order.
     fn tokenize_math(&self, nodes: &[NodeId]) -> Result<(Vec<Token>, Vec<NodeId>)> {
+        self.tokenize_math_as(nodes, false)
+    }
+
+    /// [`Self::tokenize_math`]; a run of text the tokenizer does not read
+    /// is one [`Token::Opaque`] when `lenient`, else an error.
+    fn tokenize_math_as(
+        &self,
+        nodes: &[NodeId],
+        lenient: bool,
+    ) -> Result<(Vec<Token>, Vec<NodeId>)> {
         let _s = crate::trace::tally("math text");
         let d = self.dast;
         let mut toks = Vec::new();
@@ -41,13 +69,18 @@ impl SourceReader<'_> {
         for (i, &n) in nodes.iter().enumerate() {
             match d.kind(n) {
                 NodeKind::Text => {
-                    expr::tokenize(d.str(n), &mut toks).map_err(|reason| {
-                        Error::BadMath {
-                            // The text up to where tokenizing failed.
-                            text: spell_math(d, &nodes[..=i]),
-                            reason,
+                    let mut run = Vec::new();
+                    match expr::tokenize(d.str(n), &mut run) {
+                        Ok(()) => toks.append(&mut run),
+                        Err(reason) if lenient => toks.push(Token::Opaque(reason)),
+                        Err(reason) => {
+                            return Err(Error::BadMath {
+                                // The text up to where tokenizing failed.
+                                text: spell_math(d, &nodes[..=i]),
+                                reason,
+                            });
                         }
-                    })?;
+                    }
                 }
                 NodeKind::Element if matches!(d.str(n), "conditionalContent" | "select") => {
                     return Err(Error::Unsupported(format!(
@@ -156,23 +189,61 @@ impl SourceReader<'_> {
         mt: &MathText,
     ) -> Result<ExprId> {
         let (toks, plans) = self.resolve_math(ar, t, scope, mt)?;
+        let opts = mt.read.as_ref().and_then(|r| r.opts.clone());
+        let latex = opts.as_ref().is_some_and(|o| o.latex);
+        let constant = plans.is_empty();
         let text = SymText::Nodes {
             nodes: mt.nodes.clone(),
-            plans: plans.into(),
+            plans: plans.clone().into(),
+            opts: opts.clone().map(Box::new),
         };
-        let id = match self.parse_tokens(ar, &toks, mt.src()) {
-            Ok(id) => id,
-            // Text this parser does not read but the symbolic engine does,
-            // with no reference in it (a relation: `4 < x <= 5`, `x = 2`,
-            // `x in (0, 1)`): a value with no entries of its own, the
-            // engine's text alone, a constant (ADR 0041, decision 8).
-            Err(e) => {
-                let constant = !toks.iter().any(|tok| matches!(tok, Token::Cell(_)))
-                    && crate::sym::Engine::new().is_written(&text.spell(self.dast));
-                if !constant {
-                    return Err(e);
+        let parsed = self.parse_tokens(ar, &toks, mt.src());
+        let id = match parsed {
+            // Text read with options other than the default is the
+            // engine's to read, but for a number as written (ADR 0083).
+            Ok(id) if opts.is_none() || matches!(ar.arena.get(id), expr::Expr::Num(_)) => id,
+            // Text this parser does not read but the symbolic engine does
+            // (ADR 0041 decision 8, ADR 0083): a relation, `4 < x <= 5`; a
+            // `<math>`'s own text, `\frac{x}{z}` as LaTeX, `x^()` with the
+            // blank for its missing operand, with references in it but
+            // for LaTeX, which spells none. Its leaves are its references.
+            parsed => {
+                let mut engine = crate::sym::Engine::new();
+                let spelled = text.spell(self.dast);
+                // A call to a function the engine does not read (`clamp`)
+                // that does not parse is the author's error, not the
+                // engine's text.
+                let numeric_call = toks.windows(2).any(|w| {
+                    matches!(&w[0], Token::Ident(f)
+                        if expr::Func::named(f).is_some_and(|f| !f.engine_reads()))
+                        && w[1] == Token::LParen
+                });
+                let reads = match mt.read {
+                    Some(_) => {
+                        !(latex && !constant)
+                            && !numeric_call
+                            && engine.reads(&spelled, text.opts(), constant)
+                    }
+                    None => constant && engine.is_written(&spelled),
+                };
+                if !reads {
+                    return Err(match parsed {
+                        Err(e) if !latex => e,
+                        _ => Error::BadMath {
+                            text: mt.src().text(self.dast),
+                            reason: if constant {
+                                "the LaTeX does not parse".into()
+                            } else {
+                                "LaTeX math holding a reference".into()
+                            },
+                        },
+                    });
                 }
-                ar.arena.push(expr::Expr::Shape(Vec::new()))
+                let leaves = plans
+                    .iter()
+                    .map(|&p| ar.arena.push(expr::Expr::Cell(p)))
+                    .collect();
+                ar.arena.push(expr::Expr::Written(leaves))
             }
         };
         ar.sym_text.insert(id, text);
@@ -370,6 +441,9 @@ pub(in crate::compile) fn spelled(toks: &[Token]) -> String {
             Token::Comma => text.push(','),
             Token::Eq => text.push('='),
             Token::Open(c) | Token::Close(c) => text.push(*c),
+            // Only a `<math>`'s own text holds one (ADR 0083), which is
+            // never spelled from its tokens.
+            Token::Opaque(_) => text.push('\u{ff3f}'),
         }
     }
     text

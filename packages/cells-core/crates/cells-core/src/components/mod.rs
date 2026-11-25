@@ -1464,7 +1464,9 @@ mod tests {
         // ADR 0077 added `place_among`, a choice's place among its input's.
         // ADR 0076 added `boolean_as_number`, for a boolean among an
         // operator's operands (D47).
-        const PLAN_CTX_METHODS: usize = 49;
+        // ADR 0083 added `equation_value`, a line's equation that is a
+        // math value, read in the tick.
+        const PLAN_CTX_METHODS: usize = 50;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

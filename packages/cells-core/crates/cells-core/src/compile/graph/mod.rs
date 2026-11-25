@@ -208,11 +208,11 @@ pub(super) fn math_handle(
     match origin {
         MathOrigin::Tree(tree) => engine.import(tree),
         MathOrigin::Constant(expr, post) => {
-            let text = c.plans.sym_text[expr].spell(c.dast);
-            let h = match engine.parse_tree::<RefId>(&text) {
+            let sym = &c.plans.sym_text[expr];
+            let h = match sym.parse_tree::<RefId>(c.dast, engine) {
                 Ok(tree) => engine.import(&tree),
-                Err(_) => engine
-                    .parse_constant(&text)
+                Err(_) => sym
+                    .parse_constant(c.dast, engine)
                     .expect("a constant math text parses"),
             };
             post.apply(engine, h)

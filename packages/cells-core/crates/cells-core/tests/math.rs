@@ -144,12 +144,15 @@ fn math_of_math_lowers_through_and_a_symbolic_leaf_stays_symbolic() {
     );
 }
 
+/// Math text the engine does not read is an error; text it reads with a
+/// missing operand is the blank there, as the current core shows it (ADR
+/// 0083).
 #[test]
 fn math_parse_errors_are_reported() {
-    let (code, m) = load_error(r#"<math name="m">3 +</math>"#);
-    assert_eq!(code, "cells-bad-math", "{m}");
     let (code, m) = load_error(r#"<math name="m">(1 + 2</math>"#);
     assert_eq!(code, "cells-bad-math", "{m}");
+    let doc = load(r#"<math name="m">3 +</math>"#).unwrap();
+    assert_eq!(doc.math_text(doc.cell("m", "expr").unwrap()), "3+");
 }
 
 #[test]
@@ -202,11 +205,20 @@ fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
     );
 }
 
+/// A call the compile cannot lower is an error where the engine does not
+/// read the function (`clamp`) or the text; a `<math>` calling one the
+/// engine reads with other arguments is the engine's (`min($a)`, ADR
+/// 0083), as the current core reads it.
 #[test]
 fn function_call_errors_are_reported() {
+    let doc = load(
+        r#"<numberInput name="a" value="2"/><math name="m">min($a)</math>
+           <math name="r">round($a, 1)</math>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("m", "value"), Some(2.0));
+    assert_eq!(doc.math_text(doc.cell("r", "expr").unwrap()), "round(2, 1)");
     for text in [
-        "round($a, 1)",
-        "min($a)",
         "clamp($a, 0)",
         "clamp($a, $a, 1)",
         "clamp($a, 2, 1)",

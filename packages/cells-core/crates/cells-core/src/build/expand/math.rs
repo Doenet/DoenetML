@@ -41,9 +41,9 @@ impl<'c> Builder<'c> {
         }
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| self.engine.parse_tree(&text()))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, self.engine))
         } else {
-            parsed = self.engine.parse_tree(&text());
+            parsed = sym.parse_tree(compiled.dast, self.engine);
             &parsed
         };
         let tree = match tree {
@@ -51,7 +51,7 @@ impl<'c> Builder<'c> {
             // A relation, tuple or multi-argument function with no cell
             // leaves is a constant expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
-            Err(reason) => match self.engine.parse_constant(&text()) {
+            Err(reason) => match sym.parse_constant(compiled.dast, self.engine) {
                 Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
@@ -125,12 +125,11 @@ impl<'c> Builder<'c> {
         if compiled.plans.arena.calls_outside_engine(expr) {
             return Ok(BuiltSource::Const(f64::NAN));
         }
-        let text = || sym.spell(compiled.dast);
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| self.engine.parse_tree(&text()))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, self.engine))
         } else {
-            parsed = self.engine.parse_tree(&text());
+            parsed = sym.parse_tree(compiled.dast, self.engine);
             &parsed
         };
         let Ok(tree) = tree else {
@@ -331,6 +330,8 @@ impl<'c> Builder<'c> {
         let e = self.compiled.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
+            // `e` and infinity where math is numeric (ADR 0083).
+            Expr::Sym(s) if let Some(v) = expr::named_constant(&s) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => Expr::Cell(self.math_ref(plan, scope)?),
             Expr::Add(a, b)
@@ -358,6 +359,11 @@ impl<'c> Builder<'c> {
                     .map(|a| self.instantiate_expr(a, scope))
                     .collect::<Result<_>>()?,
             ),
+            Expr::Written(xs) => Expr::Written(
+                xs.into_iter()
+                    .map(|a| self.instantiate_expr(a, scope))
+                    .collect::<Result<_>>()?,
+            ),
         };
         let done = self.arena.push(out);
         if let Some(key) = class {
@@ -380,7 +386,7 @@ impl<'c> Builder<'c> {
         match e {
             Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
-            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => {
                 unreachable!("lowering a symbolic expression")
             }
             Expr::Neg(a) => {
@@ -438,6 +444,21 @@ impl<'c> Builder<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.math_op(spec, &[acc, x], scope))
                     }
+                    _ => match f.lowered().expect("a function of one argument") {
+                        Lowered::Op(spec) => self.math_op(spec, &xs, scope),
+                        // `1 / f(x)`: a reversed division, so a request
+                        // reaches `f(x)` (and is dropped there).
+                        Lowered::Recip(spec) => {
+                            let fx = self.math_op(spec, &xs, scope);
+                            let one = self.const_slot(1.0);
+                            self.math_op(OpSpec::RDiv, &[fx, one], scope)
+                        }
+                        Lowered::OfRecip(spec) => {
+                            let one = self.const_slot(1.0);
+                            let r = self.math_op(OpSpec::RDiv, &[xs[0], one], scope);
+                            self.math_op(spec, &[r], scope)
+                        }
+                    },
                 }
             }
         }

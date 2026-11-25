@@ -6,7 +6,7 @@
 //! math a template over its leaves.
 
 use super::*;
-use crate::compile::ir::expr::Func;
+use crate::compile::ir::expr::{Func, Lowered};
 
 /// Stamping, math: an expression instantiated per template, numeric math
 /// lowered to operator nodes, symbolic math a template over its leaves.
@@ -25,6 +25,8 @@ impl<'c> Stamp<'c> {
         let e = self.c.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
+            // `e` and infinity where math is numeric (ADR 0083).
+            Expr::Sym(s) if let Some(v) = expr::named_constant(&s) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
                 let (target, label) = self.math_ref(plan, t);
@@ -48,6 +50,9 @@ impl<'c> Stamp<'c> {
             }
             Expr::Operator(args) => {
                 Expr::Operator(args.into_iter().map(|a| self.instantiate(a, t)).collect())
+            }
+            Expr::Written(args) => {
+                Expr::Written(args.into_iter().map(|a| self.instantiate(a, t)).collect())
             }
         };
         let done = self.x.push(out);
@@ -102,7 +107,7 @@ impl<'c> Stamp<'c> {
         match e {
             Expr::Num(v) => self.constant(v),
             Expr::Cell(n) => n,
-            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => {
                 unreachable!("lowering a symbolic expression")
             }
             Expr::Neg(a) => {
@@ -153,6 +158,21 @@ impl<'c> Stamp<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.math_op(spec, vec![acc, x], t))
                     }
+                    _ => match f.lowered().expect("a function of one argument") {
+                        Lowered::Op(spec) => self.math_op(spec, xs, t),
+                        // `1 / f(x)`: a reversed division, so a request
+                        // reaches `f(x)` (and is dropped there).
+                        Lowered::Recip(spec) => {
+                            let fx = self.math_op(spec, xs, t);
+                            let one = self.constant(1.0);
+                            self.math_op(OpSpec::RDiv, vec![fx, one], t)
+                        }
+                        Lowered::OfRecip(spec) => {
+                            let one = self.constant(1.0);
+                            let r = self.math_op(OpSpec::RDiv, vec![xs[0], one], t);
+                            self.math_op(spec, vec![r], t)
+                        }
+                    },
                 }
             }
         }
@@ -295,11 +315,12 @@ impl<'c> Stamp<'c> {
         if c.plans.arena.calls_outside_engine(id) || id_has_leafless_text(c, id) {
             return false;
         }
-        let text = sym.spell(c.dast);
         let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
         match c.plans.sym_trees.get(&id) {
-            Some(cached) => cached.get_or_init(|| engine.parse_tree(&text)).is_ok(),
-            None => engine.parse_tree::<RefId>(&text).is_ok(),
+            Some(cached) => cached
+                .get_or_init(|| sym.parse_tree(c.dast, engine))
+                .is_ok(),
+            None => sym.parse_tree::<RefId>(c.dast, engine).is_ok(),
         }
     }
 }
@@ -345,13 +366,13 @@ impl Stamp<'_> {
         let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
         let parsed;
         let tree = if let Some(cached) = c.plans.sym_trees.get(&id) {
-            cached.get_or_init(|| engine.parse_tree(&text))
+            cached.get_or_init(|| sym.parse_tree(c.dast, engine))
         } else {
-            parsed = engine.parse_tree::<RefId>(&text);
+            parsed = sym.parse_tree::<RefId>(c.dast, engine);
             &parsed
         };
         if let Err(reason) = tree
-            && engine.parse_constant(&text).is_err()
+            && sym.parse_constant(c.dast, engine).is_err()
         {
             let reason = reason.clone();
             self.fail(Error::BadMath { text, reason });
@@ -369,7 +390,7 @@ fn occurrences(arena: &Arena<RefId>, id: ExprId, out: &mut Vec<RefId>) {
             occurrences(arena, *b, out);
         }
         Expr::Neg(a) => occurrences(arena, *a, out),
-        Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
+        Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) | Expr::Written(args) => {
             for &a in args {
                 occurrences(arena, a, out);
             }

@@ -118,7 +118,22 @@ pub(super) fn plan_as(
     if let Some(equation) = equation {
         // Equation mode: coefficients are the state, points follow.
         let (vx, vy) = variables(&attrs);
-        let [a, b, c] = match ctx.linear_equation(&equation, &vx, &vy)? {
+        let read = match ctx.equation_value(&equation, &vx, &vy)? {
+            // An equation that is a math value (`$mathInput`): its
+            // coefficients read in the tick (ADR 0083).
+            Some(sources) => {
+                let args = sources.map(|s| wiring.hidden(s)).to_vec();
+                let head = wiring.hidden(Source::computed(
+                    OpSpec::Sym(crate::program::SymKind::LineCoeffs),
+                    args,
+                ));
+                let b = wiring.hidden(Source::Flow(Flow::VecOut(head, 1)));
+                let c = wiring.hidden(Source::Flow(Flow::VecOut(head, 2)));
+                Some([Source::own(head), Source::own(b), Source::own(c)])
+            }
+            None => ctx.linear_equation(&equation, &vx, &vy)?,
+        };
+        let [a, b, c] = match read {
             Some(coeffs) => coeffs,
             // A symbolic or nonlinear equation is not a line here.
             None => {

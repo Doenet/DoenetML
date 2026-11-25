@@ -41,9 +41,17 @@ pub(crate) enum Expr<L> {
     /// entries, constant math text only the engine reads (a relation, `4 <
     /// x <= 5`; `Reader::parse_math_text`).
     Shape(Vec<ExprId>),
+    /// Math text only the symbolic engine reads (ADR 0083): text the
+    /// compile's parser does not (`\frac{x}{z}` read as LaTeX, `x^()`,
+    /// a relation `4 < x <= 5`), over these reference leaves. Always
+    /// symbolic; the engine reads the text.
+    Written(Vec<ExprId>),
 }
 
-/// The functions numeric math text can call, each lowered to its operator.
+/// The functions numeric math text can call, each lowered to its operator
+/// (ADR 0083): DoenetML's `round`, `floor`, `min`, `max` and `clamp`, and
+/// the functions the current core evaluates numerically
+/// (`evaluate_to_constant`), by the names the symbolic engine reads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Func {
     Round,
@@ -52,6 +60,46 @@ pub(crate) enum Func {
     Max,
     /// `clamp(x, lo, hi)`, with number bounds.
     Clamp,
+    Sqrt,
+    Cbrt,
+    Abs,
+    Sign,
+    Ceil,
+    Exp,
+    /// `log` and `ln`: the natural logarithm, as in the current core.
+    Ln,
+    Log10,
+    Sin,
+    Cos,
+    Tan,
+    Sec,
+    Csc,
+    Cot,
+    Asin,
+    Acos,
+    Atan,
+    Asec,
+    Acsc,
+    Acot,
+    Sinh,
+    Cosh,
+    Tanh,
+    Sech,
+    Csch,
+    Coth,
+    Asinh,
+    Acosh,
+    Atanh,
+}
+
+/// How a [`Func`] lowers: to one operator over its argument, the
+/// reciprocal of one (`sec` is `1 / cos`), or one over the argument's
+/// reciprocal (`asec(x)` is `acos(1 / x)`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum Lowered {
+    Op(crate::program::OpSpec),
+    Recip(crate::program::OpSpec),
+    OfRecip(crate::program::OpSpec),
 }
 
 impl Func {
@@ -62,6 +110,35 @@ impl Func {
             "min" => Func::Min,
             "max" => Func::Max,
             "clamp" => Func::Clamp,
+            "sqrt" => Func::Sqrt,
+            "cbrt" => Func::Cbrt,
+            "abs" => Func::Abs,
+            "sign" => Func::Sign,
+            "ceil" => Func::Ceil,
+            "exp" => Func::Exp,
+            "log" | "ln" => Func::Ln,
+            "log10" => Func::Log10,
+            "sin" => Func::Sin,
+            "cos" => Func::Cos,
+            "tan" => Func::Tan,
+            "sec" => Func::Sec,
+            "csc" => Func::Csc,
+            "cot" => Func::Cot,
+            "asin" | "arcsin" => Func::Asin,
+            "acos" | "arccos" => Func::Acos,
+            "atan" | "arctan" => Func::Atan,
+            "asec" | "arcsec" => Func::Asec,
+            "acsc" | "arccsc" => Func::Acsc,
+            "acot" | "arccot" => Func::Acot,
+            "sinh" => Func::Sinh,
+            "cosh" => Func::Cosh,
+            "tanh" => Func::Tanh,
+            "sech" => Func::Sech,
+            "csch" => Func::Csch,
+            "coth" => Func::Coth,
+            "asinh" | "arcsinh" => Func::Asinh,
+            "acosh" | "arccosh" => Func::Acosh,
+            "atanh" | "arctanh" => Func::Atanh,
             _ => return None,
         })
     }
@@ -73,23 +150,110 @@ impl Func {
         !matches!(self, Func::Clamp)
     }
 
+    /// Whether only numeric math may call it: DoenetML's own `round`,
+    /// `floor`, `min`, `max` and `clamp`, which a symbolic math refuses.
+    /// The others are the engine's functions too (ADR 0083), which a
+    /// `<math>` keeps as written (`sin(1)`), as the current core does.
+    pub(crate) fn numeric_only(self) -> bool {
+        matches!(
+            self,
+            Func::Round | Func::Floor | Func::Min | Func::Max | Func::Clamp
+        )
+    }
+
     /// Whether `n` arguments are allowed: `min` and `max` take two or more.
     fn takes(self, n: usize) -> bool {
         match self {
-            Func::Round | Func::Floor => n == 1,
             Func::Min | Func::Max => n >= 2,
             Func::Clamp => n == 3,
+            _ => n == 1,
         }
+    }
+
+    /// How a one-argument function lowers; `None` for `round`, `floor`,
+    /// `min`, `max` and `clamp`, which the lowering spells out itself.
+    pub(crate) fn lowered(self) -> Option<Lowered> {
+        use crate::program::OpSpec as S;
+        Some(match self {
+            Func::Round | Func::Floor | Func::Min | Func::Max | Func::Clamp => return None,
+            Func::Sqrt => Lowered::Op(S::Sqrt),
+            Func::Cbrt => Lowered::Op(S::Cbrt),
+            Func::Abs => Lowered::Op(S::Abs),
+            Func::Sign => Lowered::Op(S::Sign),
+            Func::Ceil => Lowered::Op(S::Ceil),
+            Func::Exp => Lowered::Op(S::Exp),
+            Func::Ln => Lowered::Op(S::Ln),
+            Func::Log10 => Lowered::Op(S::Log10),
+            Func::Sin => Lowered::Op(S::Sin),
+            Func::Cos => Lowered::Op(S::Cos),
+            Func::Tan => Lowered::Op(S::Tan),
+            Func::Sec => Lowered::Recip(S::Cos),
+            Func::Csc => Lowered::Recip(S::Sin),
+            Func::Cot => Lowered::Recip(S::Tan),
+            Func::Asin => Lowered::Op(S::Asin),
+            Func::Acos => Lowered::Op(S::Acos),
+            Func::Atan => Lowered::Op(S::Atan),
+            Func::Asec => Lowered::OfRecip(S::Acos),
+            Func::Acsc => Lowered::OfRecip(S::Asin),
+            Func::Acot => Lowered::OfRecip(S::Atan),
+            Func::Sinh => Lowered::Op(S::Sinh),
+            Func::Cosh => Lowered::Op(S::Cosh),
+            Func::Tanh => Lowered::Op(S::Tanh),
+            Func::Sech => Lowered::Recip(S::Cosh),
+            Func::Csch => Lowered::Recip(S::Sinh),
+            Func::Coth => Lowered::Recip(S::Tanh),
+            Func::Asinh => Lowered::Op(S::Asinh),
+            Func::Acosh => Lowered::Op(S::Acosh),
+            Func::Atanh => Lowered::Op(S::Atanh),
+        })
     }
 
     /// The value over number arguments, as the operators compute it.
     fn eval(self, args: &[f64]) -> f64 {
+        let x = args[0];
         match self {
             Func::Round => args[0].round(),
             Func::Floor => args[0].floor(),
             Func::Min => args.iter().copied().reduce(f64::min).unwrap(),
             Func::Max => args.iter().copied().reduce(f64::max).unwrap(),
             Func::Clamp => args[0].clamp(args[1], args[2]),
+            Func::Sqrt => x.sqrt(),
+            Func::Cbrt => x.cbrt(),
+            Func::Abs => x.abs(),
+            Func::Sign => {
+                if x > 0.0 {
+                    1.0
+                } else if x < 0.0 {
+                    -1.0
+                } else {
+                    x
+                }
+            }
+            Func::Ceil => x.ceil(),
+            Func::Exp => x.exp(),
+            Func::Ln => x.ln(),
+            Func::Log10 => x.log10(),
+            Func::Sin => x.sin(),
+            Func::Cos => x.cos(),
+            Func::Tan => x.tan(),
+            Func::Sec => 1.0 / x.cos(),
+            Func::Csc => 1.0 / x.sin(),
+            Func::Cot => 1.0 / x.tan(),
+            Func::Asin => x.asin(),
+            Func::Acos => x.acos(),
+            Func::Atan => x.atan(),
+            Func::Asec => (1.0 / x).acos(),
+            Func::Acsc => (1.0 / x).asin(),
+            Func::Acot => (1.0 / x).atan(),
+            Func::Sinh => x.sinh(),
+            Func::Cosh => x.cosh(),
+            Func::Tanh => x.tanh(),
+            Func::Sech => 1.0 / x.cosh(),
+            Func::Csch => 1.0 / x.sinh(),
+            Func::Coth => 1.0 / x.tanh(),
+            Func::Asinh => x.asinh(),
+            Func::Acosh => x.acosh(),
+            Func::Atanh => x.atanh(),
         }
     }
 }
@@ -129,7 +293,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             Expr::Sub(a, b) => self.fold2(*a, *b, |x, y| x - y),
             Expr::Mul(a, b) => self.fold2(*a, *b, |x, y| x * y),
             Expr::Div(a, b) => self.fold2(*a, *b, |x, y| x / y),
-            Expr::Pow(a, b) => self.fold2(*a, *b, f64::powf),
+            Expr::Pow(a, b) => self.fold2(*a, *b, crate::program::math_pow),
             Expr::Neg(a) => match self.nodes[a.index()] {
                 Expr::Num(x) => Some(Expr::Num(-x)),
                 _ => None,
@@ -164,7 +328,9 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
     pub(crate) fn is_numeric(&self, id: ExprId) -> bool {
         match self.get(id) {
             Expr::Num(_) | Expr::Cell(_) => true,
-            Expr::Sym(_) => false,
+            // `e` is Euler's number where math is numeric, as the current
+            // core's `evaluate_to_constant` reads it (ADR 0083).
+            Expr::Sym(s) => named_constant(s).is_some(),
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)
@@ -172,7 +338,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.is_numeric(*a) && self.is_numeric(*b),
             Expr::Neg(a) => self.is_numeric(*a),
             Expr::Call(_, args) => args.iter().all(|&a| self.is_numeric(a)),
-            Expr::Operator(_) | Expr::Shape(_) => false,
+            Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => false,
         }
     }
 
@@ -194,9 +360,10 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.symbols(*b, out);
             }
             Expr::Neg(a) => self.symbols(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
-                args.iter().for_each(|&a| self.symbols(a, out))
-            }
+            Expr::Call(_, args)
+            | Expr::Operator(args)
+            | Expr::Shape(args)
+            | Expr::Written(args) => args.iter().for_each(|&a| self.symbols(a, out)),
         }
     }
 
@@ -218,9 +385,10 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.cell_leaves(*b, out);
             }
             Expr::Neg(a) => self.cell_leaves(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
-                args.iter().for_each(|&a| self.cell_leaves(a, out))
-            }
+            Expr::Call(_, args)
+            | Expr::Operator(args)
+            | Expr::Shape(args)
+            | Expr::Written(args) => args.iter().for_each(|&a| self.cell_leaves(a, out)),
         }
     }
 
@@ -238,16 +406,24 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 | Expr::Div(a, b)
                 | Expr::Pow(a, b) => todo.extend([*a, *b]),
                 Expr::Neg(a) => todo.push(*a),
-                Expr::Shape(_) => return true,
+                Expr::Shape(_) | Expr::Written(_) => return true,
                 Expr::Call(_, args) | Expr::Operator(args) => todo.extend(args),
             }
         }
         false
     }
 
-    /// Whether the expression calls a function anywhere.
+    /// Whether the expression calls a function only numeric math may call
+    /// ([`Func::numeric_only`]) anywhere.
     pub(crate) fn has_call(&self, id: ExprId) -> bool {
-        self.calls(id, &|_| true)
+        self.calls(id, &|f| f.numeric_only())
+    }
+
+    /// Whether the expression calls one of the engine's functions
+    /// (`sin`, `sqrt`; not [`Func::numeric_only`]) anywhere: a `<math>`
+    /// keeps such a call as written (ADR 0083).
+    pub(crate) fn calls_written(&self, id: ExprId) -> bool {
+        self.calls(id, &|f| !f.numeric_only())
     }
 
     /// Whether the expression calls a function the symbolic engine does
@@ -267,9 +443,40 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.calls(*a, which) || self.calls(*b, which),
             Expr::Neg(a) => self.calls(*a, which),
             Expr::Call(f, args) => which(*f) || args.iter().any(|&a| self.calls(a, which)),
-            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.calls(a, which)),
+            Expr::Operator(args) | Expr::Shape(args) | Expr::Written(args) => {
+                args.iter().any(|&a| self.calls(a, which))
+            }
         }
     }
+}
+
+/// The value of a symbol numeric math reads as a constant (ADR 0083), as
+/// the current core's `evaluate_to_constant` does: `e`, and infinity. A
+/// symbolic math keeps it as the symbol it is (`pi` is a number token
+/// already).
+pub(crate) fn named_constant(name: &str) -> Option<f64> {
+    match name {
+        "e" => Some(std::f64::consts::E),
+        "\u{3c0}" => Some(std::f64::consts::PI),
+        "infinity" | "Infinity" => Some(f64::INFINITY),
+        _ => None,
+    }
+}
+
+/// Whether math text names one of the engine's functions (`sin(`, not
+/// [`Func::numeric_only`]) or a named constant (`e`): numeric only since
+/// ADR 0083. A condition reads such text as the engine does, as it did
+/// before, so that `log10(10^3) = 3` compares as written, whatever the
+/// compile folded it to.
+pub(crate) fn names_engine_math(toks: &[Token]) -> bool {
+    toks.iter().enumerate().any(|(i, t)| match t {
+        Token::Ident(name) => {
+            named_constant(name).is_some()
+                || (Func::named(name).is_some_and(|f| !f.numeric_only())
+                    && toks.get(i + 1) == Some(&Token::LParen))
+        }
+        _ => false,
+    })
 }
 
 /// A token of math text. References (`$a`) arrive already resolved to a
@@ -288,6 +495,10 @@ pub(crate) enum Token {
     Open(char),
     /// `]`, `}` or `⟩`: closes one.
     Close(char),
+    /// Text the tokenizer does not read (`\frac`, `x_(1)`), with why: a
+    /// `<math>`'s text may still be the engine's to read (ADR 0083);
+    /// anywhere else it is an error.
+    Opaque(String),
 }
 
 impl Token {
@@ -363,6 +574,7 @@ pub(crate) fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
                 ',' => Token::Comma,
                 '=' => Token::Eq,
                 '[' | '{' | '⟨' => Token::Open(c),
+                '\u{221e}' => Token::Ident("infinity".into()),
                 ']' | '}' | '⟩' => Token::Close(c),
                 other => return Err(format!("unexpected '{other}'")),
             });
@@ -388,6 +600,9 @@ impl<'a> Parser<'a> {
         // blank expression, a symbol the engine spells `＿`.
         if toks.is_empty() {
             return Ok(arena.push(Expr::Sym("\u{ff3f}".into())));
+        }
+        if let Some(Token::Opaque(reason)) = toks.iter().find(|t| matches!(t, Token::Opaque(_))) {
+            return Err(reason.clone());
         }
         let mut p = Parser {
             toks,
@@ -672,6 +887,8 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
             Expr::Num(_) | Expr::Cell(_) => [zero, zero, id],
             Expr::Sym(s) if s == vx => [a.push(Expr::Num(1.0)), zero, zero],
             Expr::Sym(s) if s == vy => [zero, a.push(Expr::Num(1.0)), zero],
+            // Euler's number, a constant (ADR 0083).
+            Expr::Sym(s) if named_constant(&s).is_some() => [zero, zero, id],
             Expr::Sym(_) => return None,
             Expr::Neg(x) => {
                 let [p, q, r] = go(a, x, vx, vy)?;
@@ -727,7 +944,7 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 [zero, zero, id]
             }
             // Never numeric, so no coefficient.
-            Expr::Operator(_) | Expr::Shape(_) => return None,
+            Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => return None,
             Expr::Pow(x, y) => {
                 let l = go(a, x, vx, vy)?;
                 let r = go(a, y, vx, vy)?;
