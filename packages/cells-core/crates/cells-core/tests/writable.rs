@@ -66,9 +66,11 @@ fn census() {
     // in the golden set, which no student's action writes, so count only
     // here. A shape's `draggable` (ADR 0070) is an author's value at its
     // default, which no student's action writes: the four polygons of
-    // `polygons.doenet` and the segment of `lines.doenet` count here.
+    // `polygons.doenet` and the segment of `lines.doenet` count here. A
+    // `<repeat>` has a `hide` (ADR 0075): `sir.doenet`'s four repeats
+    // count one literal default each.
     assert_eq!(golden.0, 259, "the golden set as Context counted it");
-    assert_eq!(sir.0, 644, "sir.doenet as Context counted it");
+    assert_eq!(sir.0, 648, "sir.doenet as Context counted it");
     assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
     assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
 }
