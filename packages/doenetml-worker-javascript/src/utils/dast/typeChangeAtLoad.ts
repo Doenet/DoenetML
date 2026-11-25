@@ -3460,7 +3460,10 @@ export function checkTypeChangesAtLoad({
      * tag only while the branch is shown (the decision on
      * Doenet/DoenetML#2683). A reference through other names (`$sec.r`,
      * `$g.r`) or the iterations of a repeat (`$outer[k].inner`) always
-     * names the one written tag, and is decided as before.
+     * names the one written tag, and is decided as before, as are a
+     * property of the container (`$cc.hidden`), which names nothing in the
+     * branches, and an index past the picks (`$s[3].r` of a select of two,
+     * `doenet-w0181`), which names nothing at all.
      */
     function branchSourceError(
         copy: SerializedComponent,
@@ -3484,18 +3487,16 @@ export function checkTypeChangesAtLoad({
         /**
          * Whether the names `names` are written in the branches of the
          * container `container` (one may be in one branch only), or may be
-         * (a copy on the way, an index among the names): a container on the
+         * (a copy on the way, `visibleNamed`'s `null`): a container on the
          * way that doesn't hold them (a `<conditionalContent>` beside the
-         * section holding the name) is not what the reference names through.
+         * section holding the name) is not what the reference names
+         * through, nor is one whose own property the name is (`$cc.hidden`).
          */
-        const namedThrough = (container: SerializedComponent, names: any[]) => {
-            if (!names.every((part: any) => (part.index ?? []).length === 0)) {
-                return true;
-            }
-            const named = visibleNamed(
-                container,
-                names.map((part: any) => part.name),
-            );
+        const namedThrough = (
+            container: SerializedComponent,
+            names: string[],
+        ) => {
+            const named = visibleNamed(container, names);
             return named === null || named.length > 0;
         };
         /**
@@ -3620,6 +3621,11 @@ export function checkTypeChangesAtLoad({
             }
             const container = branchContainerAt(ref.nodeIdx);
             branch = container && branchKind(container);
+        } else if (literalBounds(copy)) {
+            // an index past the picks (`$s[3].r` of a select of two) names
+            // nothing whatever the branches hold (`doenet-w0181`, at run
+            // time, as before)
+            return undefined;
         } else if (isIndexIntoPicks(path)) {
             // names after an index into the picks of a select
             // (`$s[2].r`), or into what a `<conditionalContent>` shows
@@ -3633,10 +3639,13 @@ export function checkTypeChangesAtLoad({
                     branchOnTheWay(ref.nodeIdx, path.slice(1))
                   : undefined;
         } else if (typeof path[0].name === "string" && path[0].name !== "") {
-            // names in the branches (`$cc.r`, `$s.r`)
+            // names in the branches (`$cc.r`, `$s.r`), not a property of
+            // the container (`$cc.hidden`), decided as before
             const container = branchContainerAt(ref.nodeIdx);
             branch = container
-                ? branchKind(container)
+                ? namedThrough(container, [path[0].name])
+                    ? branchKind(container)
+                    : undefined
                 : ["repeat", "repeatForSequence"].includes(
                         referents.referentType(ref.nodeIdx) ?? "",
                     )

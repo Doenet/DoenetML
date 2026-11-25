@@ -581,6 +581,24 @@ describe("A tag that makes its own content is made only from a reference that al
         expect(d.errorCodes()).eqls(["doenet-e0071"]);
     });
 
+    it("an index past the picks is w0181, as before", async () => {
+        const d = await load(
+            `<select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select><p name="p"><repeat name="r2" extend="$s[3].r"/></p>`,
+        );
+        expect(d.diagnostics()).eqls([
+            "doenet-w0181: `$s[3].r`: the `<select>` made only 2 picks.",
+        ]);
+    });
+
+    it("a property of a conditionalContent is e0071 as a value, as before", async () => {
+        const d = await load(
+            `${cc(rA, rB)}<p name="p"><repeat name="r2" extend="$cc.hidden"/></p>`,
+        );
+        expect(d.diagnostics()).eqls([
+            "doenet-e0071: A `<repeat>` makes its content itself, so it can be made only from another `<repeat>`, and `$cc.hidden` is a value. To show it as it is, write `$cc.hidden`.",
+        ]);
+    });
+
     it("a name some case lacks is e0093, as before", async () => {
         const d = await load(
             `${cc(rA, `<math>1</math>`)}<repeat name="r2" extend="$cc.r"/>`,
@@ -625,6 +643,18 @@ describe("A tag that makes its own content is made only from a reference that al
             "$sec.r beside a conditionalContent that doesn't hold it",
             `<section name="sec">${rA}<conditionalContent><case condition="true"><math>1</math></case></conditionalContent></section>`,
             "$sec.r",
+            "a1, a2, a3",
+        ],
+        [
+            "$outer[1].r beside a conditionalContent in the template that doesn't hold it",
+            `<repeat name="outer" for="1 2">${rA}<conditionalContent><case condition="true"><math>1</math></case></conditionalContent></repeat>`,
+            "$outer[1].r",
+            "a1, a2, a3",
+        ],
+        [
+            "$sec2.r of a copy of a section with a select that doesn't hold it",
+            `<section name="sec"><select><option><math>1</math></option></select>${rA}</section><section name="sec2" copy="$sec"/>`,
+            "$sec2.r",
             "a1, a2, a3",
         ],
     ];
