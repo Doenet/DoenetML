@@ -445,9 +445,9 @@ describe("Symbolic equality tests @group3", async () => {
     });
 
     // Doenet/DoenetML#2601: `numbers` and `numbersPreserveOrder` evaluate
-    // arithmetic on numbers but leave functions of numbers unevaluated, so an
-    // exact-value question can accept `4/2` without accepting `sec(pi/3)`.
-    // Only `full` evaluates the function.
+    // arithmetic on numbers but leave functions such as `sec` and `sin`
+    // applied to numbers unevaluated, so an exact-value question can accept
+    // `4/2` without accepting `sec(pi/3)`. Only `full` evaluates the function.
     it("simplifying numbers does not evaluate functions of numbers", async () => {
         const doenetML = `
     <p>Response: <mathInput name="resp" /></p>
@@ -503,6 +503,19 @@ describe("Symbolic equality tests @group3", async () => {
                         S2: 0,
                         S3: 1,
                         T1: 0,
+                        T2: 0,
+                        T3: 1,
+                    },
+                },
+                {
+                    // `numbers` still turns `e^0` into `1`;
+                    // `numbersPreserveOrder` does not.
+                    responses: { resp: "\\sqrt{4}", resp2: "e^0/2" },
+                    credits: {
+                        S1: 0,
+                        S2: 0,
+                        S3: 1,
+                        T1: 1,
                         T2: 0,
                         T3: 1,
                     },
