@@ -283,7 +283,7 @@ export default class Answer extends InlineComponent {
                 {
                     value: "numbers",
                     description:
-                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                        "Simplify arithmetic on numbers only, such as `1+2`, leaving symbolic structure and functions of numbers, such as `sin(pi/6)`, intact.",
                 },
                 {
                     value: "numbersPreserveOrder",
