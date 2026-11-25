@@ -242,9 +242,10 @@ export function listEntryCountAtLoad(
 
     // What is written in an extend or copy of a list beside the reference
     // to it that it holds (`forList`, as `<mathList copy="$ml">3</mathList>`)
-    // is combined with that list's entries, and its `maxNumber`, as the
-    // document runs (D78.2), so only an extend or copy with nothing written
-    // in it is counted here (its reference, `referencedListCount`).
+    // is put together with that list's entries, and its `maxNumber`, as the
+    // document runs (now after them; D78.2 decides it replaces them), so
+    // only an extend or copy with nothing written in it is counted here
+    // (its reference, `referencedListCount`).
     const children = (list.children ?? []).filter(
         (child) => typeof child !== "string" || child.trim() !== "",
     );

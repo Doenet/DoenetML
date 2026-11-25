@@ -3449,16 +3449,16 @@ export function checkTypeChangesAtLoad({
      * that is a `<conditionalContent>` or a `<select>` that picks one
      * (`$cc`), or that reaches through one (`$cc.r`, `$s.r`), or through
      * the picks of any `<select>` (`$s[2].r`), also where the resolver
-     * leaves the names to an iteration (`$outer[1].cc.r`) or a copy
-     * (`$sec2.cc.r`) holding one (`branchOnTheWay`). Such a tag is made only from
-     * a reference that always names the same written tag of its kind, so
-     * this is `doenet-e0071`, worded for what is shown (`sourceIs`
-     * `branch`), decided when the document loads (DIAG-7). Not for one of
-     * the same tag (`<conditionalContent extend="$cc"/>`), which is that
-     * component again. A name written in one branch only (`$cc.r` of a
-     * `<conditionalContent>` with one case) is an error too: it names that
-     * tag only while the branch is shown (the decision on
-     * Doenet/DoenetML#2683). A reference through other names (`$sec.r`,
+     * leaves the names to an iteration (`$outer[1].cc`, `$outer[1].cc.r`)
+     * or a copy (`$sec2.cc.r`) holding one (`branchOnTheWay`). Such a tag
+     * is made only from a reference that always names the same written tag
+     * of its kind, so this is `doenet-e0071`, worded for what is shown
+     * (`sourceIs` `branch`), decided when the document loads (DIAG-7). Not
+     * for one of the same tag (`<conditionalContent extend="$cc"/>`), which
+     * is that component again. A name written in one branch only (`$cc.r`
+     * of a `<conditionalContent>` with one case) is an error too: it names
+     * that tag only while the branch is shown, and nothing otherwise. A
+     * reference through other names (`$sec.r`,
      * `$g.r`) or the iterations of a repeat (`$outer[k].inner`) always
      * names the one written tag, and is decided as before, as are a
      * property of the container (`$cc.hidden`), which names nothing in the
@@ -3485,6 +3485,23 @@ export function checkTypeChangesAtLoad({
         const path = ref.unresolvedPath ?? [];
         let branch: "case" | "option" | undefined;
         /**
+         * Whether the component at `idx` is of a tag the DoenetML gives
+         * other than `writtenType` (a `<conditionalContent>` for a
+         * `<repeat>`), not that tag again (`<conditionalContent
+         * extend="$cc"/>`).
+         */
+        const isOtherTag = (idx: number) => {
+            const sourceType = referents.referentType(idx);
+            return (
+                sourceType !== undefined &&
+                sourceType !== writtenType &&
+                !componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: sourceType,
+                    baseComponentType: writtenType,
+                })
+            );
+        };
+        /**
          * Whether the names `names` are written in the branches of the
          * container `container` (one may be in one branch only), or may be
          * (a copy on the way, `visibleNamed`'s `null`): a container on the
@@ -3504,8 +3521,9 @@ export function checkTypeChangesAtLoad({
          * component at `startIdx`, which the resolver left them to (an
          * iteration of a repeat, `$outer[1].cc.r`, or a copy, `$sec2.cc.r`
          * of `<section name="sec2" copy="$sec"/>`), when the names are written
-         * in its branches (`namedThrough`): its kind,
-         * or `undefined`. A container named on the way (`cc`) or one not
+         * in its branches (`namedThrough`), or that the names name, when it
+         * is of another tag (`$outer[1].cc`, as `$cc`): its kind, or
+         * `undefined`. A container named on the way (`cc`) or one not
          * named holding the names (`$outer[1].r` of a repeat in each case
          * of an unnamed `<conditionalContent>`) counts; names inside a
          * repeat or the options of a select written there are private, so
@@ -3562,6 +3580,14 @@ export function checkTypeChangesAtLoad({
                         literalText(attributes._createComponentName) ===
                             names[0];
                     if (isNamed && names.length === 1) {
+                        // the container itself (`$outer[1].cc`,
+                        // `$sec2.cc`), as `$cc`
+                        const container = branchContainerAt(
+                            component.componentIdx,
+                        );
+                        if (container && isOtherTag(component.componentIdx)) {
+                            return branchKind(container);
+                        }
                         continue;
                     }
                     const after = isNamed ? names.slice(1) : names;
@@ -3608,15 +3634,7 @@ export function checkTypeChangesAtLoad({
                 : undefined;
         };
         if (path.length === 0) {
-            const sourceType = referents.referentType(ref.nodeIdx);
-            if (
-                sourceType === undefined ||
-                sourceType === writtenType ||
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: sourceType,
-                    baseComponentType: writtenType,
-                })
-            ) {
+            if (!isOtherTag(ref.nodeIdx)) {
                 return undefined;
             }
             const container = branchContainerAt(ref.nodeIdx);

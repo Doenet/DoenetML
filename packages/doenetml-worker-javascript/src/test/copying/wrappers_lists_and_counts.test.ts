@@ -467,6 +467,13 @@ describe("A tag that makes its own content is made only from a reference that al
             "$outer[1].cc.r",
         ],
         [
+            "$outer[1].cc, a conditionalContent in an iteration",
+            `<booleanInput name="b"/><repeat name="outer" for="1 2"><conditionalContent name="cc"><case condition="$b">${rA}</case><else>${rB}</else></conditionalContent></repeat>`,
+            "repeat",
+            "case shown",
+            "$outer[1].cc",
+        ],
+        [
             "$sec2.s.r, through a copy of a section",
             `<section name="sec"><select name="s"><option>${rA}</option><option>${rB}</option></select></section><section name="sec2" copy="$sec"/>`,
             "repeat",
@@ -572,6 +579,61 @@ describe("A tag that makes its own content is made only from a reference that al
         }
     });
 
+    it("a sequence or chooser through an iteration or a copy", async () => {
+        const forms: [
+            string,
+            string,
+            string,
+            "case shown" | "option picked",
+        ][] = [
+            [
+                "sequence",
+                `<booleanInput name="b"/><repeat name="outer" for="1 2"><conditionalContent name="cc"><case condition="$b"><sequence to="3"/></case><else><sequence to="4"/></else></conditionalContent></repeat>`,
+                "$outer[1].cc",
+                "case shown",
+            ],
+            [
+                "sequence",
+                `<section name="sec"><select name="s"><option><sequence to="3"/></option><option><sequence to="5"/></option></select></section><section name="sec2" copy="$sec"/>`,
+                "$sec2.s",
+                "option picked",
+            ],
+            [
+                "selectFromSequence",
+                `<repeat name="outer" for="1 2"><select name="s"><option><selectFromSequence to="3"/></option></select></repeat>`,
+                "$outer[1].s",
+                "option picked",
+            ],
+        ];
+        for (const [tag, doenetML, source, branch] of forms) {
+            const d = await load(
+                `${doenetML}<${tag} name="e" extend="${source}"/>`,
+            );
+            expect(d.diagnostics(), `${tag} ${source}`).eqls([
+                shown(
+                    tag,
+                    source,
+                    branch,
+                    "makes its values from its own attributes",
+                ),
+            ]);
+            expect(await d.typeOf("e")).eq("_error");
+        }
+    });
+
+    it("comes first, in place of the for and circular dependency errors", async () => {
+        const withFor = await load(
+            `${cc(rA, rB)}<p name="p"><repeat name="r2" extend="$cc.r" for="7 8"/></p>`,
+        );
+        expect(withFor.diagnostics()).eqls([
+            shown("repeat", "$cc.r", "case shown"),
+        ]);
+        const itself = await load(cc(`<repeat name="r" extend="$cc.r"/>`, rB));
+        expect(itself.diagnostics()).eqls([
+            shown("repeat", "$cc.r", "case shown"),
+        ]);
+    });
+
     it("is reported at load in a case not shown (DIAG-7)", async () => {
         const d = await load(
             `${cc(rA, rB)}<booleanInput name="b2"/><conditionalContent><case condition="$b2"><repeat name="r2" extend="$cc.r"/></case></conditionalContent>`,
@@ -669,7 +731,7 @@ describe("A tag that makes its own content is made only from a reference that al
     }
 
     // A name written in one branch only names that tag only while the
-    // branch is shown, so it is an error too (the decision on #2683).
+    // branch is shown, and nothing otherwise, so it is an error too.
     const oneBranch: [
         string,
         string,

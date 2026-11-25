@@ -1549,7 +1549,8 @@ type-change-composite-not-one =
 # decision 2). With either, $sourceIs is `branch` when `$source` is a
 # `<conditionalContent>` or a `<select>` that picks one, or reaches through
 # one or through the picks of a `<select>` (`$cc`, `$cc.r`, `$s[2].r`), so
-# that it can name a different written tag as what is shown changes (D78.1);
+# that it can name a different written tag, or none, as what is shown
+# changes (D78.1);
 # $branch is then `case` or `option`. The tags and `$source` are DoenetML and
 # stay in English.
 type-change-own-type-only = { $makes ->
