@@ -554,6 +554,8 @@ pub enum Encloses {
 pub enum Needs {
     /// A `<shortDescription>` child, or `decorative` (a graph's).
     Description,
+    /// A `<shortDescription>` child (a video's).
+    ShortDescription,
     /// A `<shortDescription>` child, a `<label>` child, a `label`
     /// attribute or `labelIsName` (an input's).
     Label,

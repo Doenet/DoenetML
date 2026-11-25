@@ -3,7 +3,8 @@
 Status: proposed 2026-11-25. Sweep 4's count operators (`<tally>`,
 `<binCounts>`) and `<sortIndices>`, following ADR 0041 (every list is a
 sequence) and ADR 0053 (a type may declare a second named sequence over
-its own ports).
+its own ports); and, the same sweep's other missing tags, how `<image>`
+and `<video>` settle their layout (decision 7).
 
 ## Context
 
@@ -70,10 +71,25 @@ as that list has.
    (`doenet-i0050`), a diagnostic of the values a tick makes, where every
    diagnostic is of the document text alone.
 
+7. **An image's and a video's layout is settled when compiled.** Their
+   `size`, `width`, `horizontalAlign` and `displayMode` are literal
+   attributes, settled into constants as the current core's `Image.js`
+   and `Video.js` compute them outside a graph: the preset `size`
+   (`medium` for an image, `full` for a video), else the preset nearest
+   to `width` (`<componentSize>`'s units, the midpoints between presets),
+   its `width` the preset's in pixels; a value an attribute does not take
+   is its default with a warning (`cells-invalid-attribute-value`). The
+   settings are texts, interned when compiled. A video needs a
+   `<shortDescription>` (`Needs::ShortDescription`, `doenet-a0002`). An
+   image in a graph (its anchor, a drag, a size by the graph's scale), a
+   video's playback actions and an image's license attribution are not
+   supported; their attributes are refused as unread.
+
 ## Consequences
 
 - `countoperators.test.ts` passes 30 of 53 (from 0); `sortIndices` passes
-  its cases of `listoperators.test.ts`.
+  its cases of `listoperators.test.ts`; `image.test.ts` passes 5 of 14 and
+  `video.test.ts` 4 of 5 (from 0).
 - A paragraph showing a tally's categories (`<p>$t.categories</p>`) shows
   the first only: a `$ref` child naming a second named sequence is placed
   as one value, as `$s.componentOrder` of a sort is. That is a gap of

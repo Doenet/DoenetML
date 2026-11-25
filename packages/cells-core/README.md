@@ -70,7 +70,9 @@ operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`),
 `sortIndices` (the positions `sort` puts its operands in), the count
 operators `tally` (declared `categories`) and `binCounts` (`bins`,
-`closed`; ADR 0078), `sequence` (numbers; a parameter that is a reference or math makes
+`closed`; ADR 0078), `image` and `video` (outside a graph: their
+`size`, `width`, `horizontalAlign` and `displayMode`, settled when
+compiled, ADR 0078), `sequence` (numbers; a parameter that is a reference or math makes
 its count structural, ADR 0041; `type="letters"`, its excludes possibly
 references, and `type="math"` from literal parameters, ADR 0074), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,

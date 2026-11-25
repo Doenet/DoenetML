@@ -338,6 +338,10 @@ component_types! {
     /// `<tally>`: how many operands equal each declared category (ADR
     /// 0078).
     Tally => operators::tally::DEFINITION,
+    /// `<image>`: an image laid out in the flow (ADR 0078).
+    Image => containers::image::DEFINITION,
+    /// `<video>`: a video laid out in the flow (ADR 0078).
+    Video => containers::video::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
