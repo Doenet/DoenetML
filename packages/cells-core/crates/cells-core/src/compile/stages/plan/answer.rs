@@ -24,7 +24,8 @@
 use super::Planning;
 use crate::compile::*;
 use crate::components::prop::{
-    answer, award, choice, choice_input, math_input, response, text_input, when,
+    answer, award, boolean, boolean_input, choice, choice_input, math_input, response, text_input,
+    when,
 };
 use crate::limits::MAX_CHOICES;
 
@@ -48,13 +49,18 @@ impl<'a> Planning<'a> {
             ));
         }
         let typed_text = self.rd.reject_answer_attrs(el)?;
+        let credited = self.rd.num_awards_credited(el)?;
         let text_child = self.rd.answer_text_child(t, e, el);
         let text_answer = typed_text || text_child.is_some();
+        let boolean_answer = !text_answer && self.rd.answer_is_boolean(t, e, el);
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         // The synthetic children outlining made are planned below.
         for k in self.rd.elem_children(t, e) {
-            if self.rd.owned_row(t, e, k).node == NodeId::NONE {
+            let node = self.rd.owned_row(t, e, k).node;
+            // A `<label>` is the answer's, and the input it makes shows it
+            // (ADR 0077); a `<shortDescription>` the same.
+            if node == NodeId::NONE || self.rd.is_presentation_child(node) {
                 continue;
             }
             match self.rd.owned_row(t, e, k).component_type {
@@ -62,6 +68,8 @@ impl<'a> Planning<'a> {
                 ty if ty.plays(Role::Award) => awards.push(k),
                 // The text a text answer compares with (ADR 0067).
                 _ if text_child == Some(self.rd.owned_row(t, e, k).node) => {}
+                // The boolean a boolean answer compares with (ADR 0077).
+                ty if boolean_answer && ty.plays(Role::BooleanValue) => {}
                 other => {
                     return Err(Error::Unsupported(format!(
                         "a <{}> inside an <answer>",
@@ -88,6 +96,9 @@ impl<'a> Planning<'a> {
         if text_answer {
             return self.plan_text_answer(t, e, el, text_child, &inputs, &awards);
         }
+        if boolean_answer {
+            return self.plan_boolean_answer(t, e, el, &inputs, &awards, credited);
+        }
         if inputs.iter().any(|&k| {
             matches!(
                 self.rd.owned_row(t, e, k).component_type.response(),
@@ -110,7 +121,7 @@ impl<'a> Planning<'a> {
         }
         let mut forms = Vec::with_capacity(awards.len());
         for &a in &awards {
-            forms.push(self.rd.award_form(t, a)?);
+            forms.push(self.rd.award_form(&self.ar, t, a)?);
         }
         // An award comparing an expression needs a response to compare.
         let needs_input = !text_nodes.is_empty() || forms.iter().any(|f| f.when.is_none());
@@ -171,7 +182,7 @@ impl<'a> Planning<'a> {
         let weight = self.plan_weight(t, e, el)?;
 
         if forms.is_empty() {
-            let eq = self.equals_op(&[el]);
+            let eq = self.equals_op(&[el])?;
             wiring.set_public_sources(answer::Props {
                 response,
                 correct,
@@ -190,7 +201,7 @@ impl<'a> Planning<'a> {
             self.plan_award(t, e, el, form, &mut responses)?;
         }
         let awards: Vec<ElemId> = forms.iter().map(|f| f.e).collect();
-        let best = best_award(&mut wiring, &awards);
+        let best = credited_awards(&mut wiring, &awards, credited);
         if !needs_input && let Some(&(_, r)) = responses.first() {
             response = Source::alias(Arg::Elem(r, response::Props::PORTS.response));
             submitted = Source::alias(Arg::Elem(r, response::Props::PORTS.submitted));
@@ -310,6 +321,7 @@ impl<'a> Planning<'a> {
         inputs: &[ElemId],
         awards: &[ElemId],
     ) -> Result<()> {
+        let credited = self.rd.num_awards_credited(el)?;
         let ti = match inputs {
             [ti] if matches!(
                 self.rd.owned_row(t, e, *ti).component_type.response(),
@@ -360,16 +372,20 @@ impl<'a> Planning<'a> {
         }
         let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
-            let form = self.rd.award_form(t, a)?;
+            let form = self.rd.award_form(&self.ar, t, a)?;
             if form.when.is_some() {
                 return Err(Error::Unsupported(
                     "a <when> in an <award> of a text answer".into(),
                 ));
             }
+            if form.boolean.is_some() {
+                return Err(Error::Unsupported("a <boolean> inside an <award>".into()));
+            }
             let mut award_wiring = ElemWiring::of(Role::Award.ty());
             let scope = self.rd.own_row(t, e).name_scope;
             let correct = self.plan_text_content(t, scope, &mut award_wiring, form.content_el)?;
-            let credit = self.award_credit(t, a, form.el)?;
+            let credit = self.award_credit(t, a, &form.attr_els())?;
+            let credit = clamp_credit(&mut award_wiring, credit);
             let holds = award_wiring.hidden(Source::op(
                 equals,
                 vec![
@@ -384,12 +400,141 @@ impl<'a> Planning<'a> {
             self.tables[t.index()].plans[a.index()].props = award_wiring.finish().0;
             planned.push(a);
         }
-        let best = best_award(&mut wiring, &planned);
+        let best = credited_awards(&mut wiring, &planned, credited);
         wiring.set_public_sources(answer::Props {
             response: Source::alias(Arg::Elem(ti, text_input::Props::PORTS.value)),
             correct: Source::absent(),
             submitted: Source::Leaf(Leaf::GivenText(None)),
             credit: Source::own(best),
+            weight,
+            numSubmissions: Source::given(0.0),
+        });
+        self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
+        Ok(())
+    }
+
+    /// A boolean answer (ADR 0077): a `<booleanInput>` child's value is
+    /// the response, or, with none, the value of the one the answer makes;
+    /// the submitted copy is compared with the answer's content (a
+    /// condition, `not $b`, or a lone `<boolean>` child), or with each
+    /// award's: credit when they are both true or both false.
+    fn plan_boolean_answer(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+        inputs: &[ElemId],
+        awards: &[ElemId],
+        credited: u8,
+    ) -> Result<()> {
+        let value = boolean_input::Props::PORTS.value;
+        let bi = match inputs {
+            [bi] if matches!(
+                self.rd.owned_row(t, e, *bi).component_type.response(),
+                Some(ResponseKind::Boolean(_))
+            ) =>
+            {
+                *bi
+            }
+            [] => {
+                let bi = self
+                    .rd
+                    .elem_children(t, e)
+                    .into_iter()
+                    .find(|&k| {
+                        let row = self.rd.owned_row(t, e, k);
+                        row.node == NodeId::NONE
+                            && row.component_type.plays(Role::ImplicitBooleanInput)
+                    })
+                    .ok_or_else(|| {
+                        Error::Internal("an implicit input outlining did not make".into())
+                    })?;
+                self.tables[t.index()].plans[bi.index()].props = boolean_input::Props {
+                    value: Source::given(0.0),
+                }
+                .into_vec();
+                bi
+            }
+            _ => {
+                return Err(Error::Unsupported(
+                    "<answer type=\"boolean\"> with an input other than one <booleanInput>".into(),
+                ));
+            }
+        };
+        let compare = self.compare_attrs(&[el])?;
+        let scope = self.rd.own_row(t, e).name_scope;
+        let mut wiring = ElemWiring::of(self.rd.own_row(t, e).component_type);
+        let weight = self.plan_weight(t, e, el)?;
+        let ports = answer::Props::PORTS;
+        // The `<boolean>` child that is the answer's content, if any.
+        let boolean_child = self.rd.elem_children(t, e).into_iter().find(|&k| {
+            let row = self.rd.owned_row(t, e, k);
+            row.node != NodeId::NONE && row.component_type.plays(Role::BooleanValue)
+        });
+        let content = self.rd.content_nodes(el);
+        let credit = if awards.is_empty() {
+            let correct = match boolean_child {
+                Some(b) if content.is_empty() => {
+                    wiring.hidden(Source::alias(Arg::Elem(b, boolean::Props::PORTS.value)))
+                }
+                Some(_) => {
+                    return Err(Error::Unsupported(
+                        "a boolean <answer> with both a <boolean> and other content".into(),
+                    ));
+                }
+                None if content.is_empty() => {
+                    return Err(Error::Unsupported(
+                        "an <answer type=\"boolean\"> with nothing to check".into(),
+                    ));
+                }
+                None => self.plan_condition_content(t, scope, &content, compare, &mut wiring)?,
+            };
+            Source::computed(OpSpec::Eq, vec![ports.submitted, correct])
+        } else {
+            if !content.is_empty() || boolean_child.is_some() {
+                return Err(Error::Unsupported(
+                    "a boolean <answer> with both content and <award> children".into(),
+                ));
+            }
+            let mut planned = Vec::with_capacity(awards.len());
+            for &a in awards {
+                let form = self.rd.award_form(&self.ar, t, a)?;
+                if form.when.is_some() {
+                    return Err(Error::Unsupported(
+                        "a <when> in an <award> of a boolean answer".into(),
+                    ));
+                }
+                let mut award_wiring = ElemWiring::of(Role::Award.ty());
+                let mut els = form.attr_els();
+                els.push(el);
+                let compare = self.compare_attrs(&els)?;
+                let correct = match form.boolean {
+                    Some(b) => award_wiring
+                        .hidden(Source::alias(Arg::Elem(b, boolean::Props::PORTS.value))),
+                    None => {
+                        self.plan_condition_content(t, a, &form.nodes, compare, &mut award_wiring)?
+                    }
+                };
+                let credit = self.award_credit(t, a, &form.attr_els())?;
+                let credit = clamp_credit(&mut award_wiring, credit);
+                let holds = award_wiring.hidden(Source::op(
+                    OpSpec::Eq,
+                    vec![Arg::Elem(e, ports.submitted), Arg::Own(correct)],
+                ));
+                award_wiring.set_public_sources(award::Props {
+                    credit,
+                    awarded: Source::computed(OpSpec::Mul, vec![award::Props::PORTS.credit, holds]),
+                });
+                self.tables[t.index()].plans[a.index()].props = award_wiring.finish().0;
+                planned.push(a);
+            }
+            Source::own(credited_awards(&mut wiring, &planned, credited))
+        };
+        wiring.set_public_sources(answer::Props {
+            response: Source::alias(Arg::Elem(bi, value)),
+            correct: Source::absent(),
+            submitted: Source::given(NO_VALUE),
+            credit,
             weight,
             numSubmissions: Source::given(0.0),
         });
@@ -408,8 +553,11 @@ impl<'a> Planning<'a> {
     ) -> Result<()> {
         let d = self.rd.dast;
         let mut wiring = ElemWiring::of(Role::Award.ty());
-        let credit = self.award_credit(t, form.e, form.el)?;
-        let compare = self.compare_attrs(&[form.el, answer_el]);
+        let credit = self.award_credit(t, form.e, &form.attr_els())?;
+        let credit = clamp_credit(&mut wiring, credit);
+        let mut els = form.attr_els();
+        els.push(answer_el);
+        let compare = self.compare_attrs(&els)?;
         let holds = match form.when {
             Some((w, w_el)) => {
                 let nodes = self.rd.content_nodes(w_el);
@@ -453,6 +601,9 @@ impl<'a> Planning<'a> {
                     "a <text> in an <award> of a math answer".into(),
                 ));
             }
+            None if form.boolean.is_some() => {
+                return Err(Error::Unsupported("a <boolean> inside an <award>".into()));
+            }
             None => {
                 let id = self
                     .rd
@@ -467,6 +618,7 @@ impl<'a> Planning<'a> {
                 ))
             }
         };
+        self.check_references_are_responses(t, form, responses)?;
         wiring.set_public_sources(award::Props {
             credit,
             awarded: Source::computed(OpSpec::Mul, vec![award::Props::PORTS.credit, holds]),
@@ -475,11 +627,55 @@ impl<'a> Planning<'a> {
         Ok(())
     }
 
+    /// `referencesAreResponses="$mi1 $mi2"` on an award (ADR 0077): each
+    /// reference an input whose value its `<when>` reads, which is a
+    /// response already, as every input a when names is. A reference to
+    /// anything else (a point, whose value would be recorded at submit) is
+    /// refused.
+    fn check_references_are_responses(
+        &mut self,
+        t: TemplateId,
+        form: &AwardForm,
+        responses: &[((u32, ElemId), ElemId)],
+    ) -> Result<()> {
+        let d = self.rd.dast;
+        let Some(a) = form
+            .attr_els()
+            .into_iter()
+            .find_map(|el| d.attr(el, "referencesAreResponses"))
+        else {
+            return Ok(());
+        };
+        let refused = || {
+            Error::Unsupported(
+                "<award referencesAreResponses> naming other than an input its <when> reads".into(),
+            )
+        };
+        if form.when.is_none() {
+            return Err(refused());
+        }
+        for &n in d.attr_children(a) {
+            match d.kind(n) {
+                NodeKind::Macro => {
+                    let p = self.rd.plan_ref(&mut self.ar, t, form.e, n)?;
+                    let named = self.rd.input_named(&self.ar, t, p);
+                    if !named.is_some_and(|(key, _)| responses.iter().any(|(k, _)| *k == key)) {
+                        return Err(refused());
+                    }
+                }
+                NodeKind::Text if d.str(n).trim().is_empty() => {}
+                NodeKind::Other => {}
+                _ => return Err(refused()),
+            }
+        }
+        Ok(())
+    }
+
     /// An award's `credit`: what the attribute says (1 without one), which
     /// is not state, so a literal is a constant.
-    fn award_credit(&mut self, t: TemplateId, a: ElemId, el: NodeId) -> Result<Source> {
+    fn award_credit(&mut self, t: TemplateId, a: ElemId, els: &[NodeId]) -> Result<Source> {
         let d = self.rd.dast;
-        Ok(match d.attr(el, "credit") {
+        Ok(match els.iter().find_map(|&el| d.attr(el, "credit")) {
             Some(c) => {
                 match self
                     .rd
@@ -637,9 +833,38 @@ impl<'a> Planning<'a> {
     }
 
     /// The equality an answer or award compares with.
-    fn equals_op(&self, els: &[NodeId]) -> SymKind {
-        self.compare_attrs(els).equals()
+    fn equals_op(&self, els: &[NodeId]) -> Result<SymKind> {
+        Ok(self.compare_attrs(els)?.equals())
     }
+}
+
+/// An award's or a choice's credit held from 0 to 1, as the current core
+/// caps it; a request projects onto the bounds (ADR 0077).
+pub(in crate::compile) fn clamp_credit(wiring: &mut ElemWiring, credit: Source) -> Source {
+    let given = wiring.hidden(credit);
+    let lo = wiring.hidden(Source::constant(0.0));
+    let hi = wiring.hidden(Source::constant(1.0));
+    Source::computed(OpSpec::Vec(VecOp::Clamp), vec![given, lo, hi])
+}
+
+/// The credit of an answer's awards: the best one's, or with
+/// `numAwardsCredited` above 1 the sum of the best that many, 1 within
+/// round-off of it (`Reduction::TopSum`, ADR 0077).
+fn credited_awards(wiring: &mut ElemWiring, awards: &[ElemId], credited: u8) -> Port {
+    if credited <= 1 || awards.len() > usize::from(u8::MAX) {
+        return best_award(wiring, awards);
+    }
+    let awarded: Vec<Port> = awards
+        .iter()
+        .map(|&a| wiring.hidden(Source::alias(Arg::Elem(a, award::Props::PORTS.awarded))))
+        .collect();
+    wiring.hidden(Source::computed(
+        OpSpec::Vec(VecOp::Reduce {
+            op: crate::program::Reduction::TopSum { k: credited },
+            n: byte(awards.len()),
+        }),
+        awarded,
+    ))
 }
 
 /// The best of an answer's awards: the largest `awarded` among them, as a

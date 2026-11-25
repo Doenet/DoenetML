@@ -242,12 +242,12 @@ fn unsupported_answer_forms_are_refused() {
         );
     };
     refused(
-        r#"<answer name="a" type="boolean">true</answer>"#,
-        "type=\"boolean\"",
+        r#"<answer name="a" type="video">true</answer>"#,
+        "type=\"video\"",
     );
     refused(
-        r#"<answer name="a" matchPartial>x</answer>"#,
-        "matchPartial",
+        r#"<answer name="a" numAwardsCredited="$n">x</answer>"#,
+        "numAwardsCredited",
     );
     refused(
         r#"<answer name="a"><award feedback="good">x</award></answer>"#,

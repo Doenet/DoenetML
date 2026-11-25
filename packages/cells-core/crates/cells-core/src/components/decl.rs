@@ -372,6 +372,8 @@ pub enum Role {
     PiecewiseFunction,
     /// The input a text answer makes when it has none (ADR 0067).
     ImplicitTextInput,
+    /// The input a boolean answer makes when it has none (ADR 0077).
+    ImplicitBooleanInput,
 }
 
 impl Role {
@@ -395,6 +397,7 @@ impl Role {
         Role::Function,
         Role::PiecewiseFunction,
         Role::ImplicitTextInput,
+        Role::ImplicitBooleanInput,
     ];
 }
 
@@ -1202,6 +1205,8 @@ pub struct PropDef {
     /// The prop holds text, a string id (a `<text>`'s or `<textInput>`'s
     /// `value`), whatever gives it.
     pub text: bool,
+    /// The prop holds a boolean, 1 or 0, which shows as `true` or `false`.
+    pub boolean: bool,
     /// A renderer may request this prop: a student's action writes it, so it is
     /// one of the document's inputs.
     pub interactive: bool,

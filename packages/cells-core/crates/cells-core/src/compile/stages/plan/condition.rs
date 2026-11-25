@@ -23,6 +23,12 @@ pub(super) struct Compare {
     pub(super) unordered: bool,
     /// Entries match only where they stand (`matchByExactPositions`).
     pub(super) exact_positions: bool,
+    /// How far numbers may differ (`allowedErrorInNumbers`, ADR 0077),
+    /// relative unless `error_is_absolute`, in exponents too with
+    /// `error_in_exponents`: 0 for exact.
+    pub(super) allowed_error: f64,
+    pub(super) error_is_absolute: bool,
+    pub(super) error_in_exponents: bool,
 }
 
 impl Default for Compare {
@@ -33,6 +39,9 @@ impl Default for Compare {
             partial: false,
             unordered: false,
             exact_positions: false,
+            allowed_error: 0.0,
+            error_is_absolute: false,
+            error_in_exponents: false,
         }
     }
 }
@@ -45,21 +54,17 @@ impl Compare {
             partial: self.partial,
             exact_positions: self.exact_positions,
             syntactic: self.syntactic,
+            allowed_error_bits: self.allowed_error.to_bits(),
+            error_is_absolute: self.error_is_absolute,
+            error_in_exponents: self.error_in_exponents,
         }
     }
 
     /// The equality in the engine: as written, or by value, and how
     /// entries match when that is asked.
     pub(super) fn equals(&self) -> SymKind {
-        if self.partial || self.unordered || self.exact_positions {
-            SymKind::Compare {
-                opts: crate::sym::CompareOpts {
-                    unordered: self.unordered,
-                    partial: self.partial,
-                    exact_positions: self.exact_positions,
-                    syntactic: self.syntactic,
-                },
-            }
+        if self.partial || self.unordered || self.exact_positions || self.allowed_error > 0.0 {
+            SymKind::Compare { opts: self.opts() }
         } else if self.syntactic {
             SymKind::EqualsSyntax
         } else {
@@ -297,14 +302,38 @@ impl<'a> Planning<'a> {
     /// How `=` compares, from the first of `els` that gives each attribute
     /// (`symbolicEquality`, `simplifyOnCompare`, `expandOnCompare`): an
     /// award's say, then its answer's.
-    pub(super) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
+    pub(super) fn compare_attrs(&self, els: &[NodeId]) -> Result<Compare> {
         let on = |name: &str| {
             els.iter()
                 .find(|&&el| self.rd.dast.attr(el, name).is_some())
                 .is_some_and(|&el| self.rd.attr_on(el, name))
         };
         let syntactic = on("symbolicEquality");
-        Compare {
+        // The allowed error in numbers, the nearest given (an award's, else
+        // its answer's): a literal number, as the attribute is a constant
+        // of the comparison (ADR 0077).
+        let allowed_error = match els
+            .iter()
+            .find_map(|&el| self.rd.dast.attr(el, "allowedErrorInNumbers"))
+        {
+            None => 0.0,
+            Some(a) => {
+                let text = self.rd.attr_text(a).unwrap_or_default();
+                match text.trim().parse::<f64>() {
+                    Ok(v) if v.is_finite() && v >= 0.0 => v,
+                    _ => {
+                        return Err(Error::Unsupported(format!(
+                            "allowedErrorInNumbers=\"{}\": only a literal number is modelled",
+                            text.trim()
+                        )));
+                    }
+                }
+            }
+        };
+        Ok(Compare {
+            allowed_error,
+            error_is_absolute: on("allowedErrorIsAbsolute"),
+            error_in_exponents: on("includeErrorInNumberExponents"),
             syntactic,
             partial: on("matchPartial"),
             unordered: on("unorderedCompare"),
@@ -315,7 +344,7 @@ impl<'a> Planning<'a> {
                 (true, false, true) => Post::Expand,
                 (true, true, true) => Post::SimplifyExpand,
             },
-        }
+        })
     }
 
     /// The references among `toks` that name a math written `unordered`:

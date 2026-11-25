@@ -355,7 +355,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// in a hidden port of `wiring` holding 1 while it holds.
     pub(crate) fn condition(&mut self, nodes: &[NodeId], wiring: &mut ElemWiring) -> Result<Port> {
         let scope = self.scope_for(nodes);
-        let compare = self.p.compare_attrs(&[self.node()]);
+        let compare = self.p.compare_attrs(&[self.node()])?;
         self.p
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
@@ -771,6 +771,24 @@ impl PlanCtx<'_, '_> {
             };
             return Some(Some(Source::reference(self.p.ar.push_ref(plan))));
         }
+    }
+
+    /// The element's place, from 1, among its parent's children whose
+    /// type plays `role` (a `<choice>` among its input's, ADR 0077); None
+    /// when its parent is not in its template. A dependency in the tree
+    /// (ADR 0050).
+    pub(crate) fn place_among(&self, role: crate::components::Role) -> Option<usize> {
+        let (at, ae, _) = self.p.rd.enclosing_row(self.t, self.e)?;
+        if at != self.t {
+            return None;
+        }
+        self.p
+            .rd
+            .elem_children(at, ae)
+            .into_iter()
+            .filter(|&x| self.p.rd.owned_row(at, ae, x).component_type.plays(role))
+            .position(|x| x == self.e)
+            .map(|k| k + 1)
     }
 
     /// Whether the element is a step of a type with a step gate (ADR

@@ -13,5 +13,5 @@ vectors sort by their tail, by the coordinate sortByComponent names: cells 50 ·
 points sort by a prop they have, any spelling: cells 33 · essential 10 · constant 8 · instrs 13 · components 9
 a drag of a shuffled point lands on the point it shows: cells 26 · essential 12 · constant 10 · instrs 4 · components 8
 a drag of a sorted point is dropped: it would move the point: cells 29 · essential 12 · constant 7 · instrs 9 · components 8
-booleans sort false before true, each entry a boolean: cells 23 · essential 0 · constant 23 · instrs 0 · components 10
+booleans sort false before true, each entry a boolean: cells 30 · essential 0 · constant 30 · instrs 0 · components 10
 a point among other values is refused: cells 5 · essential 2 · constant 3 · instrs 0 · components 3
