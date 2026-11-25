@@ -430,7 +430,10 @@ impl ComponentType {
             | SampleRandomNumbers
             | SelectPrimeNumbers
             | SamplePrimeNumbers
-            | SampleMultivariateRandomNumber => ListOf(Number),
+            | SampleMultivariateRandomNumber
+            | SortIndices
+            | BinCounts
+            | Tally => ListOf(Number),
             MathList | CumulativeSum | CumulativeProduct | CumulativeMin | CumulativeMax
             | Differences | MatrixRow | MatrixColumn => ListOf(Math),
             TextList => ListOf(Text),
@@ -527,7 +530,9 @@ impl ComponentType {
             | AxisLabel
             | Page
             | Cascade
-            | CascadeMessage => TypeDecl::Named(Typing::of(Content)),
+            | CascadeMessage
+            | Image
+            | Video => TypeDecl::Named(Typing::of(Content)),
 
             #[cfg(test)]
             TestValue | TestShape | TestList => object(),
