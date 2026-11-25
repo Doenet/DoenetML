@@ -331,6 +331,8 @@ impl<'c> Builder<'c> {
         let e = self.compiled.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
+            // `e` and infinity where math is numeric (ADR 0083).
+            Expr::Sym(s) if let Some(v) = expr::named_constant(&s) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => Expr::Cell(self.math_ref(plan, scope)?),
             Expr::Add(a, b)
@@ -438,6 +440,21 @@ impl<'c> Builder<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.math_op(spec, &[acc, x], scope))
                     }
+                    _ => match f.lowered().expect("a function of one argument") {
+                        Lowered::Op(spec) => self.math_op(spec, &xs, scope),
+                        // `1 / f(x)`: a reversed division, so a request
+                        // reaches `f(x)` (and is dropped there).
+                        Lowered::Recip(spec) => {
+                            let fx = self.math_op(spec, &xs, scope);
+                            let one = self.const_slot(1.0);
+                            self.math_op(OpSpec::RDiv, &[fx, one], scope)
+                        }
+                        Lowered::OfRecip(spec) => {
+                            let one = self.const_slot(1.0);
+                            let r = self.math_op(OpSpec::RDiv, &[xs[0], one], scope);
+                            self.math_op(spec, &[r], scope)
+                        }
+                    },
                 }
             }
         }

@@ -6,7 +6,7 @@
 //! math a template over its leaves.
 
 use super::*;
-use crate::compile::ir::expr::Func;
+use crate::compile::ir::expr::{Func, Lowered};
 
 /// Stamping, math: an expression instantiated per template, numeric math
 /// lowered to operator nodes, symbolic math a template over its leaves.
@@ -25,6 +25,8 @@ impl<'c> Stamp<'c> {
         let e = self.c.plans.arena.get(id).clone();
         let out = match e {
             Expr::Num(v) => Expr::Num(v),
+            // `e` and infinity where math is numeric (ADR 0083).
+            Expr::Sym(s) if let Some(v) = expr::named_constant(&s) => Expr::Num(v),
             Expr::Sym(s) => Expr::Sym(s),
             Expr::Cell(plan) => {
                 let (target, label) = self.math_ref(plan, t);
@@ -153,6 +155,21 @@ impl<'c> Stamp<'c> {
                         xs.into_iter()
                             .fold(first, |acc, x| self.math_op(spec, vec![acc, x], t))
                     }
+                    _ => match f.lowered().expect("a function of one argument") {
+                        Lowered::Op(spec) => self.math_op(spec, xs, t),
+                        // `1 / f(x)`: a reversed division, so a request
+                        // reaches `f(x)` (and is dropped there).
+                        Lowered::Recip(spec) => {
+                            let fx = self.math_op(spec, xs, t);
+                            let one = self.constant(1.0);
+                            self.math_op(OpSpec::RDiv, vec![fx, one], t)
+                        }
+                        Lowered::OfRecip(spec) => {
+                            let one = self.constant(1.0);
+                            let r = self.math_op(OpSpec::RDiv, vec![xs[0], one], t);
+                            self.math_op(spec, vec![r], t)
+                        }
+                    },
                 }
             }
         }

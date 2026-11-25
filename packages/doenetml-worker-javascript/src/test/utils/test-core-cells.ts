@@ -414,6 +414,9 @@ const mathReaders: Record<string, Reader> = {
     numDimensions: (g) => g("numDimensions"),
     ...displaySettingReaders,
     hidden: (_g, x) => hiddenOf(x.cells, x.idx),
+    // Whether its value is a finite number, as the current core's
+    // `isNumber` reads the value's tree.
+    isNumber: (g, x) => Number.isFinite((mathValue(g, x) as any).tree),
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */

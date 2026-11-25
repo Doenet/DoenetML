@@ -717,7 +717,7 @@ impl CondParser<'_> {
             [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::constant(1.0)),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::constant(0.0)),
             _ => match Parser::parse(toks, &mut cp.ar.arena) {
-                Ok(id) if cp.ar.arena.is_numeric(id) => {
+                Ok(id) if cp.ar.arena.is_plain_numeric(id) => {
                     Some(match cp.ar.arena.get(id) {
                         // A constant in a condition is not state.
                         Expr::Num(v) => Source::constant(*v),
@@ -726,8 +726,8 @@ impl CondParser<'_> {
                         _ => Source::math(id),
                     })
                 }
-                // A free symbol, or a function the lowering does not know
-                // (`abs`, `cos`, `mod`): the engine's.
+                // A free symbol, or a function the engine reads (`abs`,
+                // `cos`, `mod`) or `e` (ADR 0083): the engine's.
                 _ => None,
             },
         };

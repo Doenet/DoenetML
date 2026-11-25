@@ -390,6 +390,95 @@ scalar_ops! {
         drops,
         range: Range::UNIT,
     }
+    // The functions numeric math text calls (ADR 0083), as `f64`
+    // computes them. A request through one is dropped, as through `Pow`.
+    /// The cube root of `a`, negative below 0.
+    Cbrt(a) {
+        eval: a.cbrt(),
+        drops,
+        range: a.monotone(f64::cbrt),
+    }
+    /// `a` rounded up.
+    Ceil(a) {
+        eval: a.ceil(),
+        drops,
+        range: a.monotone(f64::ceil),
+    }
+    /// `e` to the power `a`.
+    Exp(a) {
+        eval: a.exp(),
+        drops,
+    }
+    /// The natural logarithm of `a` (`log`, `ln`), NaN below 0.
+    Ln(a) {
+        eval: a.ln(),
+        drops,
+    }
+    /// The base-10 logarithm of `a`, NaN below 0.
+    Log10(a) {
+        eval: a.log10(),
+        drops,
+    }
+    /// The sine of `a`, in radians.
+    Sin(a) {
+        eval: a.sin(),
+        drops,
+    }
+    /// The cosine of `a`, in radians.
+    Cos(a) {
+        eval: a.cos(),
+        drops,
+    }
+    /// The tangent of `a`, in radians.
+    Tan(a) {
+        eval: a.tan(),
+        drops,
+    }
+    /// The arcsine of `a`, NaN outside `[-1, 1]`.
+    Asin(a) {
+        eval: a.asin(),
+        drops,
+    }
+    /// The arccosine of `a`, NaN outside `[-1, 1]`.
+    Acos(a) {
+        eval: a.acos(),
+        drops,
+    }
+    /// The arctangent of `a`.
+    Atan(a) {
+        eval: a.atan(),
+        drops,
+    }
+    /// The hyperbolic sine of `a`.
+    Sinh(a) {
+        eval: a.sinh(),
+        drops,
+    }
+    /// The hyperbolic cosine of `a`.
+    Cosh(a) {
+        eval: a.cosh(),
+        drops,
+    }
+    /// The hyperbolic tangent of `a`.
+    Tanh(a) {
+        eval: a.tanh(),
+        drops,
+    }
+    /// The inverse hyperbolic sine of `a`.
+    Asinh(a) {
+        eval: a.asinh(),
+        drops,
+    }
+    /// The inverse hyperbolic cosine of `a`, NaN below 1.
+    Acosh(a) {
+        eval: a.acosh(),
+        drops,
+    }
+    /// The inverse hyperbolic tangent of `a`, NaN outside `[-1, 1]`.
+    Atanh(a) {
+        eval: a.atanh(),
+        drops,
+    }
 }
 
 impl Op {

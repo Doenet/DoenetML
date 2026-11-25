@@ -460,8 +460,9 @@ impl<'s, 'a> Types<'s, 'a> {
     }
 
     /// Whether the handle of a `<math>` of template `t` with expression
-    /// `id` is a math cell: its text has a free symbol, is constant text
-    /// that is no number as written (`pi/2`, `6/2`; ADR 0043), holds a
+    /// `id` is a math cell: its text has a free symbol, calls one of the
+    /// engine's functions (`sin($x)`, ADR 0083), is constant text that is
+    /// no number as written (`pi/2`, `6/2`; ADR 0043), holds a
     /// value with entries (ADR 0041, decision 8), or has a leaf that stands
     /// for an expression (`stands_for_expression`).
     fn symbolic(&mut self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
@@ -470,7 +471,10 @@ impl<'s, 'a> Types<'s, 'a> {
         let has_symbol = *self.has_symbol.entry(id).or_insert_with(|| {
             let mut syms = Vec::new();
             arena.symbols(id, &mut syms);
-            !syms.is_empty() || written_math(ar, dast, id) || arena.has_shape(id)
+            !syms.is_empty()
+                || arena.calls_written(id)
+                || written_math(ar, dast, id)
+                || arena.has_shape(id)
         });
         if has_symbol {
             return Ok(true);
