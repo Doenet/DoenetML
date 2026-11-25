@@ -1701,6 +1701,28 @@ STATE.tally = {
                 : x.cells.value(c),
         ),
 };
+// The parameters a random-number sampler reports beside its moments, of
+// the distribution that has them (ADR 0079).
+const randomParamReaders: Record<string, Reader> = Object.fromEntries(
+    [
+        "logMean",
+        "logStandardDeviation",
+        "logVariance",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+    ].map((p): [string, Reader] => [p, (g) => g(p)]),
+);
+STATE.sampleRandomNumbers = {
+    ...STATE.sampleRandomNumbers,
+    ...randomParamReaders,
+};
+STATE.selectRandomNumbers = {
+    ...STATE.selectRandomNumbers,
+    ...randomParamReaders,
+};
 
 /** State variables a type does not have, as the current core's does not:
  * a test asking whether one is there finds it is not. */
