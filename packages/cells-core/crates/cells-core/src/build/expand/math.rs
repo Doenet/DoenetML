@@ -41,9 +41,9 @@ impl<'c> Builder<'c> {
         }
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| self.engine.parse_tree(&text()))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, &mut self.engine))
         } else {
-            parsed = self.engine.parse_tree(&text());
+            parsed = sym.parse_tree(compiled.dast, &mut self.engine);
             &parsed
         };
         let tree = match tree {
@@ -51,7 +51,7 @@ impl<'c> Builder<'c> {
             // A relation, tuple or multi-argument function with no cell
             // leaves is a constant expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
-            Err(reason) => match self.engine.parse_constant(&text()) {
+            Err(reason) => match sym.parse_constant(compiled.dast, &mut self.engine) {
                 Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
@@ -125,12 +125,11 @@ impl<'c> Builder<'c> {
         if compiled.plans.arena.calls_outside_engine(expr) {
             return Ok(BuiltSource::Const(f64::NAN));
         }
-        let text = || sym.spell(compiled.dast);
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| self.engine.parse_tree(&text()))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, &mut self.engine))
         } else {
-            parsed = self.engine.parse_tree(&text());
+            parsed = sym.parse_tree(compiled.dast, &mut self.engine);
             &parsed
         };
         let Ok(tree) = tree else {
@@ -360,6 +359,11 @@ impl<'c> Builder<'c> {
                     .map(|a| self.instantiate_expr(a, scope))
                     .collect::<Result<_>>()?,
             ),
+            Expr::Written(xs) => Expr::Written(
+                xs.into_iter()
+                    .map(|a| self.instantiate_expr(a, scope))
+                    .collect::<Result<_>>()?,
+            ),
         };
         let done = self.arena.push(out);
         if let Some(key) = class {
@@ -382,7 +386,7 @@ impl<'c> Builder<'c> {
         match e {
             Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
-            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => {
                 unreachable!("lowering a symbolic expression")
             }
             Expr::Neg(a) => {

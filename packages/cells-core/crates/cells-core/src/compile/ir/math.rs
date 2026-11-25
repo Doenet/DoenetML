@@ -12,6 +12,19 @@ pub(crate) struct MathText {
     pub(in crate::compile) macros: Vec<NodeId>,
     /// The nodes the text was read from.
     pub(in crate::compile) nodes: Box<[NodeId]>,
+    /// How the engine reads the text, when it is a `<math>`'s own (ADR
+    /// 0083); text the tokenizer does not read is then the engine's
+    /// (`Token::Opaque`).
+    pub(in crate::compile) read: Option<MathRead>,
+}
+
+/// How a `<math>`'s own text is read (ADR 0083): text the compile's
+/// tokenizer and parser do not read may be the engine's, with the options
+/// the math's literal attributes give.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct MathRead {
+    /// The engine's options, none for text read by default.
+    pub(in crate::compile) opts: Option<crate::sym::ParseOpts>,
 }
 
 impl MathText {
@@ -62,6 +75,10 @@ pub(crate) enum SymText {
     Nodes {
         nodes: Box<[NodeId]>,
         plans: Box<[RefId]>,
+        /// How the engine reads it, when not as text by default: a
+        /// `<math>`'s `format`, `splitSymbols` and `functionSymbols`
+        /// (ADR 0083).
+        opts: Option<Box<crate::sym::ParseOpts>>,
     },
     /// One reference's leaf alone.
     Leaf(RefId),
@@ -89,7 +106,7 @@ impl SymText {
     pub(crate) fn spell(&self, dast: &Dast) -> String {
         let leaf = |p: RefId| crate::sym::engine::leaf_name(p.get(), false);
         match self {
-            SymText::Nodes { nodes, plans } => {
+            SymText::Nodes { nodes, plans, .. } => {
                 let mut text = String::new();
                 let mut plans = plans.iter();
                 for &n in nodes.iter() {
@@ -110,6 +127,34 @@ impl SymText {
             SymText::Leaf(p) => leaf(*p),
             SymText::Spelled(text) => text.clone(),
         }
+    }
+
+    /// How the engine reads the text: `None` as text by default.
+    pub(crate) fn opts(&self) -> Option<&crate::sym::ParseOpts> {
+        match self {
+            SymText::Nodes { opts, .. } => opts.as_deref(),
+            _ => None,
+        }
+    }
+
+    /// The text parsed by `engine` as a builder tree, as its options say
+    /// ([`crate::sym::Engine::parse_tree`]).
+    pub(crate) fn parse_tree<L: crate::sym::Leaf>(
+        &self,
+        dast: &Dast,
+        engine: &mut crate::sym::Engine,
+    ) -> std::result::Result<crate::sym::Tree<L>, String> {
+        engine.parse_tree_as(&self.spell(dast), self.opts())
+    }
+
+    /// The text parsed by `engine` as a constant, as its options say
+    /// ([`crate::sym::Engine::parse_constant`]).
+    pub(crate) fn parse_constant(
+        &self,
+        dast: &Dast,
+        engine: &mut crate::sym::Engine,
+    ) -> std::result::Result<crate::sym::Handle, String> {
+        engine.parse_constant_as(&self.spell(dast), self.opts())
     }
 }
 

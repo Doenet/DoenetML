@@ -44,6 +44,11 @@ component! {
         // Read where it is compared (ADR 0041, decision 7): a comparison
         // with this math alone on a side matches entries in any order.
         unordered: On,
+        // How its text is read (ADR 0083), as written: read while
+        // outlining (`Outline::math_read`), refused with a reference.
+        format: Text,
+        splitSymbols: Bool(true),
+        functionSymbols: Text,
     }
     // Parsed as the type outlining settled (`compile/stages/parse.rs`), not here.
     children: Math,

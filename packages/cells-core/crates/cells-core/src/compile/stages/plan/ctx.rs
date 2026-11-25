@@ -584,9 +584,9 @@ impl<'a> PlanCtx<'_, 'a> {
                 Some(crate::sym::engine::number_text(*v))
             }
             Source::Flow(Flow::Math(id)) => match self.p.ar.sym_text.get(id)? {
-                text @ SymText::Nodes { plans, .. } if plans.is_empty() => {
-                    Some(text.spell(self.p.rd.dast))
-                }
+                text @ SymText::Nodes {
+                    plans, opts: None, ..
+                } if plans.is_empty() => Some(text.spell(self.p.rd.dast)),
                 SymText::Spelled(text) => Some(text.clone()),
                 _ => None,
             },

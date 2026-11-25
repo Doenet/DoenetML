@@ -10,6 +10,7 @@ pub(crate) mod display;
 pub(crate) mod engine;
 pub(crate) mod extrema;
 pub(crate) mod interpolate;
+pub(crate) mod parse_opts;
 pub(crate) mod subset;
 pub(crate) mod tape;
 pub(crate) mod tree;
@@ -17,6 +18,7 @@ pub(crate) mod tree;
 pub use compare::CompareOpts;
 pub use display::Display;
 pub use engine::Engine;
+pub use parse_opts::ParseOpts;
 pub use subset::SubsetPart;
 pub use tree::{Leaf, Shape, Tree};
 

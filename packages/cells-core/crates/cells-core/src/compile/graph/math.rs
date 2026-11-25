@@ -51,6 +51,9 @@ impl<'c> Stamp<'c> {
             Expr::Operator(args) => {
                 Expr::Operator(args.into_iter().map(|a| self.instantiate(a, t)).collect())
             }
+            Expr::Written(args) => {
+                Expr::Written(args.into_iter().map(|a| self.instantiate(a, t)).collect())
+            }
         };
         let done = self.x.push(out);
         if let Some(key) = class {
@@ -104,7 +107,7 @@ impl<'c> Stamp<'c> {
         match e {
             Expr::Num(v) => self.constant(v),
             Expr::Cell(n) => n,
-            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => {
+            Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => {
                 unreachable!("lowering a symbolic expression")
             }
             Expr::Neg(a) => {
@@ -312,11 +315,12 @@ impl<'c> Stamp<'c> {
         if c.plans.arena.calls_outside_engine(id) || id_has_leafless_text(c, id) {
             return false;
         }
-        let text = sym.spell(c.dast);
         let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
         match c.plans.sym_trees.get(&id) {
-            Some(cached) => cached.get_or_init(|| engine.parse_tree(&text)).is_ok(),
-            None => engine.parse_tree::<RefId>(&text).is_ok(),
+            Some(cached) => cached
+                .get_or_init(|| sym.parse_tree(c.dast, engine))
+                .is_ok(),
+            None => sym.parse_tree::<RefId>(c.dast, engine).is_ok(),
         }
     }
 }
@@ -362,13 +366,13 @@ impl Stamp<'_> {
         let engine = self.engine.get_or_insert_with(crate::sym::Engine::new);
         let parsed;
         let tree = if let Some(cached) = c.plans.sym_trees.get(&id) {
-            cached.get_or_init(|| engine.parse_tree(&text))
+            cached.get_or_init(|| sym.parse_tree(c.dast, engine))
         } else {
-            parsed = engine.parse_tree::<RefId>(&text);
+            parsed = sym.parse_tree::<RefId>(c.dast, engine);
             &parsed
         };
         if let Err(reason) = tree
-            && engine.parse_constant(&text).is_err()
+            && sym.parse_constant(c.dast, engine).is_err()
         {
             let reason = reason.clone();
             self.fail(Error::BadMath { text, reason });
@@ -386,7 +390,7 @@ fn occurrences(arena: &Arena<RefId>, id: ExprId, out: &mut Vec<RefId>) {
             occurrences(arena, *b, out);
         }
         Expr::Neg(a) => occurrences(arena, *a, out),
-        Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
+        Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) | Expr::Written(args) => {
             for &a in args {
                 occurrences(arena, a, out);
             }

@@ -717,7 +717,7 @@ impl CondParser<'_> {
             [Token::Ident(w)] if w.eq_ignore_ascii_case("true") => Some(Source::constant(1.0)),
             [Token::Ident(w)] if w.eq_ignore_ascii_case("false") => Some(Source::constant(0.0)),
             _ => match Parser::parse(toks, &mut cp.ar.arena) {
-                Ok(id) if cp.ar.arena.is_plain_numeric(id) => {
+                Ok(id) if cp.ar.arena.is_numeric(id) && !expr::names_engine_math(toks) => {
                     Some(match cp.ar.arena.get(id) {
                         // A constant in a condition is not state.
                         Expr::Num(v) => Source::constant(*v),
@@ -840,6 +840,9 @@ fn render_tokens(toks: &[Token]) -> String {
             Token::Comma => ",".into(),
             Token::Eq => "=".into(),
             Token::Open(c) | Token::Close(c) => c.to_string(),
+            // Only a `<math>`'s own text holds one (ADR 0083), which no
+            // condition reads.
+            Token::Opaque(_) => "\u{ff3f}".into(),
         })
         .collect::<Vec<_>>()
         .join(" ")

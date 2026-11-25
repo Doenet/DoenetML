@@ -231,6 +231,11 @@ impl<'a> SourceReader<'a> {
                     .map(|a| self.rebase_expr(ar, path, down, a))
                     .collect(),
             ),
+            Expr::Written(args) => Expr::Written(
+                args.into_iter()
+                    .map(|a| self.rebase_expr(ar, path, down, a))
+                    .collect(),
+            ),
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)
@@ -246,8 +251,9 @@ impl<'a> SourceReader<'a> {
         let new = ar.arena.push(out);
         if let Some(text) = ar.sym_text.get(&id).cloned() {
             let text = match text {
-                SymText::Nodes { nodes, plans } => SymText::Nodes {
+                SymText::Nodes { nodes, plans, opts } => SymText::Nodes {
                     nodes,
+                    opts,
                     plans: plans
                         .iter()
                         .map(|&p| self.rebase_ref(ar, path, down, p))

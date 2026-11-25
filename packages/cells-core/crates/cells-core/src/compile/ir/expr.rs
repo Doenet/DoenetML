@@ -41,6 +41,11 @@ pub(crate) enum Expr<L> {
     /// entries, constant math text only the engine reads (a relation, `4 <
     /// x <= 5`; `Reader::parse_math_text`).
     Shape(Vec<ExprId>),
+    /// Math text only the symbolic engine reads (ADR 0083): text the
+    /// compile's parser does not (`\frac{x}{z}` read as LaTeX, `x^()`,
+    /// a relation `4 < x <= 5`), over these reference leaves. Always
+    /// symbolic; the engine reads the text.
+    Written(Vec<ExprId>),
 }
 
 /// The functions numeric math text can call, each lowered to its operator
@@ -333,18 +338,8 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.is_numeric(*a) && self.is_numeric(*b),
             Expr::Neg(a) => self.is_numeric(*a),
             Expr::Call(_, args) => args.iter().all(|&a| self.is_numeric(a)),
-            Expr::Operator(_) | Expr::Shape(_) => false,
+            Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => false,
         }
-    }
-
-    /// Whether the expression is numeric with no call to one of the
-    /// engine's functions and no named constant (`e`): numeric as the
-    /// lowering read it before ADR 0083, which a condition keeps, so that
-    /// `log(e^3) = 3` compares as the engine does.
-    pub(crate) fn is_plain_numeric(&self, id: ExprId) -> bool {
-        let mut syms = Vec::new();
-        self.symbols(id, &mut syms);
-        syms.is_empty() && !self.calls_written(id) && self.is_numeric(id)
     }
 
     /// The free symbols, in first-appearance order.
@@ -365,9 +360,10 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.symbols(*b, out);
             }
             Expr::Neg(a) => self.symbols(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
-                args.iter().for_each(|&a| self.symbols(a, out))
-            }
+            Expr::Call(_, args)
+            | Expr::Operator(args)
+            | Expr::Shape(args)
+            | Expr::Written(args) => args.iter().for_each(|&a| self.symbols(a, out)),
         }
     }
 
@@ -389,9 +385,10 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.cell_leaves(*b, out);
             }
             Expr::Neg(a) => self.cell_leaves(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
-                args.iter().for_each(|&a| self.cell_leaves(a, out))
-            }
+            Expr::Call(_, args)
+            | Expr::Operator(args)
+            | Expr::Shape(args)
+            | Expr::Written(args) => args.iter().for_each(|&a| self.cell_leaves(a, out)),
         }
     }
 
@@ -409,7 +406,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 | Expr::Div(a, b)
                 | Expr::Pow(a, b) => todo.extend([*a, *b]),
                 Expr::Neg(a) => todo.push(*a),
-                Expr::Shape(_) => return true,
+                Expr::Shape(_) | Expr::Written(_) => return true,
                 Expr::Call(_, args) | Expr::Operator(args) => todo.extend(args),
             }
         }
@@ -446,7 +443,9 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.calls(*a, which) || self.calls(*b, which),
             Expr::Neg(a) => self.calls(*a, which),
             Expr::Call(f, args) => which(*f) || args.iter().any(|&a| self.calls(a, which)),
-            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.calls(a, which)),
+            Expr::Operator(args) | Expr::Shape(args) | Expr::Written(args) => {
+                args.iter().any(|&a| self.calls(a, which))
+            }
         }
     }
 }
@@ -462,6 +461,22 @@ pub(crate) fn named_constant(name: &str) -> Option<f64> {
         "infinity" | "Infinity" => Some(f64::INFINITY),
         _ => None,
     }
+}
+
+/// Whether math text names one of the engine's functions (`sin(`, not
+/// [`Func::numeric_only`]) or a named constant (`e`): numeric only since
+/// ADR 0083. A condition reads such text as the engine does, as it did
+/// before, so that `log10(10^3) = 3` compares as written, whatever the
+/// compile folded it to.
+pub(crate) fn names_engine_math(toks: &[Token]) -> bool {
+    toks.iter().enumerate().any(|(i, t)| match t {
+        Token::Ident(name) => {
+            named_constant(name).is_some()
+                || (Func::named(name).is_some_and(|f| !f.numeric_only())
+                    && toks.get(i + 1) == Some(&Token::LParen))
+        }
+        _ => false,
+    })
 }
 
 /// A token of math text. References (`$a`) arrive already resolved to a
@@ -480,6 +495,10 @@ pub(crate) enum Token {
     Open(char),
     /// `]`, `}` or `⟩`: closes one.
     Close(char),
+    /// Text the tokenizer does not read (`\frac`, `x_(1)`), with why: a
+    /// `<math>`'s text may still be the engine's to read (ADR 0083);
+    /// anywhere else it is an error.
+    Opaque(String),
 }
 
 impl Token {
@@ -581,6 +600,9 @@ impl<'a> Parser<'a> {
         // blank expression, a symbol the engine spells `＿`.
         if toks.is_empty() {
             return Ok(arena.push(Expr::Sym("\u{ff3f}".into())));
+        }
+        if let Some(Token::Opaque(reason)) = toks.iter().find(|t| matches!(t, Token::Opaque(_))) {
+            return Err(reason.clone());
         }
         let mut p = Parser {
             toks,
@@ -922,7 +944,7 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 [zero, zero, id]
             }
             // Never numeric, so no coefficient.
-            Expr::Operator(_) | Expr::Shape(_) => return None,
+            Expr::Operator(_) | Expr::Shape(_) | Expr::Written(_) => return None,
             Expr::Pow(x, y) => {
                 let l = go(a, x, vx, vy)?;
                 let r = go(a, y, vx, vy)?;

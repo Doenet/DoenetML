@@ -127,9 +127,15 @@ impl Engine {
     /// symbols become leaves. Fails on what a tree cannot say (a relation,
     /// a function of several arguments).
     pub fn parse_tree<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
+        let e = self.convert_text(text)?;
+        self.tree_of(e, text)
+    }
+
+    /// The builder tree of parsed text `e` (spelled `text`, for an error).
+    pub(crate) fn tree_of<L: Leaf>(&mut self, e: Expr, text: &str) -> Result<Tree<L>, String> {
         // Sums and products flat: a math of many terms parses as a deep
         // chain, which every walk of the tree would recurse through.
-        let e = me::expr::flatten(self.convert_text(text)?);
+        let e = me::expr::flatten(e);
         to_tree(&e).ok_or_else(|| {
             format!(
                 "'{text}' is not supported in a math cell (a relation or multi-argument function)"
@@ -195,6 +201,11 @@ impl Engine {
     /// Parse math text with no cell leaves to a stored expression.
     pub fn parse_constant(&mut self, text: &str) -> Result<Handle, String> {
         let e = self.convert_text(text)?;
+        self.constant_of(e, text)
+    }
+
+    /// Parsed constant text `e` (spelled `text`, for an error) stored.
+    pub(crate) fn constant_of(&mut self, e: Expr, text: &str) -> Result<Handle, String> {
         if !cell_leaves(&e).is_empty() {
             return Err(format!(
                 "'{text}' is not supported in a math cell with references (a relation, tuple or multi-argument function)"
@@ -951,13 +962,19 @@ const DOENET_APPLIED: &[&str] = &[
 
 /// The math text parser: the engine's, with DoenetML's applied functions.
 fn parser() -> TextToAst {
+    TextToAst::new(text_options())
+}
+
+/// The math text parser's options: the engine's, with DoenetML's applied
+/// functions.
+pub(crate) fn text_options() -> TextToAstOptions {
     let mut opts = TextToAstOptions::default();
     for f in DOENET_APPLIED {
         if !opts.applied_function_symbols.iter().any(|g| g == f) {
             opts.applied_function_symbols.push(f.to_string());
         }
     }
-    TextToAst::new(opts)
+    opts
 }
 
 /// A number as math text the engine parses back to it: `-3`, `0.5`,

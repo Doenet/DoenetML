@@ -121,11 +121,15 @@ fn a_condition_over_a_function_compares_its_value() {
     let doc = load(
         r#"<number name="t">1</number>
            <boolean name="b">sin($t) > 0.5</boolean>
-           <boolean name="c">cos(pi) < -0.5</boolean>"#,
+           <boolean name="c">cos(pi) < -0.5</boolean>
+           <boolean name="s" symbolicEquality>log10(10^3) = 3</boolean>
+           <boolean name="n">log10(10^3) = 3</boolean>"#,
     )
     .unwrap();
     assert_eq!(v(&doc, "b", "value"), 1.0);
     assert_eq!(v(&doc, "c", "value"), 1.0);
+    assert_eq!(v(&doc, "s", "value"), 0.0, "compared as written");
+    assert_eq!(v(&doc, "n", "value"), 1.0);
 }
 
 /// `e` and infinity are numbers where math is numeric; `1/0` is a signed

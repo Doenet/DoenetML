@@ -144,12 +144,15 @@ fn math_of_math_lowers_through_and_a_symbolic_leaf_stays_symbolic() {
     );
 }
 
+/// Math text the engine does not read is an error; text it reads with a
+/// missing operand is the blank there, as the current core shows it (ADR
+/// 0083).
 #[test]
 fn math_parse_errors_are_reported() {
-    let (code, m) = load_error(r#"<math name="m">3 +</math>"#);
-    assert_eq!(code, "cells-bad-math", "{m}");
     let (code, m) = load_error(r#"<math name="m">(1 + 2</math>"#);
     assert_eq!(code, "cells-bad-math", "{m}");
+    let doc = load(r#"<math name="m">3 +</math>"#).unwrap();
+    assert_eq!(doc.math_text(doc.cell("m", "expr").unwrap()), "3+");
 }
 
 #[test]
