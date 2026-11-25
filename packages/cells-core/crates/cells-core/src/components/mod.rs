@@ -22,11 +22,13 @@ mod shape;
 pub(crate) mod structure;
 #[cfg(test)]
 pub(crate) mod test_only;
+pub mod types;
 pub(crate) mod values;
 
 pub use containers::SECTION_TAGS;
 pub use decl::*;
 pub use shape::ListShape;
+pub use types::{AuthorType, Fit, PropType, StandsIn, TypeDecl, TypeKind, Typing};
 
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any element. Every other attribute must be read by the type's
