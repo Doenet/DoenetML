@@ -535,13 +535,29 @@ impl<'a> PlanCtx<'_, 'a> {
         not_a_boolean(&self.p.rd.dast.macro_display(node), kind)
     }
 
+    /// Why reference `p`, a boolean, is not a number, suggesting
+    /// `convertBoolean` (D47).
+    pub(crate) fn boolean_as_number(&self, p: RefId) -> String {
+        let plan = &self.p.ar.refs[p.index()];
+        if plan.node == NodeId::NONE {
+            // An element child, which no reference names.
+            let shown = display_of(self.p.rd.dast, plan);
+            return format!(
+                "{shown} is true or false, not a number. To count it as 1 or 0, write it inside `<number convertBoolean>`"
+            );
+        }
+        boolean_as_number(&display_of(self.p.rd.dast, plan))
+    }
+
     /// A type mix (D47, D68; ADR 0064): warned at reference `at`, or on the
     /// element for its own content (a literal `1` in a `<boolean>`), and
     /// the missing value in its place.
     pub(crate) fn type_mix(&mut self, at: Option<RefId>, message: &str) -> Source {
-        let node = match at {
-            Some(p) => self.p.ar.refs[p.index()].node,
-            None => self.node(),
+        // A reference the compile made itself (an element child's) is
+        // warned at the element.
+        let node = match at.map(|p| self.p.ar.refs[p.index()].node) {
+            Some(node) if node != NodeId::NONE => node,
+            _ => self.node(),
         };
         self.p.ar.type_mix(node, message)
     }

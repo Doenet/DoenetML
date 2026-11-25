@@ -1449,7 +1449,9 @@ mod tests {
         // written.
         // ADR 0075 added `children_joined`, a label's text as a value.
         // ADR 0077 added `place_among`, a choice's place among its input's.
-        const PLAN_CTX_METHODS: usize = 48;
+        // ADR 0076 added `boolean_as_number`, for a boolean among an
+        // operator's operands (D47).
+        const PLAN_CTX_METHODS: usize = 49;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

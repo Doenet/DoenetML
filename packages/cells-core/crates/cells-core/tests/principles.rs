@@ -523,3 +523,21 @@ fn adr_0076_an_on_off_attribute_wants_a_boolean() {
         "{messages:?}"
     );
 }
+
+/// D47, ADR 0064's open case: a boolean among an operator's operands is no
+/// number, whether a reference names it or it is written there; it is the
+/// missing value in its place, with a warning.
+#[test]
+fn d47_a_boolean_is_no_operand_of_an_operator_over_numbers() {
+    let doc = load(
+        r#"<boolean name="b">true</boolean>
+           <sum name="s1"><boolean>true</boolean> 3</sum>
+           <sum name="s2">$b 3</sum>
+           <sum name="ok">2 3</sum>"#,
+    )
+    .unwrap();
+    assert!(missing(&doc, "s1", "value"));
+    assert!(missing(&doc, "s2", "value"));
+    assert_eq!(v(&doc, "ok", "value"), 5.0);
+    assert_eq!(warned(&doc, "cells-type-mix"), 2);
+}

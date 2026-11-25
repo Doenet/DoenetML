@@ -116,6 +116,15 @@ pub(crate) fn operands(
         .into_iter()
         .map(|piece| {
             let wire = match piece {
+                // A boolean is no number (D47, ADR 0076 §4): a type mix,
+                // the missing value in its place.
+                ListEntry::Ref(p)
+                    if !matches!(kind, PieceKind::Boolean)
+                        && ctx.ref_kind(p) == Some(crate::compile::api::ValueKind::Boolean) =>
+                {
+                    let message = ctx.boolean_as_number(p);
+                    ctx.type_mix(Some(p), &message).into()
+                }
                 // A math cell is read as the number it holds.
                 ListEntry::Ref(p) if !matches!(kind, PieceKind::Boolean) => {
                     ctx.entry_number(wiring, p).into()
