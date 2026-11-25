@@ -38,6 +38,10 @@ pub(crate) struct ChoiceDef {
     pub(crate) num_to_select: Option<u32>,
     pub(crate) with_replacement: bool,
     pub(crate) weights: Vec<f64>,
+    /// Load-time: each option's `selectForVariants`, lower case, the
+    /// variant names it is picked for (ADR 0076); empty when no option
+    /// writes one.
+    pub(crate) for_variants: Vec<Vec<String>>,
     /// The branch interface: name -> type and the element carrying it in
     /// each branch. Filled once every element is planned.
     pub(crate) iface: HashMap<String, (ComponentType, Vec<ElemId>)>,

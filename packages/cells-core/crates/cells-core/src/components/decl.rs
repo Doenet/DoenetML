@@ -142,6 +142,44 @@ pub struct ComponentDef {
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
 
+/// What a type is to the document's variants (ADR 0076), as the current
+/// core's `createsVariants` types count their unique variants
+/// (`compile/variants.rs`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VariantDecl {
+    /// The root: its variants are its control's, or its one controlled
+    /// section's.
+    Document,
+    /// A sectioning component: variants of its own with a
+    /// `<variantControl>` child, else those of the components under it.
+    Section,
+    /// `<variantControl>`: the variants of what it sits in, read when
+    /// compiled.
+    Control,
+    /// A load-time choice of options.
+    Select,
+    /// A selection from a sequence.
+    Sequence,
+    /// An order drawn of its children, one component each.
+    Shuffle,
+    /// A choice input, the order of its choices drawn with `shuffleOrder`.
+    ChoiceInput,
+    /// A choice of a choice input: counted by it, no variant component.
+    Choice,
+    /// The variants of the components under it, combined.
+    Product,
+    /// Stamped in scopes of its own (a repeat, a conditional content's
+    /// cases): one variant when nothing under it has more, else not
+    /// counted.
+    Repeat,
+    /// A sampler: one variant, which `variantDeterminesSeed` makes
+    /// uncountable; without it, it draws from the load's own seed.
+    Sampler,
+    /// Draws no variant count names (`<selectRandomNumbers>`,
+    /// `<selectPrimeNumbers>`): the document's variants are not counted.
+    Uncounted,
+}
+
 /// A variant's value, of whatever type its planner chose
 /// ([`ComponentDef::variant`]).
 pub(crate) type Variant = dyn std::any::Any + Send + Sync;

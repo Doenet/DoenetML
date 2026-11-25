@@ -26,6 +26,8 @@ impl Outlining<'_> {
         // (condition attribute, body nodes, weight) per branch, and its key.
         let mut branches: Vec<(Option<AttrId>, Vec<NodeId>, f64)> = Vec::new();
         let mut branch_keys: Vec<Box<str>> = Vec::new();
+        // Each option's `selectForVariants` (ADR 0076).
+        let mut for_variants: Vec<Vec<String>> = Vec::new();
         // A case's or option's key (ADR 0017): its name, else its tag and
         // its position among the branches with that tag.
         let mut tag_counts: HashMap<&str, u32> = HashMap::new();
@@ -70,6 +72,15 @@ impl Outlining<'_> {
                         };
                         branches.push((None, self.branch_body(n), weight));
                         branch_keys.push(branch_key(n));
+                        let names = d.attr(n, "selectForVariants").map(|a| {
+                            self.rd()
+                                .attr_text(a)
+                                .unwrap_or_default()
+                                .split_whitespace()
+                                .map(str::to_lowercase)
+                                .collect()
+                        });
+                        for_variants.push(names.unwrap_or_default());
                     }
                     _ => {
                         return Err(Error::Unsupported(format!(
@@ -132,6 +143,11 @@ impl Outlining<'_> {
             num_to_select,
             with_replacement,
             weights: branches.iter().map(|b| b.2).collect(),
+            for_variants: if for_variants.iter().any(|v| !v.is_empty()) {
+                for_variants
+            } else {
+                Vec::new()
+            },
             iface: HashMap::new(),
             used: Vec::new(),
             used_at: HashMap::new(),

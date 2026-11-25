@@ -331,6 +331,9 @@ component_types! {
     PolylineOverIterations => geometry::over_iterations::polyline::DEFINITION,
     /// A `<polygon>` whose vertices are a repeat's points (ADR 0075).
     PolygonOverIterations => geometry::over_iterations::polygon::DEFINITION,
+    /// `<variantControl>`: the document's or a section's variants, read
+    /// when compiled (ADR 0076).
+    VariantControl => structure::variant_control::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1005,6 +1008,33 @@ impl ComponentType {
             && to
                 .reads_as()
                 .is_some_and(|vt| vt == from || ComponentType::extends_as(from, vt))
+    }
+
+    /// What the type is to the document's variants (ADR 0076): the
+    /// current core's types that create variants, and how each counts
+    /// them.
+    pub fn creates_variants(self) -> Option<VariantDecl> {
+        use ComponentType::*;
+        Some(match self {
+            Document => VariantDecl::Document,
+            RepeatForSequence => VariantDecl::Repeat,
+            ChoiceInput => VariantDecl::ChoiceInput,
+            Choice => VariantDecl::Choice,
+            ConditionalContent => VariantDecl::Repeat,
+            Select => VariantDecl::Select,
+            SelectFromSequence => VariantDecl::Sequence,
+            Group => VariantDecl::Product,
+            Section => VariantDecl::Section,
+            RepeatFor => VariantDecl::Repeat,
+            Shuffle => VariantDecl::Shuffle,
+            SelectRandomNumbers => VariantDecl::Uncounted,
+            SampleRandomNumbers => VariantDecl::Sampler,
+            SelectPrimeNumbers => VariantDecl::Uncounted,
+            SamplePrimeNumbers => VariantDecl::Sampler,
+            SampleMultivariateRandomNumber => VariantDecl::Sampler,
+            VariantControl => VariantDecl::Control,
+            _ => return None,
+        })
     }
 
     /// How the type is structure rather than content, if it is.

@@ -69,13 +69,16 @@ impl Core {
     /// choices draw from (0 without one). With `prune` false every prop of
     /// every component is computed, for a reader of props no renderer reads.
     /// With `state`, `save_state`'s JSON, the document comes back where the
-    /// session left it.
+    /// session left it. With `variant`, a variant index as the current
+    /// core's `requestedVariantIndex` takes it, the document loads as that
+    /// variant (ADR 0076), whose seed replaces `seed`.
     #[wasm_bindgen(constructor)]
     pub fn new(
         dast: Vec<u8>,
         seed: Option<f64>,
         prune: Option<bool>,
         state: Option<String>,
+        variant: Option<f64>,
     ) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
         let (mut doc, timings) = Document::load_owned(
@@ -83,6 +86,7 @@ impl Core {
             LoadOptions {
                 seed: seed.unwrap_or(0.0) as u64,
                 prune: prune.unwrap_or(true),
+                variant,
                 ..Default::default()
             },
         )
@@ -97,6 +101,33 @@ impl Core {
             last_rebuilt: false,
             last_rebuild_error: None,
         })
+    }
+
+    /// The variant the document was loaded as (ADR 0076), as JSON:
+    /// `{index, name, seed, allPossibleVariants, allVariantNames,
+    /// uniqueIndex}`; `null` for a document loaded at a seed.
+    pub fn variant_json(&self) -> String {
+        match &self.doc.session.variant {
+            None => "null".into(),
+            Some(v) => serde_json::json!({
+                "index": v.index,
+                "name": v.name,
+                "seed": v.seed,
+                "allPossibleVariants": v.all_possible,
+                "allVariantNames": v.all_names,
+                "uniqueIndex": v.unique_index,
+            })
+            .to_string(),
+        }
+    }
+
+    /// What the document's variant components picked, as the current
+    /// core's `generatedVariantInfo` (ADR 0076), as JSON; `null` when this
+    /// core does not report it.
+    pub fn generated_variant_json(&self) -> String {
+        self.doc
+            .generated_variant()
+            .map_or_else(|| "null".into(), |v| v.to_string())
     }
 
     /// This core's release id: saved state records it, and only a core with

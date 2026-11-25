@@ -68,6 +68,7 @@ pub(crate) mod graph;
 pub(crate) mod ir;
 mod read;
 mod stages;
+pub(crate) mod variants;
 
 pub use ir::Compiled;
 pub(crate) use ir::CompiledRef;
@@ -328,6 +329,9 @@ impl Compiler {
         let (settled, tables, mut ar, mut boxes, mut work) =
             stages::outline::outline(dast, Boxes::new(boxed));
         boxes.restart_if_needed().map_err(one)?;
+        // The document's variants, from outlining's elements and the
+        // source's literal attributes (ADR 0076).
+        let variants = variants::analyze(dast, &settled);
         // From here on, every stage reads what outlining settled and none
         // changes it: the element set is outlining's (ADR 0030, ADR 0031),
         // and planning and linking make none.
@@ -402,6 +406,7 @@ impl Compiler {
             prune: false,
             fold: false,
             expr_class: Vec::new(),
+            variants: Arc::new(variants),
         };
         // Equal computations share one cell (ADR 0033), once every port's
         // type is known.

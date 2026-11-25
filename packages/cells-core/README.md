@@ -107,7 +107,12 @@ intervals or, with a literal `displayMode`, as inequalities); a
 expression there.
 A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
-iterated. `fixtures/sir.doenet` is a document using most of these.
+iterated. A document loaded as a variant (`LoadOptions::variant`) has the
+variants its `variantControl` (`numVariants`, `variantNames`, `seeds`,
+`variantsToInclude`, `variantsToExclude`, `uniqueVariants`; also in a
+section) gives it, each naming a combination of its load-time choices
+where they can be counted; an `option`'s `selectForVariants` picks it for
+its variant (ADR 0076). `fixtures/sir.doenet` is a document using most of these.
 
 ## Running locally
 

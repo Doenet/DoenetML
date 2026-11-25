@@ -24,20 +24,17 @@ impl<'c> Builder<'c> {
         };
         let mut kids = Vec::new();
         if !def.reactive {
-            let (t, e) = def.at;
-            let picks = self.pick(
-                cid,
-                scope,
-                c.templates[t.index()].sealed.elems[e.index()].key,
-            );
+            let picks = self.pick(cid, scope);
             // A pick's scope is its option and which pick of it this is
             // (ADR 0017), so its state is the option's whatever order the
             // options were drawn in.
             let mut picked: HashMap<usize, u32> = HashMap::new();
-            for b in picks {
+            for (j, b) in picks.into_iter().enumerate() {
                 let m = picked.entry(b).or_insert(0);
                 *m += 1;
                 let s = self.scope_for(scope, node, pick_position(b, *m));
+                // What the variant picks in this option (ADR 0076).
+                self.assign_option(scope, def.at, j, b, s);
                 self.enter_scope(s, def.branches[b]);
                 kids.extend(self.expand(def.branches[b], s, comp)?);
                 inst.scopes.push(s);
@@ -158,17 +155,44 @@ impl<'c> Builder<'c> {
     /// A select's picks: option indices drawn from a stream that depends on
     /// the document seed and the select's position (its element and the
     /// iteration chain it sits in), so it draws the same way in every build.
-    fn pick(&self, cid: ChoiceId, scope: ScopeId, key: ElemKey) -> Vec<usize> {
+    fn pick(&self, cid: ChoiceId, scope: ScopeId) -> Vec<usize> {
         let def = &self.compiled.plans.choices[cid.index()];
         let n = def.branches.len();
         // A select with no options picks nothing.
         if n == 0 {
             return Vec::new();
         }
-        let mut h = self.seeded_stream(scope, key);
-        let mut weights = def.weights.clone();
+        let (t, e) = def.at;
+        // What the document's variant picks (ADR 0076).
+        if let Some(indices) = self.desired_indices(scope, t, e)
+            && indices.iter().all(|&i| i >= 1 && i as usize <= n)
+        {
+            return indices.iter().map(|&i| i as usize - 1).collect();
+        }
+        let mut h = self.seeded_stream(scope, t, e);
         // The number the check evaluated (ADR 0037).
         let num_to_select = self.compiled.plans.num_to_select(cid);
+        // The options picked for the variant it is in (ADR 0076), in an
+        // order drawn when it picks more than one.
+        if !def.for_variants.is_empty()
+            && let Some(name) = self.variant_name(scope, t, e)
+        {
+            let mut options: Vec<usize> = (0..n)
+                .filter(|&b| def.for_variants[b].contains(&name))
+                .collect();
+            if !options.is_empty() {
+                if num_to_select > 1 {
+                    for i in (1..options.len()).rev() {
+                        h = splitmix(h);
+                        let u = (h >> 11) as f64 / (1u64 << 53) as f64;
+                        let j = ((u * (i + 1) as f64) as usize).min(i);
+                        options.swap(i, j);
+                    }
+                }
+                return options;
+            }
+        }
+        let mut weights = def.weights.clone();
         let mut picks = Vec::with_capacity(num_to_select as usize);
         for _ in 0..num_to_select {
             h = splitmix(h);
@@ -257,8 +281,13 @@ impl<'c> Builder<'c> {
     /// with the element's stable key and the stable levels of the scope it
     /// sits in, so it draws the same way in every build and in
     /// every version of the document that keeps the element's key.
-    pub(super) fn seeded_stream(&self, scope: ScopeId, key: ElemKey) -> u64 {
-        let mut h = splitmix(self.session.seed ^ 0x5eed_5e1e_c7ed_0001);
+    ///
+    /// Inside a section with a `<variantControl>`, the section's variant
+    /// seed takes the document seed's place (ADR 0076).
+    pub(super) fn seeded_stream(&self, scope: ScopeId, t: TemplateId, e: ElemId) -> u64 {
+        let key = self.compiled.plans.templates[t.index()].sealed.elems[e.index()].key;
+        let seed = self.enclosing_seed(scope, t, e);
+        let mut h = splitmix(seed ^ 0x5eed_5e1e_c7ed_0001);
         h = splitmix(h ^ stable_hash(self.compiled.plans.keys.key_text(key).as_bytes()));
         let mut s = scope;
         while s != ScopeId::DOCUMENT {
