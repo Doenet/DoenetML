@@ -342,45 +342,32 @@ pub(crate) mod evaluate {
 
     component! {
         /// `<evaluate function="$f" input="$a"/>`: the function (ADR 0049)
-        /// at the input, missing outside its domain; of a math, its
+        /// at its inputs, missing outside its domain; of a math, its
         /// expression in `x`. Symbolic or numeric as the function is
-        /// (ADR 0081): symbolic, its expression with the input
-        /// substituted, when the function's `symbolicExpr` is math;
-        /// numeric, its value at the input's, otherwise.
-        /// `forceSymbolic` and `forceNumeric` decide instead.
+        /// (ADR 0081), as an operator over math is (ADR 0043): `expr`
+        /// its expression with the inputs substituted when the function's
+        /// `symbolicExpr` is math, else no value, and `value` its number,
+        /// the expression's or the function's at the input's value.
+        /// `forceSymbolic` and `forceNumeric` decide instead. Shown as
+        /// its expression, else its number (a function macro `$$f(x)` in
+        /// text, ADR 0075).
         tags: ["evaluate"],
         flags: [copyable],
-        // Shows its value as its cell holds it: an expression's text, or
-        // the number (a function macro `$$f(x)` in text, ADR 0075).
-        text: Held(value),
-        default_prop: value,
+        value: Math(expr),
         props {
             function: by_planner,
             input: by_planner,
-            value: by_planner { rendered },
+            expr: by_planner { rendered, expr_of: expr },
+            value: by_planner { rendered, expr_of: expr },
             ..anchor
         }
         attributes {
             function: Ref,
-            input: Math,
+            input: Entries,
             forceSymbolic: On,
             forceNumeric: On,
         }
         planner: Plan(plan),
-    }
-
-    /// What an `<evaluate>` reads of what it evaluates, each a hidden
-    /// port: its expression, what a numeric evaluation reads as its one
-    /// piece, its variable, its domain (none for the whole line), what a
-    /// symbolic evaluation does after substituting (none: simplify), and
-    /// the port whose type decides which it is (none: numeric).
-    struct Of {
-        expr: Port,
-        eval_expr: Port,
-        variable: Port,
-        domain: Option<[Port; 4]>,
-        post: Option<Port>,
-        kind: Option<Port>,
     }
 
     /// Whether a type's table has the prop `name`.
@@ -388,31 +375,63 @@ pub(crate) mod evaluate {
         ty.prop_defs().iter().any(|d| d.name == name)
     }
 
-    /// The input a math cell, and the evaluation two ways (ADR 0081): the
-    /// function's pieces at the input's value (`EvalFunction`, or `x` set
-    /// in a math's expression), and its expression with the input
-    /// substituted (`SubstituteFunction`); `value` is the one the
-    /// function's kind or the element's `force` picks.
+    /// The inputs `input` writes (ADR 0081), as a list's entries are
+    /// read (`2 3`, `$a $b`, `$l`), text split at its commas too (`$$f(2,
+    /// 3)` is written `input="2, 3"`), each a math cell.
+    fn inputs(ctx: &mut PlanCtx<'_, '_>, pieces: Vec<ListPiece>) -> Result<Vec<Wire>> {
+        let mut out = Vec::new();
+        for entry in ctx.list_entries(pieces, f64::INFINITY)? {
+            let entries = match &entry {
+                ListEntry::Text(k, text) => split_top_commas(text)
+                    .into_iter()
+                    .map(|t| ListEntry::Text(*k, t))
+                    .collect(),
+                _ => vec![entry],
+            };
+            for entry in entries {
+                if let Some(id) = ctx.entry_math(&entry) {
+                    out.push(Source::sym_expr(id, Post::None).into());
+                }
+            }
+        }
+        Ok(out)
+    }
+
+    /// The inputs as math cells, and the evaluation two ways (ADR 0081):
+    /// the function of one variable at the input's value (`EvalFunction`,
+    /// or `x` set in a math's expression), a number, and the function at
+    /// the inputs (`SubstituteFunction`), symbolic or numeric as its first
+    /// input says, an expression; `value` is the one the function's kind
+    /// picks, or the element's `force`.
     fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let attrs = Attrs::of(ctx.record());
         let at = Props::PORTS;
         let mut wiring = ElemWiring::of(ctx.component_type());
-        let input: Wire = match attrs.input.as_deref() {
-            Some(nodes) => {
-                let mt = ctx.math_text(nodes)?;
-                let id = ctx.sym_math(nodes, &mt)?;
-                Source::sym_expr(id, Post::None).into()
-            }
-            None => Wire::absent(),
+        let mut given = inputs(ctx, attrs.input)?;
+        let k = given.len();
+        let input = if k == 1 {
+            given.remove(0)
+        } else {
+            Wire::absent()
         };
+        let mut rest: Vec<Port> = given.into_iter().map(|w| wiring.hidden_wire(w)).collect();
         let Some(p) = attrs.function else {
             wiring.set_planned(Planned {
                 function: Wire::absent(),
                 input,
+                expr: Wire::absent(),
                 value: Wire::absent(),
             });
             return Ok(wiring);
         };
+        if k == 1 {
+            rest = vec![at.input];
+        }
+        if k > u8::MAX as usize - 8 {
+            return Err(crate::error::Error::Unsupported(
+                "an <evaluate> of more than 200 inputs".into(),
+            ));
+        }
         let ty = ctx.reference_type(p)?;
         let target = ty.and_then(|ty| ty.def().constrain_target);
         let reference = |ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, name| {
@@ -420,11 +439,13 @@ pub(crate) mod evaluate {
                 wiring.hidden(Source::reference(ctx.with_prop(p, name)?)),
             )
         };
+        let constant = |wiring: &mut ElemWiring, v: f64| wiring.hidden_wire(Wire::constant(v));
         // What the function is: its expression, what a numeric evaluation
-        // reads as its one piece, its variable, its domain, what a symbolic
-        // one does after substituting, and the port whose type its kind
-        // follows; of a math, its expression in `x` on the whole line,
-        // symbolic when the math is.
+        // of one variable reads as its one piece, its variable and all its
+        // variables, its domain, whether it is symbolic and what a symbolic
+        // evaluation does after substituting, and the port whose type
+        // decides which an evaluation is; of a math, its expression in `x`
+        // on the whole line, symbolic when the math is.
         let (expr, f) = match (ty, target) {
             (
                 Some(ty),
@@ -433,9 +454,9 @@ pub(crate) mod evaluate {
                     function: true,
                 }),
             ) => {
-                let mut f = Vec::new();
+                let mut fp = Vec::new();
                 for name in FUNCTION_PROPS {
-                    f.push(reference(ctx, &mut wiring, name)?);
+                    fp.push(reference(ctx, &mut wiring, name)?);
                 }
                 let expr_port = reference(ctx, &mut wiring, expr)?;
                 let optional = |ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, name| {
@@ -444,15 +465,25 @@ pub(crate) mod evaluate {
                         .transpose()
                 };
                 let eval_expr = optional(ctx, &mut wiring, "evalExpr")?.unwrap_or(expr_port);
+                let variables = optional(ctx, &mut wiring, "variablesExpr")?.unwrap_or(fp[0]);
+                let domains = optional(ctx, &mut wiring, "domainsExpr")?;
                 let post = optional(ctx, &mut wiring, "substitutePost")?;
-                let kind = optional(ctx, &mut wiring, "symbolicExpr")?;
+                let symbolic = optional(ctx, &mut wiring, "symbolic")?;
+                let kind = if attrs.forceNumeric {
+                    optional(ctx, &mut wiring, "multiExpr")?
+                } else {
+                    optional(ctx, &mut wiring, "symbolicExpr")?
+                };
                 (
                     expr,
                     Of {
                         expr: expr_port,
                         eval_expr,
-                        variable: f[0],
-                        domain: Some([f[1], f[2], f[3], f[4]]),
+                        variable: fp[0],
+                        variables,
+                        domain: Some([fp[1], fp[2], fp[3], fp[4]]),
+                        domains,
+                        symbolic,
                         post,
                         kind,
                     },
@@ -467,14 +498,18 @@ pub(crate) mod evaluate {
                         expr: expr_port,
                         eval_expr: expr_port,
                         variable: x,
+                        variables: x,
                         domain: None,
+                        domains: None,
+                        symbolic: None,
                         post: None,
-                        kind: Some(expr_port),
+                        kind: (!attrs.forceNumeric).then_some(expr_port),
                     },
                 )
             }
         };
         let function = Wire::from(Source::reference(ctx.with_prop(p, expr)?));
+        let whole = |wiring: &mut ElemWiring| curve::whole_line().map(|w| wiring.hidden_wire(w));
         let numeric = |wiring: &mut ElemWiring| {
             let number = wiring.hidden(Source::computed(
                 OpSpec::Sym(SymKind::Evaluate),
@@ -492,36 +527,89 @@ pub(crate) mod evaluate {
                 )),
             }
         };
-        let symbolic = |wiring: &mut ElemWiring| {
-            let post = f
-                .post
-                .unwrap_or_else(|| wiring.hidden_wire(Wire::constant(1.0)));
-            let domain = f
-                .domain
-                .unwrap_or_else(|| curve::whole_line().map(|w| wiring.hidden_wire(w)));
-            let mut inputs = vec![at.input, post];
-            inputs.extend(curve::one_piece(wiring, f.expr, f.variable, domain));
+        let at_inputs = |wiring: &mut ElemWiring, mode: Option<f64>| {
+            let mode = match (mode, f.symbolic) {
+                (None, Some(symbolic)) => symbolic,
+                (mode, _) => constant(wiring, mode.unwrap_or(1.0)),
+            };
+            let post = f.post.unwrap_or_else(|| constant(wiring, 1.0));
+            let domain = f.domain.unwrap_or_else(|| whole(wiring));
+            let domains = f
+                .domains
+                .unwrap_or_else(|| wiring.hidden_wire(Wire::absent()));
+            let mut inputs = vec![mode, post];
+            inputs.extend(domain);
+            inputs.extend([domains, f.expr, f.variables]);
+            inputs.extend(&rest);
             wiring.hidden(Source::computed(
-                OpSpec::Sym(SymKind::SubstituteFunction),
+                OpSpec::Sym(SymKind::SubstituteFunction { k: k as u8 }),
                 inputs,
             ))
         };
-        let value = match f.kind {
-            _ if attrs.forceNumeric => Wire::own(numeric(&mut wiring)),
-            _ if attrs.forceSymbolic => Wire::own(symbolic(&mut wiring)),
-            Some(kind) => {
-                let symbolic = symbolic(&mut wiring);
-                let numeric = numeric(&mut wiring);
-                Source::held_by(kind, symbolic, numeric).into()
+        let expr = match f.kind {
+            _ if attrs.forceSymbolic && !attrs.forceNumeric => {
+                Wire::own(at_inputs(&mut wiring, Some(1.0)))
             }
-            None => Wire::own(numeric(&mut wiring)),
+            Some(kind) => {
+                let mode = attrs.forceNumeric.then_some(0.0);
+                let symbolic = at_inputs(&mut wiring, mode);
+                let none = wiring.hidden_wire(Wire::absent());
+                Source::held_by(kind, symbolic, none).into()
+            }
+            None => Wire::absent(),
         };
+        let numeric = numeric(&mut wiring);
         wiring.set_planned(Planned {
             function,
             input,
-            value,
+            expr,
+            value: Source::value_of(at.expr, numeric).into(),
         });
         Ok(wiring)
+    }
+
+    /// `text` split at its commas outside any bracket pair, each piece
+    /// trimmed, the empty ones left out.
+    fn split_top_commas(text: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut depth = 0i32;
+        let mut piece = String::new();
+        for c in text.chars() {
+            match c {
+                '(' | '[' | '{' => depth += 1,
+                ')' | ']' | '}' => depth -= 1,
+                ',' if depth == 0 => {
+                    out.push(std::mem::take(&mut piece));
+                    continue;
+                }
+                _ => {}
+            }
+            piece.push(c);
+        }
+        out.push(piece);
+        out.into_iter()
+            .map(|p| p.trim().to_string())
+            .filter(|p| !p.is_empty())
+            .collect()
+    }
+
+    /// What an `<evaluate>` reads of what it evaluates, each a hidden
+    /// port: its expression, what a numeric evaluation of one variable
+    /// reads as its one piece, its first variable and all of them (one
+    /// math cell), its domain (none for the whole line), whether it is
+    /// symbolic (none: it is), what a symbolic evaluation does after
+    /// substituting (none: simplify), and the port whose type decides
+    /// which an evaluation is (none: numeric).
+    struct Of {
+        expr: Port,
+        eval_expr: Port,
+        variable: Port,
+        variables: Port,
+        domain: Option<[Port; 4]>,
+        domains: Option<Port>,
+        symbolic: Option<Port>,
+        post: Option<Port>,
+        kind: Option<Port>,
     }
 }
 

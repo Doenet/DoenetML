@@ -725,10 +725,21 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
             sample_bezier(&vals, coord as usize, uniform, out);
         }
-        SymKind::SubstituteFunction => {
+        SymKind::SubstituteFunction { .. } => {
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
-            out[0] = substitute_function(engine, vals[0], substitute_post(vals[1]), &vals[2..])
-                .to_value();
+            out[0] = eval_function_at(
+                engine,
+                vals[0] == 1.0,
+                substitute_post(vals[1]),
+                &vals[2..6],
+                [vals[6], vals[7], vals[8]],
+                &vals[9..],
+            )
+            .to_value();
+        }
+        SymKind::Pack { .. } => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            out[0] = engine.pack(&vals).to_value();
         }
         SymKind::DerivativeBy => {
             out[0] = match (handle(v(0)), handle(v(1)).and_then(|h| engine.symbol(h))) {
@@ -965,42 +976,72 @@ pub(crate) fn spline_pieces(engine: &mut Engine, h: Handle, var: f64) -> Option<
     Some(f)
 }
 
-/// A function of one variable (`f`: its domain and pieces, as
-/// [`eval_function`] reads them) at the expression `x` (a math cell's
-/// value), as the current core's symbolic function (ADR 0081): the
-/// expression of the first piece that takes `x`, its variable replaced by
-/// `x`, `post` applied. Where `x` evaluates to a number, a piece takes it
-/// when its domain holds it, and outside the function's domain no piece
-/// does; any other `x` the first piece takes. The blank when no piece
-/// takes `x`, for a blank `x`, and for an `x` with several entries.
-pub fn substitute_function(engine: &mut Engine, x: f64, post: Post, f: &[f64]) -> Handle {
+/// The function whose domains, expression and variables are the math
+/// cells `f` at the math cells `inputs` (ADR 0081), as
+/// [`SymKind::SubstituteFunction`] computes it: symbolically, `post`
+/// applied, or numerically; `domain` the one variable's where `f` holds
+/// none.
+pub fn eval_function_at(
+    engine: &mut Engine,
+    symbolic: bool,
+    post: Post,
+    domain: &[f64],
+    [domains, expr, vars]: [f64; 3],
+    inputs: &[f64],
+) -> Handle {
     let blank = engine.blank();
-    let Some(xh) = handle(x) else {
+    // No formula (a derivative of an interpolated function): no number,
+    // as the current core's numeric counterpart gives.
+    let Some(e) = handle(expr) else {
+        return engine.num(f64::NAN);
+    };
+    let Some(names) = handle(vars).and_then(|v| engine.symbols(v)) else {
         return blank;
     };
-    if engine.is_blank(xh) || engine.count(xh) > 1 {
+    let Some(mut xs) = inputs
+        .iter()
+        .map(|&x| handle(x))
+        .collect::<Option<Vec<_>>>()
+    else {
+        return blank;
+    };
+    // One input with entries is spread over the variables, as the current
+    // core spreads a vector: for a function of one variable, too many.
+    if let [x] = xs[..]
+        && let Some(entries) = engine.entries(x)
+    {
+        xs = entries;
+    }
+    if xs.len() != names.len() || xs.iter().any(|&x| engine.is_blank(x)) {
         return blank;
     }
-    let at = engine.evaluate(xh, None);
-    let numeric = !at.is_nan();
-    let (domain, pieces) = f.split_at(DOMAIN_CELLS);
-    if numeric && !in_domain(at, domain, false) {
-        return blank;
+    let values: Vec<f64> = xs.iter().map(|&x| engine.evaluate(x, None)).collect();
+    // Outside a domain where every input is a number, as the current
+    // core checks one.
+    let domains = match handle(domains) {
+        Some(d) => engine.numbers(d),
+        None => Some(domain.to_vec()),
     }
-    for piece in pieces.chunks_exact(PIECE_CELLS) {
-        if numeric && !in_domain(at, &piece[2..], true) {
-            continue;
-        }
-        let (Some(h), Some(var)) = (
-            handle(piece[0]),
-            handle(piece[1]).and_then(|v| engine.symbol(v)),
-        ) else {
-            return blank;
+    .filter(|d| d.len() == DOMAIN_CELLS * values.len());
+    if let Some(domains) = domains
+        && values.iter().all(|v| !v.is_nan())
+        && values
+            .iter()
+            .zip(domains.chunks_exact(DOMAIN_CELLS))
+            .any(|(&v, d)| !in_domain(v, d, false))
+    {
+        return if symbolic {
+            blank
+        } else {
+            engine.num(f64::NAN)
         };
-        let e = engine.substitute(h, &var, xh);
-        return post.apply(engine, e);
     }
-    blank
+    if symbolic {
+        let h = engine.substitute_all(e, &names, &xs);
+        post.apply(engine, h)
+    } else {
+        engine.evaluate_all(e, &names, &values)
+    }
 }
 
 /// How a point of a [`SymKind::SampleBezier`] has its control vectors

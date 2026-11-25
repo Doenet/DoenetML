@@ -565,15 +565,25 @@ impl Core {
         self.doc.function_value(CompIdx::new(idx), x)
     }
 
-    /// The function component `idx` is at the expression the math text
-    /// `x` writes, symbolically (ADR 0081), as the JavaScript math tree
-    /// in JSON; `None` when it is no function of one variable with a
-    /// formula.
-    pub fn function_symbolic(&mut self, idx: u32, x: &str) -> Option<String> {
+    /// The function component `idx` is at the expressions the math texts
+    /// `xs` write, symbolically (ADR 0081), as the JavaScript math tree in
+    /// JSON; `None` when it is no function with a formula.
+    pub fn function_symbolic(&mut self, idx: u32, xs: Vec<String>) -> Option<String> {
         if (idx as usize) >= self.doc.n_components() {
             return None;
         }
-        self.doc.function_symbolic(CompIdx::new(idx), x)
+        let xs: Vec<&str> = xs.iter().map(String::as_str).collect();
+        self.doc.function_symbolic(CompIdx::new(idx), &xs)
+    }
+
+    /// The function component `idx` is at the numbers `xs`, numerically
+    /// (ADR 0081): a number, or a vector of them, as the JavaScript math
+    /// tree in JSON; `None` when it is no function with a formula.
+    pub fn function_numeric(&mut self, idx: u32, xs: &[f64]) -> Option<String> {
+        if (idx as usize) >= self.doc.n_components() {
+            return None;
+        }
+        self.doc.function_numeric(CompIdx::new(idx), xs)
     }
 
     /// Text of the expression a math cell holds, for display.

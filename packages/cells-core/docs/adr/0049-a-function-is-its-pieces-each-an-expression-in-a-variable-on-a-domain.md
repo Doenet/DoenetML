@@ -100,3 +100,10 @@ wave's work, so this one must not invent an interval type.
   extrema, a dynamic sequence (ADR 0041, step 5), are searched over its
   pieces, and an interpolated function through points, maxima and minima
   is a capped list of cubic pieces, by ADR 0061.
+
+## Migration
+
+2026-11-25 (ADR 0081): an `<evaluate>` is symbolic or numeric as its
+function is, a function may take several variables (each with a domain)
+and give several outputs, and an interpolated function evaluates through
+its pieces.

@@ -269,16 +269,30 @@ pub enum SymKind {
     /// sequence of letters' exclude that is a reference (ADR 0074). Reads
     /// the strings and makes none.
     LetterNumber,
-    // A function evaluated symbolically (ADR 0081).
-    /// Inputs 2.. a function (`D`, then pieces, as [`SymKind::EvalFunction`]
-    /// reads them) at the expression input 0, a math cell, as the current
-    /// core's symbolic function: the first piece's expression with its
-    /// variable replaced by input 0, simplified and expanded as input 1
-    /// says ([`substitute_post`]). Where input 0 evaluates to a number,
-    /// outside `D` it is the blank, and the piece is the first whose
-    /// domain holds it; the blank too for a blank input or one with
-    /// several entries, which a function of one variable does not take.
-    SubstituteFunction,
+    // A function evaluated at its inputs (ADR 0081).
+    /// The function whose expression is input 7 and whose variables input
+    /// 8 holds (a symbol, or a tuple of them) at the `k` inputs from 9 on
+    /// (math cells): symbolically when input 0 is 1, its variables
+    /// replaced by the inputs, simplified and expanded as input 1 says
+    /// ([`substitute_post`]), else numerically, its value at the inputs'
+    /// values, NaN where one has none. One input with entries is spread
+    /// over several variables; inputs that do not match the variables in
+    /// number, or a blank one, give the blank. Input 6 holds the domains,
+    /// four numbers per variable as [`SymKind::EvalFunction`] reads `D`
+    /// ([`SymKind::Pack`]), or, NaN, inputs 2 to 5 are the one variable's:
+    /// where every input is a number and one is outside its variable's,
+    /// the blank symbolically, NaN numerically. A math cell, a tuple of
+    /// outputs a vector.
+    SubstituteFunction {
+        /// How many inputs.
+        k: u8,
+    },
+    /// The tuple of its `n` inputs, numbers: a function's domains, four
+    /// per variable (ADR 0081).
+    Pack {
+        /// How many inputs.
+        n: u8,
+    },
 }
 
 /// What input 1 of a [`SymKind::SubstituteFunction`] says is done to the
@@ -598,7 +612,11 @@ impl SymKind {
                 | SymKind::Extrema { .. }
                 | SymKind::MergeExtrema
                 | SymKind::Grid
-                | SymKind::SubstituteFunction
+                | SymKind::SubstituteFunction { .. }
+                | SymKind::Pack { .. }
+                // Its first output, the pieces as one value (ADR 0061),
+                // which an evaluation reads (ADR 0081).
+                | SymKind::Interpolate { .. }
         )
     }
 }
@@ -744,7 +762,8 @@ impl OpSpec {
             OpSpec::Sym(SymKind::TextNumber) => 1,
             OpSpec::Sym(SymKind::Letters) => 2,
             OpSpec::Sym(SymKind::LetterNumber) => 1,
-            OpSpec::Sym(SymKind::SubstituteFunction) => usize::MAX,
+            OpSpec::Sym(SymKind::SubstituteFunction { k }) => 9 + *k as usize,
+            OpSpec::Sym(SymKind::Pack { n }) => *n as usize,
             _ => unreachable!(),
         }
     }
@@ -762,7 +781,7 @@ impl OpSpec {
             OpSpec::Sym(SymKind::EvalFunction) => {
                 n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
-            OpSpec::Sym(SymKind::SampleFunction | SymKind::SubstituteFunction) => {
+            OpSpec::Sym(SymKind::SampleFunction) => {
                 n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
             OpSpec::Sym(SymKind::SampleBezier { .. }) => {
@@ -976,7 +995,8 @@ mod arity {
             OpSpec::Sym(SymKind::TextNumber),
             OpSpec::Sym(SymKind::Letters),
             OpSpec::Sym(SymKind::LetterNumber),
-            OpSpec::Sym(SymKind::SubstituteFunction),
+            OpSpec::Sym(SymKind::SubstituteFunction { k: 2 }),
+            OpSpec::Sym(SymKind::Pack { n: 4 }),
         ]);
         ops
     }
@@ -1073,13 +1093,14 @@ mod arity {
                     SymKind::LetterNumber => 45,
                     // 46 would be vector tag 74 (BinCounts).
                     SymKind::Tally { .. } => 47,
-                    SymKind::SubstituteFunction => 48,
+                    SymKind::SubstituteFunction { .. } => 48,
+                    SymKind::Pack { .. } => 49,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 77;
+    const N_TAGS: usize = 78;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -1098,9 +1119,7 @@ mod arity {
         for spec in ops {
             let n = match spec {
                 OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
-                OpSpec::Sym(SymKind::SampleFunction | SymKind::SubstituteFunction) => {
-                    2 + DOMAIN_CELLS + PIECE_CELLS
-                }
+                OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
                 OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
                 OpSpec::Sym(SymKind::Extrema { .. }) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 _ if spec.arity() == usize::MAX => 2,

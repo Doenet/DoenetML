@@ -203,46 +203,27 @@ impl SourceReader<'_> {
         Ok(ParsedMath::Entries(entries))
     }
 
-    /// Math text written as one interval, `[a, b)` (ADR 0049): its
-    /// endpoints planned from `scope` and whether each end is closed.
-    /// `None` when the text is not one interval of two endpoints (several
-    /// intervals, a reference to one, anything else), which the planner
-    /// warns about.
-    pub(in crate::compile) fn plan_interval(
+    /// Math text written as intervals, `[a, b)` (ADR 0049), one after
+    /// another (`(-4, 2] [1, 3)`, a domain per variable, ADR 0081): each
+    /// one's endpoints planned from `scope` and whether each end is
+    /// closed. `None` when the text is not such intervals of two endpoints
+    /// each (a reference to one, anything else), which the planner warns
+    /// about.
+    pub(in crate::compile) fn plan_intervals(
         &self,
         ar: &mut Arenas,
         t: TemplateId,
         scope: ElemId,
         nodes: &[NodeId],
-    ) -> Result<Option<IntervalAttr>> {
+    ) -> Result<Option<Vec<IntervalAttr>>> {
         let d = self.dast;
-        let (Some(&first), Some(&last)) = (nodes.first(), nodes.last()) else {
-            return Ok(None);
-        };
-        if d.kind(first) != NodeKind::Text || d.kind(last) != NodeKind::Text {
-            return Ok(None);
-        }
-        let opening = d.str(first).trim_start().chars().next();
-        let closing = d.str(last).trim_end().chars().last();
-        let (lo_closed, hi_closed) = match (opening, closing) {
-            (Some(o @ ('[' | '(')), Some(c @ (']' | ')'))) => (o == '[', c == ']'),
-            _ => return Ok(None),
-        };
-        // The text with the brackets taken off, `∞` spelled as a word.
+        // The text as tokens, `∞` spelled as a word, its brackets kept.
         let mut toks = Vec::new();
         let mut macros = Vec::new();
-        for (k, &n) in nodes.iter().enumerate() {
+        for &n in nodes {
             match d.kind(n) {
                 NodeKind::Text => {
-                    let mut text = d.str(n);
-                    if k == 0 {
-                        text = &text.trim_start()[1..];
-                    }
-                    if k + 1 == nodes.len() {
-                        let end = text.trim_end();
-                        text = &end[..end.len() - 1];
-                    }
-                    let text = text.replace('\u{221e}', " infinity ");
+                    let text = d.str(n).replace('\u{221e}', " infinity ");
                     if expr::tokenize(&text, &mut toks).is_err() {
                         return Ok(None);
                     }
@@ -256,9 +237,44 @@ impl SourceReader<'_> {
             }
         }
         let (toks, _) = self.resolve_tokens(ar, t, scope, &toks, &macros)?;
-        let [lo, hi] = &expr::split_top(&toks, &Token::Comma)[..] else {
+        // Each interval: an opening bracket, its text, and the bracket that
+        // closes it, which need not match (`[1, 2)`).
+        let mut groups: Vec<(bool, &[Token], bool)> = Vec::new();
+        let mut i = 0;
+        while i < toks.len() {
+            let lo_closed = match &toks[i] {
+                Token::LParen => false,
+                Token::Open('[') => true,
+                _ => return Ok(None),
+            };
+            let start = i + 1;
+            let mut depth = 0usize;
+            let mut end = None;
+            for (j, tok) in toks.iter().enumerate().skip(i) {
+                if tok.opens() {
+                    depth += 1;
+                } else if tok.closes() {
+                    depth -= 1;
+                    if depth == 0 {
+                        end = Some(j);
+                        break;
+                    }
+                }
+            }
+            let Some(end) = end else {
+                return Ok(None);
+            };
+            let hi_closed = match &toks[end] {
+                Token::RParen => false,
+                Token::Close(']') => true,
+                _ => return Ok(None),
+            };
+            groups.push((lo_closed, &toks[start..end], hi_closed));
+            i = end + 1;
+        }
+        if groups.is_empty() {
             return Ok(None);
-        };
+        }
         let src = MathSrc(nodes);
         let mut endpoint = |toks: &[Token]| -> Result<Source> {
             let infinite = |name: &str| {
@@ -284,12 +300,19 @@ impl SourceReader<'_> {
                 }
             })
         };
-        Ok(Some(IntervalAttr {
-            lo: endpoint(lo)?,
-            hi: endpoint(hi)?,
-            lo_closed,
-            hi_closed,
-        }))
+        let mut out = Vec::with_capacity(groups.len());
+        for (lo_closed, inner, hi_closed) in groups {
+            let [lo, hi] = &expr::split_top(inner, &Token::Comma)[..] else {
+                return Ok(None);
+            };
+            out.push(IntervalAttr {
+                lo: endpoint(lo)?,
+                hi: endpoint(hi)?,
+                lo_closed,
+                hi_closed,
+            });
+        }
+        Ok(Some(out))
     }
 
     /// Parse math tokens into the arena; `src` is for the error.

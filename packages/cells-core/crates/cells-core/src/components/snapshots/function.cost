@@ -13,10 +13,14 @@ a point constrained to it is held in a closed domain: cells 219 · essential 5 �
 a point constrained to it stays a step inside an open domain: cells 218 · essential 5 · constant 9 · instrs 4 · components 4
 its extrema, searched as the current core searches them (ADR 0061): cells 30 · essential 0 · constant 30 · instrs 0 · components 9
 extrema that follow an input, on a domain: cells 3 · essential 1 · constant 2 · instrs 0 · components 3
-an evaluation is symbolic: its input substituted, then simplified (ADR 0081): cells 15 · essential 0 · constant 15 · instrs 0 · components 5
-a symbolic evaluation: the blank outside the domain, a symbol substituted: cells 16 · essential 0 · constant 16 · instrs 0 · components 5
-symbolic false: numeric, a symbol no number; forced either way: cells 18 · essential 0 · constant 18 · instrs 0 · components 7
-a variable a reference names: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
-a variable that is no name is warned about and the default used: cells 11 · essential 0 · constant 11 · instrs 0 · components 3
+an evaluation is symbolic: its input substituted, then simplified (ADR 0081): cells 18 · essential 0 · constant 18 · instrs 0 · components 5
+a symbolic evaluation: the blank outside the domain, a symbol substituted: cells 18 · essential 0 · constant 18 · instrs 0 · components 5
+symbolic false: numeric, a symbol no number; forced either way: cells 19 · essential 0 · constant 19 · instrs 0 · components 7
+a variable a reference names: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
+a variable that is no name is warned about and the default used: cells 12 · essential 0 · constant 12 · instrs 0 · components 3
 a function of a function: in its variable, on its domain: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
 an interpolated function evaluates numerically, through its pieces: cells 58 · essential 0 · constant 58 · instrs 0 · components 4
+a function of two variables: inputs a list, a vector or one by one (ADR 0081): cells 30 · essential 0 · constant 30 · instrs 0 · components 10
+a function returning a tuple returns a vector: cells 16 · essential 0 · constant 16 · instrs 0 · components 4
+a function of two variables on a domain in each: cells 25 · essential 0 · constant 25 · instrs 0 · components 6
+a function of four variables: x_1 to x_4 by default: cells 18 · essential 0 · constant 18 · instrs 0 · components 4

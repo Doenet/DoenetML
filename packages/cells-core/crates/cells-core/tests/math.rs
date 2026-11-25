@@ -115,6 +115,8 @@ fn evaluate_at_feeds_a_symbolic_math_into_a_numeric_cell() {
            <graph><point name="p" x="$t" y="$e"/></graph>"#,
     )
     .unwrap();
+    // The evaluation of a symbolic math is symbolic (ADR 0081), and its
+    // value the expression's.
     assert_eq!(doc.value("e", "value"), Some(11.0));
     // Both the symbolic expression's cell leaf and the input are live.
     doc.request(&[req(&doc, "t", "value", 4.0)]);

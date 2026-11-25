@@ -159,7 +159,7 @@ spec! {
                   <evaluate name="c" function="$f" input="(1, 2)"/>"#;
         expect {
             "f.symbolic" = 1, "f.numInputs" = 1, "f.numOutputs" = 1,
-            "a.value" = "y^2", "b.value" = "9", "c.value" = "＿",
+            "a.expr" = "y^2", "b.expr" = "9", "c.expr" = "＿",
         }
     }
 
@@ -168,7 +168,7 @@ spec! {
                   <evaluate name="a" function="$f" input="4"/>
                   <evaluate name="b" function="$f" input="10y"/>
                   <evaluate name="c" function="$f" input="3"/>"#;
-        expect { "a.value" = "＿", "b.value" = "2 * 10 y", "c.value" = "2 * 3" }
+        expect { "a.expr" = "＿", "b.expr" = "2 * 10 y", "c.expr" = "2 * 3" }
     }
 
     case "symbolic false: numeric, a symbol no number; forced either way" {
@@ -180,7 +180,7 @@ spec! {
                   <evaluate name="d" function="$g" input="3" forceNumeric/>"#;
         expect {
             "f.symbolic" = 0, "a.value" = f64::NAN, "b.value" = 9,
-            "c.value" = "y^2", "d.value" = 9,
+            "c.expr" = "y^2", "d.value" = 9,
         }
     }
 
@@ -188,14 +188,14 @@ spec! {
         doenet r#"<math name="v">q</math>
                   <function name="f" variables="$v">q^2+1</function>
                   <evaluate name="a" function="$f" input="3"/>"#;
-        expect { "a.value" = "10" }
+        expect { "a.expr" = "10" }
     }
 
     case "a variable that is no name is warned about and the default used" {
         doenet r#"<function name="f" variables="sin(x)">x+1</function>
                   <evaluate name="a" function="$f" input="1"/>"#;
         diagnostics["cells-bad-variable"]
-        expect { "a.value" = "2" }
+        expect { "a.expr" = "2" }
     }
 
     case "a function of a function: in its variable, on its domain" {
@@ -203,7 +203,7 @@ spec! {
                   <function name="f">$f0</function>
                   <evaluate name="a" function="$f" input="3"/>
                   <evaluate name="b" function="$f" input="6"/>"#;
-        expect { "a.value" = "9", "b.value" = "＿" }
+        expect { "a.expr" = "9", "b.expr" = "＿" }
     }
 
     case "an interpolated function evaluates numerically, through its pieces" {
@@ -211,5 +211,45 @@ spec! {
                   <evaluate name="a" function="$f" input="3"/>
                   <evaluate name="b" function="$f" input="y"/>"#;
         expect { "f.symbolic" = 0, "a.value" = 4, "b.value" = f64::NAN }
+    }
+
+    case "a function of two variables: inputs a list, a vector or one by one (ADR 0081)" {
+        doenet r#"<function name="f" variables="x y">x^2/y^3</function>
+                  <evaluate name="a" function="$f" input="2 3"/>
+                  <evaluate name="b" function="$f" input="(2, 3)"/>
+                  <evaluate name="c" function="$f" input="2, z"/>
+                  <evaluate name="d" function="$f" input="2"/>
+                  <function name="g" variables="x y" symbolic="false">x+y</function>
+                  <evaluate name="e" function="$g" input="2 3"/>
+                  <evaluate name="h" function="$g" input="2 z"/>
+                  <evaluate name="i" function="$f" input="2 3" forceNumeric/>"#;
+        expect {
+            "f.numInputs" = 2, "f.variablesExpr" = "(x, y)",
+            "a.expr" = "4/27", "b.expr" = "4/27", "c.expr" = "4/z^3", "d.expr" = "＿",
+            "e.expr" = "5", "h.expr" = "NaN", "i.expr" = "0.14814814814814814",
+        }
+    }
+
+    case "a function returning a tuple returns a vector" {
+        doenet r#"<function name="f">(x, x^2)</function>
+                  <evaluate name="a" function="$f" input="3"/>
+                  <evaluate name="b" function="$f" input="t" forceNumeric/>"#;
+        expect { "f.numOutputs" = 2, "a.expr" = "(3, 9)", "b.expr" = "(NaN, NaN)" }
+    }
+
+    case "a function of two variables on a domain in each" {
+        doenet r#"<function name="f" variables="x y" domain="(-4, 2] [1, 3)">x+y</function>
+                  <evaluate name="a" function="$f" input="2 1"/>
+                  <evaluate name="b" function="$f" input="-4 1"/>
+                  <evaluate name="c" function="$f" input="0 z"/>
+                  <evaluate name="d" function="$f" input="0 3" forceNumeric/>"#;
+        expect { "a.expr" = "3", "b.expr" = "＿", "c.expr" = "z", "d.expr" = "NaN" }
+    }
+
+    case "a function of four variables: x_1 to x_4 by default" {
+        doenet r#"<function name="f" numInputs="4">x_3/x_2+x_1 x_4</function>
+                  <evaluate name="a" function="$f" input="1 2 3 4"/>
+                  <evaluate name="b" function="$f" input="1 2 3 4" forceNumeric/>"#;
+        expect { "f.variablesExpr" = "(x_1, x_2, x_3, x_4)", "a.expr" = "11/2", "b.expr" = "5.5" }
     }
 }

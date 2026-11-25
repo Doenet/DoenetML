@@ -5,7 +5,7 @@
 use crate::components::{ConstrainTarget, FUNCTION_PROPS, Role};
 use crate::document::{CellIdx, Child, CompIdx, Document};
 use crate::program::{
-    DOMAIN_CELLS, PIECE_CELLS, eval_function, spline_pieces, substitute_function, substitute_post,
+    DOMAIN_CELLS, PIECE_CELLS, eval_function, eval_function_at, spline_pieces, substitute_post,
 };
 use crate::sym::Handle;
 
@@ -98,25 +98,70 @@ impl Document {
         )
     }
 
-    /// The function `c` is at the expression the math text `x` writes,
+    /// The function `c` is at the expressions the math texts `xs` write,
     /// symbolically, as an `<evaluate>` of it computes it when symbolic
-    /// (ADR 0081): its expression with its variable replaced by `x`, as
-    /// its `simplify` and `expand` say, the blank where `x` is a number
-    /// outside its domain; as the JavaScript math tree, in JSON. `None`
-    /// when `c` is no function of one variable with a formula, or `x` no
-    /// math.
-    pub fn function_symbolic(&mut self, c: CompIdx, x: &str) -> Option<String> {
-        if self.interpolated(c).is_some() {
-            return None;
-        }
-        let f = self.function_values(c)?;
-        let post = self
-            .prop_cells(c, "substitutePost")
-            .and_then(|v| v.first().copied())
-            .map_or(1.0, |k| self.cells[k.index()]);
+    /// (ADR 0081): its expression with its variables replaced by them, as
+    /// its `simplify` and `expand` say, the blank where one input is a
+    /// number outside its domain; as the JavaScript math tree, in JSON.
+    /// `None` when `c` is no function with a formula, or an input no math.
+    pub fn function_symbolic(&mut self, c: CompIdx, xs: &[&str]) -> Option<String> {
+        let cell = |prop: &str| {
+            self.prop_cells(c, prop)
+                .and_then(|v| v.first().copied())
+                .map(|k| self.cells[k.index()])
+        };
+        let expr = cell("expr")?;
+        let vars = cell("variablesExpr")?;
+        let domains = cell("domainsExpr")?;
+        let domain: Vec<f64> = FUNCTION_PROPS[1..]
+            .iter()
+            .map(|p| cell(p))
+            .collect::<Option<_>>()?;
+        let post = cell("substitutePost").unwrap_or(1.0);
         let engine = &mut self.math.engine;
-        let x = engine.parse(x).ok()?;
-        let h = substitute_function(engine, x.to_value(), substitute_post(post), &f);
+        let inputs: Vec<f64> = xs
+            .iter()
+            .map(|x| engine.parse(x).ok().map(|h| h.to_value()))
+            .collect::<Option<_>>()?;
+        let h = eval_function_at(
+            engine,
+            true,
+            substitute_post(post),
+            &domain,
+            [domains, expr, vars],
+            &inputs,
+        );
+        Some(engine.ast_json(h))
+    }
+
+    /// The function `c` is at the numbers `xs`, numerically, as an
+    /// `<evaluate>` of it computes it when numeric (ADR 0081): a number,
+    /// or a vector of numbers for one of several outputs, as the
+    /// JavaScript math tree in JSON. `None` when `c` is no function with a
+    /// formula.
+    pub fn function_numeric(&mut self, c: CompIdx, xs: &[f64]) -> Option<String> {
+        let cell = |prop: &str| {
+            self.prop_cells(c, prop)
+                .and_then(|v| v.first().copied())
+                .map(|k| self.cells[k.index()])
+        };
+        let expr = cell("expr")?;
+        let vars = cell("variablesExpr")?;
+        let domains = cell("domainsExpr")?;
+        let domain: Vec<f64> = FUNCTION_PROPS[1..]
+            .iter()
+            .map(|p| cell(p))
+            .collect::<Option<_>>()?;
+        let engine = &mut self.math.engine;
+        let inputs: Vec<f64> = xs.iter().map(|&x| engine.num(x).to_value()).collect();
+        let h = eval_function_at(
+            engine,
+            false,
+            crate::program::Post::None,
+            &domain,
+            [domains, expr, vars],
+            &inputs,
+        );
         Some(engine.ast_json(h))
     }
 

@@ -77,6 +77,21 @@ component! {
         // How many inputs it takes and outputs it gives.
         numInputs: by_planner,
         numOutputs: by_planner,
+        // Its variables as one math cell: its variable, or a tuple of
+        // them for a function of several.
+        variablesExpr: by_planner,
+        // Its formula when it takes several inputs or gives several
+        // outputs, else no value: whose type a forced numeric evaluation
+        // follows, math for such a function's.
+        multiExpr: by_planner,
+        // The domains of a function of several variables as one math
+        // cell, four numbers per variable; else no value (its domain is
+        // the four props above).
+        domainsExpr: by_planner,
+    }
+    // `$f.formula`: its expression, as the current core names it.
+    alternate_names {
+        formula: expr,
     }
     // A point constrained to a function rides its graph: `x` is what was
     // asked, held in the domain, and `y` is f(x). (The current core moves
@@ -127,12 +142,46 @@ pub(crate) struct Variable {
     pub(crate) wire: Wire,
     /// The name written, or a default's.
     pub(crate) name: Option<String>,
+    /// Its expression, a symbol or a reference's leaf.
+    id: ExprId,
 }
 
-/// Whether `text` names a variable: a letter, then letters and digits.
+impl Variable {
+    /// The symbol `name`.
+    fn symbol(ctx: &mut PlanCtx<'_, '_>, name: &str) -> Self {
+        let Source::Flow(Flow::SymExpr(id, _)) = ctx.symbol(name) else {
+            unreachable!("a symbol is a math cell")
+        };
+        Variable {
+            wire: Source::sym_expr(id, Post::None).into(),
+            name: Some(name.to_string()),
+            id,
+        }
+    }
+}
+
+/// The variables `vars` as one math cell: the one's port `one`, or a
+/// tuple of them.
+fn variables_expr(ctx: &mut PlanCtx<'_, '_>, vars: &[Variable], one: Port) -> Wire {
+    if vars.len() <= 1 {
+        return Wire::own(one);
+    }
+    let ids: Vec<ExprId> = vars.iter().map(|v| v.id).collect();
+    let id = ctx.operator_expr(&ids, |texts| format!("({})", texts.join(", ")));
+    Source::sym_expr(id, Post::None).into()
+}
+
+/// Whether `text` names a variable: a letter, then letters and digits,
+/// and perhaps a subscript of them (`x_1`).
 fn is_variable_name(text: &str) -> bool {
-    let mut cs = text.chars();
-    cs.next().is_some_and(char::is_alphabetic) && cs.all(char::is_alphanumeric)
+    let (name, sub) = match text.split_once('_') {
+        Some((name, sub)) => (name, Some(sub)),
+        None => (text, None),
+    };
+    let mut cs = name.chars();
+    cs.next().is_some_and(char::is_alphabetic)
+        && cs.all(char::is_alphanumeric)
+        && sub.is_none_or(|s| !s.is_empty() && s.chars().all(char::is_alphanumeric))
 }
 
 /// The variables a function's `variables`, else its `variable`, writes
@@ -151,10 +200,7 @@ fn written_variables(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Vec<Opt
             ListEntry::Text(_, text) => {
                 let text = text.trim().to_string();
                 if is_variable_name(&text) {
-                    out.push(Some(Variable {
-                        wire: ctx.symbol(&text).into(),
-                        name: Some(text),
-                    }));
+                    out.push(Some(Variable::symbol(ctx, &text)));
                 } else {
                     ctx.warn(
                         "cells-bad-variable",
@@ -168,6 +214,7 @@ fn written_variables(ctx: &mut PlanCtx<'_, '_>, attrs: &Attrs) -> Result<Vec<Opt
                 out.push(Some(Variable {
                     wire: Source::sym_expr(id, Post::None).into(),
                     name: None,
+                    id,
                 }));
             }
         }
@@ -232,10 +279,7 @@ fn n_variables(
             .unwrap_or(&preferred[0])
             .clone();
         used.push(name.clone());
-        out.push(Variable {
-            wire: ctx.symbol(&name).into(),
-            name: Some(name),
-        });
+        out.push(Variable::symbol(ctx, &name));
     }
     out
 }
@@ -286,26 +330,49 @@ pub(crate) fn whole_line() -> [Wire; 4] {
 }
 
 /// The domain an element's `domain` attribute writes (ADR 0049), as four
-/// wires: the endpoints (one that is no number is NaN) and closedness; the whole line without one, and with
-/// a warning when it is not one interval. The second is whether one was
-/// given. An endpoint written as math is its value: lowered when the
-/// compile can lower it, else its expression evaluated (`sqrt(10)`,
-/// which ADR 0043 keeps as written), in hidden ports of `wiring`.
+/// wires: the endpoints (one that is no number is NaN) and closedness; the
+/// whole line without one, and with a warning when it is not one
+/// interval. The second is whether one was given. An endpoint written as
+/// math is its value: lowered when the compile can lower it, else its
+/// expression evaluated (`sqrt(10)`, which ADR 0043 keeps as written), in
+/// hidden ports of `wiring`.
 pub(crate) fn plan_domain(
     ctx: &mut PlanCtx<'_, '_>,
     wiring: &mut ElemWiring,
     nodes: Option<&[crate::dast::NodeId]>,
 ) -> Result<([Wire; 4], bool)> {
+    let (mut domains, given) = plan_domains(ctx, wiring, nodes, 1)?;
+    Ok((domains.remove(0), given))
+}
+
+/// The domains of a function of `n` variables its `domain` attribute
+/// writes (ADR 0081), an interval per variable (`(-4, 2] [1, 3)`), each
+/// as [`plan_domain`] plans one; the whole line in every variable without
+/// one, and with a warning when it is not `n` intervals.
+pub(crate) fn plan_domains(
+    ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
+    nodes: Option<&[crate::dast::NodeId]>,
+    n: usize,
+) -> Result<(Vec<[Wire; 4]>, bool)> {
+    let whole = || (0..n).map(|_| whole_line()).collect();
     let Some(nodes) = nodes else {
-        return Ok((whole_line(), false));
+        return Ok((whole(), false));
     };
-    let Some(iv) = ctx.interval(nodes)? else {
-        ctx.warn(
-            "cells-bad-domain",
+    let intervals = ctx.intervals(nodes)?.filter(|v| v.len() == n);
+    let Some(intervals) = intervals else {
+        let message = if n == 1 {
             "`domain` is not one interval such as [a, b) or (-infinity, b]: \
-             the function is defined on the whole line.",
-        );
-        return Ok((whole_line(), false));
+             the function is defined on the whole line."
+                .to_string()
+        } else {
+            format!(
+                "`domain` is not {n} intervals such as [a, b) or (-infinity, b], one per \
+                 variable: the function is defined everywhere."
+            )
+        };
+        ctx.warn("cells-bad-domain", &message);
+        return Ok((whole(), false));
     };
     // An endpoint that is no number stays one: no bound for the function
     // itself, a piece left out of a piecewise function.
@@ -323,10 +390,22 @@ pub(crate) fn plan_domain(
             source => Wire::scalar(source, GivenId::Attr(attr::domain, k)),
         }
     };
-    let lo = end(iv.lo, 0);
-    let hi = end(iv.hi, 1);
     let flag = |closed: bool| Wire::constant(if closed { 1.0 } else { 0.0 });
-    Ok(([lo, hi, flag(iv.lo_closed), flag(iv.hi_closed)], true))
+    let mut out = Vec::with_capacity(n);
+    for (i, iv) in intervals.into_iter().take(n).enumerate() {
+        let k = 2 * i as u32;
+        let lo = end(iv.lo, k);
+        let hi = end(iv.hi, k + 1);
+        out.push([lo, hi, flag(iv.lo_closed), flag(iv.hi_closed)]);
+    }
+    Ok((out, true))
+}
+
+/// The domains of a function, four ports per variable, as one math cell
+/// (`SymKind::Pack`) an evaluation reads (ADR 0081).
+fn domains_expr(ports: Vec<Port>) -> Wire {
+    let n = u8::try_from(ports.len()).expect("a function of at most 63 variables");
+    Wire::computed(OpSpec::Sym(SymKind::Pack { n }), ports)
 }
 
 /// The x-range a curve is sampled over: the graph's it sits in, else
@@ -561,15 +640,35 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         1
     };
     if is_function && (n > 1 || m > 1) {
-        // Not a curve and not a math cell: a function of several
-        // variables, or one returning a tuple, is only iterated
-        // (`plan_function_iterates` reads its text).
-        let [d0, d1, d2, d3] = whole_line();
-        let ev = Evaluates::of(&attrs, false, at.expr, n, m);
-        let variable = n_variables(ctx, written, n).remove(0).wire;
+        // Not a curve: a function of several variables, or one returning
+        // a tuple, is its formula in its variables, evaluated symbolically
+        // or numerically by the one instruction its evaluations read
+        // (ADR 0081), whose result is math either way, and iterated
+        // (`plan_function_iterates` reads its text). Its domain is the
+        // whole space.
+        let (domains, _) = plan_domains(ctx, &mut wiring, attrs.domain.as_deref(), n)?;
+        let mut ports = Vec::with_capacity(4 * n);
+        for d in &domains[1..] {
+            for w in d.clone() {
+                ports.push(wiring.hidden_wire(w));
+            }
+        }
+        let [d0, d1, d2, d3] = domains[0].clone();
+        let mut all = vec![
+            at.domainMin,
+            at.domainMax,
+            at.domainMinClosed,
+            at.domainMaxClosed,
+        ];
+        all.extend(ports);
+        let mut ev = Evaluates::of(&attrs, attrs.symbolic, at.expr, n, m);
+        ev.symbolic_expr = Wire::own(at.expr);
+        let mut vars = n_variables(ctx, written, n);
+        let variables = variables_expr(ctx, &vars, at.variable);
+        let id = ctx.sym_math(&nodes, &mt)?;
         wiring.set_planned(Planned {
-            expr: Wire::absent(),
-            variable,
+            expr: Source::sym_expr(id, Post::None).into(),
+            variable: vars.remove(0).wire,
             domainMin: d0,
             domainMax: d1,
             domainMinClosed: d2,
@@ -593,6 +692,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             evalExpr: ev.eval_expr,
             numInputs: ev.num_inputs,
             numOutputs: ev.num_outputs,
+            variablesExpr: variables,
+            multiExpr: Wire::own(at.expr),
+            domainsExpr: domains_expr(all),
         });
         return Ok(wiring);
     }
@@ -620,7 +722,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 domain,
             },
         };
-        (Wire::from(Source::sym_expr(id, Post::None)), parts)
+        // No formula written: 0, as the current core's default, state as
+        // its essential formula is.
+        let expr = if nodes.is_empty() {
+            Wire::given_math(GivenId::Children(0), Some(crate::sym::Tree::Num(0.0)))
+        } else {
+            Wire::from(Source::sym_expr(id, Post::None))
+        };
+        (expr, parts)
     } else {
         match referenced_function(ctx, &nodes)? {
             // A function's derivative: in its variable, on its domain.
@@ -680,6 +789,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         evalExpr: ev.eval_expr,
         numInputs: ev.num_inputs,
         numOutputs: ev.num_outputs,
+        variablesExpr: Wire::own(at.variable),
+        multiExpr: Wire::absent(),
+        domainsExpr: Wire::absent(),
     });
     Ok(wiring)
 }
@@ -863,6 +975,9 @@ fn plan_interpolated(
         evalExpr: ev.eval_expr,
         numInputs: ev.num_inputs,
         numOutputs: ev.num_outputs,
+        variablesExpr: Wire::own(at.variable),
+        multiExpr: Wire::absent(),
+        domainsExpr: Wire::absent(),
     });
     Ok(wiring)
 }

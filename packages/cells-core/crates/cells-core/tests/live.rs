@@ -227,11 +227,13 @@ fn census() {
     // A segment's midpoint, slope and length are props a request may set
     // (`SegmentMeasures`): `lines.doenet`'s one segment has two more, dead.
     // An `<evaluate>` is symbolic or numeric as the function it evaluates
-    // is (ADR 0081): its input is a math cell, read as a number through
-    // an `Evaluate`, and an evaluate whose kind the type pass decides
-    // plans both ways: `symbolic.doenet`'s two evaluates, 4 more, one of
-    // them live (the point's `y` reads `$e`, now an expression).
-    assert!(golden[0] <= 141 && golden[1] == 235, "{golden:?}");
+    // is (ADR 0081), as an operator over math is (ADR 0043): its input is
+    // a math cell, read as a number through an `Evaluate`, and an
+    // evaluate whose kind the type pass decides plans both ways, its
+    // `value` an `Evaluate` of its `expr` when symbolic:
+    // `symbolic.doenet`'s two evaluates, both symbolic, 6 more, 3 of them
+    // live (the substitution and the `Evaluate` the point's `y` reads).
+    assert!(golden[0] <= 143 && golden[1] == 237, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

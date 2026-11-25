@@ -528,6 +528,9 @@ impl ComponentType {
                 ("evalExpr", Code),
                 ("numInputs", Is(Integer)),
                 ("numOutputs", Is(Integer)),
+                ("variablesExpr", Code),
+                ("multiExpr", Code),
+                ("domainsExpr", Code),
             ],
 
             // Lists and structure.

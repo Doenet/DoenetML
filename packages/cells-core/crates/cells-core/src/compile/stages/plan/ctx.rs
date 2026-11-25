@@ -203,13 +203,14 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.plan_value_children(self.t, self.e, scope, v)
     }
 
-    /// Math text written as one interval, `[a, b)`: its endpoints and
-    /// closedness (ADR 0049); `None` when it is not one interval.
-    pub(crate) fn interval(&mut self, nodes: &[NodeId]) -> Result<Option<IntervalAttr>> {
+    /// Math text written as intervals one after another, `(-4, 2] [1, 3)`:
+    /// each one's endpoints and closedness (ADR 0081, a domain per
+    /// variable); `None` when it is not.
+    pub(crate) fn intervals(&mut self, nodes: &[NodeId]) -> Result<Option<Vec<IntervalAttr>>> {
         let scope = self.scope_for(nodes);
         self.p
             .rd
-            .plan_interval(&mut self.p.ar, self.t, scope, nodes)
+            .plan_intervals(&mut self.p.ar, self.t, scope, nodes)
     }
 
     /// The math cell of the symbol `name`, a constant: a function's
