@@ -260,6 +260,24 @@ impl ComponentType {
             | AttractTo
             | BezierControls
             | ControlVectors => &[],
+            Image => &[
+                ("size", Is(Text)),
+                ("width", Is(Number)),
+                ("horizontalAlign", Is(Text)),
+                ("displayMode", Is(Text)),
+                ("decorative", Is(Boolean)),
+                ("rotate", Is(Number)),
+                ("source", Is(Text)),
+                ("aspectRatio", Is(Number)),
+            ],
+            Video => &[
+                ("size", Is(Text)),
+                ("width", Is(Number)),
+                ("horizontalAlign", Is(Text)),
+                ("displayMode", Is(Text)),
+                ("youtube", Is(Text)),
+                ("source", Is(Text)),
+            ],
 
             Graph => &[],
             StickyGroup => &[
@@ -544,7 +562,8 @@ impl ComponentType {
             Sequence | Sort | Shuffle | NumberList | TextList | BooleanList | MathList
             | PointList | CumulativeSum | CumulativeProduct | CumulativeMin | CumulativeMax
             | Differences | SelectRandomNumbers | SampleRandomNumbers | SelectPrimeNumbers
-            | SamplePrimeNumbers | Intersection | IntervalList | MatrixRow | MatrixColumn => &[],
+            | SamplePrimeNumbers | Intersection | IntervalList | MatrixRow | MatrixColumn
+            | SortIndices | BinCounts | Tally => &[],
             SampleMultivariateRandomNumber => &[
                 ("numCategories", Is(Integer)),
                 ("numTotal", Is(Integer)),
