@@ -487,6 +487,20 @@ describe("A tag that makes its own content is made only from a reference that al
             "case shown",
             "$r",
         ],
+        [
+            "$sec2.s[2].r, after an index into a select of several in a copy of a section",
+            `<section name="sec"><select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select></section><section name="sec2" copy="$sec"/>`,
+            "repeat",
+            "option picked",
+            "$sec2.s[2].r",
+        ],
+        [
+            "$outer[1].inner[1].r, through an iteration of a repeat in an iteration",
+            `<booleanInput name="b"/><repeat name="outer" for="1 2"><repeat name="inner" for="1 2"><conditionalContent><case condition="$b">${rA}</case><else>${rB}</else></conditionalContent></repeat></repeat>`,
+            "repeat",
+            "case shown",
+            "$outer[1].inner[1].r",
+        ],
     ];
     for (const [label, doenetML, tag, branch, written] of throughBranches) {
         const source = written ?? label;
@@ -650,6 +664,13 @@ describe("A tag that makes its own content is made only from a reference that al
         expect(d.diagnostics()).eqls([
             "doenet-w0181: `$s[3].r`: the `<select>` made only 2 picks.",
         ]);
+        // also in a copy of a section
+        const d2 = await load(
+            `<section name="sec"><select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select></section><section name="sec2" copy="$sec"/><p name="p"><repeat name="r2" extend="$sec2.s[3].r"/></p>`,
+        );
+        expect(d2.diagnostics()).eqls([
+            "doenet-w0181: `$sec2.s[3].r`: the `<select>` made only 2 picks.",
+        ]);
     });
 
     it("a property of a conditionalContent is e0071 as a value, as before", async () => {
@@ -658,6 +679,15 @@ describe("A tag that makes its own content is made only from a reference that al
         );
         expect(d.diagnostics()).eqls([
             "doenet-e0071: A `<repeat>` makes its content itself, so it can be made only from another `<repeat>`, and `$cc.hidden` is a value. To show it as it is, write `$cc.hidden`.",
+        ]);
+    });
+
+    it("a property of a pick is e0071 as a value, as before", async () => {
+        const d = await load(
+            `<select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select><p name="p"><repeat name="r2" extend="$s[2].hidden"/></p>`,
+        );
+        expect(d.diagnostics()).eqls([
+            "doenet-e0071: A `<repeat>` makes its content itself, so it can be made only from another `<repeat>`, and `$s[2].hidden` is a value. To show it as it is, write `$s[2].hidden`.",
         ]);
     });
 
@@ -716,6 +746,20 @@ describe("A tag that makes its own content is made only from a reference that al
         [
             "$sec2.r of a copy of a section with a select that doesn't hold it",
             `<section name="sec"><select><option><math>1</math></option></select>${rA}</section><section name="sec2" copy="$sec"/>`,
+            "$sec2.r",
+            "a1, a2, a3",
+        ],
+        // a select whose options aren't read at load (one copied with
+        // children of its own) beside the name is not counted
+        [
+            "$outer[1].r beside a select in the template whose options aren't read",
+            `<select name="w"><option name="o"><text>z</text></option></select><repeat name="outer" for="1 2"><select><option copy="$o"><text>y</text></option></select>${rA}</repeat>`,
+            "$outer[1].r",
+            "a1, a2, a3",
+        ],
+        [
+            "$sec2.r of a copy of a section with a select whose options aren't read",
+            `<select name="w"><option name="o"><text>z</text></option></select><section name="sec"><select><option copy="$o"><text>y</text></option></select>${rA}</section><section name="sec2" copy="$sec"/>`,
             "$sec2.r",
             "a1, a2, a3",
         ],
