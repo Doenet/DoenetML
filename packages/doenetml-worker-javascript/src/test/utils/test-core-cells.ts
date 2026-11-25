@@ -1688,6 +1688,87 @@ for (const type of [
 for (const type of ["aside", "proof"]) {
     STATE[type] = { ...STATE[type], ...collapsibleReaders() };
 }
+// Where a list item's number lines up (ADR 0084): the core's reading of
+// the lead each list item, section, wrapper, answer and panel row picks
+// and forwards, and the alignment the lead asks for.
+const listItemComponent = (cells: Cells, k: number) => ({
+    componentIdx: k,
+    componentType: cells.table.componentType(k),
+});
+const listItemReaders: Record<string, Reader> = {
+    childrenToRenderInlineForListItem: (_g, x) =>
+        Array.from(x.cells.core.list_item_targets(x.idx) as Uint32Array).map(
+            (k) => listItemComponent(x.cells, k),
+        ),
+    renderInlineForListItem: (_g, x) =>
+        x.cells.core.renders_inline_for_list_item(x.idx),
+    listItemInlineAlignment: (_g, x) =>
+        x.cells.core.list_item_inline_alignment(x.idx),
+    firstChildListItemAlignment: (_g, x) =>
+        x.cells.core.first_child_list_item_alignment(x.idx),
+    firstVisibleChild: (_g, x) => {
+        const k = Number(x.cells.core.first_visible_child(x.idx));
+        if (k === -1) return null;
+        if (k === -2) {
+            const text = x.cells.table
+                .children(x.idx)
+                .find((c) => !("component" in c) && c.text.trim() !== "");
+            return text && !("component" in text) ? text.text : null;
+        }
+        return listItemComponent(x.cells, k);
+    },
+};
+// A list's marker, presentation the renderer reads from the attribute: an
+// `<ol>`'s as written, a `<ul>`'s one of its three (any case), else none.
+STATE.ol = {
+    ...STATE.ol,
+    numbered: () => true,
+    marker: (_g, x) => x.cells.table.attr(x.idx, "marker"),
+};
+STATE.ul = {
+    ...STATE.ul,
+    numbered: () => false,
+    marker: (_g, x) => {
+        const m = x.cells.table.attr(x.idx, "marker")?.trim().toLowerCase();
+        return m && ["disc", "circle", "square"].includes(m) ? m : null;
+    },
+};
+for (const type of [
+    "li",
+    "section",
+    "subsection",
+    "subsubsection",
+    "problem",
+    "exercise",
+    "example",
+    "question",
+    "activity",
+    "definition",
+    "note",
+    "theorem",
+    "paragraphs",
+    "objectives",
+    "part",
+    "task",
+    "problems",
+    "exercises",
+    "aside",
+    "div",
+    "blockQuote",
+    "pre",
+    "figure",
+    "answer",
+    "sideBySide",
+    "p",
+    "graph",
+    "image",
+    "tabular",
+    "spreadsheet",
+    "video",
+    "choiceInput",
+]) {
+    STATE[type] = { ...STATE[type], ...listItemReaders };
+}
 for (const type of ["aside", "proof", "p", "div", "number"]) {
     STATE[type] = { ...STATE[type], ...cascadeStepReaders };
 }
