@@ -1913,10 +1913,22 @@ STATE.image = {
 STATE.video = mediaReaders;
 STATE.sortIndices = numberListReaders("sortedIndices");
 STATE.binCounts = numberListReaders("countingResults");
+// A tally is a capped list (ADR 0086): its counts and categories stop at
+// its live length, `numComponents` (with no declared categories, the
+// number of distinct values; the entries past it the missing value).
+const liveCells = (x: Ctx, prop: string): number[] =>
+    Array.from(x.cells.propCells(x.idx, prop)).slice(
+        0,
+        x.cells.value(x.cell("numComponents")!),
+    );
+const tallyCounts: Reader = (_g, x) =>
+    liveCells(x, "numbers").map((c) => x.cells.value(c));
 STATE.tally = {
     ...numberListReaders("countingResults"),
+    numbers: tallyCounts,
+    countingResults: tallyCounts,
     categories: (_g, x) =>
-        Array.from(x.cells.propCells(x.idx, "categories")).map((c) =>
+        liveCells(x, "categories").map((c) =>
             x.cells.core.cell_holds(c) === "text"
                 ? x.cells.text(c)
                 : x.cells.value(c),
