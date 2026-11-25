@@ -3767,6 +3767,15 @@ every-branch rule a warning with a blank; this moves it.
 Revises D37 item 6 for the every-branch rule. Implementation: **done by #2679** (`e0093`–`e0095`;
 `w0183` and `w0184` retired). Leftovers in #2682 and #2674.
 
+
+**Amendment (November 2026, with D78.1):** for the every-branch type check, a collection's type is
+**"a collection of T"**, not its tag. A `<repeat>` of maths in one case and a `<select>` of maths
+(of several) in another match, so bare `$cc.x` shows the list, `$cc.x[2]` is a math, and
+`<list extend="$cc.x"/>` works (REF-1: the bare form and the tag agree). `<repeat extend="$cc.x"/>`
+is still `e0071` (D78.1), and a property only one branch's tag has (`$cc.x.selectedIndices`) is
+missing in a branch, an error (D74, D75). Collections of different item types (maths and texts)
+stay `e0094`. Implementation: #2682 (PR 70).
+
 ## D75. A reference the DoenetML proves can never give anything is an error (decided, November 2026)
 
 **Why.** D74 made a reference whose meaning depends on the branch shown an error. That left an odd
@@ -3854,21 +3863,36 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
 
 ## D78. Decisions from the leftovers of #2670 and #2672 (decided, November 2026)
 
-1. **A tag that makes its own content may be made through a one-shown-thing or a group of one
-   that holds that tag** (#2676 item 9; refines D48 decision 2; **revised** the same week, see
-   below). `<repeat extend="$cc"/>`, where every case of `cc` holds one `<repeat>`, is that
-   repeat, and follows the case shown, as `<repeat extend="$cc.r"/>` does; the same for a
-   one-pick `<select>` whose options each hold one, and a `<group>` holding only one. D74 decides
-   whether the branches qualify: a branch holding several components, or another type, is
-   `e0095`; a branch lacking `r` is `e0093`. **Why:** under D74 neither `$cc` nor `$cc.r` can
-   change kind when the case changes; each can only show a different repeat, as a math can show
-   a different value. D72 already makes `$cc` stand for what it shows (`$cc[2]` is the shown
-   repeat's second iteration), so refusing `<repeat extend="$cc"/>` while allowing
-   `<repeat extend="$cc.r"/>` and `$cc[2]` had no reason behind it. It is the same look-through
-   as `<math extend="$cc"/>` (REF-5, COLL-3). D48 decision 2's "only from that very tag" reads
-   through these wrappers; anything else is still `e0071`.
-   *First decided* as "never through a wrapper" (`e0071`), on the grounds that the source could
-   change kind; that was withdrawn because the same holds for `$cc.r`, which D74 already allows.
+1. **A tag that makes its own content is made by `extend`, `copy` or `copyWithState` only from a
+   reference that always names the same written tag of that kind** (#2676 item 9; refines D48
+   decision 2; decided after two revisions, see below). The tags are those of D48 decision 2
+   (`TAGS_MAKING_THEIR_CONTENT` in `Copy.js`): `<repeat>`, `<repeatForSequence>`, the selectors
+   and samplers, `<shuffle>`, `<sort>`, `<sortIndices>`, `<collect>`, `<sequence>`,
+   `<conditionalContent>`, `<intersection>`, `<substitute>`, `<split>`, `<lorem>`, `<idx>`,
+   `<pretzel>`: the tag computes its content (from `for`, options, `from`, randomness), so an
+   extend of one only shows it again (REF-7). Wrappers (`<group>`, `<module>`) are not among them
+   (D77, D71).
+   - **Allowed:** `$r`, `$sec.r`, `$g.r`, `$r2` of `<repeat name="r2" extend="$r"/>`, and
+     `$outer[k].inner`, even with an index a value decides: every iteration's `inner` comes from
+     the one written tag, as a repeat whose `for` changes.
+   - **`e0071` at load:** a source of another tag, and a reference that can name different
+     written tags as the case or pick changes: `$cc`, `$cc.r`, `$s.r` of a one-pick select,
+     `$s[2].r` of a select of several, a `<group>` holding one. The message says the tag would
+     depend on what is shown and suggests showing it (`$cc.r`), or, once `<list>` exists (D46
+     part 1), `<list extend="$cc.r"/>`, which doesn't pretend the result is a repeat.
+   - **Unchanged:** showing it (`$cc`, `$cc.r`, `$cc[2]`, `$cc.r[2].t`), and a new tag holding it
+     as content (`<sort>$cc</sort>`, `<shuffle>$cc.r</shuffle>`, `<collect from="$cc">`).
+
+   **Why.** Through a branch, the tag made would be a different written repeat, select or sort
+   in each case, presented as one; the forms were fragile in practice (#2683: a number made from
+   `$r2.numItems` of `<repeat name="r2" extend="$cc.r"/>` was `NaN` after a switch, a
+   `<sort extend="$cc.r"/>`'s entry a blank, `copyWithState` stopped a reload), and following the
+   shown branch cost every copy a state variable. Nothing is lost but a name and a fresh random
+   pick from whichever select is shown.
+
+   *History:* first decided as "never through a wrapper" (`e0071` for `$cc`, `$cc.r` suggested
+   instead); revised to allow both, since D74 makes `$cc` and `$cc.r` alike (#2683 implemented
+   it); revised again to forbid both, on review of #2683.
 2. **Children written on a `copy` of a value or an object replace the source's content**
    (#2677 item 12; REF-4a). The children that make its value (a number's or a math's
    expression, a point's coordinates, a list's entries) are one thing the component uses only
@@ -3885,5 +3909,4 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
    `<math extend="$t"/>` makes. It is missing with `i0053` only when that math is not a measure
    (a tuple, a list, a set).
 
-Implementation: items 2 and 3 with #2677 (PR 68); item 1 with #2676 item 9 (PR 67): `Copy.js`
-builds the extend from the component the branch shows.
+Implementation: items 2 and 3 with #2677 (PR 68); item 1 with #2676 item 9 (PR 67, #2683).

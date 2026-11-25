@@ -279,9 +279,10 @@ of a repeat holding the group and the list.
   made from one component that isn't a composite, also as a property or a list's entry. **Left**
   (#2676): a pick of a selector whose type is decided (`$sfs[1]`), a name after an index inside a
   case, and the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4) unchecked.
-  `<repeat extend="$cc"/>` of cases each holding one repeat is that repeat, following the case
-  shown, as `<repeat extend="$cc.r"/>` is (D78.1); it is `e0071` today (**known violation**,
-  #2676 item 9).
+  `<repeat extend="$cc"/>` and `<repeat extend="$cc.r"/>` are `e0071` (D78.1): a tag that makes
+  its content is made only from a reference that always names the same written tag; show it
+  (`$cc.r`) or, once `<list>` exists, `<list extend="$cc.r"/>`. **Known violation:**
+  `<repeat extend="$cc.r"/>` is allowed today (#2676 item 9).
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
@@ -737,7 +738,9 @@ is shown again is compared again, not trusted (SAVE-1).
     decided at load (D74): there is nothing reasonable to show in the branches without it:
     **`doenet-e0093`** (done by #2679; it was warning `w0183`).
   - If two of them declare `x` with different types, it is an **error** at the reference, bare
-    or on a tag, decided at load (`e0094` bare, `e0066` on a scalar tag; DIAG-7). A type error is
+    or on a tag, decided at load (`e0094` bare, `e0066` on a scalar tag; DIAG-7). A collection's
+    type is "a collection of T", not its tag: a `<repeat>` and a `<select>` of maths match (D74
+    amendment; **known violation**, #2682: they are `e0094`). A type error is
     the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
   - So a reference's type, and whether a parent accepts it as a child, never change with the
     active case.
