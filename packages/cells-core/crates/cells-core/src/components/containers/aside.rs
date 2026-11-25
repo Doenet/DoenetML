@@ -14,6 +14,7 @@ component! {
     /// `startOpen`; the parser, `postponeRendering`.
     tags: ["aside"],
     flags: [container, style_scope, collapsible],
+    list_item: Section,
     numbered: Titled(includeParentNumber, label, title_word),
     props {
         number: aggregate(Count, SectionsThrough) { rendered },

@@ -124,6 +124,9 @@ pub struct ComponentDef {
     /// What an author must give an element of the type for accessibility,
     /// which the lint asks for.
     pub needs: Option<Needs>,
+    /// The part it plays in where a list item's number lines up (ADR
+    /// 0084).
+    pub list_item: Option<ListItemRole>,
     /// What the type is to scoring: skipped, a scored item, or an
     /// aggregate of the items inside it. `None` for a container scoring
     /// looks through.
@@ -1061,6 +1064,37 @@ impl PropSel {
             _ => &[],
         }
     }
+}
+
+/// The part a type plays in where a list item's number lines up (ADR
+/// 0084, the current core's `listItemChild.ts`): what leads a list item,
+/// what forwards the lead to a child of its own, and what the lead asks
+/// of the number.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ListItemRole {
+    /// An `<li>`: its first child that renders leads it.
+    Item,
+    /// A section: an untitled, unboxed list item, led by its first child
+    /// that renders, its title aside.
+    Section,
+    /// A wrapper (`<div>`, `<figure>`): forwards a lead to its first child
+    /// that renders, a label or caption aside.
+    Wrapper,
+    /// An `<answer>`: forwards a lead to its first block choice input.
+    Answer,
+    /// A `<sideBySide>`: forwards a lead to every panel, and asks for the
+    /// first line when its leading panel is a paragraph.
+    Panels,
+    /// A lead that asks for its top (`flex-start`): a graph, an image.
+    Top,
+    /// A choice input: a `Top` lead unless written `inline`.
+    Choices,
+    /// A lead that asks for its first line (`baseline`): a paragraph.
+    Baseline,
+    /// What names its container and never leads (a label, a caption).
+    Naming,
+    /// A section's title, which never leads it.
+    Title,
 }
 
 /// What a type is, apart from its props: each false unless its `component!`

@@ -23,6 +23,7 @@ component! {
     flags: [copyable],
     response: Index(selectedIndex),
     needs: Label,
+    list_item: Choices,
     default_prop: selectedIndex,
     sequence: choiceOrder,
     props {

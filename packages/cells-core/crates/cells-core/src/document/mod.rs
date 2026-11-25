@@ -23,6 +23,7 @@ mod counters;
 mod display;
 mod functions;
 mod interactive;
+mod list_items;
 mod load;
 mod outputs;
 mod paths;
@@ -36,6 +37,7 @@ mod variants;
 
 pub use act::ActionView;
 pub use cascade::Revealed;
+pub use list_items::LeadChild;
 pub use load::{LoadOptions, LoadTimings};
 pub(crate) use table::ChildEntry;
 pub use table::{Child, ComponentTable};

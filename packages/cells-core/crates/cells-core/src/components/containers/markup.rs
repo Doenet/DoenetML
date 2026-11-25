@@ -44,6 +44,7 @@ mod block {
         /// A block around its children.
         tags: ["div"],
         flags: [container],
+        list_item: Wrapper,
         planner: Props,
     }
 }

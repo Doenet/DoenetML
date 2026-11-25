@@ -17,6 +17,7 @@ component! {
     flags: [container],
     encloses: Graph(xmin, xmax, ymin, ymax),
     needs: Description,
+    list_item: Top,
     props {
         // Pan and zoom request all four.
         xmin: by_planner { interactive, rendered },
@@ -36,6 +37,12 @@ component! {
         xMax: xmax,
         yMin: ymin,
         yMax: ymax,
+    }
+    // How it is laid out and what it shows, which the renderer reads.
+    presentation {
+        size, width, horizontalAlign, displayMode, showBorder, showNavigation,
+        displayXAxis, displayYAxis, displayXAxisTicks, displayYAxisTicks,
+        displayXAxisTickLabels, displayYAxisTickLabels,
     }
     attributes {
         xmin: Value,

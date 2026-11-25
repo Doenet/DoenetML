@@ -73,6 +73,7 @@ containers! {
     /// `<p>`: a rendered container; `hide` is its only prop, planned as a
     /// display setting is (ADR 0071).
     p: ["p"] {
+        list_item: Baseline,
         props {
             hide: display,
         }
@@ -155,7 +156,9 @@ pub mod sticky_group {
 
 containers! {
     /// `<title>`: the heading of the document or of the section it sits in.
-    title: ["title"];
+    title: ["title"] {
+        list_item: Title,
+    };
 
     /// `<ref to="...">`: a link around its content. The renderer reads
     /// `to`.
@@ -164,10 +167,15 @@ containers! {
     };
 
     /// `<ul>`.
-    list: ["ul"];
+    list: ["ul"] {
+        // The marker the renderer draws (`<ol>` shares the definition).
+        presentation { marker }
+    };
 
     /// `<li>`.
-    list_item: ["li"];
+    list_item: ["li"] {
+        list_item: Item,
+    };
 
     /// `<m>`: inline math notation. Its text is LaTeX; a `$ref` inside
     /// shows the referent's value.
@@ -197,6 +205,7 @@ pub(crate) mod aside;
 containers! {
     /// `<sideBySide>`: its children in columns, `widths` wide.
     side_by_side: ["sideBySide"] {
+        list_item: Panels,
         presentation { widths }
     };
 
@@ -204,11 +213,14 @@ containers! {
     stack: ["stack"];
 
     /// `<tabular>`: a table of `<row>`s.
-    tabular: ["tabular"];
+    tabular: ["tabular"] {
+        list_item: Top,
+    };
 
     /// `<spreadsheet>`: a grid of `<row>`s. The prototype shows the cells'
     /// values and does not edit them.
     spreadsheet: ["spreadsheet"] {
+        list_item: Top,
         presentation { height }
     };
 

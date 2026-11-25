@@ -17,6 +17,7 @@ component! {
     flags: [container, copyable],
     reads_as: Text,
     structure: Transparent,
+    list_item: Naming,
     default_prop: value,
     props {
         value: by_planner { text },

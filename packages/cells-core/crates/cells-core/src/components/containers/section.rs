@@ -36,6 +36,7 @@ component! {
         "exercises",
     ],
     flags: [container, style_scope],
+    list_item: Section,
     scored: Aggregates(weight, aggregateScores),
     numbered: Titled(includeParentNumber, label, title_word, listItem, asList),
     props {

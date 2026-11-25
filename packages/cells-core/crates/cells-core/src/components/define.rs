@@ -366,6 +366,7 @@ pub(super) const fn definition(
         text: None,
         encloses: None,
         needs: None,
+        list_item: None,
         scored: None,
         constrain_target: None,
         params: &[],
@@ -438,6 +439,12 @@ impl ComponentDef {
     /// ([`super::Needs`]).
     pub(super) const fn needs(mut self, needs: super::Needs) -> Self {
         self.needs = Some(needs);
+        self
+    }
+    /// The part the type plays in where a list item's number lines up
+    /// ([`super::ListItemRole`]).
+    pub(super) const fn list_item(mut self, role: super::ListItemRole) -> Self {
+        self.list_item = Some(role);
         self
     }
     /// What the type is to scoring ([`super::Scored`]).
@@ -966,6 +973,7 @@ macro_rules! component {
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(needs: $needs:ident,)?
+        $(list_item: $liro:ident,)?
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
@@ -994,6 +1002,7 @@ macro_rules! component {
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
                 $(.needs($crate::components::Needs::$needs))?
+                $(.list_item($crate::components::ListItemRole::$liro))?
                 $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
@@ -1038,6 +1047,7 @@ macro_rules! component {
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
         $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
         $(needs: $needs:ident,)?
+        $(list_item: $liro:ident,)?
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
@@ -1148,6 +1158,7 @@ macro_rules! component {
                 )))?
                 $(.encloses($crate::components::define::component!(@encloses $ekind($($eprop),+))))?
                 $(.needs($crate::components::Needs::$needs))?
+                $(.list_item($crate::components::ListItemRole::$liro))?
                 $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.structural($crate::components::Structural {

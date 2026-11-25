@@ -12,6 +12,7 @@ component! {
     /// most any award gives. `numSubmissions` counts submits.
     tags: ["answer"],
     flags: [copyable, symbolic],
+    list_item: Answer,
     scored: Item(credit, weight),
     submit: Copies(response, submitted),
     default_prop: submitted,

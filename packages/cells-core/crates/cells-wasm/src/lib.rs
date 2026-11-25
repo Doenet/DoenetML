@@ -658,6 +658,61 @@ impl Core {
         self.doc.selected_style(CompIdx::new(idx)).0
     }
 
+    /// The children component `idx` forwards a list item's lead to (ADR
+    /// 0084, `childrenToRenderInlineForListItem`).
+    pub fn list_item_targets(&self, idx: u32) -> Vec<u32> {
+        if (idx as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.doc
+            .list_item_targets(CompIdx::new(idx))
+            .into_iter()
+            .map(|c| c.get())
+            .collect()
+    }
+
+    /// Whether component `idx` leads a list item (ADR 0084,
+    /// `renderInlineForListItem`).
+    pub fn renders_inline_for_list_item(&self, idx: u32) -> bool {
+        (idx as usize) < self.doc.n_components()
+            && self.doc.renders_inline_for_list_item(CompIdx::new(idx))
+    }
+
+    /// Where component `idx` asks a list item's number to sit (ADR 0084,
+    /// `listItemInlineAlignment`): `flex-start`, `baseline` or `none`.
+    pub fn list_item_inline_alignment(&self, idx: u32) -> String {
+        if (idx as usize) >= self.doc.n_components() {
+            return String::new();
+        }
+        self.doc
+            .list_item_inline_alignment(CompIdx::new(idx))
+            .to_string()
+    }
+
+    /// Where list item `idx`'s own number sits (ADR 0084,
+    /// `firstChildListItemAlignment`).
+    pub fn first_child_list_item_alignment(&self, idx: u32) -> String {
+        if (idx as usize) >= self.doc.n_components() {
+            return String::new();
+        }
+        self.doc
+            .first_child_list_item_alignment(CompIdx::new(idx))
+            .to_string()
+    }
+
+    /// A section's lead as a list item (ADR 0084, `firstVisibleChild`):
+    /// the component, -2 for text, -1 for none.
+    pub fn first_visible_child(&self, idx: u32) -> i64 {
+        if (idx as usize) >= self.doc.n_components() {
+            return -1;
+        }
+        match self.doc.first_visible_child(CompIdx::new(idx)) {
+            Some(cells_core::LeadChild::Component(c)) => i64::from(c.get()),
+            Some(cells_core::LeadChild::Text) => -2,
+            None => -1,
+        }
+    }
+
     /// The heading colors of section `idx` (ADR 0084), as JSON: `light`
     /// and `dark`, each its completed, in-progress and not-started colors.
     /// Empty for a component that is no section.

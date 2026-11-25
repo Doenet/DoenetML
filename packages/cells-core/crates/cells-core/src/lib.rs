@@ -141,8 +141,8 @@ pub use compile::variants::ChosenVariant;
 pub use compile::{Compiled, diagnose, lint};
 pub use diagnostics::{Diagnostic, Kind as DiagnosticKind};
 pub use document::{
-    ActionView, Built, CellIdx, Child, CompIdx, ComponentTable, Document, LoadOptions, LoadTimings,
-    NONE, Revealed, TEXT_BIT,
+    ActionView, Built, CellIdx, Child, CompIdx, ComponentTable, Document, LeadChild, LoadOptions,
+    LoadTimings, NONE, Revealed, TEXT_BIT,
 };
 pub use error::{Error, Result};
 pub use program::ValueType;

@@ -89,6 +89,7 @@ containers! {
     /// "Figure 2", its number shared with the tables (ADR 0044) unless
     /// `number="false"`.
     figure: ["figure"] {
+        list_item: Wrapper,
         counted: Figures(number),
         props {
             number: attr(1.0) { rendered },
@@ -97,7 +98,9 @@ containers! {
     };
 
     /// `<caption>`: the caption of the figure it sits in.
-    caption: ["caption"];
+    caption: ["caption"] {
+        list_item: Naming,
+    };
 
     /// `_postponeRenderContainer`: what the parser wraps a solution's
     /// content in (a proof's or an aside's with `postponeRendering`), so

@@ -14,6 +14,7 @@ component! {
     tags: ["video"],
     flags: [copyable],
     needs: ShortDescription,
+    list_item: Top,
     props {
         size: by_planner,
         width: by_planner { rendered },

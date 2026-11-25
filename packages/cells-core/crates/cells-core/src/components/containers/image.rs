@@ -15,6 +15,7 @@ component! {
     tags: ["image"],
     flags: [copyable],
     needs: Description,
+    list_item: Top,
     props {
         size: by_planner,
         width: by_planner { rendered },
