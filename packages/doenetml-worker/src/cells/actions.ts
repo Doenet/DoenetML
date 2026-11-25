@@ -84,14 +84,18 @@ function moveBoth(
     return movePoints(moves);
 }
 
-/** A point's drag. */
-const movePoint: Resolver = (t, c, { x, y }) => ({
-    kind: "points",
-    pairs: [
-        [cellOf(t, c, "x"), x],
-        [cellOf(t, c, "y"), y],
-    ],
-});
+/** A point's drag, which its `draggable` may forbid (ADR 0070): then it
+ * changes nothing, as the current core's movePoint. */
+const movePoint: Resolver = (t, c, { x, y }) =>
+    allows(t, c, "draggable")
+        ? {
+              kind: "points",
+              pairs: [
+                  [cellOf(t, c, "x"), x],
+                  [cellOf(t, c, "y"), y],
+              ],
+          }
+        : { kind: "none" };
 
 /** A curve's through point dragged, as the current core's
  * moveThroughPoint (`throughPointInd` its 0-based index, `throughPoint`
@@ -287,14 +291,26 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
                 ["throughX", "throughY", throughcoords],
             ),
     },
+    // What a drag may move (ADR 0070): both ends need `draggable`, one
+    // its own flag, as the current core's moveVector.
     vector: {
-        moveVector: (t, c, { tailcoords, headcoords }) =>
-            moveBoth(
-                t,
-                c,
-                ["tailX", "tailY", tailcoords],
-                ["headX", "headY", headcoords],
-            ),
+        moveVector: (t, c, args) => {
+            const { tailcoords, headcoords } = args;
+            const flag =
+                tailcoords && headcoords
+                    ? "draggable"
+                    : headcoords
+                      ? "headDraggable"
+                      : "tailDraggable";
+            return allows(t, c, flag)
+                ? moveBoth(
+                      t,
+                      c,
+                      ["tailX", "tailY", tailcoords],
+                      ["headX", "headY", headcoords],
+                  )
+                : { kind: "none" };
+        },
     },
     // A rectangle's corner drag holds the opposite corner, as the current
     // core's movePolygon does; a whole drag moves every vertex.

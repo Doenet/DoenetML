@@ -387,8 +387,35 @@ export function label(table: CellsTable, c: number): string {
     }
     const attr = table.attr(c, "label");
     if (attr !== null) return attr;
+    const isName = table.attr(c, "labelIsName");
+    if (isName !== null && isName.trim().toLowerCase() !== "false") {
+        return nameAsLabel(table, c);
+    }
     const referent = table.referent(c);
     return referent === null ? "" : label(table, referent);
+}
+
+/** A label made from a name (`labelIsName`), as the current core makes
+ * it: its own name, else the name of what it references; words split at
+ * `_` and `-`, or at the capitals of a camel-case or Pascal-case name. */
+function nameAsLabel(table: CellsTable, c: number): string {
+    let name = "";
+    for (let k: number | null = c; k !== null; k = table.referent(k)) {
+        const own = table.attr(k, "name");
+        if (own) {
+            name = own.trim();
+            break;
+        }
+    }
+    if (name === "" || name.startsWith("_")) return "";
+    if (/[_-]/.test(name)) return name.replace(/[_-]/g, " ");
+    if (/^[a-z]/.test(name) && /[A-Z]/.test(name)) {
+        return name.replace(/([A-Z])/g, " $1").toLowerCase();
+    }
+    if (/^[A-Z]/.test(name) && /[a-z]/.test(name)) {
+        return name.replace(/([A-Z])/g, " $1").slice(1);
+    }
+    return name;
 }
 
 /** The fields every input renderer declares from its literal attributes:
@@ -798,9 +825,18 @@ function pointProps(r: Reads, c: number, inGraph: boolean) {
     const y = r.num(c, "y");
     // A missing coordinate is NaN in a graph, which the renderer does not
     // draw, and the blank in text (VAL-5, ADR 0046).
-    return inGraph
-        ? { x: mathObject(x), y: mathObject(y) }
-        : { coordsLatex: pointLatex(r, c) };
+    if (!inGraph) return { coordsLatex: pointLatex(r, c) };
+    // Whether a drag may move it (ADR 0070), a 0/1 cell: sent when it may
+    // not (0), the renderer's default being that it may. A list's row has
+    // none of its own (the missing value): it may.
+    const fixedInPlace =
+        r.table.cell(c, "draggable") !== undefined &&
+        r.num(c, "draggable") === 0;
+    return {
+        x: mathObject(x),
+        y: mathObject(y),
+        ...(fixedInPlace ? { draggable: false } : {}),
+    };
 }
 
 /** A polygon's, a polyline's, a triangle's, a rectangle's and a regular
@@ -818,6 +854,10 @@ const POLYGON: Contract = {
                   ]),
                   draggable: r.bool(c, "draggable"),
                   verticesDraggable: r.bool(c, "verticesDraggable"),
+                  // A presentation attribute, as written, sent when set.
+                  ...(flagOr(r.table, c, "filled", false)
+                      ? { filled: true }
+                      : {}),
               }
             : {},
     noChildren: true,
@@ -1394,14 +1434,15 @@ export const CONTRACTS: Record<string, Contract> = {
                     renderMode: "inline",
                 };
             }
-            const draggable = flagOr(r.table, c, "draggable", true);
+            // What a drag may move (ADR 0070), 0/1 cells.
             return {
                 numericalEndpoints: [
                     [r.num(c, "tailX"), r.num(c, "tailY")],
                     [r.num(c, "headX"), r.num(c, "headY")],
                 ],
-                headDraggable: flagOr(r.table, c, "headDraggable", draggable),
-                tailDraggable: flagOr(r.table, c, "tailDraggable", draggable),
+                draggable: r.bool(c, "draggable"),
+                headDraggable: r.bool(c, "headDraggable"),
+                tailDraggable: r.bool(c, "tailDraggable"),
             };
         },
     },
