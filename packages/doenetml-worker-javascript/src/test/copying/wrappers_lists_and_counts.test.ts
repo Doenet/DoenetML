@@ -460,6 +460,20 @@ describe("A tag that makes its own content is made only from a reference that al
             "$s[2].r",
         ],
         [
+            "$outer[1].cc.r, through an iteration",
+            `<booleanInput name="b"/><repeat name="outer" for="1 2"><conditionalContent name="cc"><case condition="$b">${rA}</case><else>${rB}</else></conditionalContent></repeat>`,
+            "repeat",
+            "case shown",
+            "$outer[1].cc.r",
+        ],
+        [
+            "$sec2.s.r, through a copy of a section",
+            `<section name="sec"><select name="s"><option>${rA}</option><option>${rB}</option></select></section><section name="sec2" copy="$sec"/>`,
+            "repeat",
+            "option picked",
+            "$sec2.s.r",
+        ],
+        [
             "$r of a repeat in each case of a conditionalContent with no name",
             `<conditionalContent><case condition="true">${rA}</case><else>${rB}</else></conditionalContent>`,
             "repeat",
@@ -594,6 +608,18 @@ describe("A tag that makes its own content is made only from a reference that al
             `<mathInput name="k" prefill="2"/><repeat name="outer" for="1 2" valueName="w"><repeat name="inner" for="$w 7" valueName="v"><text>i$v</text></repeat></repeat>`,
             "$outer[$k].inner",
             "i2, i7",
+        ],
+        [
+            "$outer[1].g.r",
+            `<repeat name="outer" for="1 2"><group name="g">${rA}</group></repeat>`,
+            "$outer[1].g.r",
+            "a1, a2, a3",
+        ],
+        [
+            "$sec2.r of a copy of a section",
+            `<section name="sec">${rA}</section><section name="sec2" copy="$sec"/>`,
+            "$sec2.r",
+            "a1, a2, a3",
         ],
         [
             "$r of the one repeat in a case",

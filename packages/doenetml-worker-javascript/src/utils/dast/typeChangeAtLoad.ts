@@ -3448,7 +3448,9 @@ export function checkTypeChangesAtLoad({
      * can name different written tags as what is shown changes (D78.1): one
      * that is a `<conditionalContent>` or a `<select>` that picks one
      * (`$cc`), or that reaches through one (`$cc.r`, `$s.r`), or through
-     * the picks of any `<select>` (`$s[2].r`). Such a tag is made only from
+     * the picks of any `<select>` (`$s[2].r`), also where the resolver
+     * leaves the names to an iteration (`$outer[1].cc.r`) or a copy
+     * (`$sec2.cc.r`) holding one (`branchOnTheWay`). Such a tag is made only from
      * a reference that always names the same written tag of its kind, so
      * this is `doenet-e0071`, worded for what is shown (`sourceIs`
      * `branch`), decided when the document loads (DIAG-7). Not for one of
@@ -3500,6 +3502,114 @@ export function checkTypeChangesAtLoad({
                 new Set(named.map((n) => n.componentIdx)).size !== 1
             );
         };
+        /**
+         * The branch container the names `names` reach through from the
+         * component at `startIdx`, which the resolver left them to (an
+         * iteration of a repeat, `$outer[1].cc.r`, or a copy, `$sec2.cc.r`
+         * of `<section name="sec2" copy="$sec"/>`), when its branches can
+         * name more than one written component (`namesSeveral`): its kind,
+         * or `undefined`. A container named on the way (`cc`) or one not
+         * named holding the names (`$outer[1].r` of a repeat in each case
+         * of an unnamed `<conditionalContent>`) counts; names inside a
+         * repeat or the options of a select written there are private, so
+         * are not looked in, nor are names that are not all names of the
+         * document (`$sec2.cc.value`).
+         */
+        const branchOnTheWay = (startIdx: number, names: any[]) => {
+            if (
+                !names.every(
+                    (part: any) =>
+                        typeof part.name === "string" &&
+                        allNames.has(part.name) &&
+                        (part.index ?? []).length === 0,
+                )
+            ) {
+                return undefined;
+            }
+            // its children, and, for a copy, those of what it copies
+            const contentOf = (node: SerializedComponent) => {
+                const content = [...(node.children ?? [])];
+                const visited = new Set<number>();
+                let current: SerializedComponent | undefined = node;
+                while (
+                    current?.componentType === "_copy" &&
+                    !visited.has(current.componentIdx)
+                ) {
+                    visited.add(current.componentIdx);
+                    const copied = refOf(current);
+                    if (
+                        !copied ||
+                        copied.nodeIdx < 0 ||
+                        (copied.unresolvedPath ?? []).length > 0
+                    ) {
+                        break;
+                    }
+                    current =
+                        referents.componentsByIdx.get(copied.nodeIdx) ??
+                        referents.copiesByCreatedIdx.get(copied.nodeIdx);
+                    content.push(...(current?.children ?? []));
+                }
+                return content;
+            };
+            const search = (
+                components: (SerializedComponent | string)[],
+                names: string[],
+            ): "case" | "option" | undefined => {
+                for (const component of components) {
+                    if (typeof component !== "object") {
+                        continue;
+                    }
+                    const attributes = component.attributes ?? {};
+                    const isNamed =
+                        literalText(attributes.name) === names[0] ||
+                        literalText(attributes._createComponentName) ===
+                            names[0];
+                    if (isNamed && names.length === 1) {
+                        continue;
+                    }
+                    const after = isNamed ? names.slice(1) : names;
+                    const container = branchContainerAt(component.componentIdx);
+                    if (container) {
+                        if (namesSeveral(container, after)) {
+                            return branchKind(container);
+                        }
+                        continue;
+                    }
+                    const type =
+                        component.componentType === "_copy"
+                            ? canonicalType(
+                                  literalText(
+                                      attributes._createComponentOfType,
+                                  ),
+                              )
+                            : component.componentType;
+                    if (
+                        [
+                            "repeat",
+                            "repeatForSequence",
+                            "select",
+                            "option",
+                        ].includes(type ?? "")
+                    ) {
+                        continue;
+                    }
+                    const found = search(contentOf(component), after);
+                    if (found) {
+                        return found;
+                    }
+                }
+                return undefined;
+            };
+            const start =
+                referents.componentsByIdx.get(startIdx) ??
+                referents.copiesByCreatedIdx.get(startIdx);
+            return start
+                ? search(
+                      contentOf(start),
+                      names.map((part: any) => part.name),
+                  )
+                : undefined;
+        };
         if (path.length === 0) {
             const sourceType = referents.referentType(ref.nodeIdx);
             if (
@@ -3518,17 +3628,29 @@ export function checkTypeChangesAtLoad({
             // names after an index into the picks of a select
             // (`$s[2].r`), or into what a `<conditionalContent>` shows
             const container = branchContainerAt(ref.nodeIdx, true);
-            branch =
-                container && namesSeveral(container, path.slice(1))
+            branch = container
+                ? namesSeveral(container, path.slice(1))
                     ? branchKind(container, true)
-                    : undefined;
+                    : undefined
+                : ["repeat", "repeatForSequence"].includes(
+                        referents.referentType(ref.nodeIdx) ?? "",
+                    )
+                  ? // names in an iteration (`$outer[1].cc.r`)
+                    branchOnTheWay(ref.nodeIdx, path.slice(1))
+                  : undefined;
         } else if (typeof path[0].name === "string" && path[0].name !== "") {
             // names in the branches (`$cc.r`, `$s.r`)
             const container = branchContainerAt(ref.nodeIdx);
-            branch =
-                container && namesSeveral(container, path)
+            branch = container
+                ? namesSeveral(container, path)
                     ? branchKind(container)
-                    : undefined;
+                    : undefined
+                : ["repeat", "repeatForSequence"].includes(
+                        referents.referentType(ref.nodeIdx) ?? "",
+                    )
+                  ? undefined
+                  : // names in a copy (`$sec2.cc.r` of a copy of a section)
+                    branchOnTheWay(ref.nodeIdx, path);
         }
         if (!branch) {
             return undefined;
