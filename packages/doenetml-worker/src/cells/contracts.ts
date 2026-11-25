@@ -623,7 +623,7 @@ function childrenOfType(table: CellsTable, c: number, type: string): number[] {
 }
 
 /** The points under `c`, through components that stand as their children
- * (a polyline's vertices are copies of the points it gathered). */
+ * (a shape's vertices over a repeat's points, ADR 0075). */
 function pointsUnder(table: CellsTable, c: number): number[] {
     return table.children(c).flatMap((child) => {
         if (!("component" in child)) return [];
@@ -631,6 +631,25 @@ function pointsUnder(table: CellsTable, c: number): number[] {
         if (type === "point") return [child.component];
         return TRANSPARENT.has(type) ? pointsUnder(table, child.component) : [];
     });
+}
+
+/** The cells of a shape's vertices, `[xCell, yCell]` each: its list's
+ * (ADR 0016), or, for one over a repeat's points (ADR 0075), the points
+ * of its iterations. */
+export function vertexCells(table: CellsTable, c: number): [number, number][] {
+    const cells = table.listCells(c);
+    if (cells.length > 0) {
+        const out: [number, number][] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([cells[i], cells[i + 1]]);
+        }
+        return out;
+    }
+    return pointsUnder(table, c).flatMap((p) => {
+        const x = table.cell(p, "x");
+        const y = table.cell(p, "y");
+        return x === undefined || y === undefined ? [] : [[x, y]];
+    }) as [number, number][];
 }
 
 /** Pairs of a list of cells (`x1, y1, x2, y2, ...`) as points. */
@@ -783,18 +802,24 @@ function pointProps(r: Reads, c: number, inGraph: boolean) {
         : { coordsLatex: pointLatex(r, c) };
 }
 
-/** A polygon's, a triangle's, a rectangle's and a regular polygon's
- * props, drawn only in a graph: its vertices, and what a drag may move
- * (ADR 0070), which the bridge's actions check. */
+/** A polygon's, a polyline's, a triangle's, a rectangle's and a regular
+ * polygon's props, drawn only in a graph: its vertices (its list's, or
+ * the points of the repeat it is over, ADR 0075), and what a drag may
+ * move (ADR 0070), which the bridge's actions check. The points of a
+ * repeat it is over are its children, which it draws itself. */
 const POLYGON: Contract = {
     props: (r, c, inGraph) =>
         inGraph
             ? {
-                  numericalVertices: pairs(r, r.table.listCells(c)),
+                  numericalVertices: vertexCells(r.table, c).map(([x, y]) => [
+                      r.cell(x),
+                      r.cell(y),
+                  ]),
                   draggable: r.bool(c, "draggable"),
                   verticesDraggable: r.bool(c, "verticesDraggable"),
               }
             : {},
+    noChildren: true,
 };
 
 /** A line's props: two points it passes through. */
@@ -986,16 +1011,8 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
     }),
     polygon: POLYGON,
-    // Its vertices are the points it gathered, which it draws itself.
-    polyline: inGraphOnly({
-        props: (r, c) => ({
-            numericalVertices: pointsUnder(r.table, c).map((p) => [
-                r.num(p, "x"),
-                r.num(p, "y"),
-            ]),
-        }),
-        noChildren: true,
-    }),
+    // A polygon that is not closed (ADR 0075).
+    polyline: POLYGON,
     // Its labels, in order, beside the graph's curves in order. Their
     // colors are the renderer's: Doenet's styles are not ported.
     legend: {

@@ -43,6 +43,12 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
         ],
     },
     circle: { moveCircle: [{ center: [1, 1] }] },
+    polyline: {
+        movePolyline: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
     polygon: {
         movePolygon: [
             { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
@@ -122,7 +128,9 @@ const DOC = `
   <circle name="cr" center="(3,3)" radius="1"/>
   <polygon name="pg" vertices="(0,0) (1,0) (0,1)"/>
   <collect name="pts" componentType="point" from="$g2"/>
-  <polyline name="pl" vertices="$pts"/>
+  <polyline name="pl" vertices="(0,0) (1,1) (2,0)"/>
+  <repeat name="rps" for="1 2" valueName="u"><point x="$u" y="4"/></repeat>
+  <polyline name="plr" vertices="$rps"/>
   <function name="f">x^2</function>
   <ray name="ry" endpoint="(0,0)" direction="(1,1)"/>
   <vector name="v" tail="(1,1)" head="(2,3)"/>
@@ -199,6 +207,7 @@ const EXPECTED_REQUESTS = [
     "circle.cx",
     "circle.cy",
     "polygon.list[0]",
+    "polyline.list[0]",
     "numberInput.value",
     "booleanInput.value",
     "mathInput.expr",
@@ -236,6 +245,8 @@ const EXPECTED_READS = [
     "lineSegment.y2",
     "circle.radius",
     "polygon.list[0]",
+    "polyline.list[0]",
+    "polyline.numVertices",
     "number.value",
     "clampNumber.value",
     "math.expr",

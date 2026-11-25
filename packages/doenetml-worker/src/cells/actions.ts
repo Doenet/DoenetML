@@ -4,6 +4,7 @@
  * core action (`submit`, `trigger`, or one by name). The core never sees a
  * renderer action.
  */
+import { vertexCells } from "./contracts";
 import { CellsTable } from "./table";
 
 export type Effect =
@@ -63,14 +64,10 @@ function vertexMoves(
     ) as [Point, Point][];
 }
 
-/** The cells of `c`'s list points, `[xCell, yCell]` each. */
+/** The cells of `c`'s vertices, `[xCell, yCell]` each: its list's, or
+ * the points of the repeat it is over (ADR 0075). */
 function listPoints(table: CellsTable, c: number): Point[] {
-    const cells = table.listCells(c);
-    const points: Point[] = [];
-    for (let i = 0; i + 1 < cells.length; i += 2) {
-        points.push([cells[i], cells[i + 1]]);
-    }
-    return points;
+    return vertexCells(table, c);
 }
 
 /** Both of a two-point shape's points, `[xProp, yProp, coords]` each, as one
@@ -270,6 +267,12 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     },
     polygon: {
         movePolygon: polygonDrag((t, c, { pointCoords }) =>
+            movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+        ),
+    },
+    // A polygon that is not closed (ADR 0075).
+    polyline: {
+        movePolyline: polygonDrag((t, c, { pointCoords }) =>
             movePoints(vertexMoves(listPoints(t, c), pointCoords)),
         ),
     },

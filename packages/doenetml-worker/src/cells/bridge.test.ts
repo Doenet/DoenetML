@@ -723,20 +723,34 @@ describe("step 3 components", () => {
         expect(all("lineSegment")).toHaveLength(2);
     });
 
-    it("draws a polyline through the points it gathered, and a legend", async () => {
-        const { all, props } = await open(`<graph>
-<collect name="ps" componentType="point" from="$g2"/>
-<polyline vertices="$ps"/>
+    it("draws a polyline through a repeat's points, and a legend (ADR 0075)", async () => {
+        const { all, props, send, changed } = await open(`<graph>
+<repeat name="r" hide for="0 1" valueName="v"><point x="$v" y="0"/></repeat>
+<polyline name="pl" vertices="$r"/>
 <legend><label>Path</label></legend>
 </graph>
-<graph name="g2"><point>(0,0)</point><point>(1,2)</point></graph>`);
+<graph><polyline vertices="(0,0) (3,4)"/></graph>`);
         expect(props("polyline").numericalVertices).toEqual([
             [0, 0],
-            [1, 2],
+            [1, 0],
+        ]);
+        expect(props("polyline", 1).numericalVertices).toEqual([
+            [0, 0],
+            [3, 4],
         ]);
         expect(all("polyline")[0].children).toEqual([]);
+        // The repeat is hidden; its points are drawn only as the vertices.
+        expect(all("point")).toHaveLength(0);
         expect(props("legend").legendElements).toEqual([
             { swatchType: "line", label: { value: "Path", hasLatex: false } },
+        ]);
+        // A vertex's drag writes the point it is.
+        const payload = send("polyline", "movePolyline", {
+            pointCoords: { 1: [1, 5] },
+        });
+        expect(changed(payload, "polyline").numericalVertices).toEqual([
+            [0, 0],
+            [1, 5],
         ]);
     });
 
