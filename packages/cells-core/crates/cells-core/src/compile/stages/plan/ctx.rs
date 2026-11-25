@@ -100,6 +100,60 @@ impl<'a> PlanCtx<'_, 'a> {
             .map_or_else(|| self.scope(), |b| b.scope)
     }
 
+    /// The text of the element's children, as they are built, joined
+    /// (ADR 0053, ADR 0075): a text piece as written, a reference's and an
+    /// element child's value as `Join` writes it (a number as shown, an
+    /// expression as printed, a text as it is), in hidden ports of
+    /// `wiring`. None when an element child has no value to join (no
+    /// default prop, an `<m>`).
+    pub(crate) fn children_joined(&mut self, wiring: &mut ElemWiring) -> Result<Option<Source>> {
+        let (t, e) = (self.t, self.e);
+        let d = self.p.rd.dast;
+        let scope = self.p.rd.child_scope(t, e);
+        let children = self.elem().children.clone();
+        let mut parts = Vec::with_capacity(children.len());
+        for ch in children {
+            let source = match ch {
+                Child::Text(s) => {
+                    let id = self.p.ar.intern_literal(d, d.strings.get(s));
+                    Source::Leaf(Leaf::GivenText(Some(id)))
+                }
+                Child::Macro(id) => {
+                    let node = self.p.rd.ref_children(t)[id.index()].node;
+                    Source::reference(self.p.rd.plan_ref(&mut self.p.ar, t, scope, node)?)
+                }
+                Child::Elem(k) => {
+                    let ty = self.p.rd.owned_row(t, e, k).component_type;
+                    if ty.def().default_prop.is_none() {
+                        return Ok(None);
+                    }
+                    Source::reference(self.p.ar.push_ref(RefPlan {
+                        hops: 0,
+                        steps: vec![Step::Elem(k)],
+                        prop: None,
+                        entries: Vec::new(),
+                        display: RefDisplay::Spelled("(a child)".into()),
+                        node: NodeId::NONE,
+                    }))
+                }
+            };
+            parts.push(wiring.hidden(source));
+        }
+        if parts.is_empty() {
+            let id = self.p.ar.intern_literal(d, "");
+            return Ok(Some(Source::Leaf(Leaf::GivenText(Some(id)))));
+        }
+        if parts.len() > usize::from(u8::MAX) {
+            return Ok(None);
+        }
+        let join = SymKind::JoinWith {
+            n: byte(parts.len()),
+            kinds: 0,
+            sep: crate::program::texts::Sep::Empty,
+        };
+        Ok(Some(Source::computed(OpSpec::Sym(join), parts)))
+    }
+
     /// The element's record: every attribute its type declares and its
     /// children as the type reads them, parsed, the element's own or its
     /// referent's.

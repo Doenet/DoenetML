@@ -37,6 +37,7 @@ pub mod section;
 
 pub(crate) mod blocks;
 pub(crate) mod cascade;
+pub(crate) mod label;
 
 pub use section::SECTION_TAGS;
 
@@ -137,8 +138,8 @@ containers! {
     };
 
     /// `<group>`: a rendered container with no props of its own. The
-    /// prototype renders `<label>` the same way.
-    group: ["group", "label"] {
+    /// prototype renders `<label>` (`label.rs`) the same way.
+    group: ["group"] {
         structure: Transparent,
         // `<group rendered="c">` is a conditional content with one case.
         rewrite { rendered: ConditionalContent }

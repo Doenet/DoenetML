@@ -324,6 +324,9 @@ component_types! {
     /// A `<sequence type="letters">` whose count follows a value: its
     /// items texts (ADR 0074).
     StructuralLetterSequence => values::structural_sequence::LETTERS,
+    /// `<label>`: a component's label, with its text as a value (ADR
+    /// 0024, ADR 0075).
+    Label => containers::label::DEFINITION,
     /// A `<polyline>` whose vertices are a repeat's points (ADR 0075).
     PolylineOverIterations => geometry::over_iterations::polyline::DEFINITION,
     /// A `<polygon>` whose vertices are a repeat's points (ADR 0075).
@@ -1435,7 +1438,8 @@ mod tests {
         // math cell evaluated.
         // ADR 0074 added `source_text`, a sequence's letters or math as
         // written.
-        const PLAN_CTX_METHODS: usize = 46;
+        // ADR 0075 added `children_joined`, a label's text as a value.
+        const PLAN_CTX_METHODS: usize = 47;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

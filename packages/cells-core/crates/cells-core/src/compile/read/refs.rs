@@ -86,6 +86,25 @@ impl<'a> SourceReader<'a> {
         last.map(|e| (self.template_up(t, plan.hops), e))
     }
 
+    /// The last `<label>` child of element `e` of template `t`, as written,
+    /// when its type has no prop named `label` (ADR 0075).
+    fn label_child(&self, t: TemplateId, e: ElemId) -> Option<ElemId> {
+        let el = &self.outlined(t).elems[e.index()];
+        if el.component_type.prop_index("label").is_some() {
+            return None;
+        }
+        el.children.iter().rev().find_map(|ch| match *ch {
+            Child::Elem(k) => {
+                let node = self.outlined(t).elems[k.index()].node;
+                (node != NodeId::NONE
+                    && self.dast.kind(node) == NodeKind::Element
+                    && self.dast.str(node) == "label")
+                    .then_some(k)
+            }
+            _ => None,
+        })
+    }
+
     /// The element a plan names, if it is in template `t` itself (a path of
     /// names without indices, no prop).
     pub(in crate::compile) fn plan_elem_target(
@@ -425,6 +444,17 @@ impl<'a> SourceReader<'a> {
                     {
                         steps.push(Step::Elem(child));
                         at = At::Elem(child);
+                    }
+                    // `$P.label` of a type with no `label` prop: its
+                    // `<label>` child, the last, a component of it (ADR
+                    // 0024, ADR 0075), read as any reference to one is.
+                    At::Elem(e)
+                        if let Some(label) = (!after_iface && name == "label")
+                            .then(|| self.label_child(cur_t, e))
+                            .flatten() =>
+                    {
+                        steps.push(Step::Elem(label));
+                        at = At::Elem(label);
                     }
                     At::Elem(e) => {
                         let component_type = self.outlined(cur_t).elems[e.index()].component_type;
