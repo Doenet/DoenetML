@@ -1384,6 +1384,40 @@ describe.skipIf(!wasmAvailable)(
             expect(single?.node?.name).toBe("point");
         });
 
+        it("offers no name after an index into a one-shown thing (D72)", async () => {
+            // An index after a `<conditionalContent>` or a one-pick
+            // `<select>` reaches into what the branch shown holds, not the
+            // branch: `$cc[1].x` is not the case's `x` (runtime `w0100`).
+            const cc = `<conditionalContent name="cc"><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>\n<p>$`;
+            expect(
+                (await memberNames(`${cc}cc.`, ["cc", ""]))
+                    ?.visibleDescendantNames,
+            ).toContain("x");
+            const cc1 = await memberNames(
+                `${cc}cc[1].`,
+                ["cc", ""],
+                [true, false],
+            );
+            expect(cc1?.node ?? null).toBeNull();
+            expect(cc1?.visibleDescendantNames ?? []).toEqual([]);
+            const cc1x = await memberNames(
+                `${cc}cc[1].x.`,
+                ["cc", "x", ""],
+                [true, false, false],
+            );
+            expect(cc1x?.node ?? null).toBeNull();
+
+            // A one-pick select in every case, reached by its name.
+            const selects = `<conditionalContent><case condition="true"><select name="s"><option><math name="y">1</math></option></select></case><else><select name="s"><option><math name="y">3</math></option></select></else></conditionalContent>\n<p>$`;
+            const s1 = await memberNames(
+                `${selects}s[1].`,
+                ["s", ""],
+                [true, false],
+            );
+            expect(s1?.node ?? null).toBeNull();
+            expect(s1?.visibleDescendantNames ?? []).toEqual([]);
+        });
+
         it("checks the index on each name after a branch container", async () => {
             // A select of two picks in every branch: `$s[1].x` resolves
             // (runtime `[1][2]`, no diagnostics).
@@ -1541,7 +1575,7 @@ describe.skipIf(!wasmAvailable)(
             // $sel[1]. should show descendants of select option children
             // but NOT properties of select (the referent is a child, not the select)
             {
-                const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="a">2</math></option></select>\n$sel[1].`;
+                const source = `<select name="sel" numToSelect="2"><option><math name="a">1</math></option><option><math name="a">2</math></option></select>\n$sel[1].`;
                 const { completer } = await createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
@@ -1553,6 +1587,18 @@ describe.skipIf(!wasmAvailable)(
                 // Should NOT include properties of the select element itself
                 const kinds = items.map((i) => i.kind);
                 expect(kinds).not.toContain(CompletionItemKind.Property);
+            }
+
+            // $sel[1]. of a select that picks one offers nothing: the index
+            // reaches into what the pick holds, a `<math>`, not the option
+            // (D72), so `$sel[1].a` names nothing.
+            {
+                const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="a">2</math></option></select>\n$sel[1].`;
+                const { completer } = await createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const items = await completer.getCompletionItems(source.length);
+                expect(items.map((i) => i.label)).not.toContain("a");
             }
 
             // $sel. (no index) should NOT show descendants, only properties.

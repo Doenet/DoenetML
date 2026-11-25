@@ -8679,7 +8679,6 @@ function missingInPlaceOfCopiedError({
     }
 }
 
-/** A `_missing` (`Missing.js`), as the one replacement of a copy. */
 /**
  * Mark `repl`, the chooser or sampler a tag written with `copy` or `extend`
  * (`component`) makes, as picking one (`doenetAttributes.onePick`, D72) only
@@ -8718,6 +8717,7 @@ function decideOnePickOfCopy(repl, component, componentInfoObjects) {
     repl.doenetAttributes = doenetAttributes;
 }
 
+/** A `_missing` (`Missing.js`), as the one replacement of a copy. */
 function missingReplacement({ nComponents, stateIdInfo }) {
     return {
         type: "serialized",

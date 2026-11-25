@@ -3,8 +3,9 @@
  * select family.  Issue #1181.
  *
  * The runtime renders a `<select numToSelect="1">` (or one of its siblings)
- * as a single replacement, so `$s.t` and `$s[1].t` resolve to the same
- * referent at runtime.  This module exposes a textual DAST check that the
+ * as a single replacement, so `$s.t` reaches the `t` in its pick. (An index
+ * after it reaches into what the pick holds, D72, so `$s[1].t` is not that
+ * `t`.)  This module exposes a textual DAST check that the
  * autocomplete and context-help layers consult — through the shared
  * resolver-adapter — so both layers agree, by construction, on which
  * authored sources qualify for the shorthand.
@@ -89,9 +90,8 @@ export function hasImplicitSingleIndex(element: DastElement): boolean {
 /**
  * Whether a name after `element` reaches its one item as after an index:
  * the select-family shorthand ({@link hasImplicitSingleIndex}), and a
- * `<conditionalContent>`, a collection of at most one item, the case shown
- * (D41), which takes an index, but whose names (`$cc.x`) are the shown
- * case's.
+ * `<conditionalContent>`, whose names (`$cc.x`) are the shown case's. Neither
+ * is a collection (D72): an index after one reaches into what it shows.
  */
 export function hasImplicitIndex(element: DastElement): boolean {
     return (

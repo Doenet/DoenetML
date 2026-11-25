@@ -701,8 +701,8 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # component that lacks it, both as written. $container is the container's
 # name when $hasName is `true`, else its tag name. $branch is `option` or
 # `case` (a property after a repeat names nothing, `doenet-w0200`, D59). A
-# name in only some options or cases names nothing from outside
-# (`doenet-w0183`), so the message does not suggest reading one by name.
+# name in only some options or cases is an error from outside
+# (`doenet-e0093`), so the message does not suggest reading one by name.
 
 reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
         [true] `{ $container }`
