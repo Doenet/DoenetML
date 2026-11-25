@@ -445,3 +445,44 @@ fn ref_5_an_input_is_not_made_from_a_value() {
     let doc = load(r#"<mathInput name="mi" prefill="2"/><math name="m" extend="$mi"/>"#).unwrap();
     assert_eq!(text(&doc, "m"), "2");
 }
+
+/// ADR 0076 §4: a tag over an extend wants its own type. A referent that
+/// *is a* one, or stands in as one, is read as it; one no chain connects
+/// is refused at load, saying the form that works (DIAG-3).
+#[test]
+fn adr_0076_a_tag_over_an_extend_wants_its_type() {
+    // A sum is a math, an `and` a boolean, an integer a number.
+    let doc = load(
+        r#"<sum name="s">1 2</sum><math name="m" extend="$s"/>
+           <and name="a"><boolean>true</boolean><boolean>true</boolean></and>
+           <boolean name="b" extend="$a"/>
+           <integer name="i">7</integer><number name="n" extend="$i"/>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert_eq!(text(&doc, "b"), "true");
+    assert_eq!(v(&doc, "n", "value"), 7.0);
+    for (src, hint) in [
+        (
+            r#"<number name="n">3</number><boolean name="b" extend="$n"/>"#,
+            "<boolean>$n != 0</boolean>",
+        ),
+        (
+            r#"<text name="t">true</text><boolean name="b" extend="$t"/>"#,
+            "<boolean>$t = true</boolean>",
+        ),
+        (
+            r#"<boolean name="b">true</boolean><number name="n" extend="$b"/>"#,
+            "<number convertBoolean>$b</number>",
+        ),
+        (
+            r#"<p name="p">hi</p><text name="t" extend="$p"/>"#,
+            "<text extend=\"$p.text\"/>",
+        ),
+    ] {
+        let (code, message) = load_error(src);
+        assert_eq!(code, "cells-extend-type-mismatch", "{src}");
+        assert!(message.contains("stands in as none"), "{src}: {message}");
+        assert!(message.contains(hint), "{src}: {message}");
+    }
+}

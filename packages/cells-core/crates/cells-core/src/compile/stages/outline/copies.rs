@@ -3,6 +3,7 @@
 
 use super::Outlining;
 use crate::compile::*;
+use crate::components::types::ExtendAs;
 
 /// Outlining, extends and container copies: every `extend`'s reference, and
 /// container copies' clones, made once every name is in the table. Plans
@@ -200,34 +201,44 @@ impl Outlining<'_> {
             text: self.rd().attr_text(a).unwrap_or_default(),
         })?;
         let p = Reader::new(self.dast, &self.settled).plan_ref(&mut self.ar, t, name_scope, m)?;
-        // `<math extend="$n"/>`, `<mathInput extend="$m"/>`: an extend
-        // across related types is the referent's value as the element's
-        // type (REF-5, ADR 0025), so it is the extend of its default prop,
-        // decided here from the types outlining settled. An unrelated pair
-        // is left to the build, which refuses it once both types are
-        // known. A container copy names its referent itself.
+        // `<math extend="$n"/>`, `<boolean extend="$bi"/>`: a tag over an
+        // extend is a place that wants its own type (ADR 0076 §4), and what
+        // the referent is there is the typing stage's fit, decided here
+        // from the types outlining settled: the extend of the prop it
+        // reads, an error where no chain connects them, or a pair left to
+        // the build (a copy, a conversion it cannot make yet). A container
+        // copy names its referent itself.
         let component_type = self.outlined(t).elems[e.index()].component_type;
         if !component_type.container()
             && self.ar.refs[p.index()].prop.is_none()
             && let Ok(Some(rt)) = self.rd().ref_target_type(&self.ar, t, p)
-            && rt != component_type
         {
-            // An input is not the value it would hold (REF-5, D26).
-            if ComponentType::input_from_value(rt, component_type) {
-                return Err(Error::InputFromValue {
-                    referent: self.rd().dast.macro_display(m),
-                    referent_type: rt.tag().into(),
-                    component_type: component_type.tag().into(),
-                });
-            }
-            // `<boolean extend="$bi"/>` reads `bi`'s `value`, and `<math
-            // extend="$n"/>` `n`'s default prop: here, not in a planner.
-            if let Some(dp) = ComponentType::extend_reads(rt, component_type) {
-                let named = self.rd().prop_named(&self.ar, t, p, dp)?;
-                let r = self.ar.ref_mut(p);
-                r.prop = named;
-                let base = std::mem::replace(&mut r.display, RefDisplay::Written);
-                r.display = RefDisplay::Prop(Box::new(base), dp);
+            let referent = self.rd().dast.macro_display(m);
+            match crate::components::types::extend_as(rt, component_type, &referent) {
+                ExtendAs::Copy => {}
+                ExtendAs::Prop(dp) => {
+                    let named = self.rd().prop_named(&self.ar, t, p, dp)?;
+                    let r = self.ar.ref_mut(p);
+                    r.prop = named;
+                    let base = std::mem::replace(&mut r.display, RefDisplay::Written);
+                    r.display = RefDisplay::Prop(Box::new(base), dp);
+                }
+                // An input is not the value it would hold (REF-5, D26).
+                ExtendAs::InputFromValue => {
+                    return Err(Error::InputFromValue {
+                        referent,
+                        referent_type: rt.tag().into(),
+                        component_type: component_type.tag().into(),
+                    });
+                }
+                ExtendAs::NotA(hint) => {
+                    return Err(Error::ExtendNotA {
+                        referent,
+                        referent_type: rt.tag().into(),
+                        component_type: component_type.tag().into(),
+                        hint: hint.map(|h| format!(". {h}")).unwrap_or_default(),
+                    });
+                }
             }
         }
         self.outlined_mut(t).elems[e.index()].extend = Some(p);

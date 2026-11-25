@@ -173,14 +173,14 @@ const RESOLVE_FAILURES: &[Findings] = &[
         "extend-text-as-number",
         r#"<text name="t">a</text><number name="n" extend="$t"/>"#,
         &[
-            "cannot extend a <text> (extend=\"$t\") as a <number>: only related types may differ (a number and a math, an input and its value type)",
+            "cannot extend a <text> (extend=\"$t\") as a <number>: a <text> is not a <number>, and this core cannot make one of it yet",
         ],
     ),
     (
         "extend-text-as-point",
         r#"<text name="t">a</text><point name="p" extend="$t"/>"#,
         &[
-            "cannot extend a <text> (extend=\"$t\") as a <point>: only related types may differ (a number and a math, an input and its value type)",
+            "cannot extend a <text> (extend=\"$t\") as a <point>: a <text> is not a <point>, stands in as none, and converts to none",
         ],
     ),
     (

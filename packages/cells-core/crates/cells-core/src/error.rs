@@ -51,9 +51,11 @@ pub enum Error {
     /// A reference copies a component whose type cannot be copied.
     #[error("cannot copy a <{0}>")]
     UncopyableType(String),
-    /// An element's `extend` names a component of an unrelated type.
+    /// An element's `extend` names a component of another type that the
+    /// build cannot make one of the element's type: a conversion REF-5
+    /// allows that it does not run yet, or a pair only the build sees.
     #[error(
-        "cannot extend a <{referent_type}> (extend=\"${referent}\") as a <{component_type}>: only related types may differ (a number and a math, an input and its value type)"
+        "cannot extend a <{referent_type}> (extend=\"${referent}\") as a <{component_type}>: a <{referent_type}> is not a <{component_type}>, and this core cannot make one of it yet"
     )]
     ExtendTypeMismatch {
         /// The `extend` reference.
@@ -62,6 +64,22 @@ pub enum Error {
         referent_type: String,
         /// The tag of the extending element.
         component_type: String,
+    },
+    /// An element's `extend` names a component no chain of relations makes
+    /// one of the element's type (ADR 0076 §3): which relation is missing,
+    /// and the form that works (DIAG-3).
+    #[error(
+        "cannot extend a <{referent_type}> (extend=\"${referent}\") as a <{component_type}>: a <{referent_type}> is not a <{component_type}>, stands in as none, and converts to none{hint}"
+    )]
+    ExtendNotA {
+        /// The `extend` reference.
+        referent: String,
+        /// The tag of the component it names.
+        referent_type: String,
+        /// The tag of the extending element.
+        component_type: String,
+        /// The form that works, after `. `, or empty.
+        hint: String,
     },
     /// An input's `extend` names a value: an input is not its value (REF-5,
     /// D26; the principles' `doenet-e0062`).

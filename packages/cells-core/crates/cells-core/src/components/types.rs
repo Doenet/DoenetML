@@ -574,3 +574,88 @@ pub fn join(types: &[ComponentType]) -> Option<ComponentType> {
         .into_iter()
         .find(|&s| rest.iter().all(|&t| is_a(t, s)))
 }
+
+impl Conversion {
+    /// Whether the build can make the conversion today: a math as a number
+    /// and back, which is the value either way. The text parse, a point's
+    /// and a vector's entries and the rest of REF-5's table are still the
+    /// build's to refuse (ADR 0076, Migration step 4).
+    pub fn is_built(self) -> bool {
+        matches!(
+            (self.from, self.to),
+            (
+                AuthorType::Tag(ComponentType::Math),
+                AuthorType::Tag(ComponentType::Number)
+            )
+        )
+    }
+}
+
+/// What `<to extend="$x"/>` of an `x` of type `from` is (ADR 0076 §4, a
+/// tag over an extend).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ExtendAs {
+    /// A copy of `x`, or a pair the build decides: the same type, a type
+    /// with no value to read, or a conversion the build cannot make yet.
+    Copy,
+    /// `x`'s value as the element's type: the extend of this prop of `x`.
+    Prop(&'static str),
+    /// An input made from a value it would hold (`doenet-e0062`).
+    InputFromValue,
+    /// No chain connects them: the form that works, if there is one.
+    NotA(Option<String>),
+}
+
+/// What `<to extend="$x"/>` of an `x` of type `from` is, `referent` the
+/// `$x` written.
+pub fn extend_as(from: ComponentType, to: ComponentType, referent: &str) -> ExtendAs {
+    // A referent boxed by an error of its own is the box's to report.
+    if from == to || from.plays(super::Role::Refused) {
+        return ExtendAs::Copy;
+    }
+    let (Some(have), Some(want)) = (AuthorType::of(from), AuthorType::of(to)) else {
+        return ExtendAs::Copy;
+    };
+    let read = |prop: Option<&'static str>| prop.map_or(ExtendAs::Copy, ExtendAs::Prop);
+    match fit(have, want) {
+        Fit::Same => read(from.default_prop()),
+        Fit::StandsIn { prop, then } if then.is_none_or(Conversion::is_built) => read(Some(prop)),
+        Fit::Converts(c) if c.is_built() => read(from.default_prop()),
+        Fit::StandsIn { .. } | Fit::Converts(_) => ExtendAs::Copy,
+        Fit::Mismatch => {
+            // An input whose value `from` would be (REF-5, D26).
+            let value = to.typing().and_then(|t| match t.stands_in {
+                Some(StandsIn::IsItsValue { ty, .. }) => Some(ty),
+                _ => None,
+            });
+            if value.is_some_and(|v| fit(have, AuthorType::Tag(v)) != Fit::Mismatch) {
+                return ExtendAs::InputFromValue;
+            }
+            ExtendAs::NotA(mismatch_hint(from, to, referent))
+        }
+    }
+}
+
+/// The form that works where a `from` is wanted as a `to` (DIAG-3, D47,
+/// D68), with `$x` the reference written.
+fn mismatch_hint(from: ComponentType, to: ComponentType, x: &str) -> Option<String> {
+    use ComponentType as C;
+    let kind = from.typing().map(|t| t.kind);
+    if is_a(to, C::Boolean) {
+        if is_a(from, C::Math) {
+            return Some(format!("to test it, write <boolean>${x} != 0</boolean>"));
+        }
+        if is_a(from, C::Text) {
+            return Some(format!("to test it, write <boolean>${x} = true</boolean>"));
+        }
+    }
+    if is_a(from, C::Boolean) && (is_a(to, C::Number) || is_a(to, C::Math)) {
+        return Some(format!(
+            "to count it as 1 or 0, write <number convertBoolean>${x}</number>"
+        ));
+    }
+    if kind == Some(TypeKind::Content) && is_a(to, C::Text) {
+        return Some(format!("for its text, write <text extend=\"${x}.text\"/>"));
+    }
+    None
+}
