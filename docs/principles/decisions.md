@@ -3910,3 +3910,25 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
    (a tuple, a list, a set).
 
 Implementation: items 2 and 3 with #2677 (PR 68); item 1 with #2676 item 9 (PR 67, #2683).
+
+## D79. An index into a list reads one entry, not the whole list (decided, November 2026; revises #2513's edge)
+
+**Why.** #2685, found converting an activity in use on doenet.org (0.7.30) to 0.8: a
+`<numberList>` whose entries are each made from the earlier ones
+(`<number>$L[1]+1</number>` as entry 2) is `e0005` on `main`, and every reference to it a blank.
+It worked in 0.7. #2513 made an index into a `<mathList>` or `<numberList>` an edge to the whole
+list at load (NAME-7), matching a run time whose entry structure reads every child's value, to
+count the entries a math holding a list gives.
+
+1. **`$L[k]` depends on entry k and on what decides where entry k is:** the children before it
+   whose count of entries can vary (a `<math>`, whose value may be a list, D46.9; a reference to
+   a list or a composite). A `<number>`, a `<text>`, a `<boolean>` or a literal piece of text is
+   one entry whatever its value, so it decides no place.
+2. **So an entry may read an earlier entry of its own list.** A real cycle is still `e0005`:
+   entry 1 reading `$L[2]` while entry 2 reads `$L[1]`, or a `<math>` child reading an entry after
+   it, since its own value then decides where that entry is.
+3. The load-time edge (`referenceCycles.ts`) and the run time's entry structure
+   (`AuthoredValueList.js`) both follow this; `<textList>` and `<booleanList>` already did.
+   PR 69's one `<list>` (D46 part 1, with D46.9's always-merging) must keep it.
+
+Implementation: #2685.

@@ -431,7 +431,10 @@ reading each other are now `e0005` at load.
   `selectWeight` (`MADE_FROM_ATTRIBUTES`), but not what is written in it, so
   `<group name="g">…$g[1]…</group>` stays valid;
 - an index component, an index into a `<mathList>`/`<numberList>`, and an index into a tag
-  written with `extend` (no longer an internal error);
+  written with `extend` (no longer an internal error). **Revised by D79:** an index into a list
+  reads the entry it names and what decides its place, not the whole list, so an entry may read
+  an earlier entry of its own list (`<numberList name="L"><number>3</number><number>$L[1]+1</number></numberList>`
+  is `3, 4`, as in 0.7). **Known violation** (#2685): it is `e0005`, at load and when run;
 - a name every branch declares (`branchReads`). A reference inside a branch reads only its own
   branch's names, so two cases reading each other's names stay valid;
 - a tag whose content is its children (`<p>`, `<div>`, `<section>`, `<li>`, `<title>`;

@@ -171,7 +171,12 @@ Whether a tag is built as a composite or a list component never changes which ki
 (COMP-4).
 
 ### COLL-2: a collection is indexed by item; a name or property after it is its own (Tier 2; D41, D59)
-- **Index:** an item (NAME-2): `$r[2]`, `$r[2].P`, `$pl[1].x`.
+- **Index:** an item (NAME-2): `$r[2]`, `$r[2].P`, `$pl[1].x`. The item reached is the component
+  itself, with all its properties, so what follows an index works as on the item named alone:
+  `$g[2].list[2]` and `$g[2].xs` of a `<mathList>` entry `(3,4)` are `4` and `3, 4`, as
+  `$w.list[2]` and `$w.xs` of a `<math name="w">` are. **Known violation** (#2684): an array
+  property after an index into a list is lost (`$g[2].xs` blank with `w0180`, `$g[2].list` the
+  whole tuple).
 - **Property:** the collection's own, never an item's. Its own properties are `numItems`
   (entries, iterations, picks), the settings every component has (`hide`, `fixed`, `disabled`),
   and the properties the tag declares for itself. `$pl.x` of a `<pointList>` names nothing, with
