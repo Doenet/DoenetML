@@ -402,8 +402,10 @@ impl ComponentType {
                 ("choiceOrder", ListOf(Integer)),
                 ("preliminaryIndex", Is(Integer)),
                 ("selectedIndex", Is(Integer)),
+                ("selectedChoice", Is(Integer)),
+                ("selectedValue", Is(Text)),
             ],
-            Choice => &[],
+            Choice => &[("selected", Is(Boolean))],
             Angle => &[
                 ("radians", Is(Math)),
                 ("degrees", Is(Math)),
@@ -610,6 +612,75 @@ impl ComponentType {
             TestShape => &[("a", Is(Number)), ("b", Is(Number)), ("sum", Is(Number))],
             #[cfg(test)]
             TestList => &[("points", ListOf(Point))],
+        }
+    }
+}
+
+impl PropType {
+    /// The type of `[k]` on a value of this type (ADR 0076 §6): an entry of
+    /// a list; a coordinate of a point or a vector; an entry of a math,
+    /// itself a math. `None` for a type with no entries (a scalar index is
+    /// an error at load, D75).
+    pub fn entry(self) -> Option<PropType> {
+        match self {
+            ListOf(t) => Some(Is(t)),
+            ByElement => Some(ByElement),
+            Code => None,
+            Is(t) if super::is_a(t, C::Point) || super::is_a(t, C::Vector) => Some(Is(C::Number)),
+            Is(t) if super::is_a(t, C::Math) && !super::is_a(t, C::Number) => Some(Is(C::Math)),
+            Is(_) => None,
+        }
+    }
+
+    /// Whether planning's reading of a reference of this type
+    /// (`ValueKind`, read off how the prop is held) is one the type allows
+    /// (ADR 0076 §9): a text held as text; a math, a number or a boolean
+    /// in a number cell or as an expression; a point or a vector as its
+    /// coordinates; a list as a list. A code, and a type the element
+    /// decides, may be held as anything.
+    pub(crate) fn allows(self, kind: crate::compile::api::ValueKind) -> bool {
+        use super::is_a;
+        use crate::compile::api::ValueKind as K;
+        match self {
+            Code | ByElement => true,
+            ListOf(_) => matches!(kind, K::List | K::Point),
+            Is(t) => match kind {
+                K::Text => is_a(t, C::Text),
+                K::Boolean => is_a(t, C::Boolean),
+                K::Math => is_a(t, C::Math),
+                // A number cell: a number, a math held as one, a boolean
+                // held as 0 or 1.
+                K::Number => is_a(t, C::Math) || is_a(t, C::Boolean),
+                K::Point => is_a(t, C::Point) || is_a(t, C::Vector),
+                K::List => false,
+            },
+        }
+    }
+}
+
+impl crate::components::EntryKind {
+    /// The type of an entry of this kind, when the kind is one type.
+    pub fn author_type(self) -> Option<PropType> {
+        use crate::components::EntryKind as E;
+        match self {
+            E::Number => Some(Is(C::Number)),
+            E::Text => Some(Is(C::Text)),
+            E::Boolean => Some(Is(C::Boolean)),
+            E::Math => Some(Is(C::Math)),
+            E::Point => Some(Is(C::Point)),
+            E::Any => None,
+        }
+    }
+}
+
+impl ComponentType {
+    /// The type of the prop `sel` selects on the type: by its name, or a
+    /// coordinate of an item of its list.
+    pub fn sel_type(self, sel: crate::components::PropSel) -> Option<PropType> {
+        use crate::components::{PropAt, PropSel};
+        match sel {
+            PropSel::At(PropAt::Coord(..)) => Some(Is(C::Number)),
+            _ => self.prop_type(&self.sel_name(sel)),
         }
     }
 }

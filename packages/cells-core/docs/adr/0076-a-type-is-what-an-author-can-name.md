@@ -1,7 +1,7 @@
 # A type is what an author can name: one typing stage, three relations, and refinements beneath
 
-Status: proposed 2026-11-25. Migration steps 1 and 2 are done: the
-declarations and `fit`. Replaces the framing of ADR 0064 (its §3, one conversion
+Status: proposed 2026-11-25. Migration steps 1 to 3 are done: the
+declarations, `fit` and the typing stage's reads. Replaces the framing of ADR 0064 (its §3, one conversion
 table, and §4, `PortType::Bool`, become instances of the relations here;
 its §1, §2 and §5 stand). Builds on ADR 0027 (the compile runs in
 stages), ADR 0032 (plans are typed ports), ADR 0041 (every list is a
@@ -377,6 +377,23 @@ Each step leaves the tests passing.
    positions are the same type, not merely related by *is a*.
 3. The typing stage, computing its table and compared against what
    outlining, planning and the seal decide today, reporting nothing.
+   **Done** (2026-11-25) as the stage's reads, a function of what
+   outlining settled and the declarations (`compile/read/types.rs`):
+   every element's type (a composite's by §5: a group of one stands in
+   as it, a choice's branches join at the one type each *is a*), and
+   every reference's, walked along its path through names, iterations,
+   gathered items, picks and interface names (typed over every branch),
+   then the prop and each `[k]` (§6). A place's fit is `Want::fit`.
+   Planning's type question (`ref_value_kind`) asserts in debug builds
+   that the typing stage allows its answer (`PropType::allows`, §9's
+   representations), so every document the suite loads compares the two:
+   about 15,000 comparisons, none disagreeing once a composite's own
+   props (`$c.count` of a `<collect>`) were typed on it rather than on
+   what it holds. The table is filled per reference as it is asked:
+   references are planned while planning, so a table made before it
+   waits for the path walk before planning (Consequences). Not compared:
+   outlining's `ref_target`, which reads an interface name off its first
+   branch, and the seal's port types, which are step 7's assertion.
 4. The stage's diagnostics replace outlining's and planning's, one place
    kind at a time: a tag over an extend, a child, an attribute, a math
    leaf, a condition's operand.

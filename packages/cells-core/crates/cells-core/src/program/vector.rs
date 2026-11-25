@@ -789,7 +789,20 @@ pub enum Reduction {
     /// passing over every other (a missing one, a NaN, an infinity) as
     /// missing data, as the current core does.
     Statistic(Statistic),
+    /// An answer's credit from its awards' (`numAwardsCredited`, ADR
+    /// 0077): the sum of the `k` greatest inputs, a NaN passed over, and 1
+    /// when the sum is within round-off of 1 or more, as the current
+    /// core's `creditAchievedIfSubmit`.
+    TopSum {
+        /// How many awards are credited.
+        k: u8,
+    },
 }
+
+/// How far below 1 an answer's summed credit still counts as 1: the
+/// current core's `CREDIT_ROUNDOFF_TOLERANCE`, so six awards of `1/6`
+/// give full credit.
+pub(crate) const CREDIT_ROUNDOFF: f64 = 1e-12;
 
 /// A statistic of a column of numbers ([`Reduction::Statistic`]), as the
 /// current core's `<summaryStatistics>` computes it: of the finite values
@@ -1056,6 +1069,16 @@ impl Reduction {
                 index as f64
             }
             Reduction::Statistic(stat) => stat.eval(inp),
+            Reduction::TopSum { k } => {
+                let mut v: Vec<f64> = inp.iter().copied().filter(|x| !x.is_nan()).collect();
+                v.sort_by(|a, b| b.total_cmp(a));
+                let sum: f64 = v.iter().take(usize::from(k)).sum();
+                if sum > 1.0 - CREDIT_ROUNDOFF {
+                    1.0
+                } else {
+                    sum
+                }
+            }
             Reduction::Between => match *inp {
                 [x, l1, l2, strict] => {
                     let strict = strict != 0.0 && !strict.is_nan();
@@ -2031,6 +2054,7 @@ impl VecOp {
                     | Reduction::IndexOf
                     | Reduction::SearchSorted { .. }
                     | Reduction::Statistic(_)
+                    | Reduction::TopSum { .. }
             ),
             _ => true,
         }

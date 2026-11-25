@@ -158,3 +158,33 @@ impl ComponentType {
         })
     }
 }
+
+impl PropType {
+    /// The type as [`fit`](super::fit) judges it, when it is one an author
+    /// can name: not a code, nor a type the element decides.
+    pub fn author_type(self) -> Option<super::AuthorType> {
+        match self {
+            PropType::Is(t) => Some(super::AuthorType::Tag(t)),
+            PropType::ListOf(t) => Some(super::AuthorType::List(t)),
+            PropType::ByElement | PropType::Code => None,
+        }
+    }
+}
+
+impl Want {
+    /// How a value of type `have` arriving at a place that wants this fits
+    /// (ADR 0076 §4): `None` where the declarations alone cannot judge (a
+    /// type the element decides, a code, a place that wants another
+    /// place's type) or the place takes no value (a literal, content, a
+    /// component).
+    pub fn fit(self, have: PropType) -> Option<super::Fit> {
+        match self {
+            Want::Value(want) => Some(super::fit(have.author_type()?, want.author_type()?)),
+            Want::Literal(_)
+            | Want::SameAs(_)
+            | Want::Component(_)
+            | Want::Content
+            | Want::Nothing => None,
+        }
+    }
+}

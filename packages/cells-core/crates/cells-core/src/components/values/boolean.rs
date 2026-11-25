@@ -19,6 +19,8 @@ component! {
     value: Boolean,
     props {
         value: children { rendered },
+        // Shown neither drawn nor in its parent's text, as a `<text>`'s.
+        hide: display,
     }
     children: Value,
     planner: Plan(plan),

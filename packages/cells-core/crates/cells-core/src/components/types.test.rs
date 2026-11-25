@@ -818,3 +818,37 @@ fn the_export_holds_every_type() {
     );
     assert!(all["internal"]["BoundMatrixInput"].is_object());
 }
+
+#[test]
+fn a_value_at_a_place_fits_as_the_place_wants() {
+    use PropType::*;
+    let at = |t: ComponentType, p| t.wants(p).unwrap();
+    // `hide="$n"`: a number where a boolean is wanted (D47).
+    assert_eq!(
+        at(C::Point, Place::Attr("hide")).fit(Is(C::Number)),
+        Some(Fit::Mismatch)
+    );
+    assert_eq!(
+        at(C::Point, Place::Attr("hide")).fit(Is(C::Boolean)),
+        Some(Fit::Same)
+    );
+    // `<number>$m</number>`: a math converts.
+    assert!(matches!(
+        at(C::Number, Place::Children).fit(Is(C::Math)),
+        Some(Fit::Converts(_))
+    ));
+    // `<boolean>$n</boolean>`.
+    assert_eq!(
+        at(C::Boolean, Place::Children).fit(Is(C::Number)),
+        Some(Fit::Mismatch)
+    );
+    // A list from its scalar.
+    assert!(matches!(
+        at(C::NumberList, Place::Children).fit(Is(C::Integer)),
+        Some(Fit::Converts(_))
+    ));
+    // A literal takes no reference; a type the element decides is not
+    // judged here.
+    assert_eq!(at(C::Point, Place::Attr("hide")).fit(Code), None);
+    assert_eq!(at(C::Sort, Place::Children).fit(Is(C::Number)), None);
+}

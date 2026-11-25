@@ -563,3 +563,14 @@ pub use export::export;
 #[cfg(test)]
 #[path = "types.test.rs"]
 mod tests;
+
+/// The type of a composite whose branches may be any of `types` (ADR 0076
+/// §5): the one type every branch *is a*, if there is one. A number beside
+/// a math is a math; a point beside a vector is no type, though each
+/// converts to the other.
+pub fn join(types: &[ComponentType]) -> Option<ComponentType> {
+    let (&first, rest) = types.split_first()?;
+    supertypes(first)
+        .into_iter()
+        .find(|&s| rest.iter().all(|&t| is_a(t, s)))
+}
