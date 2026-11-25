@@ -271,7 +271,10 @@ error:
   `<group>$m</group>{:dn}` for a group holding it, or
   `<math extend="$m"/>{:dn}` for the same math again. A property or an entry
   of a list counts as the component it gives, so `<group extend="$m.value"/>{:dn}`
-  and `<group extend="$ml[1]"/>{:dn}` are errors too;
+  and `<group extend="$ml[1]"/>{:dn}` are errors too. So is a
+  `<selectFromSequence>`, `<selectRandomNumbers>` or another chooser that picks
+  one value, as `<group extend="$s"/>{:dn}` of a `<selectFromSequence>` picking
+  one number: it stands for that number;
 * a collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
   `<sort>`, a `<shuffle>` or a `<select>` that picks several:
   `<group extend="$r"/>{:dn}` of a `<repeat>` is an error. Write
@@ -324,9 +327,13 @@ A single tag made from a list, such as `<math extend="$ml"/>{:dn}`, needs the
 list to hold one entry, and is an error when it holds another number. So is one
 made from a composite holding a list whose entries are written out, such as an
 iteration of `<repeat name="r" for="1">$ml</repeat>{:dn}` with
-`<mathList name="ml">1 2 3</mathList>{:dn}`, `<math extend="$r[1]"/>{:dn}`. When
-the list's `maxNumber` is a value, such as `maxNumber="$n"`, the tag is
-missing instead while the list doesn't hold one entry (see
+`<mathList name="ml">1 2 3</mathList>{:dn}`, `<math extend="$r[1]"/>{:dn}`, or
+holding a list of those entries, `<mathList>$ml</mathList>{:dn}` or
+`<mathList extend="$ml"/>{:dn}`. A list of one entry stands for it there, as
+it does made directly. When the list's `maxNumber` is a value, such as
+`maxNumber="$n"`, or a value decides how many entries it holds, such as
+`<mathList>$a 2</mathList>{:dn}` held in an iteration, the tag is missing
+instead while the list doesn't hold one entry (see
 [below](#what-still-changes-as-the-document-runs)).
 
 Anything else is an error, shown in place of the tag, whose message says what
@@ -421,7 +428,15 @@ Other errors, each with the form to write instead:
   `<collect>`, a `<sort>` or a `<sequence>`, can be made only from another of
   the same tag: `<repeat extend="$n"/>{:dn}` of a `<number>`, or
   `<repeat extend="$r[1]"/>{:dn}` of an iteration, is an error. Write `$n` to
-  show it as it is;
+  show it as it is. It is made only from a reference that always names the
+  same written tag of its kind: `$r`, `$sec.r`, `$g.r`, or `$outer[2].inner`
+  of a repeat in each iteration of another. A reference through a
+  `<conditionalContent>` or a `<select>`, which can name a different one, or
+  none, as what is shown changes, is an error, as
+  `<repeat extend="$cc.r"/>{:dn}` with a repeat named `r` in a case of a
+  `<conditionalContent>`, even in one case only, `<repeat extend="$cc"/>{:dn}`,
+  or `$s.r` with one in an option of a `<select>` that picks one. Write
+  `$cc.r` to show the repeat the case shown holds;
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write
@@ -455,7 +470,9 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **How many entries a value lets a list hold.** `<math extend="$ml"/>{:dn}`
   of `<mathList name="ml" maxNumber="$n">1 2</mathList>{:dn}` is missing while
   `n` keeps the list from holding one entry, and is made from that entry when
-  it holds one.
+  it holds one. So is `<math extend="$r[1]"/>{:dn}` of an iteration holding
+  `<mathList><sequence length="$n"/></mathList>{:dn}`, with a warning in
+  place of the info.
 
 While the info lasts there is one, naming the value as it is now, and none for a
 tag in content that isn't there now, such as a case that isn't chosen. A `copy`

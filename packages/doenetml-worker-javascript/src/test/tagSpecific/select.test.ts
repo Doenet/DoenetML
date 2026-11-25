@@ -2468,11 +2468,11 @@ describe("Select tag tests @group2", async () => {
     <p>Copy whole select again</p>
     <p><asList name="list2"><select extend="$o" name="o2" /></asList></p>
 
-    <p>Copy individual selections</p>
+    <p>Show individual selections</p>
     <p><asList name="list3">
-    <repeat extend="$o[1].r" name="j2" />
-    <repeat extend="$o[2].r" name="k2" />
-    <repeat extend="$o[3].r" name="l2" />
+    $o[1].r
+    $o[2].r
+    $o[3].r
     </asList></p>
 
     <p>Copy individual pieces</p>
