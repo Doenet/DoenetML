@@ -7,7 +7,7 @@
 //! one), and [`fit`] is the one judgment of a value of one type where
 //! another is wanted. Nothing reads either yet: they sit beside the flags
 //! they replace (`reads_as`, `extends_as`, `extend_reads`,
-//! `input_from_value`, [`EntryKind`], [`TextKind`], [`ResponseKind`]), and
+//! `input_from_value`, [`EntryKind`](crate::components::EntryKind), [`TextKind`](crate::components::TextKind), [`ResponseKind`](crate::components::ResponseKind)), and
 //! this module's tests hold the two in agreement (ADR 0076, Migration steps
 //! 1 and 2). Anything finer the core knows about a value (its
 //! representation, whether it is numeric now, how many entries it has) is
