@@ -673,6 +673,78 @@ describe("A tag that makes its own content is made only from a reference that al
         ]);
     });
 
+    it("an index past the picks of a select in each case is w0181, also through a copy or an iteration", async () => {
+        const several = (a: string, b: string) =>
+            `<select name="s" numToSelect="2"><option>${a}</option><option>${b}</option></select>`;
+        const inCases = cc(several(rA, rB), several(rB, rA));
+        for (const [before, source] of [
+            [inCases, "$cc.s[3].r"],
+            [
+                `<section name="sec">${inCases}</section><section name="sec2" copy="$sec"/>`,
+                "$sec2.cc.s[3].r",
+            ],
+            [
+                `<booleanInput name="b"/><repeat name="outer" for="1 2"><conditionalContent name="cc"><case condition="$b">${several(rA, rB)}</case><else>${several(rB, rA)}</else></conditionalContent></repeat>`,
+                "$outer[1].cc.s[3].r",
+            ],
+        ]) {
+            const d = await load(
+                `${before}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
+            );
+            expect(d.diagnostics()).eqls([
+                `doenet-w0181: \`${source}\`: the \`<select>\` made only 2 picks.`,
+            ]);
+        }
+    });
+
+    it("a name its component in the branches doesn't hold names nothing, as before", async () => {
+        const sections = (tag: string) =>
+            [rA, rB].map(
+                (r) => `<${tag}><section name="x">${r}</section></${tag}>`,
+            );
+        for (const [before, source] of [
+            [
+                cc(
+                    `<section name="x">${rA}</section>`,
+                    `<section name="x">${rB}</section>`,
+                ),
+                "$cc.x.y",
+            ],
+            [
+                `<select name="s" numToSelect="2">${sections("option").join("")}</select>`,
+                "$s[2].x.y",
+            ],
+        ]) {
+            const d = await load(
+                `<text name="y">t</text>${before}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
+            );
+            expect(d.diagnostics()).eqls([
+                `doenet-w0104: No referent found for reference: \`${source}\``,
+            ]);
+        }
+    });
+
+    it("a property after a name in the branches is the branch error, whatever the resolver leaves the names to", async () => {
+        const sec = (inside: string) =>
+            `<section name="sec">${inside}</section><section name="sec2" copy="$sec"/>`;
+        for (const [before, source, branch] of [
+            [cc(rA, rB), "$cc.r.hidden", "case shown"],
+            [sec(cc(rA, rB)), "$sec2.cc.r.hidden", "case shown"],
+            [
+                sec(
+                    `<select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select>`,
+                ),
+                "$sec2.s[2].r.hidden",
+                "option picked",
+            ],
+        ] as const) {
+            const d = await load(
+                `${before}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
+            );
+            expect(d.diagnostics()).eqls([shown("repeat", source, branch)]);
+        }
+    });
+
     it("a property of a conditionalContent is e0071 as a value, as before", async () => {
         const d = await load(
             `${cc(rA, rB)}<p name="p"><repeat name="r2" extend="$cc.hidden"/></p>`,

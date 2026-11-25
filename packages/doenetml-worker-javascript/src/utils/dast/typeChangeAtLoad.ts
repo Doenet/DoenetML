@@ -3154,20 +3154,31 @@ export function checkTypeChangesAtLoad({
         if (!ref || ref.nodeIdx < 0) {
             return undefined;
         }
-        const path = ref.unresolvedPath ?? [];
+        return boundsAt(
+            ref.nodeIdx,
+            ref.unresolvedPath ?? [],
+            new Set([copy.componentIdx]),
+        );
+    }
+
+    /**
+     * The error (`doenet-w0181`) for the names and indices `path` that are
+     * left after the component `nodeIdx`, as `literalBounds` finds it for a
+     * reference (`$s[3].x`, `$h[2].x`), or `undefined`. Asked also at a
+     * component a reference reaches only through a copy or an iteration
+     * (`$sec2.s[3].x`, `$outer[1].cc.s[3].x`, `branchSourceError`), where
+     * the resolver leaves the names to the copy or the repeat. `seen` holds
+     * the components already on the way (`namedHolder`).
+     */
+    function boundsAt(nodeIdx: number, path: any[], seen: Set<number>) {
         const indexed = isIndexIntoPicks(path);
-        const seen = new Set([copy.componentIdx]);
         if (indexed) {
-            const instance = indexedInstance(
-                ref.nodeIdx,
-                path[0].index[0],
-                seen,
-            );
+            const instance = indexedInstance(nodeIdx, path[0].index[0], seen);
             if (instance && "bounds" in instance) {
                 return instance.bounds;
             }
         }
-        const container = branchContainerAt(ref.nodeIdx, indexed);
+        const container = branchContainerAt(nodeIdx, indexed);
         if (!container) {
             return undefined;
         }
@@ -3450,7 +3461,8 @@ export function checkTypeChangesAtLoad({
      * (`$cc`), or that reaches through one (`$cc.r`, `$s.r`), or through
      * the picks of any `<select>` (`$s[2].r`), also where the resolver
      * leaves the names to an iteration (`$outer[1].cc`, `$outer[1].cc.r`)
-     * or a copy (`$sec2.cc.r`) holding one (`branchOnTheWay`). Such a tag
+     * or a copy (`$sec2.cc.r`) holding one, decided by the same rules at each
+     * component on the way (`throughBranch`). Such a tag
      * is made only from a reference that always names the same written tag
      * of its kind, so this is `doenet-e0071`, worded for what is shown
      * (`sourceIs` `branch`), decided when the document loads (DIAG-7). Not
@@ -3483,8 +3495,6 @@ export function checkTypeChangesAtLoad({
         if (!ref || ref.nodeIdx < 0) {
             return undefined;
         }
-        const path = ref.unresolvedPath ?? [];
-        let branch: "case" | "option" | undefined;
         /**
          * Whether the component at `idx` is of a tag the DoenetML gives
          * other than `writtenType` (a `<conditionalContent>` for a
@@ -3503,12 +3513,28 @@ export function checkTypeChangesAtLoad({
             );
         };
         /**
+         * The names of the document at the start of `parts` that a branch
+         * container they reach into must hold (`namedThrough`): those up to
+         * the first written with an index (`s` of `$cc.s[2].r`, whose
+         * picks are looked into only when it is reached), and not a
+         * property after them (`r` of `$cc.r.hidden`), as `leadingNames`
+         * reads them. The first is always one, as a property of the
+         * container (`$cc.hidden`) is told apart by not being held.
+         */
+        const namesHeld = (parts: any[]) => {
+            const { names } = leadingNames(parts, true);
+            const at = names.indexOf(INDEX);
+            return at < 0 ? names : names.slice(0, at);
+        };
+        /**
          * Whether the names `names` are written in the branches of the
          * container `container` (one may be in one branch only): a
          * container on the way that doesn't hold them (a
          * `<conditionalContent>` beside the section holding the name) is
          * not what the reference names through, nor is one whose own
-         * property the name is (`$cc.hidden`). When `visibleNamed` can't
+         * property the name is (`$cc.hidden`), nor one whose branches hold
+         * the first name but not the next (`$cc.x.y` of a section `x`
+         * holding no `y`, which names nothing). When `visibleNamed` can't
          * tell (`null`) for all the names, as for a name after a copy in a
          * branch (`$cc.y.r` of `<section name="y" copy="$s0"/>`), the first
          * decides; when it can't tell for that either (branches it doesn't
@@ -3591,232 +3617,190 @@ export function checkTypeChangesAtLoad({
                 });
             return within(container.children ?? []);
         };
+        const isRepeat = (idx: number) =>
+            ["repeat", "repeatForSequence"].includes(
+                referents.referentType(idx) ?? "",
+            );
         /**
-         * The branch container the names `parts` reach through from the
-         * component at `startIdx`, which the resolver left them to (an
-         * iteration of a repeat, `$outer[1].cc.r`, or a copy, `$sec2.cc.r`
-         * of `<section name="sec2" copy="$sec"/>`), when the names are written
-         * in its branches (`namedThrough`), or that the names name, when it
-         * is of another tag (`$outer[1].cc`, as `$cc`): its kind, or
-         * `undefined`. A container named on the way (`cc`) or one not
-         * named holding the names (`$outer[1].r` of a repeat in each case
-         * of an unnamed `<conditionalContent>`) counts; names inside a
-         * repeat or the options of a select written there are private, so
-         * are looked in only after an index into it, as from outside
-         * (`$sec2.s[2].r`, `$outer[1].inner[1].r`); and not when the names
-         * are not all names of the document (`$sec2.cc.value`).
+         * What the component at `idx` holds: its children, and, for a
+         * copy, those of what it copies (`<section name="sec2"
+         * copy="$sec"/>`, or the template of a repeat a copy of one copies),
+         * as the names the resolver leaves to the copy are found there.
          */
-        const branchOnTheWay = (startIdx: number, parts: any[]) => {
-            if (
-                !parts.every(
-                    (part: any) =>
-                        typeof part.name === "string" &&
-                        allNames.has(part.name) &&
-                        (part.index ?? []).length <= 1,
-                )
+        const contentOf = (idx: number) => {
+            const node =
+                referents.componentsByIdx.get(idx) ??
+                referents.copiesByCreatedIdx.get(idx);
+            const content = [...(node?.children ?? [])];
+            const visited = new Set<number>();
+            let current: SerializedComponent | undefined = node;
+            while (
+                current?.componentType === "_copy" &&
+                !visited.has(current.componentIdx)
             ) {
+                visited.add(current.componentIdx);
+                const copied = refOf(current);
+                if (
+                    !copied ||
+                    copied.nodeIdx < 0 ||
+                    (copied.unresolvedPath ?? []).length > 0
+                ) {
+                    break;
+                }
+                current =
+                    referents.componentsByIdx.get(copied.nodeIdx) ??
+                    referents.copiesByCreatedIdx.get(copied.nodeIdx);
+                content.push(...(current?.children ?? []));
+            }
+            return content;
+        };
+        /**
+         * The kind of branch (`case`, `option`) the path parts `parts` reach
+         * through from the component at `idx`, which the reference, or a
+         * name or an index before them, names, or `undefined` when they
+         * always name the same written tag, or name nothing. The same rules
+         * hold at the component the resolver stops at (`$cc.r`, `cc` with
+         * `r` left) and at each the names reach after it, where the
+         * resolver leaves them to an iteration (`$outer[1].cc.r`) or a copy
+         * (`$sec2.cc.r` of `<section name="sec2" copy="$sec"/>`):
+         *
+         * - with nothing left, a branch container of another tag (`$cc`,
+         *   `$outer[1].cc`) is the error, as what it shows is;
+         * - an index past what a selector picks (`$s[3].r`, `$sec2.s[3].r`,
+         *   `$cc.s[3].r` of a select of two in each case) names nothing
+         *   whatever the branches hold (`doenet-w0181`, `boundsAt`), and
+         *   is decided as before;
+         * - an index into the iterations of a repeat looks for the names in
+         *   its template (`$outer[1].cc.r`), and one into the picks of a
+         *   `<select>` of several (`$s[2].r`) reaches into its options,
+         *   when the names after it are held there (`namedThrough`), not a
+         *   property of the pick (`$s[2].hidden`); an index into what a
+         *   `<conditionalContent>` or a select that picks one shows
+         *   (`$cc[1].r`, D72) is decided as before;
+         * - names after a branch container (`$cc.r`, `$s.r`) reach into its
+         *   branches when they are held there; a property of the container
+         *   (`$cc.hidden`) is decided as before;
+         * - names after a repeat with no index name nothing outside it;
+         * - names after any other component (a copy, `$sec2.r`) are looked
+         *   for in what it holds (`within`).
+         */
+        const throughBranch = (
+            idx: number,
+            parts: any[],
+        ): "case" | "option" | undefined => {
+            if (parts.length === 0) {
+                const container = branchContainerAt(idx);
+                return container && isOtherTag(idx)
+                    ? branchKind(container)
+                    : undefined;
+            }
+            if (boundsAt(idx, parts, new Set([copy.componentIdx]))) {
                 return undefined;
             }
-            // its children, and, for a copy, those of what it copies
-            const contentOf = (node: SerializedComponent) => {
-                const content = [...(node.children ?? [])];
-                const visited = new Set<number>();
-                let current: SerializedComponent | undefined = node;
-                while (
-                    current?.componentType === "_copy" &&
-                    !visited.has(current.componentIdx)
+            const [first, ...rest] = parts;
+            if (first.name === "") {
+                if (
+                    (first.index ?? []).length !== 1 ||
+                    typeof rest[0]?.name !== "string" ||
+                    rest[0].name === ""
                 ) {
-                    visited.add(current.componentIdx);
-                    const copied = refOf(current);
-                    if (
-                        !copied ||
-                        copied.nodeIdx < 0 ||
-                        (copied.unresolvedPath ?? []).length > 0
-                    ) {
-                        break;
-                    }
-                    current =
-                        referents.componentsByIdx.get(copied.nodeIdx) ??
-                        referents.copiesByCreatedIdx.get(copied.nodeIdx);
-                    content.push(...(current?.children ?? []));
+                    return undefined;
                 }
-                return content;
-            };
-            // the names a branch container on the way must hold: those up
-            // to the first with an index (`s` of `s[2].r`)
-            const leading = (parts: any[]) => {
-                const at = parts.findIndex(
-                    (part: any) => (part.index ?? []).length > 0,
-                );
-                return (at < 0 ? parts : parts.slice(0, at + 1)).map(
-                    (part: any) => part.name as string,
-                );
-            };
-            const search = (
-                components: (SerializedComponent | string)[],
-                parts: any[],
-            ): "case" | "option" | undefined => {
-                const [first, ...rest] = parts;
-                for (const component of components) {
-                    if (typeof component !== "object") {
-                        continue;
-                    }
-                    const attributes = component.attributes ?? {};
-                    const isNamed =
-                        literalText(attributes.name) === first.name ||
-                        literalText(attributes._createComponentName) ===
-                            first.name;
-                    const type =
-                        component.componentType === "_copy"
-                            ? canonicalType(
-                                  literalText(
-                                      attributes._createComponentOfType,
-                                  ),
-                              )
-                            : component.componentType;
-                    if (isNamed && (first.index ?? []).length > 0) {
-                        // an index into what it names, then names
-                        if (rest.length === 0) {
-                            return undefined;
-                        }
-                        if (type === "repeat" || type === "repeatForSequence") {
-                            // the names after it, in an iteration
-                            return search(contentOf(component), rest);
-                        }
-                        // into the picks of a select of several
-                        // (`$s[2].r`), unless past them (`doenet-w0181`, as
-                        // `literalBounds`); an index into what a
-                        // `<conditionalContent>` or a select that picks one
-                        // shows is decided as before (`$s[1].r`)
-                        const container = branchContainerAt(
-                            component.componentIdx,
-                            true,
-                        );
-                        const instance = indexedInstance(
-                            component.componentIdx,
-                            first.index[0],
-                            new Set(),
-                        );
-                        return type === "select" &&
-                            container &&
-                            !branchContainerAt(component.componentIdx) &&
-                            !(instance && "bounds" in instance) &&
-                            namedThrough(
-                                container,
-                                leading(rest),
-                                allNames.has(rest[0].name),
-                            )
-                            ? branchKind(container, true)
-                            : undefined;
-                    }
-                    if (isNamed && parts.length === 1) {
-                        // the container itself (`$outer[1].cc`,
-                        // `$sec2.cc`), as `$cc`
-                        const container = branchContainerAt(
-                            component.componentIdx,
-                        );
-                        if (container && isOtherTag(component.componentIdx)) {
-                            return branchKind(container);
-                        }
-                        continue;
-                    }
-                    const after = isNamed ? rest : parts;
-                    const container = branchContainerAt(component.componentIdx);
-                    if (container) {
-                        // when its branches can't be read, counted as
-                        // the direct route counts it (`$cc.r`) if the
-                        // reference names it and the name is written in
-                        // it (`namedThrough`), and not otherwise: the
-                        // names may be written beside it
-                        // (`$outer[1].inner`)
-                        if (
-                            namedThrough(
-                                container,
-                                leading(after),
-                                isNamed && allNames.has(after[0].name),
-                            )
-                        ) {
-                            return branchKind(container);
-                        }
-                        continue;
-                    }
-                    if (
-                        [
-                            "repeat",
-                            "repeatForSequence",
-                            "select",
-                            "option",
-                        ].includes(type ?? "")
-                    ) {
-                        continue;
-                    }
-                    const found = search(contentOf(component), after);
+                if (isRepeat(idx)) {
+                    return within(contentOf(idx), rest);
+                }
+                const container = branchContainerAt(idx, true);
+                return container &&
+                    !branchContainerAt(idx) &&
+                    namedThrough(
+                        container,
+                        namesHeld(rest),
+                        allNames.has(rest[0].name),
+                    )
+                    ? branchKind(container, true)
+                    : undefined;
+            }
+            if (typeof first.name !== "string") {
+                return undefined;
+            }
+            const container = branchContainerAt(idx);
+            if (container) {
+                return namedThrough(
+                    container,
+                    namesHeld(parts),
+                    allNames.has(first.name),
+                )
+                    ? branchKind(container)
+                    : undefined;
+            }
+            return isRepeat(idx) ? undefined : within(contentOf(idx), parts);
+        };
+        /**
+         * The kind of branch the names `parts` reach through from among
+         * `components`, what a copy or an iteration holds, as a reference
+         * from outside them finds the first name: the component of that
+         * name decides what follows it (`throughBranch`, its index, if
+         * written, first, `$sec2.s[2].r`). A branch container on the way,
+         * named or not, counts when its branches hold the names (`r` of
+         * `$outer[1].r` in each case of an unnamed `<conditionalContent>`);
+         * its own name is a name the reference would write. When its
+         * branches can't be read, it counts only as the reference naming
+         * it does (`namedThrough`): the names may be written beside it.
+         * Names in a repeat or the options of a select written there are
+         * private, so are not looked for in them.
+         */
+        const within = (
+            components: (SerializedComponent | string)[],
+            parts: any[],
+        ): "case" | "option" | undefined => {
+            const [first, ...rest] = parts;
+            for (const component of components) {
+                if (typeof component !== "object") {
+                    continue;
+                }
+                const attributes = component.attributes ?? {};
+                if (
+                    literalText(attributes.name) === first.name ||
+                    literalText(attributes._createComponentName) === first.name
+                ) {
+                    const found = throughBranch(
+                        component.componentIdx,
+                        (first.index ?? []).length > 0
+                            ? [{ name: "", index: first.index }, ...rest]
+                            : rest,
+                    );
                     if (found) {
                         return found;
                     }
+                    continue;
                 }
-                return undefined;
-            };
-            const start =
-                referents.componentsByIdx.get(startIdx) ??
-                referents.copiesByCreatedIdx.get(startIdx);
-            return start && parts.length > 0
-                ? search(contentOf(start), parts)
-                : undefined;
-        };
-        if (path.length === 0) {
-            if (!isOtherTag(ref.nodeIdx)) {
-                return undefined;
+                const container = branchContainerAt(component.componentIdx);
+                if (container) {
+                    if (namedThrough(container, namesHeld(parts), false)) {
+                        return branchKind(container);
+                    }
+                    continue;
+                }
+                if (
+                    [
+                        "repeat",
+                        "repeatForSequence",
+                        "select",
+                        "option",
+                    ].includes(
+                        referents.referentType(component.componentIdx) ?? "",
+                    )
+                ) {
+                    continue;
+                }
+                const found = within(contentOf(component.componentIdx), parts);
+                if (found) {
+                    return found;
+                }
             }
-            const container = branchContainerAt(ref.nodeIdx);
-            branch = container && branchKind(container);
-        } else if (literalBounds(copy)) {
-            // an index past the picks (`$s[3].r` of a select of two) names
-            // nothing whatever the branches hold (`doenet-w0181`, at run
-            // time, as before)
             return undefined;
-        } else if (isIndexIntoPicks(path)) {
-            // names after an index into the picks of a select
-            // (`$s[2].r`), or into what a `<conditionalContent>` shows, not
-            // a property of the pick (`$s[2].hidden`), decided as before
-            const container = branchContainerAt(ref.nodeIdx, true);
-            branch = container
-                ? typeof path[1].name === "string" &&
-                  namedThrough(
-                      container,
-                      [path[1].name],
-                      allNames.has(path[1].name),
-                  )
-                    ? branchKind(container, true)
-                    : undefined
-                : ["repeat", "repeatForSequence"].includes(
-                        referents.referentType(ref.nodeIdx) ?? "",
-                    )
-                  ? // names in an iteration (`$outer[1].cc.r`)
-                    branchOnTheWay(ref.nodeIdx, path.slice(1))
-                  : undefined;
-        } else if (typeof path[0].name === "string" && path[0].name !== "") {
-            // names in the branches (`$cc.r`, `$s.r`), not a property of
-            // the container (`$cc.hidden`), decided as before
-            const container = branchContainerAt(ref.nodeIdx);
-            branch = container
-                ? // in branches it doesn't read, a name written in the
-                  // container may be (`namedThrough`); a property
-                  // (`$cc.hidden`) is not
-                  namedThrough(
-                      container,
-                      [path[0].name],
-                      allNames.has(path[0].name),
-                  )
-                    ? branchKind(container)
-                    : undefined
-                : ["repeat", "repeatForSequence"].includes(
-                        referents.referentType(ref.nodeIdx) ?? "",
-                    )
-                  ? undefined
-                  : // names in a copy (`$sec2.cc.r` of a copy of a section)
-                    branchOnTheWay(ref.nodeIdx, path);
-        }
+        };
+        const branch = throughBranch(ref.nodeIdx, ref.unresolvedPath ?? []);
         if (!branch) {
             return undefined;
         }
