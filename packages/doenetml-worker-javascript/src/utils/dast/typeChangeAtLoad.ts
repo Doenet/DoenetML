@@ -1179,7 +1179,15 @@ export function checkTypeChangesAtLoad({
         const start =
             referents.componentsByIdx.get(nodeIdx) ??
             referents.copiesByCreatedIdx.get(nodeIdx);
-        let nodes: SerializedComponent[] = start ? [start] : [];
+        return start ? descendantsNamedIn(start, path) : [];
+    }
+
+    /** `descendantsNamed`, of the component `start`. */
+    function descendantsNamedIn(
+        start: SerializedComponent,
+        path: any[],
+    ): SerializedComponent[] | null {
+        let nodes: SerializedComponent[] = [start];
         for (const part of path) {
             if (part.name === "" || (part.index ?? []).length > 0) {
                 return [];
@@ -4820,10 +4828,8 @@ export function checkTypeChangesAtLoad({
         if (at < 0 || names.slice(0, at + 1).some((part) => !part.name)) {
             return undefined;
         }
-        const named = descendantsNamed(ref.nodeIdx, [
-            ...names.slice(0, at),
-            { ...names[at], index: [] },
-        ]);
+        const lookup = [...names.slice(0, at), { ...names[at], index: [] }];
+        let named = descendantsNamed(ref.nodeIdx, lookup);
         if (!named || named.length === 0) {
             return undefined;
         }
@@ -4846,15 +4852,38 @@ export function checkTypeChangesAtLoad({
                     : start.componentType === "select"
                       ? "option"
                       : undefined;
-            const expected = kind ? partsOf(start, kind)?.length : 1;
-            if (named.length !== expected) {
-                return undefined;
+            if (!kind) {
+                if (named.length !== 1) {
+                    return undefined;
+                }
+            } else {
+                // each case or option counted once (two `<option
+                // copy="$o"/>` are one option written), and holding one
+                const parts = partsOf(start, kind);
+                if (!parts) {
+                    return undefined;
+                }
+                const counted = new Set<number>();
+                const inEach: SerializedComponent[] = [];
+                for (const { part } of parts) {
+                    if (counted.has(part.componentIdx)) {
+                        continue;
+                    }
+                    counted.add(part.componentIdx);
+                    const inPart = descendantsNamedIn(part, lookup);
+                    if (!inPart || inPart.length !== 1) {
+                        return undefined;
+                    }
+                    inEach.push(...inPart);
+                }
+                named = [...new Set(inEach)];
             }
         }
+        const [firstNamed] = named;
         if (
             named.some(
                 (node) =>
-                    node.componentType !== named[0].componentType ||
+                    node.componentType !== firstNamed.componentType ||
                     (node.componentType !== "conditionalContent" &&
                         !node.doenetAttributes?.onePick),
             )

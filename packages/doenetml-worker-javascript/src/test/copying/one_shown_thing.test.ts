@@ -326,6 +326,14 @@ describe("A reference whose meaning depends on the branch shown is an error (D74
         expect(await d.typeOf("e")).eq("_error");
     });
 
+    it("an index after one named in an option copied into each option", async () => {
+        // both options are copies of `o`, which holds `cc` once
+        const d = await load(
+            `<booleanInput name="b"/><option name="o"><conditionalContent name="cc"><case condition="$b"><math>1</math><math>2</math></case><else><math>(3,4)</math></else></conditionalContent></option><select name="s"><option copy="$o"/><option copy="$o"/></select><p name="p">$s.cc[1]</p>`,
+        );
+        expect(d.codes()).eqls(["doenet-e0095"]);
+    });
+
     it("a name inside the cases of one type, and an index into one type, are fine", async () => {
         const d = await load(
             `${cc('<math name="x">(1,2)</math>', '<math name="x">(3,4)</math>')}<p name="p">$cc.x $cc[1]</p>`,
