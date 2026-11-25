@@ -13,7 +13,7 @@ component! {
     /// section is (`number`, an aggregate). The renderer reads
     /// `startOpen`; the parser, `postponeRendering`.
     tags: ["aside"],
-    flags: [container],
+    flags: [container, style_scope],
     numbered: Titled(includeParentNumber, label, title_word),
     props {
         number: aggregate(Count, SectionsThrough) { rendered },

@@ -47,6 +47,8 @@ component! {
         interactive: true,
         rendered: true,
     }
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth, fillOpacity, fillPatternOpacity, fillStyle }
     attributes {
         through: Points,
         parMin: Scalar,

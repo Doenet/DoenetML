@@ -50,6 +50,8 @@ component! {
         // An endpoint drag requests one, a whole-segment drag both.
         interactive: true,
     }
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     sticky: Shape::Open,
     // A point constrained to a segment is projected onto its line (as
     // the current core's segment is not yet clamped here).

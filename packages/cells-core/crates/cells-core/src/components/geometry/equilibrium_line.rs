@@ -38,7 +38,7 @@ component! {
     }
     // Whether a click switches it: read by the renderer from the literal
     // attribute.
-    presentation { switchable }
+    presentation { switchable, lineWidth }
     // A point constrained to it is projected onto it.
     constrain_target { ports: [x1, y1, x2, y2], shape: Line }
     attributes {

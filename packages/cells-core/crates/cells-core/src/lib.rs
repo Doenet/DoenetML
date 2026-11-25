@@ -109,6 +109,7 @@ pub(crate) mod limits;
 mod profile;
 pub mod program;
 pub mod session;
+mod style;
 pub mod sym;
 #[cfg(feature = "testing")]
 pub mod testing;

@@ -192,6 +192,9 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | StyleDefinition
+            | StylePalette
+            | StyleDefinitions
             | VariantControl
             | Title
             | Ref
@@ -285,7 +288,11 @@ impl ComponentType {
                 ("source", Is(Text)),
             ],
 
-            Graph => &[],
+            Graph => &[
+                ("xScale", Is(Number)),
+                ("yScale", Is(Number)),
+                ("aspectRatio", Is(Number)),
+            ],
             StickyGroup => &[
                 ("threshold", Is(Number)),
                 ("relativeToGraphScales", Is(Boolean)),

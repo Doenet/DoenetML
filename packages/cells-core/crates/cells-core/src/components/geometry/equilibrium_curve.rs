@@ -40,7 +40,7 @@ component! {
     }
     // Whether a click switches it: read by the renderer from the
     // literal attribute.
-    presentation { switchable }
+    presentation { switchable, lineWidth, fillOpacity, fillPatternOpacity, fillStyle }
     attributes {
         through: Points,
         parMin: Scalar,

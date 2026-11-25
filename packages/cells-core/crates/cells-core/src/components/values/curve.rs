@@ -96,6 +96,8 @@ component! {
     // A point constrained to a function rides its graph: `x` is what was
     // asked, held in the domain, and `y` is f(x). (The current core moves
     // to the nearest point of the curve instead.)
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     constrain_target { function: expr }
     attributes {
         variables: Entries,

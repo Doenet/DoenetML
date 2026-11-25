@@ -61,7 +61,7 @@ containers! {
     /// (`startOpen`), that takes no number: the sections inside it are
     /// numbered among themselves. It takes a place among its parent's
     /// list items, as every sectioning component does (ADR 0054).
-    proof: ["proof"] with [unnumbered_division] {
+    proof: ["proof"] with [unnumbered_division, style_scope] {
         presentation { startOpen, boxed, postponeRendering }
     };
 

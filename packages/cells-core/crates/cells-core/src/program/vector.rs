@@ -36,6 +36,8 @@
 //! | `Pair{by}`               | (P, Q) → (A, B), by [`PairBy`]        | each coordinate apart: a point and an offset keep the offset unless  | P, Q              |
 //! |                          |                                       | the far point is asked; a midpoint and an offset move both ends      |                   |
 //! | `Extent`                 | (a, b) → the distance from a to b     | both ends about their midpoint, the order kept, a negative size 0    | a, b              |
+//! | `Span`                   | (lo, hi) → hi − lo                    | both ends about their midpoint; refused for a size not finite and    | lo, hi            |
+//! |                          |                                       | positive                                                             |                   |
 //! | `AngleAt{reflex}`        | (P1, V, P3) → the angle at V          | none: an angle through points is not set by a request                | none              |
 //! | `Attract`                | (P, Q, t) → Q when P is within t of   | projection: the requested point written to P, attracted when read    | P                 |
 //! |                          | it, else P                            |                                                                      |                   |
@@ -301,6 +303,10 @@ pub enum VecOp {
     /// Inputs (a, b); output the distance from `a` to `b`: a rectangle's
     /// width or height. A request moves both ends about their midpoint.
     Extent,
+    /// Inputs (lo, hi); output `hi - lo`: a graph's `xScale`. A request
+    /// moves both ends about their midpoint, and is refused for a size
+    /// that is not finite and positive (ADR 0084).
+    Span,
     /// Inputs (x1, y1, x, y, x3, y3); output the angle at (x, y) from the
     /// ray through the first point to the ray through the third, in
     /// radians, NaN when a coordinate is not finite. No inverse.
@@ -1864,7 +1870,7 @@ impl VecOp {
             VecOp::Reduce { n, .. } => n as usize,
             VecOp::Wrap => 3,
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => 4,
-            VecOp::Extent => 2,
+            VecOp::Extent | VecOp::Span => 2,
             VecOp::AngleAt { .. } => 6,
             VecOp::Turn => 5,
             VecOp::Attract => 5,
@@ -1921,7 +1927,7 @@ impl VecOp {
             VecOp::Clamp | VecOp::Wrap => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
-            VecOp::Extent => first(2),
+            VecOp::Extent | VecOp::Span => first(2),
             VecOp::AngleAt { .. }
             | VecOp::Turn
             | VecOp::BestFitLine { .. }
@@ -2017,6 +2023,7 @@ impl VecOp {
             | VecOp::Reduce { .. }
             | VecOp::Wrap
             | VecOp::Extent
+            | VecOp::Span
             | VecOp::AngleAt { .. } => 1,
             VecOp::WeightedMean { .. } | VecOp::Centroid { .. } | VecOp::Turn => 2,
             VecOp::Pair { .. } => 4,
@@ -2183,6 +2190,7 @@ impl VecOp {
                 }
             }
             VecOp::Extent => out[0] = (inp[1] - inp[0]).abs(),
+            VecOp::Span => out[0] = inp[1] - inp[0],
             VecOp::AngleAt { reflex } => out[0] = angle_at(inp, reflex),
             VecOp::SegmentPolar => {
                 let [x1, y1, x2, y2] = segment_polar(&inp[..5]);
@@ -2646,6 +2654,19 @@ impl VecOp {
                 }
                 out.write(inputs[0], mid - half);
                 out.write(inputs[1], mid + half);
+                true
+            }
+            VecOp::Span => {
+                let Some(w) = desired[0].filter(|w| w.is_finite() && *w > 0.0) else {
+                    return false;
+                };
+                let mid = inp[0] / 2.0 + inp[1] / 2.0;
+                let (lo, hi) = (mid - w / 2.0, mid + w / 2.0);
+                if !mid.is_finite() || !lo.is_finite() || !hi.is_finite() {
+                    return false;
+                }
+                out.write(inputs[0], lo);
+                out.write(inputs[1], hi);
                 true
             }
             VecOp::AngleAt { .. } | VecOp::Turn => false,
@@ -3552,6 +3573,7 @@ mod writes {
             VecOp::Pair { by: PairBy::Mirror },
             VecOp::Pair { by: PairBy::Center },
             VecOp::Extent,
+            VecOp::Span,
             VecOp::AngleAt {
                 reflex: Reflex::Never,
             },
@@ -3813,6 +3835,7 @@ mod writes {
             | VecOp::Reduce { .. }
             | VecOp::Wrap
             | VecOp::Extent
+            | VecOp::Span
             | VecOp::AngleAt { .. }
             | VecOp::Turn
             | VecOp::Scan { .. }

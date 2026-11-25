@@ -42,6 +42,8 @@ component! {
         centerX1: cx,
         centerX2: cy,
     }
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth, fillOpacity, fillPatternOpacity, fillStyle }
     sticky: Shape::Closed,
     // A point constrained to it is moved onto its nearest edge (ADR 0080).
     constrain_target { polygon: true, vertices: 3 }

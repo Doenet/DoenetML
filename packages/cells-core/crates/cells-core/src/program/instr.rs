@@ -877,6 +877,7 @@ mod arity {
             OpSpec::Vec(VecOp::Wrap),
             OpSpec::Vec(VecOp::Pair { by: PairBy::Offset }),
             OpSpec::Vec(VecOp::Extent),
+            OpSpec::Vec(VecOp::Span),
             OpSpec::Vec(VecOp::AngleAt {
                 reflex: Reflex::Allowed,
             }),
@@ -1051,6 +1052,7 @@ mod arity {
                 VecOp::SegmentMeasures => 71,
                 VecOp::BinCounts { .. } => 74,
                 VecOp::Constrain { .. } => 76,
+                VecOp::Span => 79,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -1103,7 +1105,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 79;
+    const N_TAGS: usize = 80;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

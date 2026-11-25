@@ -55,6 +55,8 @@ component! {
     }
     // A point constrained to it is moved onto the segment from its tail
     // to its head (ADR 0080).
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     constrain_target { ports: [tailX, tailY, headX, headY], shape: Segment }
     attributes {
         tail: Point,

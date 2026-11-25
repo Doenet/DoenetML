@@ -29,7 +29,7 @@ component! {
     }
     // Whether a click switches it: read by the renderer from the literal
     // attribute.
-    presentation { switchable }
+    presentation { switchable, markerStyle, markerSize }
     sticky: Shape::Point,
     attributes {
         coords: Point,

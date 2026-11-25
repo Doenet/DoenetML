@@ -52,6 +52,8 @@ component! {
         radius: circumradius,
         apothem: inradius,
     }
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth, fillOpacity, fillPatternOpacity, fillStyle }
     attributes {
         vertices: Points,
         center: Point,

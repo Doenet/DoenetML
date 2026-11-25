@@ -356,6 +356,13 @@ component_types! {
     ConstrainToGraph => geometry::constrain_to_graph::DEFINITION,
     /// `<constrainToInterior>` among a point's constraints (ADR 0080).
     ConstrainToInterior => geometry::constrain_to_interior::DEFINITION,
+    /// `<styleDefinition>`: what a style number means in its scope,
+    /// settled at load (ADR 0084).
+    StyleDefinition => containers::style::style_definition::DEFINITION,
+    /// `<stylePalette>`: the palette a scope's styles start from (ADR 0084).
+    StylePalette => containers::style::style_palette::DEFINITION,
+    /// `<styleDefinitions>`: a setup's wrapper of style definitions (ADR 0084).
+    StyleDefinitions => containers::style::style_definitions::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1628,6 +1635,11 @@ mod tests {
             Award,
             When,
             TextInput,
+            // Read at load into a scope's style table, which
+            // `document/styles.test.rs` specifies (ADR 0084).
+            StyleDefinition,
+            StylePalette,
+            StyleDefinitions,
         ]
     };
 

@@ -1086,6 +1086,17 @@ pub struct Flags {
     /// center and radius, a polygon's vertices. `fixLocation` holds it as
     /// `fixed` does.
     pub located: bool,
+    /// Its `<styleDefinition>`s and `<stylePalette>` make a style table
+    /// over its parent's, read by what is inside it (ADR 0084): the
+    /// document's and a section's.
+    pub style_scope: bool,
+    /// The `<styleDefinition>`s and `<stylePalette>`s among its children
+    /// are its parent scope's (a `<setup>`'s).
+    pub style_holder: bool,
+    /// A `<styleDefinition>`: what one style number means.
+    pub style_definition: bool,
+    /// A `<stylePalette>`: the built-in palette a scope starts from.
+    pub style_palette: bool,
 }
 
 /// Where a prop's value comes from: an attribute, the children, an operator

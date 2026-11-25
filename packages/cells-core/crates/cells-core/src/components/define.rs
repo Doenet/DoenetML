@@ -327,6 +327,10 @@ pub(super) const fn definition(
             owned: false,
             not_extendable: false,
             located: false,
+            style_scope: false,
+            style_holder: false,
+            style_definition: false,
+            style_palette: false,
         },
         renders: super::Renders::Always,
         sticky: None,
@@ -560,6 +564,22 @@ impl ComponentDef {
     }
     pub(super) const fn located(mut self) -> Self {
         self.flags.located = true;
+        self
+    }
+    pub(super) const fn style_scope(mut self) -> Self {
+        self.flags.style_scope = true;
+        self
+    }
+    pub(super) const fn style_holder(mut self) -> Self {
+        self.flags.style_holder = true;
+        self
+    }
+    pub(super) const fn style_definition(mut self) -> Self {
+        self.flags.style_definition = true;
+        self
+    }
+    pub(super) const fn style_palette(mut self) -> Self {
+        self.flags.style_palette = true;
         self
     }
     /// Where a component of the type is drawn.

@@ -35,6 +35,8 @@ component! {
         points: [[x1, y1], [x2, y2]],
     }
     // A point constrained to it is projected onto it.
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     constrain_target { ports: [x1, y1, x2, y2], shape: Line }
     attributes {
         data: Points,

@@ -233,7 +233,9 @@ fn census() {
     // `value` an `Evaluate` of its `expr` when symbolic:
     // `symbolic.doenet`'s two evaluates, both symbolic, 6 more, 3 of them
     // live (the substitution and the `Evaluate` the point's `y` reads).
-    assert!(golden[0] <= 143 && golden[1] == 237, "{golden:?}");
+    // A graph's `xScale` and `yScale` are a `Span` each over its ranges
+    // (ADR 0084): the golden set's 14 graphs have 28 more, all dead.
+    assert!(golden[0] <= 143 && golden[1] == 265, "{golden:?}");
 }
 
 /// At four seeds, and with every repeat at 0 to 4 iterations, the record

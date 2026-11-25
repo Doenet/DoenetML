@@ -48,6 +48,8 @@ component! {
         centerX2: cy,
     }
     // A point constrained to it is moved onto its nearest edge (ADR 0080).
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth, fillOpacity, fillPatternOpacity, fillStyle }
     constrain_target { polygon: true, vertices: 4 }
     attributes {
         vertices: Points,

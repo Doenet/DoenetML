@@ -38,6 +38,8 @@ component! {
         vertexX1: vertexX,
         vertexX2: vertexY,
     }
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     attributes {
         through: Points,
         vertex: Point,

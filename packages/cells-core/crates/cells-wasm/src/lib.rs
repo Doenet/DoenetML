@@ -638,6 +638,26 @@ impl Core {
         ]
     }
 
+    /// The style number of component `idx` (ADR 0084): the nearest of it
+    /// and its referents that writes one, else its parent's, else 1. NaN
+    /// for no component.
+    pub fn style_number(&self, idx: u32) -> f64 {
+        if (idx as usize) >= self.doc.n_components() {
+            return f64::NAN;
+        }
+        self.doc.style_number(CompIdx::new(idx)).0
+    }
+
+    /// The style of component `idx` (`selectedStyle`, ADR 0084), every
+    /// key, as JSON: what its style number means in its scope's table,
+    /// with its own override attributes over it. Empty for no component.
+    pub fn selected_style(&self, idx: u32) -> String {
+        if (idx as usize) >= self.doc.n_components() {
+            return String::new();
+        }
+        self.doc.selected_style(CompIdx::new(idx)).0
+    }
+
     /// Text of the expression a math cell holds, rounded and written by
     /// the settings `display` (see `display_of`), as the current core
     /// writes a math's `text`.

@@ -37,6 +37,8 @@ component! {
         directionX2: directionY,
     }
     // A point constrained to it is moved onto it (ADR 0080).
+    // Its style overrides (ADR 0084), over its style's.
+    presentation { lineStyle, lineWidth }
     constrain_target { ports: [endpointX, endpointY, throughX, throughY], shape: Ray }
     attributes {
         endpoint: Point,

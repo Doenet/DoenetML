@@ -130,6 +130,10 @@ pub(crate) fn compile(
         let _s = crate::trace::span("lint");
         stages::lint::lint(&dast)
     };
+    // Styles are settled from the source alone, before anything is
+    // planned (ADR 0084).
+    let (styles, style_diagnostics) = crate::style::settle(&dast);
+    list.extend(style_diagnostics);
     let (plans, warnings) = plan_and_check(&dast, &mut list, share, |dast, plans| {
         plans.prune = prune;
         plans.fold = fold;
@@ -162,6 +166,7 @@ pub(crate) fn compile(
             dast,
             plans,
             diagnostics: Arc::new(list),
+            styles: Arc::new(styles),
         }),
     })
 }
@@ -170,6 +175,7 @@ pub(crate) fn compile(
 /// load reports, at any seed, count or state.
 pub fn diagnose(dast: &Dast) -> Vec<Diagnostic> {
     let mut list = stages::lint::lint(dast);
+    list.extend(crate::style::settle(dast).1);
     // The build is not wanted, but its warnings are, with the planners'.
     // A failure with no element to box is in the list already.
     if let Ok((_, warnings)) = plan_and_check(dast, &mut list, true, |dast, plans| {

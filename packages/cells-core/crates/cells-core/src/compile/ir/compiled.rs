@@ -13,6 +13,8 @@ pub struct Compiled {
     /// The source's diagnostics, in node order: a fact about the source
     /// (ADR 0014), which the document shares ([`Loaded::diagnostics`](crate::document::Loaded::diagnostics)).
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
+    /// The style table of each scope, settled from the source (ADR 0084).
+    pub(crate) styles: Arc<crate::style::StyleTables>,
 }
 
 /// What a build reads: a source and the plans made from it, borrowed.

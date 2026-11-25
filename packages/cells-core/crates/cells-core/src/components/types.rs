@@ -472,6 +472,9 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | StyleDefinition
+            | StylePalette
+            | StyleDefinitions
             | VariantControl
             | StickyGroup
             | Section

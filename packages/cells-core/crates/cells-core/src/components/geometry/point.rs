@@ -37,7 +37,7 @@ component! {
         x2: y,
     }
     // How the renderer draws it.
-    presentation { markerStyle }
+    presentation { markerStyle, markerSize, markerFilled }
     sticky: Shape::Point,
     // A point constrained or attracted to a point is moved onto it: the
     // projection onto a line through it twice.

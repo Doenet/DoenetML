@@ -30,6 +30,7 @@ mod request;
 mod sections;
 mod state;
 mod sticky;
+mod styles;
 pub(crate) mod table;
 mod variants;
 
@@ -142,6 +143,8 @@ pub struct Loaded {
     pub(crate) diagnostics: Arc<Vec<crate::diagnostics::Diagnostic>>,
     /// The document's variant components and variants (ADR 0085).
     pub(crate) variants: Arc<crate::compile::variants::Variants>,
+    /// The style table of each scope (ADR 0084).
+    pub(crate) styles: Arc<crate::style::StyleTables>,
 }
 
 /// The built document: its cells and program, which are essential or constant,
@@ -242,6 +245,7 @@ impl Loaded {
             version: compiled.plans.version,
             diagnostics: compiled.diagnostics.clone(),
             variants: compiled.plans.variants.clone(),
+            styles: compiled.styles.clone(),
             compiled: compiled.plans.has_repeats().then_some(compiled),
         }
     }

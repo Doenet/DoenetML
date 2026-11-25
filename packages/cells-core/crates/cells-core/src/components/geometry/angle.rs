@@ -52,7 +52,7 @@ component! {
         angle: radians,
     }
     // How a renderer shows and draws it.
-    presentation { inDegrees, radius, emphasizeRightAngle }
+    presentation { inDegrees, radius, emphasizeRightAngle, fillOpacity, fillPatternOpacity, fillStyle }
     attributes {
         through: Points,
         radians: Math,

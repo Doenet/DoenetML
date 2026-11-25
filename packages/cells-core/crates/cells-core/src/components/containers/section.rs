@@ -35,7 +35,7 @@ component! {
         "problems",
         "exercises",
     ],
-    flags: [container],
+    flags: [container, style_scope],
     scored: Aggregates(weight, aggregateScores),
     numbered: Titled(includeParentNumber, label, title_word, listItem, asList),
     props {

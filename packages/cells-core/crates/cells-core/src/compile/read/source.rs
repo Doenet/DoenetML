@@ -105,6 +105,9 @@ impl SourceReader<'_> {
         match self.dast.kind(n) {
             NodeKind::Text => self.dast.str(n).trim().is_empty(),
             NodeKind::Other => true,
+            // The normalizer's synthesized elements, which outlining
+            // passes over too: a `<graph>`'s `_dynamicChildren`.
+            NodeKind::Element => matches!(self.dast.str(n), "_dynamicChildren" | "_repeatSetup"),
             _ => false,
         }
     }

@@ -40,7 +40,9 @@ pub(crate) mod video;
 
 pub(crate) mod blocks;
 pub(crate) mod cascade;
+pub mod graph;
 pub(crate) mod label;
+pub(crate) mod style;
 
 pub use section::SECTION_TAGS;
 
@@ -52,6 +54,7 @@ pub mod document {
         /// The root. `creditAchieved` and `percentCreditAchieved` are
         /// aggregates over the scored items.
         tags: ["document"],
+        flags: [style_scope],
         roles: [Root],
         props {
             creditAchieved: aggregate(Credit, ScoredItems) { score },
@@ -64,36 +67,6 @@ pub mod document {
     pub const CREDIT: usize = Props::AT.creditAchieved;
     /// The position of `percentCreditAchieved`: that credit as a percentage.
     pub const PERCENT_CREDIT: usize = Props::AT.percentCreditAchieved;
-}
-
-/// `<graph>`: the container shapes are drawn in, and its visible ranges.
-pub mod graph {
-    use super::*;
-
-    component! {
-        /// `<graph>`: its x and y range.
-        tags: ["graph"],
-        flags: [container],
-        encloses: Graph(xmin, xmax, ymin, ymax),
-        needs: Description,
-        props {
-            // Pan and zoom request all four.
-            xmin: attr(-10.0) { interactive, rendered },
-            xmax: attr(10.0) { interactive, rendered },
-            ymin: attr(-10.0) { interactive, rendered },
-            ymax: attr(10.0) { interactive, rendered },
-        }
-        planner: Props,
-    }
-
-    /// The position of `xmin`: the left edge of the visible x-range.
-    pub const XMIN: usize = Props::AT.xmin;
-    /// The position of `xmax`: the right edge of the visible x-range.
-    pub const XMAX: usize = Props::AT.xmax;
-    /// The position of `ymin`: the bottom of the visible y-range.
-    pub const YMIN: usize = Props::AT.ymin;
-    /// The position of `ymax`: the top of the visible y-range.
-    pub const YMAX: usize = Props::AT.ymax;
 }
 
 containers! {
@@ -135,7 +108,7 @@ containers! {
     };
 
     /// `<setup>`: an unrendered container.
-    setup: ["setup"] {
+    setup: ["setup"] with [style_holder] {
         renders: Never,
         scored: Skip,
     };

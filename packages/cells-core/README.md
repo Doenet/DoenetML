@@ -98,6 +98,14 @@ prefill each; no bound value). A function's `domain` (one interval) and
 `variables` (one), `piecewiseFunction` (of `function` children), `curve`
 (a function's graph, a parametric curve, or a spline through points with
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
+Styles, settled at load into a table per scope (the document, each
+section; ADR 0084): `styleDefinition` (literal values, in a scope, its
+`setup` or a `styleDefinitions` inside it) and `stylePalette` (a built-in
+palette, cycled through by an out-of-range style number); a component's
+`styleNumber` (its own, a referent's or its parent's) and its style with
+its marker, line and fill override attributes over it; the contrast
+diagnostics. A `graph`'s `xScale` and `yScale` (a request keeps the
+midpoint) and `identicalAxisScales` with or without an `aspectRatio`.
 Values with entries inside a math (ADR 0041, decision 8): `interval`,
 `intervalList`, `matrix` (of its `<row>`s or `<column>`s, or one
 entry; a literal size, ADR 0055; `$A[i][j]` its entry, written back
