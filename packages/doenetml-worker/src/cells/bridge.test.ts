@@ -1626,7 +1626,8 @@ describe("random selections, sequences, reordering and list operators", () => {
             horizontalAlign: "center",
             displayMode: "inline",
             youtube: "abc",
-            shortDescription: "",
+            // Its <shortDescription> child, as the current core reads it.
+            shortDescription: "v",
         });
     });
 
@@ -2202,5 +2203,26 @@ describe("summary statistics", () => {
             ["count", "3"],
             ["median", "4"],
         ]);
+    });
+});
+
+describe("images and videos", () => {
+    it("send their layout and their short description, child or attribute", async () => {
+        const bridge = await load(
+            `<image source="a.png" width="120"><shortDescription>A box</shortDescription></image>
+<video youtube="abc" shortDescription="A clip" />`,
+        );
+        const root = bridge.flatDast();
+        const [image] = byName(root, "image");
+        const [video] = byName(root, "video");
+        expect((image.data as any).props).toMatchObject({
+            source: "a.png",
+            shortDescription: "A box",
+            width: { isAbsolute: true },
+        });
+        expect((video.data as any).props).toMatchObject({
+            youtube: "abc",
+            shortDescription: "A clip",
+        });
     });
 });

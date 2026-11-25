@@ -1708,9 +1708,19 @@ function mediaLayout(r: Reads, c: number) {
         width: { size: r.num(c, "width"), isAbsolute: true },
         horizontalAlign: r.text(c, "horizontalAlign"),
         displayMode: r.text(c, "displayMode"),
-        shortDescription: r.table.attr(c, "shortDescription") ?? "",
+        shortDescription: shortDescription(r.table, c),
         hidden: false,
     };
+}
+
+/** A short description: the text of the last `<shortDescription>` child,
+ * else the `shortDescription` attribute. */
+function shortDescription(table: CellsTable, c: number): string {
+    const children = childrenOfType(table, c, "shortDescription");
+    if (children.length) {
+        return table.core.component_text(children[children.length - 1]);
+    }
+    return table.attr(c, "shortDescription") ?? "";
 }
 
 /** A summary statistics' statistics, in the order its `statisticsShown`
@@ -1880,4 +1890,6 @@ export const OMITTED = new Set([
     // `<xLabel>` and `<yLabel>`: the prototype's graph draws no axis
     // labels.
     "xLabel",
+    // A document's variant settings, read at load (ADR 0085).
+    "variantControl",
 ]);
