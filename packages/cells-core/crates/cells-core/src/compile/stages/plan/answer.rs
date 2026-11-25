@@ -676,6 +676,16 @@ impl<'a> Planning<'a> {
     fn award_credit(&mut self, t: TemplateId, a: ElemId, els: &[NodeId]) -> Result<Source> {
         let d = self.rd.dast;
         Ok(match els.iter().find_map(|&el| d.attr(el, "credit")) {
+            // Literal math (`1/6`): its number, as the current core
+            // evaluates a credit (ADR 0077).
+            Some(c)
+                if let Some(v) = self
+                    .rd
+                    .attr_text(c)
+                    .and_then(|text| constant_number(text.trim())) =>
+            {
+                Source::constant(v)
+            }
             Some(c) => {
                 match self
                     .rd
@@ -836,6 +846,19 @@ impl<'a> Planning<'a> {
     fn equals_op(&self, els: &[NodeId]) -> Result<SymKind> {
         Ok(self.compare_attrs(els)?.equals())
     }
+}
+
+/// The number literal math text with no reference evaluates to (`1/6`),
+/// when it is a finite one; None for a plain number, which a value reads
+/// as given.
+fn constant_number(text: &str) -> Option<f64> {
+    if text.is_empty() || text.parse::<f64>().is_ok() || text.contains('$') {
+        return None;
+    }
+    let mut engine = crate::sym::Engine::new();
+    let h = engine.parse(text).ok()?;
+    let v = engine.evaluate(h, None);
+    v.is_finite().then_some(v)
 }
 
 /// An award's or a choice's credit held from 0 to 1, as the current core

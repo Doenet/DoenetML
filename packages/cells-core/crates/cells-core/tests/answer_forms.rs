@@ -112,12 +112,12 @@ fn several_awards_credited_add_up() {
       <award credit="0.4"><when>$mi > 3</when></award>
     </answer>
     <answer name="sixths" numAwardsCredited="6">
-      <award credit="0.1666666666666667"><when>$mi > 0</when></award>
-      <award credit="0.1666666666666667"><when>$mi > 0</when></award>
-      <award credit="0.1666666666666667"><when>$mi > 0</when></award>
-      <award credit="0.1666666666666667"><when>$mi > 0</when></award>
-      <award credit="0.1666666666666667"><when>$mi > 0</when></award>
-      <award credit="0.1666666666666666"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
+      <award credit="1/6"><when>$mi > 0</when></award>
     </answer>"#,
     )
     .unwrap();
@@ -125,7 +125,7 @@ fn several_awards_credited_add_up() {
         let got = credit_for(&mut doc, "mi", "ans", r);
         assert!((got - c).abs() < 1e-12, "{r}: {got}");
     }
-    // Within round-off of 1 is full credit.
+    // Six of `1/6` (literal math, evaluated) come to 1 within round-off.
     assert_eq!(credit_for(&mut doc, "mi", "sixths", "1"), 1.0);
     let (code, m) = load_error(r#"<answer numAwardsCredited="$n">x</answer>"#);
     assert!(
