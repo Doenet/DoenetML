@@ -1603,6 +1603,11 @@ const STATE: Record<string, Record<string, Reader>> = {
         xMax: (g) => g("xmax"),
         yMin: (g) => g("ymin"),
         yMax: (g) => g("ymax"),
+        // Their scales and the aspect ratio (ADR 0084), numbers in both
+        // cores.
+        xScale: (g) => g("xScale"),
+        yScale: (g) => g("yScale"),
+        aspectRatio: (g) => g("aspectRatio"),
     },
     // A parabola's coefficients, numbers in both cores, and its vertex.
     parabola: {
@@ -2014,6 +2019,15 @@ function presentedChildren(
     return out;
 }
 
+/** State variables every type has, read through the core (ADR 0084): its
+ * style number, the nearest of it and its referents that writes one, else
+ * its parent's, else 1; and its style, what that number means in its
+ * scope's table with its own override attributes over it. */
+const ANY_STATE: Record<string, Reader> = {
+    styleNumber: (_g, x) => x.cells.core.style_number(x.idx),
+    selectedStyle: (_g, x) => JSON.parse(x.cells.core.selected_style(x.idx)),
+};
+
 /** The component fields the harness answers for every type: what a
  * component holds among its children (`presentedChildren`), and for one
  * that stands as its children, what it stands for among its parent's,
@@ -2380,7 +2394,7 @@ export async function createTestCoreCells({
             const e = errorShownBy(idx);
             if (e !== null) throw errorGap(e);
         }
-        const reader = STATE[componentType]?.[name];
+        const reader = STATE[componentType]?.[name] ?? ANY_STATE[name];
         if (!reader)
             throw new CellsCoreGap(
                 `state variable \`${componentType}.${name}\``,
@@ -2426,7 +2440,8 @@ export async function createTestCoreCells({
                 has(_target, name) {
                     return (
                         typeof name === "string" &&
-                        STATE[componentType]?.[name] !== undefined
+                        (STATE[componentType]?.[name] ?? ANY_STATE[name]) !==
+                            undefined
                     );
                 },
                 ownKeys() {
