@@ -970,7 +970,8 @@ Known violations:
   from a property or an entry (`$s.value`, `$l[2]`) is `doenet-e0071` ("a `<repeat>` makes its
   content itself, so it can be made only from another `<repeat>`"); it showed nothing;
 - **done by #2670** (#2594 item 2, D48 decision 2): `e0071` for every tag that makes its own
-  content, made from anything but the very same tag (`<repeat extend="$n"/>`, `$r[1]`), also
+  content, made from anything but the very same tag (`<repeat extend="$n"/>`, `$r[1]`); the tag
+  may be reached through a one-shown-thing or a group of one holding it (D78.1, #2676); also
   `<sampleRandomNumbers extend="$s"/>` of a `<selectRandomNumbers>` (closing #1986);
 - a tag made from a group whose only content is
   a case that comes to show an error is still `(0, 0)`; a point from a property whose entries'
