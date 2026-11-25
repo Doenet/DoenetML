@@ -10,6 +10,7 @@ import {
     isPoints,
     refresh,
     setCoords,
+    setFilled,
     setVisible,
     useGraphObjects,
     xy,
@@ -20,6 +21,8 @@ type CircleData = {
     props: {
         numericalCenter: [number, number];
         numericalRadius: number;
+        /** Its inside shaded. */
+        filled?: boolean;
     };
 };
 
@@ -61,8 +64,9 @@ export const CircleInGraph: BasicComponent<CircleData> = ({ node }) => {
         },
         update: (
             { circle, center, radius },
-            { numericalCenter: [cx, cy], numericalRadius: r },
+            { numericalCenter: [cx, cy], numericalRadius: r, filled },
         ) => {
+            setFilled(circle, filled === true);
             setVisible(circle, finite(cx, cy, r));
             setCoords(center, cx, cy);
             radius.current = r;

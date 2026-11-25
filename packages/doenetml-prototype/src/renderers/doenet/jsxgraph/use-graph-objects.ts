@@ -112,6 +112,18 @@ export function refresh(o: JSG.GeometryElement) {
     o.update();
 }
 
+/** Shade an object's inside (`filled`), or leave it at `otherwise`. */
+export function setFilled(
+    o: JSG.GeometryElement,
+    filled: boolean,
+    otherwise = 0,
+) {
+    const fillOpacity = filled ? 0.3 : otherwise;
+    if (o.getAttribute("fillOpacity") !== fillOpacity) {
+        o.setAttribute({ fillOpacity, highlightFillOpacity: fillOpacity });
+    }
+}
+
 /** Let a drag move an object, or not. */
 export function setFixed(o: JSG.GeometryElement, fixed: boolean) {
     if (o.getAttribute("fixed") !== fixed) {

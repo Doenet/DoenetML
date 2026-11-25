@@ -774,7 +774,10 @@ impl ComponentType {
                 format!("{}{k}", self.given_coords().map_or("", |c| c[j])).into()
             }
             PropSel::At(PropAt::List) | PropSel::TableList => list_name().into(),
-            PropSel::At(PropAt::Companion) => list.and_then(|l| l.companion).unwrap_or("").into(),
+            PropSel::At(PropAt::Sequence(i)) => list
+                .and_then(|l| l.sequences.get(i).copied())
+                .unwrap_or("")
+                .into(),
             PropSel::Parts { .. } => {
                 let named = |parts: &[&str]| self.parts_sel(parts) == sel;
                 if let Some((name, _)) = self.def().combined_props.iter().find(|(_, p)| named(p)) {
@@ -804,8 +807,8 @@ impl ComponentType {
         if list.names.contains(&name) {
             return Some(PropAt::List);
         }
-        if list.companion == Some(name) {
-            return Some(PropAt::Companion);
+        if let Some(i) = list.sequences.iter().position(|&s| s == name) {
+            return Some(PropAt::Sequence(i));
         }
         let index = |s: &str| s.parse::<usize>().ok().filter(|&k| k >= 1);
         if let Some(k) = name.strip_prefix(list.item).and_then(index) {
@@ -845,12 +848,6 @@ impl ComponentType {
         self.shape().list_len(n_props)
     }
 
-    /// How many cells an entry has in the list's companion sequence
-    /// ([`ListProp::companion`]): one when the list has one, else none.
-    pub fn companion_width(self) -> usize {
-        usize::from(self.list().is_some_and(|l| l.companion.is_some()))
-    }
-
     /// The prop a bare `$x[k]` reads entries inside the expression of
     /// (ADR 0041, decision 2): its default prop, when that is one cell that
     /// stands for an expression (`expr_of`) and the type has no list (a
@@ -870,16 +867,16 @@ impl ComponentType {
     }
 
     /// How many public props an element with `n` list entries has after
-    /// its table's: the entries' cells, then the companion sequence's
-    /// ([`ListShape::list_props`]).
+    /// its table's: the entries' cells, then the named sequences' and the
+    /// hide sequence's ([`ListShape::list_props`]).
     pub fn list_props(self, n: usize) -> usize {
         self.shape().list_props(n)
     }
 
-    /// The positions of the companion sequence ([`ListProp::companion`])
-    /// of an element with `n_props` props ([`ListShape::companion_slots`]).
-    pub fn companion_slots(self, n_props: usize) -> std::ops::Range<usize> {
-        self.shape().companion_slots(n_props)
+    /// The positions of named sequence `i` ([`ListProp::sequences`]) of
+    /// an element with `n_props` props ([`ListShape::sequence_slots`]).
+    pub fn sequence_slots(self, n_props: usize, i: usize) -> std::ops::Range<usize> {
+        self.shape().sequence_slots(n_props, i)
     }
 
     /// The list shape of an element of the type whose entries are the

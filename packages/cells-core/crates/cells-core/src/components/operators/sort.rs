@@ -54,7 +54,7 @@ component! {
         item: math,
         values: value of Any, entries: children,
         rendered: true,
-        companion: componentOrder,
+        sequences: [componentOrder],
     }
     alternate_names {
         numValues: numComponents,
@@ -261,9 +261,12 @@ pub(crate) fn wire_order(ctx: &mut PlanCtx<'_, '_>, how: How, out: Out) -> Resul
             Mode::Point => wiring.set_entry_cells(chosen),
             _ => wiring.set_entries(chosen),
         }
-        // The order, public as the list's companion sequence (ADR 0053):
-        // a shuffle's `componentOrder`, and a sort's.
-        wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
+        // The order, public as the list's named sequence (ADR 0053): a
+        // shuffle's `componentOrder`, and a sort's.
+        wiring.set_sequence(
+            "componentOrder",
+            order.iter().map(|&o| Wire::own(o)).collect(),
+        );
     }
     Ok(wiring)
 }

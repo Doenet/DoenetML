@@ -315,7 +315,7 @@ impl Built {
                 .flat_map(|k| (0..shape.width()).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
-            PropAt::Companion => Some(shape.companion_slots(n).map(|i| cells[i]).collect()),
+            PropAt::Sequence(s) => Some(shape.sequence_slots(n, s).map(|i| cells[i]).collect()),
         }
     }
 

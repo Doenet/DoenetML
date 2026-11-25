@@ -130,6 +130,22 @@ pub enum SymKind {
         /// What each input holds, filled in when it is bound.
         kinds: u128,
     },
+    /// The distinct values among `n`, in order, and how many of the `n`
+    /// equal each, as the current core's `<tally>` with no declared
+    /// categories counts them (ADR 0086): output 0 how many distinct
+    /// values there are (the live length), then `n` outputs, the 1-based
+    /// position of the first input equal to the `k`-th distinct value,
+    /// then `n`, how many inputs equal it; both the missing value past the
+    /// live length. Values are equal as [`SymKind::Tally`]'s are, and one
+    /// that is no number by kind is no value; they are ordered by value
+    /// when every one is a number, else by text, as [`SymKind::Order`]
+    /// orders them. `kinds` as for `Join`.
+    TallyDistinct {
+        /// How many values.
+        n: u8,
+        /// What each input holds, filled in when it is bound.
+        kinds: u128,
+    },
     // Functions of one variable with domains (ADR 0049). A function is
     // given as its domain and its pieces: `D` is four cells, an
     // interval's lower and upper endpoints and whether each is closed
@@ -527,6 +543,7 @@ impl SymKind {
             | SymKind::SampleBezier { .. } => SAMPLES,
             SymKind::Order { n, .. } => n as usize,
             SymKind::Tally { k, .. } => k as usize,
+            SymKind::TallyDistinct { n, .. } => 1 + 2 * n as usize,
             SymKind::LineCoeffs => 3,
             SymKind::Interpolate { n } => {
                 1 + crate::sym::interpolate::PIECE_OUT
@@ -572,6 +589,7 @@ impl SymKind {
                 | SymKind::JoinWith { .. }
                 | SymKind::Order { .. }
                 | SymKind::Tally { .. }
+                | SymKind::TallyDistinct { .. }
                 | SymKind::TextEquals { .. }
                 | SymKind::TextNumber
                 | SymKind::Letters
@@ -595,6 +613,10 @@ impl SymKind {
             SymKind::Tally { n, k, .. } => SymKind::Tally {
                 n,
                 k,
+                kinds: crate::program::texts::kinds_of(types),
+            },
+            SymKind::TallyDistinct { n, .. } => SymKind::TallyDistinct {
+                n,
                 kinds: crate::program::texts::kinds_of(types),
             },
             SymKind::JoinWith { n, sep, .. } => SymKind::JoinWith {
@@ -752,6 +774,7 @@ impl OpSpec {
                 SymKind::Join { n, .. } | SymKind::JoinWith { n, .. } | SymKind::Order { n, .. },
             ) => *n as usize,
             OpSpec::Sym(SymKind::Tally { n, k, .. }) => *n as usize + *k as usize,
+            OpSpec::Sym(SymKind::TallyDistinct { n, .. }) => *n as usize,
             OpSpec::Sym(
                 SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
             ) => usize::MAX,
@@ -953,6 +976,7 @@ mod arity {
                 k: 2,
                 kinds: 0,
             }),
+            OpSpec::Sym(SymKind::TallyDistinct { n: 3, kinds: 0 }),
             OpSpec::Sym(SymKind::EvalFunction),
             OpSpec::Sym(SymKind::SampleFunction),
             OpSpec::Sym(SymKind::DerivativeBy),
@@ -1109,13 +1133,14 @@ mod arity {
                     // 48 would be vector tag 76 (Constrain).
                     SymKind::SubstituteFunction { .. } => 49,
                     SymKind::Pack { .. } => 50,
-                    SymKind::LineCoeffs => 51,
+                    SymKind::TallyDistinct { .. } => 51,
+                    SymKind::LineCoeffs => 52,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 80;
+    const N_TAGS: usize = 81;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

@@ -87,6 +87,13 @@ as that list has.
 
 ## Consequences
 
+- *Decision 6 done 2026-11-25* (ADR 0086, the user's decision): a tally
+  with no declared categories is a capped list of numbers, capped at its
+  operands, its live length (`numComponents`) the number of distinct
+  values, its `categories` those values in order
+  (`SymKind::TallyDistinct`); a tally with declared categories is the
+  same capped list, all live. `countoperators.test.ts` passes 33 of 53.
+
 - `countoperators.test.ts` passes 30 of 53 (from 0); `sortIndices` passes
   its cases of `listoperators.test.ts`; `image.test.ts` passes 5 of 14 and
   `video.test.ts` 4 of 5 (from 0).

@@ -747,7 +747,7 @@ impl<'s, 'a> Types<'s, 'a> {
                         PropAt::List => (1..=shape.list_len(n))
                             .flat_map(|k| (0..w).map(move |j| shape.list_slot(n, k, j)))
                             .collect(),
-                        PropAt::Companion => shape.companion_slots(n).map(Some).collect(),
+                        PropAt::Sequence(s) => shape.sequence_slots(n, s).map(Some).collect(),
 
                         PropAt::Position(_) => unreachable!("matched above"),
                     };
@@ -1142,7 +1142,7 @@ fn sel_len(sel: PropSel, width: usize, n_points: Option<usize>) -> Option<usize>
         PropSel::At(PropAt::Position(_)) | PropSel::At(PropAt::Coord(..)) => 1,
         PropSel::At(PropAt::Item(_)) => width,
         PropSel::At(PropAt::List) => width * n_points?,
-        PropSel::At(PropAt::Companion) => n_points?,
+        PropSel::At(PropAt::Sequence(_)) => n_points?,
         PropSel::Parts { len, .. } => len as usize,
         // Not slots: the build refuses it by name.
         PropSel::TableList => 0,

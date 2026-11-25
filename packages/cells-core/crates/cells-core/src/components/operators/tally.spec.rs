@@ -1,6 +1,7 @@
 //! `<tally>`: how many operands equal each declared category
 //! (`countoperators.test.ts`).
 
+use crate::program::MISSING as M;
 use crate::spec;
 
 spec! {
@@ -82,5 +83,41 @@ spec! {
                   <tally name="t">$none</tally>
                   <tally name="d" categories="1 2">$none</tally>"#;
         expect { "t.numComponents" = 0, "d.numbers" = [0, 0] }
+    }
+
+    case "with no categories, the distinct values in order, a capped list" {
+        doenet r#"<numberList name="v">1 4 1 2</numberList>
+                  <tally name="t">$v</tally>
+                  <number name="second">$t[2]</number>"#;
+        expect {
+            "t.numComponents" = 3, "t.numbers" = [2.0, 1.0, 1.0, M],
+            "t.categories" = [1.0, 2.0, 4.0, M], "second.value" = 1,
+            "t[1].hide" = 0, "t[3].hide" = 0,
+        }
+    }
+
+    case "with no categories, words and booleans" {
+        doenet r#"<tally name="w">apple fig apple</tally>
+                  <booleanList name="b">true false true true</booleanList>
+                  <tally name="t" type="boolean">$b</tally>"#;
+        expect {
+            "w.numComponents" = 2, "w.numbers" = [2.0, 1.0, M],
+            "t.numComponents" = 2, "t.numbers" = [1.0, 3.0, M, M], "t.categories" = [0.0, 1.0, M, M],
+        }
+    }
+
+    case "with no categories, a value that is no number is none" {
+        doenet r#"<tally name="t"><number>x</number><number>y</number><number>1</number></tally>"#;
+        expect { "t.numComponents" = 1, "t.numbers" = [1.0, M, M], "t.categories" = [1.0, M, M] }
+    }
+
+    case "with no categories, the categories follow the values" {
+        doenet r#"<numberInput name="a" value="0"><label>a</label></numberInput>
+                  <tally name="t">$a 1 1</tally>"#;
+        expect { "t.numComponents" = 2, "t.numbers" = [1.0, 2.0, M], "t.categories" = [0.0, 1.0, M] }
+        request { "a.value" = 1 }
+        expect { "t.numComponents" = 1, "t.numbers" = [3.0, M, M], "t.categories" = [1.0, M, M] }
+        request { "a.value" = 5 }
+        expect { "t.numComponents" = 2, "t.numbers" = [2.0, 1.0, M], "t.categories" = [1.0, 5.0, M] }
     }
 }

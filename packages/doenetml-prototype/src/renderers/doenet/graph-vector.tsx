@@ -10,6 +10,7 @@ import {
     isPoints,
     refresh,
     setCoords,
+    setFixed,
     setVisible,
     useGraphObjects,
     xy,
@@ -22,6 +23,9 @@ type VectorData = {
         numericalEndpoints: [[number, number], [number, number]];
         headDraggable: boolean;
         tailDraggable: boolean;
+        /** Whether a drag may move the whole arrow (ADR 0070); true when
+         * a core does not say. */
+        draggable?: boolean;
     };
 };
 
@@ -74,8 +78,16 @@ export const VectorInGraph: BasicComponent<VectorData> = ({ node }) => {
         },
         update: (
             { arrow, tail, head },
-            { numericalEndpoints: [[x1, y1], [x2, y2]] },
+            {
+                numericalEndpoints: [[x1, y1], [x2, y2]],
+                draggable,
+                headDraggable,
+                tailDraggable,
+            },
         ) => {
+            setFixed(arrow, draggable === false);
+            setFixed(head, headDraggable === false);
+            setFixed(tail, tailDraggable === false);
             const ok = finite(x1, y1, x2, y2);
             for (const o of [arrow, tail, head]) {
                 setVisible(o, ok);
