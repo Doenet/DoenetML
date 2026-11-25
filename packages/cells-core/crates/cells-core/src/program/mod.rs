@@ -4,6 +4,7 @@
 use crate::sym::{Engine, Handle};
 
 use crate::index::CellIdx;
+pub mod constrain;
 mod instr;
 mod ops;
 mod range;
@@ -12,6 +13,7 @@ mod scalar;
 pub mod texts;
 mod vector;
 
+pub use constrain::Target;
 pub use instr::{
     BEZIER_POINT_CELLS, DOMAIN_CELLS, INTERPOLATE_POINT_CELLS, Instr, InstrIdx, MemoIdx,
     OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx,

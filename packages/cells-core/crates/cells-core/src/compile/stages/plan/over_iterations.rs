@@ -85,6 +85,9 @@ impl Planning<'_> {
             y: Wire::from(y),
             // Drawn as the shape's vertex, never as a point of its own.
             hide: Wire::constant(1.0),
+            // Unconstrained and draggable (ADR 0080, ADR 0070).
+            constraintUsed: Wire::constant(0.0),
+            draggable: Wire::constant(1.0),
         });
         self.tables[sub.index()].plans[0].props = wiring.finish().0;
         Ok(())

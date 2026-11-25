@@ -1,7 +1,7 @@
 the positions of numbers in increasing order: cells 16 · essential 0 · constant 16 · instrs 0 · components 9
 texts are ordered alphabetically: cells 16 · essential 0 · constant 16 · instrs 0 · components 9
 booleans order false before true: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
-points order by a prop: cells 17 · essential 6 · constant 8 · instrs 1 · components 8
+points order by a prop: cells 18 · essential 6 · constant 9 · instrs 1 · components 8
 an operand from an input moves the positions: cells 13 · essential 1 · constant 9 · instrs 1 · components 7
 an index from it picks an entry of another list: cells 30 · essential 0 · constant 30 · instrs 0 · components 17
 an invalid type is reported and dropped: cells 13 · essential 0 · constant 13 · instrs 0 · components 5

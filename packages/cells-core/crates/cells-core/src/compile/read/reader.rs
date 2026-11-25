@@ -242,7 +242,13 @@ impl Arenas {
     ) -> Warned {
         // A node planned twice (an extend's attribute, read again by its
         // planner) warns once.
-        let d = Diagnostic::warning(code, Some(node), message.into());
+        // A code of the current core's infos (`doenet-i…`) is reported as
+        // one (an angle between three lines, ADR 0080).
+        let d = if code.starts_with("doenet-i") {
+            Diagnostic::info(code, Some(node), message.into())
+        } else {
+            Diagnostic::warning(code, Some(node), message.into())
+        };
         if !self
             .warnings
             .iter()

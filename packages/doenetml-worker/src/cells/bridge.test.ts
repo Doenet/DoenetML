@@ -709,6 +709,29 @@ describe("step 3 components", () => {
         });
     });
 
+    it("drags a point and a vector only as their draggable flags allow (ADR 0070)", async () => {
+        const { props, send, changed } = await open(`<graph>
+<point draggable="false">(1,2)</point>
+<vector tail="(0,0)" head="(1,2)" draggable="false" headDraggable/>
+</graph>`);
+        expect(props("point")).toMatchObject({ draggable: false });
+        let payload = send("point", "move", { x: 5, y: 5 });
+        expect(changed(payload, "point")).toBeUndefined();
+        // The whole vector stays; its head alone moves.
+        payload = send("vector", "moveVector", {
+            tailcoords: [1, 1],
+            headcoords: [2, 3],
+        });
+        expect(changed(payload, "vector")).toBeUndefined();
+        payload = send("vector", "moveVector", { headcoords: [2, 3] });
+        expect(changed(payload, "vector")).toMatchObject({
+            numericalEndpoints: [
+                [0, 0],
+                [2, 3],
+            ],
+        });
+    });
+
     it("drags a segment's end alone, holding the other when a slope places it", async () => {
         const { send, changed, all } = await open(`<graph>
 <lineSegment slope="0" length="2"/>
@@ -1142,6 +1165,7 @@ describe("step 3 components", () => {
                 [0, 0],
                 [1, 2],
             ],
+            draggable: true,
             headDraggable: false,
             tailDraggable: true,
         });

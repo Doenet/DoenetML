@@ -39,7 +39,7 @@ component! {
         interactive: true,
     }
     // A point constrained to a line is projected onto it.
-    constrain_target { ports: [x1, y1, x2, y2], op: ProjectLine }
+    constrain_target { ports: [x1, y1, x2, y2], shape: Line }
     attributes {
         through: Points,
         slope: Scalar,

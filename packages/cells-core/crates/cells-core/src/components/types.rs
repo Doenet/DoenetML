@@ -423,9 +423,10 @@ impl ComponentType {
             // `equation` prop to show it from.
             Line | Circle | LineSegment | Polygon | Polyline | Ray | Parabola | Curve
             | Function | Answer | Award | UpdateValue | CallAction | TriggerSet | ChoiceInput
-            | Choice | ConstrainTo | ConstrainToGrid | AttractTo | BezierControls
-            | ControlVectors | FractionInputPart | MatrixInputRow | BoundMatrixInputRow
-            | MatrixInputCell | SummaryStatistics => object(),
+            | Choice | ConstrainTo | ConstrainToGrid | AttractTo | AttractToGrid
+            | ConstrainToGraph | ConstrainToInterior | BezierControls | ControlVectors
+            | FractionInputPart | MatrixInputRow | BoundMatrixInputRow | MatrixInputCell
+            | SummaryStatistics => object(),
 
             // Lists (ADR 0041).
             NumberList

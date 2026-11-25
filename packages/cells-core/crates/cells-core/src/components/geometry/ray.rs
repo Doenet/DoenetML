@@ -36,6 +36,8 @@ component! {
         directionX1: directionX,
         directionX2: directionY,
     }
+    // A point constrained to it is moved onto it (ADR 0080).
+    constrain_target { ports: [endpointX, endpointY, throughX, throughY], shape: Ray }
     attributes {
         endpoint: Point,
         through: Point,

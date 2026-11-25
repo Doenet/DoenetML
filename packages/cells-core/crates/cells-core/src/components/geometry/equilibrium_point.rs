@@ -19,6 +19,9 @@ component! {
         x: by_planner { interactive, rendered },
         y: by_planner { interactive, rendered },
         hide: by_planner { rendered },
+        // As a point's (ADR 0080, ADR 0070).
+        constraintUsed: by_planner,
+        draggable: by_planner { rendered },
         // A boolean in the current core; here a 0/1 cell.
         stable: by_planner { interactive, rendered },
     }
@@ -34,10 +37,19 @@ component! {
         x: Scalar,
         y: Scalar,
         hide: Flag(false),
+        draggable: Flag(true),
+        xs: Scalars,
         stable: Flag(true),
     }
     children: Math {
-        constraints: [ConstrainTo, ConstrainToGrid, AttractTo],
+        constraints: [
+            ConstrainTo,
+            ConstrainToGrid,
+            AttractTo,
+            AttractToGrid,
+            ConstrainToGraph,
+            ConstrainToInterior,
+        ],
     },
     planner: Plan(plan),
 }
@@ -47,10 +59,14 @@ const _: () = assert!(
     Props::AT.x == super::point::X
         && Props::AT.y == super::point::Y
         && Props::AT.hide == super::point::HIDE
+        && Props::AT.constraintUsed == super::point::Props::AT.constraintUsed
+        && Props::AT.draggable == super::point::Props::AT.draggable
         && attr::coords.index() == super::point::attr::coords.index()
         && attr::x.index() == super::point::attr::x.index()
         && attr::y.index() == super::point::attr::y.index()
-        && attr::hide.index() == super::point::attr::hide.index(),
+        && attr::hide.index() == super::point::attr::hide.index()
+        && attr::draggable.index() == super::point::attr::draggable.index()
+        && attr::xs.index() == super::point::attr::xs.index(),
     "an equilibrium point's props and attributes must start as a point's"
 );
 

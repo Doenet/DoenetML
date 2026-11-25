@@ -63,6 +63,8 @@ pub const COMMON: &[(&str, PropType)] = &[
     ("draggable", Is(C::Boolean)),
     ("verticesDraggable", Is(C::Boolean)),
     ("endpointsDraggable", Is(C::Boolean)),
+    // Whether a point's constraints moved it (ADR 0080).
+    ("constraintUsed", Is(C::Boolean)),
     // A graph's view, a function's or a curve's range.
     ("xmin", Is(C::Number)),
     ("xmax", Is(C::Number)),
@@ -259,6 +261,9 @@ impl ComponentType {
             | ConstrainTo
             | ConstrainToGrid
             | AttractTo
+            | AttractToGrid
+            | ConstrainToGraph
+            | ConstrainToInterior
             | BezierControls
             | ControlVectors => &[],
             Image => &[
@@ -474,6 +479,9 @@ impl ComponentType {
                 ("direction", Is(Vector)),
             ],
             Vector => &[
+                // What a drag may move (ADR 0070).
+                ("headDraggable", Is(Boolean)),
+                ("tailDraggable", Is(Boolean)),
                 ("tailX", Is(Number)),
                 ("tailY", Is(Number)),
                 ("headX", Is(Number)),

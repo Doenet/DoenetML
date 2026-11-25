@@ -1387,6 +1387,13 @@ impl<'c> Builder<'c> {
                         let s = self.slot(pt, hide);
                         self.sources[s.index()] = BuiltSource::Const(0.0);
                     }
+                    // Unconstrained and draggable (ADR 0080, ADR 0070).
+                    for (name, v) in [("constraintUsed", 0.0), ("draggable", 1.0)] {
+                        if let Some(i) = ty.prop_index(name) {
+                            let s = self.slot(pt, i);
+                            self.sources[s.index()] = BuiltSource::Const(v);
+                        }
+                    }
                     kids.push(ChildEntry::comp(pt));
                 }
             }

@@ -5,8 +5,8 @@ a direction and an endpoint: the through point follows: cells 14 · essential 8 
 a direction and a through point: the endpoint follows: cells 14 · essential 8 · constant 2 · instrs 1 · components 3
 a through point alone: from the origin, the direction follows: cells 10 · essential 8 · constant 2 · instrs 0 · components 3
 an endpoint alone: through a unit to its right: cells 14 · essential 8 · constant 2 · instrs 1 · components 3
-points from points: a drag moves them: cells 11 · essential 8 · constant 3 · instrs 0 · components 5
-a point bound to the direction moves the through point: cells 13 · essential 8 · constant 3 · instrs 2 · components 4
+points from points: a drag moves them: cells 12 · essential 8 · constant 4 · instrs 0 · components 5
+a point bound to the direction moves the through point: cells 14 · essential 8 · constant 4 · instrs 2 · components 4
 all three: the through point is ignored: cells 14 · essential 8 · constant 2 · instrs 1 · components 3
 a bare copy shares the points: cells 14 · essential 8 · constant 2 · instrs 1 · components 4
 fixed: drags are refused: cells 10 · essential 4 · constant 6 · instrs 0 · components 3

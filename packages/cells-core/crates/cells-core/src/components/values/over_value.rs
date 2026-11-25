@@ -156,6 +156,9 @@ fn point_item(ctx: &mut ItemCtx<'_>) -> crate::components::prop::point::Planned 
         x,
         y,
         hide: Wire::constant(0.0),
+        // Unconstrained and draggable (ADR 0080, ADR 0070).
+        constraintUsed: Wire::constant(0.0),
+        draggable: Wire::constant(1.0),
     }
 }
 

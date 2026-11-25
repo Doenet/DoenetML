@@ -1058,9 +1058,10 @@ macro_rules! component {
         $(presentation { $($prname:ident),* $(,)? })?
         $(sticky: $sticky:expr,)?
         $(constrain_target {
-            $(ports: [$($ctport:ident),+ $(,)?], op: $ctop:ident)?
+            $(ports: [$($ctport:ident),+ $(,)?], shape: $ctop:ident)?
             $(graph: $ctgraph:ident)?
-            $(function: $ctfunction:ident)? $(,)?
+            $(function: $ctfunction:ident)?
+            $(polygon: $ctclosed:literal $(, vertices: $ctcount:literal)?)? $(,)?
         })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(actions { $($actname:ident : $actfn:path $([$actev:ident])?),* $(,)? })?
@@ -1164,6 +1165,7 @@ macro_rules! component {
                     $([$($ctport),+] $ctop)?
                     $(graph $ctgraph)?
                     $(function $ctfunction)?
+                    $(polygon $ctclosed $($ctcount)?)?
                 )))?
                 .attributes(ATTRS)
                 $(.actions(&[$($crate::components::ActionDecl {
@@ -1572,7 +1574,7 @@ macro_rules! component {
         )+
         $crate::components::ConstrainTarget::Project {
             props: &[$(stringify!($port)),+],
-            op: $crate::program::VecOp::$op,
+            shape: $crate::program::Target::$op,
         }
     }};
     (@constrain_target graph $expr:ident) => {{
@@ -1600,6 +1602,14 @@ macro_rules! component {
         };
         $crate::components::ConstrainTarget::Graph { expr: stringify!($expr), function: true }
     }};
+    (@constrain_target polygon $closed:literal $($count:literal)?) => {{
+        $crate::components::ConstrainTarget::Polygon {
+            closed: $closed,
+            vertices: $crate::components::define::component!(@opt_count $($count)?),
+        }
+    }};
+    (@opt_count) => { None };
+    (@opt_count $count:literal) => { Some($count) };
     (@children) => { $crate::components::ChildrenDecl::RENDERED };
     (@children $ckind:ident $([$($gname:ident : [$($gty:ident),*]),*])?) => {
         $crate::components::ChildrenDecl {

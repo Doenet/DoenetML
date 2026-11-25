@@ -47,6 +47,8 @@ component! {
         centerX1: cx,
         centerX2: cy,
     }
+    // A point constrained to it is moved onto its nearest edge (ADR 0080).
+    constrain_target { polygon: true, vertices: 4 }
     attributes {
         vertices: Points,
         center: Point,

@@ -1,7 +1,7 @@
 no attributes: through (1, 0) and (0, 0), both free: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
 two points: slope, intercepts and coefficients follow: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
 one point: the other at the origin: cells 11 · essential 8 · constant 3 · instrs 0 · components 3
-points from points: a drag moves them: cells 11 · essential 8 · constant 3 · instrs 0 · components 5
+points from points: a drag moves them: cells 12 · essential 8 · constant 4 · instrs 0 · components 5
 a point and a slope: the second point a unit along it: cells 13 · essential 8 · constant 3 · instrs 1 · components 3
 a slope alone: through the origin: cells 13 · essential 8 · constant 3 · instrs 1 · components 3
 a slope from a number: cells 14 · essential 8 · constant 4 · instrs 1 · components 4
