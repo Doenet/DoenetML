@@ -61,6 +61,15 @@ export const look = {
         fixed: true,
     }),
 
+    /** A polygon that is not closed (a polyline that is a shape): its
+     * sides as a line, nothing filled, dragged by its sides. */
+    openPolygon: () => ({
+        ...look.polygon(),
+        fillOpacity: 0,
+        highlightFillOpacity: 0,
+        hasInnerPoints: false,
+    }),
+
     /** A point that defines a shape, drawn as a small handle. */
     vertex: () => ({
         name: "",
