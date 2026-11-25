@@ -777,7 +777,9 @@ describe("A tag that makes its own content is made only from a reference that al
             [`<text>t</text>`, "$sec2.x.r"],
         ]) {
             const d = await load(
-                `<section name="x">${rB}</section><section name="sec">${inSec}<section name="sec2" copy="$sec"/></section><repeat name="r2" extend="${source}"/>`,
+                // `zz` is a name elsewhere, so `$sec2.zz` is a path of
+                // names that reaches the copy, not one cut short
+                `<text name="zz">z</text><section name="x">${rB}</section><section name="sec">${inSec}<section name="sec2" copy="$sec"/></section><repeat name="r2" extend="${source}"/>`,
             );
             expect(d.errorCodes(), source).eqls(["doenet-e0005"]);
         }
