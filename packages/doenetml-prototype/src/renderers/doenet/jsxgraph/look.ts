@@ -29,6 +29,9 @@ export const look = {
         name: "",
         ...stroke(LINE_COLOR),
         layer: LAYER_OFFSETS.line,
+        // Shaded only when filled (`setFilled`).
+        fillColor: LINE_COLOR,
+        highlightFillColor: LINE_COLOR,
         fillOpacity: 0,
         highlightFillOpacity: 0,
     }),

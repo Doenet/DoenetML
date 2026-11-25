@@ -10,6 +10,7 @@ import {
     finite,
     onClick,
     setCoords,
+    setFixed,
     useGraphObjects,
 } from "./jsxgraph/use-graph-objects";
 import { look } from "./jsxgraph/look";
@@ -20,6 +21,8 @@ type PointData = {
         open?: boolean;
         /** Whether a click switches `open` (`switchPoint`). */
         switchable?: boolean;
+        /** False when a drag may not move it (ADR 0070). */
+        draggable?: boolean;
     };
 };
 
@@ -77,6 +80,7 @@ export const PointInGraph: BasicComponent<PointData> = ({ node }) => {
         },
         update: (made, props) => {
             const { point } = made;
+            setFixed(point, props.draggable === false);
             const open = props.open === true;
             if (open !== made.open) {
                 point.setAttribute(open ? look.hollow() : made.filled);

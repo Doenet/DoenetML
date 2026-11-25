@@ -9,6 +9,7 @@ import {
     isPoints,
     refresh,
     setCoords,
+    setFilled,
     setFixed,
     setVisible,
     useGraphObjects,
@@ -25,6 +26,8 @@ type PolygonData = {
         /** Whether a drag may move one vertex; true when a core does not
          * say. */
         verticesDraggable?: boolean;
+        /** Its inside shaded. */
+        filled?: boolean;
     };
 };
 
@@ -120,8 +123,9 @@ function Shape({
         },
         update: (
             { polygon, vertices },
-            { numericalVertices, draggable, verticesDraggable },
+            { numericalVertices, draggable, verticesDraggable, filled },
         ) => {
+            if (closed) setFilled(polygon, filled === true, 0.1);
             if (vertices.length !== numericalVertices.length) {
                 return; // about to be made anew
             }
