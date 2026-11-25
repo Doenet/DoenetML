@@ -1080,11 +1080,12 @@ describe("A copy of a name in a case through a reload @group4", () => {
     });
 
     for (const form of ["copy", "copyWithState"]) {
-        it(`${form}: a conditionalContent copy of one named in a case keeps that case, and decides its own`, async () => {
-            // `c` is a new `<conditionalContent>` made from the `inner` of
-            // the first case of `outer`: it decides its own case from `$b`,
-            // also after a reload while `outer` has its `<else>`, whose
-            // `inner` it was not made from.
+        it(`${form}: a conditionalContent made from one named in a case is an error, also after a reload`, async () => {
+            // A tag that makes its own content is made only from a
+            // reference that always names the same written tag (D78.1):
+            // `$outer.inner` names the `inner` of whichever case of `outer`
+            // is shown. Keeping the case a copy was made from through a
+            // reload is tested above with `<text copy="$outer.t">`.
             const doenetML = `
     <booleanInput name="a" prefill="true"/>
     <booleanInput name="b" prefill="true"/>
@@ -1101,28 +1102,13 @@ describe("A copy of a name in a case through a reload @group4", () => {
     <conditionalContent ${form}="$outer.inner" name="c"/>
     `;
             const r = await reloader(doenetML);
-            async function setM(latex: string) {
-                await updateMathInputValue({
-                    latex,
-                    componentIdx: await r.resolve("c.m"),
-                    core: r.core(),
-                });
-            }
-            await setM("5");
-            await r.setBoolean("b", false);
-            await setM("6");
+            const codes = () =>
+                getDiagnosticsByType(r.core()).errors.map((d: any) => d.code);
+            expect(codes()).eqls(["doenet-e0071"]);
             await r.setBoolean("a", false);
-            expect((await r.sv("outer.p")).stateValues.text).eq("e2");
-            expect((await r.sv("c.p")).stateValues.text).eq("two 6");
-
             await r.reload();
-            expect((await r.sv("outer.p")).stateValues.text).eq("e2");
-            expect((await r.sv("c.p")).stateValues.text).eq("two 6");
-            await r.setBoolean("b", true);
-            expect((await r.sv("c.p")).stateValues.text).eq("one 5");
-            await r.reload();
+            expect(codes()).eqls(["doenet-e0071"]);
             expect((await r.sv("outer.p")).stateValues.text).eq("e1");
-            expect((await r.sv("c.p")).stateValues.text).eq("one 5");
         });
     }
 });

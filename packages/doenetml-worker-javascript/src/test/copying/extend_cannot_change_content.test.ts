@@ -841,9 +841,12 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
 <select name="sel"><option><sequence from="1" to="3"/></option><option><sequence from="1" to="3"/></option></select>
 <conditionalContent name="mixed"><case condition="$b"><sequence from="1" to="3"/></case><else><math>x</math></else></conditionalContent>`;
 
+        // A tag that makes its own content is made only from a reference
+        // that always names the same written tag (D78.1): `$cc` and `$sel`
+        // name what the case or pick shows.
         for (const [written, codes, text] of [
-            [`<sequence extend="$cc"/>`, [], "1, 2, 3"],
-            [`<sequence extend="$sel"/>`, [], "1, 2, 3"],
+            [`<sequence extend="$cc"/>`, ["doenet-e0071"], ""],
+            [`<sequence extend="$sel"/>`, ["doenet-e0071"], ""],
             [`<sequence extend="$mixed"/>`, ["doenet-e0071"], ""],
         ] as const) {
             it(written, async () => {
@@ -865,26 +868,24 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
             });
         }
 
-        it("is missing while the conditionalContent holds nothing", async () => {
+        it("is the same error while the conditionalContent holds nothing", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `${SOURCES}
 <p name="p"><sequence extend="$cc"/></p>`,
             });
             const p = () => textsOf(core, resolvePathToNodeIdx, ["p"]);
             const b = await resolvePathToNodeIdx("b");
+            const codes = () =>
+                getDiagnosticsByType(core).errors.map((d) => d.code);
 
+            expect(codes()).eqls(["doenet-e0071"]);
             await updateBooleanInputValue({
                 boolean: false,
                 componentIdx: b,
                 core,
             });
-            expect(await p()).eqls(["＿"]);
-            await updateBooleanInputValue({
-                boolean: true,
-                componentIdx: b,
-                core,
-            });
-            expect(await p()).eqls(["1, 2, 3"]);
+            expect(await p()).eqls([""]);
+            expect(codes()).eqls(["doenet-e0071"]);
         });
     });
 });

@@ -58,7 +58,7 @@ exports[`component census of the micro-documents > collect numbers x4 1`] = `
   "copies": 1,
   "dependencies": 855,
   "shadows": 0,
-  "stateVariables": 595,
+  "stateVariables": 594,
   "stateVariablesResolved": 365,
 }
 `;
@@ -164,10 +164,10 @@ exports[`component census of the micro-documents > math extend=$P.x simplify 1`]
   },
   "components": 7,
   "copies": 1,
-  "dependencies": 508,
+  "dependencies": 506,
   "shadows": 1,
-  "stateVariables": 510,
-  "stateVariablesResolved": 216,
+  "stateVariables": 509,
+  "stateVariablesResolved": 215,
 }
 `;
 
@@ -234,10 +234,10 @@ exports[`component census of the micro-documents > number extend=$n 1`] = `
   },
   "components": 4,
   "copies": 1,
-  "dependencies": 336,
+  "dependencies": 334,
   "shadows": 1,
-  "stateVariables": 209,
-  "stateVariablesResolved": 146,
+  "stateVariables": 208,
+  "stateVariablesResolved": 145,
 }
 `;
 
@@ -273,10 +273,10 @@ exports[`component census of the micro-documents > point $P 1`] = `
   },
   "components": 11,
   "copies": 1,
-  "dependencies": 816,
+  "dependencies": 814,
   "shadows": 1,
-  "stateVariables": 733,
-  "stateVariablesResolved": 382,
+  "stateVariables": 732,
+  "stateVariablesResolved": 381,
 }
 `;
 
@@ -314,10 +314,10 @@ exports[`component census of the micro-documents > repeat for mathList $x[1] x2 
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 468,
+  "dependencies": 466,
   "shadows": 1,
-  "stateVariables": 418,
-  "stateVariablesResolved": 181,
+  "stateVariables": 417,
+  "stateVariablesResolved": 180,
 }
 `;
 
@@ -387,10 +387,10 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 713,
+  "dependencies": 711,
   "shadows": 1,
-  "stateVariables": 454,
-  "stateVariablesResolved": 285,
+  "stateVariables": 453,
+  "stateVariablesResolved": 284,
 }
 `;
 
@@ -428,9 +428,9 @@ exports[`component census of the micro-documents > textList $mi a 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 526,
+  "dependencies": 524,
   "shadows": 1,
-  "stateVariables": 408,
-  "stateVariablesResolved": 239,
+  "stateVariables": 407,
+  "stateVariablesResolved": 238,
 }
 `;
