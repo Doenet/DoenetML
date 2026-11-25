@@ -1892,6 +1892,15 @@ STATE.sampleMultivariateRandomNumber = {
     numCategories: (g) => g("numCategories"),
     numTotal: (g) => g("numTotal"),
     numDraws: (g) => g("numDraws"),
+    // Each category's mean and variance, its named sequences (ADR 0086).
+    means: (_g, x) =>
+        Array.from(x.cells.propCells(x.idx, "means")).map((c) =>
+            x.cells.value(c),
+        ),
+    variances: (_g, x) =>
+        Array.from(x.cells.propCells(x.idx, "variances")).map((c) =>
+            x.cells.value(c),
+        ),
 };
 // The positions of a sort's operands, and the counting operators (ADR
 // 0078): lists of numbers; a tally's categories its second sequence,
