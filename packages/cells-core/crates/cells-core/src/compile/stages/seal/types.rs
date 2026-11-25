@@ -253,6 +253,14 @@ impl<'s, 'a> Types<'s, 'a> {
                     ..
                 }) => PortType::Math,
                 Flow::Aggregate(_) | Flow::VecOut(..) | Flow::ValueOf(..) => PortType::Num,
+                // The expression when it is math, else the number.
+                Flow::HeldOf(expr, _) => {
+                    if self.port(t, e, expr.index()) == PortType::Math {
+                        PortType::Math
+                    } else {
+                        PortType::Num
+                    }
+                }
                 // Lowered to operators, or NaN: a number either way.
                 Flow::Math(id) | Flow::MathValue(id) => {
                     if check {

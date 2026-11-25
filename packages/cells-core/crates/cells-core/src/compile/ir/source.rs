@@ -129,6 +129,10 @@ pub(crate) enum Flow {
     /// 0043): an `Evaluate` of its own port `expr` when that port is math,
     /// else an alias of its own port `numeric`, the operator over numbers.
     ValueOf(Port, Port),
+    /// An entry of a list operator whose kind the type pass decides (ADR
+    /// 0043, ADR 0075): an alias of its own port `expr` when that port is
+    /// math, the expression itself, else of its own port `numeric`.
+    HeldOf(Port, Port),
     /// An operator over a collection of components around the element:
     /// credit over the scored items, a section's number among its
     /// siblings, a collect's count of what it gathers.
@@ -249,6 +253,11 @@ impl Source {
     pub(crate) fn value_of(expr: Port, numeric: Port) -> Self {
         Source::Flow(Flow::ValueOf(expr, numeric))
     }
+    /// An entry that is `expr` when the type pass types it math, else
+    /// `numeric` ([`Flow::HeldOf`]).
+    pub(crate) fn held_of(expr: Port, numeric: Port) -> Self {
+        Source::Flow(Flow::HeldOf(expr, numeric))
+    }
     /// A math cell when math text `id` is symbolic, else no value
     /// ([`Flow::MathHandle`]).
     pub(crate) fn math_handle(id: ExprId, post: Post) -> Self {
@@ -281,7 +290,9 @@ pub(crate) fn port_name(
         Source::Flow(Flow::Alias(Arg::Own(p))) | Source::Flow(Flow::VecOut(p, _)) => {
             p.index() == pi
         }
-        Source::Flow(Flow::ValueOf(a, b)) => a.index() == pi || b.index() == pi,
+        Source::Flow(Flow::ValueOf(a, b) | Flow::HeldOf(a, b)) => {
+            a.index() == pi || b.index() == pi
+        }
         Source::Flow(Flow::Op(_, args)) => args
             .iter()
             .any(|a| matches!(a, Arg::Own(p) if p.index() == pi)),

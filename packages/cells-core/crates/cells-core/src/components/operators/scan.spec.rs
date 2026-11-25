@@ -70,16 +70,20 @@ spec! {
         expect { "d.numbers" = [1, 3, 6] }
     }
 
-    case "a piece that is no number is refused" {
+    // Its entries are then expressions (ADR 0043; `tests/symbolic_operators.rs`).
+    case "a piece that is no number makes it symbolic" {
         doenet r#"<cumulativeSum name="c">x 1</cumulativeSum>"#;
-        diagnostics["cells-unsupported"]
+        expect { "c.numComponents" = 2 }
     }
 
-    // A math list's entry holds a handle, not the number: each is read
-    // as the number its expression evaluates to (`listoperators.test.ts`).
+    // A math list's entry holds a handle, not the number: read
+    // numerically, each is the number its expression evaluates to
+    // (`listoperators.test.ts`). Without `forceNumeric` a scan over them is
+    // symbolic, as the type pass types a math list's entries math (ADR
+    // 0043).
     case "a math list's entries are the numbers they hold" {
         doenet r#"<mathList name="ml">10 20 30</mathList>
-                  <cumulativeSum name="c">$ml</cumulativeSum>
+                  <cumulativeSum name="c" forceNumeric>$ml</cumulativeSum>
                   <median name="m">$ml</median>
                   <indexOf name="i" target="20">$ml</indexOf>"#;
         expect { "c.numbers" = [10, 30, 60], "m.value" = 20, "i.value" = 2 }

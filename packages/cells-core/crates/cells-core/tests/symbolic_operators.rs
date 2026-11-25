@@ -240,3 +240,37 @@ fn the_input_signature_reads_an_operator_over_math() {
     assert!(compare_signatures(&one, &one).safe());
     assert!(compare_signatures(&one, &other).safe());
 }
+
+/// A list operator's entries (ADR 0043, per element, ADR 0075): numbers
+/// when every operand is one, else each the expression over its prefix,
+/// shown as written; `forceSymbolic` and `forceNumeric` decide instead.
+#[test]
+fn scans_over_math_are_expressions_per_element() {
+    let doc = load(
+        r#"<mathList name="ml">x y z</mathList>
+           <p name="sum"><cumulativeSum>$ml</cumulativeSum></p>
+           <p name="prod"><cumulativeProduct>$ml</cumulativeProduct></p>
+           <p name="lo"><cumulativeMin>$ml</cumulativeMin></p>
+           <p name="hi"><cumulativeMax>$ml</cumulativeMax></p>
+           <p name="diff"><differences>$ml</differences></p>
+           <p name="nums"><cumulativeSum>30 45 12</cumulativeSum></p>
+           <mathList name="nl">10 20 30</mathList>
+           <p name="numList"><cumulativeSum>$nl</cumulativeSum></p><p name="foldSum"><sum>$nl</sum></p>
+           <p name="forced"><cumulativeSum forceSymbolic>1 2 3</cumulativeSum></p>
+           <p name="numeric"><cumulativeSum forceNumeric>1 x 3</cumulativeSum></p>"#,
+    )
+    .unwrap();
+    let text = |name: &str| doc.rendered_text(doc.resolve_path(name).unwrap());
+    assert_eq!(text("sum"), "x, x + y, x + y + z");
+    assert_eq!(text("lo"), "x, min(x, y), min(x, y, z)");
+    assert_eq!(text("hi"), "x, max(x, y), max(x, y, z)");
+    assert_eq!(text("diff"), "y - x, z - y");
+    assert_eq!(text("prod"), "x, x y, x y z");
+    assert_eq!(text("nums"), "30, 75, 87");
+    // A math list's entries are math cells: the operator is symbolic,
+    // as a <sum> of them is (ADR 0043, Consequences).
+    assert_eq!(text("foldSum"), "10 + 20 + 30");
+    assert_eq!(text("numList"), "10, 10 + 20, 10 + 20 + 30");
+    assert_eq!(text("forced"), "1, 1 + 2, 1 + 2 + 3");
+    assert_eq!(text("numeric"), "1, NaN, NaN");
+}

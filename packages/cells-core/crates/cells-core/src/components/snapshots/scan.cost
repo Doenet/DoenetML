@@ -1,10 +1,10 @@
-running sums, by every name and by index: cells 17 · essential 0 · constant 17 · instrs 0 · components 7
-running products: cells 18 · essential 0 · constant 18 · instrs 0 · components 7
-running minima and maxima: cells 43 · essential 0 · constant 43 · instrs 0 · components 19
-differences are one fewer than the operands: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
-one operand, and none: cells 8 · essential 0 · constant 8 · instrs 0 · components 5
-an operand from an input follows it: cells 13 · essential 1 · constant 9 · instrs 1 · components 7
-a request on an entry cannot change it: cells 13 · essential 0 · constant 13 · instrs 0 · components 7
-a copy has the referent's entries: cells 15 · essential 0 · constant 15 · instrs 0 · components 9
-a piece that is no number is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
-a math list's entries are the numbers they hold: cells 26 · essential 0 · constant 26 · instrs 0 · components 11
+running sums, by every name and by index: cells 12 · essential 0 · constant 12 · instrs 0 · components 7
+running products: cells 12 · essential 0 · constant 12 · instrs 0 · components 7
+running minima and maxima: cells 26 · essential 0 · constant 26 · instrs 0 · components 19
+differences are one fewer than the operands: cells 10 · essential 0 · constant 10 · instrs 0 · components 5
+one operand, and none: cells 6 · essential 0 · constant 6 · instrs 0 · components 5
+an operand from an input follows it: cells 9 · essential 1 · constant 5 · instrs 1 · components 7
+a request on an entry cannot change it: cells 9 · essential 0 · constant 9 · instrs 0 · components 7
+a copy has the referent's entries: cells 8 · essential 0 · constant 8 · instrs 0 · components 9
+a piece that is no number makes it symbolic: cells 5 · essential 0 · constant 5 · instrs 0 · components 4
+a math list's entries are the numbers they hold: cells 22 · essential 0 · constant 22 · instrs 0 · components 11
