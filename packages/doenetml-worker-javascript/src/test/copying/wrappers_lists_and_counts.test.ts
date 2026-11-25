@@ -724,24 +724,62 @@ describe("A tag that makes its own content is made only from a reference that al
         }
     });
 
-    it("a property after a name in the branches is the branch error, whatever the resolver leaves the names to", async () => {
+    it("a property or an unknown name after the names in the branches is decided as before, whatever the resolver leaves the names to", async () => {
         const sec = (inside: string) =>
             `<section name="sec">${inside}</section><section name="sec2" copy="$sec"/>`;
-        for (const [before, source, branch] of [
-            [cc(rA, rB), "$cc.r.hidden", "case shown"],
-            [sec(cc(rA, rB)), "$sec2.cc.r.hidden", "case shown"],
+        const xs = cc(
+            `<section name="x">${rA}</section>`,
+            `<section name="x">${rB}</section>`,
+        );
+        const value = (source: string) =>
+            `doenet-e0071: A \`<repeat>\` makes its content itself, so it can be made only from another \`<repeat>\`, and \`${source}\` is a value. To show it as it is, write \`${source}\`.`;
+        for (const [before, source, expected] of [
+            [cc(rA, rB), "$cc.r.hidden", value("$cc.r.hidden")],
+            [sec(cc(rA, rB)), "$sec2.cc.r.hidden", value("$sec2.cc.r.hidden")],
+            [sec(xs), "$sec2.cc.x.r.hidden", value("$sec2.cc.x.r.hidden")],
             [
                 sec(
                     `<select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select>`,
                 ),
                 "$sec2.s[2].r.hidden",
-                "option picked",
+                value("$sec2.s[2].r.hidden"),
+            ],
+            [
+                sec(cc(rA, rB)),
+                "$sec2.cc.r.x.y",
+                "doenet-i0018: Could not find prop x.y on a component of type repeat",
             ],
         ] as const) {
             const d = await load(
                 `${before}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
             );
-            expect(d.diagnostics()).eqls([shown("repeat", source, branch)]);
+            expect(d.diagnostics(), source).eqls([expected]);
+        }
+        // names alone in the branches are still the branch error
+        for (const [before, source] of [
+            [cc(rA, rB), "$cc.r"],
+            [xs, "$cc.x.r"],
+        ] as const) {
+            const d = await load(
+                `${before}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
+            );
+            expect(d.diagnostics(), source).eqls([
+                shown("repeat", source, "case shown"),
+            ]);
+        }
+    });
+
+    it("a copy of a section inside it is a circular dependency, also when a reference to a tag reaches through it", async () => {
+        for (const [inSec, source] of [
+            [`<text>t</text>`, "$sec2.r"],
+            [rA, "$sec2.r"],
+            [`<text>t</text>`, "$sec2.zz"],
+            [`<text>t</text>`, "$sec2.x.r"],
+        ]) {
+            const d = await load(
+                `<section name="x">${rB}</section><section name="sec">${inSec}<section name="sec2" copy="$sec"/></section><repeat name="r2" extend="${source}"/>`,
+            );
+            expect(d.errorCodes(), source).eqls(["doenet-e0005"]);
         }
     });
 

@@ -3474,9 +3474,12 @@ export function checkTypeChangesAtLoad({
      * `$g.r`) or the iterations of a repeat (`$outer[k].inner`) always
      * names the one written tag, and is decided as before, as are a
      * property of the container (`$cc.hidden`) or of a pick
-     * (`$s[2].hidden`), which names nothing in the branches, and an index
-     * past the picks (`$s[3].r` of a select of two, `doenet-w0181`), which
-     * names nothing at all.
+     * (`$s[2].hidden`), which names nothing in the branches, a reference
+     * with a part after the names that is not a name of the document (a
+     * property, `$cc.r.hidden`, or an unknown name, `$cc.r.x.y`), which is
+     * worded as for any value or name not found, and an index past the
+     * picks (`$s[3].r` of a select of two, `doenet-w0181`), which names
+     * nothing at all.
      */
     function branchSourceError(
         copy: SerializedComponent,
@@ -3516,10 +3519,9 @@ export function checkTypeChangesAtLoad({
          * The names of the document at the start of `parts` that a branch
          * container they reach into must hold (`namedThrough`): those up to
          * the first written with an index (`s` of `$cc.s[2].r`, whose
-         * picks are looked into only when it is reached), and not a
-         * property after them (`r` of `$cc.r.hidden`), as `leadingNames`
-         * reads them. The first is always one, as a property of the
-         * container (`$cc.hidden`) is told apart by not being held.
+         * picks are looked into only when it is reached), as `leadingNames`
+         * reads them; a reference with a part that isn't a name of the
+         * document (`$cc.r.hidden`) is not decided here at all.
          */
         const namesHeld = (parts: any[]) => {
             const { names } = leadingNames(parts, true);
@@ -3570,7 +3572,7 @@ export function checkTypeChangesAtLoad({
             name: string,
         ) => {
             const visited = new Set<number>();
-            const within = (
+            const writtenIn = (
                 components: (SerializedComponent | string)[],
             ): boolean =>
                 components.some((component) => {
@@ -3613,9 +3615,9 @@ export function checkTypeChangesAtLoad({
                             inside.push(source);
                         }
                     }
-                    return within(inside);
+                    return writtenIn(inside);
                 });
-            return within(container.children ?? []);
+            return writtenIn(container.children ?? []);
         };
         const isRepeat = (idx: number) =>
             ["repeat", "repeatForSequence"].includes(
@@ -3683,11 +3685,22 @@ export function checkTypeChangesAtLoad({
          * - names after a repeat with no index name nothing outside it;
          * - names after any other component (a copy, `$sec2.r`) are looked
          *   for in what it holds (`within`).
+         *
+         * `seen` holds the components on the way to `idx`: one reached again
+         * (the copy `sec2` among what it holds, as `<section name="sec2"
+         * copy="$sec"/>` written in `sec` holds `sec`'s children) names
+         * nothing more, and is left to the circular dependency it is
+         * (`doenet-e0005`).
          */
         const throughBranch = (
             idx: number,
             parts: any[],
+            seen: Set<number>,
         ): "case" | "option" | undefined => {
+            if (seen.has(idx)) {
+                return undefined;
+            }
+            const onPath = new Set(seen).add(idx);
             if (parts.length === 0) {
                 const container = branchContainerAt(idx);
                 return container && isOtherTag(idx)
@@ -3707,7 +3720,7 @@ export function checkTypeChangesAtLoad({
                     return undefined;
                 }
                 if (isRepeat(idx)) {
-                    return within(contentOf(idx), rest);
+                    return within(contentOf(idx), rest, onPath);
                 }
                 const container = branchContainerAt(idx, true);
                 return container &&
@@ -3733,7 +3746,9 @@ export function checkTypeChangesAtLoad({
                     ? branchKind(container)
                     : undefined;
             }
-            return isRepeat(idx) ? undefined : within(contentOf(idx), parts);
+            return isRepeat(idx)
+                ? undefined
+                : within(contentOf(idx), parts, onPath);
         };
         /**
          * The kind of branch the names `parts` reach through from among
@@ -3747,15 +3762,20 @@ export function checkTypeChangesAtLoad({
          * branches can't be read, it counts only as the reference naming
          * it does (`namedThrough`): the names may be written beside it.
          * Names in a repeat or the options of a select written there are
-         * private, so are not looked for in them.
+         * private, so are not looked for in them. A component already on
+         * the way (in `seen`) is skipped.
          */
         const within = (
             components: (SerializedComponent | string)[],
             parts: any[],
+            seen: Set<number>,
         ): "case" | "option" | undefined => {
             const [first, ...rest] = parts;
             for (const component of components) {
-                if (typeof component !== "object") {
+                if (
+                    typeof component !== "object" ||
+                    seen.has(component.componentIdx)
+                ) {
                     continue;
                 }
                 const attributes = component.attributes ?? {};
@@ -3768,6 +3788,7 @@ export function checkTypeChangesAtLoad({
                         (first.index ?? []).length > 0
                             ? [{ name: "", index: first.index }, ...rest]
                             : rest,
+                        seen,
                     );
                     if (found) {
                         return found;
@@ -3793,14 +3814,30 @@ export function checkTypeChangesAtLoad({
                 ) {
                     continue;
                 }
-                const found = within(contentOf(component.componentIdx), parts);
+                const found = within(
+                    contentOf(component.componentIdx),
+                    parts,
+                    new Set(seen).add(component.componentIdx),
+                );
                 if (found) {
                     return found;
                 }
             }
             return undefined;
         };
-        const branch = throughBranch(ref.nodeIdx, ref.unresolvedPath ?? []);
+        const path = ref.unresolvedPath ?? [];
+        if (
+            !path.every(
+                (part: any) =>
+                    part.name === "" ||
+                    (typeof part.name === "string" && allNames.has(part.name)),
+            )
+        ) {
+            // a property or an unknown name after the names (`$cc.r.hidden`,
+            // `$cc.r.x.y`) is decided as before
+            return undefined;
+        }
+        const branch = throughBranch(ref.nodeIdx, path, new Set());
         if (!branch) {
             return undefined;
         }
