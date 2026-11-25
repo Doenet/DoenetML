@@ -109,7 +109,7 @@ export default function checkEquality({
                 max_digits: Infinity,
                 skip_ordering: true,
             });
-        } else if (effectiveSimplify === "number") {
+        } else if (effectiveSimplify === "numbers") {
             x = x.evaluate_numbers({ max_digits: Infinity });
         } else {
             x = x.evaluate_numbers({

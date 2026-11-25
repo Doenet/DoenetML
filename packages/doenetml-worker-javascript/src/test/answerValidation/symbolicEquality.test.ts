@@ -444,6 +444,97 @@ describe("Symbolic equality tests @group3", async () => {
         });
     });
 
+    // Doenet/DoenetML#2601: `numbers` and `numbersPreserveOrder` evaluate
+    // arithmetic on numbers but leave functions such as `sec` and `sin`
+    // applied to numbers unevaluated, so an exact-value question can accept
+    // `4/2` without accepting `sec(pi/3)`. Only `full` evaluates the function.
+    it("simplifying numbers does not evaluate functions of numbers", async () => {
+        const doenetML = `
+    <p>Response: <mathInput name="resp" /></p>
+
+    <p>
+    <answer name="ansS1" symbolicEquality simplifyOnCompare="numbers">
+      <award><when>$resp=2</when></award>
+    </answer>
+    <answer name="ansS2" symbolicEquality simplifyOnCompare="numbersPreserveOrder">
+      <award><when>$resp=2</when></award>
+    </answer>
+    <answer name="ansS3" symbolicEquality simplifyOnCompare="full">
+      <award><when>$resp=2</when></award>
+    </answer>
+    </p>
+
+    <p>Response 2: <mathInput name="resp2" /></p>
+
+    <p>
+    <answer name="ansT1" symbolicEquality simplifyOnCompare="numbers">
+      <award><when>$resp2=1/2</when></award>
+    </answer>
+    <answer name="ansT2" symbolicEquality simplifyOnCompare="numbersPreserveOrder">
+      <award><when>$resp2=1/2</when></award>
+    </answer>
+    <answer name="ansT3" symbolicEquality simplifyOnCompare="full">
+      <award><when>$resp2=1/2</when></award>
+    </answer>
+    </p>
+    `;
+
+        await run_tests({
+            doenetML,
+            responseCredits: [
+                {
+                    responses: { resp: "4/2", resp2: "0.5" },
+                    credits: {
+                        S1: 1,
+                        S2: 1,
+                        S3: 1,
+                        T1: 1,
+                        T2: 1,
+                        T3: 1,
+                    },
+                },
+                {
+                    responses: {
+                        resp: "\\sec(\\pi/3)",
+                        resp2: "\\sin(\\pi/6)",
+                    },
+                    credits: {
+                        S1: 0,
+                        S2: 0,
+                        S3: 1,
+                        T1: 0,
+                        T2: 0,
+                        T3: 1,
+                    },
+                },
+                {
+                    // `numbers` still turns `e^0` into `1`;
+                    // `numbersPreserveOrder` does not.
+                    responses: { resp: "\\sqrt{4}", resp2: "e^0/2" },
+                    credits: {
+                        S1: 0,
+                        S2: 0,
+                        S3: 1,
+                        T1: 1,
+                        T2: 0,
+                        T3: 1,
+                    },
+                },
+                {
+                    responses: { resp: "1+1", resp2: "2/4" },
+                    credits: {
+                        S1: 1,
+                        S2: 1,
+                        S3: 1,
+                        T1: 1,
+                        T2: 1,
+                        T3: 1,
+                    },
+                },
+            ],
+        });
+    });
+
     it("symbolic equality match with normalizing order", async () => {
         const doenetML = `
     <p>Response: <mathInput name="resp" /></p>

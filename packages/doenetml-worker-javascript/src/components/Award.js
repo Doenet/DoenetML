@@ -81,7 +81,7 @@ export default class Award extends BaseComponent {
                 {
                     value: "numbers",
                     description:
-                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                        "Simplify arithmetic on numbers, such as `1+2`, leaving symbolic structure and functions such as `sin(pi/6)` and `sqrt(4)` unevaluated.",
                 },
                 {
                     value: "numbersPreserveOrder",
