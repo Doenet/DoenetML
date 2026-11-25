@@ -588,6 +588,7 @@ impl Emit<'_> {
         // the value store is shared, since the build only read it.
         let session = Session {
             seed: self.x.session.seed,
+            variant: self.x.session.variant.clone(),
             #[cfg(feature = "testing")]
             sample_with_engine: self.x.session.sample_with_engine,
             scopes: self.x.scopes,
