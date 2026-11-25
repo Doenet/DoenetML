@@ -846,5 +846,15 @@ otherwise.
      own ports (decision 1), the list's `companion`: `componentOrder`, one
      cell per entry after the entries (`PropAt::Companion`). Its entries
      are rows (step 3), `mathValue` rows of `EntryKind::Any`.
+     *Several named sequences, 2026-11-25* (ADR 0086, the user's
+     decision): a list declares any number of named sequences
+     (`ListProp::sequences`, `PropAt::Sequence(i)`), each one cell per
+     entry, and a capped list's per-row hide sequence is its own, after
+     them, with no name (so `$int.hidden` is no prop). A `<tally>` with
+     no declared categories is a capped list of numbers (its cap its
+     operands, its live length the distinct values); a multivariate
+     sample's `means` and `variances` are named sequences. A named
+     sequence with a count other than its list's (a normal mixture's
+     `means`) is left for a decision.
 7. **Glossary.** `CONTEXT.md` gains *sequence*, *entry*, *capped list* and
    *live length*, and *point list* and *tuple* are rewritten as sequences.

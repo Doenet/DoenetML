@@ -86,7 +86,7 @@ fn one(t: ComponentType) -> Value {
     names.extend(def.combined_props.iter().map(|(n, _)| *n));
     if let Some(list) = t.list() {
         names.extend(list.names.iter().copied());
-        names.extend(list.companion);
+        names.extend(list.sequences.iter().copied());
     }
     let props: serde_json::Map<String, Value> = names
         .into_iter()

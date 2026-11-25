@@ -6,8 +6,9 @@
 //!
 //! Every reader of a list's cells (a reference's slots, the rows, the
 //! text) reads them through an element's shape: `n_props` public props
-//! are the table's, then `width` cells an entry, then the companion
-//! sequence's one cell an entry.
+//! are the table's, then `width` cells an entry, then each named
+//! sequence's one cell an entry, then, for a capped list, its hide
+//! sequence's one cell an entry (ADR 0086).
 
 use super::{ComponentType, EntryKind, Role};
 use std::borrow::Cow;
@@ -66,19 +67,38 @@ impl ListShape {
         self.width() == 2
     }
 
+    /// The list's named sequences ([`super::ListProp::sequences`]).
+    pub fn sequences(self) -> &'static [&'static str] {
+        self.ty.list().map_or(&[], |l| l.sequences)
+    }
+
+    /// Whether the list is capped, and so has a hide sequence
+    /// ([`super::ListProp::live`]).
+    fn capped(self) -> bool {
+        self.ty.list().is_some_and(|l| l.live.is_some())
+    }
+
+    /// How many cells an entry has beyond its own: one per named sequence,
+    /// and one of the hide sequence for a capped list.
+    fn beside(self) -> usize {
+        self.sequences().len() + usize::from(self.capped())
+    }
+
     /// How many entries the list of an element with `n_props` props holds:
-    /// a list of no cells an entry (`sequence: name`) has its companion's.
+    /// a list of no cells an entry (`sequence: name`) has its named
+    /// sequence's.
     pub fn list_len(self, n_props: usize) -> usize {
-        match self.width() + self.ty.companion_width() {
+        match self.width() + self.beside() {
             0 => 0,
             w => n_props.saturating_sub(self.ty.prop_defs().len()) / w,
         }
     }
 
     /// How many public props an element with `n` list entries has after
-    /// its table's: the entries' cells, then the companion sequence's.
+    /// its table's: the entries' cells, then the named sequences', then
+    /// the hide sequence's.
     pub fn list_props(self, n: usize) -> usize {
-        (self.width() + self.ty.companion_width()) * n
+        (self.width() + self.beside()) * n
     }
 
     /// The position of cell `j` of entry `k` (1-based) in an element with
@@ -88,32 +108,44 @@ impl ListShape {
         (w > 0 && j < w && k >= 1 && k <= self.list_len(n_props)).then(|| n_table + w * (k - 1) + j)
     }
 
-    /// The positions of the companion sequence of an element with
-    /// `n_props` props.
-    pub fn companion_slots(self, n_props: usize) -> std::ops::Range<usize> {
-        if self.ty.companion_width() == 0 {
+    /// The positions of named sequence `i` (its position among the
+    /// list's [`sequences`](Self::sequences)) of an element with
+    /// `n_props` props; none for a sequence the list does not name.
+    pub fn sequence_slots(self, n_props: usize, i: usize) -> std::ops::Range<usize> {
+        if i >= self.sequences().len() {
             return 0..0;
         }
         let n = self.list_len(n_props);
-        let start = self.ty.prop_defs().len() + self.width() * n;
+        let start = self.ty.prop_defs().len() + (self.width() + i) * n;
+        start..start + n
+    }
+
+    /// The positions of the hide sequence of an element with `n_props`
+    /// props: a capped list's, one cell an entry after its named
+    /// sequences (ADR 0086); none for a list that is not capped.
+    pub fn hide_slots(self, n_props: usize) -> std::ops::Range<usize> {
+        if !self.capped() {
+            return 0..0;
+        }
+        let n = self.list_len(n_props);
+        let start = self.ty.prop_defs().len() + (self.width() + self.sequences().len()) * n;
         start..start + n
     }
 
     /// The position of the cell a made row of entry `k` (1-based) hides
-    /// by, in an element with `n_props` props: a capped list's companion
-    /// entry (ADR 0041, decision 2: 1 past the live length); None where a
-    /// row is never hidden by its list.
+    /// by, in an element with `n_props` props: a capped list's hide
+    /// sequence's entry (ADR 0041, decision 2: 1 past the live length);
+    /// None where a row is never hidden by its list.
     pub fn row_hide_slot(self, n_props: usize, k: usize) -> Option<usize> {
-        self.ty.list()?.live?;
-        let slots = self.companion_slots(n_props);
+        let slots = self.hide_slots(n_props);
         (k >= 1 && k <= slots.len()).then(|| slots.start + k - 1)
     }
 
     /// The name of prop `pi` of an element with `n_props` public props:
     /// the table's, a list cell (`throughX2`; a point entry of a list
     /// whose type names one cell an entry, `value2_1` and `value2_2`), or
-    /// the companion sequence's (`componentOrder2`); None for a hidden
-    /// slot.
+    /// a named sequence's (`componentOrder2`); None for a hidden slot and
+    /// for the hide sequence's.
     pub fn prop_name(self, n_props: usize, pi: usize) -> Option<Cow<'static, str>> {
         let ty = self.ty;
         let n_table = ty.prop_defs().len();
@@ -121,11 +153,14 @@ impl ListShape {
             return Some(ty.prop_defs()[pi].name.into());
         }
         let coords = ty.given_coords().filter(|_| pi < n_props)?;
-        if let Some(companion) = ty.list().and_then(|l| l.companion)
-            && self.companion_slots(n_props).contains(&pi)
-        {
-            let k = pi - self.companion_slots(n_props).start + 1;
-            return Some(format!("{companion}{k}").into());
+        for (i, name) in self.sequences().iter().enumerate() {
+            let slots = self.sequence_slots(n_props, i);
+            if slots.contains(&pi) {
+                return Some(format!("{name}{}", pi - slots.start + 1).into());
+            }
+        }
+        if self.hide_slots(n_props).contains(&pi) {
+            return None;
         }
         let w = self.width().max(1);
         let (k, j) = ((pi - n_table) / w + 1, (pi - n_table) % w);

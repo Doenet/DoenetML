@@ -15,11 +15,11 @@ spec! {
                     <line name="l2" through="$P3 $P4"/>
                     <intersection name="int">$l1$l2</intersection>
                   </graph>"#;
-        expect { "int.numPoints" = 0, "int.hidden" = 1 }
+        expect { "int.numPoints" = 0 }
         // The first line vertical.
         request { "P1.coords" = (3, 5) }
         request { "P2.coords" = (3, -5) }
-        expect { "int.point1" = (3, 2), "int.numPoints" = 1, "int.hidden" = 0 }
+        expect { "int.point1" = (3, 2), "int.numPoints" = 1, "int[1].hide" = 0 }
         // Both vertical.
         request { "P3.coords" = (-4, 5) }
         request { "P4.coords" = (-4, -5) }
@@ -50,9 +50,9 @@ spec! {
                     <intersection name="int" hide="$h">$l1 $l2</intersection>
                   </graph>
                   <booleanInput name="h"/>"#;
-        expect { "int.point1" = (1, 1), "int.hide" = 0, "int.hidden" = 0 }
+        expect { "int.point1" = (1, 1), "int.hide" = 0, "int[1].hide" = 0 }
         request { "h.value" = 1 }
-        expect { "int.hide" = 1, "int.hidden" = 1, "int.point1" = (1, 1) }
+        expect { "int.hide" = 1, "int[1].hide" = 1, "int.point1" = (1, 1) }
     }
 
     case "hidden by the author, in text" {
@@ -62,9 +62,9 @@ spec! {
                   </graph>
                   <booleanInput name="h"/>
                   <p>Intersection: <intersection name="int" hide="$h">$l1 $l2</intersection></p>"#;
-        expect { "int.hide" = 0, "int.hidden" = 0 }
+        expect { "int.hide" = 0, "int[1].hide" = 0 }
         request { "h.value" = 1 }
-        expect { "int.hide" = 1, "int.hidden" = 1 }
+        expect { "int.hide" = 1, "int[1].hide" = 1 }
     }
 
     case "a line and a circle: two points, one where tangent" {
@@ -76,9 +76,9 @@ spec! {
                     <line name="l" through="$A $B"/>
                     <intersection name="int">$l $c</intersection>
                   </graph>"#;
-        expect { "int.numPoints" = 1, "int.point1" = (4, 4), "int.hidden" = [0, 1] }
+        expect { "int.numPoints" = 1, "int.point1" = (4, 4), "int[1].hide" = 0 }
         request { "P.coords" = (4, 5) }
-        expect { "int.numPoints" = 2, "int.points" = [4, 6, 4, 4], "int.hidden" = [0, 0] }
+        expect { "int.numPoints" = 2, "int.points" = [4, 6, 4, 4], "int[1].hide" = 0, "int[2].hide" = 0 }
         request { "r.value" = 2 }
         expect { "int.points" = [4, 7, 4, 3] }
         request { "A.coords" = (-2, 2) }

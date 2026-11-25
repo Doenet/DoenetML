@@ -465,7 +465,7 @@ fn prop_names(t: ComponentType) -> Vec<&'static str> {
     names.extend(def.combined_props.iter().map(|(n, _)| *n));
     if let Some(list) = t.list() {
         names.extend(list.names.iter().copied());
-        names.extend(list.companion);
+        names.extend(list.sequences.iter().copied());
     }
     names
 }

@@ -129,7 +129,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     } else {
         Source::absent()
     };
-    wiring.set_companion(order);
+    wiring.set_sequence("choiceOrder", order);
     wiring.set_planned(Planned {
         preliminaryIndex: attrs.selectedIndex.unwrap_or(Source::given(0.0)).into(),
         selectedIndex: Source::computed_k(OpSpec::ChoiceIndex, at.preliminaryIndex, n as f64)
