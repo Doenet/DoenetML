@@ -1738,6 +1738,10 @@ export const TRANSPARENT = new Set([
     "intersection",
     // A multivariate sample, one number per category (ADR 0067).
     "sampleMultivariateRandomNumber",
+    // The positions of a sort's operands, and counts (ADR 0078): numbers.
+    "sortIndices",
+    "tally",
+    "binCounts",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1775,6 +1779,10 @@ export const LIST_LIKE = new Set([
     "intersection",
     // A multivariate sample, one number per category (ADR 0067).
     "sampleMultivariateRandomNumber",
+    // The positions of a sort's operands, and counts (ADR 0078): numbers.
+    "sortIndices",
+    "tally",
+    "binCounts",
 ]);
 
 /** List-like types whose items are the children of one scope (an

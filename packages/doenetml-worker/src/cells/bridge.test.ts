@@ -1583,6 +1583,17 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect(all).toBe("5, 3, 2");
     });
 
+    // The positions a sort puts its operands in, and counts (ADR 0078),
+    // stand as their numbers.
+    it("draws sortIndices, tally and binCounts as their numbers", async () => {
+        const { texts, all } =
+            await open(`<p><sortIndices>30 10 20</sortIndices></p>
+<p><tally categories="4 3 2 1">1 4 1 2 2 2 4</tally></p>
+<p><binCounts bins="0 1 2">0 0.5 1 1.5 2</binCounts></p>`);
+        expect(texts()).toEqual(["2, 3, 1", "2, 0, 3, 2", "2, 3"]);
+        expect(all("text")).toEqual([]);
+    });
+
     it("draws a selectFromSequence's picks, and a copy showing them differently draws the same (ADR 0059)", async () => {
         const source = `<p><selectFromSequence name="s" from="1" to="1000" numToSelect="3"/></p>
 <p><selectFromSequence extend="$s" asList="false"/></p>
