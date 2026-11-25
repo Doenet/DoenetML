@@ -1546,13 +1546,28 @@ type-change-composite-not-one =
 # (#2546); otherwise it is `values`. With `content`, $sourceIs is `value` for
 # such a value, and `other` for anything else that isn't the same tag: a
 # component of another type (`$n`), or an iteration or pick (`$r[1]`) (D48
-# decision 2). The tags and `$source` are DoenetML and stay in English.
+# decision 2). With either, $sourceIs is `branch` when `$source` is a
+# `<conditionalContent>` or a `<select>` that picks one, or reaches through
+# one or through the picks of a `<select>` (`$cc`, `$cc.r`, `$s[2].r`), so
+# that it can name a different written tag as what is shown changes (D78.1);
+# $branch is then `case` or `option`. The tags and `$source` are DoenetML and
+# stay in English.
 type-change-own-type-only = { $makes ->
         [content] { $sourceIs ->
             [other] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't one. To show it as it is, write `{ $source }`.
+            [branch] A `<{ $componentType }>` makes its content itself, so it can be made only from a reference that always names the same `<{ $componentType }>`, and `{ $source }` names what the { $branch ->
+                [option] option picked
+               *[case] case shown
+            } holds, which would change with what is shown. To show it as it is, write `{ $source }`.
            *[value] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a value. To show it as it is, write `{ $source }`.
         }
-       *[values] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+       *[values] { $sourceIs ->
+            [branch] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from a reference that always names the same `<{ $componentType }>`, and `{ $source }` names what the { $branch ->
+                [option] option picked
+               *[case] case shown
+            } holds, which would change with what is shown. To show it as it is, write `{ $source }`.
+           *[other] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+        }
     }
 
 # What `$source` holds can be of more than one type, $types, a list of tags
@@ -2742,72 +2757,37 @@ reference-name-type-changes-with-branch = `{ $reference }` can't be used: `{ $na
 # components of different tags, $firstType and $secondType, which stay in
 # English. $reference is the reference as written, with its `$`.
 # $container is the container's name when $hasName is `true`, else its tag
-# name. $branch is `option` or `case`. $form is `tag` for a tag that makes
-# its own content, $componentType, such as `<repeat>`, made from a
-# `<conditionalContent>` or a `<select>` that picks one, which is made from
-# the one of that tag the case or pick shown holds (D78.1), where some case
-# or option holds several components or one of another tag; else `index`.
+# name. $branch is `option` or `case`.
 
-reference-index-into-branches = { $form ->
-    [tag] A `<{ $componentType }>` can't be made from `{ $reference }`: it is made from the `<{ $componentType }>` the { $branch ->
-            [option] pick
-           *[case] case shown
-        } holds, which must be one `<{ $componentType }>`, or nothing, in every { $branch ->
-            [option] option
-           *[case] case
-        } of { $hasName ->
-            [true] `{ $container }`
-           *[other] the `<{ $container }>`
-        }, and { $reason ->
-            [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
-           *[several] { $branch ->
-                [option] { $ordinalsCount ->
-                    [one] option { $ordinals } holds
-                   *[other] options { $ordinals } hold
+reference-index-into-branches = `{ $reference }` can't be used: an index after { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } reaches into what the { $branch ->
+        [option] pick
+       *[case] case shown
+    } holds, which must be one component of one type in every { $branch ->
+        [option] option
+       *[case] case
+    }, and { $reason ->
+        [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
+       *[several] { $branch ->
+            [option] { $ordinalsCount ->
+                [one] option { $ordinals } holds
+               *[other] options { $ordinals } hold
+            }
+           *[case] { $withElse ->
+                [true] { $ordinalsCount ->
+                    [0] the `<else>` holds
+                    [one] case { $ordinals } and the `<else>` hold
+                   *[other] cases { $ordinals } and the `<else>` hold
                 }
-               *[case] { $withElse ->
-                    [true] { $ordinalsCount ->
-                        [0] the `<else>` holds
-                        [one] case { $ordinals } and the `<else>` hold
-                       *[other] cases { $ordinals } and the `<else>` hold
-                    }
-                   *[other] { $ordinalsCount ->
-                        [one] case { $ordinals } holds
-                       *[other] cases { $ordinals } hold
-                    }
+               *[other] { $ordinalsCount ->
+                    [one] case { $ordinals } holds
+                   *[other] cases { $ordinals } hold
                 }
-            } several components
-        }. To show what it holds as it is, write `{ $reference }`.
-   *[index] `{ $reference }` can't be used: an index after { $hasName ->
-            [true] `{ $container }`
-           *[other] the `<{ $container }>`
-        } reaches into what the { $branch ->
-            [option] pick
-           *[case] case shown
-        } holds, which must be one component of one type in every { $branch ->
-            [option] option
-           *[case] case
-        }, and { $reason ->
-            [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
-           *[several] { $branch ->
-                [option] { $ordinalsCount ->
-                    [one] option { $ordinals } holds
-                   *[other] options { $ordinals } hold
-                }
-               *[case] { $withElse ->
-                    [true] { $ordinalsCount ->
-                        [0] the `<else>` holds
-                        [one] case { $ordinals } and the `<else>` hold
-                       *[other] cases { $ordinals } and the `<else>` hold
-                    }
-                   *[other] { $ordinalsCount ->
-                        [one] case { $ordinals } holds
-                       *[other] cases { $ordinals } hold
-                    }
-                }
-            } several
-        }. { $reason ->
-            [types] Hold one type in each.
-           *[several] To use a component inside, give it a name in each and refer to it by that name.
-        }
+            }
+        } several
+    }. { $reason ->
+        [types] Hold one type in each.
+       *[several] To use a component inside, give it a name in each and refer to it by that name.
     }

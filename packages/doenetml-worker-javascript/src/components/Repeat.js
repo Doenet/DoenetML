@@ -853,10 +853,9 @@ export async function copyStateFromUnlinkedSource({
     replacement,
     componentInfoObjects,
 }) {
-    // The source may not be made now: a repeat in a case not shown when
-    // the document is loaded again (`<repeat copyWithState="$cc.r"/>` after
-    // the case changed). The copy then takes its state from what was saved
-    // of it (`applyCopySnapshot`).
+    // A safeguard: the source may not be made now, as a repeat in a case
+    // not shown when the document is loaded again. The copy then takes its
+    // state from what was saved of it (`applyCopySnapshot`).
     let sourceGroup =
         components[component.unlinkedCopySource]?.replacements?.[iterateNumber];
 

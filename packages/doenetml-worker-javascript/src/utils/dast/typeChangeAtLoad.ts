@@ -81,7 +81,6 @@ import { typeChangeRule, unrelatedTypeChangeArgs } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
-import { TAGS_OF_LIST_FORMS } from "../copy";
 import { errorComponentState } from "./errors";
 import {
     holdsError,
@@ -321,17 +320,6 @@ type Holding = {
      */
     fewer?: boolean;
 };
-
-/**
- * What a wrapper that shows one thing shows, to a tag that makes its own
- * content made from it (`wrapperShows`).
- */
-type ShownKind =
-    | { kind: "match" }
-    | { kind: "other"; type: string }
-    | { kind: "several" }
-    | { kind: "mixed"; issue: TypeChangeAtLoadError }
-    | { kind: "unknown" };
 
 /** The composites that can hold any number of components. */
 const HOLD_ANY_NUMBER = new Set([
@@ -2730,9 +2718,7 @@ export function checkTypeChangesAtLoad({
      * (`<conditionalContent name="cc2" extend="$cc"/>`), or other composite
      * (`<group extend="$cc"/>`), which has the branches of the one it
      * copies, or `undefined` if there is none, as for a copy made as a tag
-     * that is not a composite (`<math extend="$s"/>`), or as another tag that
-     * makes its own content (`<repeat extend="$cc"/>`, the repeat the case
-     * shown holds, D78.1). With
+     * that is not a composite (`<math extend="$s"/>`). With
      * `indexed`, a `<select>` of any number of picks (`branchKind`). A copy
      * written with branches of its own (`<select copy="$s"><option>...`)
      * has them after those it copies, and one writing `numToSelect` picks
@@ -2757,9 +2743,6 @@ export function checkTypeChangesAtLoad({
         // the children of each copy on the way, the nearest first
         const added: (SerializedComponent | string)[][] = [];
         let picks: [string, SerializedAttribute] | undefined;
-        // the tags that make their own content written on the copies on
-        // the way
-        const madeAs = new Set<string>();
         while (node && node.componentType === "_copy") {
             if (visited.has(node.componentIdx)) {
                 return undefined;
@@ -2780,12 +2763,6 @@ export function checkTypeChangesAtLoad({
             ) {
                 return undefined;
             }
-            if (
-                created !== undefined &&
-                TAGS_MAKING_THEIR_CONTENT.has(created)
-            ) {
-                madeAs.add(created);
-            }
             added.push(node.children ?? []);
             picks ??= Object.entries(node.attributes ?? {}).find(
                 ([name]) => name === "numToSelect",
@@ -2794,11 +2771,7 @@ export function checkTypeChangesAtLoad({
                 referents.componentsByIdx.get(ref.nodeIdx) ??
                 referents.copiesByCreatedIdx.get(ref.nodeIdx);
         }
-        if (!node || [...madeAs].some((made) => made !== node!.componentType)) {
-            // A tag that makes its own content made through a wrapper
-            // (`<repeat extend="$cc"/>`) is the one of that tag the wrapper
-            // shows (D78.1), not the wrapper: what follows it is left to
-            // run time, as after `<repeat extend="$cc.r"/>`.
+        if (!node) {
             return undefined;
         }
         const ownChildren = added
@@ -3468,6 +3441,109 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The error for a tag that makes its own content
+     * (`TAGS_MAKING_THEIR_CONTENT`: a `<repeat>`, a `<select>`, a
+     * `<collect>`, a `<sort>`, a `<sequence>`, a chooser or sampler, …)
+     * made with `extend`, `copy` or `copyWithState` from a reference that
+     * can name different written tags as what is shown changes (D78.1): one
+     * that is a `<conditionalContent>` or a `<select>` that picks one
+     * (`$cc`), or that reaches through one (`$cc.r`, `$s.r`), or through
+     * the picks of any `<select>` (`$s[2].r`). Such a tag is made only from
+     * a reference that always names the same written tag of its kind, so
+     * this is `doenet-e0071`, worded for what is shown (`sourceIs`
+     * `branch`), decided when the document loads (DIAG-7). Not for one of
+     * the same tag (`<conditionalContent extend="$cc"/>`), which is that
+     * component again, nor for a name written in one branch only, which
+     * always names that one tag. A reference through other names (`$sec.r`,
+     * `$g.r`) or the iterations of a repeat (`$outer[k].inner`) always
+     * names the one written tag, and is decided as before.
+     */
+    function branchSourceError(
+        copy: SerializedComponent,
+    ): TypeChangeAtLoadError | undefined {
+        const writtenType = tagType(copy);
+        if (
+            writtenType === undefined ||
+            writtenType === "group" ||
+            !TAGS_MAKING_THEIR_CONTENT.has(writtenType) ||
+            literalText(copy.attributes._copyInChildren) !== "true" ||
+            copy.doenetAttributes?.forList !== undefined
+        ) {
+            return undefined;
+        }
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        let branch: "case" | "option" | undefined;
+        /**
+         * Whether the names `names` after the container `container` can
+         * name more than one written component across its branches: only
+         * then can they name a different one as what is shown changes. A
+         * name written in one case only (`$r` of a repeat in a case of an
+         * unnamed `<conditionalContent>`) always names that one, or
+         * nothing; a name some branch lacks is `doenet-e0093`, decided
+         * before. Unknown (a copy on the way, an index among the names)
+         * counts as more than one.
+         */
+        const namesSeveral = (container: SerializedComponent, names: any[]) => {
+            if (!names.every((part: any) => (part.index ?? []).length === 0)) {
+                return true;
+            }
+            const named = visibleNamed(
+                container,
+                names.map((part: any) => part.name),
+            );
+            return (
+                named === null ||
+                new Set(named.map((n) => n.componentIdx)).size !== 1
+            );
+        };
+        if (path.length === 0) {
+            const sourceType = referents.referentType(ref.nodeIdx);
+            if (
+                sourceType === undefined ||
+                sourceType === writtenType ||
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: sourceType,
+                    baseComponentType: writtenType,
+                })
+            ) {
+                return undefined;
+            }
+            const container = branchContainerAt(ref.nodeIdx);
+            branch = container && branchKind(container);
+        } else if (isIndexIntoPicks(path)) {
+            // names after an index into the picks of a select
+            // (`$s[2].r`), or into what a `<conditionalContent>` shows
+            const container = branchContainerAt(ref.nodeIdx, true);
+            branch =
+                container && namesSeveral(container, path.slice(1))
+                    ? branchKind(container, true)
+                    : undefined;
+        } else if (typeof path[0].name === "string" && path[0].name !== "") {
+            // names in the branches (`$cc.r`, `$s.r`)
+            const container = branchContainerAt(ref.nodeIdx);
+            branch =
+                container && namesSeveral(container, path)
+                    ? branchKind(container)
+                    : undefined;
+        }
+        if (!branch) {
+            return undefined;
+        }
+        return {
+            code: "doenet-e0071",
+            args: {
+                makes: isSelfMadeList(writtenType) ? "values" : "content",
+                sourceIs: "branch",
+                branch,
+            },
+        };
+    }
+
+    /**
      * The decision for one reference written as a tag. A tag that makes its
      * list of values itself (`isSelfMadeList`, a `<sequence>`) is made only
      * from one of its own type (`self`, `verdict`): what the rules for a
@@ -3478,6 +3554,10 @@ export function checkTypeChangesAtLoad({
      * `$s.value[1]`), which is a value. What names nothing is left as found.
      */
     function decide(copy: SerializedComponent) {
+        const throughBranch = branchSourceError(copy);
+        if (throughBranch) {
+            return throughBranch;
+        }
         const decision = decideTag(copy);
         const writtenType = tagType(copy);
         if (
@@ -4604,240 +4684,9 @@ export function checkTypeChangesAtLoad({
         if (writesAnything && TAGS_MAKING_THEIR_CONTENT.has(sourceType)) {
             return undefined;
         }
-        // Through a `<conditionalContent>`, a one-pick `<select>` or a
-        // `<group>` of one, the tag is made from the one it shows, when each
-        // case or option holds one of that tag or nothing (D78.1, revised).
-        const through = wrapperShows(node, writtenType, new Set());
-        if (through?.kind === "match" || through?.kind === "unknown") {
-            return undefined;
-        }
-        if (through?.kind === "mixed") {
-            return through.issue;
-        }
         return {
             code: "doenet-e0071",
             args: { makes: "content", sourceIs: "other" },
-        };
-    }
-
-    /**
-     * What one component written where a wrapper shows it, `item`, is to a
-     * tag that makes its own content, `writtenType`, made from the wrapper
-     * (`wrapperShows`): one of that tag (`match`), something else
-     * (`other`, of the tag `type` when it is one component), or, when it
-     * is itself a wrapper, what that shows. A bare reference to a composite
-     * (`$r` of a repeat) shows what that composite holds, not the composite,
-     * as it does when the document runs: what a wrapper shows when it is
-     * one, else any number of components (`several`). `unknown` when the
-     * DoenetML does not give what it is.
-     */
-    function shownItemKind(
-        item: SerializedComponent | string,
-        writtenType: string,
-        seen: Set<number>,
-    ): ShownKind {
-        if (typeof item === "string") {
-            return { kind: "other", type: "text" };
-        }
-        const declared = declaredType(item);
-        // a `<collect>`, `<sort>` or `<shuffle>` made its list form
-        // (`listForms.ts`) is that tag
-        const type =
-            declared !== undefined &&
-            Object.hasOwn(TAGS_OF_LIST_FORMS, declared)
-                ? TAGS_OF_LIST_FORMS[
-                      declared as keyof typeof TAGS_OF_LIST_FORMS
-                  ]
-                : declared;
-        if (type === undefined || type.startsWith("_")) {
-            return { kind: "unknown" };
-        }
-        if (
-            item.componentType === "_copy" &&
-            literalText(item.attributes?._createComponentOfType) ===
-                undefined &&
-            componentInfoObjects.isCompositeComponent({
-                componentType: type,
-                includeNonStandard: true,
-            })
-        ) {
-            return wrapperShows(item, writtenType, seen) ?? { kind: "several" };
-        }
-        if (
-            type === writtenType ||
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: type,
-                baseComponentType: writtenType,
-            })
-        ) {
-            return { kind: "match" };
-        }
-        const inner = wrapperShows(item, writtenType, seen);
-        return inner ?? { kind: "other", type };
-    }
-
-    /**
-     * What a tag that makes its own content, `writtenType`, made from the
-     * component `node` with nothing after its name, is made from, when
-     * `node` is a wrapper that shows one thing (D72, D78.1 revised): a
-     * `<conditionalContent>`, a `<select>` that picks one, or a `<group>`,
-     * written there or copied (`<conditionalContent extend="$cc"/>`):
-     *
-     * - `match` when each case or option holds one component of that tag,
-     *   or nothing, and at least one holds one; a `<group>` when it holds
-     *   only one such. The tag is then made from the one shown, as
-     *   `<repeat extend="$cc.r"/>` is (`Copy.js`'s `extendedComponent`);
-     * - `mixed` when some hold one of that tag and others several, or one
-     *   of another tag: what it is made from depends on what is shown, so it
-     *   is `doenet-e0095` (D74), the `issue`;
-     * - `other` when none holds one of that tag, which is `doenet-e0071`;
-     * - `unknown` when a case or option holds what the DoenetML does not
-     *   give, left to run time.
-     *
-     * `undefined` when `node` is not such a wrapper. A wrapper held in one
-     * is read through in turn.
-     */
-    function wrapperShows(
-        node: SerializedComponent,
-        writtenType: string,
-        seen: Set<number>,
-    ): ShownKind | undefined {
-        if (seen.has(node.componentIdx)) {
-            return { kind: "unknown" };
-        }
-        seen = new Set(seen).add(node.componentIdx);
-        const type = declaredType(node);
-        if (type === "group") {
-            let group: SerializedComponent | undefined = node;
-            const added: (SerializedComponent | string)[] = [];
-            const visited = new Set<number>();
-            // through copies of the group, each adding its children after
-            // what it copies
-            while (group && group.componentType === "_copy") {
-                if (visited.has(group.componentIdx)) {
-                    return { kind: "unknown" };
-                }
-                visited.add(group.componentIdx);
-                added.unshift(...(group.children ?? []));
-                const ref = refOf(group);
-                if (
-                    !ref ||
-                    ref.nodeIdx < 0 ||
-                    (ref.unresolvedPath ?? []).length > 0
-                ) {
-                    return { kind: "unknown" };
-                }
-                group =
-                    referents.componentsByIdx.get(ref.nodeIdx) ??
-                    referents.copiesByCreatedIdx.get(ref.nodeIdx);
-            }
-            if (!group || group.componentType !== "group") {
-                return { kind: "unknown" };
-            }
-            const items = heldItems({
-                ...group,
-                children: [...(group.children ?? []), ...added],
-            });
-            if (items.length !== 1) {
-                return { kind: "other", type: "group" };
-            }
-            const inner = shownItemKind(items[0], writtenType, seen);
-            return inner.kind === "match" ||
-                inner.kind === "unknown" ||
-                inner.kind === "mixed"
-                ? inner
-                : { kind: "other", type: "group" };
-        }
-        if (type !== "conditionalContent" && type !== "select") {
-            return undefined;
-        }
-        const container = branchContainerAt(node.componentIdx);
-        const branch = container && branchKind(container);
-        if (!container || !branch) {
-            // a select that picks several, a collection
-            return type === "select" && node.componentType !== "_copy"
-                ? undefined
-                : { kind: "unknown" };
-        }
-        const parts = partsOf(container, branch);
-        if (!parts) {
-            return { kind: "unknown" };
-        }
-        let matches = 0;
-        let caseOrdinal = 0;
-        let otherType: string | undefined;
-        const several: { ordinal: number; isElse: boolean }[] = [];
-        for (const { part, isElse } of parts) {
-            const elseCase = branch === "case" && isElse;
-            if (!elseCase) {
-                caseOrdinal++;
-            }
-            const items = heldItems(part);
-            if (items.length === 0) {
-                continue;
-            }
-            if (items.length > 1) {
-                several.push({ ordinal: caseOrdinal, isElse: elseCase });
-                continue;
-            }
-            const kind = shownItemKind(items[0], writtenType, seen);
-            if (kind.kind === "unknown" || kind.kind === "mixed") {
-                return kind;
-            }
-            if (kind.kind === "several") {
-                several.push({ ordinal: caseOrdinal, isElse: elseCase });
-                continue;
-            }
-            if (kind.kind === "match") {
-                matches++;
-            } else {
-                otherType ??= kind.type;
-            }
-        }
-        if (matches === 0) {
-            return { kind: "other", type };
-        }
-        if (several.length === 0 && otherType === undefined) {
-            return { kind: "match" };
-        }
-        const containerName = literalText(container.attributes?.name);
-        const hasName =
-            containerName !== undefined &&
-            containerName !== "" &&
-            !containerName.startsWith("_");
-        const common = {
-            form: "tag",
-            componentType: writtenType,
-            branch,
-            container: hasName ? containerName : container.componentType,
-            hasName: hasName ? "true" : "false",
-        };
-        return {
-            kind: "mixed",
-            issue: {
-                code: "doenet-e0095",
-                args:
-                    several.length > 0
-                        ? {
-                              ...common,
-                              reason: "several",
-                              ordinals: several
-                                  .filter((s) => !s.isElse)
-                                  .map((s) => String(s.ordinal)) as any,
-                              withElse: several.some((s) => s.isElse)
-                                  ? "true"
-                                  : "false",
-                          }
-                        : {
-                              ...common,
-                              reason: "types",
-                              firstType: writtenType,
-                              // set, as no case holds several
-                              secondType: otherType!,
-                              ordinals: [] as any,
-                              withElse: "false",
-                          },
-            },
         };
     }
 

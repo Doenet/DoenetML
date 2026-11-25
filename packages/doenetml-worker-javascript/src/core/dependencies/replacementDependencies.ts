@@ -100,12 +100,6 @@ export class ReplacementDependency extends Dependency {
         // `<repeat>` written there).
         this.throughGroupsOfOne = this.definition.throughGroupsOfOne;
 
-        // A composite of this type (or one built on it) is returned itself,
-        // rather than its replacements: a tag that makes its own content
-        // made from a wrapper showing one of its own kind is made from that
-        // one (D78.1, `extendedComponent` of `Copy.js`).
-        this.stopAtComponentType = this.definition.stopAtComponentType;
-
         this.expandReplacements = true;
     }
 
@@ -316,7 +310,6 @@ export class ReplacementDependency extends Dependency {
                 stopAtWrappersOfSeveral:
                     this.stopAtWrappersOfSeveral ||
                     this.wrappersOfSeveralAsItems,
-                stopAtComponentType: this.stopAtComponentType,
             });
 
             if (

@@ -337,9 +337,12 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        // The component the reference resolved to.
-        stateVariableDefinitions.resolvedExtendedComponent = {
+        stateVariableDefinitions.extendedComponent = {
+            shadowVariable: true,
             stateVariablesDeterminingDependencies: ["extendIdx"],
+            // TODO: if it turns out we don't need `determineDependenciesImmediately`,
+            // then remove the relevant code from `Dependencies`
+            // determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
                 if (stateValues.extendIdx !== -1) {
                     return {
@@ -353,97 +356,14 @@ export default class Copy extends CompositeComponent {
                 }
             },
             definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        resolvedExtendedComponent:
-                            dependencyValues.extendedComponent ?? null,
-                    },
-                };
-            },
-        };
+                let extendedComponent = null;
+                if (dependencyValues.extendedComponent) {
+                    extendedComponent = dependencyValues.extendedComponent;
+                }
 
-        // The component extended: the one the reference resolved to, or,
-        // for a tag that makes its own content (`<repeat extend="$cc"/>`)
-        // made from a wrapper that shows one thing (a `<conditionalContent>`,
-        // a `<select>` that picks one, a `<group>`), with nothing after the
-        // name, the one of that tag it shows now, as `$cc.r` is (D78.1). It
-        // follows what is shown: a case that changes makes the copy again
-        // from the repeat shown then. While nothing is shown, it is `null`,
-        // and the copy makes nothing. What the wrapper may show was decided
-        // when the document loaded, where the DoenetML gives it
-        // (`wrapperShows` in `typeChangeAtLoad.ts`): one of that tag or
-        // nothing in each case, else an error.
-        stateVariableDefinitions.extendedComponent = {
-            shadowVariable: true,
-            stateVariablesDeterminingDependencies: [
-                "resolvedExtendedComponent",
-                "unresolvedPath",
-                "createComponentOfType",
-            ],
-            returnDependencies({ stateValues, componentInfoObjects }) {
-                const dependencies = {
-                    resolved: {
-                        dependencyType: "stateVariable",
-                        variableName: "resolvedExtendedComponent",
-                    },
+                return {
+                    setValue: { extendedComponent },
                 };
-                const writtenType = writtenTagMakingContent(
-                    stateValues.createComponentOfType,
-                    componentInfoObjects,
-                );
-                const resolved = stateValues.resolvedExtendedComponent;
-                if (
-                    writtenType !== undefined &&
-                    resolved &&
-                    !(stateValues.unresolvedPath?.length > 0) &&
-                    WRAPPERS_SHOWING_ONE.has(resolved.componentType) &&
-                    resolved.componentType !== writtenType
-                ) {
-                    dependencies.writtenType = {
-                        dependencyType: "value",
-                        value: writtenType,
-                    };
-                    dependencies.shown = {
-                        dependencyType: "replacement",
-                        compositeIdx: resolved.componentIdx,
-                        recursive: true,
-                        // through the `<group>` a case's sugar wraps its
-                        // children in, and any group held there
-                        recurseNonStandardComposites: true,
-                        stopAtComponentType: writtenType,
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues, componentInfoObjects }) {
-                const resolved = dependencyValues.resolved;
-                if (!dependencyValues.shown) {
-                    return { setValue: { extendedComponent: resolved } };
-                }
-                const shown = dependencyValues.shown.filter(
-                    (x) => typeof x !== "string" || x.trim() !== "",
-                );
-                if (shown.length === 0) {
-                    // nothing shown: no case true, or an empty one
-                    return { setValue: { extendedComponent: null } };
-                }
-                if (
-                    shown.length === 1 &&
-                    typeof shown[0] === "object" &&
-                    // the tag, or its list form (a `<sort>` of values is
-                    // a `_sortList`, `listForms.ts`)
-                    (TAGS_OF_LIST_FORMS[shown[0].componentType] ===
-                        dependencyValues.writtenType ||
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: shown[0].componentType,
-                            baseComponentType: dependencyValues.writtenType,
-                        }))
-                ) {
-                    return { setValue: { extendedComponent: shown[0] } };
-                }
-                // Anything else is an error, reported from the wrapper
-                // (`typeChangeStatus`), as when it was decided at load.
-                return { setValue: { extendedComponent: resolved } };
             },
         };
 
@@ -9885,36 +9805,6 @@ export const TAGS_MAKING_THEIR_CONTENT = new Set([
     // Its arrangement of its problems is made by an internal composite.
     "pretzel",
 ]);
-
-/**
- * The wrappers a tag that makes its own content is made through, from the
- * one of its tag they show (D78.1, `extendedComponent`): a `<select>` that
- * picks several shows several, so it is not made through.
- */
-const WRAPPERS_SHOWING_ONE = new Set(["conditionalContent", "select", "group"]);
-
-/**
- * The tag `createComponentOfType` names, as written (NAME-0), when it is a
- * tag that makes its own content (`TAGS_MAKING_THEIR_CONTENT`) and a
- * composite, not one that makes a list of values (a `<sequence>`, a
- * sampler), which is decided as a scalar tag; else `undefined`.
- */
-function writtenTagMakingContent(createComponentOfType, componentInfoObjects) {
-    if (typeof createComponentOfType !== "string") {
-        return undefined;
-    }
-    const writtenType =
-        componentInfoObjects.componentTypeAsWritten(createComponentOfType) ??
-        createComponentOfType;
-    return TAGS_MAKING_THEIR_CONTENT.has(writtenType) &&
-        componentInfoObjects.isCompositeComponent({
-            componentType: writtenType,
-        }) &&
-        componentInfoObjects.allComponentClasses[writtenType]
-            ?.listEntryComponentType === undefined
-        ? writtenType
-        : undefined;
-}
 
 /**
  * What children written inside the extend of a tag would be, which picks the

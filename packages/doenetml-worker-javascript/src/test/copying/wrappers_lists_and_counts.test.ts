@@ -15,8 +15,8 @@ vi.mock("hyperformula");
  * The leftovers of #2670 (Doenet/DoenetML#2676): a list reached through an
  * iteration, a `<group>` made from a one-pick chooser or from a name after
  * an index inside a case, `e0064`'s count of what a group may hold, and a
- * tag that makes its own content made through a wrapper showing one of it
- * (D78.1, revised). Each is decided when the document loads where the
+ * tag that makes its own content made from a reference that can name a
+ * different written tag as what is shown changes (D78.1). Each is decided when the document loads where the
  * DoenetML decides it (DIAG-7), so it is the same live and after a reload
  * (DIAG-6).
  */
@@ -419,211 +419,225 @@ describe("e0064 says what a group may hold (#2676 item 7; DIAG-2) @group4", () =
     });
 });
 
-describe("A tag that makes its own content, made through a wrapper showing one of it (#2676 item 9; D78.1 revised, D72, D74) @group4", () => {
+describe("A tag that makes its own content is made only from a reference that always names the same written tag (#2676 item 9; D78.1) @group4", () => {
     const cc = (a: string, b: string) =>
         `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">${a}</case><else>${b}</else></conditionalContent>`;
     const rA = `<repeat name="r" for="1 2 3" valueName="v"><text>a$v</text></repeat>`;
     const rB = `<repeat name="r" for="4 5" valueName="v"><text>b$v</text></repeat>`;
 
-    for (const source of ["$cc", "$cc.r"]) {
-        it(`<repeat extend="${source}"/> follows the case shown, live and after a reload`, async () => {
-            const d = await load(
-                `${cc(rA, rB)}<p name="p"><repeat name="r2" extend="${source}"/></p><p name="n">$r2.numItems</p><text name="t" extend="$r2[2]"/>`,
-            );
-            expect(d.diagnostics()).eqls([]);
-            expect(await d.text("p")).eq("b4, b5");
-            expect(await d.text("n")).eq("2");
-            expect(await d.text("t")).eq("b5");
-            await d.setBoolean("b", true);
-            expect(await d.text("p")).eq("a1, a2, a3");
-            expect(await d.text("n")).eq("3");
-            expect(await d.text("t")).eq("a2");
-            await d.reload();
-            expect(d.diagnostics()).eqls([]);
-            expect(await d.text("p")).eq("a1, a2, a3");
-            expect(await d.text("n")).eq("3");
-            expect(await d.text("t")).eq("a2");
-            await d.setBoolean("b", false);
-            expect(await d.text("p")).eq("b4, b5");
-            expect(await d.text("n")).eq("2");
-            expect(await d.text("t")).eq("b5");
-        });
+    /** The message for a reference that names what is shown. */
+    function shown(
+        tag: string,
+        source: string,
+        branch: "case shown" | "option picked",
+        makes = "makes its content itself",
+    ) {
+        return `doenet-e0071: A \`<${tag}>\` ${makes}, so it can be made only from a reference that always names the same \`<${tag}>\`, and \`${source}\` names what the ${branch} holds, which would change with what is shown. To show it as it is, write \`${source}\`.`;
     }
 
-    it("a name after an index into it reaches into the iteration shown, as after `$cc.r`", async () => {
-        const named = (v: string) =>
-            `<repeat name="r" for="${v}" valueName="v"><text name="t">$v</text></repeat>`;
-        for (const source of ["$cc", "$cc.r"]) {
-            const d = await load(
-                `${cc(named("1 2 3"), named("4 5"))}<repeat name="r2" extend="${source}"/><p name="p">$r2[2].t</p><p name="q"><text extend="$r2[1].t"/></p>`,
-            );
-            expect(d.diagnostics(), source).eqls([]);
-            expect(await d.text("p"), source).eq("5");
-            expect(await d.text("q"), source).eq("4");
-            await d.setBoolean("b", true);
-            expect(await d.text("p"), source).eq("2");
-            expect(await d.text("q"), source).eq("1");
-        }
-    });
-
-    it("shows nothing while no case is shown, or the case shown is empty", async () => {
-        for (const doenetML of [
-            `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">${rA}</case></conditionalContent>`,
-            cc(rA, ""),
-        ]) {
-            const d = await load(
-                `${doenetML}<p name="p"><repeat name="r2" extend="$cc"/></p>`,
-            );
-            expect(d.diagnostics()).eqls([]);
-            expect(await d.text("p")).eq("");
-            await d.setBoolean("b", true);
-            expect(await d.text("p")).eq("a1, a2, a3");
-            await d.reload();
-            expect(await d.text("p")).eq("a1, a2, a3");
-        }
-    });
-
-    for (const how of ["copy", "copyWithState"]) {
-        it(`a ${how} is made from the repeat shown, and keeps it after a reload`, async () => {
-            // `$cc.r` too: a save made after the case changed loads, though
-            // the repeat it was made from is not made then
-            for (const source of ["$cc", "$cc.r"]) {
+    const throughBranches: [string, string, string, string, string?][] = [
+        ["$cc", cc(rA, rB), "repeat", "case shown"],
+        ["$cc.r", cc(rA, rB), "repeat", "case shown"],
+        [
+            "$cc2.r, through a copy of the conditionalContent",
+            `${cc(rA, rB)}<conditionalContent name="cc2" extend="$cc"/>`,
+            "repeat",
+            "case shown",
+            "$cc2.r",
+        ],
+        [
+            "$s.r of a select that picks one",
+            `<select name="s"><option>${rA}</option><option>${rB}</option></select>`,
+            "repeat",
+            "option picked",
+            "$s.r",
+        ],
+        [
+            "$s[2].r of a select that picks several",
+            `<select name="s" numToSelect="2"><option>${rA}</option><option>${rB}</option></select>`,
+            "repeat",
+            "option picked",
+            "$s[2].r",
+        ],
+        [
+            "$r of a repeat in each case of a conditionalContent with no name",
+            `<conditionalContent><case condition="true">${rA}</case><else>${rB}</else></conditionalContent>`,
+            "repeat",
+            "case shown",
+            "$r",
+        ],
+    ];
+    for (const [label, doenetML, tag, branch, written] of throughBranches) {
+        const source = written ?? label;
+        for (const how of ["extend", "copy", "copyWithState"]) {
+            it(`<repeat ${how}="${source}"/>, ${label}, is e0071 at load`, async () => {
                 const d = await load(
-                    `${cc(rA, rB)}<p name="p"><repeat name="r2" ${how}="${source}"/></p>`,
+                    `${doenetML}<p name="p"><${tag} name="r2" ${how}="${source}"/></p>`,
                 );
-                expect(d.diagnostics(), source).eqls([]);
-                expect(await d.text("p"), source).eq("b4, b5");
-                // unlinked: it keeps what it was made from (D33)
-                await d.setBoolean("b", true);
-                expect(await d.text("p"), source).eq("b4, b5");
+                const expected = [shown(tag, source, branch as any)];
+                expect(d.diagnostics()).eqls(expected);
+                expect(await d.typeOf("r2")).eq("_error");
+                if (doenetML.includes(`name="b"`)) {
+                    await d.setBoolean("b", true);
+                    expect(d.diagnostics()).eqls(expected);
+                }
                 await d.reload();
-                expect(await d.text("p"), source).eq("b4, b5");
-            }
-        });
-    }
-
-    it("through a one-pick select, a group of one, and a group in a case", async () => {
-        for (const [doenetML, shown] of [
-            [`<select name="s"><option>${rA}</option></select>`, "$s"],
-            [`<group name="h">${rA}</group>`, "$h"],
-            [
-                `<group name="h" extend="$k"/><group name="k">${rA}</group>`,
-                "$h",
-            ],
-            [
-                `<conditionalContent name="cc"><case condition="true"><group>${rA}</group></case><else>${rB}</else></conditionalContent>`,
-                "$cc",
-            ],
-        ]) {
-            const d = await load(
-                `${doenetML}<p name="p"><repeat name="r2" extend="${shown}"/></p><p name="n">$r2.numItems</p>`,
-            );
-            expect(d.diagnostics(), doenetML).eqls([]);
-            expect(await d.text("p"), doenetML).eq("a1, a2, a3");
-            expect(await d.text("n"), doenetML).eq("3");
+                expect(d.diagnostics()).eqls(expected);
+            });
         }
-    });
+    }
 
     it("other tags that make their own content", async () => {
-        const collect = await load(
-            `${cc(`<collect name="c" componentType="text" from="$q1"/>`, `<collect name="c" componentType="text" from="$q2"/>`)}<p name="q1"><text>x</text></p><p name="q2"><text>y</text><text>z</text></p><p name="p"><collect name="c2" extend="$cc"/></p>`,
-        );
-        expect(collect.diagnostics()).eqls([]);
-        expect(await collect.text("p")).eq("y, z");
-        await collect.setBoolean("b", true);
-        expect(await collect.text("p")).eq("x");
-
-        for (const asLists of [true, false]) {
-            setListFormsEnabled(asLists);
-            try {
-                const sort = await load(
-                    `${cc(`<sort>3 1 2</sort>`, `<sort>9 8</sort>`)}<p name="p"><sort name="c2" extend="$cc"/></p>`,
-                );
-                expect(sort.diagnostics()).eqls([]);
-                expect(await sort.text("p")).eq("8, 9");
-                await sort.setBoolean("b", true);
-                expect(await sort.text("p")).eq("1, 2, 3");
-            } finally {
-                setListFormsEnabled(true);
-            }
+        const forms: [string, string, string, string?][] = [
+            [
+                "collect",
+                cc(
+                    `<collect name="c" componentType="text" from="$q1"/>`,
+                    `<collect name="c" componentType="text" from="$q2"/>`,
+                ) +
+                    `<p name="q1"><text>x</text></p><p name="q2"><text>y</text></p>`,
+                "$cc.c",
+            ],
+            [
+                "sort",
+                cc(`<sort name="c">3 1 2</sort>`, `<sort name="c">9 8</sort>`),
+                "$cc.c",
+            ],
+            [
+                "shuffle",
+                cc(
+                    `<shuffle name="c">3 1 2</shuffle>`,
+                    `<shuffle name="c">9 8</shuffle>`,
+                ),
+                "$cc.c",
+            ],
+            [
+                "conditionalContent",
+                cc(
+                    `<conditionalContent name="c"><case condition="true"><math>1</math></case></conditionalContent>`,
+                    `<conditionalContent name="c"><case condition="true"><math>2</math></case></conditionalContent>`,
+                ),
+                "$cc.c",
+            ],
+            [
+                "sequence",
+                cc(
+                    `<sequence name="c" to="3"/>`,
+                    `<sequence name="c" to="5"/>`,
+                ),
+                "$cc.c",
+                "makes its values from its own attributes",
+            ],
+            [
+                "selectFromSequence",
+                cc(
+                    `<selectFromSequence name="c" to="3"/>`,
+                    `<selectFromSequence name="c" to="5"/>`,
+                ),
+                "$cc.c",
+                "makes its values from its own attributes",
+            ],
+            [
+                "sequence",
+                cc(
+                    `<sequence name="c" to="3"/>`,
+                    `<sequence name="c" to="5"/>`,
+                ),
+                "$cc",
+                "makes its values from its own attributes",
+            ],
+        ];
+        for (const [tag, doenetML, source, makes] of forms) {
+            const d = await load(
+                `${doenetML}<${tag} name="e" extend="${source}"/>`,
+            );
+            expect(d.diagnostics(), `${tag} ${source}`).eqls([
+                shown(tag, source, "case shown", makes),
+            ]);
+            expect(await d.typeOf("e")).eq("_error");
         }
     });
 
-    it("cases holding a repeat and another type, or several, are e0095", async () => {
-        const types = await load(
-            `${cc(rA, `<math>1</math>`)}<repeat name="r2" extend="$cc"/>`,
+    it("is reported at load in a case not shown (DIAG-7)", async () => {
+        const d = await load(
+            `${cc(rA, rB)}<booleanInput name="b2"/><conditionalContent><case condition="$b2"><repeat name="r2" extend="$cc.r"/></case></conditionalContent>`,
         );
-        expect(types.diagnostics()).eqls([
-            "doenet-e0095: A `<repeat>` can't be made from `$cc`: it is made from the `<repeat>` the case shown holds, which must be one `<repeat>`, or nothing, in every case of `cc`, and one holds a `<repeat>` and another a `<math>`. To show what it holds as it is, write `$cc`.",
-        ]);
-        expect(await types.typeOf("r2")).eq("_error");
-
-        const several = await load(
-            `${cc(rA, rB + rB)}<repeat name="r2" extend="$cc"/>`,
-        );
-        expect(several.diagnostics()).eqls([
-            "doenet-e0095: A `<repeat>` can't be made from `$cc`: it is made from the `<repeat>` the case shown holds, which must be one `<repeat>`, or nothing, in every case of `cc`, and the `<else>` holds several components. To show what it holds as it is, write `$cc`.",
-        ]);
-
-        const options = await load(
-            `<select name="s"><option>${rA}</option><option>${rA}${rB}</option></select><repeat name="r2" extend="$s"/>`,
-        );
-        expect(options.errorCodes()).eqls(["doenet-e0095"]);
-        expect(options.diagnostics()[0]).contains("option 2 holds several");
+        expect(d.errorCodes()).eqls(["doenet-e0071"]);
+        await d.setBoolean("b2", true);
+        expect(d.errorCodes()).eqls(["doenet-e0071"]);
     });
 
-    it("a bare reference to a repeat in a case is its iterations, not a repeat, decided at load", async () => {
-        const rx = `<repeat name="rx" for="7 8" valueName="v"><text>x$v</text></repeat>`;
-        const beside = await load(
-            `${rx}${cc("$rx", rB)}<repeat name="r2" extend="$cc"/>`,
+    it("a name some case lacks is e0093, as before", async () => {
+        const d = await load(
+            `${cc(rA, `<math>1</math>`)}<repeat name="r2" extend="$cc.r"/>`,
         );
-        // before the case holding it is shown (DIAG-7)
-        expect(beside.diagnostics()).eqls([
-            "doenet-e0095: A `<repeat>` can't be made from `$cc`: it is made from the `<repeat>` the case shown holds, which must be one `<repeat>`, or nothing, in every case of `cc`, and case 1 holds several components. To show what it holds as it is, write `$cc`.",
-        ]);
-        expect(await beside.typeOf("r2")).eq("_error");
+        expect(d.errorCodes()).eqls(["doenet-e0093"]);
+    });
 
-        for (const doenetML of [
-            `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">$rx</case></conditionalContent>`,
-            `<group name="cc">$rx</group>`,
-        ]) {
+    const allowed: [string, string, string, string][] = [
+        ["$r", rA, "$r", "a1, a2, a3"],
+        [
+            "$sec.r",
+            `<section name="sec">${rA}</section>`,
+            "$sec.r",
+            "a1, a2, a3",
+        ],
+        ["$g.r", `<group name="g">${rA}</group>`, "$g.r", "a1, a2, a3"],
+        [
+            "$r3 of a repeat that extends $r",
+            `${rA}<repeat name="r3" extend="$r"/>`,
+            "$r3",
+            "a1, a2, a3",
+        ],
+        [
+            "$outer[$k].inner, an index a value decides",
+            `<mathInput name="k" prefill="2"/><repeat name="outer" for="1 2" valueName="w"><repeat name="inner" for="$w 7" valueName="v"><text>i$v</text></repeat></repeat>`,
+            "$outer[$k].inner",
+            "i2, i7",
+        ],
+        [
+            "$r of the one repeat in a case",
+            `<conditionalContent><case condition="true">${rA}</case></conditionalContent>`,
+            "$r",
+            "a1, a2, a3",
+        ],
+    ];
+    for (const [label, doenetML, source, text] of allowed) {
+        it(`${label} is allowed`, async () => {
             const d = await load(
-                `${rx}${doenetML}<repeat name="r2" extend="$cc"/>`,
+                `${doenetML}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
             );
-            expect(d.errorCodes(), doenetML).eqls(["doenet-e0071"]);
-        }
+            expect(d.diagnostics()).eqls([]);
+            expect(await d.text("p")).eq(text);
+        });
+    }
 
-        // a bare reference to a wrapper is read through, as written there
-        for (const held of [
-            `<group name="g">${rA}</group>`,
-            `<select name="g"><option>${rA}</option></select>`,
-        ]) {
-            const d = await load(
-                `${held}${cc("$g", rB)}<p name="p"><repeat name="r2" extend="$cc"/></p>`,
-            );
-            expect(d.diagnostics(), held).eqls([]);
-            expect(await d.text("p")).eq("b4, b5");
-            await d.setBoolean("b", true);
-            expect(await d.text("p")).eq("a1, a2, a3");
-        }
+    it("a copy of a wrapper as its own tag is allowed, as before", async () => {
+        const d = await load(
+            `${cc(`<math>1</math>`, `<math>2</math>`)}<conditionalContent name="cc2" extend="$cc"/><p name="p">$cc2</p><select name="s"><option><math>3</math></option></select><select name="s2" extend="$s"/><p name="q">$s2</p>`,
+        );
+        expect(d.diagnostics()).eqls([]);
+        expect(await d.text("p")).eq("2");
+        expect(await d.text("q")).eq("3");
+    });
+
+    it("showing it, or a new tag holding it, is unchanged", async () => {
+        const d = await load(
+            `${cc(rA, rB)}<p name="p">$cc.r</p><p name="p2">$cc[2]</p><text name="t" extend="$cc.r[2]"/><shuffle name="sh">$cc.r</shuffle><p name="q">$sh</p><collect name="col" componentType="text" from="$cc"/><p name="c">$col</p>`,
+        );
+        expect(d.diagnostics()).eqls([]);
+        expect(await d.text("p")).eq("b4, b5");
+        expect(await d.text("p2")).eq("b5");
+        expect(await d.text("t")).eq("b5");
+        expect((await d.text("q")).split(", ").sort()).eqls(["b4", "b5"]);
+        expect(await d.text("c")).eq("b4, b5");
+        await d.setBoolean("b", true);
+        expect(await d.text("p")).eq("a1, a2, a3");
+        expect(await d.text("c")).eq("a1, a2, a3");
     });
 
     const stillOwnKind: [string, string, string][] = [
-        [
-            "cases that hold no repeat",
-            `<conditionalContent name="cc"><case condition="true"><math>1</math></case><else><math>2</math></else></conditionalContent>`,
-            "$cc",
-        ],
-        [
-            "a group holding a repeat beside a math",
-            `<group name="cc">${rA}<math>1</math></group>`,
-            "$cc",
-        ],
-        [
-            "a select that picks two",
-            `<select name="cc" numToSelect="2"><option>${rA}</option><option>${rB}</option></select>`,
-            "$cc",
-        ],
+        ["a group holding one repeat", `<group name="h">${rA}</group>`, "$h"],
         [
             "an iteration holding a repeat",
             `<repeat name="outer" for="1"><repeat for="1 2">x</repeat></repeat>`,
@@ -631,7 +645,7 @@ describe("A tag that makes its own content, made through a wrapper showing one o
         ],
     ];
     for (const [label, doenetML, source] of stillOwnKind) {
-        it(`${label} is still e0071`, async () => {
+        it(`${label} is e0071, as before`, async () => {
             const d = await load(
                 `${doenetML}<repeat name="r2" extend="${source}"/>`,
             );

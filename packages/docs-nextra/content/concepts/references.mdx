@@ -428,15 +428,14 @@ Other errors, each with the form to write instead:
   `<collect>`, a `<sort>` or a `<sequence>`, can be made only from another of
   the same tag: `<repeat extend="$n"/>{:dn}` of a `<number>`, or
   `<repeat extend="$r[1]"/>{:dn}` of an iteration, is an error. Write `$n` to
-  show it as it is. It may be made through a `<conditionalContent>`, a
-  `<select>` that picks one, or a `<group>` holding only one, when each case or
-  option holds one of that tag, or nothing: `<repeat extend="$cc"/>{:dn}` is
-  the repeat the case shown holds, and follows the case, as
-  `<repeat extend="$cc.r"/>{:dn}` does. A case or option holding several
-  components, or one of another type, beside one holding a repeat, is an
-  error. A reference written alone in a case, `$r` of a repeat, shows the
-  repeat's iterations, so it isn't a repeat there: write
-  `<repeat extend="$r"/>{:dn}` in the case instead;
+  show it as it is. It is made only from a reference that always names the
+  same written tag of its kind: `$r`, `$sec.r`, `$g.r`, or `$outer[2].inner`
+  of a repeat in each iteration of another. A reference that can name a
+  different one as what is shown changes is an error, as
+  `<repeat extend="$cc.r"/>{:dn}` with a repeat named `r` in each case of a
+  `<conditionalContent>`, `<repeat extend="$cc"/>{:dn}`, or `$s.r` with one in
+  each option of a `<select>`. Write `$cc.r` to show the repeat the case
+  shown holds;
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
 * an input is not the same thing as its value: to edit `$m` with an input, write

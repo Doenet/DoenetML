@@ -1413,8 +1413,6 @@ export async function changeInactiveComponentAndDescendants({
  * components ({@link isWrapperOfSeveral}), which a property is not passed
  * into (D41 decision 3, COLL-3); it is still recorded among
  * `compositesFound`, so a change of what it holds is followed.
- * `stopAtComponentType` does the same for a composite of that type, or one
- * built on it, which is not recorded: what it holds is not followed.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
@@ -1424,7 +1422,6 @@ export function recursivelyReplaceCompositesWithReplacements({
     stopIfHaveProp,
     stopAtListComposites = false,
     stopAtWrappersOfSeveral = false,
-    stopAtComponentType,
 }: {
     core: Core;
     replacements: any[];
@@ -1433,7 +1430,6 @@ export function recursivelyReplaceCompositesWithReplacements({
     stopIfHaveProp?: string;
     stopAtListComposites?: boolean;
     stopAtWrappersOfSeveral?: boolean;
-    stopAtComponentType?: string;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1471,17 +1467,6 @@ export function recursivelyReplaceCompositesWithReplacements({
                 newReplacements.push(replacement);
                 continue;
             }
-        }
-
-        if (
-            stopAtComponentType !== undefined &&
-            core.componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: replacement.componentType,
-                baseComponentType: stopAtComponentType,
-            })
-        ) {
-            newReplacements.push(replacement);
-            continue;
         }
 
         if (stopAtListComposites && "asList" in replacement.state) {
@@ -1524,7 +1509,6 @@ export function recursivelyReplaceCompositesWithReplacements({
             stopIfHaveProp,
             stopAtListComposites,
             stopAtWrappersOfSeveral,
-            stopAtComponentType,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);
