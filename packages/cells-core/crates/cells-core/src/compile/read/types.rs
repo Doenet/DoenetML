@@ -54,6 +54,23 @@ impl SourceReader<'_> {
         }
     }
 
+    /// The one element a group of one (or a group of one group of one, ...)
+    /// stands in as (ADR 0076 §5): `None` for any other element.
+    pub(in crate::compile) fn stands_in_element(&self, t: TemplateId, e: ElemId) -> Option<ElemId> {
+        let el = self.elem(t, e);
+        if el.component_type.type_decl() != TypeDecl::ByElement
+            || el.component_type.structure_kind().is_none()
+            || !matches!(el.body, Body::Plain)
+        {
+            return None;
+        }
+        let mut comps = el.children.iter().filter(|c| !matches!(c, Child::Text(_)));
+        match (comps.next(), comps.next()) {
+            (Some(Child::Elem(c)), None) => Some(self.stands_in_element(t, *c).unwrap_or(*c)),
+            _ => None,
+        }
+    }
+
     /// The type of the one component `children` holds, when they hold
     /// exactly one element.
     fn one_component(&self, children: &[Child], t: TemplateId) -> Option<ComponentType> {

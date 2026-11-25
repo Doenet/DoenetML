@@ -208,6 +208,17 @@ impl Outlining<'_> {
         // reads, an error where no chain connects them, or a pair left to
         // the build (a copy). A container copy names its referent itself.
         let component_type = self.outlined(t).elems[e.index()].component_type;
+        // A group of one stands in as its one component (§5): the extend
+        // is of it.
+        if !component_type.container()
+            && self.ar.refs[p.index()].prop.is_none()
+            && let Ok((_, Some((rt_t, re)))) = self.rd().ref_target(&self.ar, t, p)
+            && let Some(one) = self.rd().stands_in_element(rt_t, re)
+            && let Some(Step::Elem(last)) = self.ar.ref_mut(p).steps.last_mut()
+            && *last == re
+        {
+            *last = one;
+        }
         if !component_type.container()
             && self.ar.refs[p.index()].prop.is_none()
             && let Ok(Some(rt)) = self.rd().ref_target_type(&self.ar, t, p)

@@ -576,3 +576,16 @@ fn d75_an_index_that_can_never_give_anything_is_an_error() {
     assert_eq!(text(&doc, "ok"), "2");
     assert_eq!(text(&doc, "later"), "＿");
 }
+
+/// ADR 0076 §5: a group the DoenetML guarantees holds one component stands
+/// in as it, so a tag over an extend of it is judged by that component.
+#[test]
+fn adr_0076_a_group_of_one_stands_in_as_its_component() {
+    let doc = load(
+        r#"<group name="g"><number>3</number></group><math name="m" extend="$g"/>
+           <group name="gg"><group><text>hi</text></group></group><text name="t" extend="$gg"/>"#,
+    )
+    .unwrap();
+    assert_eq!(v(&doc, "m", "value"), 3.0);
+    assert_eq!(text(&doc, "t"), "hi");
+}
