@@ -915,15 +915,17 @@ pub struct ListProp {
     pub interactive: bool,
     /// A renderer reads every point (a polygon's vertices).
     pub rendered: bool,
-    /// A second public sequence over the element's own ports, one cell
-    /// per entry, after the entries, by this name (ADR 0041 decision 1,
-    /// ADR 0053): a `<shuffle>`'s `componentOrder`.
-    pub companion: Option<&'static str>,
+    /// The list's other named sequences over the element's own ports
+    /// (ADR 0041 decision 1, ADR 0053, ADR 0086), each public by its
+    /// name and one cell per entry, after the entries, in this order: a
+    /// `<shuffle>`'s `componentOrder`, a `<tally>`'s `categories`.
+    pub sequences: &'static [&'static str],
     /// A capped list (ADR 0041, decision 2, a dynamic sequence): the table
     /// prop holding its live length. Its entries are as many as its cap,
     /// those past the live length the missing value; an entry's row hides
-    /// as its companion's entry says (1 past the live length), a path
-    /// (`$int[3]`) names no entry past it, and its text stops at it.
+    /// as its entry of the list's hide sequence says (one hidden cell per
+    /// entry after the named sequences, 1 past the live length, ADR 0086),
+    /// a path (`$int[3]`) names no entry past it, and its text stops at it.
     pub live: Option<&'static str>,
 }
 
@@ -1029,8 +1031,9 @@ pub enum PropAt {
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
-    /// The list's companion sequence as a whole ([`ListProp::companion`]).
-    Companion,
+    /// One of the list's named sequences as a whole, by its position
+    /// among them ([`ListProp::sequences`]).
+    Sequence(usize),
 }
 
 /// A prop of a component type, resolved from its name.

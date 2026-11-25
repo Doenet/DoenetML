@@ -30,7 +30,7 @@ component! {
     list {
         names: [points],
         item: point,
-        capped: [x, y], live: numPoints, hidden: hidden,
+        capped: [x, y], live: numPoints,
         rendered: true,
     }
     alternate_names {
@@ -132,7 +132,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let none = |hide: Wire| -> ElemWiring {
         let mut wiring = ElemWiring::with_list(ComponentType::Intersection, 0);
         wiring.set_list(Vec::new());
-        wiring.set_companion(Vec::new());
+        wiring.set_hides(Vec::new());
         wiring.set_planned(Planned {
             numPoints: Wire::constant(0.0),
             hide,
@@ -183,14 +183,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             .collect(),
     );
     // Entry `k`'s row hides past the live length, or with the list.
-    let hidden = (1..=cap)
-        .map(|k| {
-            let k = wiring.hidden(Source::constant(k as f64));
-            let past = wiring.hidden(Source::computed(OpSpec::Lt, vec![count, k]));
-            Wire::computed(OpSpec::Max, vec![author_hide, past])
-        })
-        .collect();
-    wiring.set_companion(hidden);
+    wiring.hide_past(count, Some(author_hide));
     wiring.set_planned(Planned {
         numPoints: Wire::own(count),
         hide: Wire::own(author_hide),

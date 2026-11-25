@@ -41,7 +41,7 @@ component! {
         item: number,
         values: number of Number,
         rendered: true,
-        companion: categories,
+        sequences: [categories],
     }
     alternate_names {
         numValues: numComponents,
@@ -80,7 +80,7 @@ enum Written {
 
 /// One count per declared category, the outputs of [`SymKind::Tally`]
 /// over the operands and what each category is compared by; the
-/// categories as written, the companion sequence.
+/// categories as written, its named sequence `categories`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
@@ -94,7 +94,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         // No operands: nothing to count, and no category.
         let mut wiring = ElemWiring::with_list(ty, 0);
-        wiring.set_companion(Vec::new());
+        wiring.set_sequence("categories", Vec::new());
         wiring.set_planned(Planned {});
         return Ok(wiring);
     }
@@ -117,7 +117,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     }
     let mut wiring = ElemWiring::with_list(ty, k);
     let values = operand_ports(ctx, &mut wiring, &ops, mode, true)?;
-    // Each category as written (its companion entry) and what it is
+    // Each category as written (its entry of `categories`) and what it is
     // compared by.
     let mut shown = Vec::with_capacity(k);
     let mut keys = Vec::with_capacity(k);
@@ -188,7 +188,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ports.into_iter().map(Wire::own).collect()
     };
     wiring.set_entries(counts);
-    wiring.set_companion(shown);
+    wiring.set_sequence("categories", shown);
     wiring.set_planned(Planned {});
     Ok(wiring)
 }

@@ -583,8 +583,7 @@ impl ComponentType {
             SelectFromSequence => &[("value", ByElement)],
             // The order its items are shown in (ADR 0053).
             Sort | Shuffle => &[("componentOrder", ListOf(Integer))],
-            // Which of its entries are past its live length (ADR 0041).
-            Intersection => &[("hidden", ListOf(Boolean))],
+            Intersection => &[],
             Sequence | NumberList | TextList | BooleanList | MathList | PointList
             | CumulativeSum | CumulativeProduct | CumulativeMin | CumulativeMax | Differences
             | SelectPrimeNumbers | SamplePrimeNumbers | IntervalList | MatrixRow | MatrixColumn => {

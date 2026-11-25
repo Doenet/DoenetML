@@ -684,8 +684,8 @@ impl<'c> Builder<'c> {
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(self, k, j))
                 .collect(),
-            PropAt::Companion => shape
-                .companion_slots(n)
+            PropAt::Sequence(s) => shape
+                .sequence_slots(n, s)
                 .map(|i| self.slot(comp, i))
                 .collect(),
         })

@@ -43,6 +43,43 @@ fn an_intersection_shows_its_points_up_to_its_live_length() {
     assert_eq!(reference::check(&doc), None);
 }
 
+/// The `hide` of each row of capped list `name`, in order.
+fn row_hides(doc: &Document, name: &str) -> Vec<f64> {
+    doc.children(doc.resolve_path(name).unwrap())
+        .filter_map(|c| match c {
+            cells_core::Child::Component(k) => Some(k),
+            cells_core::Child::Text(_) => None,
+        })
+        .map(|k| {
+            let pi = doc.component_type(k).prop_index("hide").unwrap();
+            doc.cells[doc.comp_cells(k)[pi].index()]
+        })
+        .collect()
+}
+
+#[test]
+fn a_capped_lists_rows_hide_by_its_hide_sequence() {
+    // The hide sequence is no prop of the list (ADR 0086): its rows read it.
+    let mut doc = load(
+        r#"<graph>
+             <point name="P">(3,4)</point>
+             <circle name="c" center="$P" radius="1"/>
+             <line name="l" through="(4,1) (4,-4)"/>
+             <intersection name="int" hide="$h">$l $c</intersection>
+           </graph>
+           <booleanInput name="h"/>"#,
+    )
+    .unwrap();
+    let int = doc.resolve_path("int").unwrap();
+    assert!(doc.prop_cells(int, "hidden").is_none());
+    assert_eq!(row_hides(&doc, "int"), [0.0, 1.0]);
+    move_point(&mut doc, "P", 4.0, 5.0);
+    assert_eq!(row_hides(&doc, "int"), [0.0, 0.0]);
+    set(&mut doc, "h", "value", 1.0);
+    assert_eq!(row_hides(&doc, "int"), [1.0, 1.0]);
+    assert_eq!(reference::check(&doc), None);
+}
+
 #[test]
 fn an_index_into_a_capped_list_is_a_choose() {
     let mut doc = load(
