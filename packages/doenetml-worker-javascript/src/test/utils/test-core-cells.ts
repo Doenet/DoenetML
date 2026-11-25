@@ -500,7 +500,9 @@ function exprOr(exprProp: string, prop: string): Reader {
     return (g, x) => {
         const e = x.cell(exprProp);
         if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
-            return me.fromText(x.cells.core.expr_text(e));
+            // Its tree, not its text: text the current core's parser
+            // reads again splits a function it does not apply (`min`).
+            return heldExpr(x.cells, e);
         }
         return M(g(prop));
     };
