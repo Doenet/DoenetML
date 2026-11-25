@@ -3455,8 +3455,10 @@ export function checkTypeChangesAtLoad({
      * this is `doenet-e0071`, worded for what is shown (`sourceIs`
      * `branch`), decided when the document loads (DIAG-7). Not for one of
      * the same tag (`<conditionalContent extend="$cc"/>`), which is that
-     * component again, nor for a name written in one branch only, which
-     * always names that one tag. A reference through other names (`$sec.r`,
+     * component again. A name written in one branch only (`$cc.r` of a
+     * `<conditionalContent>` with one case) is an error too: it names that
+     * tag only while the branch is shown (the decision on
+     * Doenet/DoenetML#2683). A reference through other names (`$sec.r`,
      * `$g.r`) or the iterations of a repeat (`$outer[k].inner`) always
      * names the one written tag, and is decided as before.
      */
@@ -3480,16 +3482,13 @@ export function checkTypeChangesAtLoad({
         const path = ref.unresolvedPath ?? [];
         let branch: "case" | "option" | undefined;
         /**
-         * Whether the names `names` after the container `container` can
-         * name more than one written component across its branches: only
-         * then can they name a different one as what is shown changes. A
-         * name written in one case only (`$r` of a repeat in a case of an
-         * unnamed `<conditionalContent>`) always names that one, or
-         * nothing; a name some branch lacks is `doenet-e0093`, decided
-         * before. Unknown (a copy on the way, an index among the names)
-         * counts as more than one.
+         * Whether the names `names` are written in the branches of the
+         * container `container` (one may be in one branch only), or may be
+         * (a copy on the way, an index among the names): a container on the
+         * way that doesn't hold them (a `<conditionalContent>` beside the
+         * section holding the name) is not what the reference names through.
          */
-        const namesSeveral = (container: SerializedComponent, names: any[]) => {
+        const namedThrough = (container: SerializedComponent, names: any[]) => {
             if (!names.every((part: any) => (part.index ?? []).length === 0)) {
                 return true;
             }
@@ -3497,17 +3496,14 @@ export function checkTypeChangesAtLoad({
                 container,
                 names.map((part: any) => part.name),
             );
-            return (
-                named === null ||
-                new Set(named.map((n) => n.componentIdx)).size !== 1
-            );
+            return named === null || named.length > 0;
         };
         /**
          * The branch container the names `names` reach through from the
          * component at `startIdx`, which the resolver left them to (an
          * iteration of a repeat, `$outer[1].cc.r`, or a copy, `$sec2.cc.r`
-         * of `<section name="sec2" copy="$sec"/>`), when its branches can
-         * name more than one written component (`namesSeveral`): its kind,
+         * of `<section name="sec2" copy="$sec"/>`), when the names are written
+         * in its branches (`namedThrough`): its kind,
          * or `undefined`. A container named on the way (`cc`) or one not
          * named holding the names (`$outer[1].r` of a repeat in each case
          * of an unnamed `<conditionalContent>`) counts; names inside a
@@ -3570,7 +3566,7 @@ export function checkTypeChangesAtLoad({
                     const after = isNamed ? names.slice(1) : names;
                     const container = branchContainerAt(component.componentIdx);
                     if (container) {
-                        if (namesSeveral(container, after)) {
+                        if (namedThrough(container, after)) {
                             return branchKind(container);
                         }
                         continue;
@@ -3629,9 +3625,7 @@ export function checkTypeChangesAtLoad({
             // (`$s[2].r`), or into what a `<conditionalContent>` shows
             const container = branchContainerAt(ref.nodeIdx, true);
             branch = container
-                ? namesSeveral(container, path.slice(1))
-                    ? branchKind(container, true)
-                    : undefined
+                ? branchKind(container, true)
                 : ["repeat", "repeatForSequence"].includes(
                         referents.referentType(ref.nodeIdx) ?? "",
                     )
@@ -3642,9 +3636,7 @@ export function checkTypeChangesAtLoad({
             // names in the branches (`$cc.r`, `$s.r`)
             const container = branchContainerAt(ref.nodeIdx);
             branch = container
-                ? namesSeveral(container, path)
-                    ? branchKind(container)
-                    : undefined
+                ? branchKind(container)
                 : ["repeat", "repeatForSequence"].includes(
                         referents.referentType(ref.nodeIdx) ?? "",
                     )

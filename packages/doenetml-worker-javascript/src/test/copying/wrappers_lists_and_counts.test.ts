@@ -622,9 +622,9 @@ describe("A tag that makes its own content is made only from a reference that al
             "a1, a2, a3",
         ],
         [
-            "$r of the one repeat in a case",
-            `<conditionalContent><case condition="true">${rA}</case></conditionalContent>`,
-            "$r",
+            "$sec.r beside a conditionalContent that doesn't hold it",
+            `<section name="sec">${rA}<conditionalContent><case condition="true"><math>1</math></case></conditionalContent></section>`,
+            "$sec.r",
             "a1, a2, a3",
         ],
     ];
@@ -635,6 +635,49 @@ describe("A tag that makes its own content is made only from a reference that al
             );
             expect(d.diagnostics()).eqls([]);
             expect(await d.text("p")).eq(text);
+        });
+    }
+
+    // A name written in one branch only names that tag only while the
+    // branch is shown, so it is an error too (the decision on #2683).
+    const oneBranch: [
+        string,
+        string,
+        string,
+        "case shown" | "option picked",
+    ][] = [
+        [
+            "$cc.r of a conditionalContent with one case",
+            `<conditionalContent name="cc"><case condition="true">${rA}</case></conditionalContent>`,
+            "$cc.r",
+            "case shown",
+        ],
+        [
+            "$s.r of a select with one option",
+            `<select name="s"><option>${rA}</option></select>`,
+            "$s.r",
+            "option picked",
+        ],
+        [
+            "$r of the one repeat in a case of a conditionalContent with no name",
+            `<conditionalContent><case condition="true">${rA}</case></conditionalContent>`,
+            "$r",
+            "case shown",
+        ],
+        [
+            "$outer[1].cc.r of a conditionalContent with one case in an iteration",
+            `<repeat name="outer" for="1 2"><conditionalContent name="cc"><case condition="true">${rA}</case></conditionalContent></repeat>`,
+            "$outer[1].cc.r",
+            "case shown",
+        ],
+    ];
+    for (const [label, doenetML, source, branch] of oneBranch) {
+        it(`${label} is e0071`, async () => {
+            const d = await load(
+                `${doenetML}<p name="p"><repeat name="r2" extend="${source}"/></p>`,
+            );
+            expect(d.diagnostics()).eqls([shown("repeat", source, branch)]);
+            expect(await d.typeOf("r2")).eq("_error");
         });
     }
 
