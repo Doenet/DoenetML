@@ -445,11 +445,24 @@ function exprOr(exprProp: string, prop: string): Reader {
     };
 }
 
+/** `exprOr`, a measure with no expression and no number the blank, as
+ * the current core shows an angle it cannot define (between parallel
+ * lines). */
+function measure(exprProp: string, prop: string): Reader {
+    return (g, x) => {
+        const e = x.cell(exprProp);
+        const symbolic = e !== undefined && !Number.isNaN(x.cells.value(e));
+        return !symbolic && Number.isNaN(g(prop))
+            ? me.fromAst(BLANK)
+            : exprOr(exprProp, prop)(g, x);
+    };
+}
+
 const angleReaders: Record<string, Reader> = {
-    radians: exprOr("radiansExpr", "radians"),
-    value: exprOr("radiansExpr", "radians"),
-    angle: exprOr("radiansExpr", "radians"),
-    degrees: exprOr("degreesExpr", "degrees"),
+    radians: measure("radiansExpr", "radians"),
+    value: measure("radiansExpr", "radians"),
+    angle: measure("radiansExpr", "radians"),
+    degrees: measure("degreesExpr", "degrees"),
     // Its first point, its vertex and its third point; a coordinate the
     // core cannot compute is the blank, as the current core shows it.
     points: (g) =>
