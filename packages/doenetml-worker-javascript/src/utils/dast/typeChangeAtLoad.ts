@@ -1481,11 +1481,36 @@ export function checkTypeChangesAtLoad({
         }
         return combineParts(
             options.map(({ part }) =>
-                childrenHolding(part.children, "option", seen),
+                partHolding(part, part.children, "option", seen),
             ),
             notOne,
             "select",
             "option",
+        );
+    }
+
+    /**
+     * What the case or option `part`, whose children are `children`, holds,
+     * for `selectHolding` and `holding`. `skip` when it is being found
+     * already: a part written with `copy` that copies one it is in
+     * (`<option copy="$k"/>` in an option `k`), whose cycle is reported
+     * when the document runs (`doenet-e0005`).
+     */
+    function partHolding(
+        part: SerializedComponent,
+        children: (SerializedComponent | string)[] | undefined,
+        kind: Part,
+        seen: Set<number>,
+    ): Holding {
+        trail.push(part.componentIdx);
+        if (seen.has(part.componentIdx)) {
+            seenHits++;
+            return { types: new Set(), skip: true };
+        }
+        return childrenHolding(
+            children ?? [],
+            kind,
+            new Set(seen).add(part.componentIdx),
         );
     }
 
@@ -1502,7 +1527,8 @@ export function checkTypeChangesAtLoad({
             const hasElse = cases.some(({ isElse }) => isElse);
             return combineParts(
                 cases.map(({ part }) =>
-                    childrenHolding(
+                    partHolding(
+                        part,
                         withoutSugarGroup(part.children),
                         "case",
                         seen,
@@ -4896,14 +4922,20 @@ export function checkTypeChangesAtLoad({
      * (`descendantsNamedIn`). `undefined` when one looked in holds other
      * than one so named (none, which the every-branch rule reports,
      * `checkBranchName`, or several), or that is not known from the
-     * DoenetML.
+     * DoenetML, as when a case or option copies one it is in (`onPath`, the
+     * containers looked in on the way), a cycle the run time reports.
      */
     function reachedInEach(
         node: SerializedComponent,
         lookup: any[],
         kind: "case" | "option" | undefined,
+        onPath: Set<number> = new Set(),
     ): SerializedComponent[] | undefined {
         if (kind) {
+            if (onPath.has(node.componentIdx)) {
+                return undefined;
+            }
+            onPath = new Set(onPath).add(node.componentIdx);
             const parts = partsOf(node, kind);
             if (!parts) {
                 return undefined;
@@ -4915,7 +4947,7 @@ export function checkTypeChangesAtLoad({
                     continue;
                 }
                 counted.add(part.componentIdx);
-                const inPart = reachedInEach(part, lookup, undefined);
+                const inPart = reachedInEach(part, lookup, undefined, onPath);
                 if (!inPart) {
                     return undefined;
                 }
@@ -4936,7 +4968,7 @@ export function checkTypeChangesAtLoad({
             // `$outer.cc[1]`), whose names are seen from outside it
             const holder = branchHolderOf(node.children ?? [], named);
             return holder
-                ? reachedInEach(holder, lookup, branchKind(holder))
+                ? reachedInEach(holder, lookup, branchKind(holder), onPath)
                 : undefined;
         }
         const [next] = named;

@@ -372,6 +372,20 @@ describe("A reference whose meaning depends on the branch shown is an error (D74
         expect(await d.typeOf("m2")).eq("math");
     });
 
+    it("a case or option that copies one it is in is a cycle at load, not a crash", async () => {
+        // Each stopped the load with "Maximum call stack size exceeded":
+        // following the copied case or option led back to itself
+        for (const doenetML of [
+            `<conditionalContent name="outer"><case name="k" condition="true"><conditionalContent><case condition="true"><conditionalContent name="cc"><case condition="true"><math>1</math></case></conditionalContent></case><case copy="$k"/></conditionalContent></case></conditionalContent><p>$outer.cc[1]</p>`,
+            `<select name="outer"><option name="k"><select><option><conditionalContent name="cc"><case condition="true"><math>1</math></case></conditionalContent></option><option copy="$k"/></select></option></select><p>$outer.cc[1]</p>`,
+            `<conditionalContent name="outer"><case condition="false"><math>1</math></case><else name="e"><math>3</math><conditionalContent><case condition="false"><math>4</math></case><else copy="$e"/></conditionalContent></else></conditionalContent><math extend="$outer"/>`,
+            `<select name="outer"><option name="k"><math>1</math><select><option><math>2</math></option><option copy="$k"/></select></option><option><math>5</math></option></select><math extend="$outer"/>`,
+        ]) {
+            const d = await load(doenetML);
+            expect(d.codes(), doenetML).eqls(["doenet-e0005"]);
+        }
+    });
+
     it("a name inside the cases of one type, and an index into one type, are fine", async () => {
         const d = await load(
             `${cc('<math name="x">(1,2)</math>', '<math name="x">(3,4)</math>')}<p name="p">$cc.x $cc[1]</p>`,
