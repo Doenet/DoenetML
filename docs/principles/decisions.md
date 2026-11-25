@@ -2849,7 +2849,7 @@ its tag, so the categories are text throughout. `<number extend="$t.categories[1
 first value is the text `x²`, and `<math extend>` of it is blank. That follows from the type
 rule; the lost math is a display question for #2568 (a choice's value could keep its LaTeX).
 
-## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (decided, except part 1's default type; Tier 1)
+## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (decided; Tier 1)
 
 **Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
 COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599**, and for a repeat's
@@ -2923,7 +2923,7 @@ compares kinds, and a tag or a property after `$sh[1]` still follows the every-i
 - a wrapper of several mixes with content;
 - a `<sort>` of objects or content without `sortByProp` is an error (#2569 item 10).
 
-### 1. One `<list>` for every list (decided, November 2026, except the default type)
+### 1. One `<list>` for every list (decided, November 2026)
 
 **Why.** A `<group>` is a wrapper (COLL-3): holding several components, it is one item, so authors
 who wrote a `<group asList>` of components to sort or index as a list have no tag for that. The
@@ -2975,14 +2975,14 @@ It is not supported initially. If authors ask for it, it could be added where th
 it clear; that needs a decision then, since COLL-1 decides a tag's kind from the tag as written,
 and that `<list>` would be content, not a collection.
 
-**Open: the default type of pieces of text.** Either:
-- **(a) math unless `type` says otherwise** (recommended): the rule a `<repeat>`'s `for`,
-  `<select>`'s and `<answer>`'s sugar use (D45 decision 7). `<list>1, 2, 3</list>` is a math list
-  showing `1, 2, 3`. Integer, number and math are one type (D44.3), so detecting a number changes
-  only display, and would flip it (`1/2, 3` shows `0.5, 3`, then `1/2, 3, x` once an `x` is
-  added).
-- **(b) numbers if every piece is a number, math otherwise:** a third rule beside D45.7's two,
-  unless the `for`/`select`/`answer` sugar switches to it as well.
+8. **Pieces of text are math unless `type` says otherwise** (decided, option (a)): the rule a
+   `<repeat>`'s `for`, `<select>`'s and `<answer>`'s sugar use (D45 decision 7), so DoenetML keeps
+   one rule for values to show or compute with. `<list>1, 2, 3</list>` is a math list showing
+   `1, 2, 3`. Detecting numbers was rejected: numbers are floating point, so `1/3` would turn into
+   `0.3333…`, and the display would flip as a piece changed (`1/2, 3` showing `0.5, 3`, then
+   `1/2, 3, x`). `type="number"` asks for numbers.
+
+Implementation: #2678 (PR 69; stage 2 with the converter, #2457).
 
 ## D47. Decisions from the review of #2571–#2576 (November 2026)
 
@@ -3479,8 +3479,7 @@ Each follows the recommendation in #2509, except where noted.
     `categories` and a sampler's `mean`, `variance`, … stay as the collection's own properties
     (since D59 they can't collide with an item's).
 
-Still open: #2127 item 9 (the `_copy` name and role), D46 part 1's default type (the tag is
-`<list>`, decided later), #2581 item 4
+Still open: #2127 item 9 (the `_copy` name and role), D46 part 1 (since decided: one `<list>`), #2581 item 4
 (`$slider.items` of a `from`/`to`/`step` slider).
 
 ## D66. Decisions from the sweep of older issues (decided, November 2026)
