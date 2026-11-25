@@ -174,6 +174,31 @@ describe("A one-shown-thing has no numItems (D72) @group4", () => {
         expect(await d.text("p2")).eq("＿");
         expect(d.codes()).eqls(["doenet-w0104", "doenet-w0104"]);
     });
+
+    it("a copy picks one by its own numToSelect, not its source's", async () => {
+        // a copy picking several of a one-pick chooser is a collection
+        const d = await load(
+            `<select name="s"><option><math>1</math></option><option><math>2</math></option></select><select name="s2" copy="$s" numToSelect="2"/><selectFromSequence name="q" from="1" to="5"/><selectFromSequence name="q2" copy="$q" numToSelect="3"/><p name="p1">$s2.numItems</p><p name="p2">$q2.numItems</p><p name="p3">$q2[2]</p>`,
+        );
+        expect(await d.text("p1")).eq("2");
+        expect(await d.text("p2")).eq("3");
+        expect(Number(await d.text("p3"))).within(1, 5);
+        expect(d.codes()).eqls([]);
+
+        // a copy picking one of a select of several has no numItems
+        const e = await load(
+            `<select name="s" numToSelect="2"><option><math>1</math></option><option><math>2</math></option></select><select name="s2" copy="$s" numToSelect="1"/><p name="p1">$s2.numItems</p>`,
+        );
+        expect(await e.text("p1")).eq("＿");
+        expect(e.codes()).eqls(["doenet-w0104"]);
+
+        // a copy that doesn't say is left a collection, as the resolver leaves it
+        const f = await load(
+            `<select name="s"><option><math>1</math></option></select><select name="s2" copy="$s"/><p name="p1">$s2.numItems</p>`,
+        );
+        expect(await f.text("p1")).eq("1");
+        expect(f.codes()).eqls([]);
+    });
 });
 
 describe("A one-shown-thing with nothing to show shows nothing (D73) @group4", () => {
