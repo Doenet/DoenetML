@@ -470,3 +470,11 @@ above, it is here.
   entry the letters of its draw; `type="math"` draws places among values
   computed when compiled, each entry a `Choose` by its place. A `<select
   type>` is the select of the options the parser made of its pieces.
+- *Done 2026-11-25 (ADR 0079):* the samplers' `logNormal`,
+  `normalMixture`, `hypergeometric`, `binomial` and `poisson`, more
+  `Dist`s of the same `Draws`, their parameters constants; and, replacing
+  decision 5's "`excludeCombinations` stays unsupported", a selection of
+  several values that avoids combinations (`excludeCombinations`) or a
+  common factor (`coprime`) by drawing again, the combinations read by
+  the draw after its excludes, and the check holding each of them a
+  constant as it holds an exclude.
