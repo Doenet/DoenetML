@@ -60,7 +60,7 @@ describe("Collect tag tests @group4", async () => {
     it("collect points from graphs", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <panel name="panel1">
+    <div name="div1">
     <graph>
       <point name="p1">(-3,1)</point>
       <point name="p2">(-7,5)</point>
@@ -73,10 +73,10 @@ describe("Collect tag tests @group4", async () => {
         ($p2.y, $p2.x)
       </point>
     </graph>
-    </panel>
+    </div>
 
     <graph>
-      <collect componentType="point" name="points" from="$panel1" />
+      <collect componentType="point" name="points" from="$div1" />
     </graph>
 
     <p>Coordinates of points: <mathList name="coords"><repeat for="$points" valueName="cItem">$cItem.coords</repeat></mathList></p>
@@ -225,7 +225,7 @@ describe("Collect tag tests @group4", async () => {
             doenetML: `
     <mathInput name="length" prefill="3"/>
     <mathInput name="mult" prefill="2"/>
-    <panel name="panel1">
+    <div name="div1">
     <graph>
       <setup>
         <sequence name="seq" to="$length" />
@@ -245,10 +245,10 @@ describe("Collect tag tests @group4", async () => {
       </repeat>
 
     </graph>
-    </panel>
+    </div>
 
     <graph name="graph3">
-      <collect componentType="point" from="$panel1" name="collect2" />
+      <collect componentType="point" from="$div1" name="collect2" />
     </graph>
 
     <p>y-coordinates of points: <asList>
@@ -1855,7 +1855,7 @@ describe("Collect tag tests @group4", async () => {
     <mathInput name="length" prefill="5"/>
     <mathInput name="mult" prefill="2"/>
     <mathInput name="maxnumber" prefill="2"/>
-    <panel name="panel1">
+    <div name="div1">
     <graph>
       <setup>
         <sequence name="seq" to="$length" />
@@ -1875,10 +1875,10 @@ describe("Collect tag tests @group4", async () => {
       </repeat>
 
     </graph>
-    </panel>
+    </div>
 
     <graph name="graph3">
-      <collect componentType="point" from="$panel1" name="collect2" maxNumber="2$maxnumber" />
+      <collect componentType="point" from="$div1" name="collect2" maxNumber="2$maxnumber" />
     </graph>
 
     <p>y-coordinates of points: <asList>

@@ -281,7 +281,6 @@ const CONTENT_FROM_CHILDREN = [
     "sideBySide",
     "sbsGroup",
     "stack",
-    "panel",
     "page",
     "cascade",
     "hint",

@@ -124,7 +124,7 @@ b - both
 
 ## Layout elements (~83–160 lines)
 
-- [ ] `sideBySide` / `sbsGroup` / `stack` / `panel`
+- [ ] `sideBySide` / `sbsGroup` / `stack`
 - [ ] `table`
 - [ ] `tabular`
 - [ ] `row` / `cell` / `column`
