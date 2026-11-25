@@ -853,8 +853,12 @@ export async function copyStateFromUnlinkedSource({
     replacement,
     componentInfoObjects,
 }) {
+    // A safeguard: the source may not be made now, as a repeat in a case
+    // not shown when a saved document is loaded again. A `copyWithState` of
+    // a repeat reached through a case is an error when the document loads
+    // (D78.1), so no document is known to reach this now.
     let sourceGroup =
-        components[component.unlinkedCopySource].replacements[iterateNumber];
+        components[component.unlinkedCopySource]?.replacements?.[iterateNumber];
 
     if (sourceGroup) {
         let serializedSourceGroup = await sourceGroup.serialize({

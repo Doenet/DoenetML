@@ -19,9 +19,10 @@
  *
  * Only what is exactly a literal is read: text, split by the one rule for
  * lists as the list splits it (`splitTextIntoPieces`, with the splitting
- * sugar recorded, `_listSplitting`), and components of the list's entry type
- * that are not maths and hold no error, each one entry; `maxNumber` written
- * as a number.
+ * sugar recorded, `_listSplitting`), components of the list's entry type
+ * that are not maths and hold no error, each one entry, and a reference to
+ * another such list whose count is written, as many as it holds
+ * (`referencedListCount`); `maxNumber` written as a number.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
@@ -116,6 +117,73 @@ function literalText(attribute: SerializedAttribute) {
 }
 
 /**
+ * How many entries the reference `copy`, written among the children of a
+ * list whose entries are `entryType`, gives, when it is a reference with
+ * nothing after the name, and nothing written on it, to a list the author
+ * writes of entries of that type whose count is written
+ * (`listEntryCountAtLoad`): `<mathList>$ml2</mathList>`, and the reference
+ * an extend of a list holds (`<mathList extend="$x"/>`, `extendsList`).
+ * `undefined` otherwise, left to run time.
+ */
+function referencedListCount(
+    copy: SerializedComponent,
+    entryType: string,
+    componentInfoObjects: ComponentInfoObjects,
+    componentAt: (idx: number) => SerializedComponent | undefined,
+    visiting: Set<SerializedComponent>,
+): number | undefined {
+    const extending: any = copy.extending;
+    const ref: any = extending
+        ? (extending.Ref ??
+          extending.ExtendAttribute ??
+          extending.CopyAttribute ??
+          extending.CopyWithStateAttribute)
+        : undefined;
+    if (
+        !ref ||
+        typeof ref.nodeIdx !== "number" ||
+        ref.nodeIdx < 0 ||
+        (ref.unresolvedPath ?? []).length > 0 ||
+        Object.keys(copy.attributes ?? {}).some(
+            (name) => !name.startsWith("_"),
+        ) ||
+        (copy.children ?? []).some(
+            (child) => typeof child !== "string" || child.trim() !== "",
+        )
+    ) {
+        return undefined;
+    }
+    const target = componentAt(ref.nodeIdx);
+    const targetEntry =
+        target &&
+        (componentInfoObjects.allComponentClasses as Record<string, any>)[
+            target.componentType
+        ]?.listEntryComponentType;
+    if (
+        !target ||
+        typeof targetEntry !== "string" ||
+        !(
+            targetEntry === entryType ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: targetEntry,
+                baseComponentType: entryType,
+            })
+        )
+    ) {
+        return undefined;
+    }
+    // a copy of what is being counted, so a list referenced twice
+    // (`$ml2 $ml2`) is counted twice, and a list reaching itself not at all
+    const entries = listEntryCountAtLoad(
+        target,
+        componentInfoObjects,
+        componentAt,
+        new Set(visiting),
+    );
+    return entries?.kind === "written" ? entries.count : undefined;
+}
+
+/**
  * How many entries the list the author writes, `list`, holds, as the
  * DoenetML decides it (see above). `list` is serialized after sugar;
  * `componentAt` finds a component of the document by its index.
@@ -163,11 +231,33 @@ export function listEntryCountAtLoad(
                 extended,
                 componentInfoObjects,
                 componentAt,
-                visiting,
+                // a copy, so that the reference to it the extend holds is
+                // counted below
+                new Set(visiting),
             )?.kind === "byValue"
         ) {
             return { kind: "byValue" };
         }
+    }
+
+    // What is written in an extend or copy of a list beside the reference
+    // to it that it holds (`forList`, as `<mathList copy="$ml">3</mathList>`)
+    // is put together with that list's entries, and its `maxNumber`, as the
+    // document runs (now after them; D78.2 decides it replaces them), so
+    // only an extend or copy with nothing written in it is counted here
+    // (its reference, `referencedListCount`).
+    const children = (list.children ?? []).filter(
+        (child) => typeof child !== "string" || child.trim() !== "",
+    );
+    if (
+        children.length > 1 &&
+        children.some(
+            (child) =>
+                typeof child === "object" &&
+                child.doenetAttributes?.forList !== undefined,
+        )
+    ) {
+        return undefined;
     }
 
     // Merging the items of a math whose value is a list into entries is
@@ -194,6 +284,23 @@ export function listEntryCountAtLoad(
                 return undefined;
             }
             count += pieces.length;
+            continue;
+        }
+        if (child.componentType === "_copy") {
+            // a reference to a list the author writes, of entries of this
+            // list's type, whose count is decided (`$ml2`, or the one an
+            // extend of a list holds, `<mathList extend="$x"/>`): its entries
+            const referenced = referencedListCount(
+                child,
+                entryType,
+                componentInfoObjects,
+                componentAt,
+                visiting,
+            );
+            if (referenced === undefined) {
+                return undefined;
+            }
+            count += referenced;
             continue;
         }
         const childClass = allClasses[child.componentType];

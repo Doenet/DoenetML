@@ -1794,6 +1794,39 @@ export default class Copy extends CompositeComponent {
             }),
         };
 
+        // How many entries each list in what a composite holds has
+        // (`typeChangeContent`), which decides whether it stands for one
+        // component (`typeChangeStatus`): a `<mathList><sequence
+        // length="$n"/></mathList>` in an iteration, so the extend is
+        // decided again when it changes (#2676 item 2).
+        stateVariableDefinitions.typeChangeListCounts = {
+            stateVariablesDeterminingDependencies: ["typeChangeContent"],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                return Object.fromEntries(
+                    (stateValues.typeChangeContent ?? [])
+                        .filter(
+                            (x) =>
+                                componentInfoObjects.allComponentClasses[
+                                    x.componentType
+                                ]?.listEntryComponentType !== undefined,
+                        )
+                        .map((x, i) => [
+                            `numEntries${i}`,
+                            {
+                                dependencyType: "stateVariable",
+                                componentIdx: x.componentIdx,
+                                variableName: "numEntries",
+                                variablesOptional: true,
+                            },
+                        ]),
+                );
+            },
+            markStale: () => ({ updateReplacements: true }),
+            definition: () => ({
+                setValue: { typeChangeListCounts: true },
+            }),
+        };
+
         Object.assign(
             stateVariableDefinitions,
             returnCopyReplacementsToHideDefinitions(),
@@ -6958,7 +6991,8 @@ async function recordTypeChangeContent({
 /**
  * Watch what the composite `component` is of holds for changes, which
  * decide again whether the type `component` is written as can be made from
- * it (`typeChangeContent`, `typeChangeContentValue`), when `canWatch`: when
+ * it (`typeChangeContent`, `typeChangeContentValue`, `typeChangeListCounts`),
+ * when `canWatch`: when
  * all that content is expanded and does not hold `component`, so that
  * nothing it holds is waited for. Otherwise `component` is decided again
  * only when it is updated for another reason.
@@ -6973,6 +7007,7 @@ async function watchTypeChangeContent(component, canWatch) {
         await readTypeChangeValue(component, async () => {
             await component.stateValues.typeChangeContentValue;
             await component.stateValues.typeChangeContent;
+            await component.stateValues.typeChangeListCounts;
         });
     }
 }
@@ -7098,9 +7133,27 @@ async function componentStoodFor({
         }
     }
     await gather(source);
+    if (!decided || shown.length !== 1) {
+        return undefined;
+    }
+    const listClass =
+        componentInfoObjects.allComponentClasses[shown[0].componentType];
+    if (listClass?.listEntryComponentType !== undefined) {
+        // A list holding one entry stands for it, as `<math extend="$x"/>`
+        // of it is made from it (`<repeat for="1">$x</repeat>`, #2676 item
+        // 1); one holding another number is missing, with a warning
+        // (`typeChangeStatus`).
+        return (await shown[0].stateValues.numEntries) === 1 &&
+            !replacementIsOfType(shown[0].componentType, writtenType) &&
+            typeChangeRule({
+                writtenType,
+                sourceType: shown[0].constructor.listEntryComponentType,
+                componentInfoObjects,
+            }).allowed
+            ? shown[0]
+            : undefined;
+    }
     if (
-        !decided ||
-        shown.length !== 1 ||
         !canStandFor(typeStoodFor(shown[0]), writtenType, {
             componentInfoObjects,
         })
@@ -9514,8 +9567,9 @@ async function typeChangeStatus({
     // (`typeChangeAtLoad`): the one component found here is checked only
     // for its value.
     const content = [];
+    // the lists among `content`, which stand for their entries
+    const lists = [];
     let allExpanded = true;
-    let holdsList = false;
     let holdsSelf = false;
     let holdsShadowOfSelf = false;
     async function gather(composite) {
@@ -9564,7 +9618,8 @@ async function typeChangeStatus({
             componentInfoObjects.allComponentClasses[comp.componentType]
                 ?.listEntryComponentType !== undefined
         ) {
-            holdsList = true;
+            content.push(comp);
+            lists.push(comp);
             return;
         }
         if (
@@ -9582,7 +9637,7 @@ async function typeChangeStatus({
         }
     }
     await gather(sourceComponent);
-    if (holdsSelf || holdsList) {
+    if (holdsSelf) {
         return undefined;
     }
     if (holdsShadowOfSelf) {
@@ -9609,6 +9664,56 @@ async function typeChangeStatus({
             component,
             componentInfoObjects,
             workspace: workspace ?? {},
+        });
+    }
+    if (lists.length > 0 && !found.canWatch) {
+        // not all made yet: decided when it is
+        return undefined;
+    }
+    if (lists.length > 0) {
+        // A list stands for its entries (`<repeat for="1">$x</repeat>`, an
+        // iteration holding a `<mathList>`): how many it holds was decided
+        // when the document loaded where the DoenetML decides it (`entries`
+        // of `listHolding` in `typeChangeAtLoad.ts`), so what is left is a
+        // count that a value decides, such as `<mathList>$a 2</mathList>` or
+        // `<sequence length="$n"/>`. While it is not one, the tag is
+        // missing, with a warning (VAL-5), not made from the entries
+        // together. Holding one, it is made from that entry
+        // (`componentStoodFor`), whose value is checked as a math's is.
+        let count = content.length - lists.length;
+        for (const list of lists) {
+            count += (await list.stateValues.numEntries) ?? 0;
+        }
+        if (count !== 1) {
+            const alone = content.length === 1;
+            return mismatch({
+                level: "warning",
+                code: "doenet-e0064",
+                args: {
+                    reason: "count",
+                    sourceType: alone
+                        ? typeStoodFor(lists[0])
+                        : typeStoodFor(sourceComponent),
+                    // a list holding nothing has no entry to use
+                    part: alone && count > 0 ? "entries" : "other",
+                    count,
+                    holdsNothing: count === 0 ? "true" : "false",
+                    indexSelectsOne: alone ? "true" : "false",
+                },
+            });
+        }
+        if (content.length !== 1) {
+            // one entry beside a list that holds none, which the copy is
+            // not made from (`componentStoodFor`)
+            return undefined;
+        }
+        const list = lists[0];
+        const listClass = list.constructor;
+        return decide({
+            sourceType: listClass.listEntryComponentType,
+            readValue: async () =>
+                (await list.stateValues[listClass.listValuesArrayName])?.[0],
+            level: "info",
         });
     }
     if (content.length !== 1) {

@@ -58,7 +58,7 @@ exports[`component census of the micro-documents > collect numbers x4 1`] = `
   "copies": 1,
   "dependencies": 855,
   "shadows": 0,
-  "stateVariables": 593,
+  "stateVariables": 594,
   "stateVariablesResolved": 365,
 }
 `;
@@ -166,7 +166,7 @@ exports[`component census of the micro-documents > math extend=$P.x simplify 1`]
   "copies": 1,
   "dependencies": 506,
   "shadows": 1,
-  "stateVariables": 508,
+  "stateVariables": 509,
   "stateVariablesResolved": 215,
 }
 `;
@@ -236,7 +236,7 @@ exports[`component census of the micro-documents > number extend=$n 1`] = `
   "copies": 1,
   "dependencies": 334,
   "shadows": 1,
-  "stateVariables": 207,
+  "stateVariables": 208,
   "stateVariablesResolved": 145,
 }
 `;
@@ -275,7 +275,7 @@ exports[`component census of the micro-documents > point $P 1`] = `
   "copies": 1,
   "dependencies": 814,
   "shadows": 1,
-  "stateVariables": 731,
+  "stateVariables": 732,
   "stateVariablesResolved": 381,
 }
 `;
@@ -316,7 +316,7 @@ exports[`component census of the micro-documents > repeat for mathList $x[1] x2 
   "copies": 1,
   "dependencies": 466,
   "shadows": 1,
-  "stateVariables": 416,
+  "stateVariables": 417,
   "stateVariablesResolved": 180,
 }
 `;
@@ -389,7 +389,7 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   "copies": 1,
   "dependencies": 711,
   "shadows": 1,
-  "stateVariables": 452,
+  "stateVariables": 453,
   "stateVariablesResolved": 284,
 }
 `;
@@ -430,7 +430,7 @@ exports[`component census of the micro-documents > textList $mi a 1`] = `
   "copies": 1,
   "dependencies": 524,
   "shadows": 1,
-  "stateVariables": 406,
+  "stateVariables": 407,
   "stateVariablesResolved": 238,
 }
 `;

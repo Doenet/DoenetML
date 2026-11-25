@@ -421,13 +421,13 @@ describe("A reference written as a different tag is allowed only between related
         });
         expect(typeChangeDiagnostics()).eqls([
             {
-                // a tag that makes its content itself is made only from its
-                // own kind (D48 decision 2)
+                // a tag that makes its content itself is made only from a
+                // reference that always names the same written tag (D78.1)
                 code: "doenet-e0071",
                 type: "error",
                 line: 9,
                 message:
-                    "A `<collect>` makes its content itself, so it can be made only from another `<collect>`, and `$G.cc` isn't one. To show it as it is, write `$G.cc`.",
+                    "A `<collect>` makes its content itself, so it can be made only from a reference that always names the same `<collect>`, and `$G.cc` names what the case shown holds, which would change with what is shown. To show it as it is, write `$G.cc`.",
             },
         ]);
         // No longer the warning that blamed a missing source.
