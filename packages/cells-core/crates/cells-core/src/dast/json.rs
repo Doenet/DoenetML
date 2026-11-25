@@ -147,6 +147,10 @@ impl Item for Node {
             fn visit_map<A: MapAccess<'de>>(self, mut m: A) -> Result<Self::Value, A::Error> {
                 let b = self.0;
                 let mut kind = NodeKind::Other;
+                // A function macro, `$$f(x)`, read as `<evaluate>`.
+                let mut function = false;
+                // Its arguments, each as its nodes.
+                let mut input: Vec<Vec<NodeId>> = Vec::new();
                 let mut name: Option<StrId> = None;
                 let mut value: Option<StrId> = None;
                 // (name, index expressions as node lists) per path part
@@ -162,9 +166,14 @@ impl Item for Node {
                                 "element" => NodeKind::Element,
                                 "text" => NodeKind::Text,
                                 "macro" => NodeKind::Macro,
+                                "function" => {
+                                    function = true;
+                                    NodeKind::Other
+                                }
                                 _ => NodeKind::Other,
                             };
                         }
+                        "input" => input = m.next_value_seed(Seed(&mut *b, Args))?,
                         "name" => {
                             let s: Cow<str> = m.next_value()?;
                             name = Some(b.intern(&s));
@@ -194,12 +203,78 @@ impl Item for Node {
                         b.leaf(NodeKind::Text, v)
                     }
                     NodeKind::Macro => b.macro_(path),
+                    NodeKind::Other if function => function_macro(b, path, input),
                     NodeKind::Other => b.leaf(NodeKind::Other, StrId::new(0)),
                 };
                 Ok(id)
             }
         }
         d.deserialize_map(V(b))
+    }
+}
+
+/// A function macro, `$$f(a, b)`, as the `<evaluate>` it stands for:
+/// `<evaluate function="$f" input="a, b"/>`, its `function` a macro of
+/// the path and its `input` the arguments separated by commas. Written
+/// after the arguments' nodes: the macro, then each comma, then the
+/// element, whose id is where the function macro stands; then the strings
+/// `evaluate`, `function` and `input` (`scripts/cdast-encode.mjs` does the
+/// same). An evaluation is planned wherever an `<evaluate>` may stand; in
+/// math or in an attribute an element is refused where it is written,
+/// never dropped.
+fn function_macro(
+    b: &mut DastWriter,
+    path: Vec<(StrId, Vec<Vec<NodeId>>)>,
+    args: Vec<Vec<NodeId>>,
+) -> NodeId {
+    let m = b.macro_(path);
+    let mut input = Vec::new();
+    for (k, arg) in args.iter().enumerate() {
+        if k > 0 {
+            let comma = b.intern(",");
+            input.push(b.leaf(NodeKind::Text, comma));
+        }
+        input.extend_from_slice(arg);
+    }
+    let tag = b.intern("evaluate");
+    let mut attrs = vec![(b.intern("function"), vec![m])];
+    if !args.is_empty() {
+        attrs.push((b.intern("input"), input));
+    }
+    b.element(tag, attrs, &[])
+}
+
+/// A function macro's arguments: `null`, or an array of arrays of nodes.
+#[derive(Clone, Copy)]
+struct Args;
+
+impl Item for Args {
+    type Value = Vec<Vec<NodeId>>;
+    fn read<'de, D: de::Deserializer<'de>>(
+        self,
+        b: &mut DastWriter,
+        d: D,
+    ) -> Result<Self::Value, D::Error> {
+        struct V<'b>(&'b mut DastWriter);
+        impl<'de> Visitor<'de> for V<'_> {
+            type Value = Vec<Vec<NodeId>>;
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("a function macro's arguments")
+            }
+            fn visit_none<E: de::Error>(self) -> Result<Self::Value, E> {
+                Ok(Vec::new())
+            }
+            fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+                Ok(Vec::new())
+            }
+            fn visit_some<D2: de::Deserializer<'de>>(
+                self,
+                d: D2,
+            ) -> Result<Self::Value, D2::Error> {
+                Seq(NODES, "an array of arguments").read(self.0, d)
+            }
+        }
+        d.deserialize_option(V(b))
     }
 }
 

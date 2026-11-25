@@ -61,6 +61,15 @@ impl SourceReader<'_> {
                 }
                 // A label or description is presentation, not content.
                 NodeKind::Element if self.is_presentation_child(n) => {}
+                // An evaluation, as a function macro `$$f(x)` is read: its
+                // value is no cell of this text (COMP-1).
+                NodeKind::Element if d.str(n) == "evaluate" => {
+                    return Err(Error::Unsupported(
+                        "an evaluation inside math (`$$f(x)`, an <evaluate>): name an \
+                         <evaluate> and write its value as a reference"
+                            .into(),
+                    ));
+                }
                 // Any other element would be content this text cannot hold:
                 // dropping it would give a wrong value with no diagnostic
                 // (COMP-1). Its value can be written as a reference.

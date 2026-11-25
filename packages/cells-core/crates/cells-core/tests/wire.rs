@@ -19,6 +19,10 @@ const SOURCES: &[&str] = &[
 <function name=\"f\" variables=\"S I\">(S - 2 S I, I + S I)</function>\n\
 <p><conditionalContent name=\"c\"><case condition=\"$n > 0\">yes <m>x^2</m></case><else>no</else></conditionalContent></p>",
     "<text>unicode: ü ∑ 日本</text>",
+    // Function macros, read as the `<evaluate>` each stands for (ADR
+    // 0075): one argument, two, an index in the path, none.
+    "<function name=\"f\">x^2</function><group name=\"g\">$f</group>\n\
+<p>$$f(3), $$f(1, $f[1]) and $$g[1](2 x) $$f</p>",
     "",
 ];
 

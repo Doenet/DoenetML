@@ -64,6 +64,46 @@ export function encodeDast(dast) {
         cCount[id] = kids.length;
         for (const k of kids) children.push(k);
     }
+    /** An element of the tag `name`, after its attributes' children and
+     * its children. */
+    function writeElement(name, attrs, kids) {
+        const id = pushNode(0, name);
+        aStart[id] = attrName.length;
+        aCount[id] = attrs.length;
+        for (const [name, attrKids] of attrs) {
+            attrName.push(name);
+            attrCStart.push(children.length);
+            attrCCount.push(attrKids.length);
+            for (const k of attrKids) children.push(k);
+        }
+        setChildren(id, kids);
+        return id;
+    }
+    /** A macro's or function macro's path parts: each name, then its
+     * `[index]` expressions' nodes. */
+    function pathParts(n) {
+        return n.path.map((p) => ({
+            name: str(p.name),
+            indices: (p.index ?? []).map((ix) => (ix.value ?? []).map(node)),
+        }));
+    }
+    /** A macro of `parts`, after their index nodes. */
+    function writeMacro(parts) {
+        const id = pushNode(2, 0);
+        aStart[id] = path.length;
+        aCount[id] = parts.length;
+        for (const p of parts) {
+            path.push(p.name);
+            pathIStart.push(idxCStart.length);
+            pathICount.push(p.indices.length);
+            for (const nodes of p.indices) {
+                idxCStart.push(children.length);
+                idxCCount.push(nodes.length);
+                for (const k of nodes) children.push(k);
+            }
+        }
+        return id;
+    }
     function node(n) {
         switch (n.type) {
             case "element": {
@@ -76,42 +116,32 @@ export function encodeDast(dast) {
                     ([name, a]) => [str(name), (a.children ?? []).map(node)],
                 );
                 const kids = (n.children ?? []).map(node);
-                const id = pushNode(0, name);
-                aStart[id] = attrName.length;
-                aCount[id] = attrs.length;
-                for (const [name, attrKids] of attrs) {
-                    attrName.push(name);
-                    attrCStart.push(children.length);
-                    attrCCount.push(attrKids.length);
-                    for (const k of attrKids) children.push(k);
-                }
-                setChildren(id, kids);
-                return id;
+                return writeElement(name, attrs, kids);
             }
             case "text":
                 return pushNode(1, str(n.value ?? ""));
-            case "macro": {
+            case "macro":
                 // Index value nodes first, the macro itself last.
-                const parts = n.path.map((p) => ({
-                    name: str(p.name),
-                    indices: (p.index ?? []).map((ix) =>
-                        (ix.value ?? []).map(node),
-                    ),
-                }));
-                const id = pushNode(2, 0);
-                aStart[id] = path.length;
-                aCount[id] = parts.length;
-                for (const p of parts) {
-                    path.push(p.name);
-                    pathIStart.push(idxCStart.length);
-                    pathICount.push(p.indices.length);
-                    for (const nodes of p.indices) {
-                        idxCStart.push(children.length);
-                        idxCCount.push(nodes.length);
-                        for (const k of nodes) children.push(k);
-                    }
-                }
-                return id;
+                return writeMacro(pathParts(n));
+            case "function": {
+                // A function macro, `$$f(a, b)`, as the `<evaluate>` it
+                // stands for, as `Dast::from_json` reads it (`json.rs`,
+                // `function_macro`): the path's index nodes, the arguments'
+                // nodes, then a macro of the path, a comma between two
+                // arguments, and the element, `<evaluate function="$f"
+                // input="a, b"/>`.
+                const parts = pathParts(n);
+                const args = (n.input ?? []).map((arg) => arg.map(node));
+                const m = writeMacro(parts);
+                const input = [];
+                args.forEach((arg, k) => {
+                    if (k > 0) input.push(pushNode(1, str(",")));
+                    input.push(...arg);
+                });
+                const name = str("evaluate");
+                const attrs = [[str("function"), [m]]];
+                if (args.length > 0) attrs.push([str("input"), input]);
+                return writeElement(name, attrs, []);
             }
             default: {
                 // Other nodes carry no string, but `Dast::from_json` interns any

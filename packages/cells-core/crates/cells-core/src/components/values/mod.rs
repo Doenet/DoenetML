@@ -345,6 +345,9 @@ pub(crate) mod evaluate {
         /// variable, missing outside its domain.
         tags: ["evaluate"],
         flags: [copyable],
+        // Shows its value as its cell holds it: an expression's text, or
+        // the number (a function macro `$$f(x)` in text, ADR 0075).
+        text: Held(value),
         default_prop: value,
         props {
             function: by_planner,

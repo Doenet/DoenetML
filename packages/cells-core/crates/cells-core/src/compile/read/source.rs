@@ -77,8 +77,10 @@ impl SourceReader<'_> {
         for &n in d.attr_children(a) {
             match d.kind(n) {
                 NodeKind::Text => s.push_str(d.str(n)),
-                NodeKind::Macro => return None,
-                _ => {}
+                // A reference, or an element (an evaluation a function
+                // macro `$$f(x)` stands for): no literal text.
+                NodeKind::Macro | NodeKind::Element => return None,
+                NodeKind::Other => {}
             }
         }
         Some(s)
@@ -90,10 +92,10 @@ impl SourceReader<'_> {
         for &n in d.attr_children(a) {
             match d.kind(n) {
                 NodeKind::Macro if found.is_none() => found = Some(n),
-                NodeKind::Macro => return None,
+                NodeKind::Macro | NodeKind::Element => return None,
                 NodeKind::Text if d.str(n).trim().is_empty() => {}
                 NodeKind::Text => return None,
-                _ => {}
+                NodeKind::Other => {}
             }
         }
         found
