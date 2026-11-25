@@ -81,6 +81,7 @@ pub mod boolean_input {
         tags: ["booleanInput"],
         flags: [copyable],
         reads_as: Boolean,
+        roles: [ImplicitBooleanInput],
         response: Boolean(value),
         needs: Label,
         extend_value: Scalar(value),
@@ -98,21 +99,73 @@ pub mod boolean_input {
 /// `<choice>`: one option of a `<choiceInput>`.
 pub mod choice {
     use super::*;
+    use crate::compile::api::*;
+    use crate::components::{ComponentType, ResponseKind, Role};
+    use crate::error::Result;
 
     component! {
         /// `<choice credit="1">text</choice>` inside a `<choiceInput>`: a
-        /// rendered container whose `credit` is what choosing it earns.
+        /// rendered container whose `credit` is what choosing it earns
+        /// (held from 0 to 1), `text` its children's text joined in the
+        /// tick (ADR 0053), and
+        /// `selected` whether its input has it chosen (ADR 0077).
         tags: ["choice"],
         flags: [container],
         roles: [Choice],
         props {
             credit: attr(0.0),
+            text: by_planner { text },
+            selected: by_planner { boolean },
         }
-        planner: Props,
+        attributes {
+            credit: Value,
+        }
+        planner: Plan(plan),
     }
 
     /// The position of `credit`: what choosing it earns.
     pub const CREDIT: usize = Props::AT.credit;
+    /// The position of `text`: its children's text.
+    pub const TEXT: usize = Props::AT.text;
+
+    /// Its credit as given; its text, its children's joined
+    /// ([`PlanCtx::children_joined`]); selected while the input it is a
+    /// choice of has its place among the input's choices chosen
+    /// (`selectedChoice`), never outside one.
+    fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let attrs = Attrs::of(ctx.record());
+        let mut wiring = ElemWiring::of(ComponentType::Choice);
+        let text = match ctx.children_joined(&mut wiring)? {
+            Some(source) => Wire::from(source),
+            None => Wire::absent(),
+        };
+        let chosen = ctx.ancestor_prop(
+            |ty| matches!(ty.response(), Some(ResponseKind::Index(_))),
+            "selectedChoice",
+        );
+        let selected = match (chosen, ctx.place_among(Role::Choice)) {
+            (Some(Some(chosen)), Some(k)) => {
+                let chosen = wiring.hidden(chosen);
+                let place = wiring.hidden(Source::constant(k as f64));
+                Wire::from(Source::computed(OpSpec::Eq, vec![chosen, place]))
+            }
+            _ => Wire::from(Source::constant(0.0)),
+        };
+        // Held from 0 to 1, as the current core caps a choice's credit.
+        let given = wiring.hidden(attrs.credit.unwrap_or(Source::given(0.0)));
+        let lo = wiring.hidden(Source::constant(0.0));
+        let hi = wiring.hidden(Source::constant(1.0));
+        let credit = Source::computed(
+            OpSpec::Vec(crate::program::VecOp::Clamp),
+            vec![given, lo, hi],
+        );
+        wiring.set_planned(Planned {
+            credit: credit.into(),
+            text,
+            selected,
+        });
+        Ok(wiring)
+    }
 }
 
 pub(crate) mod slider {

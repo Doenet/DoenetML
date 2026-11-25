@@ -541,6 +541,9 @@ fn a_props_type_agrees_with_how_it_is_held() {
             if t.expr_of(i).is_some() {
                 assert!(is(ty, C::Math), "{at}, an expression prop");
             }
+            if p.boolean {
+                assert!(is(ty, C::Boolean), "{at}, held as a boolean");
+            }
             if p.from == PropFrom::ListLen {
                 assert_eq!(ty, Some(PropType::Is(C::Integer)), "{at}, a list's length");
             }

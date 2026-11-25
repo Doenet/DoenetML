@@ -572,9 +572,15 @@ impl ComponentType {
     }
 
     /// What a `$ref` child naming `sel` of this type shows as, when the
-    /// port alone says: an entry of a boolean list is a boolean (ADR 0041).
+    /// port alone says: an entry of a boolean list is a boolean (ADR 0041),
+    /// and so is a prop declared to hold one (ADR 0077).
     pub fn shows_as(self, sel: PropSel) -> Option<Role> {
         match sel {
+            PropSel::At(PropAt::Position(i))
+                if self.prop_defs().get(i).is_some_and(|d| d.boolean) =>
+            {
+                Some(Role::BooleanValue)
+            }
             PropSel::At(PropAt::List | PropAt::Item(_) | PropAt::Coord(..))
                 if self.list_entry() == Some(EntryKind::Boolean) =>
             {
@@ -1442,7 +1448,8 @@ mod tests {
         // ADR 0074 added `source_text`, a sequence's letters or math as
         // written.
         // ADR 0075 added `children_joined`, a label's text as a value.
-        const PLAN_CTX_METHODS: usize = 47;
+        // ADR 0077 added `place_among`, a choice's place among its input's.
+        const PLAN_CTX_METHODS: usize = 48;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

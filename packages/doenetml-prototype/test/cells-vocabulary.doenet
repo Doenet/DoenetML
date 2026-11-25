@@ -3,6 +3,7 @@
      through the cells bridge and fails on any element no renderer draws, and
      on any component type of the core this document does not use: a type
      added to the core is added here, with its renderer. -->
+<variantControl numVariants="2" />
 <setup>
     <number name="n">3</number>
     <text name="t">dog</text>
@@ -66,6 +67,11 @@
 <division type="section" />
 <introduction>i</introduction>
 <page><p>On a page.</p></page>
+<image source="https://example.com/i.png" width="120px">
+    <shortDescription>An image</shortDescription>
+</image>
+<p>Inline <image source="doenet:abc" displayMode="inline" decorative /></p>
+<video youtube="dQw4w9WgXcQ"><shortDescription>A video</shortDescription></video>
 <conclusion>c</conclusion>
 <aside><title>A</title><p>z</p></aside>
 <hint><p>h</p></hint>
@@ -128,6 +134,9 @@
         <shuffle>1 2 3</shuffle> <sequence from="1" to="5" />
         <selectRandomNumbers from="3" to="5" /> <sampleRandomNumbers />
         <selectPrimeNumbers /> <samplePrimeNumbers />
+        <sortIndices>30 10 20</sortIndices>
+        <tally categories="1 2 3">1 2 2 3</tally>
+        <binCounts bins="0 1 2">0.5 1.5 1.2</binCounts>
         <sampleMultivariateRandomNumber type="hypergeometric" numInCategories="5 3 2" numDraws="4" />
         <selectFromSequence from="1" to="10" />
         <select><option>a</option><option>b</option></select>

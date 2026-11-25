@@ -25,6 +25,21 @@ pub struct CompareOpts {
     pub exact_positions: bool,
     /// As written (`symbolicEquality`), not by value.
     pub syntactic: bool,
+    /// How far two numbers may differ and still match
+    /// (`allowedErrorInNumbers`, ADR 0077): the error's bits, 0 for exact.
+    pub allowed_error_bits: u64,
+    /// The allowed error is absolute, not relative (`allowedErrorIsAbsolute`).
+    pub error_is_absolute: bool,
+    /// The allowed error applies in exponents too
+    /// (`includeErrorInNumberExponents`).
+    pub error_in_exponents: bool,
+}
+
+impl CompareOpts {
+    /// The allowed error in numbers, 0 for exact.
+    pub fn allowed_error(&self) -> f64 {
+        f64::from_bits(self.allowed_error_bits)
+    }
 }
 
 /// What a value is, for the lattice.
@@ -73,6 +88,21 @@ fn entries(e: &Expr) -> Vec<Expr> {
 /// How equal `a` and `b` are, from 0 to 1: 1 when equal, a fraction only
 /// when `opts.partial`.
 pub(crate) fn check_equality(a: &Expr, b: &Expr, opts: CompareOpts, eq: &EqOptions) -> f64 {
+    // The engine's options with the allowed error in numbers, when one is
+    // asked; the engine accepts numbers within it, as the current core's
+    // `checkEquality` asks math-expressions to.
+    let with_error;
+    let eq = if opts.allowed_error() > 0.0 && eq.allowed_error_in_numbers != opts.allowed_error() {
+        with_error = EqOptions {
+            allowed_error_in_numbers: opts.allowed_error(),
+            allowed_error_is_absolute: opts.error_is_absolute,
+            include_error_in_number_exponents: opts.error_in_exponents,
+            ..eq.clone()
+        };
+        &with_error
+    } else {
+        eq
+    };
     let base = |x: &Expr, y: &Expr| -> f64 {
         let equal = if opts.syntactic {
             me::equals_syntactic(x, y, eq)
@@ -81,7 +111,12 @@ pub(crate) fn check_equality(a: &Expr, b: &Expr, opts: CompareOpts, eq: &EqOptio
         };
         if equal { 1.0 } else { 0.0 }
     };
-    let (a, b) = if opts.syntactic {
+    let (a, b) = if opts.syntactic && opts.allowed_error() > 0.0 {
+        // As written, numbers within the error: a constant is its float
+        // (`pi` is 3.14159...), as the current core's `checkEquality`
+        // normalizes before it compares by syntax.
+        (me::constants_to_floats(a), me::constants_to_floats(b))
+    } else if opts.syntactic {
         (a.clone(), b.clone())
     } else {
         // Sums of vectors and multiples of them, as their entries.
@@ -98,6 +133,7 @@ pub(crate) fn check_equality(a: &Expr, b: &Expr, opts: CompareOpts, eq: &EqOptio
         partial: false,
         exact_positions: false,
         syntactic: opts.syntactic,
+        ..opts
     };
     let one = |e: &Expr| vec![e.clone()];
     let distinct = |xs: Vec<Expr>| {

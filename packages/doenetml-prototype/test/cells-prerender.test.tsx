@@ -102,7 +102,10 @@ afterAll(() => vi.restoreAllMocks());
 describe("the cells core rendered to HTML by the prototype's renderers", () => {
     test.each(documents)("%s", async (_, path) => {
         const html = await renderDocument(path);
-        expect(html).toMatch(/^<article class="doenet-document">/);
+        // React may hoist a resource hint (an image's preload) before it.
+        expect(html).toMatch(
+            /^(<link [^>]*>)*<article class="doenet-document">/,
+        );
     });
 
     test("a graph is its board's container, with its legend", async () => {

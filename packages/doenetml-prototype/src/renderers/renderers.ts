@@ -64,6 +64,8 @@ import {
     FractionInput,
     MatrixInput,
     SummaryStatistics,
+    Image,
+    Video,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -253,6 +255,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     indexOf: { component: M },
     iff: { component: Boolean },
     implies: { component: Boolean },
+    image: { component: Image },
     intComma: showAttrOnly("text"),
     introduction: passThroughWithRenamedTag("div"),
     integer: showAttrOnly("text"),
@@ -353,6 +356,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     updateValue: { component: Button },
     variance: { component: M },
     vector: { component: M },
+    video: { component: Video },
     wrapFunctionPeriodic: { component: M },
     wrapNumberPeriodic: { component: M },
     xor: { component: Boolean },

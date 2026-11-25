@@ -1,0 +1,30 @@
+/* An image or a video in the flow, as the current core lays one out. */
+.doenet-document .media-inline {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 12px 0;
+}
+
+.doenet-document .media-block {
+    display: flex;
+    margin: 12px 0;
+}
+
+.doenet-document .media-left {
+    justify-content: flex-start;
+}
+
+.doenet-document .media-center {
+    justify-content: center;
+}
+
+.doenet-document .media-right {
+    justify-content: flex-end;
+}
+
+/* A medium with nothing to show: an empty box of its size. */
+.doenet-document .media-placeholder {
+    display: inline-block;
+    min-height: 2em;
+    border: var(--mainBorder, 1px solid currentColor);
+}
