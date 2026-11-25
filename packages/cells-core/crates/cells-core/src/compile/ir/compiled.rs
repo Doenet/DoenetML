@@ -56,6 +56,8 @@ pub(crate) struct Plans {
     /// For each node of `arena`, the first node structurally equal to it.
     /// Empty when the load does not share.
     pub(crate) expr_class: Vec<ExprId>,
+    /// The document's variant components and variants (ADR 0085).
+    pub(crate) variants: Arc<crate::compile::variants::Variants>,
 }
 
 impl Compiled {

@@ -10,6 +10,7 @@ pub mod function_iterates;
 pub mod repeat_for;
 pub mod select;
 pub mod select_from_sequence;
+pub(crate) mod variant_control;
 
 pub(crate) mod sample_prime_numbers;
 pub(crate) mod sample_random_numbers;

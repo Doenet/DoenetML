@@ -7,7 +7,7 @@
 //! one exhaustive match ([`ComponentType::declared_props`]). A list type's
 //! list and its items are typed by its [`TypeDecl::ListOf`]. Like the type
 //! declarations, these sit beside today's flags (`PropDef::text`,
-//! `expr_of`, [`TextKind`](super::TextKind), ...) until planners read them.
+//! `expr_of`, [`TextKind`](crate::components::TextKind), ...) until planners read them.
 
 use super::{ComponentType, TypeDecl};
 
@@ -190,6 +190,7 @@ impl ComponentType {
             | Error
             | Hint
             | Setup
+            | VariantControl
             | Title
             | Ref
             | List
