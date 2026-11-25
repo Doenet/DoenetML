@@ -119,20 +119,10 @@ impl ComponentType {
     /// What the attribute `name`, of parse form `kind`, wants: the type of
     /// the prop it gives, where it gives one, else what its form takes.
     fn attr_wants(self, name: &'static str, kind: AttrKind) -> Want {
-        use AttrKind as K;
-        let literal = match kind {
-            K::Bool { .. } | K::LiteralFlag | K::On => Some(C::Boolean),
-            K::Number { .. } | K::Literal { .. } => Some(C::Number),
-            K::Text => Some(C::Text),
-            _ => None,
-        };
-        if let Some(t) = literal {
-            return Want::Literal(t);
-        }
-        match kind {
-            K::Written => return Want::Nothing,
-            K::Component | K::After(_) => return Want::Component(&[]),
-            _ => {}
+        // A literal, a component, or one refused, whatever prop it gives.
+        let alone = kind.wants_alone();
+        if !matches!(alone, Want::Value(_)) {
+            return alone;
         }
         // The prop it gives: one that reads it, one it binds, or the prop
         // of its name.
@@ -145,21 +135,53 @@ impl ComponentType {
         if let Some(t) = gives.and_then(|p| self.prop_type(p)) {
             return Want::Value(t);
         }
-        Want::Value(match kind {
-            K::Flag { .. } => PropType::Is(C::Boolean),
-            K::Point => PropType::Is(C::Point),
-            K::Points { .. } => PropType::ListOf(C::Point),
-            K::Scalars => PropType::ListOf(C::Number),
-            K::Math => PropType::Is(C::Math),
-            K::Scalar | K::Value => PropType::Is(C::Number),
-            // A list's entries, a reference, a value as children are one:
-            // of the type the element decides.
-            _ => PropType::ByElement,
-        })
+        alone
+    }
+}
+
+impl AttrKind {
+    /// What an attribute of this parse form wants when it gives no prop:
+    /// an on/off attribute a boolean, a point attribute a point, a list of
+    /// them a list of points; a list's entries, a reference or a value as
+    /// children are one, the type the element decides.
+    pub fn wants_alone(self) -> Want {
+        use AttrKind as K;
+        match self {
+            K::Bool { .. } | K::LiteralFlag | K::On => Want::Literal(C::Boolean),
+            K::Number { .. } | K::Literal { .. } => Want::Literal(C::Number),
+            K::Text => Want::Literal(C::Text),
+            K::Written => Want::Nothing,
+            K::Component | K::After(_) => Want::Component(&[]),
+            K::Flag { .. } => Want::Value(PropType::Is(C::Boolean)),
+            K::Point => Want::Value(PropType::Is(C::Point)),
+            K::Points { .. } => Want::Value(PropType::ListOf(C::Point)),
+            K::Scalars => Want::Value(PropType::ListOf(C::Number)),
+            K::Math => Want::Value(PropType::Is(C::Math)),
+            K::Scalar | K::Value => Want::Value(PropType::Is(C::Number)),
+            K::Entries | K::Ref | K::Content => Want::Value(PropType::ByElement),
+        }
     }
 }
 
 impl PropType {
+    /// The type in an author's words: "a number", "a list of points".
+    pub fn described(self) -> String {
+        let a = |t: ComponentType| {
+            let tag = t.tag();
+            let article = if tag.starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            };
+            format!("{article} <{tag}>")
+        };
+        match self {
+            PropType::Is(t) => a(t),
+            PropType::ListOf(t) => format!("a list of <{}>s", t.tag()),
+            PropType::ByElement | PropType::Code => "a value".into(),
+        }
+    }
+
     /// The type as [`fit`](super::fit) judges it, when it is one an author
     /// can name: not a code, nor a type the element decides.
     pub fn author_type(self) -> Option<super::AuthorType> {

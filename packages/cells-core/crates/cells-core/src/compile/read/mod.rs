@@ -33,5 +33,6 @@ pub(in crate::compile) use maths::{boolean_as_number, not_a_boolean};
 pub(in crate::compile) use reader::{Arenas, Reader, SourceReader};
 pub(in crate::compile) use rebase::Rebaser;
 pub(in crate::compile) use refs::record_read;
+pub(in crate::compile) use types::Typed;
 pub(crate) use values::ValueKind;
 pub(in crate::compile) use values::literal_value;

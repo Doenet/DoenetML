@@ -580,7 +580,9 @@ mod tests {
     #[test]
     fn a_flag_is_the_elements_else_its_referents_else_the_default() {
         let mut doc = load(document([
-            el("testValue").name("v").attr("value", "1"),
+            // A flag bound to a boolean (one bound to a number is a type
+            // mix, D47).
+            el("booleanInput").name("v").attr("prefill", "true"),
             el("testShape").name("plain"),
             el("testShape").name("s").flag("hide"),
             el("testShape").name("t").attr("hide", "false"),

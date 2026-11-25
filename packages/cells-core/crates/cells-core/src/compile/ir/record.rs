@@ -911,6 +911,35 @@ impl Reader<'_> {
         })
     }
 
+    /// `source`, a reference given to attribute `decl`, where its type fits
+    /// what the attribute wants; else the missing value, with a type-mix
+    /// warning where it is written (D47, ADR 0076 §4): `hide="$n"` of a
+    /// number.
+    fn fitted(&self, ar: &mut Arenas, t: TemplateId, decl: &AttrDecl, source: Source) -> Source {
+        let Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) = source else {
+            return source;
+        };
+        let Typed::Is(have) = self.ref_type(ar, t, p) else {
+            return source;
+        };
+        if decl.kind.wants_alone().fit(have) != Some(crate::components::Fit::Mismatch) {
+            return source;
+        }
+        let node = ar.refs[p.index()].node;
+        let shown = self.dast.macro_display(node);
+        let test = if have.allows(ValueKind::Text) {
+            format!("${shown} = true")
+        } else {
+            format!("${shown} != 0")
+        };
+        let message = format!(
+            "`${shown}` is {}, not true or false, and '{}' wants true or false. To test it, write a comparison such as `{test}`",
+            have.described(),
+            decl.name
+        );
+        ar.type_mix(node, &message)
+    }
+
     /// Attribute `decl` of `node`, planned from `scope`.
     fn parse_attr(
         &self,
@@ -977,8 +1006,11 @@ impl Reader<'_> {
                 AttrValue::Entries(self.parse_attr_entries(ar, t, scope, d.attr_children(a))?)
             }
             AttrKind::Flag { .. } => AttrValue::Scalar(match self.single_macro(a) {
-                // A reference is bound.
-                Some(_) => self.plan_scalar(ar, t, scope, d.attr_children(a))?,
+                // A reference is bound, where it fits (ADR 0076 §4).
+                Some(_) => {
+                    let source = self.plan_scalar(ar, t, scope, d.attr_children(a))?;
+                    self.fitted(ar, t, decl, source)
+                }
                 // A literal: a bare attribute is true.
                 None => Source::given(if self.attr_flag(node, decl.name) {
                     1.0

@@ -486,3 +486,40 @@ fn adr_0076_a_tag_over_an_extend_wants_its_type() {
         assert!(message.contains(hint), "{src}: {message}");
     }
 }
+
+/// ADR 0076 §4, D47: an on/off attribute wants a boolean. A number or a
+/// text bound to one is the missing value there, with a warning naming
+/// the comparison meant; a boolean, or an input that is one, binds it.
+#[test]
+fn adr_0076_an_on_off_attribute_wants_a_boolean() {
+    let doc = load(
+        r#"<number name="n">1</number><text name="t">true</text>
+           <boolean name="b">true</boolean><booleanInput name="bi" prefill="true"/>
+           <graph>
+             <point name="Pn" hide="$n">(1,2)</point>
+             <point name="Pt" hide="$t">(1,2)</point>
+             <point name="Pb" hide="$b">(1,2)</point>
+             <point name="Pbi" hide="$bi">(1,2)</point>
+           </graph>"#,
+    )
+    .unwrap();
+    assert!(missing(&doc, "Pn", "hide"));
+    assert!(missing(&doc, "Pt", "hide"));
+    assert_eq!(v(&doc, "Pb", "hide"), 1.0);
+    assert_eq!(v(&doc, "Pbi", "hide"), 1.0);
+    assert_eq!(warned(&doc, "cells-type-mix"), 2);
+    let messages: Vec<&str> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.code == "cells-type-mix")
+        .map(|d| d.message.as_str())
+        .collect();
+    assert!(
+        messages.iter().any(|m| m.contains("`$n != 0`")),
+        "{messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m.contains("`$t = true`")),
+        "{messages:?}"
+    );
+}
