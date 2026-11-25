@@ -59,7 +59,9 @@
 //! | `Draws{dist, n, m}`      | (draw, parameters, m excludes) → n    | none: what the seed chose does not move (ADR 0037)                   | none              |
 //! |                          | values of a distribution              |                                                                      |                   |
 //! | `Moments{dist, m}`       | (parameters, m excludes) → the mean,  | none: a distribution's moments are not set by a request              | none              |
-//! |                          | variance and standard deviation       |                                                                      |                   |
+//! |                          | variance and standard deviation; a    |                                                                      |                   |
+//! |                          | multivariate one's m means, m         |                                                                      |                   |
+//! |                          | variances                             |                                                                      |                   |
 //! | `BestFitLine{n}`         | n points → (a, b, c) of the           | none: a fit is not set by a request                                  | none              |
 //! |                          | least-squares line ax + by + c = 0    |                                                                      |                   |
 //! | `Intersect{a, b}`        | two figures → where they meet, a      | none: an intersection is not set by a request                        | none              |
@@ -394,7 +396,10 @@ pub enum VecOp {
     /// ([`Dist`]), a whole distribution's as the current core's samplers
     /// report them: inputs its parameters ([`Dist::n_params`]) and
     /// `n_exclude` excluded values. NaN where the parameters describe no
-    /// distribution, and for primes. No inverse.
+    /// distribution, and for primes. A
+    /// [`Dist::MultivariateHypergeometric`]'s (its excludes the categories'
+    /// sizes) is each category's mean, then each one's variance (ADR 0086).
+    /// No inverse.
     Moments {
         /// The distribution.
         dist: Dist,
@@ -711,17 +716,11 @@ const MAX_HYPERGEOMETRIC_DRAWS: f64 = 1e7;
 /// value of the draw's stream. NaN throughout where the parameters
 /// describe no such population.
 fn multivariate_hypergeometric(draw: f64, draws: f64, sizes: &[f64], out: &mut [f64]) {
-    let whole = |v: f64| v.is_finite() && v >= 0.0 && v.fract() == 0.0;
-    let total: f64 = sizes.iter().sum();
-    if !sizes.iter().all(|&v| whole(v))
-        || !whole(draws)
-        || draws > total
-        || total > (1u64 << 53) as f64
-        || draws > MAX_HYPERGEOMETRIC_DRAWS
-    {
+    if !multivariate_hypergeometric_valid(draws, sizes) {
         out.fill(f64::NAN);
         return;
     }
+    let total: f64 = sizes.iter().sum();
     let mut left: Vec<u64> = sizes.iter().map(|&v| v as u64).collect();
     let mut remaining = total as u64;
     out.fill(0.0);
@@ -1687,6 +1686,48 @@ fn avoiding(
 /// past the first start.
 const AVOID_STREAM: usize = 1 << 20;
 
+/// Whether `draws` items drawn from a population of the sizes in `sizes`
+/// describe a multivariate hypergeometric the current core draws from:
+/// whole numbers, no more draws than items, a total it counts exactly and
+/// a draw it makes promptly.
+fn multivariate_hypergeometric_valid(draws: f64, sizes: &[f64]) -> bool {
+    let whole = |v: f64| v.is_finite() && v >= 0.0 && v.fract() == 0.0;
+    let total: f64 = sizes.iter().sum();
+    sizes.iter().all(|&v| whole(v))
+        && whole(draws)
+        && draws <= total
+        && total <= (1u64 << 53) as f64
+        && draws <= MAX_HYPERGEOMETRIC_DRAWS
+}
+
+/// Each category's mean, then each one's variance, into `out`, of how
+/// many of `draws` items drawn without replacement from a population of
+/// the sizes in `sizes` are of it, as the current core's
+/// `<sampleMultivariateRandomNumber>` reports them (ADR 0086): `n K / N`
+/// and `n p (1 - p) (N - n) / (N - 1)`, 0 for a population too small to
+/// divide by; NaN throughout where the parameters describe none.
+fn multivariate_hypergeometric_moments(draws: f64, sizes: &[f64], out: &mut [f64]) {
+    let k = sizes.len();
+    if !multivariate_hypergeometric_valid(draws, sizes) {
+        out.fill(f64::NAN);
+        return;
+    }
+    let total: f64 = sizes.iter().sum();
+    for (i, &size) in sizes.iter().enumerate() {
+        out[i] = if total > 0.0 {
+            draws * size / total
+        } else {
+            0.0
+        };
+        out[k + i] = if total > 1.0 {
+            let p = size / total;
+            draws * p * (1.0 - p) * (total - draws) / (total - 1.0)
+        } else {
+            0.0
+        };
+    }
+}
+
 /// What a [`VecOp::Moments`] gives, into `out`: the mean, the variance
 /// and the standard deviation of the distribution `dist` with
 /// parameters `params`, less `excludes` for a sequence, as the current
@@ -2034,6 +2075,10 @@ impl VecOp {
             } => (n as usize).saturating_sub(1),
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } | VecOp::Shuffle { n } => n as usize,
             VecOp::Draws { n, .. } => n as usize,
+            VecOp::Moments {
+                dist: Dist::MultivariateHypergeometric,
+                n_exclude,
+            } => 2 * n_exclude as usize,
             VecOp::Moments { .. } => 3,
             VecOp::BestFitLine { .. } => 3,
             VecOp::Intersect { a, b } => 2 * Figure::cap(a, b) + 1,
@@ -2253,6 +2298,12 @@ impl VecOp {
                 let excludes = &inp[1 + k..at];
                 let combos = &inp[at..at + dist.n_avoid(n)];
                 draws(dist, inp[0], &inp[1..=k], excludes, combos, out);
+            }
+            VecOp::Moments {
+                dist: Dist::MultivariateHypergeometric,
+                n_exclude,
+            } => {
+                multivariate_hypergeometric_moments(inp[0], &inp[1..=n_exclude as usize], out);
             }
             VecOp::Moments { dist, n_exclude } => {
                 let k = dist.n_params();

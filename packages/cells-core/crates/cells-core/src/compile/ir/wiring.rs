@@ -378,15 +378,57 @@ impl ElemWiring {
         }
     }
 
-    /// The list's companion sequence (ADR 0053), one wire per entry,
-    /// which fill the public ports after the entries.
-    pub(crate) fn set_companion(&mut self, wires: Vec<Wire>) {
-        assert_eq!(wires.len(), self.n_points, "one per entry");
-        let start = self.component_type.prop_defs().len() + self.shape().width() * self.n_points;
-        for (k, w) in wires.into_iter().enumerate() {
-            self.props[start + k] = Some(w.source);
+    /// The list's named sequence `name` (ADR 0053, ADR 0086), one wire
+    /// per entry, which fill its public ports after the entries.
+    pub(crate) fn set_sequence(&mut self, name: &str, wires: Vec<Wire>) {
+        let shape = self.shape();
+        let i = shape
+            .sequences()
+            .iter()
+            .position(|&s| s == name)
+            .unwrap_or_else(|| panic!("no sequence `{name}` on <{}>", self.component_type.tag()));
+        let slots = shape.sequence_slots(self.n_public(), i);
+        self.fill(slots, wires);
+    }
+
+    /// A capped list's hide sequence (ADR 0086), one wire per entry: the
+    /// `hide` a made row of that entry aliases.
+    pub(crate) fn set_hides(&mut self, wires: Vec<Wire>) {
+        let slots = self.shape().hide_slots(self.n_public());
+        assert!(
+            self.n_points == 0 || !slots.is_empty(),
+            "a hide sequence on a list that is not capped"
+        );
+        self.fill(slots, wires);
+    }
+
+    /// A capped list's hide sequence, each entry 1 past the live length
+    /// `live` and else `also` (the list's own `hide`), as an entry is
+    /// hidden by its list (ADR 0041 decision 2).
+    pub(crate) fn hide_past(&mut self, live: Port, also: Option<Port>) {
+        let hides = (1..=self.n_points)
+            .map(|k| {
+                let k = self.hidden(Source::constant(k as f64));
+                let past = Source::computed(OpSpec::Lt, vec![live, k]);
+                match also {
+                    Some(also) => {
+                        let past = self.hidden(past);
+                        Wire::computed(OpSpec::Max, vec![also, past])
+                    }
+                    None => past.into(),
+                }
+            })
+            .collect();
+        self.set_hides(hides);
+    }
+
+    /// Fills public ports `slots` with `wires`, one each.
+    fn fill(&mut self, slots: std::ops::Range<usize>, wires: Vec<Wire>) {
+        assert_eq!(wires.len(), slots.len(), "one per entry");
+        for (i, w) in slots.zip(wires) {
+            self.props[i] = Some(w.source);
             if let Some(id) = w.given {
-                self.given.insert(id, Port::table(start + k));
+                self.given.insert(id, Port::table(i));
             }
         }
     }

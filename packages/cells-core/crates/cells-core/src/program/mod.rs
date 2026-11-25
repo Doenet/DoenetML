@@ -691,6 +691,7 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
         | SymKind::JoinWith { .. }
         | SymKind::Order { .. }
         | SymKind::Tally { .. }
+        | SymKind::TallyDistinct { .. }
         | SymKind::TextEquals { .. }
         | SymKind::TextNumber
         | SymKind::Letters
@@ -865,6 +866,14 @@ fn run_text(
                     Some(c) => values.iter().flatten().filter(|x| x.equals(c)).count() as f64,
                 };
             }
+        }
+        SymKind::TallyDistinct { n, kinds } => {
+            let n = n as usize;
+            let t = texts.as_deref();
+            let keys: Vec<Option<texts::TallyKey>> = (0..n)
+                .map(|i| texts::tally_key(&mut *engine, t, kind_at(kinds, i), v(i)))
+                .collect();
+            texts::tally_distinct(&keys, out);
         }
         SymKind::TextEquals { case_insensitive } => {
             let t = texts.as_deref();

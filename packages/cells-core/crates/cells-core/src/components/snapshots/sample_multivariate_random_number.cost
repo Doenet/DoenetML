@@ -1,3 +1,5 @@
-every item drawn: each category's size: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
-none drawn, and an empty category: cells 24 · essential 0 · constant 24 · instrs 0 · components 9
-parameters that describe no population: no value: cells 24 · essential 0 · constant 24 · instrs 0 · components 12
+every item drawn: each category's size: cells 20 · essential 0 · constant 20 · instrs 0 · components 5
+none drawn, and an empty category: cells 36 · essential 0 · constant 36 · instrs 0 · components 9
+parameters that describe no population: no value: cells 34 · essential 0 · constant 34 · instrs 0 · components 12
+each category's mean and variance, its named sequences: cells 41 · essential 0 · constant 41 · instrs 0 · components 12
+no moments where the parameters describe no population: cells 19 · essential 0 · constant 19 · instrs 0 · components 7

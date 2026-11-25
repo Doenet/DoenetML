@@ -151,6 +151,54 @@ impl TallyKey {
     }
 }
 
+/// A `<tally>`'s distinct values among `keys` and their counts
+/// ([`SymKind::TallyDistinct`](super::SymKind::TallyDistinct), ADR 0086),
+/// into `out`: how many there are, then the 1-based position of the first
+/// key equal to each in order, then how many keys equal it, the missing
+/// value past how many there are. A key that is none is no value. They are
+/// ordered by value when every one is a number, else by their texts (a
+/// number as JavaScript writes it), as the current core's `distinctValues`
+/// sorts them.
+pub(crate) fn tally_distinct(keys: &[Option<TallyKey>], out: &mut [f64]) {
+    let n = keys.len();
+    // The first position of each distinct key, and how many equal it.
+    let mut distinct: Vec<(usize, usize)> = Vec::new();
+    for (i, key) in keys.iter().enumerate() {
+        let Some(key) = key else { continue };
+        match distinct
+            .iter_mut()
+            .find(|(j, _)| keys[*j].as_ref().is_some_and(|d| d.equals(key)))
+        {
+            Some((_, count)) => *count += 1,
+            None => distinct.push((i, 1)),
+        }
+    }
+    let key = |i: usize| keys[i].as_ref().expect("a distinct value has a key");
+    let numeric = distinct
+        .iter()
+        .all(|&(i, _)| matches!(key(i), TallyKey::Number(_)));
+    let text = |k: &TallyKey| match k {
+        TallyKey::Number(x) => js_number_text(*x),
+        TallyKey::Text(s) => s.clone(),
+    };
+    if numeric {
+        distinct.sort_by(|&(a, _), &(b, _)| match (key(a), key(b)) {
+            (TallyKey::Number(a), TallyKey::Number(b)) => {
+                a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal)
+            }
+            _ => std::cmp::Ordering::Equal,
+        });
+    } else {
+        distinct.sort_by_cached_key(|&(i, _)| text(key(i)));
+    }
+    out.fill(crate::program::MISSING);
+    out[0] = distinct.len() as f64;
+    for (k, &(i, count)) in distinct.iter().enumerate() {
+        out[1 + k] = (i + 1) as f64;
+        out[1 + n + k] = count as f64;
+    }
+}
+
 /// What a tally compares the input `v` of `kind` by; none for a number
 /// that is none (NaN, the missing value) or no expression, which equals
 /// nothing (a malformed `<number>`, as the current core leaves it out).

@@ -95,9 +95,11 @@ selection of values that are no positive whole numbers (`e0041`), whose
   the 64 an instruction reads. Ten combinations of ten values are refused
   as unsupported.
 - Not done: a mixture's `means`, `standardDeviations`, `variances` and
-  `weights` read back as lists, and `<sampleMultivariateRandomNumber>`'s
-  `means` and `variances`: each is a list prop beside the type's list, a
-  second (and third) named sequence the core declares one of at most (ADR
-  0053); the warnings' arguments as numbers (the cells core's are text);
+  `weights` read back as lists: each is a list beside the type's list of
+  a count of its own, which a named sequence (one cell per entry, ADR
+  0086) is not, so it waits on a decision. *`<sampleMultivariateRandomNumber>`'s
+  `means` and `variances` done 2026-11-25* (ADR 0086), named sequences
+  one per category; `samplemultivariaterandomnumber.test.ts` passes 19
+  of 30 (from 14). Also not done: the warnings' arguments as numbers (the cells core's are text);
   the current core's notice of a slow draw (`w0133`); combinations naming
   letters or math by a reference.

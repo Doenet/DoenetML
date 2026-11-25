@@ -95,9 +95,15 @@ are `x1`, `y1` and `x2`, `y2`).
 **Capped list** — A list prop whose count follows a value at tick time
 (ADR 0041, decision 2, a dynamic sequence): as many entries as its cap,
 known from the type (two where a circle meets a line), those past its
-**live length**, a table prop, the missing value, their rows hidden. A
+**live length**, a table prop, the missing value, their rows hidden by
+its own **hide sequence**, one cell per entry with no name (ADR 0086). A
 count with no cap stays inside the math handle instead, and `[k]` on it
 is a projection (`$mi[2]`).
+
+**Named sequence** — A second (third, ...) sequence a list declares over
+its element's own ports, one cell per entry, public by its name: a
+shuffle's `componentOrder`, a tally's `categories`, a multivariate
+sample's `means` (ADR 0053, ADR 0086).
 
 **Component** — A DoenetML tag instance (`number`, `numberInput`, `graph`,
 `point`). Components own props and renderer identity but no computation of

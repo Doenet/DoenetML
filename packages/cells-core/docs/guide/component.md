@@ -218,10 +218,14 @@ methods. Rules for planners:
   is: T }` for the type an element is when its count follows a value (a
   structural sequence, ADR 0041); `static_count: f` for how many entries
   a static sequence's record makes, so a reference to it among a list's
-  children contributes them; `list { capped: [x, y], live: numPoints,
-  hidden: hidden }` for a capped list (ADR 0041, a dynamic sequence: as
-  many points as its planner's cap, its rows hidden past the live
-  length); and the prop option `infinite`. A free owned type is refused with what owns it
+  children contributes them; `list { capped: [x, y], live: numPoints }`
+  for a capped list of points, `live: n` after a value list's `values:`
+  for one of values (ADR 0041, a dynamic sequence: as many entries as
+  its planner's cap, its rows hidden past the live length by its hide
+  sequence, `ElemWiring::hide_past`, ADR 0086); `sequences: [a, b]` after
+  a value list's `values:` for its named sequences, one cell per entry
+  each (`ElemWiring::set_sequence`, ADR 0086); and the prop option
+  `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - The core names no type: a unit test in `components/mod.rs`
   (`the_core_names_no_type`) refuses any `ComponentType` variant or

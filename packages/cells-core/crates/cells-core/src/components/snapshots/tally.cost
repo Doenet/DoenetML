@@ -1,11 +1,15 @@
-counts declared categories, in the order declared: cells 28 · essential 0 · constant 28 · instrs 0 · components 15
-the result is an ordinary list: cells 34 · essential 0 · constant 34 · instrs 0 · components 21
-a category written as an expression names its number: cells 16 · essential 0 · constant 16 · instrs 0 · components 8
-texts compare as text: cells 16 · essential 0 · constant 16 · instrs 0 · components 9
-booleans compare as true and false: cells 16 · essential 0 · constant 16 · instrs 0 · components 8
-math compares by value when it is a number, else by its text: cells 18 · essential 0 · constant 18 · instrs 0 · components 10
-a value that is no number equals no category: cells 18 · essential 0 · constant 18 · instrs 0 · components 12
-categories given as components: cells 12 · essential 0 · constant 12 · instrs 0 · components 11
-recounts when a value changes: cells 13 · essential 1 · constant 10 · instrs 1 · components 6
-a repeated category counts in each slot, with a warning: cells 17 · essential 0 · constant 17 · instrs 0 · components 9
-an empty list has nothing to count: cells 9 · essential 0 · constant 9 · instrs 0 · components 6
+counts declared categories, in the order declared: cells 25 · essential 0 · constant 25 · instrs 0 · components 15
+the result is an ordinary list: cells 31 · essential 0 · constant 31 · instrs 0 · components 21
+a category written as an expression names its number: cells 15 · essential 0 · constant 15 · instrs 0 · components 8
+texts compare as text: cells 14 · essential 0 · constant 14 · instrs 0 · components 9
+booleans compare as true and false: cells 14 · essential 0 · constant 14 · instrs 0 · components 8
+math compares by value when it is a number, else by its text: cells 16 · essential 0 · constant 16 · instrs 0 · components 10
+a value that is no number equals no category: cells 15 · essential 0 · constant 15 · instrs 0 · components 12
+categories given as components: cells 11 · essential 0 · constant 11 · instrs 0 · components 11
+recounts when a value changes: cells 11 · essential 1 · constant 8 · instrs 1 · components 6
+a repeated category counts in each slot, with a warning: cells 15 · essential 0 · constant 15 · instrs 0 · components 9
+an empty list has nothing to count: cells 7 · essential 0 · constant 7 · instrs 0 · components 6
+with no categories, the distinct values in order, a capped list: cells 33 · essential 0 · constant 33 · instrs 0 · components 12
+with no categories, words and booleans: cells 51 · essential 0 · constant 51 · instrs 0 · components 15
+with no categories, a value that is no number is none: cells 23 · essential 0 · constant 23 · instrs 0 · components 8
+with no categories, the categories follow the values: cells 23 · essential 1 · constant 8 · instrs 8 · components 7

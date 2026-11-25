@@ -480,9 +480,13 @@ impl<'a> SourceReader<'a> {
                         let sel = ar.prop_sel(self.dast, component_type, names[i]);
                         let prop_of = |sel| RefProp::of(component_type, sel);
                         // `$l.numbers[k]`: an entry of a value list, its
-                        // count known only to the build (ADR 0041).
-                        if sel == Some(PropSel::At(PropAt::List))
-                            && component_type.list_width() == 1
+                        // count known only to the build (ADR 0041); or of
+                        // one of its named sequences, `$s.means[2]` (ADR
+                        // 0086).
+                        let named = matches!(sel, Some(PropSel::At(PropAt::Sequence(_))));
+                        if named
+                            || sel == Some(PropSel::At(PropAt::List))
+                                && component_type.list_width() == 1
                         {
                             let mut indices = d.part_indices(part);
                             if let Some(first) = indices.next() {

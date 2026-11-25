@@ -775,13 +775,13 @@ pub(crate) const fn find(defs: &[PropDef], name: &str) -> Option<usize> {
 /// positions. A name not in the table fails to compile.
 /// A type's second public sequence over its own ports with no list of
 /// entries before it (`sequence: name`, ADR 0053): a list of no cells an
-/// entry, whose companion `name` is one cell an entry, as many as the
-/// element's planner makes (a `<choiceInput>`'s `choiceOrder`). It has
-/// no rows and is no text of the element.
-pub(crate) const fn sequence_only(name: &'static str) -> super::ListProp {
+/// entry, whose one named sequence (`names`, of one name) is one cell an
+/// entry, as many as the element's planner makes (a `<choiceInput>`'s
+/// `choiceOrder`). It has no rows and is no text of the element.
+pub(crate) const fn sequence_only(names: &'static [&'static str]) -> super::ListProp {
     super::ListProp {
         names: &[],
-        item: name,
+        item: names[0],
         points: super::ListPoints::Given {
             coords: &[],
             alternate_name: None,
@@ -793,7 +793,7 @@ pub(crate) const fn sequence_only(name: &'static str) -> super::ListProp {
         },
         interactive: false,
         rendered: true,
-        companion: Some(name),
+        sequences: names,
         live: None,
     }
 }
@@ -1075,14 +1075,15 @@ macro_rules! component {
                 $(, entries: $lventries:ident $(less $lvless:literal)?)?
                 $(, interactive: $lvinteractive:literal)?
                 $(, rendered: $lvrendered:literal)?
-                $(, companion: $lvcompanion:ident)? $(,)?)?
+                $(, live: $lvlive:ident)?
+                $(, sequences: [$($lvseq:ident),+ $(,)?])? $(,)?)?
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
                 $(, interactive: $lpinteractive:literal)?
                 $(, rendered: $lprendered:literal)? $(,)?)?
             $(entry_coords: [$ex:ident, $ey:ident], max_by: $emax:ident, entries: children
                 $(, interactive: $einteractive:literal)?
                 $(, rendered: $erendered:literal)? $(,)?)?
-            $(capped: [$qx:ident, $qy:ident], live: $qlive:ident, hidden: $qhidden:ident
+            $(capped: [$qx:ident, $qy:ident], live: $qlive:ident
                 $(, rendered: $qrendered:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
                 attribute: $lattr:ident $(, max: $lmax:expr)?
@@ -1177,7 +1178,7 @@ macro_rules! component {
                 $(.counted($crate::components::define::component!(@counted $cokind [PROPS] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
-                $(.list($crate::components::define::sequence_only(stringify!($seqname))))?
+                $(.list($crate::components::define::sequence_only(&[stringify!($seqname)])))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
                     names: &[$(stringify!($lname)),+],
@@ -1191,8 +1192,8 @@ macro_rules! component {
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)? $($($einteractive)?)?),
                     rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)? $($($qrendered)?)?),
-                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)? $($qhidden)?),
-                    live: $crate::components::define::component!(@companion $($qlive)?),
+                    sequences: &[$($($(stringify!($lvseq)),+)?)?],
+                    live: $crate::components::define::component!(@name $($($lvlive)?)? $($qlive)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
@@ -1794,8 +1795,8 @@ macro_rules! component {
             "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`), either optionally ending `interactive: true` and then `rendered: true`"
         )
     };
-    (@companion) => { None };
-    (@companion $name:ident) => { Some(stringify!($name)) };
+    (@name) => { None };
+    (@name $name:ident) => { Some(stringify!($name)) };
     (@flag) => { false };
     (@flag $flag:literal) => { $flag };
     (@entries) => { None };
