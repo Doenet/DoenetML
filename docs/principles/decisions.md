@@ -3441,7 +3441,8 @@ select of several shows nothing. #2649.
 Unchanged: a `<group>` made from a group, an iteration, a pick or a one-shown-thing tag; a scalar
 tag made from a composite the DoenetML guarantees holds one component; a list made from a
 collection whose items all match its entry type. Implementation: PR 50 of #2509, with #2594 item 2.
-**Done by #2670** (closing #2649 and #1986); extended by D77. Leftovers in #2676.
+**Done by #2670** (closing #2649 and #1986); extended by D77. Leftovers done by #2683 (closing
+#2676); its own in #2686.
 
 ## D65. The decisions waiting in #2509's table (decided, November 2026)
 
@@ -3859,7 +3860,7 @@ kind (COLL-1, REF-7), and REF-5 has no pair making a group from a math.
 
 Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick `<select>`, a
 `<conditionalContent>`, and other composites. Implementation: **done by #2670**. Leftovers in
-#2676 (a pick whose type the DoenetML decides, a name after an index inside a case).
+#2676, done by #2683 (a one-pick chooser, a name after an index inside a case).
 
 ## D78. Decisions from the leftovers of #2670 and #2672 (decided, November 2026)
 
@@ -3882,6 +3883,10 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
      part 1), `<list extend="$cc.r"/>`, which doesn't pretend the result is a repeat.
    - **Unchanged:** showing it (`$cc`, `$cc.r`, `$cc[2]`, `$cc.r[2].t`), and a new tag holding it
      as content (`<sort>$cc</sort>`, `<shuffle>$cc.r</shuffle>`, `<collect from="$cc">`).
+   - **A name written in one branch only is through the branch too** (decided on review of
+     #2683): `$cc.r` of a `<conditionalContent>` with one case, `$s.r` of a select with one
+     option, and `$r` or `$sec.r` reached from outside a case they are written in name that tag
+     only while the branch is shown, so they are `e0071`.
 
    **Why.** Through a branch, the tag made would be a different written repeat, select or sort
    in each case, presented as one; the forms were fragile in practice (#2683: a number made from
@@ -3909,7 +3914,8 @@ Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick 
    `<math extend="$t"/>` makes. It is missing with `i0053` only when that math is not a measure
    (a tuple, a list, a set).
 
-Implementation: items 2 and 3 with #2677 (PR 68); item 1 with #2676 item 9 (PR 67, #2683).
+Implementation: items 2 and 3 with #2677 (PR 68); item 1 **done by #2683** (closing #2676), leftovers
+in #2686 (through a copy of a section, `$cc[1].r`) and #2682 (D74 through an iteration or a copy).
 
 ## D79. An index into a list reads one entry, not the whole list (decided, November 2026; revises #2513's edge)
 

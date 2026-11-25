@@ -281,13 +281,14 @@ of a repeat holding the group and the list.
   a `<math>`, an attribute or `bindValueTo`, where a `<p>` and a reload show nothing;
 - **done by #2670** (closing #2649; D64, D77): a `<group>` made from a collection, a list
   included, is `e0065` at load, naming `<group>$r</group>` or `<repeat extend="$r"/>`; so is one
-  made from one component that isn't a composite, also as a property or a list's entry. **Left**
-  (#2676): a pick of a selector whose type is decided (`$sfs[1]`), a name after an index inside a
-  case, and the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4) unchecked.
+  made from one component that isn't a composite, also as a property or a list's entry. #2683
+  (closing #2676) added a one-pick chooser (`<group extend="$sfs"/>`), a name after an index
+  inside a case, and checked the list forms of `<collect>`/`<sort>`/`<shuffle>` (COMP-4).
   `<repeat extend="$cc"/>` and `<repeat extend="$cc.r"/>` are `e0071` (D78.1): a tag that makes
   its content is made only from a reference that always names the same written tag; show it
-  (`$cc.r`) or, once `<list>` exists, `<list extend="$cc.r"/>`. **Known violation:**
-  `<repeat extend="$cc.r"/>` is allowed today (#2676 item 9).
+  (`$cc.r`) or, once `<list>` exists, `<list extend="$cc.r"/>`. **Done by #2683**, also through an
+  iteration or a copy holding the branches (`$outer[1].cc.r`, `$sec2.s.r`). **Left** (#2686): a
+  copy of a section reached through a case, and `$cc[1].r`, are allowed with no message.
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
