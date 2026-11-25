@@ -692,3 +692,17 @@ impl PropType {
         }
     }
 }
+
+impl PropType {
+    /// Whether a value of this type is held as a string id (ADR 0076 §9,
+    /// each type's representations): `Some(true)` for a text,
+    /// `Some(false)` for every other type an author names, `None` for a
+    /// code or a type the element decides, which may be held either way.
+    pub fn held_as_text(self) -> Option<bool> {
+        match self {
+            Is(t) => Some(super::is_a(t, C::Text)),
+            ListOf(t) => Some(super::is_a(t, C::Text)),
+            ByElement | Code => None,
+        }
+    }
+}

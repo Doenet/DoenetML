@@ -131,6 +131,46 @@ impl Seal<'_> {
             return Err(self.outermost(failed));
         }
         pass.check_interfaces().map_err(|f| vec![f])?;
+        // A refinement never contradicts a type (ADR 0076 §9): a table prop
+        // is held as text exactly when its type is a text. One that is not
+        // is a bug in the core, which every document a test loads checks,
+        // once the checks above have refused what they refuse.
+        #[cfg(debug_assertions)]
+        for t in self.template_ids() {
+            let tpl = self.view(t);
+            for e in ElemId::below(tpl.elems.len()) {
+                let ty = tpl.elems[e.index()].component_type;
+                for (pi, def) in ty.prop_defs().iter().enumerate() {
+                    if pi >= tpl.plan(e).props.len() {
+                        break;
+                    }
+                    // The missing value is a value of every type (ADR 0046),
+                    // held as the missing number: a constant, or a reference
+                    // that names nothing.
+                    let missing = match &tpl.plan(e).props[pi] {
+                        Source::Leaf(Leaf::Const(_)) => true,
+                        Source::Flow(Flow::Alias(Arg::Ref(p, _))) => {
+                            self.ar.refs[p.index()].names_nothing()
+                        }
+                        _ => false,
+                    };
+                    if missing {
+                        continue;
+                    }
+                    let slot = pass.offs[t.index()].0[e.index()].offset(pi);
+                    let held = pass.types[t.index()][slot.index()] == PortType::Text;
+                    let typed = ty.prop_type(def.name).and_then(|p| p.held_as_text());
+                    debug_assert!(
+                        typed.is_none_or(|text| text == held),
+                        "<{}>'s `{}` is {:?} by its type, held as {:?}",
+                        ty.tag(),
+                        def.name,
+                        ty.prop_type(def.name),
+                        pass.types[t.index()][slot.index()],
+                    );
+                }
+            }
+        }
         Ok(types)
     }
 

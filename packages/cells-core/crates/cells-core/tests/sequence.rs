@@ -1,7 +1,8 @@
 //! Sequences (ADR 0041): one index rule on every ordered collection. An
 //! index names an entry when it is an integer from 1 to the count, and
 //! otherwise the missing value; a cell may be the index wherever a
-//! literal may.
+//! literal may. A literal past the count the DoenetML proves is an error
+//! at load: the reference can never give anything (D75, ADR 0076 §9).
 
 mod common;
 use cells_core::testing::reference;
@@ -12,9 +13,10 @@ fn nan(doc: &cells_core::Document, name: &str) -> bool {
     v(doc, name, "value").is_nan()
 }
 
-/// Step 1's document: `$P[3]`, `$P[0]`, `$P[2.5]` and `$P[$k]` on a
-/// two-dimensional point load, and read the missing value or the chosen
-/// coordinate.
+/// Step 1's document: `$P[$k]` on a two-dimensional point reads the
+/// chosen coordinate, or the missing value past them; `$P[3]`, `$P[0]`,
+/// `$P[-1]` and `$P[2.5]`, which can never name one, are errors at load
+/// (D75).
 #[test]
 fn a_point_is_a_sequence_of_its_coordinates() {
     let mut doc = load(
@@ -25,14 +27,16 @@ fn a_point_is_a_sequence_of_its_coordinates() {
            <number name="zero">$P[0]</number>
            <number name="neg">$P[-1]</number>
            <number name="half">$P[2.5]</number>
-           <number name="byk">$P[$k]</number>
-           <p name="shown">$P[3]</p>"#,
+           <number name="byk">$P[$k]</number>"#,
     )
     .unwrap();
     assert_eq!(v(&doc, "one", "value"), 3.0);
-    for name in ["three", "zero", "neg", "half"] {
-        assert!(nan(&doc, name), "{name}");
-    }
+    let never = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.code == "cells-no-entry")
+        .count();
+    assert_eq!(never, 4);
     assert_eq!(v(&doc, "byk", "value"), 3.0);
     for (k, want) in [(2.0, Some(4.0)), (2.5, None), (3.0, None), (0.0, None)] {
         doc.request(&[req(&doc, "k", "value", k)]);
@@ -162,7 +166,8 @@ fn entries_inside_a_repeat_follow_the_count() {
           <polygon name="pg" vertices="(1,2) (3,4) (5,6)"/>
           <point name="q" coords="$pg.vertices[$k]"/>
         </graph>
-        <number name="a">$p[$k] + $p[3] + $p[2.5]</number>
+        <number name="past">3</number>
+        <number name="a">$p[$k] + $p[$past]</number>
         <repeatForSequence name="r" length="$k" indexName="i">
           <point name="s" x="$i" y="$pg.vertices[$i].y"/>
           <number name="b">$p[$i] + $s[$k]</number>

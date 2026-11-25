@@ -598,11 +598,15 @@ impl Conversion {
 /// tag over an extend).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExtendAs {
-    /// A copy of `x`, or a pair the build decides: the same type, a type
-    /// with no value to read, or a conversion the build cannot make yet.
+    /// A copy of `x`, or a pair the build decides: the same type, or a
+    /// type with no value to read.
     Copy,
     /// `x`'s value as the element's type: the extend of this prop of `x`.
     Prop(&'static str),
+    /// A conversion REF-5 allows that the build cannot make yet (a text
+    /// parsed as a number, a point's entries as a vector's): refused, for
+    /// now, saying so.
+    NotBuilt,
     /// An input made from a value it would hold (`doenet-e0062`).
     InputFromValue,
     /// No chain connects them: the form that works, if there is one.
@@ -624,7 +628,7 @@ pub fn extend_as(from: ComponentType, to: ComponentType, referent: &str) -> Exte
         Fit::Same => read(from.default_prop()),
         Fit::StandsIn { prop, then } if then.is_none_or(Conversion::is_built) => read(Some(prop)),
         Fit::Converts(c) if c.is_built() => read(from.default_prop()),
-        Fit::StandsIn { .. } | Fit::Converts(_) => ExtendAs::Copy,
+        Fit::StandsIn { .. } | Fit::Converts(_) => ExtendAs::NotBuilt,
         Fit::Mismatch => {
             // An input whose value `from` would be (REF-5, D26).
             let value = to.typing().and_then(|t| match t.stands_in {

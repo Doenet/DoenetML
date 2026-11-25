@@ -188,7 +188,9 @@ const RESOLVE_FAILURES: &[Findings] = &[
         r#"<group name="g"><number>1</number></group>
         <collect name="c" from="$g" componentType="number"/>
         <number name="y">$c[1][1]</number>"#,
-        &["'$c' cannot be indexed; only repeats and collects can"],
+        &[
+            "'$c' is indexed where there are no entries: only a list, a point or a vector, a math holding several, a repeat, a collect or a select can be indexed",
+        ],
     ),
     (
         "collected-point-inside-numeric-math",

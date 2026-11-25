@@ -140,8 +140,23 @@ pub enum Error {
     #[error("bad index in '${0}'")]
     BadIndex(String),
     /// A reference indexes a component that is neither a repeat nor a collect.
-    #[error("'${0}' cannot be indexed; only repeats and collects can")]
+    #[error(
+        "'${0}' is indexed where there are no entries: only a list, a point or a vector, a math holding several, a repeat, a collect or a select can be indexed"
+    )]
     NotIndexable(String),
+    /// A literal index past the entries the DoenetML proves its referent
+    /// has: the reference can never give anything (D75, ADR 0076 §9).
+    #[error("'${display}[{entry}]' can never give anything: {referent} {has}")]
+    NoEntry {
+        /// The reference as written, before the index.
+        display: String,
+        /// The entry it asks for.
+        entry: i64,
+        /// What it indexes, as written.
+        referent: String,
+        /// How many entries that has: "has 2 entries", "has no entries".
+        has: String,
+    },
     /// A reference names one iteration of a repeat whose template has several
     /// component children, without naming which.
     #[error("'${0}' names an iteration with {1} component children, so it needs a child name")]

@@ -157,6 +157,7 @@ impl Error {
             DynamicIndex(_) => "cells-dynamic-index",
             BadIndex(_) => "cells-bad-index",
             NotIndexable(_) => "cells-not-indexable",
+            NoEntry { .. } => "cells-no-entry",
             AmbiguousIteration(..) => "cells-ambiguous-iteration",
             BadCollectType(_) => "cells-bad-collect-type",
             BadCollect => "cells-bad-collect",

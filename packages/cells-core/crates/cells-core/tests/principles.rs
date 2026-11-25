@@ -541,3 +541,38 @@ fn d47_a_boolean_is_no_operand_of_an_operator_over_numbers() {
     assert_eq!(v(&doc, "ok", "value"), 5.0);
     assert_eq!(warned(&doc, "cells-type-mix"), 2);
 }
+
+/// D75, ADR 0076 §9: an index the DoenetML proves can never name an
+/// entry is an error at load: past a point's two coordinates, past a
+/// written tuple's entries, into a math written with none. One the
+/// DoenetML does not prove (a math input's, a computed index) is the
+/// missing value until it names one.
+#[test]
+fn d75_an_index_that_can_never_give_anything_is_an_error() {
+    let doc = load(
+        r#"<point name="P">(1,2)</point><math name="mt">(1,2,3)</math><math name="ms">5</math>
+           <mathInput name="mi" prefill="(1,2)"/>
+           <p name="a">$P[3]</p><p name="b">$mt[4]</p><p name="c">$ms[1]</p>
+           <p name="ok">$mt[2]</p><p name="later">$mi[4]</p>"#,
+    )
+    .unwrap();
+    let never: Vec<&str> = doc
+        .diagnostics()
+        .iter()
+        .filter(|d| d.code == "cells-no-entry")
+        .map(|d| d.message.as_str())
+        .collect();
+    assert_eq!(never.len(), 3, "{never:?}");
+    assert!(
+        never
+            .iter()
+            .any(|m| m.contains("'$mt[4]'") && m.contains("has 3 entries"))
+    );
+    assert!(
+        never
+            .iter()
+            .any(|m| m.contains("'$ms[1]'") && m.contains("has no entries"))
+    );
+    assert_eq!(text(&doc, "ok"), "2");
+    assert_eq!(text(&doc, "later"), "＿");
+}

@@ -737,6 +737,12 @@ impl<'a> SourceReader<'a> {
                         return Err(Error::PathTooDeep(display.to_string()));
                     }
                     let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                    // An index past what its written text has (D75).
+                    if prop.is_none()
+                        && let Some(n) = self.written_entries(cur_t, e)
+                    {
+                        self.entry_proven(&index, n, cur_t, e, display)?;
+                    }
                     entries.push(EntryIndex {
                         index,
                         width: EntryIndex::IN_HANDLE,
@@ -763,12 +769,17 @@ impl<'a> SourceReader<'a> {
                     }
                     let index = self.plan_entry_index(ar, t, scope, expr, display)?;
                     let parts_of = dsel.parts();
+                    // As many entries as its text has (a math held as a
+                    // tuple), else its parts (a point's two): a literal
+                    // past them can never give anything (D75).
+                    let n = self.written_entries(cur_t, e).unwrap_or(parts_of.len());
+                    self.entry_proven(&index, n, cur_t, e, display)?;
                     // A literal in range is that coordinate; any other
                     // index is an entry of them, the missing value when it
                     // names none (ADR 0041).
                     prop = Some(RefProp::of(
                         ek,
-                        match index.entry_in(parts_of.len()) {
+                        match index.entry_in(n) {
                             Some(k) => PropSel::At(PropAt::Position(parts_of[k - 1] as usize)),
                             None => {
                                 entries.push(EntryIndex { index, width: 1 });
@@ -1107,6 +1118,62 @@ impl<'a> SourceReader<'a> {
     /// of the first branch that has it, which stands for every branch while
     /// the rest of the path is planned (the interface check makes their
     /// types equal).
+    /// How many entries the value of element `e` of template `t` has, when
+    /// its written text proves it (ADR 0076 §9, a refinement): a `<math>`
+    /// written as a parenthesized tuple has its entries, one written with
+    /// no brackets or top-level commas none. `None` where the text does
+    /// not tell: a reference in it, a bracketed value, any other type.
+    pub(in crate::compile) fn written_entries(&self, t: TemplateId, e: ElemId) -> Option<usize> {
+        let el = self.elem(t, e);
+        if el.node == NodeId::NONE
+            || !matches!(el.planned_as.def().settle, Some(Settle::FromMathText(_)))
+        {
+            return None;
+        }
+        let mt = self.math_text(self.dast.children(el.node)).ok()?;
+        if !mt.macros.is_empty() {
+            return None;
+        }
+        let toks = mt.tokens();
+        if let Some(entries) = expr::tuple_entries(toks) {
+            return Some(entries.len());
+        }
+        let bracketed = toks
+            .iter()
+            .any(|t| t.opens() || t.closes() || *t == Token::Comma);
+        (!bracketed).then_some(0)
+    }
+
+    /// An error when `index` is a literal past the `n` entries the
+    /// DoenetML proves element `e` has: the reference can never give
+    /// anything (D75). A computed index may name one when it runs.
+    fn entry_proven(
+        &self,
+        index: &IndexPlan,
+        n: usize,
+        t: TemplateId,
+        e: ElemId,
+        display: impl std::fmt::Display,
+    ) -> Result<()> {
+        let Some(entry) = index.constant_value() else {
+            return Ok(());
+        };
+        if index.entry_in(n).is_some() {
+            return Ok(());
+        }
+        let has = match n {
+            0 => "has no entries".to_string(),
+            1 => "has 1 entry".to_string(),
+            n => format!("has {n} entries"),
+        };
+        Err(Error::NoEntry {
+            display: display.to_string(),
+            entry,
+            referent: format!("${}", self.elem_label(t, e)),
+            has,
+        })
+    }
+
     pub(in crate::compile) fn iface_step(
         &self,
         cid: ChoiceId,

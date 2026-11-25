@@ -206,8 +206,7 @@ impl Outlining<'_> {
         // the referent is there is the typing stage's fit, decided here
         // from the types outlining settled: the extend of the prop it
         // reads, an error where no chain connects them, or a pair left to
-        // the build (a copy, a conversion it cannot make yet). A container
-        // copy names its referent itself.
+        // the build (a copy). A container copy names its referent itself.
         let component_type = self.outlined(t).elems[e.index()].component_type;
         if !component_type.container()
             && self.ar.refs[p.index()].prop.is_none()
@@ -222,6 +221,13 @@ impl Outlining<'_> {
                     r.prop = named;
                     let base = std::mem::replace(&mut r.display, RefDisplay::Written);
                     r.display = RefDisplay::Prop(Box::new(base), dp);
+                }
+                ExtendAs::NotBuilt => {
+                    return Err(Error::ExtendTypeMismatch {
+                        referent,
+                        referent_type: rt.tag().into(),
+                        component_type: component_type.tag().into(),
+                    });
                 }
                 // An input is not the value it would hold (REF-5, D26).
                 ExtendAs::InputFromValue => {
