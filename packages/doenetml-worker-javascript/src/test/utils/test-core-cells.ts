@@ -1685,6 +1685,9 @@ for (const type of [
         creditAchievedForProgress: (g) => g("creditAchievedForProgress"),
     };
 }
+for (const type of ["aside", "proof"]) {
+    STATE[type] = { ...STATE[type], ...collapsibleReaders() };
+}
 for (const type of ["aside", "proof", "p", "div", "number"]) {
     STATE[type] = { ...STATE[type], ...cascadeStepReaders };
 }
@@ -1754,6 +1757,12 @@ const LEFT_ALONE = ["title", "setup"];
  * attribute, else the nearest section or cascade above it that writes one,
  * else the default. */
 function titleColorOf(g: Get, x: Ctx): string {
+    return titleColorAndState(g, x)[0];
+}
+
+/** `titleColorOf`'s color, and the index of the completion state it is
+ * the color of (completed, in progress, not started). */
+function titleColorAndState(g: Get, x: Ctx): [string, number] {
     const nearest = (name: string): string | null => {
         for (
             let p: number | null = x.idx;
@@ -1777,13 +1786,31 @@ function titleColorOf(g: Get, x: Ctx): string {
         requiresCredit !== null && requiresCredit.toLowerCase() !== "false"
             ? g("creditAchieved")
             : g("creditAchievedForProgress");
-    const [state, fallback] =
+    const [state, fallback, k] =
         credit === 1
-            ? ["completedColor", "var(--lightGreen)"]
+            ? ["completedColor", "var(--lightGreen)", 0]
             : credit > 0
-              ? ["inProgressColor", "var(--mainGray)"]
-              : ["notStartedColor", "var(--mainGray)"];
-    return nearest(state) ?? fallback;
+              ? ["inProgressColor", "var(--mainGray)", 1]
+              : ["notStartedColor", "var(--mainGray)", 2];
+    return [nearest(state) ?? fallback, k];
+}
+
+/** A section's heading-bar color in dark mode: the core's color of its
+ * completion state (ADR 0084), its own attribute, else derived from its
+ * own light color, else its parent section's, else the default; the state
+ * as `titleColorOf` finds it. */
+function titleColorDarkModeOf(g: Get, x: Ctx): string {
+    const colors = JSON.parse(x.cells.core.heading_colors(x.idx) || "null");
+    if (!colors) throw new CellsCoreGap("`titleColorDarkMode` of no section");
+    return colors.dark[titleColorAndState(g, x)[1]];
+}
+
+/** Whether a division may collapse, and whether it is open (ADR 0084). */
+function collapsibleReaders(): Record<string, Reader> {
+    return {
+        collapsible: (g) => g("collapsible") === 1,
+        open: (g) => g("open") === 1,
+    };
 }
 
 /** The step of cascade `c` chosen to show its own message for the gap
@@ -1822,7 +1849,9 @@ for (const type of [
 ]) {
     STATE[type] = {
         ...STATE[type],
+        ...collapsibleReaders(),
         titleColor: titleColorOf,
+        titleColorDarkMode: titleColorDarkModeOf,
         boxed: (_g, x) =>
             sectionBoxed(x.cells.table, x.idx, sectioningTag(x.cells, x.idx)),
         // What a held-back step hides: all it holds but its title, its
@@ -2201,6 +2230,30 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     polyline: ["movePolyline"],
     triangle: ["movePolygon"],
     lineSegment: ["moveLineSegment"],
+    // A division a reader opens and closes (ADR 0084).
+    ...Object.fromEntries(
+        [
+            "section",
+            "subsection",
+            "subsubsection",
+            "problem",
+            "exercise",
+            "example",
+            "question",
+            "activity",
+            "definition",
+            "note",
+            "theorem",
+            "paragraphs",
+            "objectives",
+            "part",
+            "task",
+            "problems",
+            "exercises",
+            "aside",
+            "proof",
+        ].map((tag) => [tag, ["revealSection", "closeSection"]]),
+    ),
 };
 
 function stripPositions(o: any): any {
