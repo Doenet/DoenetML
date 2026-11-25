@@ -2754,6 +2754,9 @@ export function checkTypeChangesAtLoad({
         // the children of each copy on the way, the nearest first
         const added: (SerializedComponent | string)[][] = [];
         let picks: [string, SerializedAttribute] | undefined;
+        // the tags that make their own content written on the copies on
+        // the way
+        const madeAs = new Set<string>();
         while (node && node.componentType === "_copy") {
             if (visited.has(node.componentIdx)) {
                 return undefined;
@@ -2774,6 +2777,12 @@ export function checkTypeChangesAtLoad({
             ) {
                 return undefined;
             }
+            if (
+                created !== undefined &&
+                TAGS_MAKING_THEIR_CONTENT.has(created)
+            ) {
+                madeAs.add(created);
+            }
             added.push(node.children ?? []);
             picks ??= Object.entries(node.attributes ?? {}).find(
                 ([name]) => name === "numToSelect",
@@ -2782,7 +2791,11 @@ export function checkTypeChangesAtLoad({
                 referents.componentsByIdx.get(ref.nodeIdx) ??
                 referents.copiesByCreatedIdx.get(ref.nodeIdx);
         }
-        if (!node) {
+        if (!node || [...madeAs].some((made) => made !== node!.componentType)) {
+            // A tag that makes its own content made through a wrapper
+            // (`<repeat extend="$cc"/>`) is the one of that tag the wrapper
+            // shows (D78.1), not the wrapper: what follows it is left to
+            // run time, as after `<repeat extend="$cc.r"/>`.
             return undefined;
         }
         const ownChildren = added

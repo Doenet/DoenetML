@@ -376,6 +376,22 @@ describe("A tag that makes its own content, made through a wrapper showing one o
         });
     }
 
+    it("a name after an index into it reaches into the iteration shown, as after `$cc.r`", async () => {
+        const named = (v: string) =>
+            `<repeat name="r" for="${v}" valueName="v"><text name="t">$v</text></repeat>`;
+        for (const source of ["$cc", "$cc.r"]) {
+            const d = await load(
+                `${cc(named("1 2 3"), named("4 5"))}<repeat name="r2" extend="${source}"/><p name="p">$r2[2].t</p><p name="q"><text extend="$r2[1].t"/></p>`,
+            );
+            expect(d.diagnostics(), source).eqls([]);
+            expect(await d.text("p"), source).eq("5");
+            expect(await d.text("q"), source).eq("4");
+            await d.setBoolean("b", true);
+            expect(await d.text("p"), source).eq("2");
+            expect(await d.text("q"), source).eq("1");
+        }
+    });
+
     it("shows nothing while no case is shown, or the case shown is empty", async () => {
         for (const doenetML of [
             `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">${rA}</case></conditionalContent>`,
