@@ -5,14 +5,6 @@ use super::*;
 use crate::components::{ChildrenKind, EntryKind, PropAt, PropSel, ResponseKind, TextKind};
 use ComponentType as C;
 
-/// Every type an author can name: none the builder makes.
-fn named() -> impl Iterator<Item = ComponentType> {
-    ComponentType::ALL
-        .iter()
-        .copied()
-        .filter(|t| !t.def().flags.internal)
-}
-
 fn tag(t: ComponentType) -> AuthorType {
     AuthorType::Tag(t)
 }
@@ -41,8 +33,8 @@ fn a_stand_in_reads_a_prop_the_type_has() {
 }
 
 /// Types that stand in as a value where today's flags read none: an angle
-/// is its measure (D69 decision 3), which `extends_as` refuses (ADR 0064's
-/// probes).
+/// is its measure (D69 decision 3), which the core refused to extend as a
+/// number (ADR 0064's probes).
 const NEW_STAND_INS: &[ComponentType] = &[C::Angle];
 
 /// `reads_as` is the type a stand-in gives, and a type that *is* its value
@@ -461,38 +453,6 @@ fn lists_tuples_and_a_list_from_its_scalar() {
         ),
         Fit::Mismatch
     );
-}
-
-/// The prop of `from` a fit reads: a stand-in's, else the bare reference's.
-fn reads(f: Fit, from: ComponentType) -> Option<&'static str> {
-    match f {
-        Fit::StandsIn { prop, .. } => Some(prop),
-        Fit::Same | Fit::Converts(_) => from.default_prop(),
-        Fit::Mismatch => None,
-    }
-}
-
-/// Every extend today's flags allow, `fit` allows, reading the same prop;
-/// every input today's flags refuse to make from a value, `fit` refuses.
-#[test]
-fn fit_allows_every_extend_the_flags_allow() {
-    for from in named() {
-        for to in named() {
-            let (Some(have), Some(want)) = (AuthorType::of(from), AuthorType::of(to)) else {
-                continue;
-            };
-            let f = fit(have, want);
-            if ComponentType::extends_as(from, to) {
-                assert_ne!(f, Fit::Mismatch, "<{to:?} extend> of a {from:?}");
-            }
-            if let Some(prop) = ComponentType::extend_reads(from, to) {
-                assert_eq!(reads(f, from), Some(prop), "<{to:?} extend> of a {from:?}");
-            }
-            if ComponentType::input_from_value(from, to) {
-                assert_eq!(f, Fit::Mismatch, "<{to:?} extend> of a {from:?}");
-            }
-        }
-    }
 }
 
 // --- Step 1: each prop's type agrees with today's flags. ---

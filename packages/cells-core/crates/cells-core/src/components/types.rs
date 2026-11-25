@@ -5,13 +5,16 @@
 //! Each component type declares its type here ([`ComponentType::type_decl`],
 //! one exhaustive match, so a new component type does not compile without
 //! one), and [`fit`] is the one judgment of a value of one type where
-//! another is wanted. Nothing reads either yet: they sit beside the flags
-//! they replace (`reads_as`, `extends_as`, `extend_reads`,
-//! `input_from_value`, [`EntryKind`](crate::components::EntryKind), [`TextKind`](crate::components::TextKind), [`ResponseKind`](crate::components::ResponseKind)), and
-//! this module's tests hold the two in agreement (ADR 0076, Migration steps
-//! 1 and 2). Anything finer the core knows about a value (its
-//! representation, whether it is numeric now, how many entries it has) is
-//! a refinement, never a type (ADR 0076 §9).
+//! another is wanted. The compile's typing stage reads them
+//! (`compile/read/types.rs`): planning's type questions are answered from
+//! it, and an extend is judged by [`extend_as`]. The representation flags
+//! beside them ([`EntryKind`](crate::components::EntryKind),
+//! [`TextKind`](crate::components::TextKind),
+//! [`ResponseKind`](crate::components::ResponseKind), `reads_as`) are the
+//! build's, and this module's tests hold them in agreement. Anything finer
+//! the core knows about a value (its representation, whether it is numeric
+//! now, how many entries it has) is a refinement, never a type (ADR 0076
+//! §9).
 
 use super::ComponentType;
 

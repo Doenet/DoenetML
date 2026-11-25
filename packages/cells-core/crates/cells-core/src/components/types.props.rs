@@ -669,3 +669,24 @@ impl ComponentType {
         }
     }
 }
+
+impl PropType {
+    /// What planning reads a reference of this type as (`ValueKind`), from
+    /// the type alone (ADR 0076, Migration step 5): a text, a boolean, a
+    /// point or vector's coordinates, a number, a math, a list. `None` for
+    /// an object, and for a type the element decides.
+    pub(crate) fn value_kind(self) -> Option<crate::compile::api::ValueKind> {
+        use super::is_a;
+        use crate::compile::api::ValueKind as K;
+        match self {
+            Is(t) if is_a(t, C::Text) => Some(K::Text),
+            Is(t) if is_a(t, C::Boolean) => Some(K::Boolean),
+            Is(t) if is_a(t, C::Point) || is_a(t, C::Vector) => Some(K::Point),
+            Is(t) if is_a(t, C::Number) => Some(K::Number),
+            Is(t) if is_a(t, C::Math) => Some(K::Math),
+            Is(_) | ByElement => None,
+            ListOf(_) => Some(K::List),
+            Code => Some(K::Number),
+        }
+    }
+}

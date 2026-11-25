@@ -1000,29 +1000,6 @@ impl ComponentType {
         self.def().reads_as
     }
 
-    /// Whether `<to extend="$x"/>` of an `x` of type `from` gives `x`'s
-    /// value as a `to`: a number and a math, or a value type made from an
-    /// input that reads as it or one related to it (`<math
-    /// extend="$mi"/>`). Never an input from a value: an input is not its
-    /// value (REF-5, D26; [`ComponentType::input_from_value`]).
-    pub fn extends_as(from: ComponentType, to: ComponentType) -> bool {
-        use ComponentType::*;
-        fn values(a: ComponentType, b: ComponentType) -> bool {
-            a == b || matches!((a, b), (Number, Math) | (Math, Number))
-        }
-        from != to && (values(from, to) || from.reads_as().is_some_and(|vt| values(vt, to)))
-    }
-
-    /// Whether `<to extend="$x"/>` of an `x` of type `from` asks for an
-    /// input made from a value it would hold: refused, suggesting
-    /// `bindValueTo` or `prefill` (REF-5, D26).
-    pub fn input_from_value(from: ComponentType, to: ComponentType) -> bool {
-        from.reads_as().is_none()
-            && to
-                .reads_as()
-                .is_some_and(|vt| vt == from || ComponentType::extends_as(from, vt))
-    }
-
     /// What the type is to the document's variants (ADR 0085): the
     /// current core's types that create variants, and how each counts
     /// them.
@@ -1067,23 +1044,6 @@ impl ComponentType {
     /// is its nearest ancestor that is neither.
     pub fn passes_list_items(self) -> bool {
         self.structure_kind().is_some() || self.numbering() == Some(Numbering::PassesBoth)
-    }
-
-    /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
-    /// its value, when `to` takes a value rather than a copy: `value` for a
-    /// boolean of an input that reads as a boolean, else `from`'s default
-    /// prop when `extends_as` relates them. A boolean of any other type is
-    /// refused: reading a number's or a text's cell as a boolean gave a
-    /// wrong value with no diagnostic (REF-5, D47). Called with `from` and
-    /// `to` different.
-    pub fn extend_reads(from: ComponentType, to: ComponentType) -> Option<&'static str> {
-        if to == ComponentType::Boolean {
-            (from.reads_as() == Some(ComponentType::Boolean)).then_some("value")
-        } else if ComponentType::extends_as(from, to) {
-            from.default_prop()
-        } else {
-            None
-        }
     }
 
     /// The structural cell of a type built like a repeat (one scope per

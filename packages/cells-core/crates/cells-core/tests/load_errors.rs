@@ -150,13 +150,13 @@ fn an_error_a_growth_would_find_is_reported_at_load() {
     }
 }
 
-// A choice's interface name holds whatever its branch does, so each branch
-// must hold the same kind of value: else whether `$cc.t` is text depends on
-// the case a student's input selects. (A text of a value the records tell
-// is a number is that number's text, ADR 0053; one read through another
-// choice is an alias of what it reads.)
+// An interface name is typed over every branch (ADR 0076 §5): a text of
+// `$c2.v`, a number in each of `c2`'s cases, is that number's text (ADR
+// 0053), where it once aliased the number and left the choice holding a
+// number in one case and a text in the other. A name that is a text in
+// one case and a number in another is in no interface.
 #[test]
-fn an_interface_name_holds_one_kind_of_value() {
+fn an_interface_name_is_typed_over_its_branches() {
     let doc = load(
         r#"<booleanInput name="g"/><numberInput name="n"/>
 <conditionalContent name="c2">
@@ -167,16 +167,26 @@ fn an_interface_name_holds_one_kind_of_value() {
   <case condition="$g"><text name="t">hi</text></case>
   <else><text name="t">$c2.v</text></else>
 </conditionalContent>
+<p name="p">$cc.t</p>"#,
+    )
+    .unwrap();
+    assert!(errors(&doc).is_empty(), "{:?}", errors(&doc));
+    assert_eq!(doc.rendered_text(doc.resolve_path("p").unwrap()), "2");
+    let doc = load(
+        r#"<booleanInput name="g"/>
+<conditionalContent name="cc">
+  <case condition="$g"><text name="t">hi</text></case>
+  <else><number name="t">2</number></else>
+</conditionalContent>
 <p>$cc.t</p>"#,
     )
     .unwrap();
-    // The choice is boxed, and `$cc.t` reads it as undefined: the one
-    // error is the choice's (ADR 0027).
-    let found = errors(&doc);
-    assert_eq!(found.len(), 1, "{found:?}");
     assert!(
-        found[0].contains("'t' holds a different kind of value"),
-        "{found:?}"
+        doc.diagnostics()
+            .iter()
+            .any(|d| d.code == "cells-not-in-interface"),
+        "{:?}",
+        doc.diagnostics()
     );
 }
 

@@ -3,8 +3,8 @@
 //! reference, a math, a tuple, a point, and whether a reference reads
 //! text.
 
+use super::types::Typed;
 use crate::compile::*;
-use crate::components::{EntryKind, TextKind};
 
 /// Reading the source, a value from its text: a literal or a reference, a math,
 /// a tuple, a point. Run by parsing for every record, and by a planner for what
@@ -36,108 +36,44 @@ impl<'a> SourceReader<'a> {
     /// Whether planned ref `p`, planned from template `t`, reads a text
     /// value.
     pub(in crate::compile) fn ref_is_text(&self, ar: &Arenas, t: TemplateId, p: RefId) -> bool {
-        let r = &ar.refs[p.index()];
-        let Some((cur_t, e)) = self.static_target(ar, t, p) else {
-            return false;
-        };
-        let component_type = self.outlined(cur_t).elems[e.index()].component_type;
-        match r.prop {
-            None => prop_is_text(component_type, None),
-            Some(rp) => matches!(
-                rp.sel_on(component_type),
-                Some(PropSel::At(PropAt::Position(i))) if component_type.prop_defs()[i].text
-            ),
-        }
+        self.ref_value_kind(ar, t, p) == Some(ValueKind::Text)
     }
 
-    /// What planned ref `p`, planned from template `t`, reads, as its
-    /// referent's type declares it, when the path names an element of a
-    /// template (and at most one entry of its list): None when the
-    /// templates do not tell (an iteration, a pick).
+    /// What planned ref `p`, planned from template `t`, reads: the typing
+    /// stage's type of it (ADR 0076 §8), as planning reads values. `None`
+    /// where the templates do not tell (an iteration of several
+    /// components, a branch interface its branches disagree on), for a
+    /// reference that names nothing, and for an object.
     pub(in crate::compile) fn ref_value_kind(
         &self,
         ar: &Arenas,
         t: TemplateId,
         p: RefId,
     ) -> Option<ValueKind> {
-        let kind = self.ref_value_kind_held(ar, t, p);
-        // The typing stage's answer allows planning's (ADR 0076, Migration
-        // step 3): every document a test loads compares the two.
-        #[cfg(debug_assertions)]
-        if let (Some(kind), super::types::Typed::Is(ty)) = (kind, self.ref_type(ar, t, p)) {
-            debug_assert!(
-                ty.allows(kind),
-                "the typing stage types `{}` as {ty:?}, planning reads it as {kind:?}",
-                display_of(self.dast, &ar.refs[p.index()])
-            );
-        }
-        kind
-    }
-
-    /// [`Self::ref_value_kind`], read off how the referent's prop is held.
-    fn ref_value_kind_held(&self, ar: &Arenas, t: TemplateId, p: RefId) -> Option<ValueKind> {
-        let r = &ar.refs[p.index()];
-        let mut last = None;
-        for step in &r.steps {
-            match step {
-                Step::Elem(e) => last = Some(*e),
-                Step::Iter(_) | Step::Item(..) | Step::Iface(..) | Step::Nothing => return None,
-            }
-        }
-        let e = last?;
-        let row = &self.outlined(self.template_up(t, r.hops)).elems[e.index()];
-        let ty = row.component_type;
-        let sel = match r.prop {
-            None => ty.default_sel(),
-            Some(rp) => rp.sel_on(ty),
-        }?;
-        // A sequence's entries follow its `type` (ADR 0074).
-        let by_type = ty
-            .entries_by_type()
-            .then(|| {
-                let written = self
-                    .dast
-                    .attr_peek(row.node, "type")
-                    .and_then(|a| self.attr_text(a));
-                ty.entry_by_type(written.as_deref())
-            })
-            .flatten();
-        let entry = |ty: ComponentType| match by_type.or(ty.list_entry()) {
-            Some(EntryKind::Number) => Some(ValueKind::Number),
-            Some(EntryKind::Text) => Some(ValueKind::Text),
-            Some(EntryKind::Boolean) => Some(ValueKind::Boolean),
-            Some(EntryKind::Math) => Some(ValueKind::Math),
-            Some(EntryKind::Point) => Some(ValueKind::Point),
-            // What its operands hold, which the records do not tell.
-            Some(EntryKind::Any) | None => None,
+        let Typed::Is(ty) = self.ref_type(ar, t, p) else {
+            return None;
         };
-        match (sel, r.entries.len()) {
-            (PropSel::At(PropAt::List), 0) => entry(ty).map(|_| ValueKind::List),
-            (PropSel::At(PropAt::List), 1) | (PropSel::At(PropAt::Item(_)), 0) => entry(ty),
-            (PropSel::At(PropAt::Position(i)), 0) => {
-                let def = &ty.prop_defs()[i];
-                Some(if def.text {
-                    ValueKind::Text
-                } else if ty.expr_of(i).is_some()
-                    // A list over a math value's value (ADR 0063).
-                    || (ty.is_over_value() && ty.default_sel() == Some(PropSel::At(PropAt::Position(i))))
-                {
-                    ValueKind::Math
-                } else if matches!(ty.text_kind(), Some(TextKind::Boolean(b)) if b == i)
-                    // An input that reads as a boolean: its value is one.
-                    || (ty
-                        .reads_as()
-                        .is_some_and(|r| matches!(r.text_kind(), Some(TextKind::Boolean(_))))
-                        && ty.default_prop().is_some_and(|d| d == def.name))
-                {
-                    ValueKind::Boolean
-                } else {
-                    ValueKind::Number
-                })
+        let plan = &ar.refs[p.index()];
+        if plan.entries.is_empty()
+            && let Some((cur_t, e)) = self.static_target(ar, t, p)
+        {
+            let of = self.outlined(cur_t).elems[e.index()].component_type;
+            let sel = match plan.prop {
+                None => of.default_sel(),
+                Some(rp) => rp.sel_on(of),
+            };
+            match sel {
+                // Several cells are read as a point's are, whatever they are
+                // to an author: a math the core holds as a tuple (ADR 0064
+                // §1, a refinement of its shape).
+                Some(PropSel::Parts { .. }) => return Some(ValueKind::Point),
+                // An object with no value of its own to a reference (a
+                // vector, which its reader reads by its displacement).
+                None => return None,
+                Some(_) => {}
             }
-            (PropSel::Parts { .. }, 0) => Some(ValueKind::Point),
-            _ => None,
         }
+        ty.value_kind()
     }
 
     /// A literal number or a single reference; else `BadValue`.
@@ -425,14 +361,12 @@ pub(in crate::compile) fn literal_value(text: &str) -> Option<Source> {
 }
 
 /// Whether prop `prop` (the default prop when `None`) of `component_type`
-/// holds text, as its table declares.
+/// is a text, as its type declares (ADR 0076 §7).
 fn prop_is_text(component_type: ComponentType, prop: Option<&str>) -> bool {
     let sel = match prop {
         Some(name) => component_type.resolve_prop(component_type.canonical_prop(name)),
         None => component_type.default_sel(),
     };
-    matches!(
-        sel,
-        Some(PropSel::At(PropAt::Position(i))) if component_type.prop_defs()[i].text
-    )
+    sel.and_then(|sel| component_type.sel_type(sel))
+        .is_some_and(|t| t.value_kind() == Some(ValueKind::Text))
 }
