@@ -1396,7 +1396,10 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # (D64), a list, a `<repeat>`, a `<collect>`, a `<select>` of several and so
 # on, which is many things and keeps its kind; `one` for one component that
 # isn't a composite, such as a `<math>`, an input, a `<point>` or a `<p>`,
-# which keeps its kind too. A property or an entry of a list counts as the
+# which keeps its kind too; `onePick` for a chooser or sampler that picks
+# one value of a type the DoenetML decides, $chooser, such as a
+# `<selectFromSequence>` that picks one `<number>`, which stands for that one
+# component. A property or an entry of a list counts as the
 # component it gives: `$m.value` and `$ml[1]` as a `<math>`, a property of
 # several values (`$P.xs`) as a `<mathList>`. The message names the two forms that work, a
 # group holding it, and the same component again, written with $how
@@ -1421,6 +1424,7 @@ type-change-unrelated =
        *[other] { $groupFrom ->
             [collection] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` holds many things, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
             [one] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>`: a `<{ $sourceType }>` is one component, not a group, and keeps its kind when a tag is made from it. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
+            [onePick] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $chooser }>` that picks one `<{ $sourceType }>`: it stands for that one component, which is not a group. To put it in a group, write `<group>{ $source }</group>`, with anything else the group holds beside it. To show the same `<{ $sourceType }>` again, write `<{ $sourceType } { $how }="{ $source }"/>`.
            *[other] { $sourceType ->
                 [variantControl] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. A `<variantControl>` shows nothing, and nothing can be read from it.
                *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
@@ -1467,7 +1471,9 @@ type-change-from-container = A `<{ $componentType }>` can't be made from `{ $sou
 # of the composite the reason is about (with `entries`, of the list), which
 # may be one $source holds, or the one `$source` indexes (an iteration of a
 # `<repeat>`). $holdsNothing is
-# "true" when $count is zero. $indexSelectsOne is "true" when `$source[1]`
+# "true" when $count is zero. $mayHoldFewer is "true" when $count is the most
+# it may hold, as when a `<conditionalContent>` beside other components may
+# show nothing. $indexSelectsOne is "true" when `$source[1]`
 # names one component (with `entries`, the list's first entry), so the
 # message suggests it; an entry has no name of its own. `numToSelect`, `<else>`
 # and the tags are DoenetML and stay in English.
@@ -1482,27 +1488,48 @@ type-change-composite-not-one =
            *[other] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a `<{ $sourceType }>` can hold any number. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
         }
        *[count] { $part ->
-            [case] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a case of the `<{ $sourceType }>` holds { $holdsNothing ->
-                [true] nothing
-               *[other] { $count }
+            [case] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and a case of the `<{ $sourceType }>` { $mayHoldFewer ->
+                [true] may hold up to { $count }
+               *[other] holds { $holdsNothing ->
+                    [true] nothing
+                   *[other] { $count }
+                }
             }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-            [option] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an option of the `<{ $sourceType }>` holds { $holdsNothing ->
-                [true] nothing
-               *[other] { $count }
+            [option] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an option of the `<{ $sourceType }>` { $mayHoldFewer ->
+                [true] may hold up to { $count }
+               *[other] holds { $holdsNothing ->
+                    [true] nothing
+                   *[other] { $count }
+                }
             }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-            [iteration] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an iteration of the `<{ $sourceType }>` holds { $holdsNothing ->
-                [true] nothing
-               *[other] { $count }
+            [iteration] A `<{ $componentType }>` can be made from `{ $source }` only when it always holds one component, and an iteration of the `<{ $sourceType }>` { $mayHoldFewer ->
+                [true] may hold up to { $count }
+               *[other] holds { $holdsNothing ->
+                    [true] nothing
+                   *[other] { $count }
+                }
             }. To read what it holds as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
             [entries] { $indexSelectsOne ->
-                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]`. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write an index after the name of the `<{ $sourceType }>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+                [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` { $mayHoldFewer ->
+                    [true] may hold up to
+                   *[other] holds
+                } { $count }. To use one of them, write `{ $source }[1]`. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+               *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` { $mayHoldFewer ->
+                    [true] may hold up to
+                   *[other] holds
+                } { $count }. To use one of them, write an index after the name of the `<{ $sourceType }>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
             }
            *[other] { $holdsNothing ->
                 [true] A `<{ $componentType }>` can't be made from `{ $source }`, a `<{ $sourceType }>` that holds nothing.
                *[other] { $indexSelectsOne ->
-                    [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
-                   *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` holds { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+                    [true] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` { $mayHoldFewer ->
+                    [true] may hold up to
+                   *[other] holds
+                } { $count }. To use one of them, write `{ $source }[1]` or name it. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
+                   *[other] A `<{ $componentType }>` can be made from a `<{ $sourceType }>` only when it holds one component, and `{ $source }` { $mayHoldFewer ->
+                    [true] may hold up to
+                   *[other] holds
+                } { $count }. To use one of them, give it a name and refer to it by that name. To read them all as one value, write `<{ $componentType }>{ $source }</{ $componentType }>`.
                 }
             }
         }
@@ -2715,37 +2742,72 @@ reference-name-type-changes-with-branch = `{ $reference }` can't be used: `{ $na
 # components of different tags, $firstType and $secondType, which stay in
 # English. $reference is the reference as written, with its `$`.
 # $container is the container's name when $hasName is `true`, else its tag
-# name. $branch is `option` or `case`.
+# name. $branch is `option` or `case`. $form is `tag` for a tag that makes
+# its own content, $componentType, such as `<repeat>`, made from a
+# `<conditionalContent>` or a `<select>` that picks one, which is made from
+# the one of that tag the case or pick shown holds (D78.1), where some case
+# or option holds several components or one of another tag; else `index`.
 
-reference-index-into-branches = `{ $reference }` can't be used: an index after { $hasName ->
-        [true] `{ $container }`
-       *[other] the `<{ $container }>`
-    } reaches into what the { $branch ->
-        [option] pick
-       *[case] case shown
-    } holds, which must be one component of one type in every { $branch ->
-        [option] option
-       *[case] case
-    }, and { $reason ->
-        [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
-       *[several] { $branch ->
-            [option] { $ordinalsCount ->
-                [one] option { $ordinals } holds
-               *[other] options { $ordinals } hold
-            }
-           *[case] { $withElse ->
-                [true] { $ordinalsCount ->
-                    [0] the `<else>` holds
-                    [one] case { $ordinals } and the `<else>` hold
-                   *[other] cases { $ordinals } and the `<else>` hold
+reference-index-into-branches = { $form ->
+    [tag] A `<{ $componentType }>` can't be made from `{ $reference }`: it is made from the `<{ $componentType }>` the { $branch ->
+            [option] pick
+           *[case] case shown
+        } holds, which must be one `<{ $componentType }>`, or nothing, in every { $branch ->
+            [option] option
+           *[case] case
+        } of { $hasName ->
+            [true] `{ $container }`
+           *[other] the `<{ $container }>`
+        }, and { $reason ->
+            [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
+           *[several] { $branch ->
+                [option] { $ordinalsCount ->
+                    [one] option { $ordinals } holds
+                   *[other] options { $ordinals } hold
                 }
-               *[other] { $ordinalsCount ->
-                    [one] case { $ordinals } holds
-                   *[other] cases { $ordinals } hold
+               *[case] { $withElse ->
+                    [true] { $ordinalsCount ->
+                        [0] the `<else>` holds
+                        [one] case { $ordinals } and the `<else>` hold
+                       *[other] cases { $ordinals } and the `<else>` hold
+                    }
+                   *[other] { $ordinalsCount ->
+                        [one] case { $ordinals } holds
+                       *[other] cases { $ordinals } hold
+                    }
                 }
-            }
-        } several
-    }. { $reason ->
-        [types] Hold one type in each.
-       *[several] To use a component inside, give it a name in each and refer to it by that name.
+            } several components
+        }. To show what it holds as it is, write `{ $reference }`.
+   *[index] `{ $reference }` can't be used: an index after { $hasName ->
+            [true] `{ $container }`
+           *[other] the `<{ $container }>`
+        } reaches into what the { $branch ->
+            [option] pick
+           *[case] case shown
+        } holds, which must be one component of one type in every { $branch ->
+            [option] option
+           *[case] case
+        }, and { $reason ->
+            [types] one holds a `<{ $firstType }>` and another a `<{ $secondType }>`
+           *[several] { $branch ->
+                [option] { $ordinalsCount ->
+                    [one] option { $ordinals } holds
+                   *[other] options { $ordinals } hold
+                }
+               *[case] { $withElse ->
+                    [true] { $ordinalsCount ->
+                        [0] the `<else>` holds
+                        [one] case { $ordinals } and the `<else>` hold
+                       *[other] cases { $ordinals } and the `<else>` hold
+                    }
+                   *[other] { $ordinalsCount ->
+                        [one] case { $ordinals } holds
+                       *[other] cases { $ordinals } hold
+                    }
+                }
+            } several
+        }. { $reason ->
+            [types] Hold one type in each.
+           *[several] To use a component inside, give it a name in each and refer to it by that name.
+        }
     }

@@ -337,12 +337,9 @@ export default class Copy extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.extendedComponent = {
-            shadowVariable: true,
+        // The component the reference resolved to.
+        stateVariableDefinitions.resolvedExtendedComponent = {
             stateVariablesDeterminingDependencies: ["extendIdx"],
-            // TODO: if it turns out we don't need `determineDependenciesImmediately`,
-            // then remove the relevant code from `Dependencies`
-            // determineDependenciesImmediately: true,
             returnDependencies({ stateValues }) {
                 if (stateValues.extendIdx !== -1) {
                     return {
@@ -356,14 +353,96 @@ export default class Copy extends CompositeComponent {
                 }
             },
             definition: function ({ dependencyValues }) {
-                let extendedComponent = null;
-                if (dependencyValues.extendedComponent) {
-                    extendedComponent = dependencyValues.extendedComponent;
-                }
-
                 return {
-                    setValue: { extendedComponent },
+                    setValue: {
+                        resolvedExtendedComponent:
+                            dependencyValues.extendedComponent ?? null,
+                    },
                 };
+            },
+        };
+
+        // The component extended: the one the reference resolved to, or,
+        // for a tag that makes its own content (`<repeat extend="$cc"/>`)
+        // made from a wrapper that shows one thing (a `<conditionalContent>`,
+        // a `<select>` that picks one, a `<group>`), with nothing after the
+        // name, the one of that tag it shows now, as `$cc.r` is (D78.1). It
+        // follows what is shown: a case that changes makes the copy again
+        // from the repeat shown then. While nothing is shown, it is `null`,
+        // and the copy makes nothing. What the wrapper may show was decided
+        // when the document loaded (`wrapperShows` in `typeChangeAtLoad.ts`):
+        // one of that tag or nothing in each case, else an error.
+        stateVariableDefinitions.extendedComponent = {
+            shadowVariable: true,
+            stateVariablesDeterminingDependencies: [
+                "resolvedExtendedComponent",
+                "unresolvedPath",
+                "createComponentOfType",
+            ],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                const dependencies = {
+                    resolved: {
+                        dependencyType: "stateVariable",
+                        variableName: "resolvedExtendedComponent",
+                    },
+                };
+                const writtenType = writtenTagMakingContent(
+                    stateValues.createComponentOfType,
+                    componentInfoObjects,
+                );
+                const resolved = stateValues.resolvedExtendedComponent;
+                if (
+                    writtenType !== undefined &&
+                    resolved &&
+                    !(stateValues.unresolvedPath?.length > 0) &&
+                    WRAPPERS_SHOWING_ONE.has(resolved.componentType) &&
+                    resolved.componentType !== writtenType
+                ) {
+                    dependencies.writtenType = {
+                        dependencyType: "value",
+                        value: writtenType,
+                    };
+                    dependencies.shown = {
+                        dependencyType: "replacement",
+                        compositeIdx: resolved.componentIdx,
+                        recursive: true,
+                        // through the `<group>` a case's sugar wraps its
+                        // children in, and any group held there
+                        recurseNonStandardComposites: true,
+                        stopAtComponentType: writtenType,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues, componentInfoObjects }) {
+                const resolved = dependencyValues.resolved;
+                if (!dependencyValues.shown) {
+                    return { setValue: { extendedComponent: resolved } };
+                }
+                const shown = dependencyValues.shown.filter(
+                    (x) => typeof x !== "string" || x.trim() !== "",
+                );
+                if (shown.length === 0) {
+                    // nothing shown: no case true, or an empty one
+                    return { setValue: { extendedComponent: null } };
+                }
+                if (
+                    shown.length === 1 &&
+                    typeof shown[0] === "object" &&
+                    // the tag, or its list form (a `<sort>` of values is
+                    // a `_sortList`, `listForms.ts`)
+                    (TAGS_OF_LIST_FORMS[shown[0].componentType] ===
+                        dependencyValues.writtenType ||
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: shown[0].componentType,
+                            baseComponentType: dependencyValues.writtenType,
+                        }))
+                ) {
+                    return { setValue: { extendedComponent: shown[0] } };
+                }
+                // Anything else is an error, reported from the wrapper
+                // (`typeChangeStatus`), as when it was decided at load.
+                return { setValue: { extendedComponent: resolved } };
             },
         };
 
@@ -1791,6 +1870,39 @@ export default class Copy extends CompositeComponent {
             markStale: () => ({ updateReplacements: true }),
             definition: () => ({
                 setValue: { typeChangeContentValue: true },
+            }),
+        };
+
+        // How many entries each list in what a composite holds has
+        // (`typeChangeContent`), which decides whether it stands for one
+        // component (`typeChangeStatus`): a `<mathList><sequence
+        // length="$n"/></mathList>` in an iteration, so the extend is
+        // decided again when it changes (#2676 item 2).
+        stateVariableDefinitions.typeChangeListCounts = {
+            stateVariablesDeterminingDependencies: ["typeChangeContent"],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                return Object.fromEntries(
+                    (stateValues.typeChangeContent ?? [])
+                        .filter(
+                            (x) =>
+                                componentInfoObjects.allComponentClasses[
+                                    x.componentType
+                                ]?.listEntryComponentType !== undefined,
+                        )
+                        .map((x, i) => [
+                            `numEntries${i}`,
+                            {
+                                dependencyType: "stateVariable",
+                                componentIdx: x.componentIdx,
+                                variableName: "numEntries",
+                                variablesOptional: true,
+                            },
+                        ]),
+                );
+            },
+            markStale: () => ({ updateReplacements: true }),
+            definition: () => ({
+                setValue: { typeChangeListCounts: true },
             }),
         };
 
@@ -6958,7 +7070,8 @@ async function recordTypeChangeContent({
 /**
  * Watch what the composite `component` is of holds for changes, which
  * decide again whether the type `component` is written as can be made from
- * it (`typeChangeContent`, `typeChangeContentValue`), when `canWatch`: when
+ * it (`typeChangeContent`, `typeChangeContentValue`, `typeChangeListCounts`),
+ * when `canWatch`: when
  * all that content is expanded and does not hold `component`, so that
  * nothing it holds is waited for. Otherwise `component` is decided again
  * only when it is updated for another reason.
@@ -6973,6 +7086,7 @@ async function watchTypeChangeContent(component, canWatch) {
         await readTypeChangeValue(component, async () => {
             await component.stateValues.typeChangeContentValue;
             await component.stateValues.typeChangeContent;
+            await component.stateValues.typeChangeListCounts;
         });
     }
 }
@@ -7098,9 +7212,27 @@ async function componentStoodFor({
         }
     }
     await gather(source);
+    if (!decided || shown.length !== 1) {
+        return undefined;
+    }
+    const listClass =
+        componentInfoObjects.allComponentClasses[shown[0].componentType];
+    if (listClass?.listEntryComponentType !== undefined) {
+        // A list holding one entry stands for it, as `<math extend="$x"/>`
+        // of it is made from it (`<repeat for="1">$x</repeat>`, #2676 item
+        // 1); one holding another number is missing, with a warning
+        // (`typeChangeStatus`).
+        return (await shown[0].stateValues.numEntries) === 1 &&
+            !replacementIsOfType(shown[0].componentType, writtenType) &&
+            typeChangeRule({
+                writtenType,
+                sourceType: shown[0].constructor.listEntryComponentType,
+                componentInfoObjects,
+            }).allowed
+            ? shown[0]
+            : undefined;
+    }
     if (
-        !decided ||
-        shown.length !== 1 ||
         !canStandFor(typeStoodFor(shown[0]), writtenType, {
             componentInfoObjects,
         })
@@ -9514,8 +9646,9 @@ async function typeChangeStatus({
     // (`typeChangeAtLoad`): the one component found here is checked only
     // for its value.
     const content = [];
+    // the lists among `content`, which stand for their entries
+    const lists = [];
     let allExpanded = true;
-    let holdsList = false;
     let holdsSelf = false;
     let holdsShadowOfSelf = false;
     async function gather(composite) {
@@ -9564,7 +9697,8 @@ async function typeChangeStatus({
             componentInfoObjects.allComponentClasses[comp.componentType]
                 ?.listEntryComponentType !== undefined
         ) {
-            holdsList = true;
+            content.push(comp);
+            lists.push(comp);
             return;
         }
         if (
@@ -9582,7 +9716,7 @@ async function typeChangeStatus({
         }
     }
     await gather(sourceComponent);
-    if (holdsSelf || holdsList) {
+    if (holdsSelf) {
         return undefined;
     }
     if (holdsShadowOfSelf) {
@@ -9609,6 +9743,55 @@ async function typeChangeStatus({
             component,
             componentInfoObjects,
             workspace: workspace ?? {},
+        });
+    }
+    if (lists.length > 0 && !found.canWatch) {
+        // not all made yet: decided when it is
+        return undefined;
+    }
+    if (lists.length > 0) {
+        // A list stands for its entries (`<repeat for="1">$x</repeat>`, an
+        // iteration holding a `<mathList>`): how many it holds was decided
+        // when the document loaded where the DoenetML decides it (`entries`
+        // of `listHolding` in `typeChangeAtLoad.ts`), so what is left is a
+        // count that a value decides, such as `<mathList>$a 2</mathList>` or
+        // `<sequence length="$n"/>`. While it is not one, the tag is
+        // missing, with a warning (VAL-5), not made from the entries
+        // together. Holding one, it is made from that entry
+        // (`componentStoodFor`), whose value is checked as a math's is.
+        let count = content.length - lists.length;
+        for (const list of lists) {
+            count += (await list.stateValues.numEntries) ?? 0;
+        }
+        if (count !== 1) {
+            const alone = content.length === 1;
+            return mismatch({
+                level: "warning",
+                code: "doenet-e0064",
+                args: {
+                    reason: "count",
+                    sourceType: alone
+                        ? typeStoodFor(lists[0])
+                        : typeStoodFor(sourceComponent),
+                    part: alone ? "entries" : "other",
+                    count,
+                    holdsNothing: count === 0 ? "true" : "false",
+                    indexSelectsOne: alone ? "true" : "false",
+                },
+            });
+        }
+        if (content.length !== 1) {
+            // one entry beside a list that holds none, which the copy is
+            // not made from (`componentStoodFor`)
+            return undefined;
+        }
+        const list = lists[0];
+        const listClass = list.constructor;
+        return decide({
+            sourceType: listClass.listEntryComponentType,
+            readValue: async () =>
+                (await list.stateValues[listClass.listValuesArrayName])?.[0],
+            level: "info",
         });
     }
     if (content.length !== 1) {
@@ -9700,6 +9883,36 @@ export const TAGS_MAKING_THEIR_CONTENT = new Set([
     // Its arrangement of its problems is made by an internal composite.
     "pretzel",
 ]);
+
+/**
+ * The wrappers a tag that makes its own content is made through, from the
+ * one of its tag they show (D78.1, `extendedComponent`): a `<select>` that
+ * picks several shows several, so it is not made through.
+ */
+const WRAPPERS_SHOWING_ONE = new Set(["conditionalContent", "select", "group"]);
+
+/**
+ * The tag `createComponentOfType` names, as written (NAME-0), when it is a
+ * tag that makes its own content (`TAGS_MAKING_THEIR_CONTENT`) and a
+ * composite, not one that makes a list of values (a `<sequence>`, a
+ * sampler), which is decided as a scalar tag; else `undefined`.
+ */
+function writtenTagMakingContent(createComponentOfType, componentInfoObjects) {
+    if (typeof createComponentOfType !== "string") {
+        return undefined;
+    }
+    const writtenType =
+        componentInfoObjects.componentTypeAsWritten(createComponentOfType) ??
+        createComponentOfType;
+    return TAGS_MAKING_THEIR_CONTENT.has(writtenType) &&
+        componentInfoObjects.isCompositeComponent({
+            componentType: writtenType,
+        }) &&
+        componentInfoObjects.allComponentClasses[writtenType]
+            ?.listEntryComponentType === undefined
+        ? writtenType
+        : undefined;
+}
 
 /**
  * What children written inside the extend of a tag would be, which picks the

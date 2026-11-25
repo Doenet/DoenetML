@@ -412,11 +412,6 @@ describe("A <group> made from one component that isn't a composite is an error a
             [],
         ],
         [
-            "a selectFromSequence that picks one",
-            `<selectFromSequence name="sfs" length="5"/><group name="g" extend="$sfs"/>`,
-            [],
-        ],
-        [
             "an item of a collect",
             `<group name="h"><math>1</math></group><collect name="col" componentType="math" from="$h"/><group name="g" extend="$col[1]"/>`,
             [],

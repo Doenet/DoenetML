@@ -1129,10 +1129,19 @@ describe("A copy of a name in a case through a reload @group4", () => {
 
 /**
  * What was saved of a component is restored only to a component of the type
- * it was saved from (B36). A copy of a `<collect>` made again on load is
- * made from what the collect holds then, and counts its `stateId`s from its
- * own, so a component of another type can have the `stateId` a saved one
+ * it was saved from (B36). A copy of a `<collect>` made again on load was
+ * made from what the collect held then, and counted its `stateId`s from its
+ * own, so a component of another type could have the `stateId` a saved one
  * had.
+ *
+ * No construction reaches that any more (Doenet/DoenetML#2676 item 8): a
+ * `<group>` made from a collection is an error (D64), a `<collect>` copied
+ * keeps its kind, whose inputs are the collected ones, and a copy that is
+ * made again from what a case shows, or from a group, an iteration or a pick
+ * holding a case, gives each component a `stateId` that names the case it
+ * came from (`|case0|`, `|case1|`), even from a save that holds the copy's
+ * snapshot alone. So the guard is tested here with a save whose recorded type
+ * differs from the component's, as one written before such a change would.
  */
 describe("A saved value restored to a component of another type @group4", () => {
     const doenetMLFor = (tail: string) => `
@@ -1215,6 +1224,90 @@ describe("A saved value restored to a component of another type @group4", () => 
         expect((await r.sv("ge[1]")).stateValues.value).eq("");
         expect((await r.sv("col[1]")).stateValues.value).eq("");
     });
+
+    it("a saved value whose recorded type differs is dropped (the guard itself)", async () => {
+        const r = await reloader(`<mathInput name="m"/>`);
+        await updateMathInputValue({
+            latex: "x+1",
+            componentIdx: await r.resolve("m"),
+            core: r.core(),
+        });
+        const saved = await r.reload();
+        // a control: saved under its own type, it is restored
+        expect(saved.__componentTypes).eqls({ "/~m": "mathInput" });
+        expect((await r.sv("m")).stateValues.value.tree).eqls(["+", "x", 1]);
+
+        const { core } = await createTestCore({
+            doenetML: `<mathInput name="m"/>`,
+            initialState: JSON.stringify({
+                ...saved,
+                __componentTypes: { "/~m": "textInput" },
+            }),
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = Object.values(stateVariables).find(
+            (sv: any) => sv.componentType === "mathInput",
+        ) as any;
+        expect(m.stateValues.value.tree).eq("\uff3f");
+    });
+
+    for (const [label, tail] of [
+        [
+            "a group copy of the conditionalContent",
+            `<group copy="$cc" name="gc"/>`,
+        ],
+        [
+            "a group copy of a group holding it",
+            `<group name="g">$s.cc</group><group copy="$g" name="gc"/>`,
+        ],
+        [
+            "a group copy of an iteration holding it",
+            `<repeat name="r" for="1">$s.cc</repeat><group copy="$r[1]" name="gc"/>`,
+        ],
+    ]) {
+        it(`does not happen for ${label}, from a save holding the snapshot alone`, async () => {
+            const r = await reloader(doenetMLFor(tail));
+            const components = () => (r.core() as any).core._components;
+            /** The `stateId` of each input copied, by type. */
+            const copiedInputs = () =>
+                (Object.values(components()) as any[])
+                    .filter(
+                        (c) =>
+                            c &&
+                            ["mathInput", "textInput"].includes(
+                                c.componentType,
+                            ) &&
+                            !c.stateId.startsWith("/~s/"),
+                    )
+                    .map((c) => `${c.componentType} ${c.stateId}`);
+            for (const c of Object.values(components()) as any[]) {
+                if (c?.componentType === "mathInput") {
+                    await updateMathInputValue({
+                        latex: "x+1",
+                        componentIdx: c.componentIdx,
+                        core: r.core(),
+                    });
+                }
+            }
+            const before = copiedInputs();
+            expect(before.every((x) => x.startsWith("mathInput "))).eq(true);
+            await r.setBoolean("b", true);
+            const saved = await r.reload({ legacy: true });
+            const after = copiedInputs();
+            expect(after.length).eq(before.length);
+            expect(after.every((x) => x.startsWith("textInput "))).eq(true);
+            // the math inputs typed into were saved, and the text inputs
+            // made again have `stateId`s of their own, so none takes what
+            // was saved of a math input
+            const savedMathInputs = Object.entries(saved.__componentTypes)
+                .filter(([, type]) => type === "mathInput")
+                .map(([stateId]) => stateId);
+            expect(savedMathInputs.length).greaterThan(0);
+            for (const x of after) {
+                expect(savedMathInputs).not.contains(x.split(" ")[1]);
+            }
+        });
+    }
 
     it("saves the type only of what it saves", async () => {
         const r = await reloader(`

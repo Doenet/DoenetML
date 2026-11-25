@@ -81,6 +81,7 @@ import { typeChangeRule, unrelatedTypeChangeArgs } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
+import { TAGS_OF_LIST_FORMS } from "../copy";
 import { errorComponentState } from "./errors";
 import {
     holdsError,
@@ -310,7 +311,25 @@ type Holding = {
      * reads it as the values it holds (#2501).
      */
     self?: string;
+    /**
+     * Whether it may hold fewer components than its count (or than one,
+     * without `notOne`): a `<conditionalContent>` with no case shown, or a
+     * case or option holding nothing beside others holding one. A count is
+     * then the most it may hold, which a message says (`e0064`'s "may hold
+     * up to").
+     */
+    fewer?: boolean;
 };
+
+/**
+ * What a wrapper that shows one thing shows, to a tag that makes its own
+ * content made from it (`wrapperShows`).
+ */
+type ShownKind =
+    | { kind: "match" }
+    | { kind: "other"; type: string }
+    | { kind: "mixed"; issue: TypeChangeAtLoadError }
+    | { kind: "unknown" };
 
 /** The composites that can hold any number of components. */
 const HOLD_ANY_NUMBER = new Set([
@@ -756,9 +775,11 @@ export function checkTypeChangesAtLoad({
         if (holdings.length === 1) {
             return holdings[0];
         }
-        // How many they hold together, `<group/><math/><math/>` two.
+        // How many they hold together, `<group/><math/><math/>` two, or,
+        // with what may hold fewer (`fewer`), the most they may hold.
         let total = 0;
         let holdsNothing = false;
+        let fewer = false;
         for (const holding of holdings) {
             const count = countOf(holding);
             if (count === undefined) {
@@ -769,10 +790,12 @@ export function checkTypeChangesAtLoad({
                     notOneTag: holding.notOneTag,
                     types,
                     unknown,
+                    ...(holding.fewer && { fewer: true }),
                 };
             }
             total += count;
             holdsNothing ||= count === 0;
+            fewer ||= Boolean(holding.fewer);
         }
         if (total === 1) {
             // One component beside what holds nothing (a `<group/>` beside
@@ -780,12 +803,15 @@ export function checkTypeChangesAtLoad({
             // (`replacementSourceIdentities` stops at a group), so it could
             // not be made from that one: not decided, rather than an error
             // that it holds more.
-            return holdsNothing ? { types, skip: true } : { types, unknown };
+            return holdsNothing
+                ? { types, skip: true }
+                : { types, unknown, ...(fewer && { fewer: true }) };
         }
         return {
             notOne: { reason: "count", count: total, part },
             types,
             unknown,
+            ...(fewer && { fewer: true }),
         };
     }
 
@@ -921,6 +947,7 @@ export function checkTypeChangesAtLoad({
         let unknown: Holding["unknown"];
         let notOneOf: Holding | undefined;
         let valueTypes: Holding["valueTypes"];
+        let fewer = false;
         for (const holding of holdings) {
             if (holding.skip) {
                 return { types, skip: true };
@@ -929,12 +956,14 @@ export function checkTypeChangesAtLoad({
             unknown ??= holding.unknown;
             notOneOf = preferredNotOne(notOneOf, holding);
             valueTypes = mergedValueTypes(valueTypes, holding.valueTypes);
+            fewer ||= Boolean(holding.fewer);
         }
         return {
             ...(notOneOf && {
                 notOne: notOneOf.notOne,
                 notOneTag: notOneOf.notOneTag,
             }),
+            ...((notOneOf ? notOneOf.fewer : fewer) && { fewer: true }),
             types,
             unknown,
             ...(valueTypes && { valueTypes }),
@@ -1539,6 +1568,7 @@ export function checkTypeChangesAtLoad({
                 undefined,
                 componentType,
                 "case",
+                !hasElse,
             );
         }
 
@@ -1655,6 +1685,7 @@ export function checkTypeChangesAtLoad({
         notOne: NotOne | undefined,
         tag: string,
         partKind: "case" | "option",
+        mayShowNone = false,
     ): Holding {
         const types = new Set<string>();
         let unknown: Holding["unknown"];
@@ -1678,6 +1709,22 @@ export function checkTypeChangesAtLoad({
             parts.every((part) => part.self === parts[0].self)
                 ? parts[0].self
                 : undefined;
+        if (
+            partNotOne &&
+            holdsNothing(partNotOne) &&
+            parts.some((part) => !part.notOne)
+        ) {
+            // Some hold one component and the others nothing: it holds
+            // one, or none (`fewer`), which a tag made from it is missing
+            // while it does (D37), and which counts as at most one beside
+            // others (`childrenHolding`).
+            return {
+                types,
+                unknown,
+                fewer: true,
+                ...(self !== undefined && { self }),
+            };
+        }
         if (partNotOne) {
             // A list's entries are what the composite holds only when each
             // part holds that list's entries; otherwise it is what one part
@@ -1708,6 +1755,9 @@ export function checkTypeChangesAtLoad({
                 notOneTag: named.notOneTag,
                 types,
                 unknown,
+                // the count is of one case or option, which holds it when
+                // shown, whether or not one is
+                ...(partNotOne.fewer && { fewer: true }),
                 ...(self !== undefined && { self }),
             };
         }
@@ -1718,7 +1768,7 @@ export function checkTypeChangesAtLoad({
                 types,
             };
         }
-        return { types, unknown };
+        return { types, unknown, ...(mayShowNone && { fewer: true }) };
     }
 
     /**
@@ -1757,13 +1807,16 @@ export function checkTypeChangesAtLoad({
                 notOneTag: notOneOf.notOneTag,
                 types,
                 unknown,
+                ...(notOneOf.fewer && { fewer: true }),
             };
         }
         const total = heldCount + extraCount;
+        const fewer = Boolean(held.fewer || extra.fewer);
         if (total === 1) {
-            return { types, unknown };
+            return { types, unknown, ...(fewer && { fewer: true }) };
         }
         return {
+            ...(fewer && { fewer: true }),
             notOne: { reason: "count", count: total, part: "other" },
             // a list's entries and what is added are not the list's
             notOneTag:
@@ -2033,6 +2086,8 @@ export function checkTypeChangesAtLoad({
                         count: notOne.count,
                         holdsNothing: "false",
                         part: notOne.part,
+                        // the most it may hold (`fewer`)
+                        mayHoldFewer: held.fewer ? "true" : "false",
                     }),
                     ...(notOne.reason === "numToSelect" && {
                         attribute: notOne.attribute,
@@ -3986,11 +4041,12 @@ export function checkTypeChangesAtLoad({
          */
         const namedBy = (
             names: any[],
+            startIdx: number = ref.nodeIdx,
         ): SerializedComponent[] | null | undefined => {
             if (names.length === 0) {
                 const node =
-                    referents.componentsByIdx.get(ref.nodeIdx) ??
-                    referents.copiesByCreatedIdx.get(ref.nodeIdx);
+                    referents.componentsByIdx.get(startIdx) ??
+                    referents.copiesByCreatedIdx.get(startIdx);
                 return node ? [node] : undefined;
             }
             if (isIndexIntoPicks(names) && names.slice(1).every(isName)) {
@@ -3999,28 +4055,68 @@ export function checkTypeChangesAtLoad({
                 // iterations of a repeat (`$outer[1].r`): what is so named
                 // in each branch, or in the template, which each iteration
                 // makes.
-                const container = branchContainerAt(ref.nodeIdx, true);
+                const container = branchContainerAt(startIdx, true);
                 return container
                     ? visibleNamed(
                           container,
                           names.slice(1).map((part: any) => part.name),
                       )
                     : ["repeat", "repeatForSequence"].includes(
-                            referents.referentType(ref.nodeIdx) ?? "",
+                            referents.referentType(startIdx) ?? "",
                         )
-                      ? descendantsNamed(ref.nodeIdx, names.slice(1))
+                      ? descendantsNamed(startIdx, names.slice(1))
                       : undefined;
             }
             if (names.every(isName)) {
-                const container = branchContainerAt(ref.nodeIdx);
+                const container = branchContainerAt(startIdx);
                 return container
                     ? visibleNamed(
                           container,
                           names.map((part: any) => part.name),
                       )
-                    : descendantsNamed(ref.nodeIdx, names);
+                    : descendantsNamed(startIdx, names);
             }
-            return undefined;
+            // Names, one of which has one index, followed by at least one
+            // name (`$r[1].m` of a repeat `r` in a case, which the
+            // reference reaches through the `<conditionalContent>`, so that
+            // the path left is `r[1].m`; `$cc.r[1].m`): what the names up to
+            // the index name, then what the names after it name in each of
+            // those, as after an index into it (above).
+            const at = names.findIndex(
+                (part: any) => (part.index ?? []).length > 0,
+            );
+            const indexed = names[at];
+            if (
+                at < 0 ||
+                !isName({ ...indexed, index: [] }) ||
+                indexed.index.length !== 1 ||
+                at === names.length - 1 ||
+                !names.slice(at + 1).every(isName)
+            ) {
+                return undefined;
+            }
+            const holders = namedBy(
+                [...names.slice(0, at), { ...indexed, index: [] }],
+                startIdx,
+            );
+            if (!holders) {
+                return holders;
+            }
+            const found: SerializedComponent[] = [];
+            for (const holder of holders) {
+                const inHolder = namedBy(
+                    [
+                        { name: "", index: indexed.index },
+                        ...names.slice(at + 1),
+                    ],
+                    holder.componentIdx,
+                );
+                if (!inHolder) {
+                    return inHolder;
+                }
+                found.push(...inHolder);
+            }
+            return found;
         };
         const named = namedBy(path);
         const componentAt = (idx: number) =>
@@ -4054,6 +4150,25 @@ export function checkTypeChangesAtLoad({
             return {
                 code: "doenet-e0065",
                 args: { sourceType, groupFrom: "one", how: howWritten(copy) },
+            };
+        }
+        // A chooser or sampler that picks one, whose type the DoenetML
+        // decides, in every place the reference may name: it stands for
+        // the one value it picks (D72), so it is one component too
+        // (Doenet/DoenetML#2676 item 4).
+        const picks = (named ?? []).map((node) => onePickOf(node));
+        const [pick] = picks;
+        if (
+            pick !== undefined &&
+            picks.every(
+                (other) =>
+                    other?.chooser === pick.chooser &&
+                    other?.sourceType === pick.sourceType,
+            )
+        ) {
+            return {
+                code: "doenet-e0065",
+                args: { ...pick, groupFrom: "onePick", how: howWritten(copy) },
             };
         }
         if (named === null || (named !== undefined && named.length > 0)) {
@@ -4292,6 +4407,85 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * When `node` is a chooser or sampler other than a `<select>` (a
+     * `<selectFromSequence>`, a `<selectRandomNumbers>`, a
+     * `<sampleRandomNumbers>`, …) that picks one, whose entries' type the
+     * DoenetML decides, its tag (`chooser`) and that type (`sourceType`):
+     * it stands for the one value it picks (D72), as a `<number>` does, so
+     * a `<group>` made from it is one made from a component that isn't a
+     * composite (D77, `groupSourceError`). How many it picks is written on
+     * it, or, on a copy that doesn't say, on what it copies, as for
+     * `collectionWritten`; so is its entries' type. `undefined` otherwise:
+     * a `<select>`, whose pick is an option holding what it holds, one that
+     * picks several or a number the DoenetML does not give, or one whose
+     * type is a reference.
+     */
+    function onePickOf(
+        node: SerializedComponent,
+    ): { chooser: string; sourceType: string } | undefined {
+        const found = chooserOf(node, new Set());
+        return found?.picksOne &&
+            found.sourceType !== undefined &&
+            allClasses[found.sourceType]
+            ? { chooser: found.chooser, sourceType: found.sourceType }
+            : undefined;
+    }
+
+    /**
+     * For `onePickOf`: the chooser or sampler other than a `<select>`
+     * `node` is written as (`chooser`), whether it picks one (`picksOne`),
+     * and its entries' type, if the DoenetML decides it (`sourceType`), each
+     * read from what a copy copies when not written on it.
+     */
+    function chooserOf(
+        node: SerializedComponent,
+        seen: Set<number>,
+    ): { chooser: string; picksOne: boolean; sourceType?: string } | undefined {
+        if (seen.has(node.componentIdx)) {
+            return undefined;
+        }
+        seen.add(node.componentIdx);
+        const isCopy = node.componentType === "_copy";
+        const chooser = isCopy
+            ? canonicalType(
+                  literalText(node.attributes?._createComponentOfType),
+              )
+            : node.componentType;
+        if (
+            chooser === undefined ||
+            chooser === "select" ||
+            !Object.hasOwn(SELECTORS, chooser) ||
+            holdsError(node)
+        ) {
+            return undefined;
+        }
+        const ref = isCopy ? refOf(node) : undefined;
+        const target =
+            ref && ref.nodeIdx >= 0 && (ref.unresolvedPath ?? []).length === 0
+                ? (referents.componentsByIdx.get(ref.nodeIdx) ??
+                  referents.copiesByCreatedIdx.get(ref.nodeIdx))
+                : undefined;
+        // what it copies, when that is the same chooser
+        const fromTarget = target && chooserOf(target, seen);
+        const copied = fromTarget?.chooser === chooser ? fromTarget : undefined;
+        const pickAttribute = attributeOf(node, SELECTORS[chooser]);
+        const picksOne =
+            pickAttribute === undefined
+                ? !isCopy || copied?.picksOne === true
+                : literalText(pickAttribute)?.trim() === "1";
+        const typeAttributeName = allClasses[chooser]?.listEntryTypeAttribute;
+        const sourceType: string | undefined =
+            !isCopy ||
+            (typeAttributeName !== undefined &&
+                attributeOf(node, typeAttributeName) !== undefined)
+                ? entryType({ ...node, componentType: chooser })
+                : typeAttributeName === undefined
+                  ? allClasses[chooser]?.listEntryComponentType
+                  : copied?.sourceType;
+        return { chooser, picksOne, sourceType };
+    }
+
+    /**
      * The error for a tag that makes its content itself
      * (`TAGS_MAKING_THEIR_CONTENT`: a `<repeat>`, a `<select>`, a
      * `<collect>`, a `<sort>`, …) made with `extend` or `copy` from
@@ -4393,9 +4587,222 @@ export function checkTypeChangesAtLoad({
         if (writesAnything && TAGS_MAKING_THEIR_CONTENT.has(sourceType)) {
             return undefined;
         }
+        // Through a `<conditionalContent>`, a one-pick `<select>` or a
+        // `<group>` of one, the tag is made from the one it shows, when each
+        // case or option holds one of that tag or nothing (D78.1, revised).
+        const through = wrapperShows(node, writtenType, new Set());
+        if (through?.kind === "match" || through?.kind === "unknown") {
+            return undefined;
+        }
+        if (through?.kind === "mixed") {
+            return through.issue;
+        }
         return {
             code: "doenet-e0071",
             args: { makes: "content", sourceIs: "other" },
+        };
+    }
+
+    /**
+     * What one component written where a wrapper shows it, `item`, is to a
+     * tag that makes its own content, `writtenType`, made from the wrapper
+     * (`wrapperShows`): one of that tag (`match`), something else
+     * (`other`, of the tag `type` when it is one component), or, when it
+     * is itself a wrapper, what that shows. `unknown` when the DoenetML
+     * does not give what it is.
+     */
+    function shownItemKind(
+        item: SerializedComponent | string,
+        writtenType: string,
+        seen: Set<number>,
+    ): ShownKind {
+        if (typeof item === "string") {
+            return { kind: "other", type: "text" };
+        }
+        const declared = declaredType(item);
+        // a `<collect>`, `<sort>` or `<shuffle>` made its list form
+        // (`listForms.ts`) is that tag
+        const type =
+            declared !== undefined &&
+            Object.hasOwn(TAGS_OF_LIST_FORMS, declared)
+                ? TAGS_OF_LIST_FORMS[
+                      declared as keyof typeof TAGS_OF_LIST_FORMS
+                  ]
+                : declared;
+        if (type === undefined || type.startsWith("_")) {
+            return { kind: "unknown" };
+        }
+        if (
+            type === writtenType ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: type,
+                baseComponentType: writtenType,
+            })
+        ) {
+            return { kind: "match" };
+        }
+        const inner = wrapperShows(item, writtenType, seen);
+        return inner ?? { kind: "other", type };
+    }
+
+    /**
+     * What a tag that makes its own content, `writtenType`, made from the
+     * component `node` with nothing after its name, is made from, when
+     * `node` is a wrapper that shows one thing (D72, D78.1 revised): a
+     * `<conditionalContent>`, a `<select>` that picks one, or a `<group>`,
+     * written there or copied (`<conditionalContent extend="$cc"/>`):
+     *
+     * - `match` when each case or option holds one component of that tag,
+     *   or nothing, and at least one holds one; a `<group>` when it holds
+     *   only one such. The tag is then made from the one shown, as
+     *   `<repeat extend="$cc.r"/>` is (`Copy.js`'s `extendedComponent`);
+     * - `mixed` when some hold one of that tag and others several, or one
+     *   of another tag: what it is made from depends on what is shown, so it
+     *   is `doenet-e0095` (D74), the `issue`;
+     * - `other` when none holds one of that tag, which is `doenet-e0071`;
+     * - `unknown` when a case or option holds what the DoenetML does not
+     *   give, left to run time.
+     *
+     * `undefined` when `node` is not such a wrapper. A wrapper held in one
+     * is read through in turn.
+     */
+    function wrapperShows(
+        node: SerializedComponent,
+        writtenType: string,
+        seen: Set<number>,
+    ): ShownKind | undefined {
+        if (seen.has(node.componentIdx)) {
+            return { kind: "unknown" };
+        }
+        seen = new Set(seen).add(node.componentIdx);
+        const type = declaredType(node);
+        if (type === "group") {
+            let group: SerializedComponent | undefined = node;
+            const added: (SerializedComponent | string)[] = [];
+            const visited = new Set<number>();
+            // through copies of the group, each adding its children after
+            // what it copies
+            while (group && group.componentType === "_copy") {
+                if (visited.has(group.componentIdx)) {
+                    return { kind: "unknown" };
+                }
+                visited.add(group.componentIdx);
+                added.unshift(...(group.children ?? []));
+                const ref = refOf(group);
+                if (
+                    !ref ||
+                    ref.nodeIdx < 0 ||
+                    (ref.unresolvedPath ?? []).length > 0
+                ) {
+                    return { kind: "unknown" };
+                }
+                group =
+                    referents.componentsByIdx.get(ref.nodeIdx) ??
+                    referents.copiesByCreatedIdx.get(ref.nodeIdx);
+            }
+            if (!group || group.componentType !== "group") {
+                return { kind: "unknown" };
+            }
+            const items = heldItems({
+                ...group,
+                children: [...(group.children ?? []), ...added],
+            });
+            if (items.length !== 1) {
+                return { kind: "other", type: "group" };
+            }
+            const inner = shownItemKind(items[0], writtenType, seen);
+            return inner.kind === "match" ||
+                inner.kind === "unknown" ||
+                inner.kind === "mixed"
+                ? inner
+                : { kind: "other", type: "group" };
+        }
+        if (type !== "conditionalContent" && type !== "select") {
+            return undefined;
+        }
+        const container = branchContainerAt(node.componentIdx);
+        const branch = container && branchKind(container);
+        if (!container || !branch) {
+            // a select that picks several, a collection
+            return type === "select" && node.componentType !== "_copy"
+                ? undefined
+                : { kind: "unknown" };
+        }
+        const parts = partsOf(container, branch);
+        if (!parts) {
+            return { kind: "unknown" };
+        }
+        let matches = 0;
+        let caseOrdinal = 0;
+        let otherType: string | undefined;
+        const several: { ordinal: number; isElse: boolean }[] = [];
+        for (const { part, isElse } of parts) {
+            const elseCase = branch === "case" && isElse;
+            if (!elseCase) {
+                caseOrdinal++;
+            }
+            const items = heldItems(part);
+            if (items.length === 0) {
+                continue;
+            }
+            if (items.length > 1) {
+                several.push({ ordinal: caseOrdinal, isElse: elseCase });
+                continue;
+            }
+            const kind = shownItemKind(items[0], writtenType, seen);
+            if (kind.kind === "unknown" || kind.kind === "mixed") {
+                return kind;
+            }
+            if (kind.kind === "match") {
+                matches++;
+            } else {
+                otherType ??= kind.type;
+            }
+        }
+        if (matches === 0) {
+            return { kind: "other", type };
+        }
+        if (several.length === 0 && otherType === undefined) {
+            return { kind: "match" };
+        }
+        const containerName = literalText(container.attributes?.name);
+        const hasName =
+            containerName !== undefined &&
+            containerName !== "" &&
+            !containerName.startsWith("_");
+        const common = {
+            form: "tag",
+            componentType: writtenType,
+            branch,
+            container: hasName ? containerName : container.componentType,
+            hasName: hasName ? "true" : "false",
+        };
+        return {
+            kind: "mixed",
+            issue: {
+                code: "doenet-e0095",
+                args:
+                    several.length > 0
+                        ? {
+                              ...common,
+                              reason: "several",
+                              ordinals: several
+                                  .filter((s) => !s.isElse)
+                                  .map((s) => String(s.ordinal)) as any,
+                              withElse: several.some((s) => s.isElse)
+                                  ? "true"
+                                  : "false",
+                          }
+                        : {
+                              ...common,
+                              reason: "types",
+                              firstType: writtenType,
+                              // set, as no case holds several
+                              secondType: otherType!,
+                              ordinals: [] as any,
+                              withElse: "false",
+                          },
+            },
         };
     }
 
