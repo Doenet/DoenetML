@@ -127,6 +127,27 @@ describe("A list reached through an iteration (#2676 items 1 and 2; REF-5, VAL-5
                 `\`$r[1]\` holds ${count}.`,
             );
         }
+        // the `maxNumber` of the list named, or of the list holding it
+        const capped: [string, string, number | undefined][] = [
+            [`maxNumber="2"`, `<mathList>$ml3</mathList>`, 2],
+            [`maxNumber="1"`, `<mathList>$ml3</mathList>`, undefined],
+            [``, `<mathList maxNumber="1">$ml3</mathList>`, undefined],
+            [`maxNumber="2"`, `<mathList extend="$ml3"/>`, 2],
+        ];
+        for (const [attribute, template, count] of capped) {
+            const d = await load(
+                `<mathList name="ml3" ${attribute}>1 2 3</mathList><repeat name="r" for="1">${template}</repeat><math name="e" extend="$r[1]"/>`,
+            );
+            if (count === undefined) {
+                expect(d.diagnostics(), template).eqls([]);
+                expect(await d.text("e"), template).eq("1");
+            } else {
+                expect(d.errorCodes(), template).eqls(["doenet-e0064"]);
+                expect(d.diagnostics()[0], template).contains(
+                    `\`$r[1]\` holds ${count}.`,
+                );
+            }
+        }
         // the same list made directly
         const direct = await load(
             `<mathList name="ml2">1 2</mathList><mathList name="l">$ml2</mathList><math name="e" extend="$l"/>`,
@@ -411,16 +432,20 @@ describe("A tag that makes its own content, made through a wrapper showing one o
 
     for (const how of ["copy", "copyWithState"]) {
         it(`a ${how} is made from the repeat shown, and keeps it after a reload`, async () => {
-            const d = await load(
-                `${cc(rA, rB)}<p name="p"><repeat name="r2" ${how}="$cc"/></p>`,
-            );
-            expect(d.diagnostics()).eqls([]);
-            expect(await d.text("p")).eq("b4, b5");
-            // unlinked: it keeps what it was made from (D33)
-            await d.setBoolean("b", true);
-            expect(await d.text("p")).eq("b4, b5");
-            await d.reload();
-            expect(await d.text("p")).eq("b4, b5");
+            // `$cc.r` too: a save made after the case changed loads, though
+            // the repeat it was made from is not made then
+            for (const source of ["$cc", "$cc.r"]) {
+                const d = await load(
+                    `${cc(rA, rB)}<p name="p"><repeat name="r2" ${how}="${source}"/></p>`,
+                );
+                expect(d.diagnostics(), source).eqls([]);
+                expect(await d.text("p"), source).eq("b4, b5");
+                // unlinked: it keeps what it was made from (D33)
+                await d.setBoolean("b", true);
+                expect(await d.text("p"), source).eq("b4, b5");
+                await d.reload();
+                expect(await d.text("p"), source).eq("b4, b5");
+            }
         });
     }
 

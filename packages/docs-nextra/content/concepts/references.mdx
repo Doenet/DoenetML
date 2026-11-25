@@ -273,8 +273,8 @@ error:
   of a list counts as the component it gives, so `<group extend="$m.value"/>{:dn}`
   and `<group extend="$ml[1]"/>{:dn}` are errors too. So is a
   `<selectFromSequence>`, `<selectRandomNumbers>` or another chooser that picks
-  one value of a type you wrote, as `<group extend="$s"/>{:dn}` of a
-  `<selectFromSequence>` picking one number: it stands for that number;
+  one value, as `<group extend="$s"/>{:dn}` of a `<selectFromSequence>` picking
+  one number: it stands for that number;
 * a collection, such as a list, a `<repeat>`, a `<collect>`, a `<sequence>`, a
   `<sort>`, a `<shuffle>` or a `<select>` that picks several:
   `<group extend="$r"/>{:dn}` of a `<repeat>` is an error. Write

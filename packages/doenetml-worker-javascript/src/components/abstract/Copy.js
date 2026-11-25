@@ -370,8 +370,9 @@ export default class Copy extends CompositeComponent {
         // follows what is shown: a case that changes makes the copy again
         // from the repeat shown then. While nothing is shown, it is `null`,
         // and the copy makes nothing. What the wrapper may show was decided
-        // when the document loaded (`wrapperShows` in `typeChangeAtLoad.ts`):
-        // one of that tag or nothing in each case, else an error.
+        // when the document loaded, where the DoenetML gives it
+        // (`wrapperShows` in `typeChangeAtLoad.ts`): one of that tag or
+        // nothing in each case, else an error.
         stateVariableDefinitions.extendedComponent = {
             shadowVariable: true,
             stateVariablesDeterminingDependencies: [

@@ -313,8 +313,9 @@ type Holding = {
     self?: string;
     /**
      * Whether it may hold fewer components than its count (or than one,
-     * without `notOne`): a `<conditionalContent>` with no case shown, or a
-     * case or option holding nothing beside others holding one. A count is
+     * without `notOne`): a `<conditionalContent>` with no `<else>`, which
+     * may show no case, or a case or option holding nothing beside others
+     * holding one. A count is
      * then the most it may hold, which a message says (`e0064`'s "may hold
      * up to").
      */
@@ -2729,7 +2730,9 @@ export function checkTypeChangesAtLoad({
      * (`<conditionalContent name="cc2" extend="$cc"/>`), or other composite
      * (`<group extend="$cc"/>`), which has the branches of the one it
      * copies, or `undefined` if there is none, as for a copy made as a tag
-     * that is not a composite (`<math extend="$s"/>`). With
+     * that is not a composite (`<math extend="$s"/>`), or as another tag that
+     * makes its own content (`<repeat extend="$cc"/>`, the repeat the case
+     * shown holds, D78.1). With
      * `indexed`, a `<select>` of any number of picks (`branchKind`). A copy
      * written with branches of its own (`<select copy="$s"><option>...`)
      * has them after those it copies, and one writing `numToSelect` picks
