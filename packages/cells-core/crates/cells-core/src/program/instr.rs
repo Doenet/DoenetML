@@ -269,6 +269,29 @@ pub enum SymKind {
     /// sequence of letters' exclude that is a reference (ADR 0074). Reads
     /// the strings and makes none.
     LetterNumber,
+    // A function evaluated symbolically (ADR 0081).
+    /// Inputs 2.. a function (`D`, then pieces, as [`SymKind::EvalFunction`]
+    /// reads them) at the expression input 0, a math cell, as the current
+    /// core's symbolic function: the first piece's expression with its
+    /// variable replaced by input 0, simplified and expanded as input 1
+    /// says ([`substitute_post`]). Where input 0 evaluates to a number,
+    /// outside `D` it is the blank, and the piece is the first whose
+    /// domain holds it; the blank too for a blank input or one with
+    /// several entries, which a function of one variable does not take.
+    SubstituteFunction,
+}
+
+/// What input 1 of a [`SymKind::SubstituteFunction`] says is done to the
+/// substituted expression: bit 0 simplifies, bit 1 expands, as a
+/// `<function>`'s `simplify` (on unless `none` or `false`) and `expand`.
+pub fn substitute_post(code: f64) -> Post {
+    let code = if code.is_nan() { 0 } else { code as u32 };
+    match (code & 1 != 0, code & 2 != 0) {
+        (true, true) => Post::SimplifyExpand,
+        (true, false) => Post::Simplify,
+        (false, true) => Post::Expand,
+        (false, false) => Post::None,
+    }
 }
 
 /// How many cells a given point takes in [`SymKind::Interpolate`]'s inputs.
@@ -575,6 +598,7 @@ impl SymKind {
                 | SymKind::Extrema { .. }
                 | SymKind::MergeExtrema
                 | SymKind::Grid
+                | SymKind::SubstituteFunction
         )
     }
 }
@@ -720,6 +744,7 @@ impl OpSpec {
             OpSpec::Sym(SymKind::TextNumber) => 1,
             OpSpec::Sym(SymKind::Letters) => 2,
             OpSpec::Sym(SymKind::LetterNumber) => 1,
+            OpSpec::Sym(SymKind::SubstituteFunction) => usize::MAX,
             _ => unreachable!(),
         }
     }
@@ -737,7 +762,7 @@ impl OpSpec {
             OpSpec::Sym(SymKind::EvalFunction) => {
                 n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
-            OpSpec::Sym(SymKind::SampleFunction) => {
+            OpSpec::Sym(SymKind::SampleFunction | SymKind::SubstituteFunction) => {
                 n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
             }
             OpSpec::Sym(SymKind::SampleBezier { .. }) => {
@@ -951,6 +976,7 @@ mod arity {
             OpSpec::Sym(SymKind::TextNumber),
             OpSpec::Sym(SymKind::Letters),
             OpSpec::Sym(SymKind::LetterNumber),
+            OpSpec::Sym(SymKind::SubstituteFunction),
         ]);
         ops
     }
@@ -1047,12 +1073,13 @@ mod arity {
                     SymKind::LetterNumber => 45,
                     // 46 would be vector tag 74 (BinCounts).
                     SymKind::Tally { .. } => 47,
+                    SymKind::SubstituteFunction => 48,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 76;
+    const N_TAGS: usize = 77;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -1071,7 +1098,9 @@ mod arity {
         for spec in ops {
             let n = match spec {
                 OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
-                OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
+                OpSpec::Sym(SymKind::SampleFunction | SymKind::SubstituteFunction) => {
+                    2 + DOMAIN_CELLS + PIECE_CELLS
+                }
                 OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
                 OpSpec::Sym(SymKind::Extrema { .. }) => 1 + DOMAIN_CELLS + PIECE_CELLS,
                 _ if spec.arity() == usize::MAX => 2,

@@ -336,13 +336,18 @@ pub(crate) mod math_value {
 
 pub(crate) mod evaluate {
     use super::*;
-    use crate::components::{ConstrainTarget, FUNCTION_PROPS};
+    use crate::compile::api::Port;
+    use crate::components::{ComponentType, ConstrainTarget, FUNCTION_PROPS};
     use crate::error::Result;
 
     component! {
-        /// `<evaluate function="$m" input="$a"/>`: the math's expression with
-        /// its free symbol set to the input; a function's (ADR 0049) in its
-        /// variable, missing outside its domain.
+        /// `<evaluate function="$f" input="$a"/>`: the function (ADR 0049)
+        /// at the input, missing outside its domain; of a math, its
+        /// expression in `x`. Symbolic or numeric as the function is
+        /// (ADR 0081): symbolic, its expression with the input
+        /// substituted, when the function's `symbolicExpr` is math;
+        /// numeric, its value at the input's, otherwise.
+        /// `forceSymbolic` and `forceNumeric` decide instead.
         tags: ["evaluate"],
         flags: [copyable],
         // Shows its value as its cell holds it: an expression's text, or
@@ -357,54 +362,159 @@ pub(crate) mod evaluate {
         }
         attributes {
             function: Ref,
-            input: Scalar,
+            input: Math,
+            forceSymbolic: On,
+            forceNumeric: On,
         }
         planner: Plan(plan),
     }
 
-    /// `x` bound to the input in the math's expression, or the function
-    /// of one variable (`EvalFunction`) at the input.
+    /// What an `<evaluate>` reads of what it evaluates, each a hidden
+    /// port: its expression, what a numeric evaluation reads as its one
+    /// piece, its variable, its domain (none for the whole line), what a
+    /// symbolic evaluation does after substituting (none: simplify), and
+    /// the port whose type decides which it is (none: numeric).
+    struct Of {
+        expr: Port,
+        eval_expr: Port,
+        variable: Port,
+        domain: Option<[Port; 4]>,
+        post: Option<Port>,
+        kind: Option<Port>,
+    }
+
+    /// Whether a type's table has the prop `name`.
+    fn has_prop(ty: ComponentType, name: &str) -> bool {
+        ty.prop_defs().iter().any(|d| d.name == name)
+    }
+
+    /// The input a math cell, and the evaluation two ways (ADR 0081): the
+    /// function's pieces at the input's value (`EvalFunction`, or `x` set
+    /// in a math's expression), and its expression with the input
+    /// substituted (`SubstituteFunction`); `value` is the one the
+    /// function's kind or the element's `force` picks.
     fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let attrs = Attrs::of(ctx.record());
         let at = Props::PORTS;
         let mut wiring = ElemWiring::of(ctx.component_type());
-        let input = Wire::attr(attr::input, attrs.input).unwrap_or(Wire::absent());
+        let input: Wire = match attrs.input.as_deref() {
+            Some(nodes) => {
+                let mt = ctx.math_text(nodes)?;
+                let id = ctx.sym_math(nodes, &mt)?;
+                Source::sym_expr(id, Post::None).into()
+            }
+            None => Wire::absent(),
+        };
         let Some(p) = attrs.function else {
             wiring.set_planned(Planned {
                 function: Wire::absent(),
                 input,
-                value: Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
+                value: Wire::absent(),
             });
             return Ok(wiring);
         };
-        let target = ctx
-            .reference_type(p)?
-            .and_then(|ty| ty.def().constrain_target);
-        let (function, value) = match target {
-            Some(ConstrainTarget::Graph {
-                expr,
-                function: true,
-            }) => {
+        let ty = ctx.reference_type(p)?;
+        let target = ty.and_then(|ty| ty.def().constrain_target);
+        let reference = |ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, name| {
+            Ok::<Port, crate::error::Error>(
+                wiring.hidden(Source::reference(ctx.with_prop(p, name)?)),
+            )
+        };
+        // What the function is: its expression, what a numeric evaluation
+        // reads as its one piece, its variable, its domain, what a symbolic
+        // one does after substituting, and the port whose type its kind
+        // follows; of a math, its expression in `x` on the whole line,
+        // symbolic when the math is.
+        let (expr, f) = match (ty, target) {
+            (
+                Some(ty),
+                Some(ConstrainTarget::Graph {
+                    expr,
+                    function: true,
+                }),
+            ) => {
                 let mut f = Vec::new();
                 for name in FUNCTION_PROPS {
-                    f.push(wiring.hidden(Source::reference(ctx.with_prop(p, name)?)));
+                    f.push(reference(ctx, &mut wiring, name)?);
                 }
-                let mut eval = vec![at.input];
-                eval.extend(curve::one_piece(
-                    &mut wiring,
-                    at.function,
-                    f[0],
-                    [f[1], f[2], f[3], f[4]],
-                ));
+                let expr_port = reference(ctx, &mut wiring, expr)?;
+                let optional = |ctx: &mut PlanCtx<'_, '_>, wiring: &mut ElemWiring, name| {
+                    has_prop(ty, name)
+                        .then(|| reference(ctx, wiring, name))
+                        .transpose()
+                };
+                let eval_expr = optional(ctx, &mut wiring, "evalExpr")?.unwrap_or(expr_port);
+                let post = optional(ctx, &mut wiring, "substitutePost")?;
+                let kind = optional(ctx, &mut wiring, "symbolicExpr")?;
                 (
-                    Wire::from(Source::reference(ctx.with_prop(p, expr)?)),
-                    Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),
+                    expr,
+                    Of {
+                        expr: expr_port,
+                        eval_expr,
+                        variable: f[0],
+                        domain: Some([f[1], f[2], f[3], f[4]]),
+                        post,
+                        kind,
+                    },
                 )
             }
-            _ => (
-                Wire::from(Source::reference(ctx.with_prop(p, "expr")?)),
-                Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![at.function, at.input]),
-            ),
+            _ => {
+                let expr_port = reference(ctx, &mut wiring, "expr")?;
+                let x = wiring.hidden(ctx.symbol("x"));
+                (
+                    "expr",
+                    Of {
+                        expr: expr_port,
+                        eval_expr: expr_port,
+                        variable: x,
+                        domain: None,
+                        post: None,
+                        kind: Some(expr_port),
+                    },
+                )
+            }
+        };
+        let function = Wire::from(Source::reference(ctx.with_prop(p, expr)?));
+        let numeric = |wiring: &mut ElemWiring| {
+            let number = wiring.hidden(Source::computed(
+                OpSpec::Sym(SymKind::Evaluate),
+                vec![at.input],
+            ));
+            match f.domain {
+                Some(domain) => {
+                    let mut inputs = vec![number];
+                    inputs.extend(curve::one_piece(wiring, f.eval_expr, f.variable, domain));
+                    wiring.hidden(Source::computed(OpSpec::Sym(SymKind::EvalFunction), inputs))
+                }
+                None => wiring.hidden(Source::computed(
+                    OpSpec::Sym(SymKind::EvalAt),
+                    vec![f.eval_expr, number],
+                )),
+            }
+        };
+        let symbolic = |wiring: &mut ElemWiring| {
+            let post = f
+                .post
+                .unwrap_or_else(|| wiring.hidden_wire(Wire::constant(1.0)));
+            let domain = f
+                .domain
+                .unwrap_or_else(|| curve::whole_line().map(|w| wiring.hidden_wire(w)));
+            let mut inputs = vec![at.input, post];
+            inputs.extend(curve::one_piece(wiring, f.expr, f.variable, domain));
+            wiring.hidden(Source::computed(
+                OpSpec::Sym(SymKind::SubstituteFunction),
+                inputs,
+            ))
+        };
+        let value = match f.kind {
+            _ if attrs.forceNumeric => Wire::own(numeric(&mut wiring)),
+            _ if attrs.forceSymbolic => Wire::own(symbolic(&mut wiring)),
+            Some(kind) => {
+                let symbolic = symbolic(&mut wiring);
+                let numeric = numeric(&mut wiring);
+                Source::held_by(kind, symbolic, numeric).into()
+            }
+            None => Wire::own(numeric(&mut wiring)),
         };
         wiring.set_planned(Planned {
             function,

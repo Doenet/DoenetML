@@ -852,6 +852,25 @@ function numericalFunction(x: Ctx): (v: number) => number {
     };
 }
 
+/** A function of one variable at an expression, as the cells core's
+ * engine substitutes it when an `<evaluate>` of it is symbolic (ADR 0081,
+ * `function_symbolic`); a gap for one it does not substitute into. */
+function symbolicFunction(x: Ctx): (v: any) => any {
+    return (v: any) => {
+        const tree = v?.tree !== undefined ? v.tree : v;
+        const out = x.cells.core.function_symbolic(
+            x.idx,
+            me.fromAst(tree).toString(),
+        );
+        if (out === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.symbolicfs: not a function of one variable with a formula`,
+            );
+        }
+        return me.fromAst(JSON.parse(out));
+    };
+}
+
 /** A number inside a held expression: a number as it is, else what the
  * expression evaluates to (`Infinity` among them). */
 function treeNumber(t: unknown): number {
@@ -907,6 +926,12 @@ const functionReaders: Record<string, Reader> = {
     numericalf: (_g, x) => numericalFunction(x),
     formula: (_g, x) => exprOf(x.cells, x.cell("expr")!),
     variables: (_g, x) => [exprOf(x.cells, x.cell("variable")!)],
+    // How it evaluates (ADR 0081).
+    symbolic: (g) => g("symbolic") === 1,
+    numInputs: (g) => g("numInputs"),
+    numOutputs: (g) => g("numOutputs"),
+    symbolicfs: (_g, x) => [symbolicFunction(x)],
+    symbolicf: (_g, x) => symbolicFunction(x),
 };
 
 /** A curve's type, as the current core names it (ADR 0049). */
@@ -1292,6 +1317,8 @@ const STATE: Record<string, Record<string, Reader>> = {
     evaluate: {
         value: (_g, x) => heldMath(x.cells, x.cell("value")!),
         text: textOf,
+        // A number, or an expression when symbolic (ADR 0081).
+        latex: mathLatex,
     },
     // Function machinery (ADR 0049).
     function: functionReaders,

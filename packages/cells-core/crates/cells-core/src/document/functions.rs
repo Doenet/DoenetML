@@ -4,7 +4,9 @@
 
 use crate::components::{ConstrainTarget, FUNCTION_PROPS, Role};
 use crate::document::{CellIdx, Child, CompIdx, Document};
-use crate::program::{DOMAIN_CELLS, PIECE_CELLS, eval_function};
+use crate::program::{
+    DOMAIN_CELLS, PIECE_CELLS, eval_function, spline_pieces, substitute_function, substitute_post,
+};
 use crate::sym::Handle;
 
 impl Document {
@@ -60,7 +62,6 @@ impl Document {
     /// reads them, from its `pieces`, the list of each piece's expression
     /// and domain; `None` for a function that is none.
     fn interpolated(&mut self, c: CompIdx) -> Option<Vec<f64>> {
-        use math_expressions::{Expr, MathConst, expr::SeqKind};
         let cell =
             |c: CompIdx, prop: &str| self.prop_cells(c, prop).and_then(|v| v.first().copied());
         let pieces = self.cells[cell(c, "pieces")?.index()];
@@ -72,28 +73,51 @@ impl Document {
             .iter()
             .map(|p| cell(c, p).map(|k| self.cells[k.index()]))
             .collect::<Option<_>>()?;
-        let engine = &mut self.math.engine;
-        let Expr::Seq(SeqKind::List, list) = engine.expr(Handle::from_value(pieces)).clone() else {
-            return None;
-        };
-        let number = |e: &Expr| match e {
-            Expr::Num(n) => n.to_f64(),
-            Expr::Const(MathConst::Inf) => f64::INFINITY,
-            Expr::Const(MathConst::NegInf) => f64::NEG_INFINITY,
-            _ => f64::NAN,
-        };
-        for piece in list {
-            let Expr::Seq(SeqKind::Tuple, parts) = piece else {
-                return None;
-            };
-            let [e, rest @ ..] = &parts[..] else {
-                return None;
-            };
-            f.push(engine.store(e.clone()).to_value());
-            f.push(var);
-            f.extend(rest.iter().map(number));
-        }
+        f.extend(spline_pieces(
+            &mut self.math.engine,
+            Handle::from_value(pieces),
+            var,
+        )?);
         Some(f)
+    }
+
+    /// The cells of the function `c` is, as [`eval_function`] reads
+    /// them, with a piece's domain on the whole line where it has none.
+    fn function_values(&self, c: CompIdx) -> Option<Vec<f64>> {
+        let cells = self.function_cells(c)?;
+        let whole = [f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
+        Some(
+            cells
+                .iter()
+                .enumerate()
+                .map(|(k, cell)| match cell {
+                    Some(cell) => self.cells[cell.index()],
+                    None => whole[(k - DOMAIN_CELLS) % PIECE_CELLS - 2],
+                })
+                .collect(),
+        )
+    }
+
+    /// The function `c` is at the expression the math text `x` writes,
+    /// symbolically, as an `<evaluate>` of it computes it when symbolic
+    /// (ADR 0081): its expression with its variable replaced by `x`, as
+    /// its `simplify` and `expand` say, the blank where `x` is a number
+    /// outside its domain; as the JavaScript math tree, in JSON. `None`
+    /// when `c` is no function of one variable with a formula, or `x` no
+    /// math.
+    pub fn function_symbolic(&mut self, c: CompIdx, x: &str) -> Option<String> {
+        if self.interpolated(c).is_some() {
+            return None;
+        }
+        let f = self.function_values(c)?;
+        let post = self
+            .prop_cells(c, "substitutePost")
+            .and_then(|v| v.first().copied())
+            .map_or(1.0, |k| self.cells[k.index()]);
+        let engine = &mut self.math.engine;
+        let x = engine.parse(x).ok()?;
+        let h = substitute_function(engine, x.to_value(), substitute_post(post), &f);
+        Some(engine.ast_json(h))
     }
 
     /// The function `c` is, at `x` (ADR 0049), as an `<evaluate>` of it
@@ -106,16 +130,7 @@ impl Document {
             eval_function(&mut self.math.engine, &f, &[x], &mut out);
             return Some(out[0]);
         }
-        let cells = self.function_cells(c)?;
-        let whole = [f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
-        let f: Vec<f64> = cells
-            .iter()
-            .enumerate()
-            .map(|(k, cell)| match cell {
-                Some(cell) => self.cells[cell.index()],
-                None => whole[(k - DOMAIN_CELLS) % PIECE_CELLS - 2],
-            })
-            .collect();
+        let f = self.function_values(c)?;
         let mut out = [f64::NAN];
         eval_function(&mut self.math.engine, &f, &[x], &mut out);
         Some(out[0])

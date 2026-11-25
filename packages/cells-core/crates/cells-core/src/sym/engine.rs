@@ -615,6 +615,25 @@ impl Engine {
         self.push(e)
     }
 
+    /// `h` with the symbol `var` replaced by `with`'s expression: a
+    /// function evaluated symbolically (ADR 0081).
+    pub fn substitute(&mut self, h: Handle, var: &str, with: Handle) -> Handle {
+        let mut subs = HashMap::with_capacity(1);
+        subs.insert(var.to_string(), self.exprs[with.index()].clone());
+        let e = me::substitute(&self.exprs[h.index()], &subs);
+        self.push(e)
+    }
+
+    /// The blank expression, `＿`.
+    pub fn blank(&mut self) -> Handle {
+        self.push(Expr::Blank)
+    }
+
+    /// Whether `h` is or holds the blank expression.
+    pub fn is_blank(&self, h: Handle) -> bool {
+        has_blank(&self.exprs[h.index()])
+    }
+
     /// The derivative of `h` with respect to `var`.
     pub fn derivative(&mut self, h: Handle, var: &str) -> Handle {
         let e = me::derivative(&self.exprs[h.index()], var);

@@ -261,6 +261,14 @@ impl<'s, 'a> Types<'s, 'a> {
                         PortType::Num
                     }
                 }
+                // What `by` says: the math when it is math.
+                Flow::HeldBy(by, _, _) => {
+                    if self.port(t, e, by.index()) == PortType::Math {
+                        PortType::Math
+                    } else {
+                        PortType::Num
+                    }
+                }
                 // Lowered to operators, or NaN: a number either way.
                 Flow::Math(id) | Flow::MathValue(id) => {
                     if check {

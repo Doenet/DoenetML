@@ -15,7 +15,7 @@ mod vector;
 pub use instr::{
     BEZIER_POINT_CELLS, DOMAIN_CELLS, INTERPOLATE_POINT_CELLS, Instr, InstrIdx, MemoIdx,
     OperandIdx, Operands, PIECE_CELLS, Post, SAMPLES, SymEntry, SymIdx, SymKind, TapeIdx, VecIdx,
-    in_domain,
+    in_domain, substitute_post,
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
@@ -725,6 +725,11 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
             sample_bezier(&vals, coord as usize, uniform, out);
         }
+        SymKind::SubstituteFunction => {
+            let vals: Vec<f64> = inputs.iter().map(|c| cells[c.index()]).collect();
+            out[0] = substitute_function(engine, vals[0], substitute_post(vals[1]), &vals[2..])
+                .to_value();
+        }
         SymKind::DerivativeBy => {
             out[0] = match (handle(v(0)), handle(v(1)).and_then(|h| engine.symbol(h))) {
                 (Some(h), Some(var)) => engine.derivative(h, &var).to_value(),
@@ -908,7 +913,13 @@ pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]
         };
         let at: Vec<f64> = taken.iter().map(|&i| xs[i]).collect();
         let mut ys = vec![f64::NAN; at.len()];
-        if at.len() == 1 {
+        if let Some(spline) = spline_pieces(engine, h, piece[1]) {
+            // An interpolated function's pieces as one value (ADR 0061):
+            // its pieces, each in the piece's variable.
+            let mut g = vec![f64::NEG_INFINITY, f64::INFINITY, 0.0, 0.0];
+            g.extend(spline);
+            eval_function(engine, &g, &at, &mut ys);
+        } else if at.len() == 1 {
             ys[0] = engine.evaluate(h, Some((&var, at[0])));
         } else if !at.is_empty() {
             engine.evaluate_many(h, &var, &at, &mut ys);
@@ -917,6 +928,79 @@ pub fn eval_function(engine: &mut Engine, f: &[f64], xs: &[f64], out: &mut [f64]
             out[i] = y;
         }
     }
+}
+
+/// The pieces an interpolated function's `pieces` value `h` holds (ADR
+/// 0061: a list of tuples, each a piece's expression and its domain's
+/// endpoints and closedness), as [`eval_function`] reads pieces, each in
+/// the variable the math cell `var` holds; `None` when `h` is no such
+/// list.
+pub(crate) fn spline_pieces(engine: &mut Engine, h: Handle, var: f64) -> Option<Vec<f64>> {
+    use math_expressions::{Expr, MathConst, expr::SeqKind};
+    let Expr::Seq(SeqKind::List, list) = engine.expr(h) else {
+        return None;
+    };
+    let list = list.clone();
+    let number = |e: &Expr| match e {
+        Expr::Num(n) => n.to_f64(),
+        Expr::Const(MathConst::Inf) => f64::INFINITY,
+        Expr::Const(MathConst::NegInf) => f64::NEG_INFINITY,
+        _ => f64::NAN,
+    };
+    let mut f = Vec::with_capacity(list.len() * PIECE_CELLS);
+    for piece in &list {
+        let Expr::Seq(SeqKind::Tuple, parts) = piece else {
+            return None;
+        };
+        let [e, rest @ ..] = &parts[..] else {
+            return None;
+        };
+        if rest.len() != PIECE_CELLS - 2 {
+            return None;
+        }
+        f.push(engine.store(e.clone()).to_value());
+        f.push(var);
+        f.extend(rest.iter().map(number));
+    }
+    Some(f)
+}
+
+/// A function of one variable (`f`: its domain and pieces, as
+/// [`eval_function`] reads them) at the expression `x` (a math cell's
+/// value), as the current core's symbolic function (ADR 0081): the
+/// expression of the first piece that takes `x`, its variable replaced by
+/// `x`, `post` applied. Where `x` evaluates to a number, a piece takes it
+/// when its domain holds it, and outside the function's domain no piece
+/// does; any other `x` the first piece takes. The blank when no piece
+/// takes `x`, for a blank `x`, and for an `x` with several entries.
+pub fn substitute_function(engine: &mut Engine, x: f64, post: Post, f: &[f64]) -> Handle {
+    let blank = engine.blank();
+    let Some(xh) = handle(x) else {
+        return blank;
+    };
+    if engine.is_blank(xh) || engine.count(xh) > 1 {
+        return blank;
+    }
+    let at = engine.evaluate(xh, None);
+    let numeric = !at.is_nan();
+    let (domain, pieces) = f.split_at(DOMAIN_CELLS);
+    if numeric && !in_domain(at, domain, false) {
+        return blank;
+    }
+    for piece in pieces.chunks_exact(PIECE_CELLS) {
+        if numeric && !in_domain(at, &piece[2..], true) {
+            continue;
+        }
+        let (Some(h), Some(var)) = (
+            handle(piece[0]),
+            handle(piece[1]).and_then(|v| engine.symbol(v)),
+        ) else {
+            return blank;
+        };
+        let e = engine.substitute(h, &var, xh);
+        return post.apply(engine, e);
+    }
+    blank
 }
 
 /// How a point of a [`SymKind::SampleBezier`] has its control vectors

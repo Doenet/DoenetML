@@ -9,10 +9,10 @@ spec! {
 
     case "a closed domain: missing outside it, given at its ends" {
         doenet r#"<function name="f" domain="[-4, 7]">x^2</function>
-                  <evaluate name="a" function="$f" input="-4"/>
-                  <evaluate name="b" function="$f" input="7"/>
-                  <evaluate name="c" function="$f" input="7.5"/>
-                  <evaluate name="d" function="$f" input="2"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="-4"/>
+                  <evaluate forceNumeric name="b" function="$f" input="7"/>
+                  <evaluate forceNumeric name="c" function="$f" input="7.5"/>
+                  <evaluate forceNumeric name="d" function="$f" input="2"/>"#;
         expect {
             "f.domainMin" = -4, "f.domainMax" = 7,
             "f.domainMinClosed" = 1, "f.domainMaxClosed" = 1,
@@ -22,29 +22,29 @@ spec! {
 
     case "an open domain: missing at its ends" {
         doenet r#"<function name="f" domain="(-4, 7)">x^2</function>
-                  <evaluate name="a" function="$f" input="-4"/>
-                  <evaluate name="b" function="$f" input="6.5"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="-4"/>
+                  <evaluate forceNumeric name="b" function="$f" input="6.5"/>"#;
         expect { "f.domainMinClosed" = 0, "a.value" = f64::NAN, "b.value" = 42.25 }
     }
 
     case "an infinite end, written as a word" {
         doenet r#"<function name="f" domain="(-Infinity, 0]">x+1</function>
-                  <evaluate name="a" function="$f" input="-1000"/>
-                  <evaluate name="b" function="$f" input="0.5"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="-1000"/>
+                  <evaluate forceNumeric name="b" function="$f" input="0.5"/>"#;
         expect { "f.domainMin" = f64::NEG_INFINITY, "a.value" = -999, "b.value" = f64::NAN }
     }
 
     case "an endpoint that is no number is no bound" {
         doenet r#"<function name="f" domain="[a, 3]">x</function>
-                  <evaluate name="a" function="$f" input="-100"/>
-                  <evaluate name="b" function="$f" input="4"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="-100"/>
+                  <evaluate forceNumeric name="b" function="$f" input="4"/>"#;
         expect { "a.value" = -100, "b.value" = f64::NAN }
     }
 
     case "an endpoint written as constant math is its value" {
         doenet r#"<function name="f" domain="(-sqrt(2), sqrt(10))">x</function>
-                  <evaluate name="a" function="$f" input="3"/>
-                  <evaluate name="b" function="$f" input="3.2"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="3"/>
+                  <evaluate forceNumeric name="b" function="$f" input="3.2"/>"#;
         expect {
             "f.domainMin" = -std::f64::consts::SQRT_2, "f.domainMax" = 10f64.sqrt(),
             "a.value" = 3, "b.value" = f64::NAN,
@@ -54,7 +54,7 @@ spec! {
     case "an endpoint that follows an input" {
         doenet r#"<numberInput name="n" value="1"/>
                   <function name="f" domain="[0, $n]">x</function>
-                  <evaluate name="a" function="$f" input="2"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="2"/>"#;
         expect { "f.domainMax" = 1, "a.value" = f64::NAN }
         request { "n.value" = 3 }
         expect { "f.domainMax" = 3, "a.value" = 2 }
@@ -62,7 +62,7 @@ spec! {
 
     case "no domain: the whole line, open at its infinite ends" {
         doenet r#"<function name="f">x^2</function>
-                  <evaluate name="a" function="$f" input="-1000"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="-1000"/>"#;
         expect {
             "f.domainMin" = f64::NEG_INFINITY, "f.domainMax" = f64::INFINITY,
             "f.domainMinClosed" = 0, "a.value" = 1000000,
@@ -71,24 +71,24 @@ spec! {
 
     case "a domain that is not one interval is warned about and ignored" {
         doenet r#"<function name="f" domain="(-1,2) (0,3)">x</function>
-                  <evaluate name="a" function="$f" input="5"/>"#;
+                  <evaluate forceNumeric name="a" function="$f" input="5"/>"#;
         diagnostics["cells-bad-domain"]
         expect { "f.domainMin" = f64::NEG_INFINITY, "a.value" = 5 }
     }
 
     case "a variable of its own" {
         doenet r#"<function name="f" variables="q">q^2 + 1</function>
-                  <evaluate name="a" function="$f" input="3"/>
+                  <evaluate forceNumeric name="a" function="$f" input="3"/>
                   <derivative name="df">$f</derivative>
-                  <evaluate name="b" function="$df" input="3"/>"#;
+                  <evaluate forceNumeric name="b" function="$df" input="3"/>"#;
         expect { "a.value" = 10, "b.value" = 6 }
     }
 
     case "a derivative keeps its function's domain" {
         doenet r#"<function name="f" domain="[0, 2]">x^3</function>
                   <derivative name="df">$f</derivative>
-                  <evaluate name="a" function="$df" input="1"/>
-                  <evaluate name="b" function="$df" input="3"/>"#;
+                  <evaluate forceNumeric name="a" function="$df" input="1"/>
+                  <evaluate forceNumeric name="b" function="$df" input="3"/>"#;
         expect { "df.domainMax" = 2, "a.value" = 3, "b.value" = f64::NAN }
     }
 
@@ -150,5 +150,66 @@ spec! {
         expect { "f.numMaxima" = 2, "f.numMinima" = 2 }
         request { "p.value" = 5 }
         expect { "f.numMaxima" = 4, "f.numMinima" = 4 }
+    }
+
+    case "an evaluation is symbolic: its input substituted, then simplified (ADR 0081)" {
+        doenet r#"<function name="f">x^2</function>
+                  <evaluate name="a" function="$f" input="y"/>
+                  <evaluate name="b" function="$f" input="3"/>
+                  <evaluate name="c" function="$f" input="(1, 2)"/>"#;
+        expect {
+            "f.symbolic" = 1, "f.numInputs" = 1, "f.numOutputs" = 1,
+            "a.value" = "y^2", "b.value" = "9", "c.value" = "＿",
+        }
+    }
+
+    case "a symbolic evaluation: the blank outside the domain, a symbol substituted" {
+        doenet r#"<function name="f" domain="(-4, 4)" simplify="none">2x</function>
+                  <evaluate name="a" function="$f" input="4"/>
+                  <evaluate name="b" function="$f" input="10y"/>
+                  <evaluate name="c" function="$f" input="3"/>"#;
+        expect { "a.value" = "＿", "b.value" = "2 * 10 y", "c.value" = "2 * 3" }
+    }
+
+    case "symbolic false: numeric, a symbol no number; forced either way" {
+        doenet r#"<function name="f" symbolic="false">x^2</function>
+                  <evaluate name="a" function="$f" input="y"/>
+                  <evaluate name="b" function="$f" input="3"/>
+                  <evaluate name="c" function="$f" input="y" forceSymbolic/>
+                  <function name="g">x^2</function>
+                  <evaluate name="d" function="$g" input="3" forceNumeric/>"#;
+        expect {
+            "f.symbolic" = 0, "a.value" = f64::NAN, "b.value" = 9,
+            "c.value" = "y^2", "d.value" = 9,
+        }
+    }
+
+    case "a variable a reference names" {
+        doenet r#"<math name="v">q</math>
+                  <function name="f" variables="$v">q^2+1</function>
+                  <evaluate name="a" function="$f" input="3"/>"#;
+        expect { "a.value" = "10" }
+    }
+
+    case "a variable that is no name is warned about and the default used" {
+        doenet r#"<function name="f" variables="sin(x)">x+1</function>
+                  <evaluate name="a" function="$f" input="1"/>"#;
+        diagnostics["cells-bad-variable"]
+        expect { "a.value" = "2" }
+    }
+
+    case "a function of a function: in its variable, on its domain" {
+        doenet r#"<function name="f0" variable="q" domain="[0, 5]">q^2</function>
+                  <function name="f">$f0</function>
+                  <evaluate name="a" function="$f" input="3"/>
+                  <evaluate name="b" function="$f" input="6"/>"#;
+        expect { "a.value" = "9", "b.value" = "＿" }
+    }
+
+    case "an interpolated function evaluates numerically, through its pieces" {
+        doenet r#"<function name="f" through="(1,2) (3,4)"/>
+                  <evaluate name="a" function="$f" input="3"/>
+                  <evaluate name="b" function="$f" input="y"/>"#;
+        expect { "f.symbolic" = 0, "a.value" = 4, "b.value" = f64::NAN }
     }
 }

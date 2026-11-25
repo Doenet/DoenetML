@@ -1778,6 +1778,20 @@ impl<'c> Builder<'c> {
                     };
                     BuiltSource::Alias(self.slot(comp, held.index()))
                 }
+                // The math when the compile typed `by` math, else the
+                // number (ADR 0081).
+                Flow::HeldBy(by, math, numeric) => {
+                    let held = if self.compiled.plans.port_type(
+                        inst.template.index(),
+                        slot_off_of(self, inst).offset(by.index()),
+                    ) == PortType::Math
+                    {
+                        math
+                    } else {
+                        numeric
+                    };
+                    BuiltSource::Alias(self.slot(comp, held.index()))
+                }
                 // Left unset: materialized from the tree (`fill_aggregate`).
                 Flow::Aggregate(_) => BuiltSource::Unset,
             },

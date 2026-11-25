@@ -1290,6 +1290,14 @@ impl<'c> Stamp<'c> {
                     };
                     Def::Alias(self.g.port(t, e, held.index()))
                 }
+                Flow::HeldBy(by, math, numeric) => {
+                    let held = if self.port_type(t, e, by.index()) == PortType::Math {
+                        math
+                    } else {
+                        numeric
+                    };
+                    Def::Alias(self.g.port(t, e, held.index()))
+                }
                 Flow::Aggregate(_) => unreachable!("an aggregate is wired from the tree"),
             },
         }

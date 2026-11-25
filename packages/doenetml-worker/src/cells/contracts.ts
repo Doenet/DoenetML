@@ -168,6 +168,17 @@ export class Reads {
         if (exprCell !== undefined && !Number.isNaN(this.cell(exprCell))) {
             return this.table.core.display_latex(exprCell, display);
         }
+        // A value that is itself an expression: an `<evaluate>` of a
+        // symbolic function (ADR 0081).
+        const valueCell = this.table.cell(c, "value");
+        if (
+            valueCell !== undefined &&
+            this.table.core.cell_holds(valueCell) === "math"
+        ) {
+            return missing || Number.isNaN(this.cell(valueCell))
+                ? BLANK
+                : this.table.core.display_latex(valueCell, display);
+        }
         if (missing) return BLANK;
         if (Number.isNaN(value) && exprCell !== undefined) return BLANK;
         return Number.isFinite(value)
@@ -574,7 +585,9 @@ function valueLatex(r: Reads, c: number): string {
         type === "math" ||
         type === "mathInput" ||
         type === "interval" ||
-        type === "subsetOfReals"
+        type === "subsetOfReals" ||
+        // A number, or an expression when symbolic (ADR 0081).
+        type === "evaluate"
     ) {
         return r.mathLatex(c);
     }
