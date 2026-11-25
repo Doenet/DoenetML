@@ -115,6 +115,10 @@ concatenation in view.
    `sortByComponent`, `sortVectorsBy` and `sortByProp` as far as they fit,
    and booleans by the same mechanism.
 
+*2026-11-25* (ADR 0075): a `<label>`'s `value` is its children's text
+joined (`JoinWith` with no separator), the join a text answer's content
+makes: a text piece as written, a reference's or a child's value.
+
 ## Considered options
 
 - **A text whose value is a sequence of strings, shown joined** (ADR 0041

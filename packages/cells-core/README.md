@@ -17,7 +17,7 @@ inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
   hand-written and committed.
 
 Tags the core understands: `document`, `graph`, `point`, `number`,
-`numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
+`numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate` (and a function macro `$$f(x)` in text, ADR 0075),
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
 (and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
 `booleanList` (from text, references, element children and nested lists,
@@ -31,10 +31,10 @@ or a `choiceInput` of `choice`s, `shuffleOrder` and `preserveLastChoice`), `cond
 `feedback`, `select` (`option`, or pieces of text of its `type`), `selectFromSequence` (bounds that are
 constants, a literal `numToSelect`, `withReplacement` and `sort`; each pick a
 row, ADR 0041; a copy draws what its referent drew, ADR 0059; `type="letters"`
-and `type="math"` from literal parameters, ADR 0074), `hint`, `group` (and `label`), literal `text`, the sections
+and `type="math"` from literal parameters, ADR 0074), `hint`, `group`, `label` (its text a value `$P.label` reads, ADR 0075), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates, a list, a sequence or a sampler, or a literal list in `for` of its `type`, ADR 0074), `clampNumber`,
-`polyline`, `triggerSet` and `updateValue`, the text and layout containers
+`polyline` (a polygon that is not closed; a polyline or polygon whose `vertices` are a repeat's points, ADR 0075), `triggerSet` and `updateValue`, the text and layout containers
 `title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
 sections), `sideBySide`,
 `stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`, the text
@@ -65,7 +65,7 @@ literal word, or a number and a word), the layout containers `table`
 (numbered with the figures), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
 drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
-`cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
+`cumulativeMax` and `differences` (expressions over math, per element, ADR 0075), the index operators `argMin`, `argMax`,
 `indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
 numbers, texts, maths, booleans, points and vectors; `sortByComponent`, `sortVectorsBy`, `sortByProp`), `sequence` (numbers; a parameter that is a reference or math makes
 its count structural, ADR 0041; `type="letters"`, its excludes possibly

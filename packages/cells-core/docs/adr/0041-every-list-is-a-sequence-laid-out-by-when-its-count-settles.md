@@ -703,6 +703,16 @@ otherwise.
    `matrix.test.ts` still waits on `<numberList extend="$A.matrixSize">`
    (a value list extending a combined prop), a size that follows a value
    and a `defaultEntry` by reference.
+
+   *A polygon-style `Points` attribute over a structural sequence,
+   2026-11-25* (ADR 0075, the user's decision): a `<polyline>` or
+   `<polygon>` whose `vertices` are one reference to a repeat-like element
+   whose iterations each hold one point, or that extends or clones such a
+   shape, is settled once names resolve as a repeat-like type, its count
+   the source's and its item a point aliasing that iteration's; a
+   `<polyline>` is otherwise planned as a polygon, and its collect goes.
+   Departures: such a shape has no center, length or list props, and a
+   copied container holding two is refused (a clone is keyed by its copy).
 5. **Dynamic sequences.** The capped list with a live length: point
    coordinates first (merging point, tuple and vector), then a mathInput's
    list, then maxima and intersections with their caps. Test:

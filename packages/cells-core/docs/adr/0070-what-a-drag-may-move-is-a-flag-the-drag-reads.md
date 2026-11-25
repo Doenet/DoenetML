@@ -72,4 +72,6 @@ write.
   renderers receive them through the contracts.
 - A point's `draggable`, a vector's `draggable`, `headDraggable` and
   `tailDraggable` (a presentation attribute today) and a polyline's can
-  move to this rule when their types are next touched.
+  move to this rule when their types are next touched. *A polyline's did,
+  2026-11-25* (ADR 0075): it is planned as a polygon, its flags and drag
+  the polygon's.

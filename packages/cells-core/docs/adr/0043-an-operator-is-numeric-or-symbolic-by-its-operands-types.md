@@ -85,6 +85,14 @@ is kept as written (`radians="pi/2"` is `π/2`, `alpha` is `α`), as
 is one when what it names can be; a number or three points are numbers.
 The other unit is the engine's conversion, simplified (`180 α/π`).
 
+*Extended 2026-11-25* (ADR 0075) to the list operators whose results
+are lists: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`,
+`<cumulativeMax>` and `<differences>`. Each entry is `Flow::HeldOf(expr,
+numeric)`, the operator expression over its prefix when the type pass
+types it math, else the number; every entry's expression is over all the
+operands, so the element is one kind. `forceSymbolic` and `forceNumeric`
+decide instead.
+
 ## Considered options
 
 - **Decide at tick time, per value**, as the current core does. Rejected

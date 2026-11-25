@@ -56,3 +56,7 @@ and §3.6).
   (REF-4a, D25).
 - Not covered: a `<label>` child's reference (`<label>$n</label>`) is
   compiled as any child's is, but a label with math is drawn as text.
+- *2026-11-25* (ADR 0075): a `<label>` is a type of its own, a container
+  standing as its children as a group does, whose `value` is its text;
+  `$P.label` names a component's last `<label>` child, and a bare
+  reference to a label reads as a `<text>` of that value.
