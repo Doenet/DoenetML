@@ -240,6 +240,25 @@ export function listEntryCountAtLoad(
         }
     }
 
+    // What is written in an extend or copy of a list beside the reference
+    // to it that it holds (`forList`, as `<mathList copy="$ml">3</mathList>`)
+    // is combined with that list's entries, and its `maxNumber`, as the
+    // document runs (D78.2), so only an extend or copy with nothing written
+    // in it is counted here (its reference, `referencedListCount`).
+    const children = (list.children ?? []).filter(
+        (child) => typeof child !== "string" || child.trim() !== "",
+    );
+    if (
+        children.length > 1 &&
+        children.some(
+            (child) =>
+                typeof child === "object" &&
+                child.doenetAttributes?.forList !== undefined,
+        )
+    ) {
+        return undefined;
+    }
+
     // Merging the items of a math whose value is a list into entries is
     // decided by values.
     if (attributeOf(list, "mergeMathLists") !== undefined) {
