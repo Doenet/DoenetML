@@ -15,6 +15,7 @@
 - **A name some case or option lacks, such as `$cc.x`, is an error** (`doenet-e0093`), shown in the reference's place, where it was a warning with a blank (`doenet-w0183`), also when another case declares it twice, or the case lacking it is an `<else>` written with `copy`, which went unreported before. A name of different types in two cases stays an error in the reference's place, now under an error's code, `doenet-e0094` (it was `doenet-w0184`, reported at error level); a tag made from it is `doenet-e0066`, as before. The same holds for `$s[2].x` after a select that picks several, and for a name after a `<repeat>`'s value whose items each hold several components.
 - `$cc` while no case is shown, or while the case shown is empty, shows nothing, as before; a tag made from it is missing, and an index into it names nothing.
 - For a list held alone in a case, `doenet-e0064` now suggests `$cc[1]`.
+- A case or option written with `copy` of one it is inside is reported as a circular dependency (`doenet-e0005`); a tag made from its `<select>` or `<conditionalContent>` stopped the document from loading before.
 - No path reaches the case or pick itself by index any more, so a component in one that has no name of its own has no index-based id (`cc:1:2`) or, in `@doenet/doenetml-headless`, no stable key (`s[1][1]`): give it a name. Editor completions and help no longer offer a case's or option's names after an index (`$cc[1].`, `$s[1].` of a one-pick select).
 
 Closes #2673.
