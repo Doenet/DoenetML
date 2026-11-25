@@ -39,6 +39,18 @@ spec! {
         expect { "pg.vertex4" = (-2, 10) }
     }
 
+    case "over a repeat's points, one vertex per iteration (ADR 0075)" {
+        doenet r#"<numberInput name="n" value="3"/>
+                  <graph>
+                    <setup><sequence name="s" from="1" to="$n"/></setup>
+                    <repeat name="r" for="$s" valueName="v"><point x="$v" y="2$v"/></repeat>
+                    <polygon name="p" vertices="$r"/>
+                  </graph>"#;
+        expect { "p.numVertices" = 3, "p[3].y" = 6 }
+        request { "n.value" = 2 }
+        expect { "p.numVertices" = 2 }
+    }
+
     case "a bare copy holds its referent's vertices" {
         doenet r#"<graph>
                     <polygon name="p" vertices="(0,0) (2,0) (1,1)"/>

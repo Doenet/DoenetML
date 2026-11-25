@@ -214,7 +214,7 @@ impl<'c> Stamp<'c> {
         Comp::Made(m)
     }
 
-    /// Expand collect (or polyline) `e` of template `t`: its children are
+    /// Expand collect `e` of template `t`: its children are
     /// copies of the components of its type under what it gathers from,
     /// and its count reads the counts of the repeats whose iterations
     /// hold one, when any does; then it follows their counts.

@@ -14,6 +14,7 @@ mod fix;
 mod items;
 mod iterates;
 mod lists;
+mod over_iterations;
 mod planner;
 mod repeat_literal;
 mod rows;
@@ -198,6 +199,11 @@ impl<'a> Planning<'a> {
 
     fn plan_elem_inner(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let component_type = self.rd.own_row(t, e).planned_as;
+        // A shape over a repeat's points reads its source whether it is
+        // written, an extend or a clone (ADR 0075).
+        if component_type.def().machinery == Some(Machinery::OverIterations) {
+            return self.plan_over_iterations(t, e);
+        }
         match self.elem_shape(t, e)? {
             // Every public prop aliases the original's; nothing else to
             // plan.
@@ -269,14 +275,14 @@ impl<'a> Planning<'a> {
                 self.plan_repeat_for(t, e)
             }
             Machinery::FunctionIterates => self.plan_function_iterates(t, e),
+            Machinery::OverIterations => self.plan_over_iterations(t, e),
             Machinery::Collect => self.plan_collect(t, e),
         }
     }
 
     /// Makes the element's children copies of the components under what
-    /// its `from` (a `<polyline>`'s `vertices`) names, of the type
-    /// outlining recorded it collects, gathered when it expands; its count
-    /// is an aggregate over them.
+    /// its `from` names, of the type outlining recorded it collects,
+    /// gathered when it expands; its count is an aggregate over them.
     fn plan_collect(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let Elem {
             node,
@@ -284,33 +290,19 @@ impl<'a> Planning<'a> {
             component_type: own_type,
             ..
         } = *self.rd.own_row(t, e);
-        // What it gathers from, and of which type when its own type fixes
-        // it (a polyline's points).
-        let (attr, fixed) = match own_type.def().settle {
-            Some(Settle::Collects(of, from)) => (from, Some(of)),
-            Some(Settle::CollectsByAttr(_, from)) => (from, None),
-            _ => unreachable!("a collecting element settles what it collects"),
-        };
-        let tag = own_type.tag();
-        let refused = match fixed {
-            Some(_) => Error::Unsupported(format!("<{tag}> needs {attr}=\"$name\"")),
-            None => Error::BadCollect,
+        // What it gathers from.
+        let Some(Settle::CollectsByAttr(_, attr)) = own_type.def().settle else {
+            unreachable!("a collecting element settles what it collects")
         };
         let m = self
             .rd
             .dast
             .attr(node, attr)
             .and_then(|a| self.rd.single_macro(a))
-            .ok_or(refused)?;
+            .ok_or(Error::BadCollect)?;
         let p = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
         if self.ar.refs[p.index()].prop.is_some() {
-            return Err(match fixed {
-                Some(of) => Error::Unsupported(format!(
-                    "<{tag} {attr}> must name a component holding {}s",
-                    of.tag()
-                )),
-                None => Error::BadCollect,
-            });
+            return Err(Error::BadCollect);
         }
         debug_assert!(
             matches!(self.rd.own_row(t, e).body, Body::Collect { .. }),

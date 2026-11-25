@@ -7,6 +7,7 @@ mod answer;
 mod choice;
 mod copies;
 mod inner;
+mod over_iterations;
 mod over_values;
 mod repeat_items;
 
@@ -45,6 +46,10 @@ struct Outlining<'a> {
     /// value or not by what it names once every name is in the table (ADR
     /// 0063).
     over_values: Vec<(TemplateId, ElemId)>,
+    /// The shapes whose `vertices` are one reference, or that extend
+    /// another, each over a repeat's points or not by what it names once
+    /// every name is in the table (ADR 0075).
+    over_iterations: Vec<(TemplateId, ElemId)>,
 }
 
 /// Outline `dast`, with what boxing records: what it settles, its rows of
@@ -85,6 +90,7 @@ impl<'a> Outlining<'a> {
             expanded: HashSet::new(),
             repeat_items: Vec::new(),
             over_values: Vec::new(),
+            over_iterations: Vec::new(),
         }
     }
 
@@ -129,6 +135,7 @@ impl<'a> Outlining<'a> {
         }
         crate::trace::span("extends").run(|| self.plan_extends());
         crate::trace::span("over values").run(|| self.settle_over_values());
+        crate::trace::span("over iterations").run(|| self.settle_over_iterations());
         crate::trace::span("repeat items").run(|| self.settle_repeat_items());
         crate::trace::span("answer children").run(|| self.add_answer_children());
         crate::trace::span("inner inputs").run(|| self.add_inner_inputs());
@@ -414,6 +421,11 @@ impl<'a> Outlining<'a> {
         if self.may_be_over_value(el, component_type) {
             self.over_values.push((t, e));
         }
+        // A shape whose vertices are one reference is over a repeat's
+        // points or not by what it names, once names resolve (ADR 0075).
+        if component_type.over_iterations().is_some() {
+            self.over_iterations.push((t, e));
+        }
         if self.is_container_copy(t, e) {
             self.container_copies.push((t, e));
             self.outlined_mut(t).elems[e.index()].clones_pending = true;
@@ -516,8 +528,7 @@ impl<'a> Outlining<'a> {
 
     /// Settle what a reference to `e` reads that its own source settles,
     /// as its type declares ([`Settle`]): a `<math>`'s type, from its
-    /// tokenized text; what a `<collect>` (its `componentType`) or a
-    /// `<polyline>` (points) collects.
+    /// tokenized text; what a `<collect>` (its `componentType`) collects.
     fn settle_outline(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
         let component_type = match self.outlined(t).elems[e.index()]
@@ -533,7 +544,6 @@ impl<'a> Outlining<'a> {
                 self.work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
-            Some(Settle::Collects(of, _)) => of,
             Some(Settle::CollectsByAttr(attr, _)) => {
                 let text = d
                     .attr(el, attr)

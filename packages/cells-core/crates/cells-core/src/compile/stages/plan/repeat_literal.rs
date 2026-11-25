@@ -131,6 +131,7 @@ impl Planning<'_> {
         let ports: Vec<Port> = pieces.into_iter().map(|s| wiring.hidden(s)).collect();
         wiring.set_public_sources(prop::repeat_for::Props {
             count: Source::constant(n as f64),
+            hide: self.repeat_hide(el),
         });
         self.tables[t.index()].plans[e.index()].props = wiring.finish().0;
         // The item, element 0 of the body when `valueName` names one, of

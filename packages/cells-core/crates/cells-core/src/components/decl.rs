@@ -52,6 +52,11 @@ pub struct ComponentDef {
     /// reference to a math value, settled once names resolve (ADR 0063):
     /// a list whose count follows that value.
     pub over_value: Option<ComponentType>,
+    /// The type an element of the type is when its points attribute
+    /// (`vertices`) names a structural sequence of points, one per
+    /// iteration of a repeat-like element, settled once names resolve
+    /// (ADR 0075): a polyline whose count follows the repeat's.
+    pub over_iterations: Option<ComponentType>,
     /// What a child element of a tag is under an element of the type, in
     /// place of what the tag alone makes it (ADR 0055): a `<matrix>`'s
     /// `<row>` is a `<matrixRow>`.
@@ -306,8 +311,11 @@ pub enum Machinery {
     RepeatFor,
     /// A function's iterates, built as a repeat.
     FunctionIterates,
+    /// A shape whose vertices are the points of a repeat's iterations
+    /// (ADR 0075): its count the repeat's, its item each point.
+    OverIterations,
     /// Copies of the components under what an attribute names, of the type
-    /// outlining recorded (`<collect from>`, `<polyline vertices>`).
+    /// outlining recorded (`<collect from>`).
     Collect,
 }
 
@@ -580,9 +588,6 @@ pub(crate) enum Settle {
     /// Its type, from its children's math text, which is kept for the
     /// planner (a `<math>` is a point, a tuple or a math).
     FromMathText(fn(&[crate::compile::ir::expr::Token]) -> ComponentType),
-    /// It collects components of this type, under what the attribute
-    /// (the second) names (a `<polyline>`'s points, from `vertices`).
-    Collects(ComponentType, &'static str),
     /// It collects components of the type its literal attribute (the
     /// first) names, which must be copyable, under what the second names
     /// (a `<collect componentType from>`).
@@ -1092,8 +1097,7 @@ pub enum Collection {
     /// expands in place (choices, cases, groups, repeats, collects).
     SectionsThrough,
     /// The components of the type the element gathers, under what it gathers
-    /// from, in document order, not entering a match: a collect's, or a
-    /// polyline's points.
+    /// from, in document order, not entering a match: a collect's.
     Gathered,
     /// The points a point list holds: its children, one per item of the
     /// list it extends.

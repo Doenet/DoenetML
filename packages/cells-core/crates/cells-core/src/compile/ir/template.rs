@@ -41,7 +41,7 @@ pub(crate) enum Body {
     Repeat {
         template: TemplateId,
     },
-    /// A `<collect>` or `<polyline>`, of the type it collects.
+    /// A `<collect>`, of the type it collects.
     Collect {
         component_type: ComponentType,
     },

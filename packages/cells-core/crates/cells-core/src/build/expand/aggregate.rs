@@ -687,7 +687,7 @@ impl<'c> Builder<'c> {
         }
     }
 
-    /// Expand a collect (a polyline): its children are copies of what it
+    /// Expand a collect: its children are copies of what it
     /// gathers, and its count is how many.
     pub(in crate::build) fn expand_collect(&mut self, comp: CompIdx) -> Result<()> {
         let inst = self.instances[self.comp_instance[comp.index()].index()];

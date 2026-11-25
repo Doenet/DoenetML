@@ -212,7 +212,7 @@ pub(in crate::build) struct Builder<'c> {
     pub(in crate::build) slot_scope: Vec<ScopeId>,
     /// Per scope, the repeat component whose iteration it is, or NONE.
     pub(in crate::build) scope_repeat: Vec<CompIdx>,
-    /// Collects (a polyline is one) whose count reads the counts of the
+    /// Collects whose count reads the counts of the
     /// repeats they gather from.
     pub(in crate::build) follows_counts: HashSet<CompIdx>,
     /// Each step of a type with a [`StepGate`](crate::components::StepGate)
@@ -948,15 +948,32 @@ impl<'c> Builder<'c> {
         Ok(out)
     }
 
-    /// The node a repeat's iterations and count are keyed by: its own,
-    /// or for one outlining made (a matrix input's row, ADR 0045) the
-    /// nearest enclosing element's, which no other repeat in its scope
-    /// shares.
+    /// The node a repeat's iterations and count are keyed by: its own;
+    /// for a clone, the copy's it is in (ADR 0075); or for one outlining
+    /// made (a matrix input's row, ADR 0045) the nearest enclosing
+    /// element's, which no other repeat in its scope shares.
     fn repeat_node(&self, mut t: TemplateId, mut e: ElemId) -> NodeId {
         loop {
             let node = self.compiled.plans.templates[t.index()].row(e).node;
             if node != NodeId::NONE {
                 return node;
+            }
+            // A clone (a shape over a repeat's points in a copied
+            // container, ADR 0075): the copy's, which holds no other.
+            let tpl = &self.compiled.plans.templates[t.index()];
+            if tpl.row(e).cloned {
+                let mut copy = e;
+                while tpl.row(copy).cloned {
+                    let up = tpl.row(copy).name_scope;
+                    if up == crate::compile::ir::ROOT_SCOPE || up == copy {
+                        break;
+                    }
+                    copy = up;
+                }
+                let node = tpl.row(copy).node;
+                if node != NodeId::NONE {
+                    return node;
+                }
             }
             match self.compiled.plans.templates[t.index()].parent {
                 Some((pt, pe)) => (t, e) = (pt, pe),

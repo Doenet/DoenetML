@@ -171,13 +171,13 @@ fn sir_loads_and_iterates() {
     assert_eq!(val(&doc, "Ntot", "value"), 10000.0);
     assert_eq!(val(&doc, "plot", "xmax"), 50.0);
     assert_eq!(val(&doc, "plot", "ymin"), -2000.0);
-    // Each polyline gathers its repeat's points.
+    // Each polyline's vertices are its repeat's points (ADR 0075).
     let polylines: Vec<_> = CompIdx::below(doc.n_components())
-        .filter(|&c| doc.component_type(c) == ComponentType::Polyline)
+        .filter(|&c| doc.component_type(c) == ComponentType::PolylineOverIterations)
         .collect();
     assert_eq!(polylines.len(), 3);
     for &p in &polylines {
-        let count = doc.comp_cells(p)[cells_core::components::prop::polyline::NUM_VERTICES];
+        let count = doc.prop_cells(p, "numVertices").unwrap()[0];
         assert_eq!(doc.cells[count.index()], 201.0);
     }
     // Presentation attributes are read from the element.

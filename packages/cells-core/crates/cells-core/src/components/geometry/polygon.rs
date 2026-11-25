@@ -16,6 +16,8 @@ component! {
     tags: ["polygon"],
     flags: [copyable, located],
     renders: InGraph,
+    // Its vertices the points of a repeat's iterations (ADR 0075).
+    over_iterations: PolygonOverIterations,
     props {
         numVertices: list_len { rendered },
         // The mean of the vertices; the renderer's center handle requests

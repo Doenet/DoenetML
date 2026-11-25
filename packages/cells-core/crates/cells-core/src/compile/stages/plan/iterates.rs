@@ -253,6 +253,7 @@ impl<'a> Planning<'a> {
         }
         self.tables[t.index()].plans[e.index()].props = prop::repeat_for::Props {
             count: Source::reference(fp),
+            hide: self.repeat_hide(el),
         }
         .into_vec();
         let has_item = body
@@ -283,6 +284,28 @@ impl<'a> Planning<'a> {
             self.tables[sub.index()].plans[0].props = props;
         }
         Ok(())
+    }
+
+    /// A `<repeat>`'s `hide`, 1 when it hides it and what it holds: a
+    /// literal one (bare, `true` or `false`), else 0. One that is no
+    /// literal is not read, so it is refused (ADR 0021).
+    pub(super) fn repeat_hide(&self, el: NodeId) -> Source {
+        let d = self.rd.dast;
+        let literal = d.attr_peek(el, "hide").and_then(|a| {
+            let text = self.rd.attr_text(a)?;
+            match text.trim().to_ascii_lowercase().as_str() {
+                "" | "true" => Some(1.0),
+                "false" => Some(0.0),
+                _ => None,
+            }
+        });
+        match literal {
+            Some(v) => {
+                d.attr(el, "hide");
+                Source::constant(v)
+            }
+            None => Source::constant(0.0),
+        }
     }
 
     /// A reference to the cell of the index outlining made beside a
@@ -368,8 +391,9 @@ impl<'a> Planning<'a> {
                         .collect::<Vec<_>>(),
                 )
             });
+            let hide = self.repeat_hide(self.rd.own_row(t, e).node);
             self.tables[t.index()].plans[e.index()].props =
-                prop::repeat_for::Props { count }.into_vec();
+                prop::repeat_for::Props { count, hide }.into_vec();
             if let Some(props) = props {
                 self.tables[sub.index()].plans[0].props = props;
             }
@@ -464,8 +488,9 @@ impl<'a> Planning<'a> {
             });
             (Source::constant(n as f64), props)
         };
+        let hide = self.repeat_hide(self.rd.own_row(t, e).node);
         self.tables[t.index()].plans[e.index()].props =
-            prop::repeat_for::Props { count }.into_vec();
+            prop::repeat_for::Props { count, hide }.into_vec();
         if let Some(props) = props {
             self.tables[sub.index()].plans[0].props = props;
         }

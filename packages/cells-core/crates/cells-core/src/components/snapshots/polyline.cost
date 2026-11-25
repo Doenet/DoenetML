@@ -1,0 +1,6 @@
+a polyline holds the vertices given, and its length is its edges': cells 16 · essential 10 · constant 4 · instrs 1 · components 3
+vertices that are points move the points: cells 17 · essential 10 · constant 5 · instrs 1 · components 5
+over a repeat's points: one vertex per iteration, rebuilt with the count (ADR 0075): cells 23 · essential 8 · constant 8 · instrs 5 · components 22
+an extend of one, and a clone in a copied graph, follow it (ADR 0075): cells 24 · essential 11 · constant 7 · instrs 4 · components 25
+a repeat of anything but one point per iteration is no structural sequence of points: cells 17 · essential 8 · constant 9 · instrs 0 · components 10
+a whole drag moves every vertex: cells 16 · essential 10 · constant 4 · instrs 1 · components 3

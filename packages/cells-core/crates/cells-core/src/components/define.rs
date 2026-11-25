@@ -333,6 +333,7 @@ pub(super) const fn definition(
         rewrite: None,
         structural: None,
         over_value: None,
+        over_iterations: None,
         child_types: &[],
         settle: None,
         extend_value: None,
@@ -454,6 +455,12 @@ impl ComponentDef {
     /// value (ADR 0063).
     pub(super) const fn over_value(mut self, ty: super::ComponentType) -> Self {
         self.over_value = Some(ty);
+        self
+    }
+    /// The type of an element whose points attribute names a structural
+    /// sequence of points (ADR 0075).
+    pub(super) const fn over_iterations(mut self, ty: super::ComponentType) -> Self {
+        self.over_iterations = Some(ty);
         self
     }
     /// What outlining settles of an element of the type ([`super::Settle`]).
@@ -810,8 +817,8 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// Skip`, `scored: Item(credit, weight)` or `scored: Aggregates(weight,
 /// flag)` says what the type is to scoring ([`super::Scored`]). `rewrite
 /// { rendered: ConditionalContent }` makes an element carrying the
-/// attribute one of that type instead. `settle: Collects(Point,
-/// vertices)`, `CollectsByAttr(componentType, from)` or `FromMathText(f)`
+/// attribute one of that type instead. `settle: CollectsByAttr(componentType,
+/// from)` or `FromMathText(f)`
 /// says what outlining settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
 /// `Point(f)`, `Expr(f)`, `List`, `Attr(name)` or `Children` says what
 /// `extend="$x.prop"` makes of the value ([`super::ExtendValue`]). `triggers { when: p }` says the
@@ -996,6 +1003,7 @@ macro_rules! component {
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(structural { when: [$($stwhen:ident),+ $(,)?], is: $stis:ident $(,)? })?
         $(over_value: $ovis:ident,)?
+        $(over_iterations: $oiis:ident,)?
         $(child_types { $($cttag:ident : $ctty:ident),+ $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
@@ -1106,6 +1114,7 @@ macro_rules! component {
                     is: $crate::components::ComponentType::$stis,
                 }))?
                 $(.over_value($crate::components::ComponentType::$ovis))?
+                $(.over_iterations($crate::components::ComponentType::$oiis))?
                 $(.child_types(&[$((stringify!($cttag), $crate::components::ComponentType::$ctty)),+]))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
@@ -1412,12 +1421,6 @@ macro_rules! component {
     // What outlining settles of an element of the type.
     (@settle FromMathText($f:path)) => {
         $crate::components::Settle::FromMathText($f)
-    };
-    (@settle Collects($to:ident, $from:ident)) => {
-        $crate::components::Settle::Collects(
-            $crate::components::ComponentType::$to,
-            stringify!($from),
-        )
     };
     (@settle CollectsByAttr($attr:ident, $from:ident)) => {
         $crate::components::Settle::CollectsByAttr(stringify!($attr), stringify!($from))

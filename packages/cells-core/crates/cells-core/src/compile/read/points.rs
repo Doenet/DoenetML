@@ -87,6 +87,39 @@ impl<'a> SourceReader<'a> {
         Ok(out)
     }
 
+    /// The element of type `item` each iteration of repeat-like element
+    /// `e` of template `t` holds, when that is all it holds (ADR 0075): its
+    /// element in the body template. A repeat whose body is one `<point>`,
+    /// a point list over a math value, a shape over a repeat's points.
+    pub(in crate::compile) fn point_per_iteration(
+        &self,
+        t: TemplateId,
+        e: ElemId,
+        item: ComponentType,
+    ) -> Option<ElemId> {
+        let el = &self.outlined(t).elems[e.index()];
+        let Body::Repeat { template } = el.body else {
+            return None;
+        };
+        if !matches!(
+            el.component_type.structure_kind(),
+            Some(StructureKind::Repeat { .. })
+        ) {
+            return None;
+        }
+        let body = self.outlined(template);
+        let mut found = None;
+        for ch in &body.children {
+            match *ch {
+                Child::Elem(x) if found.is_none() => found = Some(x),
+                Child::Text(s) if self.dast.strings.get(s).trim().is_empty() => {}
+                _ => return None,
+            }
+        }
+        let x = found?;
+        (body.elems[x.index()].component_type == item).then_some(x)
+    }
+
     /// If plan `p` names a list prop, how many items it has (known at
     /// compile time from the referent element).
     pub(in crate::compile) fn array_items_of_plan(

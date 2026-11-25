@@ -324,6 +324,10 @@ component_types! {
     /// A `<sequence type="letters">` whose count follows a value: its
     /// items texts (ADR 0074).
     StructuralLetterSequence => values::structural_sequence::LETTERS,
+    /// A `<polyline>` whose vertices are a repeat's points (ADR 0075).
+    PolylineOverIterations => geometry::over_iterations::polyline::DEFINITION,
+    /// A `<polygon>` whose vertices are a repeat's points (ADR 0075).
+    PolygonOverIterations => geometry::over_iterations::polygon::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -432,6 +436,13 @@ impl ComponentType {
     /// the value, settled by outlining once names resolve.
     pub fn over_value(self) -> Option<ComponentType> {
         self.def().over_value
+    }
+
+    /// The type an element of this type is when its points attribute
+    /// names a structural sequence of points (ADR 0075), settled by
+    /// outlining once names resolve.
+    pub fn over_iterations(self) -> Option<ComponentType> {
+        self.def().over_iterations
     }
 
     /// Whether the type is a list over a math value (ADR 0063): what some
@@ -1588,7 +1599,6 @@ mod tests {
             ClampNumber,
             RepeatFor,
             FunctionIterates,
-            Polyline,
             Boolean,
             Award,
             When,

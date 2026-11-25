@@ -55,7 +55,7 @@ pub(crate) enum Step {
     /// iteration the index names.
     Iter(IndexPlan),
     /// `[k]` on a collection of the element just selected: a gathered
-    /// item (a collect's, a polyline's), a point of a point list, or a
+    /// item (a collect's), a point of a point list, or a
     /// pick of a select, which enters the option's template.
     Item(Collection, IndexPlan),
     /// An interface name of a choice, by its name-table id: `$cc.x`, or

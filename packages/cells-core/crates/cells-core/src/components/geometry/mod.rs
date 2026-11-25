@@ -31,6 +31,7 @@ pub(crate) mod equilibrium_curve;
 pub(crate) mod equilibrium_line;
 pub(crate) mod equilibrium_point;
 pub(crate) mod intersection;
+pub(crate) mod over_iterations;
 pub(crate) mod parabola;
 
 /// The most vertices of a polygon, and of a rigid one.
