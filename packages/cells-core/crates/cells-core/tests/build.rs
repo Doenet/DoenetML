@@ -28,9 +28,11 @@ fn load_ok(src: &str) -> Document {
 #[test]
 fn three_cells_for_three_coordinates_plus_one_hide_per_point() {
     // Every count here includes the document's `creditAchieved` and
-    // `percentCreditAchieved`: two constants when nothing is scored.
+    // `percentCreditAchieved`: two constants when nothing is scored; and,
+    // with a point, the one pooled constant every point's `draggable`
+    // shares (ADR 0070, ADR 0080).
     let doc = load_ok(r#"<point name="p1" x="1" y="2"/><point name="p2" x="5" y="$p1.y"/>"#);
-    assert_eq!(doc.cells.len(), 6);
+    assert_eq!(doc.cells.len(), 7);
     // The coordinates a drag writes; each point's `hide` is a constant, since
     // nothing a student does writes it (ADR 0018), and a document constant,
     // so both points' share one pooled cell (ADR 0028).
@@ -46,9 +48,9 @@ fn three_cells_for_three_coordinates_plus_one_hide_per_point() {
 #[test]
 fn bare_component_reference_shares_every_cell() {
     let doc = load_ok(r#"<graph name="g"><point name="p1" x="1" y="2"/>$p1</graph>"#);
-    // four graph bounds plus two coordinates and a hide, and the document's
-    // two constant credit cells; the copy adds none
-    assert_eq!(doc.cells.len(), 9);
+    // four graph bounds plus two coordinates, a hide and a draggable, and
+    // the document's two constant credit cells; the copy adds none
+    assert_eq!(doc.cells.len(), 10);
     let g = doc.resolve_path("g").unwrap();
     let kids: Vec<_> = doc
         .children(g)
@@ -72,7 +74,7 @@ fn bare_component_reference_shares_every_cell() {
 #[test]
 fn extend_with_override_shares_only_unoverridden_props() {
     let doc = load_ok(r#"<point name="p1" x="1" y="2"/><point name="p2" extend="$p1" y="3"/>"#);
-    assert_eq!(doc.cells.len(), 6);
+    assert_eq!(doc.cells.len(), 7);
     assert_eq!(doc.cell("p1", "x"), doc.cell("p2", "x"));
     assert_ne!(doc.cell("p1", "y"), doc.cell("p2", "y"));
     assert_eq!(doc.value("p2", "y"), Some(3.0));
@@ -84,8 +86,8 @@ fn coords_attribute_aliases_both_cells() {
         r#"<point name="p1" x="1" y="2"/><point name="q" coords="$p1"/><point name="r" coords="$p1.coords"/>"#,
     );
     // Two coordinates, the credit's two constants, and one pooled `hide`
-    // for the three points (ADR 0028).
-    assert_eq!(doc.cells.len(), 5);
+    // and `draggable` for the three points (ADR 0028).
+    assert_eq!(doc.cells.len(), 6);
     assert_eq!(doc.cell("q", "x"), doc.cell("p1", "x"));
     assert_eq!(doc.cell("r", "y"), doc.cell("p1", "y"));
 }
@@ -93,7 +95,7 @@ fn coords_attribute_aliases_both_cells() {
 #[test]
 fn number_input_feeds_point_through_default_prop() {
     let mut doc = load_ok(r#"<numberInput name="n" value="4"/><point name="p" x="$n"/>"#);
-    assert_eq!(doc.cells.len(), 5);
+    assert_eq!(doc.cells.len(), 6);
     assert_eq!(doc.cell("n", "value"), doc.cell("p", "x"));
     assert_eq!(doc.value("p", "x"), Some(4.0));
     let c = doc.cell("n", "value").unwrap();
@@ -124,9 +126,9 @@ fn number_children_literal_reference_and_bare_text_reference() {
     // Its value aliases p1.y; its anchor, which nothing gives it, is the
     // missing value (it is in no graph).
     assert_eq!(doc.comp_cells(anon)[0], doc.cell("p1", "y").unwrap());
-    // p1.x, p1.y, p1's hide, a, c, the document's two credit cells, and
-    // the value the numbers' anchors share outside a graph
-    assert_eq!(doc.cells.len(), 8);
+    // p1.x, p1.y, p1's hide and draggable, a, c, the document's two credit
+    // cells, and the value the numbers' anchors share outside a graph
+    assert_eq!(doc.cells.len(), 9);
 }
 
 #[test]
@@ -181,7 +183,7 @@ fn graph_defaults_and_tree() {
     assert_eq!(doc.value("p", "x"), Some(0.0));
     let p = doc.resolve_path("p").unwrap();
     assert_eq!(doc.parent(p), doc.resolve_path("g"));
-    assert_eq!(doc.cells.len(), 9);
+    assert_eq!(doc.cells.len(), 10);
 }
 
 #[test]

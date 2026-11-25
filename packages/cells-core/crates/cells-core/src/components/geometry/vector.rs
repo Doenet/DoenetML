@@ -6,7 +6,7 @@ use super::pair::{PairGiven, plan_pair};
 use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::program::VecOp;
 
 component! {
@@ -30,6 +30,12 @@ component! {
         x: by_planner { rendered },
         y: by_planner { rendered },
         magnitude: by_planner,
+        // What a drag may move (ADR 0070): the whole vector, its head
+        // alone and its tail alone, 0/1 cells, each end's as given, else
+        // the vector's.
+        draggable: by_planner { rendered },
+        headDraggable: by_planner { rendered },
+        tailDraggable: by_planner { rendered },
     }
     combined_props {
         tail: [tailX, tailY],
@@ -44,12 +50,21 @@ component! {
         x1: x,
         x2: y,
     }
-    // Whether a renderer lets an end be dragged.
-    presentation { draggable, headDraggable, tailDraggable }
+    // A point constrained to it is moved onto the segment from its tail
+    // to its head (ADR 0080).
+    constrain_target { ports: [tailX, tailY, headX, headY], shape: Segment }
     attributes {
         tail: Point,
         head: Point,
         displacement: Point,
+        // The displacement's coordinates, as `xs="3 4"` or each alone,
+        // as the current core reads them (ADR 0080).
+        x: Scalar,
+        y: Scalar,
+        xs: Scalars,
+        draggable: Flag(true),
+        headDraggable: OptFlag,
+        tailDraggable: OptFlag,
     }
     params {
         // The tail and displacement when not given: (0, 0) and (1, 0).
@@ -71,12 +86,30 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             None => None,
         })
     };
+    // The displacement: `displacement`, else the `(a, b)` children, else
+    // `xs`, else `x` and `y`, a coordinate not given 0, as in the current
+    // core.
     let displacement = match (attrs.displacement, &attrs.children) {
         (Some(d), _) => Some(Wire::point(&d.point()?, attr::displacement, 0)),
         // The `(a, b)` children, which a copy then shares.
         (None, Some(nodes)) => {
             let p = GivenPoint::Tuple(ctx.tuple(nodes)?);
             Some(Wire::point_given(&p, |j| GivenId::Children(j as u32)))
+        }
+        (None, None) if !attrs.xs.is_empty() => {
+            let [x, y] = <[Source; 2]>::try_from(attrs.xs).map_err(|xs| {
+                Error::Unsupported(format!("a vector with {} coordinates", xs.len()))
+            })?;
+            Some([
+                Wire::scalar(x, GivenId::Attr(attr::xs, 0)),
+                Wire::scalar(y, GivenId::Attr(attr::xs, 1)),
+            ])
+        }
+        (None, None) if attrs.x.is_some() || attrs.y.is_some() => {
+            let coord = |a: Attr, s: Option<Source>| {
+                Wire::attr(a, s).unwrap_or_else(|| Wire::given_by(a, 0.0))
+            };
+            Some([coord(attr::x, attrs.x), coord(attr::y, attrs.y)])
         }
         (None, None) => None,
     };
@@ -114,6 +147,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         VecOp::CircleCenterPoint,
         vec![at.tailX, at.tailY, at.headX, at.headY],
     );
+    let [draggable, head_draggable] = super::drag::flags(
+        attrs.draggable.clone(),
+        attr::draggable,
+        attrs.headDraggable,
+        attr::headDraggable,
+        at.draggable,
+    );
+    let tail_draggable =
+        Wire::attr(attr::tailDraggable, attrs.tailDraggable).unwrap_or(Wire::own(at.draggable));
     wiring.set_planned(Planned {
         tailX: tx,
         tailY: ty,
@@ -122,6 +164,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         x,
         y,
         magnitude: Wire::own(circle[2]),
+        draggable,
+        headDraggable: head_draggable,
+        tailDraggable: tail_draggable,
     });
     Ok(wiring)
 }

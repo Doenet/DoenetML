@@ -267,14 +267,26 @@ pub enum ChildrenKind {
 /// How a `<constrainTo>` naming a component of a type constrains its point.
 #[derive(Debug, Clone, Copy)]
 pub enum ConstrainTarget {
-    /// The point's coordinates are the projection by `op` of what it was
-    /// asked, given the target's props `props`, in order
-    /// (`constrain_target { ports: [cx, cy, radius], op: ProjectCircle }`).
+    /// The point's coordinates are the point of the target nearest what
+    /// it was asked, the target a `shape` given by its props `props`, in
+    /// order (`constrain_target { ports: [cx, cy, radius], shape: Circle
+    /// }`, ADR 0080).
     Project {
-        /// The target's props the projection reads.
+        /// The target's props the shape reads.
         props: &'static [&'static str],
-        /// The projection.
-        op: crate::program::VecOp,
+        /// The shape they give.
+        shape: crate::program::Target,
+    },
+    /// The point's coordinates are the point of the target's edges
+    /// nearest what it was asked, its vertices the points of its list
+    /// prop `vertices` (`constrain_target { polygon: true }`, ADR 0080):
+    /// a polygon's edges close, a polyline's do not.
+    Polygon {
+        /// Whether its last vertex joins its first.
+        closed: bool,
+        /// How many vertices it has whatever gives them (a triangle's
+        /// three), or None for as many as its `vertices` holds.
+        vertices: Option<usize>,
     },
     /// The point rides a graph: its `x` is what was asked, its `y` the
     /// target's prop `expr` evaluated there (`constrain_target { graph:

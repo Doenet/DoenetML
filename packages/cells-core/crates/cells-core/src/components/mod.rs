@@ -47,6 +47,9 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "padZeros",
     "avoidScientificNotation",
     "displayBlanks",
+    // A label made from the name, which the bridge makes where it makes
+    // a label (ADR 0080).
+    "labelIsName",
 ];
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits
@@ -344,6 +347,12 @@ component_types! {
     Image => containers::image::DEFINITION,
     /// `<video>`: a video laid out in the flow (ADR 0078).
     Video => containers::video::DEFINITION,
+    /// `<attractToGrid>` among a point's constraints (ADR 0080).
+    AttractToGrid => geometry::attract_to_grid::DEFINITION,
+    /// `<constrainToGraph>` among a point's constraints (ADR 0080).
+    ConstrainToGraph => geometry::constrain_to_graph::DEFINITION,
+    /// `<constrainToInterior>` among a point's constraints (ADR 0080).
+    ConstrainToInterior => geometry::constrain_to_interior::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

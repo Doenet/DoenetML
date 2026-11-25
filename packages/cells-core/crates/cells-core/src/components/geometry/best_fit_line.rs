@@ -35,7 +35,7 @@ component! {
         points: [[x1, y1], [x2, y2]],
     }
     // A point constrained to it is projected onto it.
-    constrain_target { ports: [x1, y1, x2, y2], op: ProjectLine }
+    constrain_target { ports: [x1, y1, x2, y2], shape: Line }
     attributes {
         data: Points,
     }

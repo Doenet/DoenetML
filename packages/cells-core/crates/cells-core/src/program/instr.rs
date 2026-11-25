@@ -951,6 +951,7 @@ mod arity {
             OpSpec::Sym(SymKind::TextNumber),
             OpSpec::Sym(SymKind::Letters),
             OpSpec::Sym(SymKind::LetterNumber),
+            OpSpec::Vec(VecOp::Constrain { n_in: 7 }),
         ]);
         ops
     }
@@ -1003,6 +1004,7 @@ mod arity {
                 VecOp::SegmentMirror => 70,
                 VecOp::SegmentMeasures => 71,
                 VecOp::BinCounts { .. } => 74,
+                VecOp::Constrain { .. } => 76,
             },
             OpSpec::Sym(k) => {
                 28 + match k {
@@ -1052,7 +1054,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 76;
+    const N_TAGS: usize = 77;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

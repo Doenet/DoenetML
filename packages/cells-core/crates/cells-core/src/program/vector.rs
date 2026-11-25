@@ -79,6 +79,9 @@
 //! |                          | the k-th value not excluded           |                                                                      |                   |
 //! | `BinCounts{e, v, right}` | (e cut points, v values) → how many   | none: a count is not set by a request                                | none              |
 //! |                          | values fall in each bin between them  |                                                                      |                   |
+//! | `Constrain{n_in}`        | (P, a constraint program) → P with    | projection: the requested point constrained, written to P            | P                 |
+//! |                          | each constraint applied in order, and |                                                                      |                   |
+//! |                          | whether any applied (ADR 0080)        |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -490,6 +493,15 @@ pub enum VecOp {
         values: u8,
         /// Whether a bin holds its upper cut point instead of its lower.
         right: bool,
+    },
+    /// A point's constraints (ADR 0080): inputs the point's coordinates as
+    /// asked, then a constraint program (`program/constrain.rs`), its
+    /// codes constant inputs; outputs the point with each constraint
+    /// applied in order, and 1 when any applied, else 0. A request writes
+    /// the requested point constrained to the first two inputs.
+    Constrain {
+        /// How many inputs: 2 and the program's.
+        n_in: u8,
     },
 }
 
@@ -1672,6 +1684,7 @@ impl VecOp {
             VecOp::SequenceCount { n_exclude } => 3 + n_exclude as usize,
             VecOp::SequenceEntry { n_exclude } => 4 + n_exclude as usize,
             VecOp::BinCounts { edges, values, .. } => edges as usize + values as usize,
+            VecOp::Constrain { n_in } => n_in as usize,
         }
     }
 
@@ -1687,6 +1700,7 @@ impl VecOp {
             VecOp::PolarDirection { .. } => 0b11100,
             VecOp::LinePointsFromCoeffs => 0b111,
             VecOp::ProjectCircle | VecOp::ProjectLine | VecOp::Attract => 0b11,
+            VecOp::Constrain { .. } => 0b11,
             VecOp::SegmentPolar | VecOp::SegmentMirror | VecOp::SegmentMeasures => first(4),
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
@@ -1817,6 +1831,7 @@ impl VecOp {
             VecOp::SequenceParams { .. } => 3,
             VecOp::SequenceCount { .. } | VecOp::SequenceEntry { .. } => 1,
             VecOp::BinCounts { edges, .. } => (edges as usize).saturating_sub(1),
+            VecOp::Constrain { .. } => 3,
         }
     }
 
@@ -1839,6 +1854,7 @@ impl VecOp {
             | VecOp::SequenceCount { .. }
             | VecOp::SequenceEntry { .. }
             | VecOp::BinCounts { .. }
+            | VecOp::Constrain { .. }
             | VecOp::Intersect { .. } => false,
             VecOp::Reduce { op, .. } => !matches!(
                 op,
@@ -2102,6 +2118,12 @@ impl VecOp {
                 let (cuts, vals) = inp.split_at(edges as usize);
                 bin_counts(cuts, &vals[..values as usize], right, out);
             }
+            VecOp::Constrain { n_in } => {
+                let (x, y, used) = super::constrain::apply(inp[0], inp[1], &inp[2..n_in as usize]);
+                out[0] = x;
+                out[1] = y;
+                out[2] = f64::from(u8::from(used));
+            }
         }
     }
 
@@ -2330,6 +2352,14 @@ impl VecOp {
             | VecOp::SequenceCount { .. }
             | VecOp::SequenceEntry { .. }
             | VecOp::BinCounts { .. } => false,
+            // The point asked for, constrained: a drag comes to rest
+            // where the constraints put it (ADR 0080).
+            VecOp::Constrain { n_in } => {
+                let (x, y, _) = super::constrain::apply(want(0), want(1), &inp[2..n_in as usize]);
+                out.write(inputs[0], x);
+                out.write(inputs[1], y);
+                true
+            }
             VecOp::Parabola { through, vertex } => {
                 // A vertex asked for keeps `a`.
                 let abc = if desired[3].is_some() || desired[4].is_some() {
@@ -3436,6 +3466,7 @@ mod writes {
                 values: 2,
                 right: false,
             },
+            VecOp::Constrain { n_in: 7 },
         ]
     }
 
@@ -3570,6 +3601,7 @@ mod writes {
             | VecOp::SequenceCount { .. }
             | VecOp::SequenceEntry { .. }
             | VecOp::BinCounts { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            VecOp::Constrain { .. } => points(1).collect(),
         }
     }
 

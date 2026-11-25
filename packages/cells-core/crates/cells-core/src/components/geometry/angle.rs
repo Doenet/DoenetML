@@ -13,7 +13,7 @@ use crate::components::define::*;
 use crate::components::operators::over_math::{self, Kind};
 use crate::dast::NodeId;
 use crate::error::{Error, Result};
-use crate::program::{Post, Reflex, VecOp};
+use crate::program::{Figure, Post, Reflex, VecOp};
 use std::f64::consts::PI;
 
 component! {
@@ -58,7 +58,7 @@ component! {
         radians: Math,
         degrees: Math,
         chooseReflexAngle: Text,
-        betweenLines: Written,
+        betweenLines: Entries,
     }
     children: Math,
     planner: Plan(plan),
@@ -91,9 +91,6 @@ fn measure(
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let at = Props::PORTS;
     let attrs = Attrs::of(ctx.record());
-    if attrs.betweenLines {
-        return Err(Error::Unsupported("<angle betweenLines>".into()));
-    }
     let reflex = match attrs
         .chooseReflexAngle
         .as_deref()
@@ -105,9 +102,14 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => Reflex::Never,
     };
     let mut wiring = ElemWiring::of(ComponentType::Angle);
+    let lines = between_lines(ctx, &mut wiring, &attrs.betweenLines)?;
     // The first point and the vertex, when `through` gives them; the
     // vertex is the origin when it gives one point, as in the current core.
     let [x1, y1, x2, y2] = match attrs.through.as_slice() {
+        _ if lines.is_some() => {
+            let [x1, y1, x2, y2] = lines.as_ref().unwrap().points;
+            [x1, y1, x2, y2].map(Wire::own)
+        }
         [p1, v, ..] => {
             let [x1, y1] = Wire::point(p1, attr::through, 0);
             let [x2, y2] = Wire::point(v, attr::through, 1);
@@ -121,6 +123,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     };
     // The third point, when `through` gives it, whatever gives the measure.
     let third = match attrs.through.as_slice() {
+        _ if lines.is_some() => lines.as_ref().unwrap().third,
         [_, _, p3, ..] => Some(wiring.hidden_point_of(p3, attr::through, 2)),
         _ => None,
     };
@@ -204,6 +207,101 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         y2,
     });
     Ok(wiring)
+}
+
+/// What `betweenLines` makes of an angle's points, as the current core
+/// makes them: the first point and the vertex, and the third point when it
+/// is given.
+struct BetweenLines {
+    points: [Port; 4],
+    third: Option<[Port; 2]>,
+}
+
+/// The points `betweenLines` gives, None without it. Between two lines
+/// the vertex is where they meet, and the first and third points are a
+/// step along each line from it; along one line the vertex is its point
+/// nearest the origin and the first point a unit along it, the measure
+/// turning the third from it. More lines define no angle (an info, as in
+/// the current core): every point is missing.
+fn between_lines(
+    ctx: &mut PlanCtx<'_, '_>,
+    wiring: &mut ElemWiring,
+    pieces: &[ListPiece],
+) -> Result<Option<BetweenLines>> {
+    if pieces.is_empty() {
+        return Ok(None);
+    }
+    let lines = pieces
+        .iter()
+        .map(|piece| match piece {
+            ListPiece::Reference(p) => {
+                let ports = ["x1", "y1", "x2", "y2"]
+                    .into_iter()
+                    .map(|prop| Ok(wiring.hidden(Source::reference(ctx.with_prop(*p, prop)?))))
+                    .collect::<Result<Vec<Port>>>()?;
+                Ok([ports[0], ports[1], ports[2], ports[3]])
+            }
+            _ => Err(Error::Unsupported(
+                "an angle's `betweenLines` that is not references to lines".into(),
+            )),
+        })
+        .collect::<Result<Vec<[Port; 4]>>>()?;
+    // A line's step from its first point to its second, from `at`.
+    let step = |wiring: &mut ElemWiring, at: [Port; 2], [a1, a2, b1, b2]: [Port; 4]| -> [Port; 2] {
+        let dx = wiring.hidden(Source::computed(OpSpec::Sub, vec![b1, a1]));
+        let dy = wiring.hidden(Source::computed(OpSpec::Sub, vec![b2, a2]));
+        [
+            wiring.hidden(Source::computed(OpSpec::Add, vec![at[0], dx])),
+            wiring.hidden(Source::computed(OpSpec::Add, vec![at[1], dy])),
+        ]
+    };
+    Ok(Some(match lines.as_slice() {
+        [line] => {
+            let mut args = vec![Arg::Const(0.0), Arg::Const(0.0)];
+            args.extend(line.iter().map(|&p| Arg::Own(p)));
+            let v = wiring.hidden_vector_args(VecOp::ProjectLine, args);
+            let toward = step(wiring, [v[0], v[1]], *line);
+            // A unit from the vertex toward that step: the turn of nothing.
+            let first = wiring.hidden_vector_args(
+                VecOp::Turn,
+                vec![
+                    Arg::Own(toward[0]),
+                    Arg::Own(toward[1]),
+                    Arg::Own(v[0]),
+                    Arg::Own(v[1]),
+                    Arg::Const(0.0),
+                ],
+            );
+            BetweenLines {
+                points: [first[0], first[1], v[0], v[1]],
+                third: None,
+            }
+        }
+        [l1, l2] => {
+            let line = Figure::Line { segment: false };
+            let mut args: Vec<Port> = l1.to_vec();
+            args.extend(l2);
+            let meet = wiring.hidden_vector(VecOp::Intersect { a: line, b: line }, args);
+            let vertex = [meet[0], meet[1]];
+            let first = step(wiring, vertex, *l1);
+            let third = step(wiring, vertex, *l2);
+            BetweenLines {
+                points: [first[0], first[1], vertex[0], vertex[1]],
+                third: Some(third),
+            }
+        }
+        more => {
+            let warned = ctx.warn(
+                "doenet-i0017",
+                &format!("Cannot define an angle between {} lines.", more.len()),
+            );
+            let none = wiring.hidden(Source::undefined(warned));
+            BetweenLines {
+                points: [none; 4],
+                third: Some([none, none]),
+            }
+        }
+    }))
 }
 
 #[cfg(all(test, feature = "testing"))]

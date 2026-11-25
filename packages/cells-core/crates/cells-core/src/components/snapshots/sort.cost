@@ -5,13 +5,13 @@ a write to a shuffled entry lands on the operand it shows: cells 25 · essential
 a shuffle holds every operand once, in the order the seed drew: cells 33 · essential 0 · constant 33 · instrs 0 · components 13
 a shuffled value follows its operand, in the place drawn: cells 24 · essential 1 · constant 11 · instrs 10 · components 11
 an invalid type is reported and dropped: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
-points sort by their first coordinate, each entry a point: cells 33 · essential 10 · constant 8 · instrs 13 · components 9
-points sort by the coordinate sortByComponent names: cells 33 · essential 10 · constant 8 · instrs 13 · components 9
-points keep their order by a coordinate they do not have: cells 26 · essential 8 · constant 10 · instrs 8 · components 7
-vectors sort by their displacement: cells 36 · essential 12 · constant 6 · instrs 11 · components 7
-vectors sort by their tail, by the coordinate sortByComponent names: cells 50 · essential 16 · constant 7 · instrs 16 · components 9
-points sort by a prop they have, any spelling: cells 33 · essential 10 · constant 8 · instrs 13 · components 9
-a drag of a shuffled point lands on the point it shows: cells 26 · essential 12 · constant 10 · instrs 4 · components 8
-a drag of a sorted point is dropped: it would move the point: cells 29 · essential 12 · constant 7 · instrs 9 · components 8
+points sort by their first coordinate, each entry a point: cells 34 · essential 10 · constant 9 · instrs 13 · components 9
+points sort by the coordinate sortByComponent names: cells 34 · essential 10 · constant 9 · instrs 13 · components 9
+points keep their order by a coordinate they do not have: cells 27 · essential 8 · constant 11 · instrs 8 · components 7
+vectors sort by their displacement: cells 37 · essential 12 · constant 7 · instrs 11 · components 7
+vectors sort by their tail, by the coordinate sortByComponent names: cells 51 · essential 16 · constant 8 · instrs 16 · components 9
+points sort by a prop they have, any spelling: cells 34 · essential 10 · constant 9 · instrs 13 · components 9
+a drag of a shuffled point lands on the point it shows: cells 27 · essential 12 · constant 11 · instrs 4 · components 8
+a drag of a sorted point is dropped: it would move the point: cells 30 · essential 12 · constant 8 · instrs 9 · components 8
 booleans sort false before true, each entry a boolean: cells 23 · essential 0 · constant 23 · instrs 0 · components 10
-a point among other values is refused: cells 5 · essential 2 · constant 3 · instrs 0 · components 3
+a point among other values is refused: cells 6 · essential 2 · constant 4 · instrs 0 · components 3

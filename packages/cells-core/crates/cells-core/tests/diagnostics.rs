@@ -129,7 +129,7 @@ fn a_repeat_body_at_count_zero_is_still_diagnosed() {
 /// same one.
 #[test]
 fn an_attribute_nothing_reads_is_refused_on_its_element() {
-    let src = r#"<point name="p" x="1" draggable="false"/><number name="n">3</number>"#;
+    let src = r#"<point name="p" x="1" hideOffGraphIndicator="false"/><number name="n">3</number>"#;
     let doc = load(src).unwrap();
     assert_eq!(doc.value("n", "value"), Some(3.0));
     let p = doc.resolve_path("p").unwrap();
@@ -142,7 +142,7 @@ fn an_attribute_nothing_reads_is_refused_on_its_element() {
     assert_eq!(errs.len(), 1, "{:?}", doc.diagnostics());
     assert_eq!(errs[0].code, "cells-unsupported-attribute");
     assert!(
-        errs[0].message.contains("'draggable'") && errs[0].message.contains("<point>"),
+        errs[0].message.contains("'hideOffGraphIndicator'") && errs[0].message.contains("<point>"),
         "{}",
         errs[0].message
     );

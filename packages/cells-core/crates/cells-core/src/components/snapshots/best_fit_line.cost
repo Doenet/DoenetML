@@ -1,5 +1,5 @@
-four points, then moved: cells 22 · essential 12 · constant 3 · instrs 2 · components 7
-one point: the horizontal line through it: cells 16 · essential 6 · constant 3 · instrs 2 · components 4
-points at one x: the horizontal line through their mean: cells 18 · essential 8 · constant 3 · instrs 2 · components 5
+four points, then moved: cells 23 · essential 12 · constant 4 · instrs 2 · components 7
+one point: the horizontal line through it: cells 17 · essential 6 · constant 4 · instrs 2 · components 4
+points at one x: the horizontal line through their mean: cells 19 · essential 8 · constant 4 · instrs 2 · components 5
 a polygon's vertices, and the line's points: cells 23 · essential 10 · constant 4 · instrs 3 · components 4
 no data: no line: cells 11 · essential 4 · constant 7 · instrs 0 · components 3

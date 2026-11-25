@@ -18,6 +18,9 @@ fn vertex(_: &mut ItemCtx<'_>) -> crate::components::prop::point::Planned {
         x: Wire::absent(),
         y: Wire::absent(),
         hide: Wire::constant(1.0),
+        // Unconstrained and draggable (ADR 0080, ADR 0070).
+        constraintUsed: Wire::constant(0.0),
+        draggable: Wire::constant(1.0),
     }
 }
 

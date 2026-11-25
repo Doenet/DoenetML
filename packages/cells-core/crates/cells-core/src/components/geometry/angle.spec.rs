@@ -54,9 +54,20 @@ spec! {
         expect { "a.radians" = PI / 2.0, "a.degrees" = 90, "b.radians" = PI / 2.0 }
     }
 
-    case "between lines is not supported" {
+    case "between two lines: at where they meet, a step along each (ADR 0080)" {
         doenet r#"<line name="l1"/><line name="l2" through="(0,0) (0,1)"/><angle name="a" betweenLines="$l1 $l2"/>"#;
-        diagnostics["cells-unsupported"]
+        expect { "a.radians" = PI / 2.0, "a.x2" = 0, "a.y2" = 0, "a.x1" = -1, "a.y3" = 1 }
+    }
+
+    case "along one line: at its point nearest the origin, turned by the measure" {
+        doenet r#"<line name="l" through="(0,1) (1,1)"/><angle name="a" betweenLines="$l" degrees="90"/>"#;
+        expect { "a.x2" = 0, "a.y2" = 1, "a.x1" = 1, "a.y1" = 1, "a.radians" = PI / 2.0 }
+    }
+
+    case "between three lines: no angle, an info" {
+        doenet r#"<line name="l1"/><line name="l2" through="(0,0) (0,1)"/><line name="l3" through="(0,0) (1,1)"/>
+                  <angle name="a" betweenLines="$l1 $l2 $l3"/>"#;
+        diagnostics["doenet-i0017"]
     }
 
     case "a measure written as math is an expression, kept as written (ADR 0043)" {

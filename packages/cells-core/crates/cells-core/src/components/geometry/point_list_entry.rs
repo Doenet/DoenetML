@@ -81,6 +81,9 @@ fn item(ctx: &mut ItemCtx<'_>) -> crate::components::prop::point::Planned {
         x: Wire::own(ctx.owner(at.x)),
         y: Wire::own(ctx.owner(at.y)),
         hide: Wire::constant(0.0),
+        // Unconstrained and draggable (ADR 0080, ADR 0070).
+        constraintUsed: Wire::constant(0.0),
+        draggable: Wire::constant(1.0),
     }
 }
 

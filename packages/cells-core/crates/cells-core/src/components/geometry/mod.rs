@@ -48,10 +48,14 @@ pub(crate) mod constrain_to {
 
     component! {
         /// `<constrainTo>$c</constrainTo>` among a point's constraints: the
-        /// point is projected onto what the reference names. Only ever a
-        /// member of a point's `constraints` group.
+        /// point is projected onto what the reference names, or onto the
+        /// nearest of several (`<constrainTo>$l1 $l2</constrainTo>`). Only
+        /// ever a member of a point's `constraints` group (ADR 0080).
         tags: ["constrainTo"],
         flags: [owned],
+        attributes {
+            relativeToGraphScales: Bool(false),
+        }
         children: Value,
         owner: Point,
     }
@@ -63,12 +67,14 @@ pub(crate) mod attract_to {
     component! {
         /// `<attractTo threshold="0.5">$c</attractTo>` among a point's
         /// constraints: the point is projected onto what the reference
-        /// names when it is within `threshold` of it, else left where it
-        /// is. Only ever a member of a point's `constraints` group.
+        /// names (the nearest of several) when it is within `threshold` of
+        /// it, else left where it is. Only ever a member of a point's
+        /// `constraints` group (ADR 0080).
         tags: ["attractTo"],
         flags: [owned],
         attributes {
-            threshold: Literal(0.5),
+            threshold: Scalar,
+            relativeToGraphScales: Bool(false),
         }
         children: Value,
         owner: Point,
@@ -81,15 +87,76 @@ pub(crate) mod constrain_to_grid {
     component! {
         /// `<constrainToGrid dx dy xoffset yoffset>` among a point's
         /// constraints: the point snaps to the grid. Only ever a member of a
-        /// point's `constraints` group.
+        /// point's `constraints` group (ADR 0080).
         tags: ["constrainToGrid"],
         flags: [owned],
         attributes {
-            dx: Literal(1.0),
-            dy: Literal(1.0),
-            xoffset: Literal(0.0),
-            yoffset: Literal(0.0),
+            dx: Scalar,
+            dy: Scalar,
+            xoffset: Scalar,
+            yoffset: Scalar,
         }
+        owner: Point,
+    }
+}
+
+pub(crate) mod attract_to_grid {
+    use super::*;
+
+    component! {
+        /// `<attractToGrid dx dy xoffset yoffset xThreshold yThreshold
+        /// includeGridlines>` among a point's constraints: the point snaps
+        /// to a grid point when both coordinates are within their
+        /// thresholds of it, or each coordinate to a grid line with
+        /// `includeGridlines`. Only ever a member of a point's
+        /// `constraints` group (ADR 0080).
+        tags: ["attractToGrid"],
+        flags: [owned],
+        attributes {
+            dx: Scalar,
+            dy: Scalar,
+            xoffset: Scalar,
+            yoffset: Scalar,
+            xthreshold: Scalar,
+            ythreshold: Scalar,
+            includeGridlines: Flag(false),
+        }
+        owner: Point,
+    }
+}
+
+pub(crate) mod constrain_to_graph {
+    use super::*;
+
+    component! {
+        /// `<constrainToGraph buffer="0.01"/>` among a point's constraints:
+        /// the point is held inside the graph it is in, `buffer` of the
+        /// graph's width and height in from its edges. Only ever a member
+        /// of a point's `constraints` group (ADR 0080).
+        tags: ["constrainToGraph"],
+        flags: [owned],
+        attributes {
+            buffer: Scalar,
+        }
+        owner: Point,
+    }
+}
+
+pub(crate) mod constrain_to_interior {
+    use super::*;
+
+    component! {
+        /// `<constrainToInterior>$c</constrainToInterior>` among a point's
+        /// constraints: the point stays where it is inside what the
+        /// reference names (a circle, a polygon), and is moved onto its
+        /// edge from outside. Only ever a member of a point's
+        /// `constraints` group (ADR 0080).
+        tags: ["constrainToInterior"],
+        flags: [owned],
+        attributes {
+            relativeToGraphScales: Bool(false),
+        }
+        children: Value,
         owner: Point,
     }
 }

@@ -1,11 +1,11 @@
-two lines: none when they coincide or are parallel: cells 21 · essential 12 · constant 4 · instrs 3 · components 10
-segments: none when one stops short: cells 21 · essential 12 · constant 4 · instrs 3 · components 8
-hidden by the author: cells 22 · essential 13 · constant 4 · instrs 3 · components 7
-hidden by the author, in text: cells 23 · essential 13 · constant 5 · instrs 3 · components 8
-a line and a circle: two points, one where tangent: cells 27 · essential 11 · constant 5 · instrs 7 · components 11
-two circles: none when they share a center: cells 24 · essential 8 · constant 7 · instrs 5 · components 9
-two polygons: the edges' crossings, each once: cells 84 · essential 14 · constant 15 · instrs 27 · components 17
-a polygon and a circle: cells 49 · essential 12 · constant 10 · instrs 14 · components 11
+two lines: none when they coincide or are parallel: cells 22 · essential 12 · constant 5 · instrs 3 · components 10
+segments: none when one stops short: cells 22 · essential 12 · constant 5 · instrs 3 · components 8
+hidden by the author: cells 23 · essential 13 · constant 5 · instrs 3 · components 7
+hidden by the author, in text: cells 24 · essential 13 · constant 6 · instrs 3 · components 8
+a line and a circle: two points, one where tangent: cells 28 · essential 11 · constant 6 · instrs 7 · components 11
+two circles: none when they share a center: cells 25 · essential 8 · constant 8 · instrs 5 · components 9
+two polygons: the edges' crossings, each once: cells 85 · essential 14 · constant 16 · instrs 27 · components 17
+a polygon and a circle: cells 50 · essential 12 · constant 11 · instrs 14 · components 11
 one item or none: nothing: cells 11 · essential 8 · constant 3 · instrs 0 · components 5
 three lines: a warning: cells 19 · essential 16 · constant 3 · instrs 0 · components 6
-a point: a warning: cells 13 · essential 10 · constant 3 · instrs 0 · components 5
+a point: a warning: cells 14 · essential 10 · constant 4 · instrs 0 · components 5

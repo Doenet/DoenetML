@@ -47,7 +47,11 @@ component! {
         centerX1: cx,
         centerX2: cy,
     }
+    // Whether the renderer fills it.
+    presentation { filled }
     sticky: Shape::Closed,
+    // A point constrained to it is moved onto its nearest edge (ADR 0080).
+    constrain_target { polygon: true }
     attributes {
         vertices: Points,
         rigid: Bool(false),

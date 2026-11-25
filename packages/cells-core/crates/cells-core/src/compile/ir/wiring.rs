@@ -459,6 +459,16 @@ impl ElemWiring {
         }
         ports
     }
+    /// `hidden_vector` over arguments that may be literals (`Arg::Const`)
+    /// as well as own ports: a point's constraint program (ADR 0080).
+    pub(crate) fn hidden_vector_args(&mut self, op: VecOp, args: Vec<Arg>) -> Vec<Port> {
+        let head = self.hidden(Source::op(OpSpec::Vec(op), args));
+        let mut ports = vec![head];
+        for k in 1..op.n_out() {
+            ports.push(self.hidden(Source::Flow(Flow::VecOut(head, byte(k)))));
+        }
+        ports
+    }
     /// A hidden port holding parameter `param` at `value`.
     pub(crate) fn param(&mut self, param: Param, value: f64) -> Port {
         self.hidden_wire(Wire::param(param, value))

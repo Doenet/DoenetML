@@ -47,6 +47,8 @@ component! {
         centerX2: cy,
     }
     sticky: Shape::Open,
+    // A point constrained to it is moved onto its nearest edge (ADR 0080).
+    constrain_target { polygon: false }
     attributes {
         vertices: Points,
         rigid: Bool(false),

@@ -53,7 +53,7 @@ component! {
     sticky: Shape::Open,
     // A point constrained to a segment is projected onto its line (as
     // the current core's segment is not yet clamped here).
-    constrain_target { ports: [x1, y1, x2, y2], op: ProjectLine }
+    constrain_target { ports: [x1, y1, x2, y2], shape: Segment }
     attributes {
         endpoints: Points,
         midpoint: Point,
