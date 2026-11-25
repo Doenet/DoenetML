@@ -14,7 +14,7 @@ component! {
     flags: [copyable, symbolic],
     scored: Item(credit, weight),
     submit: Copies(response, submitted),
-    default_prop: credit,
+    default_prop: submitted,
     props {
         response: attr(NO_VALUE) { ref_prop: expr, read_by_action, expr_when: submitted },
         correct: children { expr_when: submitted },
