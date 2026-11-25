@@ -56,6 +56,18 @@ async function load(doenetML: string) {
             .text;
     }
 
+    /**
+     * The text of the component `name` names, reading only that: `text`
+     * evaluates every state variable, so it would also decide again an
+     * extend that no longer watches what decides it.
+     */
+    async function textAlone(name: string) {
+        const component = (core as any).core._components[
+            await resolvePathToNodeIdx(name)
+        ];
+        return await component.stateValues.text;
+    }
+
     async function setBoolean(name: string, boolean: boolean) {
         await updateBooleanInputValue({
             boolean,
@@ -87,6 +99,7 @@ async function load(doenetML: string) {
         warningCodes,
         typeOf,
         text,
+        textAlone,
         setBoolean,
         setMath,
         reload,
@@ -168,6 +181,46 @@ describe("A list reached through an iteration (#2676 items 1 and 2; REF-5, VAL-5
         expect(await d.text("e")).eq("1");
         await d.reload();
         expect(await d.text("e")).eq("1");
+    });
+
+    it("the count is watched: the tag is decided again when it changes, with nothing else read", async () => {
+        for (const [doenetML, start, values] of [
+            [
+                `<mathInput name="n" prefill="3"/><repeat name="r" for="1"><mathList><sequence length="$n"/></mathList></repeat><math name="e" extend="$r[1]"/>`,
+                "＿",
+                [
+                    ["1", "1"],
+                    ["2", "＿"],
+                    ["1", "1"],
+                    ["0", "＿"],
+                    ["1", "1"],
+                ],
+            ],
+            [
+                `<mathInput name="n" prefill="2"/><conditionalContent name="cc"><case condition="true"><mathList><sequence length="$n"/></mathList></case></conditionalContent><math name="e" extend="$cc"/>`,
+                "＿",
+                [
+                    ["1", "1"],
+                    ["2", "＿"],
+                ],
+            ],
+            [
+                `<mathInput name="n" prefill="2"/><mathList name="l0">4 5 6</mathList><group name="g"><mathList maxNumber="$n">$l0</mathList></group><math name="e" extend="$g"/>`,
+                "＿",
+                [
+                    ["1", "4"],
+                    ["3", "＿"],
+                    ["1", "4"],
+                ],
+            ],
+        ] as [string, string, [string, string][]][]) {
+            const d = await load(doenetML);
+            expect(await d.textAlone("e"), doenetML).eq(start);
+            for (const [n, shown] of values) {
+                await d.setMath("n", n);
+                expect(await d.textAlone("e"), `${doenetML} n=${n}`).eq(shown);
+            }
+        }
     });
 
     it("a list holding nothing says so, with no entry to use", async () => {
