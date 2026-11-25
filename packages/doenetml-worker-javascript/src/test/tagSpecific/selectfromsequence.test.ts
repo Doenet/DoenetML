@@ -1347,9 +1347,9 @@ describe("SelectFromSequence tag tests @group4", async () => {
       <selectFromSequence name="c" fixed="$f2" type="letters" from="a" to="e"/>
     </p>
     <p>
-      <text extend="$a[1]" name="a2" />
-      <text extend="$b[1]" name="b2" />
-      <text extend="$c[1]" name="c2" />
+      <text extend="$a" name="a2" />
+      <text extend="$b" name="b2" />
+      <text extend="$c" name="c2" />
     </p>
     <p>
       <textInput name="a3">$a</textInput>
@@ -1360,16 +1360,6 @@ describe("SelectFromSequence tag tests @group4", async () => {
       <textInput name="a4">$a2</textInput>
       <textInput name="b4">$b2</textInput>
       <textInput name="c4">$c2</textInput>
-    </p>
-    <p>
-      <boolean extend="$a[1].fixed" name="af" />
-      <boolean extend="$b[1].fixed" name="bf" />
-      <boolean extend="$c[1].fixed" name="cf" />
-    </p>
-    <p>
-      <boolean extend="$a2.fixed" name="a2f" />
-      <boolean extend="$b2.fixed" name="b2f" />
-      <boolean extend="$c2.fixed" name="c2f" />
     </p>
     `,
         });
@@ -1413,23 +1403,42 @@ describe("SelectFromSequence tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("c2")].stateValues.value,
         ).eq(c);
 
+        // The selected value is fixed unless `fixed` says otherwise. `$a[1]` of a
+        // one-value selectFromSequence names nothing and `$a.fixed` is the
+        // selectFromSequence's own (D72), so the test reads the value's `fixed`.
+        // A `<text extend="$a"/>` made from it, the form left for the value,
+        // doesn't take that `fixed` (it is made from the list, not from the
+        // entry `$a[1]` was); that edits through it are refused is checked
+        // below.
         expect(
-            stateVariables[await resolvePathToNodeIdx("af")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1]",
+                )
+            ).stateValues.fixed,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("bf")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "b[1]",
+                )
+            ).stateValues.fixed,
         ).eq(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx("cf")].stateValues.value,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("a2f")].stateValues.value,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("b2f")].stateValues.value,
-        ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c2f")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "c[1]",
+                )
+            ).stateValues.fixed,
         ).eq(true);
 
         await updateTextInputValue({
@@ -1559,22 +1568,34 @@ describe("SelectFromSequence tag tests @group4", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("af")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "a[1]",
+                )
+            ).stateValues.fixed,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("bf")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "b[1]",
+                )
+            ).stateValues.fixed,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("cf")].stateValues.value,
-        ).eq(false);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("a2f")].stateValues.value,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("b2f")].stateValues.value,
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c2f")].stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "c[1]",
+                )
+            ).stateValues.fixed,
         ).eq(false);
 
         await updateTextInputValue({

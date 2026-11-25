@@ -17,6 +17,7 @@ import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me, { Expression } from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { instanceOf } from "../utils/instance-children";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -5839,11 +5840,16 @@ Enter any letter:
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
+        // The case shown. An index after a `<conditionalContent>` reaches
+        // into what it shows (D72), so no path names the case; it is the
+        // same group while it is withheld below.
+        const caseIdx = await instanceOf(core, resolvePathToNodeIdx, "cond");
+        expect(caseIdx).not.eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("cond")].replacements,
         ).eqls([
             {
-                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentIdx: caseIdx,
                 componentType: "group",
             },
         ]);
@@ -5876,7 +5882,7 @@ Enter any letter:
             stateVariables[await resolvePathToNodeIdx("cond")].replacements,
         ).eqls([
             {
-                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentIdx: caseIdx,
                 componentType: "group",
             },
         ]);
@@ -5909,7 +5915,7 @@ Enter any letter:
             stateVariables[await resolvePathToNodeIdx("cond")].replacements,
         ).eqls([
             {
-                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentIdx: caseIdx,
                 componentType: "group",
             },
         ]);
@@ -5945,7 +5951,7 @@ Enter any letter:
             stateVariables[await resolvePathToNodeIdx("cond")].replacements,
         ).eqls([
             {
-                componentIdx: await resolvePathToNodeIdx("cond[1]"),
+                componentIdx: caseIdx,
                 componentType: "group",
             },
         ]);

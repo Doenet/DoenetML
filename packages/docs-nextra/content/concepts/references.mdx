@@ -550,10 +550,11 @@ The reference works only if **every case declares the name, with the same
 type**, so that what it names never changes type when another case is shown.
 "Every case" means each `<case>` written and the `<else>`, if there is one.
 With no `<else>`, an `x` in every case is enough: while no case is true, `$x`
-names nothing, and shows `＿`. If a case lacks `x`, `$x` and `$cc.x` name
-nothing, with a warning that says which; written as a tag, such as
-`<math extend="$x"/>{:dn}`, it is missing, with the same warning. If two cases
-declare `x` with different types, `$x`, `$cc.x` and the tag are an error. On a tag, a type that
+names nothing, and shows `＿`. If a case lacks `x`, `$x` and `$cc.x` are an
+error that says which case, since what they name would change with the case
+shown; so is a tag made from one, such as `<math extend="$x"/>{:dn}`. If two
+cases declare `x` with different types, `$x`, `$cc.x` and the tag are an error
+too. The error is decided when the document loads, whichever case is shown. On a tag, a type that
 already is the tag counts as it: with an `<integer name="x">{:dn}` in one case
 and a `<number name="x">{:dn}` in another, `<number extend="$x"/>{:dn}` and
 `<number extend="$x.value"/>{:dn}` work, while `$x` alone does not. A name after it is held
@@ -575,7 +576,7 @@ written as `1`, or left out) works the same way, with every option in place of
 every case. A `<select>` that picks several keeps its names private, as a
 `<repeat>` does: reach a name in one pick with an index, as in `$s[2].x`.
 That works under the same rule: every option must declare `x`, with the same
-type, or `$s[2].x` names nothing, with a warning.
+type, or `$s[2].x` is an error.
 
 ### References in a copy's attributes
 
@@ -771,17 +772,29 @@ index means: the iterations of a repeat, so nested repeats take one index for
 each level (below); an entry of a list, or of a value such as the tuple of a
 `<math>{:dn}` or a `<point>{:dn}`; or nothing, with a warning, for a component
 with nothing to index, such as a `<number>{:dn}` holding one number or a
-`<p>{:dn}`. A `<group>{:dn}`, a pick of a [`<select>`](../reference/select) and
-what a `<conditionalContent>{:dn}` shows do the same, and so does a reference
-as that one component: with `<group name="g">$nl</group>{:dn}`, `$g[2]` is the
-second entry of `nl`. Blank text and a `<setup>{:dn}` don't count, but any
+`<p>{:dn}`. A `<group>{:dn}` and a pick of a [`<select>`](../reference/select)
+do the same, and so does a reference as that one component: with
+`<group name="g">$nl</group>{:dn}`, `$g[2]` is the second entry of `nl`. Blank text and a `<setup>{:dn}` don't count, but any
 other text does. When an iteration or a group holds several components, or text
 beside one, a further index names nothing, and DoenetML gives a warning that
 says how many it holds and shows the name to use. A property after it names
 nothing too: with two points in `<group name="g">{:dn}`, `$g.x` is `＿`, with a
 warning. Name the point you mean, such as `<point name="P">{:dn}`, and write
-`$g.P.x` (or `$rep[1].P.x`, `$s[1].P.x`, `$cc.P.x`). The group's own settings, such
+`$g.P.x` (or `$rep[1].P.x`, `$cc.P.x`, and `$s.P.x` of a `<select>{:dn}`
+that picks one, `$s[1].P.x` of one that picks several). The group's own settings, such
 as `$g.hide`, `$g.fixed` and `$g.disabled`, are still its own.
+
+A `<conditionalContent>{:dn}`, and a `<select>{:dn}` that picks one, aren't
+collections: each stands for what it shows, so an index right after one
+reaches into what the case shown or the pick holds, as after a `<group>{:dn}` of
+one. With a case holding `<math>(1,2)</math>{:dn}`, `$cc[2]` is `2`; with a
+pick holding a point, `$s[1]` is its first coordinate. Neither has a
+`numItems`. Such an index is an error, decided when the document loads,
+unless every case (or option) holds at most one component, all of one type:
+otherwise what it reaches would change with what is shown. While no case is
+shown, or the one shown holds nothing, it names nothing. The same holds for a
+`<selectFromSequence>{:dn}` or other chooser that picks one: `$s` is its one
+value, and an index after it reaches into that value.
 
 A `<group>` that extends or copies an iteration, such as
 `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes

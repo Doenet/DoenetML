@@ -402,6 +402,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0090": "attribute-written-as-reference",
     "doenet-e0091": "property-type-undecided",
     "doenet-e0092": "answer-type-disagrees-with-input",
+    "doenet-e0093": "reference-name-missing-in-some-branch",
+    "doenet-e0094": "reference-name-type-changes-with-branch",
+    "doenet-e0095": "reference-index-into-branches",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -476,6 +479,11 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // an attribute the component doesn't have (`e0004`).
         "doenet-w0065",
         "doenet-e0003",
+        // A name that is missing from a branch, or of different types in
+        // two, is an error now (`e0093`, `e0094`, D74): what it named would
+        // change with the branch shown.
+        "doenet-w0183",
+        "doenet-w0184",
     ]);
 
 /**

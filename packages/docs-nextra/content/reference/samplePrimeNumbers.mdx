@@ -76,6 +76,11 @@ button can be used to resample the value.
 The `<samplePrimeNumbers/>{:dn}` component is used with the `numSamples` attribute 
 to select multiple random values in the default interval $[2,97]$.
 
+With `numSamples` left out or written as `1`, the `<samplePrimeNumbers>{:dn}` is not a
+collection: `$s` is its one value, it has no `numItems`, and an index after it
+reaches into that value, where a number has nothing to index. Index it only
+when it picks several.
+
 
 ---
 

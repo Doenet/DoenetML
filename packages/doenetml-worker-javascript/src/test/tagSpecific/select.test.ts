@@ -11,11 +11,96 @@ import {
     componentOrListEntry,
     entriesOrReplacements,
 } from "../utils/list-entries";
-import { componentAtPath } from "../utils/instance-children";
+import {
+    childOfInstanceAt,
+    componentAtPath,
+    instanceOf,
+} from "../utils/instance-children";
+import type { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+/**
+ * The index of the component at `position` of the `k`th pick of the select
+ * that `path` names. An index after a one-pick `<select>` reaches into what it
+ * picked (D72), so no reference names the pick; the test reaches it this way.
+ */
+async function pickChild(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    path: string,
+    k = 1,
+    position = 1,
+) {
+    return childOfInstanceAt(
+        core,
+        await instanceOf(core, resolvePathToNodeIdx, path, k),
+        position,
+    );
+}
+
+/**
+ * As `pickChild`, of the one pick of the select whose index is `selectIdx`
+ * (a select with no name).
+ */
+function pickChildAt(
+    core: PublicDoenetMLCore,
+    selectIdx: number,
+    position = 1,
+) {
+    return childOfInstanceAt(
+        core,
+        childOfInstanceAt(core, selectIdx, 1),
+        position,
+    );
+}
+
+/**
+ * The index of the component at `option_num` (from 0) of pick `select_num`
+ * (from 0) of the select `select_name`: `${select_name}[k][j]` names it when
+ * the select picks several, and `pickChild` reaches it when it picks one
+ * (D72).
+ */
+async function optionChildOfPick(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    select_name: string,
+    num_to_select: number,
+    select_num: number,
+    option_num: number,
+) {
+    return num_to_select === 1
+        ? pickChild(
+              core,
+              resolvePathToNodeIdx,
+              select_name,
+              select_num + 1,
+              option_num + 1,
+          )
+        : componentAtPath(
+              core,
+              resolvePathToNodeIdx,
+              `${select_name}[${select_num + 1}][${option_num + 1}]`,
+          );
+}
+
+/**
+ * The path to the name `child_name` in pick `select_num` (from 0) of the
+ * select `select_name`. A name inside a one-pick select's options is reached
+ * as `${select_name}.${child_name}` (D72).
+ */
+function pathInPick(
+    select_name: string,
+    num_to_select: number,
+    select_num: number,
+    child_name: string,
+) {
+    return num_to_select === 1
+        ? `${select_name}.${child_name}`
+        : `${select_name}[${select_num + 1}].${child_name}`;
+}
 
 describe("Select tag tests @group2", async () => {
     async function test_values_separately({
@@ -55,10 +140,13 @@ describe("Select tag tests @group2", async () => {
                     option_num < num_option_children;
                     option_num++
                 ) {
-                    const child_idx = await componentAtPath(
+                    const child_idx = await optionChildOfPick(
                         core,
                         resolvePathToNodeIdx,
-                        `${select_name}[${select_num + 1}][${option_num + 1}]`,
+                        select_name,
+                        num_to_select,
+                        select_num,
+                        option_num,
                     );
                     const value = stateVariables[child_idx].stateValues.value;
 
@@ -77,7 +165,12 @@ describe("Select tag tests @group2", async () => {
 
                     let option_child_idx = option_child_names
                         ? await resolvePathToNodeIdx(
-                              `${select_name}[${select_num + 1}].${option_child_names[option_num]}`,
+                              pathInPick(
+                                  select_name,
+                                  num_to_select,
+                                  select_num,
+                                  option_child_names[option_num],
+                              ),
                           )
                         : null;
 
@@ -171,16 +264,24 @@ describe("Select tag tests @group2", async () => {
                     option_num < num_option_children;
                     option_num++
                 ) {
-                    const child_idx = await componentAtPath(
+                    const child_idx = await optionChildOfPick(
                         core,
                         resolvePathToNodeIdx,
-                        `${select_name}[${select_num + 1}][${option_num + 1}]`,
+                        select_name,
+                        num_to_select,
+                        select_num,
+                        option_num,
                     );
                     values.push(stateVariables[child_idx].stateValues.value);
 
                     let option_child_idx = option_child_names
                         ? await resolvePathToNodeIdx(
-                              `${select_name}[${select_num + 1}].${option_child_names[option_num]}`,
+                              pathInPick(
+                                  select_name,
+                                  num_to_select,
+                                  select_num,
+                                  option_child_names[option_num],
+                              ),
                           )
                         : null;
 
@@ -457,22 +558,14 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let num1 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "sample1[1][1]",
-            )
-        ).stateValues.value;
-        let num2 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "sample2[1][1]",
-            )
-        ).stateValues.value;
+        let num1 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "sample1")
+            ].stateValues.value;
+        let num2 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "sample2")
+            ].stateValues.value;
         expect(Number.isInteger(num1) && num1 >= 1 && num1 <= 7).eq(true);
         expect(Number.isInteger(num2) && num2 >= 1 && num2 <= 7).eq(true);
         expect(
@@ -722,14 +815,9 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "repeat1[1].n[1][1]",
-                )
-            ).stateValues.value,
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[1].n")
+            ].stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
@@ -757,30 +845,18 @@ describe("Select tag tests @group2", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[1].n[1][1]",
-            )
-        ).stateValues.value;
-        let n2 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[2].n[1][1]",
-            )
-        ).stateValues.value;
-        let n3 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[3].n[1][1]",
-            )
-        ).stateValues.value;
+        let n1 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[1].n")
+            ].stateValues.value;
+        let n2 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[2].n")
+            ].stateValues.value;
+        let n3 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[3].n")
+            ].stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -810,54 +886,30 @@ describe("Select tag tests @group2", async () => {
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[1].n[1][1]",
-            )
-        ).stateValues.value;
-        n2 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[2].n[1][1]",
-            )
-        ).stateValues.value;
-        n3 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[3].n[1][1]",
-            )
-        ).stateValues.value;
-        let n4 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[4].n[1][1]",
-            )
-        ).stateValues.value;
-        let n5 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[5].n[1][1]",
-            )
-        ).stateValues.value;
-        let n6 = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "repeat1[6].n[1][1]",
-            )
-        ).stateValues.value;
+        n1 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[1].n")
+            ].stateValues.value;
+        n2 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[2].n")
+            ].stateValues.value;
+        n3 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[3].n")
+            ].stateValues.value;
+        let n4 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[4].n")
+            ].stateValues.value;
+        let n5 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[5].n")
+            ].stateValues.value;
+        let n6 =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "repeat1[6].n")
+            ].stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -1181,14 +1233,9 @@ describe("Select tag tests @group2", async () => {
         // let expectedx = variantName.substring(0, 1);
         let expectedx = "b";
 
-        let x = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][1]",
-            )
-        ).stateValues.value.tree;
+        let x =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "s1")]
+                .stateValues.value.tree;
 
         expect(x).eq(expectedx);
 
@@ -1633,12 +1680,23 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         for (let ind = 0; ind < 200; ind++) {
-            let theText = await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                `repeat1[${ind + 1}][1][1]`,
-            );
+            // the text the one pick of the iteration's select holds
+            let theText =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        childOfInstanceAt(
+                            core,
+                            await instanceOf(
+                                core,
+                                resolvePathToNodeIdx,
+                                "repeat1",
+                                ind + 1,
+                            ),
+                            1,
+                        ),
+                    )
+                ];
             let x = theText.stateValues.value;
             if (x === "z") {
                 numZ++;
@@ -2274,18 +2332,16 @@ describe("Select tag tests @group2", async () => {
     </select>
     
     <p>Copy grandchidren</p>
-    <p><math extend="$o[1].a" name="a2" /></p>
-    <p><math extend="$o[1].b" name="b2" /></p>
-    <p><math extend="$o[1].c" name="c2" /></p>
-    <p><math extend="$o[1].d" name="d2" /></p>
+    <p><math extend="$o.a" name="a2" /></p>
+    <p><math extend="$o.b" name="b2" /></p>
+    <p><math extend="$o.c" name="c2" /></p>
+    <p><math extend="$o.d" name="d2" /></p>
     
     <p>Copy named children of grandchild</p>
     <p><math extend="$o.w" name="w2" /></p>
     <p><math extend="$o.v" name="v2" /></p>
-    <p><math extend="$o[1].w" name="w3" /></p>
-    <p><math extend="$o[1].v" name="v3" /></p>
-    <p><math extend="$o[1].a.w" name="w4" /></p>
-    <p><math extend="$o[1].b.v" name="v4" /></p>
+    <p><math extend="$o.a.w" name="w3" /></p>
+    <p><math extend="$o.b.v" name="v3" /></p>
     
     `,
         });
@@ -2314,7 +2370,7 @@ describe("Select tag tests @group2", async () => {
         let chosenChildren: any[] = [];
         for (const name of ["a", "b", "c", "d"]) {
             chosenChildren.push(
-                stateVariables[await resolvePathToNodeIdx(`o[1].${name}`)],
+                stateVariables[await resolvePathToNodeIdx(`o.${name}`)],
             );
         }
 
@@ -2367,7 +2423,7 @@ describe("Select tag tests @group2", async () => {
         expect(c2).eq(option.c);
         expect(d2).eq(option.d);
 
-        for (let i = 2; i <= 4; i++) {
+        for (let i = 2; i <= 3; i++) {
             let v2 = me
                 .fromAst(
                     stateVariables[await resolvePathToNodeIdx(`v${i}`)]
@@ -2500,22 +2556,14 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c = await (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][1]",
-            )
-        ).stateValues.value;
-        let d = await (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s2[1][1]",
-            )
-        ).stateValues.value;
+        let c =
+            await stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s1")
+            ].stateValues.value;
+        let d =
+            await stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s2")
+            ].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
@@ -2559,51 +2607,29 @@ describe("Select tag tests @group2", async () => {
           <text name="t2">f</text>
         </option>
       </select></asList></p>
-      <p name="p2">$s1[1].t1, <text extend="$s1[1].t2" hide="true" />, $s1[1].t3, <text extend="$s2[1].t1" hide="false" />, $s2[1].t2</p>
+      <p name="p2">$s1.t1, <text extend="$s1.t2" hide="true" />, $s1.t3, <text extend="$s2.t1" hide="false" />, $s2.t2</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][1]",
-            )
-        ).stateValues.value;
-        let b = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][2]",
-            )
-        ).stateValues.value;
-        let c = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][3]",
-            )
-        ).stateValues.value;
-        let d = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s2[1][1]",
-            )
-        ).stateValues.value;
-        let e = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s2[1][2]",
-            )
-        ).stateValues.value;
+        let a =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "s1")]
+                .stateValues.value;
+        let b =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s1", 1, 2)
+            ].stateValues.value;
+        let c =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s1", 1, 3)
+            ].stateValues.value;
+        let d =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "s2")]
+                .stateValues.value;
+        let e =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s2", 1, 2)
+            ].stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
@@ -2650,51 +2676,29 @@ describe("Select tag tests @group2", async () => {
           <text name="t2">f</text>
         </option>
       </select></asList></p>
-      <p name="p2">$s1[1].t1, <text extend="$s1[1].t2" hide="true" />, $s1[1].t3, <text extend="$s2[1].t1" hide="false" />, $s2[1].t2</p>
+      <p name="p2">$s1.t1, <text extend="$s1.t2" hide="true" />, $s1.t3, <text extend="$s2.t1" hide="false" />, $s2.t2</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let a = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][1]",
-            )
-        ).stateValues.value;
-        let b = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][2]",
-            )
-        ).stateValues.value;
-        let c = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s1[1][3]",
-            )
-        ).stateValues.value;
-        let d = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s2[1][1]",
-            )
-        ).stateValues.value;
-        let e = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "s2[1][2]",
-            )
-        ).stateValues.value;
+        let a =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "s1")]
+                .stateValues.value;
+        let b =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s1", 1, 2)
+            ].stateValues.value;
+        let c =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s1", 1, 3)
+            ].stateValues.value;
+        let d =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "s2")]
+                .stateValues.value;
+        let e =
+            stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "s2", 1, 2)
+            ].stateValues.value;
         expect(["a", "d"].includes(a)).eq(true);
         expect(["b", "e"].includes(b)).eq(true);
         expect(["c", "f"].includes(c)).eq(true);
@@ -2739,22 +2743,14 @@ describe("Select tag tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let c = await (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "c[1][1]",
-            )
-        ).stateValues.value;
-        let d = await (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "d[1][1]",
-            )
-        ).stateValues.value;
+        let c =
+            await stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "c")
+            ].stateValues.value;
+        let d =
+            await stateVariables[
+                await pickChild(core, resolvePathToNodeIdx, "d")
+            ].stateValues.value;
         expect(["a", "b", "c", "d", "e"].includes(c)).eq(true);
         expect(["a", "b", "c", "d", "e"].includes(d)).eq(true);
 
@@ -2910,8 +2906,8 @@ describe("Select tag tests @group2", async () => {
         </select></p>
     
     
-        <p>q2 = $s[1].q</p>
-        <p>r2 = $s[1].r</p>
+        <p>q2 = $s.q</p>
+        <p>r2 = $s.r</p>
       </option>
     </select>
     
@@ -2936,10 +2932,11 @@ describe("Select tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
-    it("an index into the option of a select inside another select names nothing", async () => {
-        // The positional form of the test above: an index after a pick does
-        // not select a child of the picked option (D27 revised, #2517), so it
-        // names nothing and warns how to name the child instead.
+    it("an index after a select inside another select, into an option of several, is an error", async () => {
+        // The positional form of the test above: an index after a one-pick
+        // select reaches into what the pick holds (D72), so it must hold one
+        // component of one type in every option. Here the option holds two,
+        // so it is an error at load, shown in the reference's place (D74).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <select name="select1">
@@ -2947,8 +2944,8 @@ describe("Select tag tests @group2", async () => {
         <p>q,r = <select name="s">
           <option><text name="q">a</text><text>b</text></option>
         </select></p>
-        <p>q2 = $s[1][1]</p>
-        <p>r2 = $s[1][2]</p>
+        <p>q2 = $s[1]</p>
+        <p>r2 = $s[2]</p>
       </option>
     </select>
     `,
@@ -2964,23 +2961,18 @@ describe("Select tag tests @group2", async () => {
 
         expect(
             stateVariables[replacements[3].componentIdx].stateValues.text,
-        ).eq(`q2 = ＿`);
+        ).eq(`q2 = `);
         expect(
             stateVariables[replacements[5].componentIdx].stateValues.text,
-        ).eq(`r2 = ＿`);
+        ).eq(`r2 = `);
 
-        // Every option of `s` holds several, so it is decided at load
-        // (`doenet-w0191`, Doenet/DoenetML#2643 item 4). The named child is
-        // named in the form to write instead; the other is to be given a
-        // name.
-        const warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.map((w) => [w.code, w.args.suggestion])).toEqual(
-            expect.arrayContaining([
-                ["doenet-w0191", "$s[1].q"],
-                ["doenet-w0191", "$s[1].P[2]"],
-            ]),
-        );
-        expect(warnings.length).eq(2);
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors.map((e) => [e.code, e.args.reference])).eqls([
+            ["doenet-e0095", "$s[1]"],
+            ["doenet-e0095", "$s[2]"],
+        ]);
+        expect(errors[0].args.reason).eq("several");
+        expect(warnings).eqls([]);
     });
 
     it("display error when miss a name in selectForVariants, inside text", async () => {

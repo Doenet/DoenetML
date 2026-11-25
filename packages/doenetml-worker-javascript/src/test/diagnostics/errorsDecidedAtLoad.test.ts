@@ -95,7 +95,7 @@ const documents: [string, string, string[]][] = [
     [
         "a bare reference in a case, to a name of different types",
         `<conditionalContent><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>${inCase(`$x`)}`,
-        ["doenet-w0184"],
+        ["doenet-e0094"],
     ],
     // a tag that does not exist
     ["an unknown tag in a case", inCase(`<bogus/>`), ["doenet-e0002"]],

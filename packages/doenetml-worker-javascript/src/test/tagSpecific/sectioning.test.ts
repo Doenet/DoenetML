@@ -2885,7 +2885,7 @@ describe("Sectioning tag tests @group3", async () => {
                 .selectedValues,
         ).eqls([2]);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sel[1].a")].stateValues
+            stateVariables[await resolvePathToNodeIdx("sel.a")].stateValues
                 .text,
         ).eq("a");
     });
@@ -3493,7 +3493,7 @@ describe("Sectioning tag tests @group3", async () => {
     $r[1]
     $r[2].q
     $r[1].q $r[2].q
-    $sel[1]
+    $sel
     <section name="s"/>
     <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent><case condition="$s.sectionNumber = 3"><p>three</p></case></conditionalContent></group></repeatForSequence>
     <select name="sel"><option><section name="t"><p name="pt">see $s.title</p></section></option></select>
@@ -3529,10 +3529,9 @@ describe("Sectioning tag tests @group3", async () => {
     it("a name in the branches of a composite after a section, which shows the section's number, read before it, loads", async () => {
         for (const doenetML of [
             `$cc.q<section name="s"/><conditionalContent name="cc"><case condition="true"><p name="q">$s.sectionNumber</p></case><else><p name="q">$s.sectionNumber</p></else></conditionalContent>`,
-            `$cc[1].q<section name="s"/><conditionalContent name="cc"><case condition="true"><p name="q">$s.sectionNumber</p></case><else><p name="q">$s.sectionNumber</p></else></conditionalContent>`,
             `$sel.q<section name="s"/><select name="sel"><option><p name="q">$s.sectionNumber</p></option><option><p name="q">$s.sectionNumber</p></option></select>`,
-            `$sel[1].q<section name="s"/><select name="sel"><option><p name="q">$s.sectionNumber</p></option></select>`,
-            `<div>$sel[1].q</div><section name="s"/><select name="sel"><option><p name="q">$s.title</p></option></select>`,
+            `$sel.q<section name="s"/><select name="sel"><option><p name="q">$s.sectionNumber</p></option></select>`,
+            `<div>$sel.q</div><section name="s"/><select name="sel"><option><p name="q">$s.title</p></option></select>`,
         ]) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,

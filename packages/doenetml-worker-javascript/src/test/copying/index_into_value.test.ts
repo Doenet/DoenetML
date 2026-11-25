@@ -1037,6 +1037,9 @@ describe("An index into an entry of a list @group4", async () => {
 });
 
 describe("An index into a pick that is a number or a text (#2478) @group4", async () => {
+    // A one-pick chooser stands for its pick (D72): `$s` is the number or
+    // text, and `$s[1]` is an index into it. (It was `$s[1][1]`, when `$s[1]`
+    // was the pick.)
     it("names nothing, reported as an index into a scalar, for every selector and sampler", async () => {
         for (const selector of [
             `<selectFromSequence name="s" from="1" to="10"/>`,
@@ -1047,7 +1050,7 @@ describe("An index into a pick that is a number or a text (#2478) @group4", asyn
             `<samplePrimeNumbers name="s" from="2" to="20"/>`,
         ]) {
             const { text, warnings, errors, infos } = await shownAndReported(
-                "$s[1][1]",
+                "$s[1]",
                 selector,
             );
             expect(text, selector).eq("[＿]");
@@ -1055,18 +1058,18 @@ describe("An index into a pick that is a number or a text (#2478) @group4", asyn
             expect(
                 warnings.map((w) => [w.code, w.args]),
                 selector,
-            ).eqls([["doenet-w0100", { reference: "$s[1][1]" }]]);
+            ).eqls([["doenet-w0100", { reference: "$s[1]" }]]);
 
             // while the pick itself is shown
-            const { text: pick } = await shownAndReported("$s[1]", selector);
+            const { text: pick } = await shownAndReported("$s", selector);
             expect(pick, selector).not.eq("[＿]");
         }
     });
 
     it("writes nothing through an index into a pick", async () => {
         const doenetML = `<selectFromSequence name="s" from="1" to="10"/>
-<mathInput name="w" bindValueTo="$s[1][1]"><label>w</label></mathInput>
-<p name="ps">$s[1]</p>`;
+<mathInput name="w" bindValueTo="$s[1]"><label>w</label></mathInput>
+<p name="ps">$s</p>`;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
@@ -1079,6 +1082,7 @@ describe("An index into a pick that is a number or a text (#2478) @group4", asyn
                 .text;
         }
         const picked = await textOf("ps");
+        expect(picked).not.eq("＿");
         expect(await textOf("w")).eq("＿");
         await updateMathInputValue({
             latex: "17",

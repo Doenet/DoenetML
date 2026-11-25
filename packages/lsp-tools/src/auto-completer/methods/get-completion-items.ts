@@ -1183,7 +1183,7 @@ export async function getCompletionItems(
             ] ?? false;
         // Strict-rule shorthand from issue #1181: a select-family container
         // whose count attribute is absent or literal "1" lets `$s.t` resolve
-        // descendants like `$s[1].t`.  We surface the predicate to
+        // the descendants in its pick.  We surface the predicate to
         // `determineVisibleNames` rather than collapsing it into
         // `resolvedPartHasIndex` so the shorthand offers descendants AND keeps
         // the composite's own properties (e.g. `$s.numToSelect`) accessible.

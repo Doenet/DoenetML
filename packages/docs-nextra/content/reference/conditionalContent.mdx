@@ -20,6 +20,17 @@ that targets it does nothing, and reading it does not change it. It keeps what
 a reader did in it, and when the case is shown again, it comes back with it,
 following any change made meanwhile to what it depends on.
 
+A reference to the `<conditionalContent>{:dn}`, `$cc`, stands for what it
+shows: while no case is shown, or the case shown holds nothing, it shows
+nothing, as the `<conditionalContent>{:dn}` does where it is written. It is not
+a collection, and has no `numItems`. An index after it reaches into what the
+case shown holds, as after a `<group>{:dn}` of one: with a case holding
+`<math>(1,2)</math>{:dn}`, `$cc[2]` is `2`. That index, and a name inside the
+cases such as `$cc.x`, must mean the same thing whichever case is shown:
+every case (and the `<else>{:dn}`) must hold at most one component, all of one
+type, for the index, and must declare `x` with one type, for the name.
+Otherwise the reference is an error, decided when the document loads.
+
 <AttrPropDisplay name='conditionalContent'/>
 
 

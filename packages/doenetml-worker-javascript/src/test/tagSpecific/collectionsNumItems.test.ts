@@ -2,10 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { setListFormsEnabled } from "../../utils/dast/listForms";
 import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
-import {
-    updateBooleanInputValue,
-    updateMathInputValue,
-} from "../utils/actions";
+import { updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -160,16 +157,6 @@ describe("A collection's own properties @group4", () => {
                 "2",
             ],
             [
-                "cc",
-                `<conditionalContent name="cc"><case condition="true"><math>q</math></case></conditionalContent>`,
-                "1",
-            ],
-            [
-                "cc0",
-                `<conditionalContent name="cc0"><case condition="false"><math>q</math></case></conditionalContent>`,
-                "0",
-            ],
-            [
                 "fi",
                 `<functionIterates name="fi" function="2x" initialValue="1" numIterates="5"/>`,
                 "5",
@@ -207,15 +194,39 @@ describe("A collection's own properties @group4", () => {
         expect(composites.diagnostics).toEqual([]);
     });
 
+    it("a conditionalContent or a one-pick chooser has no numItems (D72)", async () => {
+        // It shows one thing, and is not a collection: `numItems` names
+        // nothing, as for the math it shows. (It was 1, or 0 while no case
+        // was shown.)
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<conditionalContent name="cc"><case condition="true"><math>q</math></case></conditionalContent>
+<select name="s"><option><math>x</math></option><option><math>y</math></option></select>
+<selectFromSequence name="sfs" from="1" to="10"/>
+<p name="p1">$cc.numItems</p>
+<p name="p2">$s.numItems</p>
+<p name="p3">$sfs.numItems</p>
+`,
+            names: ["p1", "p2", "p3"],
+        });
+        const expected = { p1: "＿", p2: "＿", p3: "＿" };
+        expect(lists.texts).toEqual(expected);
+        expect(composites.texts).toEqual(expected);
+        const warnings = [
+            "warning doenet-w0104 line 5",
+            "warning doenet-w0104 line 6",
+            "warning doenet-w0104 line 7",
+        ];
+        expect(lists.diagnostics).toEqual(warnings);
+        expect(composites.diagnostics).toEqual(warnings);
+    });
+
     it("numItems follows the items", async () => {
         const doenetML = `
-<booleanInput name="show" />
 <mathInput name="n" prefill="2" />
 <repeatForSequence name="r" length="$n" valueName="v"><p>$v</p></repeatForSequence>
-<conditionalContent name="cc"><case condition="$show"><p>shown</p></case></conditionalContent>
 <sequence name="sq" length="$n" />
 <p name="pr">$r.numItems</p>
-<p name="pcc">$cc.numItems</p>
 <p name="psq">$sq.numItems</p>
 `;
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -227,7 +238,7 @@ describe("A collection's own properties @group4", () => {
                 true,
             );
             const result: string[] = [];
-            for (const name of ["pr", "pcc", "psq"]) {
+            for (const name of ["pr", "psq"]) {
                 result.push(
                     stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .text,
@@ -235,18 +246,13 @@ describe("A collection's own properties @group4", () => {
             }
             return result;
         }
-        expect(await texts()).toEqual(["2", "0", "2"]);
-        await updateBooleanInputValue({
-            boolean: true,
-            componentIdx: await resolvePathToNodeIdx("show"),
-            core,
-        });
+        expect(await texts()).toEqual(["2", "2"]);
         await updateMathInputValue({
             latex: "4",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        expect(await texts()).toEqual(["4", "1", "4"]);
+        expect(await texts()).toEqual(["4", "4"]);
     });
 
     it("numItems wins over the items' numItems; an item that is a collection is reached by index", async () => {
@@ -313,11 +319,13 @@ describe("A collection's own properties @group4", () => {
         });
         // Before: the items' `numItems` (a blank, `doenet-w0104`) and each
         // item's `fixed`, except where the collection was built as a list.
+        // A `<conditionalContent>` is not a collection (D72): `gcc` holds
+        // the point it shows, which has no `numItems`.
         const expected = {
             p1: "2",
             p2: "2",
             p3: "3",
-            p4: "1",
+            p4: "＿",
             p5: "3",
             p6: "false",
             // Any other property or name is the collection's: names nothing
@@ -328,6 +336,7 @@ describe("A collection's own properties @group4", () => {
         expect(lists.texts).toEqual(expected);
         expect(composites.texts).toEqual(expected);
         const warnings = [
+            "warning doenet-w0104 line 15",
             "warning doenet-w0200 line 18",
             "warning doenet-w0200 line 19",
         ];
@@ -453,7 +462,7 @@ describe("A collection's own properties @group4", () => {
 <p name="p1">$pl.fixed $sq.fixed $r.fixed $s.fixed $cc.fixed $c.fixed</p>
 <p name="p2">$pl.hide $sq.hide $r.hide $s.hide $cc.hide $c.hide</p>
 <p name="p3">$pl.disabled $r.disabled $s.disabled $cc.disabled $c.disabled</p>
-<p name="p4">$pl[1].fixed $r[1].fixed $s[1].fixed $cc[1].fixed $c[1].fixed</p>
+<p name="p4">$pl[1].fixed $r[1].fixed $s[1].fixed $c[1].fixed</p>
 `,
             names: ["p1", "p2", "p3", "p4"],
         });
@@ -461,8 +470,9 @@ describe("A collection's own properties @group4", () => {
             p1: "false false false false false false",
             p2: "false false false false false false",
             p3: "false false false false false",
-            // an item's own, by index
-            p4: "true true true true true",
+            // an item's own, by index (a `<conditionalContent>` has no
+            // items: `$cc[1]` is the point's first coordinate, D72)
+            p4: "true true true true",
         };
         expect(lists.texts).toEqual(expected);
         expect(composites.texts).toEqual(expected);

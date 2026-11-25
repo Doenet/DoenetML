@@ -13,10 +13,29 @@ import {
     componentOrListEntry,
     childrenAsPresented,
 } from "../utils/list-entries";
+import { childOfInstanceAt, instanceOf } from "../utils/instance-children";
+import type { ResolvePathToNodeIdx } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+/**
+ * The index of the component the one pick of the select that `path` names
+ * holds. An index after a one-pick `<select>` reaches into what it picked
+ * (D72), so no reference names the pick; the test reaches it this way.
+ */
+async function pickChild(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    path: string,
+) {
+    return childOfInstanceAt(
+        core,
+        await instanceOf(core, resolvePathToNodeIdx, path),
+        1,
+    );
+}
 
 /**
  * The selected values of the `<selectFromSequence>`s of the page loaded in
@@ -1361,14 +1380,9 @@ describe("Specifying single variant tests @group1", async () => {
                     .inputChildren[0].componentIdx;
 
             expect(
-                (
-                    await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        "fruit[1][1]",
-                    )
-                ).stateValues.value,
+                stateVariables[
+                    await pickChild(core, resolvePathToNodeIdx, "fruit")
+                ].stateValues.value,
             ).eq(fruit);
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -1510,14 +1524,9 @@ describe("Specifying single variant tests @group1", async () => {
                 "n[1]",
             )
         ).stateValues.value;
-        let a = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "a[1][1]",
-            )
-        ).stateValues.value.tree;
+        let a =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "a")]
+                .stateValues.value.tree;
 
         let doenetML2 =
             variantControl +
@@ -1545,14 +1554,8 @@ describe("Specifying single variant tests @group1", async () => {
             ).stateValues.value,
         ).eq(n);
         expect(
-            (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "a[1][1]",
-                )
-            ).stateValues.value.tree,
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "a")]
+                .stateValues.value.tree,
         ).eq(a);
 
         let doenetML3 =
@@ -1578,14 +1581,9 @@ describe("Specifying single variant tests @group1", async () => {
         ).stateValues.value;
         expect(n2).not.eq(n);
         n = n2;
-        a = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "a[1][1]",
-            )
-        ).stateValues.value.tree;
+        a =
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "a")]
+                .stateValues.value.tree;
         let w1 = (
             await componentOrListEntry(
                 core,
@@ -1647,14 +1645,8 @@ describe("Specifying single variant tests @group1", async () => {
             ).stateValues.value,
         ).eq(n);
         expect(
-            (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "a[1][1]",
-                )
-            ).stateValues.value.tree,
+            stateVariables[await pickChild(core, resolvePathToNodeIdx, "a")]
+                .stateValues.value.tree,
         ).eq(a);
         expect(
             (

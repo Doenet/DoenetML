@@ -231,7 +231,7 @@ export type RefMemberContainerResolution = {
      * Names that, after `node`, name nothing, though `node`'s schema may
      * have a property by them: declared in some but not every branch of a
      * branch container (`$v.head` for a `<point name="head">` in one
-     * branch's vector `v`, runtime `doenet-w0183`). Neither completion nor
+     * branch's vector `v`, runtime `doenet-e0093`). Neither completion nor
      * help offers a property by them.
      */
     hiddenMemberNames?: string[];

@@ -325,8 +325,8 @@ describe("A <group> made from one component that isn't a composite is an error a
                 "$r[1].m",
             ],
             [
-                `<select name="s"><option><math name="m">1</math></option><option><math name="m">2</math></option></select><group name="g" extend="$s[1].m"/>`,
-                "$s[1].m",
+                `<select name="s"><option><math name="m">1</math></option><option><math name="m">2</math></option></select><group name="g" extend="$s.m"/>`,
+                "$s.m",
             ],
         ]) {
             const d = await load(doenetML);
@@ -412,8 +412,8 @@ describe("A <group> made from one component that isn't a composite is an error a
             [],
         ],
         [
-            "a pick of a selectFromSequence",
-            `<selectFromSequence name="sfs" length="5"/><group name="g" extend="$sfs[1]"/>`,
+            "a selectFromSequence that picks one",
+            `<selectFromSequence name="sfs" length="5"/><group name="g" extend="$sfs"/>`,
             [],
         ],
         [
@@ -590,11 +590,11 @@ describe("A <group> made from a property or an entry of a list is an error at lo
         expect(await d.typeOf("g")).eq("_error");
     });
 
-    it("an index into an iteration or a pick, and a name of a group, are unchanged", async () => {
+    it("an index into a repeat, a select that picks one, and a name of a group, are unchanged", async () => {
         const d = await load(
             `<repeat name="r" for="1 2" valueName="v"><group name="h"><math>$v</math></group></repeat>
             <select name="s"><option><math>1</math></option></select>
-            <group name="g1" extend="$r[1]"/><group name="g2" extend="$s[1]"/><group name="g3" extend="$r[1].h"/>`,
+            <group name="g1" extend="$r[1]"/><group name="g2" extend="$s"/><group name="g3" extend="$r[1].h"/>`,
         );
         expect(d.errorCodes()).eqls([]);
         expect(await d.typeOf("g1")).eq("group");
@@ -752,16 +752,19 @@ describe("A tag that makes its own content is made only from its own kind (D48 d
     }
 });
 
-describe("An index into a conditionalContent is type-checked at load (REF-5) @group4", () => {
+describe("An index into what a conditionalContent shows is type-checked at load (REF-5, D72, D74) @group4", () => {
+    // An index after a `<conditionalContent>` reaches into what its shown case
+    // holds, as after a `<group>` of one (D72), typed at load from what the
+    // cases hold (D74).
     const cc = (a: string, b: string) =>
         `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b">${a}</case><else>${b}</else></conditionalContent>`;
 
-    it("a point from a case holding a text", async () => {
+    it("a boolean from an entry of the math a case holds", async () => {
         const d = await load(
-            `${cc("<text>hi</text>", "<text>bye</text>")}<point name="e" extend="$cc[1]"/>`,
+            `${cc("<math>(1,2)</math>", "<math>(3,4)</math>")}<boolean name="e" extend="$cc[1]"/>`,
         );
         const expected = [
-            "doenet-e0065: A `<point>` can't be made from `$cc[1]`, which gives a `<text>`. To show it as it is, write `$cc[1]`.",
+            "doenet-e0065: A `<boolean>` can't be made from `$cc[1]`, which gives a `<math>`: a number is not true or false. To test it, write a comparison such as `<boolean>$cc[1] != 0</boolean>`.",
         ];
         expect(d.diagnostics()).eqls(expected);
         expect(await d.typeOf("e")).eq("_error");
@@ -771,36 +774,38 @@ describe("An index into a conditionalContent is type-checked at load (REF-5) @gr
         expect(d.diagnostics()).eqls(expected);
     });
 
-    it("a boolean from a case holding a math", async () => {
+    it("a math from an entry of the math a case holds", async () => {
         const d = await load(
-            `${cc("<math>1</math>", "<math>2</math>")}<boolean name="e" extend="$cc[1]"/>`,
-        );
-        expect(d.diagnostics()).eqls([
-            "doenet-e0065: A `<boolean>` can't be made from `$cc[1]`, which gives a `<math>`: a number is not true or false. To test it, write a comparison such as `<boolean>$cc[1] != 0</boolean>`.",
-        ]);
-        expect(await d.typeOf("e")).eq("_error");
-    });
-
-    it("a math from cases holding maths is unchanged", async () => {
-        const d = await load(
-            `${cc("<math>1</math>", "<math>2</math>")}<math name="e" extend="$cc[1]"/>`,
+            `${cc("<math>(1,2)</math>", "<math>(3,4)</math>")}<math name="e" extend="$cc[2]"/>`,
         );
         expect(d.diagnostics()).eqls([]);
-        expect(await d.text("e")).eq("2");
+        expect(await d.text("e")).eq("4");
         await d.setBoolean("b", true);
-        expect(await d.text("e")).eq("1");
+        expect(await d.text("e")).eq("2");
     });
 
-    it("an index past the one shown case names nothing, whatever a case holds", async () => {
-        // `$cc[2]` never names what a case holds, so it is not said to give
-        // a `<text>`; it names nothing, as of cases holding maths.
+    it("an index into the text a case holds names nothing", async () => {
         const d = await load(
-            `${cc("<text>hi</text>", "<text>bye</text>")}<point name="e" extend="$cc[2]"/>`,
+            `${cc("<text>hi</text>", "<text>bye</text>")}<point name="e" extend="$cc[1]"/>`,
+        );
+        const expected = ["doenet-w0100: Cannot reference index `$cc[1]`"];
+        expect(d.diagnostics()).eqls(expected);
+        expect(await d.typeOf("e")).eq("point");
+        await d.setBoolean("b", true);
+        expect(d.diagnostics()).eqls(expected);
+        await d.reload();
+        expect(d.diagnostics()).eqls(expected);
+    });
+
+    it("cases holding a text and a math are an error at load", async () => {
+        const d = await load(
+            `${cc("<text>hi</text>", "<math>(1,2)</math>")}<math name="e" extend="$cc[1]"/>`,
         );
         const expected = [
-            "doenet-i0054: `$cc[2]` names nothing now, so this `<point>` is missing until it does.",
+            "doenet-e0095: `$cc[1]` can't be used: an index after `cc` reaches into what the case shown holds, which must be one component of one type in every case, and one holds a `<text>` and another a `<math>`. Hold one type in each.",
         ];
         expect(d.diagnostics()).eqls(expected);
+        expect(await d.typeOf("e")).eq("_error");
         await d.setBoolean("b", true);
         expect(d.diagnostics()).eqls(expected);
         await d.reload();
@@ -865,12 +870,12 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
             "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$r[1]` holds 2. To use one of them, write `$r[1][1]`. To read them all as one value, write `<math>$r[1]</math>`.",
         ]);
         expect(await r.text("f")).eq("2");
-        // `$cc[1]` is the shown case, so `$cc[1]` is not suggested
+        // an index after `$cc` reaches into the list its case holds (D72)
         const c = await load(
-            `<conditionalContent name="cc"><case condition="true"><mathList name="l">1 2</mathList></case></conditionalContent><math name="e" extend="$cc"/><math name="f" extend="$cc.l[1]"/>`,
+            `<conditionalContent name="cc"><case condition="true"><mathList name="l">1 2</mathList></case></conditionalContent><math name="e" extend="$cc"/><math name="f" extend="$cc[1]"/>`,
         );
         expect(c.diagnostics()).eqls([
-            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$cc` holds 2. To use one of them, write an index after the name of the `<mathList>`, such as `[1]`, giving it a name if it has none. To read them all as one value, write `<math>$cc</math>`.",
+            "doenet-e0064: A `<math>` can be made from a `<mathList>` only when it holds one component, and `$cc` holds 2. To use one of them, write `$cc[1]`. To read them all as one value, write `<math>$cc</math>`.",
         ]);
         expect(await c.text("f")).eq("1");
     });
@@ -904,10 +909,18 @@ describe("A scalar tag made from an iteration holding a list is decided at load 
             "doenet-e0064: A `<math>` can be made from `$cc` only when it always holds one component, and a case of the `<conditionalContent>` holds 3. To read what it holds as one value, write `<math>$cc</math>`.",
         ]);
         const s = await load(
-            `${list}<select name="s"><option>$x</option><option><math>5</math></option></select><math name="e" extend="$s[1]"/>`,
+            `${list}<select name="s"><option>$x</option><option><math>5</math></option></select><math name="e" extend="$s"/>`,
         );
         expect(s.diagnostics()).eqls([
-            "doenet-e0064: A `<math>` can be made from `$s[1]` only when it always holds one component, and an option of the `<select>` holds 3. To read what it holds as one value, write `<math>$s[1]</math>`.",
+            "doenet-e0064: A `<math>` can be made from `$s` only when it always holds one component, and an option of the `<select>` holds 3. To read what it holds as one value, write `<math>$s</math>`.",
+        ]);
+        // An index after the select reaches into its pick (D72): a
+        // `<mathList>` in one option and a `<math>` in another (D74).
+        const si = await load(
+            `${list}<select name="s"><option>$x</option><option><math>5</math></option></select><math name="e" extend="$s[1]"/>`,
+        );
+        expect(si.diagnostics()).eqls([
+            "doenet-e0095: `$s[1]` can't be used: an index after `s` reaches into what the pick holds, which must be one component of one type in every option, and one holds a `<mathList>` and another a `<math>`. Hold one type in each.",
         ]);
     });
 

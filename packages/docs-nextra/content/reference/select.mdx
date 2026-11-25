@@ -157,7 +157,11 @@ A `<select>{:dn}` that picks several, as this one does, is reached by index:
 `$roll[1].firstDie`. A name or a property after it is the `<select>{:dn}`'s own,
 such as `numItems`. A `<select>{:dn}` that picks one stands for its pick, so a name
 after it, such as `$s.firstDie`, is that pick's, when every `<option>{:dn}`
-declares it with the same type.
+declares it with the same type; otherwise it is an error. It is not a
+collection: it has no `numItems`, and an index after it reaches into what its
+pick holds (with a pick holding a point, `$s[1]` is the first coordinate),
+which is an error unless every `<option>{:dn}` holds at most one component, all
+of one type.
 
 
 

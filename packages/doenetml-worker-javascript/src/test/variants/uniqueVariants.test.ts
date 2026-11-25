@@ -12,10 +12,48 @@ import {
     componentOrListEntry,
     childrenAsPresented,
 } from "../utils/list-entries";
+import { childOfInstanceAt, instanceOf } from "../utils/instance-children";
+import type { PublicDoenetMLCore } from "../../CoreWorker";
+import type { ResolvePathToNodeIdx } from "../utils/test-core";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+/**
+ * The index of the component at `position` of the `k`th pick of the select
+ * that `path` names. An index after a one-pick `<select>` reaches into what it
+ * picked (D72), so no reference names the pick; the test reaches it this way.
+ */
+async function pickChild(
+    core: PublicDoenetMLCore,
+    resolvePathToNodeIdx: ResolvePathToNodeIdx,
+    path: string,
+    k = 1,
+    position = 1,
+) {
+    return childOfInstanceAt(
+        core,
+        await instanceOf(core, resolvePathToNodeIdx, path, k),
+        position,
+    );
+}
+
+/**
+ * As `pickChild`, of the one pick of the select whose index is `selectIdx`
+ * (a select with no name, held in a pick).
+ */
+function pickChildAt(
+    core: PublicDoenetMLCore,
+    selectIdx: number,
+    position = 1,
+) {
+    return childOfInstanceAt(
+        core,
+        childOfInstanceAt(core, selectIdx, 1),
+        position,
+    );
+}
 
 describe("Unique variant tests @group1", async () => {
     it("single select", async () => {
@@ -37,14 +75,8 @@ describe("Unique variant tests @group1", async () => {
                 true,
             );
             sampledValues.push(
-                (
-                    await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        "x[1][1]",
-                    )
-                ).stateValues.value.tree,
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -189,14 +221,9 @@ describe("Unique variant tests @group1", async () => {
                     "w[1]",
                 )
             ).stateValues.value;
-            let newX = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x[1][1]",
-                )
-            ).stateValues.value.tree;
+            let newX =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree;
             let newY = (
                 await componentOrListEntry(
                     core,
@@ -205,14 +232,9 @@ describe("Unique variant tests @group1", async () => {
                     "y[1]",
                 )
             ).stateValues.value;
-            let newZ = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "z[1][1]",
-                )
-            ).stateValues.value.tree;
+            let newZ =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "z")]
+                    .stateValues.value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -249,14 +271,9 @@ describe("Unique variant tests @group1", async () => {
                     "w[1]",
                 )
             ).stateValues.value;
-            let newX = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x[1][1]",
-                )
-            ).stateValues.value.tree;
+            let newX =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree;
             let newY = (
                 await componentOrListEntry(
                     core,
@@ -265,14 +282,9 @@ describe("Unique variant tests @group1", async () => {
                     "y[1]",
                 )
             ).stateValues.value;
-            let newZ = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "z[1][1]",
-                )
-            ).stateValues.value.tree;
+            let newZ =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "z")]
+                    .stateValues.value.tree;
             let newValue = [newW, newX, newY, newZ].join(",");
 
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -909,7 +921,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1].n[1]",
+                    "x.n[1]",
                 )
             ).stateValues.value;
             expect(values.includes(newValue)).eq(true);
@@ -937,7 +949,7 @@ describe("Unique variant tests @group1", async () => {
                     core,
                     stateVariables,
                     resolvePathToNodeIdx,
-                    "x[1].n[1]",
+                    "x.n[1]",
                 )
             ).stateValues.value;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
@@ -973,14 +985,13 @@ describe("Unique variant tests @group1", async () => {
                 false,
                 true,
             );
-            let newValue = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x[1][1][1]",
-                )
-            ).stateValues.value.tree;
+            let newValue =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "x"),
+                    )
+                ].stateValues.value.tree;
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
             valuesFound.push(newValue);
@@ -1001,14 +1012,13 @@ describe("Unique variant tests @group1", async () => {
                 false,
                 true,
             );
-            let newValue = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x[1][1][1]",
-                )
-            ).stateValues.value.tree;
+            let newValue =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "x"),
+                    )
+                ].stateValues.value.tree;
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
     });
@@ -1049,12 +1059,10 @@ describe("Unique variant tests @group1", async () => {
                 "x.n[1]",
             );
             if (mathOrNumberComponent.componentType === "group") {
-                mathOrNumberComponent = await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x.n[1][1]",
-                );
+                mathOrNumberComponent =
+                    stateVariables[
+                        await pickChild(core, resolvePathToNodeIdx, "x.n")
+                    ];
             }
 
             let newValue = mathOrNumberComponent.stateValues.value;
@@ -1088,12 +1096,10 @@ describe("Unique variant tests @group1", async () => {
                 "x.n[1]",
             );
             if (mathOrNumberComponent.componentType === "group") {
-                mathOrNumberComponent = await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "x.n[1][1]",
-                );
+                mathOrNumberComponent =
+                    stateVariables[
+                        await pickChild(core, resolvePathToNodeIdx, "x.n")
+                    ];
             }
 
             let newValue = mathOrNumberComponent.stateValues.value;
@@ -1144,22 +1150,20 @@ describe("Unique variant tests @group1", async () => {
                 false,
                 true,
             );
-            let newX = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "xs[1][1][1]",
-                )
-            ).stateValues.value.tree;
-            let newY = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "xs[2][1][1]",
-                )
-            ).stateValues.value.tree;
+            let newX =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "xs", 1),
+                    )
+                ].stateValues.value.tree;
+            let newY =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "xs", 2),
+                    )
+                ].stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(values.includes(newValue)).eq(true);
             expect(valuesFound.includes(newValue)).eq(false);
@@ -1177,22 +1181,20 @@ describe("Unique variant tests @group1", async () => {
                 false,
                 true,
             );
-            let newX = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "xs[1][1][1]",
-                )
-            ).stateValues.value.tree;
-            let newY = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "xs[2][1][1]",
-                )
-            ).stateValues.value.tree;
+            let newX =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "xs", 1),
+                    )
+                ].stateValues.value.tree;
+            let newY =
+                stateVariables[
+                    pickChildAt(
+                        core,
+                        await pickChild(core, resolvePathToNodeIdx, "xs", 2),
+                    )
+                ].stateValues.value.tree;
             let newValue = [newX, newY].join(",");
             expect(newValue).eq(valuesFound[(ind - 1) % numVariants]);
         }
@@ -2587,14 +2589,8 @@ describe("Unique variant tests @group1", async () => {
             );
 
             sampledValues.push(
-                (
-                    await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        "x[1][1]",
-                    )
-                ).stateValues.value.tree,
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree,
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("_document1")]
@@ -2653,14 +2649,9 @@ describe("Unique variant tests @group1", async () => {
                 expect(z.stateValues.errorMessage, zeroSelect).eq("");
 
                 sampledValues.push(
-                    (
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            "x[1][1]",
-                        )
-                    ).stateValues.value.tree,
+                    stateVariables[
+                        await pickChild(core, resolvePathToNodeIdx, "x")
+                    ].stateValues.value.tree,
                 );
             }
             expect(sampledValues.sort(), zeroSelect).eqls(["u", "v", "w"]);
@@ -2726,14 +2717,9 @@ describe("Unique variant tests @group1", async () => {
                 expect(z.stateValues.errorMessage, emptySelect).eq("");
 
                 sampledValues.push(
-                    (
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            "x[1][1]",
-                        )
-                    ).stateValues.value.tree,
+                    stateVariables[
+                        await pickChild(core, resolvePathToNodeIdx, "x")
+                    ].stateValues.value.tree,
                 );
             }
             expect(sampledValues.sort(), emptySelect).eqls(["u", "v", "w"]);
@@ -2765,14 +2751,8 @@ describe("Unique variant tests @group1", async () => {
             );
 
             sampledValues.push(
-                (
-                    await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        "x[1][1]",
-                    )
-                ).stateValues.value.tree,
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree,
             );
         }
         expect(sampledValues.sort()).eqls(["u", "v", "w"]);
@@ -2826,14 +2806,8 @@ describe("Unique variant tests @group1", async () => {
                 true,
             );
             sampledLetters.push(
-                (
-                    await componentOrListEntry(
-                        core,
-                        stateVariables,
-                        resolvePathToNodeIdx,
-                        "x[1][1]",
-                    )
-                ).stateValues.value.tree,
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "x")]
+                    .stateValues.value.tree,
             );
             sampledNumbers.push(
                 (
@@ -3170,30 +3144,15 @@ describe("Unique variant tests @group1", async () => {
                 false,
                 true,
             );
-            let a = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "a[1][1]",
-                )
-            ).stateValues.value;
-            let b = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "b[1][1]",
-                )
-            ).stateValues.value;
-            let c = (
-                await componentOrListEntry(
-                    core,
-                    stateVariables,
-                    resolvePathToNodeIdx,
-                    "c[1][1]",
-                )
-            ).stateValues.value;
+            let a =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "a")]
+                    .stateValues.value;
+            let b =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "b")]
+                    .stateValues.value;
+            let c =
+                stateVariables[await pickChild(core, resolvePathToNodeIdx, "c")]
+                    .stateValues.value;
 
             let val = a * 100 + b * 10 + c;
             valuesFound.push(val);
