@@ -283,10 +283,16 @@ impl<'a> SourceReader<'a> {
             return Ok([Source::coord(p, 0), Source::coord(p, 1)]);
         }
         let (toks, src) = self.math_tokens(ar, t, scope, nodes)?;
-        let entries = expr::tuple_entries(&toks).ok_or_else(|| Error::BadMath {
-            text: src.text(self.dast),
-            reason: "expected a tuple like (x, y)".into(),
-        })?;
+        let Some(entries) = expr::tuple_entries(&toks) else {
+            // Arithmetic over pairs and points (ADR 0083).
+            if let Some([x, y]) = self.vector_point(ar, t, &toks)? {
+                return Ok([self.plan_from_expr(ar, x), self.plan_from_expr(ar, y)]);
+            }
+            return Err(Error::BadMath {
+                text: src.text(self.dast),
+                reason: "expected a tuple like (x, y)".into(),
+            });
+        };
         self.point_from_entries(ar, &entries, src)
     }
 

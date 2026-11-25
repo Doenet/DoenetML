@@ -205,11 +205,20 @@ fn a_nested_call_builds_the_same_operators_as_a_chain_of_numbers() {
     );
 }
 
+/// A call the compile cannot lower is an error where the engine does not
+/// read the function (`clamp`) or the text; a `<math>` calling one the
+/// engine reads with other arguments is the engine's (`min($a)`, ADR
+/// 0083), as the current core reads it.
 #[test]
 fn function_call_errors_are_reported() {
+    let doc = load(
+        r#"<numberInput name="a" value="2"/><math name="m">min($a)</math>
+           <math name="r">round($a, 1)</math>"#,
+    )
+    .unwrap();
+    assert_eq!(doc.value("m", "value"), Some(2.0));
+    assert_eq!(doc.math_text(doc.cell("r", "expr").unwrap()), "round(2, 1)");
     for text in [
-        "round($a, 1)",
-        "min($a)",
         "clamp($a, 0)",
         "clamp($a, $a, 1)",
         "clamp($a, 2, 1)",

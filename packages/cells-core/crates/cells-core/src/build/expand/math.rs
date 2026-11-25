@@ -41,9 +41,9 @@ impl<'c> Builder<'c> {
         }
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| sym.parse_tree(compiled.dast, &mut self.engine))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, self.engine))
         } else {
-            parsed = sym.parse_tree(compiled.dast, &mut self.engine);
+            parsed = sym.parse_tree(compiled.dast, self.engine);
             &parsed
         };
         let tree = match tree {
@@ -51,7 +51,7 @@ impl<'c> Builder<'c> {
             // A relation, tuple or multi-argument function with no cell
             // leaves is a constant expression all the same (a `<boolean>`
             // comparing `(a, b)` with `(a, b)`).
-            Err(reason) => match sym.parse_constant(compiled.dast, &mut self.engine) {
+            Err(reason) => match sym.parse_constant(compiled.dast, self.engine) {
                 Ok(h) => return Ok(self.math_constant(constant, h)),
                 Err(_) => {
                     return Err(Error::BadMath {
@@ -127,9 +127,9 @@ impl<'c> Builder<'c> {
         }
         let parsed;
         let tree = if let Some(cached) = compiled.plans.sym_trees.get(&expr) {
-            cached.get_or_init(|| sym.parse_tree(compiled.dast, &mut self.engine))
+            cached.get_or_init(|| sym.parse_tree(compiled.dast, self.engine))
         } else {
-            parsed = sym.parse_tree(compiled.dast, &mut self.engine);
+            parsed = sym.parse_tree(compiled.dast, self.engine);
             &parsed
         };
         let Ok(tree) = tree else {

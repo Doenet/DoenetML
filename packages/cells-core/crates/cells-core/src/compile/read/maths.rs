@@ -210,11 +210,12 @@ impl SourceReader<'_> {
             parsed => {
                 let mut engine = crate::sym::Engine::new();
                 let spelled = text.spell(self.dast);
-                // A call to one of DoenetML's numeric functions that does
-                // not parse is the author's error, not the engine's text.
+                // A call to a function the engine does not read (`clamp`)
+                // that does not parse is the author's error, not the
+                // engine's text.
                 let numeric_call = toks.windows(2).any(|w| {
                     matches!(&w[0], Token::Ident(f)
-                        if expr::Func::named(f).is_some_and(expr::Func::numeric_only))
+                        if expr::Func::named(f).is_some_and(|f| !f.engine_reads()))
                         && w[1] == Token::LParen
                 });
                 let reads = match mt.read {

@@ -26,6 +26,7 @@ mod refs;
 mod source;
 mod types;
 mod values;
+mod vector_math;
 
 pub(in crate::compile) use answer::AwardForm;
 pub(in crate::compile) use maths::spelled;
