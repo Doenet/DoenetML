@@ -1,7 +1,7 @@
 # A type is what an author can name: one typing stage, three relations, and refinements beneath
 
-Status: proposed 2026-11-25. Migration steps 1 to 3 are done: the
-declarations, `fit` and the typing stage's reads. Replaces the framing of ADR 0064 (its §3, one conversion
+Status: proposed 2026-11-25. Migration steps 1 to 5 and 7 are done, step
+6 is begun and step 8 is open. Replaces the framing of ADR 0064 (its §3, one conversion
 table, and §4, `PortType::Bool`, become instances of the relations here;
 its §1, §2 and §5 stand). Builds on ADR 0027 (the compile runs in
 stages), ADR 0032 (plans are typed ports), ADR 0041 (every list is a
@@ -397,9 +397,60 @@ Each step leaves the tests passing.
 4. The stage's diagnostics replace outlining's and planning's, one place
    kind at a time: a tag over an extend, a child, an attribute, a math
    leaf, a condition's operand.
+   **Done** (2026-11-25). A tag over an extend: outlining decides it by
+   `fit` (`types::extend_as`), reading the prop `x` is, stands in as or
+   converts to as the build can (a math as a number); `doenet-e0062` for
+   an input made from a value; where no chain connects them, an error at
+   load saying which relation is missing and the form that works
+   (`Error::ExtendNotA`, `cells-extend-type-mismatch`); a conversion the
+   build cannot make yet (a text parsed as a number, a point as a
+   vector) refused there too, saying so. A sum, an `and` and an integer
+   now extend as the math, boolean and number they are. An attribute:
+   a reference bound to an on/off attribute (`hide="$n"`) is fitted
+   where its record is read (`AttrKind::wants_alone`), a mismatch the
+   missing value with `cells-type-mix`. A child, a math leaf, a
+   condition's operand: planning's warnings are the typing stage's,
+   through step 5; and a boolean among an operator's operands, written
+   there or referenced, is a type mix (it counted as 1).
 5. Planners read the table; `ref_value_kind` and the old flags go.
+   **Done** (2026-11-25) for the type questions: `ref_value_kind`,
+   `ref_is_text` and `prop_is_text` answer from the typing stage
+   (`PropType::value_kind`), so a reference through an iteration, a pick
+   or an interface name is typed as one through names is (a text of an
+   interface name that is a number in every branch is the number's text,
+   where the choice was refused). `extends_as`, `extend_reads` and
+   `input_from_value` are gone. Planners still read a `ValueKind`, the
+   type as planning reads values, not a resolved "this prop, converted
+   so"; a point's or a tuple's several cells are read by their shape, a
+   refinement. Kept: `EntryKind`, `TextKind`, `ResponseKind`,
+   `PropDef::text` and `boolean`, and `reads_as`, which the build reads
+   for how a value is held and shown, a refinement; the tests hold each
+   to the declarations.
 6. Lists, tuples and composites (§2, §5, §6), with an answer's
    responses.
+   **Begun** (2026-11-25): the typing stage types composites (a group of
+   one, a choice's branches joined, an interface name over every
+   branch), lists and tuples (`AuthorType`, `fit`); an extend of a group
+   of one is of its component. Open: an extend or a value of a choice
+   whose branches join (`<math extend="$cc"/>` of a number and a math);
+   an answer's type from its input (D55), where a `<textInput>` in an
+   answer that is not `type="text"` is still refused; an answer's
+   responses as a tuple, and §6's literal index into one, since no
+   `submittedResponses` exists yet.
 7. The seal's assertion (§9), and D75's errors from refinements.
+   **Done** (2026-11-25). The seal's type pass asserts in debug builds
+   that each table prop is held as text exactly when its type is a text,
+   the missing value aside (`PropType::held_as_text`); the suite is its
+   test. A literal index the DoenetML proves names no entry is an error
+   at load, `cells-no-entry`: past a point's coordinates, past a written
+   tuple's entries (where `$mt[4]` of `(1,2,3)` read a NaN slot), into a
+   math written with none (`$ms[1]` of `<math>5</math>`, which ADR 0041
+   read as the number). An index only the run decides is still ADR
+   0041's missing value. `tests/sequence.rs` changes to this.
 8. ADR 0064's open steps (a `<math>` is always a math, values with
    entries) on top of it.
+   Open. A `<math>` written as a tuple is still settled as a `<point>`
+   or a tuple (`settled_type`), which the typing stage presents as a
+   math (`TypeDecl::Presents`); making it one in the build is ADR 0064
+   §1 and §2's work (an entry instruction, tuple leaves inside math), and
+   the bridge's.

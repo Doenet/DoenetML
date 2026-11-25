@@ -217,6 +217,11 @@ its own, one per principle code, so the switch is a rename
    attribute given a number (`hide="$n"`); `convertBoolean` over a
    condition (`$n > 2`); `credit` as a `<number convertBoolean>`; and `=`
    between a text and a number, still refused.
+   ADR 0076 steps 4 and 5 (2026-11-25) close three of these without
+   `PortType::Bool`: an element child of an operator and a referenced
+   boolean among its operands are type mixes; a reference through an
+   index or an interface name is typed by the typing stage; and a
+   boolean attribute given a number (`hide="$n"`) is a type mix.
 5. Open: an answer's type comes from its input (D55):
    `<answer><textInput/>…</answer>` is refused without `type="text"`.
 3. Begun (2026-11-24): an input made from a value
