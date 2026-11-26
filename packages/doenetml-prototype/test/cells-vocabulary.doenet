@@ -189,6 +189,11 @@
         <mathInput name="mi"><label>Answer</label></mathInput>
         <award><when>$mi = x</when></award>
     </answer>
+    <answer>
+        <shortDescription>Pick one</shortDescription>
+        <choice credit="1">yes</choice>
+        <choice>no</choice>
+    </answer>
     <triggerSet>
         <label>Go</label>
         <updateValue target="$n" newValue="4" />
