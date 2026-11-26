@@ -5,6 +5,9 @@ import type { DivisionPropsInText, XrefLabel } from "@doenet/doenetml-worker";
 import { Header } from "./_header";
 
 import classNames from "classnames";
+import type { Action } from "@doenet/doenetml-worker";
+import { useAppDispatch } from "../../state/hooks";
+import { coreActions } from "../../state/redux-slices/core";
 
 import "./division.css";
 
@@ -74,6 +77,8 @@ export const Division: BasicComponentWithPassthroughChildren<DivisionData> = ({
     htmlId,
 }) => {
     const elmType = node.name;
+    const dispatch = useAppDispatch();
+    const { collapsible, open } = node.data.props;
     const titleElmId = node.data.props.title;
     const codeNumber = node.data.props.codeNumber;
     const xrefLabel = node.data.props.xrefLabel;
@@ -98,15 +103,15 @@ export const Division: BasicComponentWithPassthroughChildren<DivisionData> = ({
         }
     > = React.useCallback(
         (props) => {
+            if (collapsible) {
+                return <details {...props} />;
+            }
             if (elmType === "aside") {
-                if (node.data.props.collapsible) {
-                    return <details {...props} />;
-                }
                 return <aside {...props} />;
             }
             return <section {...props} />;
         },
-        [node.data.props.collapsible],
+        [collapsible, elmType],
     );
 
     return (
@@ -119,14 +124,22 @@ export const Division: BasicComponentWithPassthroughChildren<DivisionData> = ({
             })}
             ref={visibilityRef}
             id={htmlId}
-            open={node.data.props.open || !node.data.props.collapsible}
+            open={open || !collapsible}
         >
             <summary
-                onClick={
-                    node.data.props.collapsible
-                        ? undefined
-                        : (e) => e.preventDefault()
-                }
+                onClick={(e) => {
+                    // Whether it is open is the core's (ADR 0084): a click
+                    // asks the core, which redraws it open or closed.
+                    e.preventDefault();
+                    if (!collapsible) return;
+                    const action: Action = {
+                        component: elmType,
+                        actionName: open ? "closeSection" : "revealSection",
+                        componentIdx: node.data.id,
+                        args: {},
+                    };
+                    dispatch(coreActions.dispatchAction(action));
+                }}
                 className="summary"
             >
                 <Header depth={node.data.props.divisionDepth}>

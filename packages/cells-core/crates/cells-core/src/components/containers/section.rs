@@ -66,8 +66,8 @@ component! {
         // Whether the reader may collapse it, and whether it is open: its
         // own state (`startOpen` at first, ADR 0084) while collapsible,
         // else always.
-        collapsible: by_planner,
-        openState: by_planner { interactive },
+        collapsible: by_planner { rendered },
+        openState: by_planner { interactive, rendered },
         notCollapsible: computed(OpSpec::Not, [collapsible]),
         open: computed(OpSpec::Max, [notCollapsible, openState]),
     }

@@ -463,6 +463,48 @@ describe("the bridge requests only interactive cells and reads only outputs", ()
         expect([value("P", "x"), value("P", "y")]).toEqual([1, 1]);
     });
 
+    it("a collapsible division opens and closes", async () => {
+        const bridge = await loadCellsDocument(
+            normalizeDocumentDast(
+                lezerToDast(`<aside name="a"><p>z</p></aside>
+<section name="s" collapsible><p>y</p></section>
+<section name="plain"><p>x</p></section>`),
+            ),
+        );
+        const props = (name: string) => {
+            const c = bridge.core.resolve_path(name);
+            const id = bridge._idByComponent.get(c)!;
+            return (bridge.flatDast().elements[id] as any).data;
+        };
+        expect(props("plain").props).toMatchObject({
+            collapsible: false,
+            open: true,
+        });
+        // An aside starts closed, a collapsible section open (ADR 0084).
+        for (const [name, component, startOpen] of [
+            ["a", "aside", false],
+            ["s", "section", true],
+        ] as const) {
+            expect(props(name).props).toMatchObject({
+                collapsible: true,
+                open: startOpen,
+            });
+            for (const [actionName, open] of [
+                ["revealSection", true],
+                ["closeSection", false],
+                ["revealSection", true],
+            ] as const) {
+                bridge.dispatch({
+                    component,
+                    actionName,
+                    componentIdx: props(name).id,
+                    args: {},
+                });
+                expect(props(name).props.open).toBe(open);
+            }
+        }
+    });
+
     const golden = path.join(CELLS_CORE, "crates/cells-bench/golden");
     const documents = [
         ...fs

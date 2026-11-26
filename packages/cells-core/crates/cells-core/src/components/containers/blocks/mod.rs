@@ -135,8 +135,8 @@ pub(crate) mod proof {
         flags: [container, unnumbered_division, style_scope, collapsible],
         props {
             // Collapsible and closed unless it says otherwise (ADR 0084).
-            collapsible: by_planner,
-            openState: by_planner { interactive },
+            collapsible: by_planner { rendered },
+            openState: by_planner { interactive, rendered },
             notCollapsible: computed(OpSpec::Not, [collapsible]),
             open: computed(OpSpec::Max, [notCollapsible, openState]),
         }

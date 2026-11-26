@@ -15,6 +15,9 @@
     <line name="l1" through="(0,0) (1,1)" />
     <line name="l2" through="(0,1) (1,0)" />
     <functionIterates name="it" function="$f" initialValue="1" numIterates="3" />
+    <styleDefinitions>
+        <styleDefinition styleNumber="9" lineColor="#000000" />
+    </styleDefinitions>
 </setup>
 
 <section>
@@ -74,6 +77,7 @@
 <video youtube="dQw4w9WgXcQ"><shortDescription>A video</shortDescription></video>
 <conclusion>c</conclusion>
 <aside><title>A</title><p>z</p></aside>
+<aside collapsible="false"><p>open</p></aside>
 <hint><p>h</p></hint>
 <solution><p>s</p></solution>
 <figure><caption>A figure</caption><p>x</p></figure>
@@ -193,6 +197,7 @@
 
 <section>
     <title>Shapes in text</title>
+    <stylePalette palette="okabeIto" />
     <p>
         $P1 <vector /> <ray /> <rectangle /> <regularPolygon /> <triangle />
         <circle /> <line /> <lineSegment />

@@ -1197,9 +1197,8 @@ export const CONTRACTS: Record<string, Contract> = {
                     local_ident: number,
                     preferred_form: "Global",
                 },
-                collapsible: false,
+                ...openState(r, c),
                 boxed: sectionBoxed(r.table, c, tag),
-                open: true,
             };
         },
         excludeChild: (table, _c, child) =>
@@ -1223,9 +1222,8 @@ export const CONTRACTS: Record<string, Contract> = {
                     local_ident: number,
                     preferred_form: "Global",
                 },
-                collapsible: true,
+                ...openState(r, c),
                 boxed: true,
-                open: flag(r.table, c, "startOpen"),
             };
         },
         excludeChild: (table, _c, child) =>
@@ -1337,9 +1335,8 @@ export const CONTRACTS: Record<string, Contract> = {
                     local_ident: "",
                     preferred_form: "Global",
                 },
-                collapsible: true,
+                ...openState(r, c),
                 boxed: flag(r.table, c, "boxed"),
-                open: flag(r.table, c, "startOpen"),
             };
         },
         excludeChild: (table, _c, child) =>
@@ -1784,6 +1781,14 @@ const STATISTICS = [
     "sum",
 ];
 
+/** Whether a division may be collapsed, and whether it is open: its own
+ * state, which a reader changes (`revealSection`, `closeSection`), while
+ * it is collapsible, else always (ADR 0084). */
+function openState(r: Reads, c: number) {
+    const collapsible = r.bool(c, "collapsible");
+    return { collapsible, open: !collapsible || r.bool(c, "openState") };
+}
+
 /** A literal on/off attribute, `fallback` when it is absent. */
 function flagOr(
     table: CellsTable,
@@ -1933,6 +1938,10 @@ export const OMITTED = new Set([
     // `<xLabel>` and `<yLabel>`: the prototype's graph draws no axis
     // labels.
     "xLabel",
+    // What style numbers mean, settled at load (ADR 0084).
+    "styleDefinition",
+    "styleDefinitions",
+    "stylePalette",
     // A document's variant settings, read at load (ADR 0085).
     "variantControl",
 ]);
