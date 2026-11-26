@@ -1,6 +1,21 @@
 import { cesc } from "@doenet/utils";
 
 /**
+ * The computed `align-items` of `style`, with the spelling of `flex-start`
+ * made the same across browser versions: Chrome 158 reports `align-items:
+ * flex-start` as `flow-start` (Chrome 157 and earlier as `flex-start`), for a
+ * flex container and a grid alike. The layout is the same; only the string
+ * changed. Compare the result with `"flex-start"`, `"baseline"`, ….
+ *
+ * @param {CSSStyleDeclaration} style A computed style.
+ * @returns {string}
+ */
+export function computedAlignItems(style) {
+    const value = style.getPropertyValue("align-items");
+    return value === "flow-start" ? "flex-start" : value;
+}
+
+/**
  * Verifies that sideBySide panel wrappers stay top-aligned and do not drift
  * vertically relative to each other in list-item layout mode when using
  * flex-start alignment.
@@ -29,9 +44,7 @@ export function verifySideBySideColumnTopAlignment({
         const win = $el[0].ownerDocument.defaultView;
         const style = win.getComputedStyle($el[0]);
         expect(style.getPropertyValue("display")).to.equal("flex");
-        expect(style.getPropertyValue("align-items")).to.equal(
-            expectedAlignment,
-        );
+        expect(computedAlignItems(style)).to.equal(expectedAlignment);
     });
 
     cy.get(`#${escapedSideBySideId} > span`).should(($spans) => {
@@ -39,9 +52,7 @@ export function verifySideBySideColumnTopAlignment({
             const win = el.ownerDocument.defaultView;
             const style = win.getComputedStyle(el);
             expect(style.getPropertyValue("display")).to.equal("flex");
-            expect(style.getPropertyValue("align-items")).to.equal(
-                "flex-start",
-            );
+            expect(computedAlignItems(style)).to.equal("flex-start");
         });
 
         if (expectedAlignment === "flex-start") {
