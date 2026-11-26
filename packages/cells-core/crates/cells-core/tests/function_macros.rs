@@ -1,7 +1,9 @@
 //! Function macros, `$$f(x)` (ADR 0075): the loader reads one as the
 //! `<evaluate function="$f" input="x"/>` it stands for, so it evaluates
-//! wherever an `<evaluate>` may stand, and where an element may not (math,
-//! an attribute) it is refused where it is written, never dropped.
+//! wherever an `<evaluate>` may stand. Inside math text (a `<math>`, an
+//! attribute read as math) it is inlined when its function is a plain
+//! formula, else refused where it is written, never dropped (ADR 0088,
+//! `tests/inlined_evaluations.rs`).
 
 mod common;
 use cells_core::Document;
@@ -31,9 +33,9 @@ fn a_function_macro_in_text_is_an_evaluation() {
 }
 
 #[test]
-fn a_function_macro_inside_math_is_refused_where_it_is_written() {
+fn a_function_macro_inside_math_of_no_plain_formula_is_refused_where_it_is_written() {
     let doc = load(
-        r#"<function name="f">x^2</function>
+        r#"<function name="f" domain="[0, 1]">x^2</function>
            <math name="m">$$f(2) + 1</math>"#,
     )
     .unwrap();
@@ -47,17 +49,14 @@ fn a_function_macro_inside_math_is_refused_where_it_is_written() {
 }
 
 #[test]
-fn a_function_macro_in_an_attribute_is_refused_where_it_is_written() {
+fn a_function_macro_in_an_attributes_math_is_inlined() {
+    // An attribute read as math text inlines it as a `<math>` does (ADR
+    // 0088).
     let doc = load(
         r#"<function name="f">x^2</function>
-           <graph><point name="P" x="$$f(2)" y="1"/></graph>"#,
+           <graph><shortDescription>g</shortDescription><point name="P" x="$$f(2)" y="1"/></graph>"#,
     )
     .unwrap();
-    assert!(
-        doc.diagnostics()
-            .iter()
-            .any(|d| d.node.is_some() && matches!(d.kind, cells_core::DiagnosticKind::Error)),
-        "{:?}",
-        doc.diagnostics()
-    );
+    assert!(codes(&doc).is_empty(), "{:?}", doc.diagnostics());
+    assert_eq!(v(&doc, "P", "x"), 4.0);
 }
