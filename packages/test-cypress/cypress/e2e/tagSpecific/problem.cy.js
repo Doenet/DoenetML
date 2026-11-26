@@ -1,5 +1,8 @@
 import { cesc } from "@doenet/utils";
-import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
+import {
+    computedAlignItems,
+    verifySideBySideColumnTopAlignment,
+} from "./utils/listItemAlignment";
 import {
     verifyListItemNumbersAlign,
     verifySectionNumberSharesRowWith,
@@ -1578,9 +1581,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             const win = $el[0].ownerDocument.defaultView;
             const style = win.getComputedStyle($el[0]);
             expect(style.getPropertyValue("display")).to.equal("grid");
-            expect(style.getPropertyValue("align-items")).to.equal(
-                "flex-start",
-            );
+            expect(computedAlignItems(style)).to.equal("flex-start");
         });
         cy.get(`#${cesc("ci3")}`).should("have.css", "margin-top", "0px");
     });
