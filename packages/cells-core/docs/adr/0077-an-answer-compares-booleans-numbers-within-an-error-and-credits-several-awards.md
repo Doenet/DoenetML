@@ -88,3 +88,12 @@ choice's credit were not held from 0 to 1, as the current core holds them.
   core's is undefined (shown as nothing); and an answer's credit follows
   what it compares with after the submit, where the current core keeps the
   credit the submit earned.
+
+## Migration
+
+2026-11-26 (ADR 0088), from "Left": a `<choice>` among an answer's
+children is the `<choiceInput>` outlining makes and the answer plans,
+and, the user's answer to the first question, `selectedIndex` is the
+missing value for none (`selectedChoice` stays 0). Credit stays derived
+from what is compared after the submit (the user's answer to the
+second).

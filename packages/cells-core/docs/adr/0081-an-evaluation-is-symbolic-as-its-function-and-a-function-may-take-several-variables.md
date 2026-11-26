@@ -128,3 +128,6 @@ was blank where the current core's is 0.
 Done 2026-11-25, all of the decision. Tested by `curve.spec.rs`,
 `tests/math.rs`, `tests/live.rs`, and the parity files
 `functionTag.test.ts` and `evaluate.test.ts`.
+
+2026-11-26 (ADR 0088): an evaluation inside math is inlined at compile
+time when its function is a plain formula (the first item of "Not done").

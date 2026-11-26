@@ -516,6 +516,42 @@ describe("renderer actions", () => {
         });
     });
 
+    // An answer's `<choice>`s are the choice input it makes (ADR 0088):
+    // drawn as one, labelled with the answer's label, nothing chosen until
+    // a choice is picked, and none again when the selection is cleared.
+    it("draws an answer's choices as the choice input it makes", async () => {
+        const bridge = await load(
+            `<answer name="a"><label>Pick:</label><choice>a</choice><choice credit="1">b</choice></answer>`,
+        );
+        const root = bridge.flatDast();
+        const [choiceInput] = byName(root, "choiceInput");
+        expect((choiceInput.data as any).props).toMatchObject({
+            label: "Pick:",
+            selectedIndices: [],
+            choiceOrder: [1, 2],
+        });
+        expect(choiceInput.children).toHaveLength(2);
+        const send = (selectedIndices: number[]) =>
+            bridge.dispatch({
+                component: "choiceInput",
+                actionName: "updateSelectedIndices",
+                componentIdx: choiceInput.data.id,
+                args: { selectedIndices },
+            }).payload as Record<number, ElementUpdate>;
+        expect(send([2])[choiceInput.data.id].changedState).toEqual({
+            selectedIndices: [2],
+        });
+        expect(send([])[choiceInput.data.id].changedState).toEqual({
+            selectedIndices: [],
+        });
+        // A short description is the answer's too.
+        const described = await load(
+            `<answer><shortDescription>Which?</shortDescription><choice>a</choice><choice>b</choice></answer>`,
+        );
+        const [input] = byName(described.flatDast(), "choiceInput");
+        expect((input.data as any).props.shortDescription).toBe("Which?");
+    });
+
     it("throws on a renderer action it does not know", async () => {
         const bridge = await load(`<text>a</text>`);
         const [text] = byName(bridge.flatDast(), "text");

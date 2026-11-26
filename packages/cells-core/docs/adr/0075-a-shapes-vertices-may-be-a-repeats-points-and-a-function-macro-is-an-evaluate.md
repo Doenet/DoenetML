@@ -120,3 +120,7 @@ Done 2026-11-25, all four. Tested by `polyline.spec.rs`, `polygon.spec.rs`,
 
 The found-and-not-done math text calling a function (`5 sin($x)`, `sin(1)`)
 is done by ADR 0083, by lowering rather than an `Evaluate`.
+
+2026-11-26 (ADR 0088): a function macro or `<evaluate>` in math text is
+inlined as its function's formula at its inputs when the function is a
+plain formula; others stay refused where written.

@@ -120,6 +120,24 @@ impl SourceReader<'_> {
         }
     }
 
+    /// The `<choice>` children of answer `el` when they are its content
+    /// alone (ADR 0088): no text or reference, and no element child but
+    /// them and its presentation children. The current core wraps them in
+    /// a `<choiceInput>`.
+    pub(in crate::compile) fn answer_choices(&self, el: NodeId) -> Option<Vec<NodeId>> {
+        let d = self.dast;
+        if !self.content_nodes(el).is_empty() {
+            return None;
+        }
+        let choices: Vec<NodeId> = d
+            .children(el)
+            .iter()
+            .copied()
+            .filter(|&n| d.kind(n) == NodeKind::Element && !self.is_presentation_child(n))
+            .collect();
+        (!choices.is_empty() && choices.iter().all(|&n| d.str(n) == "choice")).then_some(choices)
+    }
+
     /// How many of answer `el`'s awards are credited (`numAwardsCredited`,
     /// 1 without one): a literal positive integer (ADR 0077).
     pub(in crate::compile) fn num_awards_credited(&self, el: NodeId) -> Result<u8> {

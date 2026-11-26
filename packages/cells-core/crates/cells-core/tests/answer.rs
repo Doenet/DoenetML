@@ -253,7 +253,9 @@ fn unsupported_answer_forms_are_refused() {
         r#"<answer name="a"><award feedback="good">x</award></answer>"#,
         "feedback",
     );
-    refused(r#"<answer name="a"><choice>x</choice></answer>"#, "choice");
+    // `<choice>`s beside other content; alone they are sugar for a
+    // `<choiceInput>` (ADR 0088).
+    refused(r#"<answer name="a"><choice>x</choice>y</answer>"#, "choice");
     refused(r#"<answer name="a"><textInput/>x</answer>"#, "textInput");
     refused(
         r#"<mathInput name="mi"/><answer name="a"><award><when><math>$mi</math> = x</when></award></answer>"#,

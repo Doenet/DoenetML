@@ -775,8 +775,14 @@ impl<'a> Analysis<'a> {
     /// Element `(t, e)` as a variant component, if its type makes one.
     fn component(&mut self, t: TemplateId, e: ElemId) -> Option<usize> {
         let el = self.elem(t, e);
-        let n = el.node;
-        // An element the compile made (an answer's input) is none.
+        // The choice input an answer makes of its `<choice>`s shuffles as
+        // the answer's attributes say (ADR 0088).
+        let n = if el.node == NodeId::NONE && el.component_type.plays(Role::ImplicitChoiceInput) {
+            self.elem(t, el.name_scope).node
+        } else {
+            el.node
+        };
+        // Any other element the compile made (an answer's input) is none.
         if n == NodeId::NONE {
             return None;
         }

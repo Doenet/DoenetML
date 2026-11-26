@@ -59,6 +59,12 @@ pub(in crate::compile) struct Arenas {
     /// where the author asked for 1 or 0 (D47). Elsewhere it is a type mix
     /// (ADR 0064, decision 4).
     pub(in crate::compile) booleans_in_math: bool,
+    /// The names the math text being planned binds (ADR 0088): a
+    /// `<function>`'s formula binds its variables, which a free symbol of
+    /// a formula an evaluation inlines there must not be. `None` where the
+    /// text binds nothing, `Some(None)` where it binds names the compile
+    /// does not know (variables given by reference).
+    pub(in crate::compile) formula_binds: Option<Option<Vec<String>>>,
     /// Every string's canonical id, over the DAST table and then
     /// `extra_strings`; built when first needed. A cache.
     string_ids: Option<HashMap<String, StrId>>,

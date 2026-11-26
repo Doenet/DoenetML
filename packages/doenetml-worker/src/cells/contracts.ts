@@ -437,8 +437,25 @@ function inputPresentation(table: CellsTable, c: number) {
         label: label(table, c),
         labelHasLatex: false,
         labelPosition: position === "start" ? "start" : "end",
-        shortDescription: table.attr(c, "shortDescription") ?? "",
+        shortDescription: inputShortDescription(table, c),
     };
+}
+
+/** An input's short description: its `shortDescription` attribute, or,
+ * for the input an answer makes (no source of its own), the answer's
+ * short description, as its label is the answer's (ADR 0077, ADR 0088). */
+export function inputShortDescription(table: CellsTable, c: number): string {
+    const own = table.attr(c, "shortDescription");
+    if (own !== null) return own;
+    const parent = table.parent(c);
+    if (
+        table.node(c) === NONE &&
+        parent !== null &&
+        table.componentType(parent) === "answer"
+    ) {
+        return shortDescription(table, parent);
+    }
+    return "";
 }
 
 /** A choice input's `choiceOrder` (ADR 0053): its cells after its table's,

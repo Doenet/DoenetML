@@ -475,6 +475,14 @@ impl<'a> Outlining<'a> {
             // An answer's and an award's element children are components
             // (inputs, awards, whens); their text and `$ref`s are math the
             // answer's planner reads. A when's content is a condition.
+            // An answer whose content is `<choice>`s alone holds the
+            // `<choiceInput>` they are sugar for (ADR 0088).
+            _ if machinery == Some(Machinery::Answer)
+                && let Some(choices) = self.rd().answer_choices(el) =>
+            {
+                let kids = self.add_answer_choice_input(t, e, el, &choices);
+                self.outlined_mut(t).elems[e.index()].children = kids;
+            }
             _ if machinery == Some(Machinery::Answer) || component_type.plays(Role::Award) => {
                 let mut kids = Vec::new();
                 for &n in d.children(el) {

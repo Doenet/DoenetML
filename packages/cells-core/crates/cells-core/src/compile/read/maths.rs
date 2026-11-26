@@ -94,14 +94,12 @@ impl SourceReader<'_> {
                 }
                 // A label or description is presentation, not content.
                 NodeKind::Element if self.is_presentation_child(n) => {}
-                // An evaluation, as a function macro `$$f(x)` is read: its
-                // value is no cell of this text (COMP-1).
+                // An evaluation, as a function macro `$$f(x)` is read: a
+                // placeholder, its function's formula at its inputs once
+                // planned (`inline_evaluation`, ADR 0088).
                 NodeKind::Element if d.str(n) == "evaluate" => {
-                    return Err(Error::Unsupported(
-                        "an evaluation inside math (`$$f(x)`, an <evaluate>): name an \
-                         <evaluate> and write its value as a reference"
-                            .into(),
-                    ));
+                    macros.push(n);
+                    toks.push(Token::Cell(RefId::NONE));
                 }
                 // Any other element would be content this text cannot hold:
                 // dropping it would give a wrong value with no diagnostic
@@ -131,7 +129,8 @@ impl SourceReader<'_> {
     }
 
     /// `toks` with each placeholder the plan of its `$ref` in `macros`,
-    /// planned from `scope`; and the plans.
+    /// planned from `scope`, or the formula an evaluation there inlines
+    /// (ADR 0088); and the plans, in the order the tokens read them.
     fn resolve_tokens(
         &self,
         ar: &mut Arenas,
@@ -140,9 +139,33 @@ impl SourceReader<'_> {
         toks: &[Token],
         macros: &[NodeId],
     ) -> Result<(Vec<Token>, Vec<RefId>)> {
+        let binds = ar.formula_binds.clone();
+        self.resolve_tokens_at(ar, t, scope, toks, macros, 0, &binds)
+    }
+
+    /// [`Self::resolve_tokens`], `depth` evaluations deep, in text that
+    /// binds `binds` ([`Arenas::formula_binds`]).
+    #[allow(clippy::too_many_arguments)]
+    fn resolve_tokens_at(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        toks: &[Token],
+        macros: &[NodeId],
+        depth: u32,
+        binds: &Binds,
+    ) -> Result<(Vec<Token>, Vec<RefId>)> {
         let _s = crate::trace::tally("resolve math");
         let mut plans = Vec::with_capacity(macros.len());
+        let mut pieces: Vec<Vec<Token>> = Vec::with_capacity(macros.len());
         for &m in macros {
+            if self.dast.kind(m) == NodeKind::Element {
+                let (inlined, read) = self.inline_evaluation(ar, t, scope, m, depth, binds)?;
+                plans.extend(read);
+                pieces.push(inlined);
+                continue;
+            }
             let p = self.plan_ref(ar, t, scope, m)?;
             // A text cell holds a string id, which is not a number: refused
             // here where the plan reaches an element; a path past an
@@ -165,18 +188,277 @@ impl SourceReader<'_> {
                 p
             };
             plans.push(p);
+            pieces.push(vec![Token::Cell(p)]);
         }
-        let mut next = plans.iter();
-        let toks = toks
-            .iter()
-            .map(|tok| match tok {
+        let mut next = pieces.into_iter();
+        let mut out = Vec::with_capacity(toks.len());
+        for tok in toks {
+            match tok {
                 Token::Cell(p) if *p == RefId::NONE => {
-                    Token::Cell(*next.next().expect("a plan per placeholder"))
+                    out.extend(next.next().expect("a plan per placeholder"));
                 }
-                other => other.clone(),
+                other => out.push(other.clone()),
+            }
+        }
+        Ok((out, plans))
+    }
+
+    /// Evaluation `ev` (an `<evaluate>`, as a function macro `$$f(a, b)`
+    /// is read) in math text planned from `scope`, inlined (ADR 0088): the
+    /// formula of the `<function>` it names, read where the function
+    /// sits, its references rebased to here, each of its variables
+    /// replaced by the input in its place, all in parentheses; and the
+    /// plans the tokens read. Only a plain formula is inlined: a
+    /// `<function>` of literal variables with no domain, not interpolated,
+    /// symbolic, whose formula reads numbers alone (a math it read could
+    /// hold its variable). Anything else is refused, as the evaluation
+    /// would have to be a leaf of the expression.
+    fn inline_evaluation(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        ev: NodeId,
+        depth: u32,
+        binds: &Binds,
+    ) -> Result<(Vec<Token>, Vec<RefId>)> {
+        let d = self.dast;
+        let refuse = |why: String| {
+            Error::Unsupported(format!(
+                "an evaluation inside math (`$$f(x)`, an <evaluate>) {why}: name an \
+                 <evaluate> and write its value as a reference"
+            ))
+        };
+        // A condition reads no element (COMP-1).
+        if ar.booleans_in_math {
+            return Err(refuse("inside a condition".into()));
+        }
+        if depth >= MAX_INLINED_DEPTH {
+            return Err(refuse(format!(
+                "nested more than {MAX_INLINED_DEPTH} deep, or of a function that evaluates itself"
+            )));
+        }
+        if let Some(a) = d
+            .attrs(ev)
+            .find(|&a| !matches!(d.attr_name(a), "function" | "input"))
+        {
+            return Err(refuse(format!("with '{}'", d.attr_name(a))));
+        }
+        let m = d
+            .attr(ev, "function")
+            .and_then(|a| self.single_macro(a))
+            .ok_or_else(|| refuse("naming no function".into()))?;
+        let path = self.plan_ref(ar, t, scope, m)?;
+        let named = format!("${}", d.macro_display(m));
+        let not_plain = |what: &str| refuse(format!("of {named}, {what}"));
+        let (ft, fe) = match self.static_target(ar, t, path) {
+            Some(target) if ar.refs[path.index()].prop.is_none() => target,
+            _ => return Err(not_plain("which names no <function> by name")),
+        };
+        let row = &self.outlined(ft).elems[fe.index()];
+        let fnode = row.node;
+        if !row.component_type.plays(Role::Function)
+            || !row.planned_as.plays(Role::Function)
+            || row.cloned
+            || fnode == NodeId::NONE
+        {
+            return Err(not_plain("which is no <function> written with a formula"));
+        }
+        for name in NOT_PLAIN_ATTRS {
+            if d.attr_peek(fnode, name).is_some() {
+                return Err(not_plain(&format!("a function with '{name}'")));
+            }
+        }
+        if let Some(a) = d.attr_peek(fnode, "symbolic") {
+            let text = self.attr_text(a);
+            if !text.is_some_and(|s| matches!(s.trim().to_ascii_lowercase().as_str(), "" | "true"))
+            {
+                return Err(not_plain("a function not symbolic"));
+            }
+        }
+        // Its variables as written, else `x`.
+        let vars: Vec<String> = match d
+            .attr_peek(fnode, "variables")
+            .or_else(|| d.attr_peek(fnode, "variable"))
+        {
+            Some(a) => self
+                .attr_text(a)
+                .ok_or_else(|| not_plain("whose variables are a reference"))?
+                .split(|c: char| c.is_whitespace() || c == ',')
+                .filter(|v| !v.is_empty())
+                .map(str::to_string)
+                .collect(),
+            None => vec!["x".into()],
+        };
+        if vars.is_empty() {
+            return Err(not_plain("with no variable"));
+        }
+        // Its formula, read where it sits.
+        let nodes: Vec<NodeId> = d
+            .children(fnode)
+            .iter()
+            .copied()
+            .filter(|&n| !self.is_not_content(n))
+            .collect();
+        if nodes.is_empty() {
+            return Err(not_plain("which has no formula"));
+        }
+        let (ftoks, fmacros) = self.tokenize_math(&nodes)?;
+        let inner = Some(Some(vars.clone()));
+        let (ftoks, fplans) =
+            self.resolve_tokens_at(ar, ft, fe, &ftoks, &fmacros, depth + 1, &inner)?;
+        for &p in &fplans {
+            if self.ref_value_kind(ar, ft, p) != Some(ValueKind::Number) {
+                return Err(not_plain(&format!(
+                    "whose formula reads {}, which is no number",
+                    ar.ref_display(d, p)
+                )));
+            }
+        }
+        // A name the engine would split into letters, one a variable.
+        if let Some(name) = ftoks.iter().find_map(|tok| match tok {
+            Token::Ident(name)
+                if !vars.contains(name)
+                    && expr::Func::named(name).is_none()
+                    && vars.iter().any(|v| name.contains(v.as_str())) =>
+            {
+                Some(name.clone())
+            }
+            _ => None,
+        }) {
+            return Err(not_plain(&format!(
+                "whose formula writes '{name}', which holds a variable's letters"
+            )));
+        }
+        // A free symbol of its formula stays free where it lands: the
+        // variables of a function it lands in would capture it (`t + x`
+        // inlined in a function of `x`), where the current core keeps
+        // the two apart.
+        let free = |tok: &Token| match tok {
+            Token::Ident(name)
+                if !vars.contains(name)
+                    && expr::Func::named(name).is_none()
+                    && expr::named_constant(name).is_none() =>
+            {
+                Some(name.clone())
+            }
+            _ => None,
+        };
+        let captured = match binds {
+            None => None,
+            Some(None) => ftoks.iter().find_map(free),
+            Some(Some(names)) => ftoks
+                .iter()
+                .filter_map(free)
+                .find(|name| names.contains(name)),
+        };
+        if let Some(name) = captured {
+            return Err(not_plain(&format!(
+                "whose formula's free symbol '{name}' the function it is in would take as \
+                 its variable"
+            )));
+        }
+        // Its references as read from here.
+        let rebased = ar.refs[path.index()].hops > 0;
+        let ftoks: Vec<Token> = ftoks
+            .into_iter()
+            .map(|tok| match tok {
+                Token::Cell(p) if rebased => Token::Cell(self.rebase_ref(ar, path, 0, p)),
+                other => other,
             })
             .collect();
-        Ok((toks, plans))
+        // Its inputs, each one expression.
+        let a = d
+            .attr(ev, "input")
+            .ok_or_else(|| refuse(format!("of {named} at no input")))?;
+        let entries =
+            self.evaluation_inputs(ar, t, scope, d.attr_children(a), vars.len(), depth, binds)?;
+        if entries.len() != vars.len() {
+            return Err(refuse(format!(
+                "of {named} at {} inputs, where it takes {}",
+                entries.len(),
+                vars.len()
+            )));
+        }
+        let mut out = vec![Token::LParen];
+        for tok in ftoks {
+            match &tok {
+                Token::Ident(name) if vars.contains(name) => {
+                    let k = vars.iter().position(|v| v == name).expect("a variable");
+                    out.push(Token::LParen);
+                    out.extend(entries[k].iter().cloned());
+                    out.push(Token::RParen);
+                }
+                _ => out.push(tok),
+            }
+        }
+        out.push(Token::RParen);
+        let plans = out
+            .iter()
+            .filter_map(|tok| match tok {
+                Token::Cell(p) => Some(*p),
+                _ => None,
+            })
+            .collect();
+        Ok((out, plans))
+    }
+
+    /// The inputs an evaluation inlined in math writes (`nodes`, its
+    /// `input`), planned from `scope`: split at its top-level commas (a
+    /// function macro writes `input="a, b"`), else, for a function of
+    /// several variables, at its top-level spaces (`input="x 0 1"`), as
+    /// an `<evaluate>` reads its entries (ADR 0081); one tuple spread over
+    /// the variables. Each entry is its tokens, planned.
+    #[allow(clippy::too_many_arguments)]
+    fn evaluation_inputs(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+        n_vars: usize,
+        depth: u32,
+        binds: &Binds,
+    ) -> Result<Vec<Vec<Token>>> {
+        let d = self.dast;
+        let mut entries = split_input(d, nodes, false);
+        if entries.len() == 1 && n_vars > 1 {
+            let spaced = split_input(d, nodes, true);
+            if spaced.len() == n_vars {
+                entries = spaced;
+            }
+        }
+        let mut out = Vec::with_capacity(entries.len());
+        for entry in entries {
+            let mut toks = Vec::new();
+            let mut macros = Vec::new();
+            for item in entry {
+                match item {
+                    InputItem::Text(text) => {
+                        expr::tokenize(&text, &mut toks).map_err(|reason| Error::BadMath {
+                            text: text.clone(),
+                            reason,
+                        })?;
+                    }
+                    InputItem::Node(n) => {
+                        macros.push(n);
+                        toks.push(Token::Cell(RefId::NONE));
+                    }
+                }
+            }
+            let (toks, _) =
+                self.resolve_tokens_at(ar, t, scope, &toks, &macros, depth + 1, binds)?;
+            out.push(toks);
+        }
+        // One tuple over several variables is spread over them.
+        if let [one] = &out[..]
+            && n_vars > 1
+            && let Some(parts) = expr::tuple_entries(one)
+            && parts.len() == n_vars
+        {
+            return Ok(parts);
+        }
+        Ok(out)
     }
 
     /// `mt` parsed as one expression, its `$ref`s planned from `scope`,
@@ -190,6 +472,24 @@ impl SourceReader<'_> {
     ) -> Result<ExprId> {
         let (toks, plans) = self.resolve_math(ar, t, scope, mt)?;
         let opts = mt.read.as_ref().and_then(|r| r.opts.clone());
+        // Text holding an evaluation is its inlined tokens (ADR 0088),
+        // spelled for the engine as the compile reads them.
+        if mt
+            .macros
+            .iter()
+            .any(|&m| self.dast.kind(m) == NodeKind::Element)
+        {
+            if opts.is_some() {
+                return Err(Error::Unsupported(
+                    "an evaluation inside math read with `format`, `splitSymbols` or \
+                     `functionSymbols`"
+                        .into(),
+                ));
+            }
+            let id = self.parse_tokens(ar, &toks, mt.src())?;
+            ar.sym_text.insert(id, SymText::Spelled(spelled(&toks)));
+            return Ok(id);
+        }
         let latex = opts.as_ref().is_some_and(|o| o.latex);
         let constant = plans.is_empty();
         let text = SymText::Nodes {
@@ -447,4 +747,82 @@ pub(in crate::compile) fn spelled(toks: &[Token]) -> String {
         }
     }
     text
+}
+
+/// The names math text binds ([`Arenas::formula_binds`]).
+type Binds = Option<Option<Vec<String>>>;
+
+/// How deep evaluations inlined in math may nest (ADR 0088): a function
+/// that evaluates itself is refused at this depth.
+const MAX_INLINED_DEPTH: u32 = 8;
+
+/// The attributes that make a `<function>` other than a plain formula an
+/// evaluation in math inlines (ADR 0088): a domain, interpolation, a
+/// count of inputs or outputs, an extend.
+const NOT_PLAIN_ATTRS: [&str; 10] = [
+    "domain",
+    "through",
+    "minima",
+    "maxima",
+    "extrema",
+    "throughSlopes",
+    "numInputs",
+    "numOutputs",
+    "extend",
+    "copy",
+];
+
+/// One piece of an evaluation's input: text, or a reference or element.
+enum InputItem {
+    Text(String),
+    Node(NodeId),
+}
+
+/// An evaluation's input `nodes` split at its top-level commas, or, with
+/// `spaces`, at its top-level white space too: each entry its pieces.
+fn split_input(d: &Dast, nodes: &[NodeId], spaces: bool) -> Vec<Vec<InputItem>> {
+    let mut entries: Vec<Vec<InputItem>> = vec![Vec::new()];
+    let mut text = String::new();
+    let mut depth = 0i32;
+    let flush = |text: &mut String, entries: &mut Vec<Vec<InputItem>>| {
+        if !text.trim().is_empty() {
+            entries
+                .last_mut()
+                .expect("an entry")
+                .push(InputItem::Text(std::mem::take(text)));
+        }
+        text.clear();
+    };
+    for &n in nodes {
+        match d.kind(n) {
+            NodeKind::Text => {
+                for c in d.str(n).chars() {
+                    match c {
+                        '(' | '[' | '{' => depth += 1,
+                        ')' | ']' | '}' => depth -= 1,
+                        _ => {}
+                    }
+                    if depth <= 0 && (c == ',' || (spaces && c.is_whitespace())) {
+                        flush(&mut text, &mut entries);
+                        if !entries.last().expect("an entry").is_empty() {
+                            entries.push(Vec::new());
+                        }
+                    } else {
+                        text.push(c);
+                    }
+                }
+            }
+            NodeKind::Macro | NodeKind::Element => {
+                flush(&mut text, &mut entries);
+                entries
+                    .last_mut()
+                    .expect("an entry")
+                    .push(InputItem::Node(n));
+            }
+            NodeKind::Other => {}
+        }
+    }
+    flush(&mut text, &mut entries);
+    entries.retain(|e| !e.is_empty());
+    entries
 }

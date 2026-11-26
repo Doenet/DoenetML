@@ -432,6 +432,9 @@ pub enum Role {
     ImplicitTextInput,
     /// The input a boolean answer makes when it has none (ADR 0077).
     ImplicitBooleanInput,
+    /// The input an answer makes of the `<choice>`s written in it, which
+    /// it holds (ADR 0088).
+    ImplicitChoiceInput,
 }
 
 impl Role {
@@ -456,6 +459,7 @@ impl Role {
         Role::PiecewiseFunction,
         Role::ImplicitTextInput,
         Role::ImplicitBooleanInput,
+        Role::ImplicitChoiceInput,
     ];
 }
 

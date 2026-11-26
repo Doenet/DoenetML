@@ -8,7 +8,9 @@ use crate::compile::*;
 /// `Token::Cell(RefId::NONE)`, until planned.
 pub(crate) struct MathText {
     pub(in crate::compile) toks: Vec<Token>,
-    /// The `$ref` nodes, one per placeholder, in order.
+    /// The `$ref` nodes, one per placeholder, in order, and the
+    /// evaluations (`<evaluate>` elements, a function macro `$$f(x)`)
+    /// inlined there once planned (ADR 0088).
     pub(in crate::compile) macros: Vec<NodeId>,
     /// The nodes the text was read from.
     pub(in crate::compile) nodes: Box<[NodeId]>,

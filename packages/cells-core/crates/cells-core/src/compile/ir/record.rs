@@ -499,6 +499,12 @@ impl Reader<'_> {
             name_scope: scope,
             ..
         } = self.outlined(t).elems[e.index()];
+        // The `<choiceInput>` an answer's `<choice>`s are sugar for reads
+        // the answer's attributes and children as its own (ADR 0088).
+        if node == NodeId::NONE && planned_as.plays(Role::ImplicitChoiceInput) {
+            let answer = self.outlined(t).elems[scope.index()].node;
+            return self.parse_node_record(ar, t, scope, answer, planned_as);
+        }
         if node == NodeId::NONE {
             let decls = planned_as.def().attributes;
             return Ok(Record {
