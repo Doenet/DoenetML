@@ -544,6 +544,12 @@ describe("renderer actions", () => {
         expect(send([])[choiceInput.data.id].changedState).toEqual({
             selectedIndices: [],
         });
+        // A short description is the answer's too.
+        const described = await load(
+            `<answer><shortDescription>Which?</shortDescription><choice>a</choice><choice>b</choice></answer>`,
+        );
+        const [input] = byName(described.flatDast(), "choiceInput");
+        expect((input.data as any).props.shortDescription).toBe("Which?");
     });
 
     it("throws on a renderer action it does not know", async () => {

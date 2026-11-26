@@ -32,6 +32,7 @@ import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
 import {
     LIST_LIKE,
     Reads,
+    inputShortDescription,
     label,
     SECTION_KINDS,
     sectionBoxed,
@@ -1523,6 +1524,11 @@ const STATE: Record<string, Record<string, Reader>> = {
             g("selectedChoice") >= 1
                 ? x.cells.text(x.cell("selectedValue")!)
                 : undefined,
+        // As the bridge draws it: the input an answer makes shows the
+        // answer's (ADR 0077, ADR 0088).
+        label: (_g, x) => label(x.cells.table, x.idx),
+        shortDescription: (_g, x) =>
+            inputShortDescription(x.cells.table, x.idx),
         // Literal flags, as the document gives them; the input an answer
         // makes of its choices takes the answer's (ADR 0088).
         inline: (_g, x) => attrFlag(x.cells, x.idx, "inline") ?? false,
