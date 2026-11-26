@@ -777,7 +777,13 @@ impl<'a> Planning<'a> {
     /// children are.
     fn plan_implicit_choice_input(&mut self, t: TemplateId, ci: ElemId) -> Result<()> {
         let record = self.parsed.record(t, ci)?;
-        let wiring = crate::components::inputs::choice_input::plan(&mut super::ctx::PlanCtx::new(
+        let super::planner::Planner::Plan(plan) = Self::planner(Role::ImplicitChoiceInput.ty())
+        else {
+            return Err(Error::Internal(
+                "a choice input planned by its table".into(),
+            ));
+        };
+        let wiring = plan(&mut super::ctx::PlanCtx::new(
             self,
             t,
             ci,

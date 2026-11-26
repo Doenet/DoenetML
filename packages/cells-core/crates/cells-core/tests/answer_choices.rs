@@ -4,10 +4,10 @@
 
 mod common;
 
+use cells_core::components::ComponentType;
 use cells_core::program::is_missing;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_with_seed};
-use cells_core::components::ComponentType;
 use cells_core::{CellIdx, CompIdx, Document, Request};
 use common::v;
 
@@ -42,7 +42,8 @@ fn order_of(doc: &Document, a: &str) -> Vec<f64> {
         .collect()
 }
 
-const CHOICES: &str = r#"<choice>cat</choice><choice credit="1">dog</choice><choice credit="0.5">monkey</choice>"#;
+const CHOICES: &str =
+    r#"<choice>cat</choice><choice credit="1">dog</choice><choice credit="0.5">monkey</choice>"#;
 
 #[test]
 fn the_choices_are_an_input_the_answer_makes_and_credits() {
@@ -52,7 +53,9 @@ fn the_choices_are_an_input_the_answer_makes_and_credits() {
     .unwrap();
     let ci = input_of(&doc, "a");
     assert_eq!(doc.component_type(ci), ComponentType::ChoiceInput);
-    assert!(is_missing(doc.cells[cell_of(&doc, ci, "selectedIndex").index()]));
+    assert!(is_missing(
+        doc.cells[cell_of(&doc, ci, "selectedIndex").index()]
+    ));
     assert_eq!(v(&doc, "a", "credit"), 0.0);
     choose(&mut doc, "a", 2.0);
     assert_eq!(v(&doc, "a", "credit"), 0.0, "credit changes only on submit");

@@ -76,7 +76,11 @@ fn a_choice_input_answer_earns_the_submitted_choices_credit() {
         r#"<answer name="a"><choiceInput name="ci"><choice>increasing</choice><choice credit="1">decreasing</choice><choice credit="0.5">neither</choice></choiceInput></answer>"#,
     )
     .unwrap();
-    assert!(cells_core::program::is_missing(v(&doc, "ci", "selectedIndex")));
+    assert!(cells_core::program::is_missing(v(
+        &doc,
+        "ci",
+        "selectedIndex"
+    )));
     assert_eq!(v(&doc, "a", "credit"), 0.0);
     set(&mut doc, "ci", "selectedIndex", 2.0);
     assert_eq!(v(&doc, "a", "credit"), 0.0, "credit changes only on submit");

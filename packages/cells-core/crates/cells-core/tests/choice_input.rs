@@ -4,9 +4,9 @@
 
 mod common;
 
+use cells_core::program::is_missing;
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_with_seed};
-use cells_core::program::is_missing;
 use common::{req, set, v};
 
 const THREE: &str = r#"<choiceInput name="ci"><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>"#;
@@ -31,7 +31,10 @@ fn a_request_naming_no_choice_chooses_none() {
         doc.request(&[req(&doc, "ci", "selectedIndex", asked)]);
         assert!(is_missing(v(&doc, "ci", "selectedIndex")), "asked {asked}");
         // The projection stores what it shows, not the request.
-        assert!(is_missing(v(&doc, "ci", "preliminaryIndex")), "asked {asked}");
+        assert!(
+            is_missing(v(&doc, "ci", "preliminaryIndex")),
+            "asked {asked}"
+        );
         assert_eq!(reference::check(&doc), None);
     }
 }
