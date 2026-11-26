@@ -76,6 +76,20 @@ fn a_function_of_several_variables_takes_its_inputs_in_order() {
 }
 
 #[test]
+fn a_free_symbol_of_the_formula_stays_free() {
+    let doc = load(
+        r#"<function name="g" variables="t">t + x</function>
+           <math name="m">$$g(2)</math>
+           <function name="h" variables="s">$$g(s) + 1</function>
+           <evaluate name="h1" function="$h" input="3"/>"#,
+    )
+    .unwrap();
+    assert!(doc.diagnostics().is_empty(), "{:?}", doc.diagnostics());
+    assert_eq!(text(&doc, "m"), "2 + x");
+    assert_eq!(text(&doc, "h1"), "x + 4");
+}
+
+#[test]
 fn a_function_defined_by_an_evaluation_is_one_formula() {
     let doc = load(
         r#"<function name="f">x^2</function>
@@ -138,6 +152,11 @@ fn an_evaluation_of_any_other_function_stays_refused() {
         (
             r#"<function name="f">ax</function><math>$$f(1)</math>"#,
             "'ax'",
+        ),
+        // A free symbol the function it lands in takes as its variable.
+        (
+            r#"<function name="g" variables="t">t + x</function><function name="f">$$g(x)</function>"#,
+            "free symbol 'x'",
         ),
     ] {
         let m = refusal(src);

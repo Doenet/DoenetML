@@ -603,6 +603,17 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.ar.warn(node, code, message)
     }
 
+    /// Says the math text planned from here on binds `names` (a
+    /// `<function>`'s variables; `None` for names given by reference), or
+    /// with `None` nothing; returns what it bound before. An evaluation
+    /// inlined in it brings no free symbol these would capture (ADR 0088).
+    pub(crate) fn set_formula_binds(
+        &mut self,
+        binds: Option<Option<Vec<String>>>,
+    ) -> Option<Option<Vec<String>>> {
+        std::mem::replace(&mut self.p.ar.formula_binds, binds)
+    }
+
     // Operators over math (ADR 0043).
 
     /// A scalar planned from the record as the text it was written as: a

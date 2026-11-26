@@ -599,8 +599,45 @@ fn num_outputs(attrs: &Attrs, mt: &MathText) -> Result<usize> {
 }
 
 /// A math cell `expr` and, as a curve, its samples over the x-range of
-/// the graph it sits in, else [-10, 10], cut to its domain.
+/// the graph it sits in, else [-10, 10], cut to its domain. Its formula
+/// binds its variables: an evaluation inlined in it brings no free symbol
+/// they would capture (ADR 0088).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    let binds = formula_binds(&Attrs::of(ctx.record()));
+    let was = ctx.set_formula_binds(Some(binds));
+    let planned = plan_formula(ctx);
+    ctx.set_formula_binds(was);
+    planned
+}
+
+/// The names a function's formula binds: its variables as written, the
+/// current core's defaults (`x`, `y`, `z`) when it writes none, and
+/// `None` when a reference gives them.
+fn formula_binds(attrs: &Attrs) -> Option<Vec<String>> {
+    let pieces = if attrs.variables.is_empty() {
+        &attrs.variable
+    } else {
+        &attrs.variables
+    };
+    if pieces.is_empty() {
+        return Some(vec!["x".into(), "y".into(), "z".into()]);
+    }
+    let mut names = Vec::new();
+    for piece in pieces {
+        let ListPiece::Text(text) = piece else {
+            return None;
+        };
+        names.extend(
+            text.split(|c: char| c.is_whitespace() || c == ',')
+                .filter(|v| !v.is_empty())
+                .map(str::to_string),
+        );
+    }
+    Some(names)
+}
+
+/// [`plan`], once its formula's bindings are said.
+fn plan_formula(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let component_type = ctx.component_type();
     let attrs = Attrs::of(ctx.record());
     let nodes = attrs.children.clone().unwrap_or_default();

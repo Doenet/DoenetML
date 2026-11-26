@@ -1466,7 +1466,10 @@ mod tests {
         // operator's operands (D47).
         // ADR 0083 added `equation_value`, a line's equation that is a
         // math value, read in the tick.
-        const PLAN_CTX_METHODS: usize = 50;
+        // ADR 0088 added `set_formula_binds`, the variables a function's
+        // formula binds, which an evaluation inlined in it must not
+        // capture.
+        const PLAN_CTX_METHODS: usize = 51;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

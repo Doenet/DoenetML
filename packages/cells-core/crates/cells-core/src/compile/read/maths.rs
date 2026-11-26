@@ -139,10 +139,13 @@ impl SourceReader<'_> {
         toks: &[Token],
         macros: &[NodeId],
     ) -> Result<(Vec<Token>, Vec<RefId>)> {
-        self.resolve_tokens_at(ar, t, scope, toks, macros, 0)
+        let binds = ar.formula_binds.clone();
+        self.resolve_tokens_at(ar, t, scope, toks, macros, 0, &binds)
     }
 
-    /// [`Self::resolve_tokens`], `depth` evaluations deep.
+    /// [`Self::resolve_tokens`], `depth` evaluations deep, in text that
+    /// binds `binds` ([`Arenas::formula_binds`]).
+    #[allow(clippy::too_many_arguments)]
     fn resolve_tokens_at(
         &self,
         ar: &mut Arenas,
@@ -151,13 +154,14 @@ impl SourceReader<'_> {
         toks: &[Token],
         macros: &[NodeId],
         depth: u32,
+        binds: &Binds,
     ) -> Result<(Vec<Token>, Vec<RefId>)> {
         let _s = crate::trace::tally("resolve math");
         let mut plans = Vec::with_capacity(macros.len());
         let mut pieces: Vec<Vec<Token>> = Vec::with_capacity(macros.len());
         for &m in macros {
             if self.dast.kind(m) == NodeKind::Element {
-                let (inlined, read) = self.inline_evaluation(ar, t, scope, m, depth)?;
+                let (inlined, read) = self.inline_evaluation(ar, t, scope, m, depth, binds)?;
                 plans.extend(read);
                 pieces.push(inlined);
                 continue;
@@ -216,6 +220,7 @@ impl SourceReader<'_> {
         scope: ElemId,
         ev: NodeId,
         depth: u32,
+        binds: &Binds,
     ) -> Result<(Vec<Token>, Vec<RefId>)> {
         let d = self.dast;
         let refuse = |why: String| {
@@ -299,7 +304,9 @@ impl SourceReader<'_> {
             return Err(not_plain("which has no formula"));
         }
         let (ftoks, fmacros) = self.tokenize_math(&nodes)?;
-        let (ftoks, fplans) = self.resolve_tokens_at(ar, ft, fe, &ftoks, &fmacros, depth + 1)?;
+        let inner = Some(Some(vars.clone()));
+        let (ftoks, fplans) =
+            self.resolve_tokens_at(ar, ft, fe, &ftoks, &fmacros, depth + 1, &inner)?;
         for &p in &fplans {
             if self.ref_value_kind(ar, ft, p) != Some(ValueKind::Number) {
                 return Err(not_plain(&format!(
@@ -323,6 +330,34 @@ impl SourceReader<'_> {
                 "whose formula writes '{name}', which holds a variable's letters"
             )));
         }
+        // A free symbol of its formula stays free where it lands: the
+        // variables of a function it lands in would capture it (`t + x`
+        // inlined in a function of `x`), where the current core keeps
+        // the two apart.
+        let free = |tok: &Token| match tok {
+            Token::Ident(name)
+                if !vars.contains(name)
+                    && expr::Func::named(name).is_none()
+                    && expr::named_constant(name).is_none() =>
+            {
+                Some(name.clone())
+            }
+            _ => None,
+        };
+        let captured = match binds {
+            None => None,
+            Some(None) => ftoks.iter().find_map(free),
+            Some(Some(names)) => ftoks
+                .iter()
+                .filter_map(free)
+                .find(|name| names.contains(name)),
+        };
+        if let Some(name) = captured {
+            return Err(not_plain(&format!(
+                "whose formula's free symbol '{name}' the function it is in would take as \
+                 its variable"
+            )));
+        }
         // Its references as read from here.
         let rebased = ar.refs[path.index()].hops > 0;
         let ftoks: Vec<Token> = ftoks
@@ -337,7 +372,7 @@ impl SourceReader<'_> {
             .attr(ev, "input")
             .ok_or_else(|| refuse(format!("of {named} at no input")))?;
         let entries =
-            self.evaluation_inputs(ar, t, scope, d.attr_children(a), vars.len(), depth)?;
+            self.evaluation_inputs(ar, t, scope, d.attr_children(a), vars.len(), depth, binds)?;
         if entries.len() != vars.len() {
             return Err(refuse(format!(
                 "of {named} at {} inputs, where it takes {}",
@@ -374,6 +409,7 @@ impl SourceReader<'_> {
     /// several variables, at its top-level spaces (`input="x 0 1"`), as
     /// an `<evaluate>` reads its entries (ADR 0081); one tuple spread over
     /// the variables. Each entry is its tokens, planned.
+    #[allow(clippy::too_many_arguments)]
     fn evaluation_inputs(
         &self,
         ar: &mut Arenas,
@@ -382,6 +418,7 @@ impl SourceReader<'_> {
         nodes: &[NodeId],
         n_vars: usize,
         depth: u32,
+        binds: &Binds,
     ) -> Result<Vec<Vec<Token>>> {
         let d = self.dast;
         let mut entries = split_input(d, nodes, false);
@@ -409,7 +446,8 @@ impl SourceReader<'_> {
                     }
                 }
             }
-            let (toks, _) = self.resolve_tokens_at(ar, t, scope, &toks, &macros, depth + 1)?;
+            let (toks, _) =
+                self.resolve_tokens_at(ar, t, scope, &toks, &macros, depth + 1, binds)?;
             out.push(toks);
         }
         // One tuple over several variables is spread over them.
@@ -710,6 +748,9 @@ pub(in crate::compile) fn spelled(toks: &[Token]) -> String {
     }
     text
 }
+
+/// The names math text binds ([`Arenas::formula_binds`]).
+type Binds = Option<Option<Vec<String>>>;
 
 /// How deep evaluations inlined in math may nest (ADR 0088): a function
 /// that evaluates itself is refused at this depth.
