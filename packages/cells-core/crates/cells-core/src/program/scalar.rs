@@ -69,16 +69,14 @@ fn choice_index(a: f64, n: f64) -> f64 {
     if a.fract() == 0.0 && a >= 1.0 && a <= n {
         a
     } else {
-        0.0
+        MISSING
     }
 }
 
-/// What `choice_index` gives over `a` and `n`: 0, or an `a` from 1 to `n`.
-fn choice_index_range(a: Range, n: Range) -> Range {
-    match (a, n) {
-        (Range::Span(_, ahi), Range::Span(_, nhi)) => Range::span(0.0, ahi.min(nhi).max(0.0)),
-        _ => Range::Top,
-    }
+/// What `choice_index` gives over `a` and `n`: an `a` from 1 to `n`, or
+/// the missing value, which no span holds.
+fn choice_index_range(_a: Range, _n: Range) -> Range {
+    Range::Top
 }
 
 /// `a` rounded by `f` (`floor` or `ceil`), except that a value within a
@@ -258,9 +256,10 @@ scalar_ops! {
         projection |d| d.is_finite().then(|| (A, d.floor())),
         range: a.monotone(f64::floor),
     }
-    /// `a` when it is a whole number from 1 to `n`, else 0: a choice
-    /// index, 0 meaning none is chosen. A request outside that set
-    /// (NaN, a fraction, out of range) chooses none.
+    /// `a` when it is a whole number from 1 to `n`, else the missing
+    /// value: a choice index, missing while none is chosen (ADR 0046, ADR
+    /// 0088). A request outside that set (0, NaN, a fraction, out of
+    /// range) chooses none.
     ChoiceIndex(a, n) {
         missing: reads,
         eval: choice_index(a, n),

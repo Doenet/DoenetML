@@ -9,10 +9,11 @@ use crate::program::VecOp;
 
 component! {
     /// `<choiceInput>`: `selectedIndex` is the 1-based position of the
-    /// chosen `<choice>` as shown, 0 for none. The input's own state is
-    /// `preliminaryIndex`, and `selectedIndex` is it when it names a choice,
-    /// else 0, so a request for another index (NaN, a fraction, out of
-    /// range) chooses none. The choices are shown in `choiceOrder`, a
+    /// chosen `<choice>` as shown, the missing value for none (ADR 0046,
+    /// ADR 0088). The input's own state is `preliminaryIndex`, and
+    /// `selectedIndex` is it when it names a choice, else missing, so a
+    /// request for another index (0, NaN, a fraction, out of range)
+    /// chooses none. The choices are shown in `choiceOrder`, a
     /// second public sequence over its own ports (ADR 0053), one cell a
     /// choice: entry `k` is the 1-based position among its `<choice>`
     /// children of the choice shown `k`-th. That is document order, or
@@ -21,6 +22,7 @@ component! {
     /// `selectMultiple` is refused.
     tags: ["choiceInput"],
     flags: [copyable],
+    roles: [ImplicitChoiceInput],
     response: Index(selectedIndex),
     needs: Label,
     list_item: Choices,
@@ -57,7 +59,7 @@ component! {
 }
 
 /// The position of `selectedIndex`: the 1-based position of the chosen
-/// `<choice>` as shown, 0 for none.
+/// `<choice>` as shown, missing for none.
 pub const SELECTED_INDEX: usize = Props::AT.selectedIndex;
 
 /// Its choices must be `<choice>` elements; `selectMultiple` is refused.
@@ -101,7 +103,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     }
     order.extend((order.len() + 1..=n).map(|k| Wire::constant(k as f64)));
     // The choice chosen, by its place among the choices: the place
-    // `choiceOrder` names at `selectedIndex`, 0 for none.
+    // `choiceOrder` names at `selectedIndex`, 0 for none (a missing
+    // index chooses none).
     let selected_choice = if shuffled > 1 {
         let mut args = vec![at.selectedIndex];
         args.extend(shuffled_ports.iter().copied());
@@ -114,7 +117,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ));
         Source::computed_k(OpSpec::NanTo, chosen, 0.0)
     } else {
-        Source::own(at.selectedIndex)
+        Source::computed_k(OpSpec::NanTo, at.selectedIndex, 0.0)
     };
     // Its text, the empty text for none (the first branch). A copy whose
     // choices are its referent's has none of its own to read: missing.

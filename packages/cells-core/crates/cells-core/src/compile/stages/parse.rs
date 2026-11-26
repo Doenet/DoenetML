@@ -104,6 +104,20 @@ impl Parsing<'_> {
                 continue;
             }
             let def = self.rd.elem(t, e).planned_as.def();
+            // The `<choiceInput>` an answer makes of its `<choice>`s,
+            // which the answer plans, has the record it reads off the
+            // answer (ADR 0088).
+            if def.machinery == Some(Machinery::Answer) {
+                for k in self.rd.elem_children(t, e) {
+                    let row = self.rd.elem(t, k);
+                    if row.node == NodeId::NONE
+                        && row.component_type.plays(Role::ImplicitChoiceInput)
+                    {
+                        let record = self.rd.parse_record(self.ar, t, k);
+                        parsed.records.insert((t, k), record);
+                    }
+                }
+            }
             if def.attributes.is_empty() && def.children.built() {
                 continue;
             }

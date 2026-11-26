@@ -79,6 +79,15 @@ impl<'a> Planning<'a> {
             }
         }
         let text_nodes = self.rd.content_nodes(el);
+        // The choice input its `<choice>`s are sugar for, which outlining
+        // made and the answer plans (ADR 0088).
+        if let Some(ci) = self.rd.elem_children(t, e).into_iter().find(|&k| {
+            let row = self.rd.owned_row(t, e, k);
+            row.node == NodeId::NONE && row.component_type.plays(Role::ImplicitChoiceInput)
+        }) {
+            self.plan_implicit_choice_input(t, ci)?;
+            return self.plan_choice_answer(t, e, el, ci);
+        }
         // A choice input: the submitted index earns its choice's credit.
         if let [ci] = inputs.as_slice()
             && matches!(
@@ -759,6 +768,33 @@ impl<'a> Planning<'a> {
         }
         .into_vec();
         Ok(mi)
+    }
+
+    /// Plans the `<choiceInput>` outlining made of an answer's `<choice>`s
+    /// (ADR 0088): as its type's planner plans one written, from the
+    /// record parsing read off the answer (its `shuffleOrder` and
+    /// `preserveLastChoice`, its choices), and held as the answer's
+    /// children are.
+    fn plan_implicit_choice_input(&mut self, t: TemplateId, ci: ElemId) -> Result<()> {
+        let record = self.parsed.record(t, ci)?;
+        let wiring = crate::components::inputs::choice_input::plan(&mut super::ctx::PlanCtx::new(
+            self,
+            t,
+            ci,
+            record,
+            Vec::new(),
+            None,
+        ))?;
+        if !wiring.given().is_empty() {
+            self.planned.given.insert((t, ci), wiring.given().clone());
+        }
+        let (props, list) = wiring.finish();
+        let plan = &mut self.tables[t.index()].plans[ci.index()];
+        plan.props = props;
+        plan.list = list;
+        let hold = self.plan_hold(t, ci)?;
+        self.tables[t.index()].plans[ci.index()].hold = hold;
+        Ok(())
     }
 
     /// The text the content of `el` (a text answer or one of its awards)

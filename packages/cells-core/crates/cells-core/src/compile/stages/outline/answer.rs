@@ -1,5 +1,6 @@
 //! An answer's synthetic children, made when outlining: its implicit
-//! `<mathInput>` and a `response` per input its whens read.
+//! `<mathInput>`, the `<choiceInput>` its `<choice>`s are sugar for, and a
+//! `response` per input its whens read.
 
 use super::Outlining;
 use crate::compile::*;
@@ -33,6 +34,15 @@ impl Outlining<'_> {
     fn add_answer_children_of(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.dast;
         let el = self.outlined(t).elems[e.index()].node;
+        // An answer of `<choice>`s holds its input already (ADR 0088).
+        if self.rd().elem_children(t, e).into_iter().any(|k| {
+            self.outlined(t).elems[k.index()]
+                .component_type
+                .plays(Role::ImplicitChoiceInput)
+                && self.outlined(t).elems[k.index()].node == NodeId::NONE
+        }) {
+            return Ok(());
+        }
         let text_answer =
             self.rd().reject_answer_attrs(el)? || self.rd().answer_text_child(t, e, el).is_some();
         // A boolean answer with no input of its own checks one it makes
@@ -136,6 +146,44 @@ impl Outlining<'_> {
             .children
             .push(Child::Elem(r));
         r
+    }
+
+    /// The children of answer `e` (at `el`) whose content is the
+    /// `<choice>`s `choices` alone (ADR 0088): its presentation children,
+    /// then the `<choiceInput>` the choices are sugar for, made here with
+    /// no source of its own and the choices as its children, which the
+    /// answer plans from its own attributes (`shuffleOrder`,
+    /// `preserveLastChoice`), as the current core wraps them.
+    pub(super) fn add_answer_choice_input(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+        choices: &[NodeId],
+    ) -> Vec<Child> {
+        let d = self.dast;
+        let ci = self
+            .push_elem(
+                t,
+                NodeId::NONE,
+                Role::ImplicitChoiceInput.ty(),
+                StrId::NONE,
+                e,
+            )
+            .expect("unnamed");
+        let mut kids = Vec::new();
+        for &n in d.children(el) {
+            if self.rd().is_presentation_child(n) {
+                kids.push(Child::Elem(self.add_elem(t, n, e)));
+            }
+        }
+        let options = choices
+            .iter()
+            .map(|&n| Child::Elem(self.add_elem(t, n, ci)))
+            .collect();
+        self.outlined_mut(t).elems[ci.index()].children = options;
+        kids.push(Child::Elem(ci));
+        kids
     }
 
     /// Add the input DoenetML sugars into an answer that names none (the

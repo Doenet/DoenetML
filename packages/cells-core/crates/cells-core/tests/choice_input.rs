@@ -1,10 +1,12 @@
 //! `<choiceInput>`: a request on `selectedIndex` lands only when it is an
-//! integer from 1 to `numChoices`; any other request chooses none (0).
+//! integer from 1 to `numChoices`; any other request chooses none, the
+//! missing value (ADR 0088).
 
 mod common;
 
 use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_with_seed};
+use cells_core::program::is_missing;
 use common::{req, set, v};
 
 const THREE: &str = r#"<choiceInput name="ci"><choice>a</choice><choice>b</choice><choice>c</choice></choiceInput>"#;
@@ -12,7 +14,7 @@ const THREE: &str = r#"<choiceInput name="ci"><choice>a</choice><choice>b</choic
 #[test]
 fn a_request_naming_a_choice_lands() {
     let mut doc = load(THREE).unwrap();
-    assert_eq!(v(&doc, "ci", "selectedIndex"), 0.0);
+    assert!(is_missing(v(&doc, "ci", "selectedIndex")));
     for i in [2.0, 3.0, 1.0] {
         doc.request(&[req(&doc, "ci", "selectedIndex", i)]);
         assert_eq!(v(&doc, "ci", "selectedIndex"), i);
@@ -27,9 +29,9 @@ fn a_request_naming_no_choice_chooses_none() {
         let mut doc = load(THREE).unwrap();
         doc.request(&[req(&doc, "ci", "selectedIndex", 2.0)]);
         doc.request(&[req(&doc, "ci", "selectedIndex", asked)]);
-        assert_eq!(v(&doc, "ci", "selectedIndex"), 0.0, "asked {asked}");
+        assert!(is_missing(v(&doc, "ci", "selectedIndex")), "asked {asked}");
         // The projection stores what it shows, not the request.
-        assert_eq!(v(&doc, "ci", "preliminaryIndex"), 0.0, "asked {asked}");
+        assert!(is_missing(v(&doc, "ci", "preliminaryIndex")), "asked {asked}");
         assert_eq!(reference::check(&doc), None);
     }
 }
@@ -53,8 +55,8 @@ fn an_input_bound_to_the_index_is_projected_too() {
     doc.request(&[req(&doc, "i", "value", 3.0)]);
     assert_eq!(v(&doc, "ci", "selectedIndex"), 3.0);
     doc.request(&[req(&doc, "i", "value", 2.5)]);
-    assert_eq!(v(&doc, "ci", "selectedIndex"), 0.0);
-    assert_eq!(v(&doc, "i", "value"), 0.0);
+    assert!(is_missing(v(&doc, "ci", "selectedIndex")));
+    assert!(is_missing(v(&doc, "i", "value")));
 }
 
 #[test]
@@ -64,7 +66,7 @@ fn an_initial_index_naming_no_choice_shows_none() {
            <choiceInput name="cj" selectedIndex="2"><choice>a</choice><choice>b</choice></choiceInput>"#,
     )
     .unwrap();
-    assert_eq!(v(&doc, "ci", "selectedIndex"), 0.0);
+    assert!(is_missing(v(&doc, "ci", "selectedIndex")));
     assert_eq!(v(&doc, "cj", "selectedIndex"), 2.0);
 }
 

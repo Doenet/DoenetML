@@ -173,3 +173,24 @@ fn what_the_compile_makes_is_no_variant_component() {
     }
     assert_eq!(seen.len(), 2);
 }
+
+#[test]
+fn an_answers_shuffled_choices_take_each_order_once() {
+    // The choice input an answer makes of its choices shuffles as the
+    // answer says (ADR 0088): one variant per order.
+    let src = r#"<answer name="a" shuffleOrder><choice>a</choice><choice>b</choice><choice>c</choice></answer>"#;
+    let mut seen = HashSet::new();
+    for i in 1..=6 {
+        let doc = load_variant(src, i as f64);
+        assert_eq!(doc.session.variant.as_ref().unwrap().all_possible.len(), 6);
+        let a = doc.resolve_path("a").unwrap();
+        let ci = doc.answer_inputs(a)[0];
+        let order: Vec<u64> = doc
+            .prop_cells(ci, "choiceOrder")
+            .unwrap()
+            .iter()
+            .map(|c| doc.cells[c.index()] as u64)
+            .collect();
+        assert!(seen.insert(order.clone()), "variant {i} repeats {order:?}");
+    }
+}
