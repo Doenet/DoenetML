@@ -229,6 +229,17 @@ function attrFlag(
     return text.trim().toLowerCase() !== "false";
 }
 
+/** A choice input's literal flag `name`: its own, else, for the input an
+ * answer makes of its `<choice>`s, the answer's (ADR 0088). */
+function choiceInputFlag(x: { cells: Cells; idx: number }, name: string) {
+    const own = attrFlag(x.cells, x.idx, name);
+    if (own !== undefined) return own;
+    const parent = x.cells.table.parent(x.idx);
+    return parent !== null && x.cells.table.tag(parent) === "answer"
+        ? (attrFlag(x.cells, parent, name) ?? false)
+        : false;
+}
+
 /** Answers submitted, each with its responses as they were at the
  * submission (`justSubmitted`): kept here, since the core has no cell for
  * it. An answer is just submitted while its responses are unchanged, as
@@ -1512,12 +1523,11 @@ const STATE: Record<string, Record<string, Reader>> = {
             g("selectedChoice") >= 1
                 ? x.cells.text(x.cell("selectedValue")!)
                 : undefined,
-        // Literal flags, as the document gives them.
+        // Literal flags, as the document gives them; the input an answer
+        // makes of its choices takes the answer's (ADR 0088).
         inline: (_g, x) => attrFlag(x.cells, x.idx, "inline") ?? false,
-        shuffleOrder: (_g, x) =>
-            attrFlag(x.cells, x.idx, "shuffleOrder") ?? false,
-        preserveLastChoice: (_g, x) =>
-            attrFlag(x.cells, x.idx, "preserveLastChoice") ?? false,
+        shuffleOrder: (_g, x) => choiceInputFlag(x, "shuffleOrder"),
+        preserveLastChoice: (_g, x) => choiceInputFlag(x, "preserveLastChoice"),
         // The text of each choice, as the core makes it, in the order
         // shown.
         choiceTexts: (_g, x) => {
