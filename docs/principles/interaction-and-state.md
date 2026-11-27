@@ -343,6 +343,14 @@ property has its type. Authors don't write `type`.
 - A `<booleanInput>` or a `<text>` target is unchanged, with no diagnostic.
 - A `<textInput>` target is unchanged, with no diagnostic (it threw in the core until #2609).
 
+**A list target** (proposed, #2689, for a decision): a list is one target, set as a whole, with
+`newValue` read as a list of its entry type (`newValue="$l 4"` appends 4). The number of entries
+can change when they are the list's own (literal pieces, or none); when they come from elsewhere,
+a `newValue` of the same count writes back entry by entry, and another count is a warning.
+**Today** a list target is as many targets as it has entries, the D41 reading D59 reverted
+(COLL-2): `newValue` is written to each entry, so an empty `<numberList>` gives only `w0043` and
+no list can change its count. Actions to use a list as a queue or a stack: #2690, lower priority.
+
 ### ACT-3: actions run one after another, and each sees the result of the previous one (Tier 2)
 - A `<triggerSet>` doing `$n+10`, then `$n+100`, from n=3 gives 113.
 - A chain in which `a` doubles n, then `b` and `c` (both `triggerWith="$a"`) do `n+1` and `10n`,
