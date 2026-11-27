@@ -1,4 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import {
     returnBorderValidValues,
@@ -12,6 +16,8 @@ export default class Tabular extends BlockComponent {
 
         Object.assign(this.actions, {
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
     static componentType = "tabular";
@@ -523,6 +529,14 @@ export default class Tabular extends BlockComponent {
         // }
 
         return stateVariableDefinitions;
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {

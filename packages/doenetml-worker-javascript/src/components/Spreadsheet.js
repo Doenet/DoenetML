@@ -1,6 +1,10 @@
 import { normalizeIndex } from "../utils/table";
 import { textToAst } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 import { vectorOperators } from "@doenet/utils";
 import me from "math-expressions";
 import { HyperFormula } from "hyperformula";
@@ -13,6 +17,8 @@ export default class Spreadsheet extends BlockComponent {
         Object.assign(this.actions, {
             onChange: this.onChange.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
     static componentType = "spreadsheet";
@@ -1690,6 +1696,14 @@ export default class Spreadsheet extends BlockComponent {
                 },
             });
         }
+    }
+
+    async addChildren(args) {
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {

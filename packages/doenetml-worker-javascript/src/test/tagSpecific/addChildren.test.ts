@@ -160,6 +160,101 @@ describe("addChildren for non-graph parents @group4", () => {
         await check_num_graphs(0);
     });
 
+    it("add and delete rows of a tabular", async () => {
+        const doenetML = `
+    <tabular name="t">
+      <row><cell>a</cell><cell>b</cell></row>
+    </tabular>
+
+    <collect componentType="row" from="$t" name="col" />
+
+    <callAction name="addRow" target="$t" actionName="addChildren">
+      <row><cell>c</cell><cell>d</cell></row>
+    </callAction>
+    <callAction name="deleteRow" target="$t" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check_num_rows(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const col = stateVariables[await resolvePathToNodeIdx("col")];
+            expect(col.replacements?.length ?? 0).eq(n);
+        }
+
+        await check_num_rows(1);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await check_num_rows(2);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await check_num_rows(3);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteRow"),
+            core,
+        });
+        await check_num_rows(2);
+    });
+
+    it("add and delete cells of a spreadsheet", async () => {
+        const doenetML = `
+    <spreadsheet name="s">
+      <cell>a</cell>
+    </spreadsheet>
+    <spreadsheet extend="$s" name="s2" />
+
+    <callAction name="addCell" target="$s" actionName="addChildren">
+      <cell rowNum="2" colNum="B">x</cell>
+    </callAction>
+    <callAction name="deleteCell" target="$s" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        // An extend is the same spreadsheet, so it shows the added cells too.
+        async function check_cells(b2: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["s", "s2"]) {
+                const cells =
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .cells;
+                expect(cells[0][0]).eq("a");
+                expect(cells[1][1]).eq(b2);
+            }
+        }
+
+        await check_cells("");
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addCell"),
+            core,
+        });
+        await check_cells("x");
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteCell"),
+            core,
+        });
+        await check_cells("");
+    });
+
     it.each(["aside", "proof"])(
         "does not create children added to a postponed %s until opened",
         async (sectionType) => {
