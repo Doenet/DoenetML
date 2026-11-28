@@ -441,6 +441,57 @@ describe("addChildren for non-graph parents @group4", () => {
         await check(0, 0);
     });
 
+    it("rows added to an extend of a tabular are the extend's own", async () => {
+        // A `<tabular>` is content, so an extend of it may be given rows of
+        // its own; rows added through it go after those, not to its source.
+        const doenetML = `
+    <tabular name="t"><row><cell>a</cell></row></tabular>
+    <tabular extend="$t" name="t2"><row><cell>b</cell></row></tabular>
+
+    <callAction name="addRow" target="$t2" actionName="addChildren">
+      <row><cell>c</cell></row>
+    </callAction>
+    <callAction name="deleteRow" target="$t2" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check(t: string[], t2: string[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const rowTexts = async (name: string) =>
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].activeChildren.map(
+                    (row: any) =>
+                        stateVariables[
+                            stateVariables[row.componentIdx].activeChildren[0]
+                                .componentIdx
+                        ].stateValues.text,
+                );
+            expect(await rowTexts("t")).eqls(t);
+            expect(await rowTexts("t2")).eqls(t2);
+        }
+
+        await check(["a"], ["a", "b"]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await check(["a"], ["a", "b", "c"]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteRow"),
+            core,
+        });
+        await check(["a"], ["a", "b"]);
+    });
+
     it("rows added to a tabular and cells added to a spreadsheet are restored from saved state", async () => {
         const doenetML = `
     <tabular name="t">
