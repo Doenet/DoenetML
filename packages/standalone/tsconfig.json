@@ -4,7 +4,8 @@
         "outDir": "./dist/",
         // rootDir spans `packages/` (not just `src`) and composite is off so
         // the typecheck tolerates coordinator.ts importing
-        // `@doenet/doenetml-iframe`'s shared-core-pool source directly (it
+        // `@doenet/doenetml-iframe`'s shared-core-pool source directly, and
+        // math-key-strip.ts `@doenet/virtual-keyboard`'s host strip (each
         // bundles that one implementation; the dist d.ts, rolled up from
         // index.tsx by vite-plugin-dts, never reaches the coordinator entry).
         "rootDir": "..",
@@ -14,6 +15,7 @@
     "exclude": [
         "vite.config.ts",
         "vite.config-coordinator.ts",
+        "vite.config-math-key-strip.ts",
         "vite.config-inline.ts",
         "vitest.config.ts",
         "node_modules",

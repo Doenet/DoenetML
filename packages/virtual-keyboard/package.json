@@ -24,7 +24,7 @@
     "scripts": {
         "dev": "vite",
         "watch": "vite build --watch",
-        "test": "echo \"No tests \"",
+        "test": "vitest",
         "build": "wireit"
     },
     "wireit": {

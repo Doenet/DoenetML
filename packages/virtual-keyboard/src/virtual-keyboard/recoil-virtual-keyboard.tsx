@@ -19,6 +19,7 @@ export function ExternalAwareVirtualKeyboard({
     translate,
     direction,
     ownerRef,
+    getFocusedInputRect,
 }: {
     /**
      * Whether an external virtual keyboard (possibly with a different parent because Doenet is running in an iframe)
@@ -51,7 +52,21 @@ export function ExternalAwareVirtualKeyboard({
      * active when a document-wide shared tray is used.
      */
     ownerRef: React.RefObject<HTMLElement | null>;
+    /**
+     * The box of the focused math input (with its check button), in this
+     * window's viewport. Sent up with the `keyboard-focus` report when an
+     * external keyboard is provided, so the keyboard in the embedding page can
+     * keep the input in view. See `IframeFocusMessage.inputRect`.
+     */
+    getFocusedInputRect?: (
+        owner: HTMLElement,
+    ) => { top: number; bottom: number } | null;
 }) {
+    // Read from the effect below through a ref, so a new function identity on
+    // every render does not re-subscribe the focus listeners.
+    const getFocusedInputRectRef = React.useRef(getFocusedInputRect);
+    getFocusedInputRectRef.current = getFocusedInputRect;
+
     React.useEffect(() => {
         if (externalVirtualKeyboardProvided) {
             // If an external keyboard is provided, then we expect keyboard
@@ -94,20 +109,30 @@ export function ExternalAwareVirtualKeyboard({
         // would be a report about the other viewers on the page as much as
         // about this one.
         let lastReported = false;
+        // Which input the last "focused" report was about. Moving straight
+        // from one math input to another leaves `mathInputFocused` true, but
+        // an embedding page keeping the input in view needs to hear about the
+        // new one's position.
+        let lastReportedOwner: HTMLElement | null = null;
         let pending: ReturnType<typeof setTimeout> | undefined;
 
-        function send(mathInputFocused: boolean) {
+        function send(mathInputFocused: boolean, owner: HTMLElement | null) {
             if (externalVirtualKeyboardProvided) {
                 // The tray lives in the embedding page, which cannot see which
                 // element inside this iframe has focus. See `IframeFocusMessage`
                 // for why the target origin is "*".
-                window.parent.postMessage(
-                    {
-                        subject: "keyboard-focus",
-                        mathInputFocused,
-                    } satisfies IframeFocusMessage,
-                    "*",
-                );
+                const message: IframeFocusMessage = {
+                    subject: "keyboard-focus",
+                    mathInputFocused,
+                };
+                const rect =
+                    mathInputFocused && owner
+                        ? getFocusedInputRectRef.current?.(owner)
+                        : null;
+                if (rect) {
+                    message.inputRect = { top: rect.top, bottom: rect.bottom };
+                }
+                window.parent.postMessage(message, "*");
             } else {
                 reportMathInputFocus(ownerRef, mathInputFocused);
             }
@@ -121,11 +146,18 @@ export function ExternalAwareVirtualKeyboard({
                 activeElement instanceof Node &&
                 owner.contains(activeElement);
 
-            if (mathInputFocused === lastReported) {
+            if (
+                mathInputFocused === lastReported &&
+                (!mathInputFocused ||
+                    owner === lastReportedOwner ||
+                    // Only the embedding page cares which input it is.
+                    !externalVirtualKeyboardProvided)
+            ) {
                 return;
             }
             lastReported = mathInputFocused;
-            send(mathInputFocused);
+            lastReportedOwner = mathInputFocused ? owner : null;
+            send(mathInputFocused, owner);
         }
 
         function scheduleReport() {
@@ -136,18 +168,38 @@ export function ExternalAwareVirtualKeyboard({
             pending = setTimeout(report, 0);
         }
 
+        // The embedding page asks again after its iframe loads a document
+        // (see `IframeFocusQueryMessage`): answer if one of this viewer's
+        // math inputs still has focus.
+        function onMessage(event: MessageEvent) {
+            if (
+                event.source !== window.parent ||
+                (event.data as { subject?: unknown } | null)?.subject !==
+                    "keyboard-focus-query"
+            ) {
+                return;
+            }
+            if (lastReported) {
+                send(true, lastReportedOwner);
+            }
+        }
+
         document.addEventListener("focusin", scheduleReport);
         document.addEventListener("focusout", scheduleReport);
+        if (externalVirtualKeyboardProvided) {
+            window.addEventListener("message", onMessage);
+        }
 
         return () => {
             clearTimeout(pending);
             document.removeEventListener("focusin", scheduleReport);
             document.removeEventListener("focusout", scheduleReport);
+            window.removeEventListener("message", onMessage);
             if (lastReported) {
                 // This viewer is unmounting with one of its math inputs
                 // focused. Withdraw the claim, or the tray would stay open for
                 // a viewer that is no longer on the page.
-                send(false);
+                send(false, null);
             }
         };
     }, [externalVirtualKeyboardProvided, ownerRef]);

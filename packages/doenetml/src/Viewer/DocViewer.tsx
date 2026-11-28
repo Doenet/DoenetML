@@ -282,6 +282,24 @@ function StateLoadNoticeRegion({
     );
 }
 
+/**
+ * The parent window's origin when this viewer is in a same-origin frame (or
+ * is the top window), else `null`.
+ *
+ * Reading `window.parent.location` of a cross-origin parent throws a
+ * `SecurityError`. The message listener below asked for it for every message
+ * from another origin, so with a cross-origin parent each one — a key from a
+ * keyboard drawn by that parent, say — ended in an unhandled rejection. Such
+ * messages were never acted on, and still are not.
+ */
+function sameOriginParentOrigin(): string | null {
+    try {
+        return window.parent.location.origin;
+    } catch {
+        return null;
+    }
+}
+
 export function DocViewer({
     doenetML,
     userId,
@@ -1162,7 +1180,7 @@ export function DocViewer({
         const listener = async function (e: MessageEvent) {
             if (
                 e.origin !== window.location.origin &&
-                e.origin !== window.parent.location.origin
+                e.origin !== sameOriginParentOrigin()
             ) {
                 return;
             }

@@ -37,6 +37,11 @@
             "observedBytes": 11454289,
             "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined, math core included. Doubles as the total-weight ceiling for the code-split build."
         },
+        "dist/math-key-strip.js": {
+            "maxBytes": 20000,
+            "observedBytes": 17613,
+            "note": "The host-page script that draws the math key strip around an activity iframe. No React, no viewer, no math core: tens of kilobytes here means it started importing @doenet/virtual-keyboard's package entry instead of the strip's source."
+        },
         "dist/doenetml-worker/index.js": {
             "maxBytes": 8650000,
             "observedBytes": 8041513,

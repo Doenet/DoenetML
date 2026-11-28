@@ -265,11 +265,13 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    // `mathjaxUrl` / `useExistingMathjax` / the locale settings are viewer
-    // props, not flags — pull them out so they reach `DoenetViewer` directly
-    // instead of `flags`.
+    // `mathjaxUrl` / `useExistingMathjax` / the locale settings / the keyboard
+    // settings are viewer props, not flags — pull them out so they reach
+    // `DoenetViewer` directly instead of `flags`.
     const {
         addVirtualKeyboard,
+        externalVirtualKeyboardProvided,
+        mathKeyStrip,
         sendResizeEvents,
         mathjaxUrl,
         useExistingMathjax,
@@ -339,6 +341,8 @@ export function renderDoenetViewerToContainer(
         <DoenetViewer
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
+            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
+            mathKeyStrip={mathKeyStrip}
             flags={flags}
             mathjaxUrl={mathjaxUrl}
             useExistingMathjax={useExistingMathjax}

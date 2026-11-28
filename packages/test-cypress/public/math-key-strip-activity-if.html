@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- An activity page for the math key strip's host-page e2e
+     (accessibility/mathKeyStripHost.cy.js): one math input, rendered as the
+     README asks for an iframe whose host draws the strip. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                window.renderDoenetViewerToContainer(
+                    document.querySelector(".doenetml-applet"),
+                );
+            }
+        </script>
+    </head>
+    <body>
+        <div
+            class="doenetml-applet"
+            data-doenet-add-virtual-keyboard="false"
+            data-doenet-external-virtual-keyboard-provided="true"
+            data-doenet-math-key-strip="true"
+        >
+            <script type="text/doenetml">
+<p><answer name="a"><mathInput name="mi" /><award><math format="latex">x \cup y</math></award></answer></p>
+<p>Credit: $a.creditAchieved</p>
+            </script>
+        </div>
+    </body>
+</html>

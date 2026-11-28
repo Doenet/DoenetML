@@ -34,6 +34,22 @@ export type MessageKey =
     | "slider-next"
     | "keyboard-open"
     | "keyboard-close"
+    | "math-key-strip"
+    | "math-key-union"
+    | "math-key-infinity"
+    | "math-key-nth-root"
+    | "math-key-fraction"
+    | "math-key-power"
+    | "math-key-pi"
+    | "math-key-intersection"
+    | "math-key-less-or-equal"
+    | "math-key-greater-or-equal"
+    | "math-key-less"
+    | "math-key-greater"
+    | "math-key-not-equal"
+    | "math-key-absolute-value"
+    | "math-key-plus-minus"
+    | "math-key-move-right"
     | "choice-input-remove-choice"
     | "matrix-remove-row"
     | "matrix-add-row"
@@ -767,6 +783,22 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "slider-next",
     "keyboard-open",
     "keyboard-close",
+    "math-key-strip",
+    "math-key-union",
+    "math-key-infinity",
+    "math-key-nth-root",
+    "math-key-fraction",
+    "math-key-power",
+    "math-key-pi",
+    "math-key-intersection",
+    "math-key-less-or-equal",
+    "math-key-greater-or-equal",
+    "math-key-less",
+    "math-key-greater",
+    "math-key-not-equal",
+    "math-key-absolute-value",
+    "math-key-plus-minus",
+    "math-key-move-right",
     "choice-input-remove-choice",
     "matrix-remove-row",
     "matrix-add-row",
