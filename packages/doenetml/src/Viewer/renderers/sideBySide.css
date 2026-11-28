@@ -1,0 +1,45 @@
+/*
+ * The panels of a `<sideBySide>` sit in one row at the widths and margins the
+ * worker computed (`widths`, `margins`, `gapWidth`), all percentages of the
+ * row. The renderer hands them over as custom properties so that the rule
+ * below can replace them.
+ */
+.doenet-side-by-side-panel {
+    width: var(--doenet-sbs-panel-width);
+    margin-inline-start: var(--doenet-sbs-panel-margin-start);
+    margin-inline-end: var(--doenet-sbs-panel-margin-end);
+}
+
+/*
+ * When the document is narrower than 30em, the panels of a row of two or more
+ * stack instead, in document order, each at the full width of the row (WCAG
+ * 2.2 SC 1.4.10, Reflow). Half of a phone's width is too narrow for a table, a
+ * graph or a paragraph: a table is cut off and a graph shrinks until its own
+ * controls cover its axes.
+ *
+ * The query is on the document, the `.doenet-viewer` element, which is a size
+ * container (`container-type: inline-size` in `DocViewer.tsx`), not on the
+ * viewport, so a document shown in a narrow column or iframe stacks too. It is
+ * not on the row itself, so a `<sideBySide>` nested in a panel follows the
+ * document, as the outer row does, rather than stacking on a wide screen
+ * because its panel is narrow. The `<pretzel>` layout answers to the same
+ * container.
+ *
+ * 30em is 480px at the default font size: wider than a phone held upright
+ * (at most about 430px less the document's padding), narrower than a phone on
+ * its side or any tablet, so those keep the row. It is in `em` so that a reader
+ * who enlarges the text gets the stacked layout sooner: at a 200% font size
+ * the threshold is 960px, wider than the document's 850px maximum.
+ *
+ * Above the threshold nothing here applies, and the row is laid out exactly as
+ * before.
+ */
+@container (width < 30em) {
+    .doenet-side-by-side-stackable {
+        flex-direction: column;
+    }
+    .doenet-side-by-side-stackable > .doenet-side-by-side-panel {
+        width: 100%;
+        margin-inline: 0;
+    }
+}

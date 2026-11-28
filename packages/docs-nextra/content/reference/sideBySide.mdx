@@ -48,6 +48,18 @@ component that takes enclosed sectional components and renders them in a side-by
 Three examples of different components placed in a `<sideBySide>{:dn}` are illustrated. By default, portions are assigned an equal percentage width, with no margin. These settings can be modified with the `widths` and `margins` attributes.
 
 
+### On a narrow screen
+
+When the document is narrower than 30em (480 pixels at the default text size, as on a
+phone held upright), the panels of a `<sideBySide>{:dn}` are shown one below another
+instead, in the order they are written, each as wide as the `<sideBySide>{:dn}` itself; `widths`
+and `margins` apply again once the document is wide enough. The 30em grows with the
+reader's text size, so a reader who enlarges the text gets the stacked layout sooner.
+A `<sideBySide>{:dn}` with a single panel keeps its `widths` and `margins` at every width.
+Text that refers to a panel by its position, such as "the graph on the right", does not
+hold on a phone; refer to it by name instead.
+
+
 
 ## Attribute Examples
 

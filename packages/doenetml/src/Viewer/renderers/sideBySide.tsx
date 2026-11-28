@@ -5,6 +5,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+import "./sideBySide.css";
 
 function isWhitespaceTextChild(child: unknown): child is string {
     return typeof child === "string" && child.trim() === "";
@@ -88,17 +89,24 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
             thisMarginEnd += SVs.gapWidth / 2;
         }
 
+        // The width and margins go through custom properties rather than
+        // straight onto `style`, so that `sideBySide.css` can replace them when
+        // the document is too narrow for panels side by side. Each resolves to
+        // exactly the value it did as an inline declaration.
+        const panelStyle = {
+            ...(listItemInlineAlignment && {
+                display: "flex",
+                alignItems: "flex-start",
+            }),
+            "--doenet-sbs-panel-margin-start": `${thisMarginStart}%`,
+            "--doenet-sbs-panel-margin-end": `${thisMarginEnd}%`,
+            "--doenet-sbs-panel-width": `${width}%`,
+        } as React.CSSProperties;
+
         styledChildren.push(
             <span
-                style={{
-                    ...(listItemInlineAlignment && {
-                        display: "flex",
-                        alignItems: "flex-start",
-                    }),
-                    marginInlineStart: `${thisMarginStart}%`,
-                    marginInlineEnd: `${thisMarginEnd}%`,
-                    width: `${width}%`,
-                }}
+                className="doenet-side-by-side-panel"
+                style={panelStyle}
                 key={child.key}
             >
                 {child}
@@ -109,6 +117,12 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     return (
         <div
             id={id}
+            // Only a row of two or more panels stacks on a narrow screen: a
+            // single panel has nothing to stack beside, and its widths and
+            // margins (often used to center or indent it) stay as written.
+            className={
+                numColumns > 1 ? "doenet-side-by-side-stackable" : undefined
+            }
             style={{
                 display: "flex",
                 ...(listItemInlineAlignment && {
