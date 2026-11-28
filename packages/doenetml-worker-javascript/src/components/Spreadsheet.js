@@ -1700,18 +1700,29 @@ export default class Spreadsheet extends BlockComponent {
 
     // An extend of a spreadsheet is the same spreadsheet: it takes no
     // children of its own (`doenet-e0057`) and its cells are the source's.
-    // So children added to an extend go to the source, through the extend's
-    // shadow of the source's `<_dynamicChildren>`.
+    // So children added to, or deleted from, an extend are added to, or
+    // deleted from, its source, which may itself be an extend. (The extend's
+    // own `<_dynamicChildren>` is never shown.)
     async addChildren(args) {
-        return await addChildrenToDynamicChild(this, args, {
-            useSource: Boolean(this.shadows),
-        });
+        if (this.shadows) {
+            return await this.coreFunctions.performAction({
+                componentIdx: this.shadows.componentIdx,
+                actionName: "addChildren",
+                args,
+            });
+        }
+        return await addChildrenToDynamicChild(this, args);
     }
 
     async deleteChildren(args) {
-        return await deleteChildrenFromDynamicChild(this, args, {
-            useSource: Boolean(this.shadows),
-        });
+        if (this.shadows) {
+            return await this.coreFunctions.performAction({
+                componentIdx: this.shadows.componentIdx,
+                actionName: "deleteChildren",
+                args,
+            });
+        }
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {

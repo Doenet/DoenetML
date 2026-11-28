@@ -320,6 +320,72 @@ describe("addChildren for non-graph parents @group4", () => {
         await check_first_row(["a", "", ""]);
     });
 
+    it("cells added through an extend of a copied spreadsheet go to the copy, and are deleted last added first", async () => {
+        // A copy is a spreadsheet of its own, with the source's
+        // `<_dynamicChildren>` copied into it as well as its own. Cells
+        // added through an extend of the copy go to the copy, with the
+        // cells added to the copy itself, so deleting through either one
+        // deletes the cell added last.
+        const doenetML = `
+    <spreadsheet name="s"><cell>a</cell></spreadsheet>
+    <spreadsheet copy="$s" name="sc" />
+    <spreadsheet extend="$sc" name="se" />
+
+    <callAction name="addToCopy" target="$sc" actionName="addChildren">
+      <cell colNum="B">x</cell>
+    </callAction>
+    <callAction name="addToExtend" target="$se" actionName="addChildren">
+      <cell colNum="C">y</cell>
+    </callAction>
+    <callAction name="deleteFromCopy" target="$sc" actionName="deleteChildren" number="1" />
+    <callAction name="deleteFromExtend" target="$se" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check_first_rows(sRow: string[], scRow: string[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const firstRow = async (name: string) =>
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.cells[0].slice(0, 3);
+            expect(await firstRow("s")).eqls(sRow);
+            expect(await firstRow("sc")).eqls(scRow);
+            expect(await firstRow("se")).eqls(scRow);
+        }
+
+        await check_first_rows(["a", "", ""], ["a", "", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addToCopy"),
+            core,
+        });
+        await check_first_rows(["a", "", ""], ["a", "x", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addToExtend"),
+            core,
+        });
+        await check_first_rows(["a", "", ""], ["a", "x", "y"]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteFromCopy"),
+            core,
+        });
+        await check_first_rows(["a", "", ""], ["a", "x", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteFromExtend"),
+            core,
+        });
+        await check_first_rows(["a", "", ""], ["a", "", ""]);
+    });
+
     it("a tabular with no rows written takes rows, and deleting more than were added deletes them all", async () => {
         const doenetML = `
     <tabular name="t"></tabular>
