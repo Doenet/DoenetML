@@ -1,5 +1,101 @@
 # @doenet/v06-to-v07
 
+## 0.8.0
+
+### Patch Changes
+
+- d656d04: More reference cycles are reported when the document loads, as a circular-dependency error (`doenet-e0005`) at each reference on the cycle, while the rest of the document renders. They are found in every case of a `<conditionalContent>` and every option of a `<select>`, whether shown or not, so the same errors are there before and after a reader changes the case, and in every variant. Before, each of these stopped the document, when it loaded or when the case holding it was shown, or was reported only once it was reached:
+
+    - a property made from what is written in the tag: `<number name="n">$n.value</number>`, `<text name="t">$t.value</text>`, `<p name="q">$q.text</p>`;
+    - an input's starting value: `<mathInput name="mi" prefill="$mi.value"/>`, and its `bindValueTo`, a `<choiceInput>`'s `preselectChoice` and a `<slider>`'s `initialValue`;
+    - an attribute of a `<sequence>`, a `<selectFromSequence>`, a `<select>`, a `<repeat>`, a `<conditionalContent>` or a sampler that reads what it makes: `<sequence name="a" from="1" length="$a[1]"/>`, `<selectFromSequence name="a" from="1" to="10" exclude="$a[1]"/>`, a `<case>`'s `condition`, an `<option>`'s `selectWeight`;
+    - an index read by the component it picks from: `<number name="i">$l[$i]</number>`, and an index into a `<mathList>` or a `<numberList>` in it (`<mathList name="l">1 $l[1]</mathList>`);
+    - a name every case of a `<conditionalContent>` or every option of a one-pick `<select>` declares. In a `<select>`, the variant that picked the option on the cycle used to fail to load. Such a name written inside one of the cases or options names what that case or option declares, as it is there only while that one is shown, so the cases reading each other's names (`<math name="x">$cc.y</math>` in one case, `<math name="y">$cc.x</math>` in another) are not a cycle;
+    - a tag whose content is its children, such as a `<p>`, a `<section>`, a `<div>` or a `<li>`, holding a reference to itself (`<p name="q">a $q</p>`), now in a case not shown too;
+    - a tag written with `copy` or `copyWithState` of what it is in (`<group name="g"><math copy="$g"/></group>`), as the `extend` form already was.
+
+    A `<section>` whose `<title>` holds a reference to the section (`<title>T $S</title>`) now shows its default title ("Section 1"), as a title holding any error found at load does, where it used to show the title without the reference.
+
+    A `<math>`, a `<text>` or a `<boolean>` holding an index that reads it (`<math name="i">$m[$i]</math>`) used to load, where shown, with the error at the reference in the index only, that reference shown blank (a `<boolean>` holding only it, false) and a warning that the index did not work out to a number (`doenet-w0163`). The tag is now that error, with the error at both references, and no warning.
+
+    An index into a math written with `extend`, in it (`<math name="m2" extend="$m">$m2[1]</math>`), is now that error, where the document used to fail to load with an internal error.
+
+    Not every property and attribute is covered. A cycle through one that is not (`<math name="m" simplify="$m=1">`), through a function (`$$f($n)`), through an index into a `<repeat>` in its own template, through a reference in a point's or an input's `<label>`, or through both a `<mathInput>`'s `prefill`, `prefillLatex` or `bindValueTo` (a `<matrixInput>`'s `prefill` or `bindValueTo`, a `<choiceInput>`'s `preselectChoice`) and an index into a `<mathList>` or a `<numberList>`, is still reported, or stops the document, when it is reached. An input starting from an index into a list that holds it (`<mathList name="l">1 $mi</mathList><mathInput name="mi" prefill="$l[1]"/>`) is valid, and stays so.
+
+    The v0.6-to-v0.7 converter leaves the `<copy>` tags of a document holding a reference cycle found at load as they are (`copy/could-not-load-document`), so it now does so for these cycles too, including one in a case not shown (`<p name="q">a $q</p>`), whose `<copy>` tags it used to convert. The rest of such a document is converted, as before.
+
+    Closes #2473.
+
+- 1b8a891: **Breaking:** an index never selects a child of a container (D27 revised). A `<group>`, a pick, a case or an iteration whose whole content is **one component** stands for that component and passes the index on to it, and the component decides what the index means. Any other group names nothing after an index: the reference is a blank (`＿`) with the warning `doenet-w0188`, which says how many components the group holds and how to name the child instead (`$g.b`, or "give it a name"). Before, an index selected the child. The deprecation warning `doenet-w0179` it gave in unreleased builds is retired.
+
+    - **One component takes the index.** With `<group name="g"><math>(1,2,3)</math></group>`, `$g[2]` is `2`; with `<group name="g">$nl</group>`, `$g[2]` is entry 2 of `nl`; with `<option><point>(7,8)</point></option>`, `$s[1][1]` is `7`; with `<group name="g">$r</group>`, `$g[2]` is iteration 2 of `r`; with `<group name="g">$cc</group>`, `$g[1]` is the case `cc` shows, and so it is for a group holding `$g`. A component with nothing to index gives a warning: `doenet-w0100` for a `<number>` holding one number or for text, `doenet-w0180` for a `<p>`. A further index goes on into what the first one reached: with `<group name="g">$ml</group>` of a `<mathList>` of tuples, `$g[2][1]` is the first entry of the second tuple. A write through the index changes the entry (`<mathInput bindValueTo="$g[2]"/>`). Blank text and a `<setup>` don't count; any other text does, so `<group>Value: $nl</group>` holds two.
+    - **Several components name nothing**, in every form a group takes: a `<group>` the author wrote, an extend or a `copy` of one, and one reached through `<collect>` or by name (`$g[2]`, `$a.g[2]`, `$c[1][2]`); what a `<select>` picked (`$s[1][2]`), what a `<conditionalContent>` shows (`$cc[1][2]`), an iteration of a `<repeat>` or `<repeatForSequence>` (`$r[1][2]`), and an extend of an iteration; and an index that is not a literal (`$g[$i]`) or one past the end (`$g[5]`).
+
+    These are unchanged: an index still selects the entries of a list, the iterations of a repeat, the picks of a select and the items of a `<shuffle>`, `<sort>` or `<collect>`. When an iteration or a pick holds only one list or repeat, an index after it still passes to that (`$r[1][2]`), and also when it holds only a reference to one (`<option>$l</option>`). An unnamed component in an iteration keeps the id it had (`r:1:2`).
+
+    Ids change in one case: the iterations of a repeat that is a group's whole content can now take their id from the group (`g:1` rather than `r:1`, and `e:1` rather than `e.r:1` for an extend `e` of that group), since `$g[1]` names them too; this id is also the `rootName` that an answer's `submitted` event reports.
+
+    Also fixed:
+
+    - An index after a group is never passed to several of its items as a property. A group holding two components names nothing after an index, and one holding one passes the index to it, so `$g[2]` of `<group><math>(4,5,6)</math></group>` is `5` by that rule, and of `<group><math>(4,5,6)</math><number>9</number></group>` names nothing. Fixes #2166.
+    - An index into a group whose child is a reference not yet expanded (`$g[1]<group name="g">$x</group>`) no longer stops the document from loading; the index passes to what `$x` names. Closes #1942.
+    - `$st[2]` of a `<setup>` is a blank, where it showed nothing.
+    - The v0.6 to v0.7 converter writes a `<copy componentIndex="1">` into a `<group>` holding one component as the bare reference `$g`, which stands for that component (`$g[1]` would index into it). v0.6 counted `componentIndex` with the composites in the group expanded, but kept a nested group, or a copy of one, as one component, so a group holding one nested group counts as holding one, and a group holding a `<sequence>`, a `<map>` or a copy of a sequence does not. Any other `componentIndex` into a `<group>` is left as it was, with the diagnostic `copy/unresolved-referent`, as `$g[2]` would name nothing or something of another type. A `componentIndex` into a `<select>` or a list is converted as before (`$s[1]`, `$q[2]`).
+    - A component named in the arguments of a function reference that names nothing (`$$f(<math name="m">x</math>)` with no `f`) is made, as if written in a `<setup>` at the reference's place (D40): `$m` is `x`, where it was a blank. A name the same as another in the same scope is ambiguous (`doenet-w0105`), as one written in a `<setup>` is. The arguments are still not shown. Closes #2489.
+
+    An index past the dimensions of a value, or into a value with no entries, names nothing with the warning `doenet-w0100` in more places (#2478):
+
+    - an index into an entry of a `<numberList>`, `<textList>` or `<booleanList>`, and into the pick of a `<selectFromSequence>`, `<selectPrimeNumbers>`, `<selectRandomNumbers>` or a sampler (`$nl[2][1]`, `$s[1][1]`), where it named nothing silently, as `$n[1]` of a `<number>` does;
+    - an extra index on an entry of an array property named directly (`$line.point1[2][1]`, `$f.maximumLocations[1][1]`), where the extra index was dropped, as `$line.points[1][2][1]` does (a property that stands for an array's first entry still takes an index among the entries, so `$ode.numericalSolution[2]` is the second solution, as before; so does that first entry named directly, so `$P.x1[2]` is `x2`, as before);
+    - an extra index on an array property of a list entry (`$pl[2].xs[1][1]`), where it gave `doenet-w0180`.
+
+    A write through any of these is refused. Also, `$pl[2].value[$i]` of a `<pointList>` is the same as `$pl[2].value[1]` when `i` is 1, where it named nothing, and `<group extend="$r[1]"/>` of an iteration that does not exist when the document loads follows the iteration when it appears, as after a reload, where an index after it named nothing.
+
+    Closes #2517. Closes #2478.
+
+- 2669d80: A reference that depends on itself through what is written is now reported when the document loads, and the rest of the document renders. `<text name="t">$t</text>`, `<math name="z" extend="$z"/>`, two maths that read each other (`<math name="z1">$z2</math><math name="z2">$z1</math>`), and a math that indexes itself (`<math name="m">(1, $m[2])</math>`) each give a circular-dependency error (`doenet-e0005`) at every reference on the cycle, and are shown as that error. Before, the document failed to load, or, for the math that indexes itself, failed with an internal error.
+
+    The cycle is found over every case of a `<conditionalContent>`, every option of a `<select>` and every repeat template, whether shown or not, so the error is there from the start. A reference or copy elsewhere of a component that holds the cycle (`$x`, `<math extend="$x"/>` or `<p copy="$q"/>` of `<p name="q"><math name="x">$x+1</math></p>`, or `<module extend="$m"/>` of a module holding one) can report the error again, without a code, as for any error a reference copies (#2449): when the document loads, or, for a name declared in a case or option, once that case is shown or that option picked. Two `<conditionalContent>`s whose cases extend each other now give an error at both extends when the document loads, where they used to report one only after the case became true (and, with an `<else>`, an internal error too).
+
+    `<group extend="$cc.x"/>` (or `<group extend="$x"/>`) of a name that every case of a `<conditionalContent>` declares now follows the case, and `<group extend="$r[2]"/>` of an iteration of a `<repeat>` follows the repeat when its number of iterations changes. They used to report a circular dependency where there was none (for the case, at its first change; for the repeat, once the iteration was withheld), and then stay empty.
+
+    A tag extending something in an iteration of a `<repeat>` that is withheld after the document loads (`<math extend="$r[2].m"/>`, `<number extend="$r[2].io[1]"/>`) now gives the same info (`doenet-i0054`) as when the iteration is not there at load. Before, it gave no info, or kept an info about a value it no longer showed.
+
+    A tag whose error was decided at load, such as `<math extend="$g"/>` inside the `<group name="g">` it extends when the group holds two components, or `<math extend="$r"/>` in the template of the `<repeat>` named `r`, no longer also reports a circular dependency (`doenet-e0005`) once it is made.
+
+    The v0.6-to-v0.7 converter still treats a document with a reference cycle as one it cannot load, and leaves its `<copy>` tags as they are, as it did when the cycle stopped the load.
+
+    Closes #2439, #2453 and #2430.
+
+- 6f5107c: Keep every entry when converting a copy of a whole array prop. `<copy prop="vertices" source="poly" />`
+  now becomes `$poly.vertices`, or `<pointList extend="$poly.vertices" />` when the copy has other
+  attributes, instead of a single `<point>`. A `<map>` whose sources are only references now
+  iterates over them directly (`<repeat for="$c.iterateValues">`). References with attributes to a
+  map's alias or index, such as `$(x{displayDigits="5"})`, now convert when the type of the values
+  is known: from a single list or array prop, or from a `<sequence>`. The copy made for a macro with
+  attributes inside an attribute value, such as `x="$(a{link='false'})"`, now goes inside the
+  enclosing `<module>` or `<repeat>`, where it can see the same names.
+- 51cbfff: Convert more v0.6 documents:
+    - A `<copy>` of a component that itself holds a `<copy>`, or of a named `<copy>`, converts instead of being left as a `<copy>`.
+    - A `<copy>` inside the component it copies, such as `$p.x{displayDecimals="2"}` in `p`'s own label, converts.
+    - The prop of a `<copy>` or `<collect>` is spelled as v0.7 spells it: v0.6 matched `prop="numericalsolution"` to `numericalSolution`.
+    - A `<copy>` of a component inside an unselected `<option>` or a `<case>` whose condition is false converts, when only one component has that name.
+    - A `<copy>` of a prop with no single type, such as an `<answer>`'s `submittedResponse`, becomes a bare reference like `$a.submittedResponse` when it has no other attributes.
+    - A `<collect>` of a prop with no fixed type, such as a `<choiceInput>`'s `selectedValue` or `values`, takes its type from the list it is written in. Before, `selectedValue` became a `<mathList>` and `values` stopped the conversion. A `<collect>` of a prop that does not exist is now reported instead of stopping the conversion.
+    - A `<ref>` with both `uri` and `target` keeps its link to the other document. The `target` is dropped with a diagnostic.
+    - `doenet:activityId=<id>` and `doenet:doenetId=<id>` in a `<ref>` or `<copy uri>` become `doenet:<id>`, the only form v0.7 reads. A `cid` is dropped. A `pageId` or a legacy id is left with a diagnostic.
+    - A new `fetchExternalDoenetML` option loads the documents a `<copy uri>` names. The converted element then takes the type of that document's root element, and references into the loaded content convert.
+    - A GeoGebra `<embed>` is commented out, with a TODO to rebuild it as a DoenetML widget.
+- 947b866: Convert more v0.6 `<copy>` and `<map>` forms:
+    - `propIndex` and `componentIndex` on a `<copy>` become indices in the reference, e.g. `$poly.vertices[2][1]` and `$s[2]`.
+    - `$(a{assignNames='b'})` inside an attribute value names its copy `b`.
+    - A `<map>` with several `<sources>` becomes nested repeats. With `behavior="parallel"` or `assignNames` it is left with a diagnostic.
+    - An inner `<map>` whose sources refer to the outer map's alias converts.
+    - A map's alias is typed when all its values share one type, including written components.
+    - A `<sequence>` next to other sources is no longer dropped.
+    - A `<map>` placed before a module's `<setup>` no longer breaks the module's attributes.
+    - A `<sources>`'s `alias` and `indexAlias`, and a `<sequence>`'s `type`, are recognized however they are capitalized.
+
 ## 0.7.27
 
 ### Patch Changes
