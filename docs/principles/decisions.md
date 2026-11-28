@@ -1,0 +1,3940 @@
+# Decisions: inconsistencies and proposed rules
+
+Each entry below is a place where current behavior does not follow a clean principle. Each gives:
+- the behavior, with a concrete document;
+- the options;
+- a recommendation;
+- the tests that would change.
+
+Entries are in priority order, judged by how much each one affects (a) what authors can be told
+and (b) how much special-case code a new core would need to reproduce it.
+
+The first section lists defects that need no decision. Paths: `T/` is
+`packages/doenetml-worker-javascript/src/test/` and `W/` is
+`packages/doenetml-worker-javascript/src/`.
+
+---
+
+## Defects found during the survey (no principle question)
+
+| # | Defect | Probe | Where |
+|---|---|---|---|
+| B1 | `<math extend="$m" fixed="false"/>` of a fixed `m` lets a bound input change `m` (also for `<number>` and `<text>`). For points and inputs the same write is refused. | `m` becomes 5. Confirmed twice | The check "a shadow source is fixed" exists only on the `setEssentialValue` path (`W/core/EssentialValueWriter.ts:1200-1222`). A literal child is written through `setDependency`, which does not re-check |
+| B2 | **Symptom gone** (**[probe]** at `894d3ea`): setting `$Q2.fixed` false leaves the source fixed and a drag is refused; the write is now refused outright, and what such a write should do is #2235's question. Was: A write to `$Q.fixed`, where Q extends a point inside `<graph fixed>`, unfixes the source, which can then be dragged (#2197, open) | reproduces | `W/utils/contextAttribute.js:206-258` forwards the write |
+| B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
+| B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. **Fixed by #2397** (D1): it shows the iteration's value | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
+| B5 | **Fixed by #2542** (#2217, #2211, #2216); #2215 by earlier PRs. Before (**[probe]** at `894d3ea`): `maxNumber` on a copy of a collect (#2215) and `valueName` on a copy of a repeat with no children (#2211 row 1) now work; `condition` on a copy (#2217), `valueName`/`indexName` with children (#2211) and `replacement` on a copy of a substitute (#2216) remain. Was: Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
+| B6 | **Fixed by #2518.** An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 (revised) this form names nothing, with a warning; #2517 checks the panic goes with it | — | `ref_expand.rs` |
+| B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
+| B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
+| B9 | **Fixed** (by #2393; confirmed and pinned by #2470, closing #2371). **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
+| B10 | **Fixed by #2393** (closing #2376). `$e.h` named nothing for a list extend `<mathList name="e" extend="$l"/>`, while `$E.h` resolves for `<p name="E" extend="$P"/>`. It broke REF-8 | fixed on main | a linked list extend was made without its children; it now holds them when one of them holds a name (`childrenHoldAName`) |
+| B11 | **Fixed by #2468 and #2467** (closing #2389): a requested variant's choices are taken as given, a `copy` chooses again (D33), and no select throws. (#2389) A `copy` of a `<select>` with a different `numToSelect` makes the whole document fail to load ("Number of indices specified for select must match number to select"). The same on a `<selectFromSequence>` shows nothing, with that error | `<select copy="$x" numToSelect="4"/>` of a 2-pick select | the copy is given its source's picks (CPY-8), which no longer fit; `Select.js:363` throws where `<selectFromSequence>` reports `doenet-e0037`. D33 proposes the rule |
+| B12 | **Fixed by #2409** (D32). Warnings on an extend of a tag that makes its own content were inconsistent: a child written inside `<shuffle extend>` was ignored with no warning, and a bare `<conditionalContent extend="$x"/>` warned that its children are ignored, though none were written (the parser's sugar gave it a `<case>`). Content changes are now errors, and the sugar skips an element written with `extend` | fixed on main | `extendChangesContentErrors` in `W/components/abstract/Copy.js`; the `conditionalContent` and `repeat` sugar |
+| B13 | **Fixed by #2483** (closing #2395); **the `extend` half is revised by REF-7 (#2668):** children inside an extend of a point are an error; `<point copy="$P">(3,4)</point>` keeps working. (#2395) Coordinates written as a child of a point `copy` or `extend` are ignored: `<point copy="$P">(3,4)</point>` and `<point extend="$P">(3,4)</point>` stay at P's coordinates, at load and after a drag, while `xs="3 4"` applies. The child is sugar for `xs`, so the two should agree (REF-3, REF-4a) | **[probe]** on main, at load and after a drag | not traced: the point-children sugar seems not to apply to children appended to a copy or extend |
+| B14 | **Fixed by #2400** (closing #2398). A copy of an `extend` resolved references to outside names from where the extend is written, not from the source, breaking D1: `<group copy="$B.gB"/>` of `<group name="gB" extend="$A.g"/>` showed B's `n`. #2400 keeps an outside referent as a referent in every unlinked copy, and also fixed references between sibling replacements of an extend (`$g.x` in a copy of an extend of `g`) and `$me.a` through an extend of a `<module>` | fixed on main at `a53fbb9` | `remapCopiedRefResolution` (`W/utils/componentIndices.ts`), `createComponentIndicesForShadowedReplacements` |
+| B15 | **Fixed by #2412** (closing #2405). A copy of a section whose content references the section (`<section copy="$S"/>` of `<section name="S"><p>hi [$S]</p></section>`) stopped the document with "infinite loop while calculating replacement changes": the copy remade its counterpart of `$S` on every pass. Now both report `doenet-e0005` and render; a copy of a point whose label holds `$P` shows its own coordinates. The guard that stopped the document is still there for any other such loop (B21, #2418) | fixed on main | `sourceContainsCopy` in `Copy.replacementForSource` |
+| B16 | **Fixed by #2411** (closing #2406). A copy or extend of a `<collect>` inside an extended group showed nothing (`doenet-w0072`). The cause was not `from`, which kept its referent, but the type check: the copy, written as `<collect>`, got a `_collectList` and wrapped it in a new, empty `<collect>`. The same affected `<sort>` and `<shuffle>`, where a copy could show another order | fixed on main | `replacementIsOfType` in `verifyReplacementsMatchSpecifiedType` (`W/utils/copy.js`) |
+| B17 | **Fixed by #2410** (closing #2407). An index that names nothing was reported inconsistently. Now an index below 1 on something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic; past the end is silent (#1499); an index that cannot apply (`$n.value[1]`) gives `doenet-w0100` and shows nothing, so `bindValueTo="$n.value[1]"` no longer binds to `n`. Left: entries of a list component (B18, #2413) and function references (B19, #2419) | fixed on main | the Rust resolver codes the failure (`ref_expand.rs`); `arrayEntryNamesFromPropIndex` |
+| B18 | **Fixed by #2431** (closing #2413). An index on an entry of a list component was not reported like other indices: `$pl[2].coords[1]` showed the whole coordinates. Now `w0100`, and `$pl[1].xs[0]`, `$l[1][0]` give `w0104` | fixed on main | `W/utils/listEntryReference.ts` |
+| B19 | **Fixed by #2432** (closing #2419). A function reference that names nothing gave an uncoded warning. Now `w0104`/`w0105`, quoting `$$f(2)`, and `＿` in a `<math>`. Follow-ups: #2434 | fixed on main | `RS/ref_expand.rs`, `convertNormalizedDast.ts` |
+| B20 | **Fixed by #2427** (closing #2414). `type` on a copy of a `<sort>` was ignored. Now the copy re-reads its text with its own `type`, also for `<shuffle>`, `<sortIndices>`, `<tally>`, `<indexOf>`, `<searchSorted>`, `<argMin>`, `<argMax>` | fixed on main | `retypeTextPieces` |
+| B21 | **Fixed by #2425** (closing #2418). A replacement loop stopped the document after 100 passes with an internal error. Now the composites on the loop get `doenet-e0005` at their positions, stop updating, and the rest renders. The error is still thrown if no composite can be singled out | fixed on main | `replacementChangesFromCompositesToUpdate`, `markCompositeInError` |
+| B22 | **Fixed by #2484** (closing #2437). (#2437; #2447 did the load-time half: a case holding `$m` holds m's tag. Showing that component still gives the default, and so does a `<conditionalContent>` or `<select>` nested in a case or option, with no info.) A related-type extend whose one component comes **through a reference** shows the default of the written tag, with no diagnostic: `<point extend="$cc"/>` with active case `<case>$m</case>` shows `(0, 0)`; also a group holding `$cc`, a group holding an extend, and a group beside an empty repeat. Breaks REF-5 | reported in the issue | `componentStoodFor` does not look into a `_copy` (`W/components/abstract/Copy.js`) |
+| B23 | **Fixed by #2447** (closing #2433): the string is made the given type. `<text extend="$cc"/>` of a `<conditionalContent>` whose cases are bare text throws "Cannot create property 'componentIdx' on string". Breaks REF-5 and DIAG-5 | reported in the issue | the case's one component is a string |
+| B24 | **Fixed by #2484** (closing #2429). (#2429) `<mathInput bindValueTo="$sori"/>` or `bindValueTo="$sori.subsetValue"` of a `<subsetOfRealsInput>` throws "object is not a tree node", and so does an unnamed `<subsetOfReals extend="$S"/>`, the reference page's own example. `doenet-e0062` (D26) recommends exactly this `bindValueTo` | reported in the issue | not traced |
+| B25 | (#2430) With expression attributes disabled (a test-only setting), `<number extend="$r[2].io[1]"/>` gives `doenet-e0005` after its iteration is withheld and shown again. Since #2424 | reported in the issue | not traced |
+| B26 | **Fixed by #2472.** (#2438) An extend of an iteration, `<group name="g2" extend="$r[1]"/>`, takes child indices with `w0179` instead of passing through: `$g2[2]` names nothing where `$r[1][2]` is the inner repeat's iteration 2. Breaks REF-7 (an extend is the same component) with NAME-2's pass-through. | #2424, "Not covered" | the extend is a `<group>` the author wrote |
+| B27 | **Fixed by #2472.** (#2438) An index is not applied uniformly to values (NAME-2): an index beyond an array's dimensions is dropped for `<point>`, `<vector>`, `<matrix>`, `<matrixInput>` (`$P[1][1]` is `3`, `$M[1][2][3]` is `2`), while `$c[2][1]` of a `<coords>` names nothing and warns; a tuple of tuples is indexed one level (`$m[1][2]` of `((1,2),(3,4))` names nothing, silently); a list entry two levels deep (`$ml[1][1][2]` is a blank); `$l.coords[1]` ignores the index. | #2431, "Known gaps" | `variableForIndexAsProp` arrays (`xs`, `displacement`, `matrix`) |
+| B28 | **Fixed by #2472.** (#2438) An index past a list held by a repeat iteration reaches the `<setup>` the repeat adds for `valueName`: `$r[1][4].v` of `<repeat name="r" for="1 2" valueName="v">$l</repeat>` (3 entries) shows `1`, silently. Breaks NAME-3. | #2431, "Known gaps" | `doenetAttributes.iterationAliases` |
+| B29 | **Fixed by #2471.** (#2439) `<math name="m">(1, $m[2])</math>` fails with an internal error ("Cannot read properties of undefined") instead of the circular-dependency error it gave before #2431. Breaks NAME-7 and DIAG-3. | #2431, "Known gaps" | the scalar check evaluates the value while the reference is resolved |
+| B30 | **Fixed by #2484** (closing #2440). (#2440) Allowed REF-5 pairs that give a default instead of converting: `<point extend="$mi"/>` of a mathInput holding `(1,2)` shows `(0, 0)`; `<boolean extend="$t"/>` of text `true` is `false`. Also every value tag other than its own from a `<textInput>`, `<math>` and `<text>` from a `<booleanInput>`, `<text>` from a `<mathInput>`, and `<math>`/`<number>` from a `<boolean>`: the new tag holds the source itself as a child and warns `doenet-w0107` "Invalid children" (comment on #2440). A property source is not checked against its value: `<point extend="$P.x"/>` makes the point `3`. | #2427, "Known limits" | the wrapping in `verifyReplacementsMatchSpecifiedType` |
+| B31 | **Fixed by #2443** (closing #2441). A type-changed copy could change on reload: an unlinked `<point copy="$mi"/>` saved after `mi` changed whether it is a tuple, and a copy of a `<conditionalContent>` made during a mismatch or from another case, were remade from the state at reload. A save now holds the type-change decision and the case the copy was made from, and the same holds within a session when a copy is deleted and made again. Residuals: B35, B36, B37. | #2427, #2436 | the saved snapshot did not record the decision |
+| B32 | **Fixed by #2471**: `e0005` at both extends at load, nothing new after. (#2439) **Not fixed** (confirmed while working on #2458): with `c1` and `c2` each extending the other in a case, setting the case true reports two more `e0005`s and an uncoded error, so the errors appear after load (DIAG-7, #2463). #2447 had given one `e0005` per cycle in place of the inner extend. Before: Two `<conditionalContent>`s extending each other show "holds nothing" infos instead of `doenet-e0005` (on main before #2436 the switch threw). Breaks NAME-7. | #2436, "Known limits" | the re-entrancy guard |
+| B33 | **Fixed by #2444** (closing #2442). A value-driven diagnostic did not track the value: diagnostics were append-only, so infos piled up, and an index diagnostic was decided once. Now a component reports a condition's diagnostics as they are now (`setConditionDiagnostics`), and `[]` withdraws them. Residuals: `doenet-w0181` past the end of a repeat that shrank is still reported only after a reload (#1499); `Chart.js`, `CountOperators.js` and `listIndexOperators.js` still use the append-only channel (#2422). | #2427, #2431, #2436 | `DiagnosticsManager` was append-only |
+| B34 | **Fixed by #2472** for `<mathList>`, and by #2518 for a `<numberList>`/`<textList>` entry (#2478). (#2438) An index into a scalar entry of a list, or past a list entry's end, gives a blank `＿` with no diagnostic, and a write through it lengthens or replaces the entry: `$tl[1][3]`, `$ml[2][1]`. Breaks VAL-5 and NAME-2. | #2431, "Known gaps"; same on main for an index past an entry's end | an entry property has a value for every entry |
+| B35 | **Fixed by #2481** (closing #2446), and through an extend of a `<conditionalContent>` by #2549; not for a source a composite in the case makes (#2485 item 1). (#2446) A copy of a component named inside a `<conditionalContent>`, `<p copy="$cc.p"/>`, is remade on load from the case active then, not the case it was made from. Only a copy of the `<conditionalContent>` itself keeps its case. Breaks SAVE-1 and CPY-2. | #2443, "Known limits" | #2443's held case is recorded only for a copy of the `<conditionalContent>` |
+| B36 | **Fixed by #2481**: a saved value is restored only to its own type; the id collision remains (#2485). (#2446) `<group copy="$col"/>` of a `<collect>` whose collected `<mathInput>` the reader typed into throws on reload (`dependencyValues.value.trim is not a function`) once the collect holds a `<textInput>` instead, because its case changed. The saved value reaches the new textInput through the per-`stateId` restore. Breaks SAVE-1, SAVE-3 and DIAG-5. On main before #2443 too. | #2443, "Known limits" | a restored value is matched by `stateId`, not checked against the new component's type |
+| B37 | A copy that made nothing, and would make nothing again, is not held in a save, so a reload can report a different info for why it shows nothing: `doenet-i0053` "the math is not a tuple" before, `doenet-e0065` "a text" after, when its case changed. What is shown is the same. Breaks DIAG-6. #2447 removed the run-time `e0065`, so this example no longer arises. Whether two other infos can still differ is not checked. | #2443, "Known limits" | a save holds a copy only when its remake would differ |
+| B38 | **Fixed by #2482** (closing #2449). (#2449) `$m` of `<math name="m" extend="$nothing"/>` reports the error again where `$m` is written, because `$m` copies the `_error` now in m's place. The cause is at m alone (DIAG-4). Decided: a reference to a component in error shows a blank and reports nothing more. Since #2458 (D37) this example's `m` is a missing math, not an error; #2449 still applies to the errors that remain. | #2447, "Deviations" | a reference to an error component copies the `_error` |
+| B39 | **Fixed by #2468** (closing #2448): an `<option copy>` counts as one option; a bare `$o` among options gives up counting, info `doenet-i0056`. (#2448) A `<select>` whose options are all written with `copy` fails to load: "Number of indices specified for select must match number to select". Breaks DIAG-5. On main before #2447 too. | #2447, "Deviations" | not traced |
+| B40 | **Fixed by #2471.** (#2453) `<group extend="$cc.x"/>`, and since #2451 `<group extend="$x"/>`, of a name every case declares with one type, shows the active case's `x` until the case changes. The first switch reports a spurious `doenet-e0005`, and after it the group is empty for good. `<math extend="$cc.x"/>` and bare `$cc.x` follow the case. Breaks COMP-11 and NAME-7. Same on main before #2451. | #2451, "Not changed" | the copy recomputes its replacement changes in a loop when the case changes; not pinned down |
+
+B1 and B2 both break the Tier 1 promise of CTX-1, "a fixed component cannot be changed by any
+interaction". They should be fixed on main whatever happens to the rewrite.
+
+---
+
+## D1. Should a copy re-bind names outside the copied part where it lands? (affects the author model)
+
+**Decided: (b), by referent. Done by #2397 (closing #2396) and #2400 (closing #2398, B14).** A reference in copied content keeps meaning
+what it meant in the source:
+- a referent inside the copied part becomes the copy's counterpart;
+- a referent outside keeps that referent.
+
+The rule goes by referent, not by how the reference is spelled. `$P.h` inside a copy of `P` has
+its referent inside the copied part, so it names the copy's `h`. That reverses CPY-3's
+"through the source's own name" case, and #2367's `$l.h` in a copy of a list. References in
+attributes written on the copy tag itself resolve where the copy is written (NAME-4, D6). The
+same rule covers `copyWithState` (D33). #376 asks for the same for an `extend`.
+
+Nothing decided since changes this. It removes one of the ways D33 found a copy's nested choices
+can change without anything written on the copy saying so.
+
+**What #2397 does and leaves:**
+- `createNewComponentIndices` takes `keepReferents` (`W/utils/componentIndices.ts`), which
+  `Copy.js` passes wherever an unlinked copy pastes its source, including the attributes a copy
+  of a property or list entry takes from its source (`displayDigits="$dd"` on the list).
+- A repeat's template, and other composites' content, still resolve where each instance lands.
+  That is how `$i` finds each iteration's value. A template is not a copy.
+- A copy pasted into a repeat iteration now names what its source named (`<indexOf copy="$io">`
+  keeps `io`'s `target="$l"`, not the iteration's own `l`).
+- **Fixed by #2400:** a copy of an `extend` resolved outside references from where the extend is
+  written (B14). #2400 keeps an outside referent as a referent for every unlinked copy.
+- **Left:** #376, the same rule for `extend`, is open. (B16, a copy or extend of a `<collect>`
+  inside an extended group, was a type check, fixed by #2411.) The `_id_` and
+  shadow-origin fallbacks in `refResolutionDependencies.ts` are still in place.
+
+**Today.** A copy is pasted DoenetML, so a `$n` inside it that pointed *outside* the copied part
+is resolved again where the copy lands. A nearer `n` there captures it, and two equally near `n`s
+make it ambiguous. An `extend` keeps the source's binding.
+
+```xml
+<section name="A"><number name="n">1</number><group name="g"><p>$n</p></group></section>
+<section name="T"><number name="n">2</number><group copy="$A.g"/></section>  <!-- 2 -->
+<section name="U"><group copy="$A.g"/></section>                            <!-- ambiguous: empty -->
+```
+
+**Options.**
+- **(a) Paste, as today.** It matches "copy = paste" literally, and is the cheapest to implement
+  in a core that expands source text. Its costs:
+  - an innocent-looking copy can break or silently change meaning because of names that happen
+    to exist near where it lands;
+  - copy and extend disagree on the same subtree;
+  - B4 has no good answer: pasted, `$i` should not resolve at all.
+- **(b) Lexical for outside references.**
+  - A reference whose referent was *inside* the copied part points to the copy's counterpart, as
+    today.
+  - A reference whose referent was *outside* keeps that referent.
+  - Copy and extend then agree on outside references, the ambiguity failures disappear, B4
+    resolves to the iteration's value, and the #1805 fallback becomes unnecessary for copies.
+  - The author statement becomes "a copy is the source's DoenetML pasted here, with its names
+    still meaning what they meant in the source".
+
+**Recommendation, now decided: (b).** Authors copy a problem to reuse it, not to have it re-interpreted by
+whatever is nearby. A core that compiles source text can implement (b) cheaply by resolving
+references *before* pasting, which is what the Rust resolver already does for the source.
+
+**Tests that change.**
+- `T/copying/extend_references.test.ts:7759` "attribute inherited by a copy of a copy resolves
+  where that copy is written". That test was added recently and on purpose, so this decision
+  should be taken explicitly.
+- Copy-of-module re-binding, which is untested.
+
+**Tests to add.** Both outcomes: capture, ambiguity, and repeat-iteration content.
+
+## D2. Which of the source's current state does a copy carry?
+
+**Today.** A copy starts from the source's current reader state (CPY-2). How much of that state
+depends on how it is stored:
+
+| Reader's write on the source | Carried into a copy made later? | Test |
+|---|---|---|
+| a literal `hide` or `expand` | yes, also through a reload | `unlinked_copy_reload.test.ts:469`, `attribute_values.test.ts:690`, `:820` |
+| `fixed` or `fixLocation` | **no** ("the write is not written DoenetML") | `context_attributes.test.ts:594` |
+| a number written as text in a repeat iteration (`xMin`) | **no** | `attribute_values.test.ts:690` |
+
+The two stated rationales contradict each other.
+
+**Recommendation.** "A copy is the source's DoenetML pasted, starting from all of the source's
+current reader state." That means everything the reader changed, attributes included. This is the
+snapshot idiom authors already use, and it is one rule with no per-storage cases. It changes
+`context_attributes.test.ts:594` and the `xMin` half of `attribute_values.test.ts:690`.
+
+The alternative, "a copy is only the written DoenetML, and no reader state is carried", would
+remove the snapshot idiom (CPY-2). That is Tier 1, so do not take it.
+
+## D3. A copy of an authored value list is its DoenetML pasted (done, #2367)
+
+**Before #2367**, `<mathList copy="$ml"/>` of `<mathList name="ml">$mi 2</mathList>` held the
+values the list had when the copy was made (`serializeUnlinkedAsValues`). It did not follow `mi`,
+and its named entries could not be reached through it. The same list inside a copied `<p>` did
+follow `mi`.
+
+**Now** a copy of any authored list (`mathList`, `numberList`, `textList`, `booleanList`,
+`intervalList`, `tupleList`, `pointList`, `vectorList`) is its DoenetML pasted, as for any other
+component (CPY-1):
+- references in the list stay live (CPY-3);
+- named children are reached through the copy (`$c.h`, NAME-3);
+- a copy made after the reader changed the list starts from its current values, and keeps them
+  through a reload (CPY-2).
+
+The value-copy path is removed.
+
+**A copy of an extend of a list** pastes what the extend points to (CPY-4), not the linked
+`_copy` inside the extend (`pasteWhatListExtends`):
+- an extend of a whole component (a list, a `<repeat>`, a math) is pasted as that component's
+  DoenetML, so it follows that component's references without being linked to it;
+- an extend of a property holds its values (CPY-5).
+
+**Left as is, noted in #2367:**
+- `<mathList copy="$r"/>` written directly on a `<repeat>` stays linked to the repeat, through
+  the repeat's groups.
+- Two lists that copy each other, or a list that extends itself, fail to load with a
+  circular-dependency error (D14).
+- References into a list copy through a repeat index or a case render empty (B9, #2371). Partly
+  fixed since (B9).
+- A list `extend` does not reach its children by name (B10). Fixed by #2393.
+
+## D4. Children and attributes on an `extend` or `copy` of a composite
+
+**Today:**
+- Children inside an extend of a repeat, select or sequence are dropped with w0169.
+- Group and module append them.
+- A copy of a repeat adds them to *every iteration* (#2212).
+- Non-composites append them.
+- Attributes on a copy are applied for `to` on a repeat, but not for `condition` on a
+  conditionalContent (B5).
+
+**Recommendation.**
+- **An extend of a composite:** it shows the source's content, and both content attributes and
+  children are ignored with a warning (REF-7, as today). Group and module stay as they are,
+  because their "content" is their children. D32 (done, #2409) makes a content change an error, while
+  a bare, named or restyled extend stays allowed.
+- **A copy of a composite:** the source's DoenetML is pasted, and the copy's attributes override
+  it. Children written inside are appended after the whole composite, not to each iteration.
+  Adding to each iteration surprises authors, and a repeat's template is not a list of children.
+
+If per-iteration addition is wanted, it deserves its own syntax.
+
+**Tests that change:** `T/tagSpecific/repeat.test.ts:623`, `repeatForSequence.test.ts:1491`,
+`:1523`.
+
+## D5. Do a "copy of an extend" generically
+
+**Today.** A copy of an extend pastes the referent's DoenetML (CPY-4) through
+`serializeShadowedAttributes` plus `copyPrimaryEssentialIfShadow`. Whether the copy stays live
+then depends on where the class keeps its definition:
+- in its children: live;
+- in an attribute listed in `attributesDefiningPrimaryValue` (only point and vector `xs`): live;
+- anywhere else: frozen.
+
+Attributes written on a copy of an extend do not reach the copy's descendants (the TODO at
+`T/copying/unlinked copy.test.ts:1967-2002`).
+
+**Recommendation.** Resolve `copy="$r"` to the DoenetML of r's source, with r's written
+attributes merged on top, and paste that. Freeze a value only when there is no DoenetML (props
+and entries). This removes the per-class list and the `essentialVarName` keying bugs (#2199). It
+also brings the line and curve classes that #2258 and #2263 moved into expression attributes into
+line.
+
+**Tests.** `copy_of_extend.test.ts` keeps passing. The commented-out `styleNumber` assertion can
+then be restored.
+
+## D6. Where does a reference written in or on a copy tag resolve?
+
+**Decided: a reference resolves where it is written, among what is written. Done by #2401**
+(closing #2399). See NAME-4 and NAME-5. What #2401 leaves: a module attribute that refers to
+itself through another component, or through a copy's name, is still a circular dependency that
+stops the document (D14). `doenet-e0055` is reported at the `<moduleAttributes>`, not at the
+attribute.
+
+**Before #2401** (**[probe]**), a reference written in or on a `copy` or `extend` had its own
+starting point:
+
+| Written | Resolves from | Sees |
+|---|---|---|
+| an attribute on an ordinary element | the element | its written descendants, then outward |
+| an attribute on `copy`, `extend` or `<module copy>` | the element's parent, skipping the copy (#2039) | **not** the children written inside the copy tag, nor the copied content |
+| a child added inside a copy | inside the copy | the copied content first |
+| an attribute on a module's own definition | the module's parent | "ambiguous" warning (`module.test.ts:1930`) |
+
+Examples:
+- `<section name="w" hide="$h"><boolean name="h">true</boolean></section>` is hidden: `$h` is its
+  own child.
+- `<section copy="$orig" hide="$h"><boolean name="h">true</boolean></section>`, with an outer
+  `<boolean name="h">false</boolean>`, is shown: `$h` skips the child written inside the copy tag,
+  and finds the outer `h`. An `extend` does the same.
+- `$h` in a `<p>` added inside `<section copy="$S">` finds the copied `h` (NAME-5).
+
+A name in an attribute that names the component itself resolves to that component ahead of a
+sibling with the same name, but **not** ahead of a descendant with that name (**[probe]**):
+- `<point name="Q" copy="$S" styleNumber="$Q.x"/>` beside another `<point name="Q">` uses its own
+  `x`, and so does an ordinary `<point>`;
+- `<point name="P" styleNumber="$P.x">(2, <number name="P">3</number>)</point>` has no style
+  number: `$P` is the inner number, which has no `x`;
+- `<point name="R" styleNumber="$R">(2, <number name="R">3</number>)</point>` has style number 3.
+
+So today an attribute's search order is its component's descendants, then the component, then its
+siblings. **A child's is the same** (**[probe]**): `<point name="P">(2, <number name="P">3</number>$P.x)</point>`
+gives `(2, 3 ＿)`, and `<label>$A.x</label>` inside `<point name="A">(2, <number name="A">3</number>)</point>`
+is empty. Both follow NAME-1's nearest scope. The component's contents are the nearest scope. The
+component's own name belongs to its parent's scope, where it beats a same-named sibling, because a
+reference can always name its own ancestor. So an attribute on an ordinary element already acts as
+if written in a child.
+
+**Principle (Tier 1, decided): a reference resolves where it is written, among what is written.**
+- **The first name in a path resolves only to a component written in the DoenetML.** Content a
+  copy, extend, repeat iteration or external document makes is never found by a bare name. It is
+  reached through the name of the component that made it: `$c.h`, `$r[2].h`, `$s.s1`.
+- **That holds wherever the reference is:** beside the copy, in an attribute on it, or in a child
+  written inside it. A reference inside a copy or extend follows no special rule.
+- **An attribute resolves as if it were written in a child of its component.** It sees the
+  component's written descendants first, then the component's own name, ahead of its siblings,
+  then outward (NAME-1's nearest scope, as for a child). An attribute on a copy or extend is no different from any other attribute:
+  - it sees the children written inside the copy tag, because they are written;
+  - it does not see the copied content, because that is not written there.
+- **The existing privacy rules still apply** to written content. Children of `repeat` and
+  `option` are reached only through their container (NAME-1). Since D22, names in a `case` or
+  `else`, and in the options of a one-pick select, are visible when every branch declares them
+  with the same type (COMP-11).
+- **References inside the copied content** resolve where they were written, in the source. D1
+  settles what they point to in the copy.
+
+With D1, every reference resolves among the components written around it in the DoenetML. An
+author who knows the resolution rules (nearest wins, a tie is ambiguous, paths walk down) can
+tell where any reference lands by reading the DoenetML, with no rules specific to copies.
+
+**What it changes:**
+- **NAME-4** is restated as this rule (done). Its old purpose is kept: `xmin="$xmin"` on
+  `<module copy="$m">` does not find the copied `<moduleAttributes>`' `xmin`, which is not written
+  there. So it resolves outside the copy.
+- **An attribute on a copy or extend sees the children written inside the tag.** In the second
+  example above, `$h` becomes the inner `h`, and the section is hidden, as `w` is.
+- **A child added inside a copy no longer sees the copied content.** `$h` in a `<p>` added inside
+  `<section copy="$S" name="S2">` resolves outward, as it would beside the copy. To reach the
+  copied `h`, write `$S2.h`. An unnamed copy's content can't be reached from a child added inside
+  it: give the copy a name.
+- **An attribute on a module's own definition** that names one of its own `<moduleAttributes>`
+  refers to it, as `<p hide="$h"><boolean name="h"/></p>` does. `<module name="m" xmin="$xmin">`
+  is then a cycle, reported as one (NAME-7, D14) instead of "Multiple referents". The diagnostic
+  should say that the attribute refers to the module's own `xmin`.
+- **Nothing changes for an attribute on an ordinary element.** It already acts as if written in a
+  child: a same-named descendant first, then the component, ahead of its siblings. That order
+  should be stated and tested, since no principle or test states it. Making the component beat its
+  own descendants instead would need a new rule for references inside a component, both in
+  children and in attributes. It is not proposed.
+
+**Code:**
+- The special origins for attributes on copies go: `W/utils/dast/convertToCopy.ts:195-229` and
+  `W/components/ModuleAttributes.js:178-185` (#2039, #2038).
+- The resolver must never index names in content a copy or extend adds for bare-name search,
+  only for path steps through the copy's name. `add_nodes_does_not_make_previous_resolution_ambiguous`
+  (`RS/build_resolver.test.rs:89`) already covers part of this.
+
+**Tests that change:**
+- `module.test.ts:1930` "attribute written on the module's own definition is ambiguous" becomes a
+  cycle diagnostic;
+- any test where a child added inside a copy finds copied content by a bare name (to find; NAME-5's
+  **[probe]**);
+- any test of an attribute on a copy or extend where the tag also has a written child with that
+  name (none known).
+
+The NAME-4 tests (`T/copying/extend_references.test.ts:7583-7790`, `T/tagSpecific/module.test.ts:1715-1930`)
+should all still pass, since none of their copies has a written child with the referenced name.
+That needs checking.
+
+**Tests to add:**
+- the search order from an attribute and from a child, on an ordinary element and on a copy: a
+  same-named descendant, then the component, ahead of a same-named sibling;
+- an attribute on a copy and on an extend that names a child written inside the tag;
+- a child added inside a copy: a bare name, and the path through the copy's name;
+- the module-definition cycle diagnostic.
+
+## D7. `fixed` through linked references
+
+**Today:**
+- A linked reference with its own `fixed="false"` reports `fixed=false`, but every write is
+  refused at its fixed source (`baseComponentProperties.test.ts:370`).
+- B1 and B2 above.
+- The writer checks `fixed` and `fixLocation` through two different walks over shadow sources
+  (`EssentialValueWriter.ts:822-845` versus `:1195-1210`).
+
+**Recommendation.** One rule, checked at one place:
+
+> A write to a stored value is refused if the component that owns that value, or any component
+> it is linked through, is fixed.
+
+On a *linked* reference, `fixed` can only add fixing: its effective value is its own value OR its
+source's effective value. A reader's write to a reference's `fixed` stays on the reference.
+
+**Tests that change:**
+- `context_attributes.test.ts:152` (`d` becomes true);
+- `baseComponentProperties.test.ts:370`;
+- `point.test.ts:6433`;
+- `context_attributes.test.ts:268`, which no longer forwards the write.
+
+## D8. What `disabled` protects
+
+**Today.**
+- An extend of an input disabled by its `<section disabled>` is enabled, and typing into it
+  changes the disabled input (**[probe]**). An extend of a point fixed by its graph is fixed.
+- `disabled` is accepted everywhere but read by about 20 classes, so `<point disabled>` still
+  drags.
+- A `fixed` input looks enabled and silently snaps back.
+
+**Options.**
+- **(a)** Give `disabled` the `fixed` context rule (CTX-7): a reference to a disabled input is
+  disabled.
+- **(b)** Declare `disabled` a widget-only flag that protects no values.
+
+**Recommendation.**
+- **(a).** Authors who disable a section expect its inputs to be unusable everywhere.
+- Remove `disabled` from the schema of classes that ignore it, as #1170 did for
+  subsetOfRealsInput. Alternatively, define it on graphical objects as "the reader cannot
+  interact".
+- Render inputs as disabled when they are `disabled || fixed`.
+
+**Tests:** `baseComponentProperties.test.ts:1000` changes. Add tests for the extend case.
+
+## D9. Is a reference to a hidden component hidden?
+
+**Decided (D66): (a).** A component's own `hide` carries to every reference to it; hiding from an
+ancestor or a `<setup>` doesn't. #246.
+
+**Today** the answer depends on what is hidden, and how it is referenced (**[probe]**, and #2265):
+
+| Hidden source | Bare `$x` elsewhere | `<T extend="$x"/>` elsewhere |
+|---|---|---|
+| a plain component: `<text hide>`, `<number hide>`, `<point hide>`, … | hidden | hidden |
+| a list: `<mathList hide>`, `<sequence hide>`, `<sort hide>` | **shown** | hidden |
+| `<collect hide>` | hidden | hidden |
+| `<group hide>`, `<repeat hide>` | **shown** | — |
+| `<select hide>`, `<conditionalContent hide>` | **shown** | — |
+
+For lists the split is deliberate. `hideIsOwn` (`W/components/abstract/ValueListComponent.js:389`)
+treats a list's `hide` as hiding only the list where it is written. That mirrors how a hidden
+composite's replacements were never hidden by the composite's `hide`. It supports an old idiom:
+define a hidden `<select>`, `<sequence>` or list, and show it elsewhere with `$s`. Today
+`<setup>` serves that purpose. Two tests say the select case "encodes undesired behavior (see
+issue #246)", at `select.test.ts:2493` and `conditionalcontent.test.ts:1213`.
+
+`collect` is now the only list special-cased here. A bare `$c` of `<collect hide>` used to be
+hidden only because the collect pushed its `hide` into every entry. D29 rule 1 removed that in
+#2368, which kept this row with a flag of its own (`listHiddenWithReferences`). Either option below
+removes the flag: under (a) every hidden list hides its references, and under (b) none does.
+
+**Options.**
+- **(a) A reference to a hidden component is hidden, unless the reference sets `hide` itself.**
+  This matches REF-1's "`$x` is x itself". Documents that hide a definition and show it
+  elsewhere must move the definition into `<setup>`. Give a migration warning first: "`$s`
+  refers to a hidden `<select>`; it will be hidden too — move the select into `<setup>`".
+- **(b) `hide` hides a component only where it is written; references are shown unless they set
+  `hide` themselves.** This is what lists and composites do today. It would reverse the rule for
+  plain components, including the recent `drawn_value_references.test.ts:183` ("hidden with
+  it").
+
+**Recommendation: (a).** One rule, and the one that follows from "a reference is the thing
+itself". `<setup>` is the stated way to define without showing. The cost is the migration
+above. Both options are simpler than today's split.
+
+**Tests that change under (a):**
+- `select.test.ts:2493`, `:2545`, `:2636`, `:2727`;
+- `conditionalcontent.test.ts:1213`;
+- the bare-reference-to-a-hidden-list tests in `listcomponents.test.ts` (about `:275`);
+- `repeat.test.ts:1459`, `sequence.test.ts:1210`, and the group tests that reference a hidden
+  group;
+- any tests that rely on `collect`'s `hide` reaching its entries' `.hide`.
+
+Whether hidden *entries* inside a list are drawn is a separate question, D29.
+
+## D10. One way to show a missing value (decided by D37)
+
+**Decided by D37.** A missing value is a blank: `＿` inline, not drawn in a graph, and distinct
+from `<T/>`'s default. Operators treat it as a blank, and it never equals anything. VAL-5 states
+it, and #2458 implemented it (closing #2456). The text below is the original recommendation, which D37 replaced:
+"the empty value of the type, drawn as nothing" became "missing, drawn as a blank".
+
+**Today** (VAL-5) a missing reference shows as `[]`, `[NaN]`, `＿`, `NaN`, `""` or `[＿, ＿]`,
+depending on the parent and on the spelling.
+
+**Recommendation.** "A missing reference is the empty value of the type it presents as. A drawn
+one draws nothing. Operators and comparisons treat it as blank, and blank never equals blank."
+
+Keep the answer semantics (Tier 1). Accept changes to the display assertions:
+- `drawn_value_references.test.ts:234`;
+- `extend_references.test.ts:4790-4830`, `:7507-7616`;
+- `expressionAttributes.test.ts:400`.
+
+**A property with no value.** #2416: `$c.maxNumber` of a `<collect>` with no `maxNumber`
+shows `NaN`. The state variable is `null`, meaning "no limit", and a `<number>` made from it
+shows `NaN`. Under VAL-5 and this recommendation it is missing, so it draws nothing, is `＿` in a
+`<math>`, and is blank in comparisons. A property is never left out of the schema because it is
+unset.
+
+## D11. When is a reference its value, and when is it the referent?
+
+**Today.** Hard-coded lists decide (VAL-3):
+- only number, math, text and boolean values become value references;
+- graph, inputs and slider keep copies;
+- points always copy.
+
+`<collect>` finds `$n` in a `<p>` but not inside a `<math>`.
+
+**Recommendation.** One stated rule: "a reference is its value where its parent reads or draws a
+value, and the referent itself where its parent takes components". Under that rule `<collect>`
+never finds references, only the components they stand for, once each. Changes:
+`value_references.test.ts:987`, `drawn_value_references.test.ts:262`, `:293`.
+
+## D12. Iteration state belongs to iteration k
+
+**Today** (COMP-7) reader state stays with an iteration's position, except when `exclude` changes
+or component sources change identity. In those cases everything is rebuilt and the reader's work
+is lost.
+
+**Recommendation.** Make "reader state belongs to iteration k" the rule. No test pins the loss.
+The cells core gives this for free, and it deletes most of `Repeat.js:440-686` and the exclude
+rebuild.
+
+## D13. Accept ADR 0009's branch interface for choices?
+
+**Decided, together with D22's option (c).** ADR 0009's branch interface is accepted, as
+modified:
+- names in a choice are visible, not only through `$cc.x` (D22);
+- a name that some branch lacks doesn't resolve, with a warning; one that branches declare with
+  different types is an error at the reference, bare or on a tag (revised after #2458). Neither
+  is an error at the declaration;
+- extend follows D32, and indexing into a branch follows D27;
+- a non-literal `numToSelect` stays allowed.
+
+COMP-11 states the rule. **Done by #2451** (closing #2450).
+
+This goes together with D22, which asks how names inside a `conditionalContent` should work
+at all.
+
+**Proposed rule:** "A name is visible outside a `select` or `conditionalContent` only if every
+branch declares it, with the same type."
+
+It bans, in order of how often documents use them:
+- `extend` of a select, conditionalContent or case. ADR 0009 gives no reason for these three in
+  particular. D32 replaces this item for select and conditionalContent: a bare, named or restyled
+  extend stays allowed, and an extend that changes the content is an error. Extending a case
+  stays banned;
+- names present in only some branches;
+- type-varying names;
+- positional references into options (`$s[2][1]`), which D27 generalizes.
+
+ADR 0009 also bans a non-literal `numToSelect`. That is **not accepted**: a reference there is read
+once, when the choice is made, and is part of DoenetML. The cells core should eventually support
+it, and main's tests of it stay binding (COMP-8).
+
+**Recommendation.** Accept the rule. It is easy to state, and the alternative is visibly broken
+output: `<math>$cc.x+1</math>` becomes `h i + 1` when a branch switches type.
+
+Before the cut-over, add **warnings on main** for the banned forms so that existing documents can
+migrate. Mark the affected tests "changed" (listed in
+[composites-and-lists.md](composites-and-lists.md) §6). PR #2281 already has rewritten versions.
+
+Positional double indexing into *repeats* (`$a[2][1][3]`) exposes the same hidden grouping. D27
+removes child indexing everywhere, not only for choices (#2424, and with no deprecation period,
+#2517).
+
+## D14. Cycles are always a located diagnostic, and the rest of the document still renders
+
+**Today:**
+- Composite cycles give a diagnostic, and the document loads.
+- State-variable cycles throw. The document fails to load, and the message can name an internal
+  `<_copy>`.
+- Since #2148, `<number name="i">$l[$i]</number>` stops the document. It used to give `NaN` with
+  a diagnostic.
+
+**Recommendation.** Every cycle is an error on the authored component, and the rest renders.
+This is also the direction of ADRs 0013 and 0014.
+
+**Status:** composite cycles since early; reference cycles found at load since #2471/#2513;
+every cycle thrown while the document loads since #2625 (D57), up to five independent ones since
+#2639 (D61). Left: a cycle after an update, or first reached after load (for the cells core).
+
+**Tests that change:** the `rejects.toThrow` assertions in
+`T/diagnostics/circularReferences.test.ts:27-67`, `:722`, `:755`, and
+`value_references.test.ts:596`.
+
+## D15. Make inversion uniform, and say when it fails
+
+**Problems found** (**[probe]** for each):
+- The projection operators behave differently from each other (INT-5).
+- One request that writes one source twice keeps the *first* value for a dragged point
+  `($a,$a)` but the *last* for a typed math `($a,$a)`.
+- Text and boolean barely invert: `<text>Hello $t</text>` and `not $b` snap back.
+- `<number>` accepts "x" as NaN, while `<integer>` refuses 2.6.
+- Failed inverses, including writes dropped by a boolean expression attribute, are silent.
+
+**Recommendations:**
+1. Every idempotent operator projects, then writes the projected value (ADR 0003).
+2. When one request writes one source twice, the later write wins (ADR 0006). Today no test pins
+   either choice.
+3. State "math and number invert through `+ − × ÷` by constants; text and boolean invert only
+   through identity". Optionally add `not` and constant affixes later.
+4. `<number>` refuses a non-numeric request.
+5. Add a load-time info diagnostic, "this `bindValueTo` target cannot be changed", wherever a
+   binding is statically one-way.
+
+## D16. Is credit a record of the submission, or derived?
+
+**Today.** It is a record (ANS-1), and gradebooks rely on that. Cells-core ADR 0017 says the
+answer regrades.
+
+**Recommendation.** Keep credit as a record of the submission. Derive only "just submitted" by
+comparing a stored hash of what the credit depended on with the live one. That also fixes the
+stale "just submitted" in #2325.
+
+## D17. Variant stability under edits
+
+**Today.** With unique variants, which is the default, inserting any random component re-maps
+every variant (VAR-3).
+
+**Recommendation.** Seed each random component from (variant index, its stable name path), and
+make exact unique enumeration best-effort. That keeps VAR-1 and VAR-2, and makes adding a
+question to a problem set safe.
+
+The exact tables in `T/variants/uniqueVariants.test.ts` become Tier 3. Keep the property tests:
+"same index, same draws" and "N variants are distinct when N ≤ the number of combinations".
+
+## D18. Saved state across edits, and withheld content
+
+**Today:**
+- The core keys state so that it survives an edit, but the viewer discards it on any `cid`
+  change.
+- Restored derived values are trusted.
+- #2149 says withheld content "behaves as deleted", while #2318 keeps it.
+
+**Recommendations:**
+- State officially that "hidden or withheld content keeps the reader's work" (SAVE-4), and retire
+  the #2149 wording.
+- Save only true sources and recompute the rest.
+- Adopting ADR 0017's safe-edit carry-over is a product decision. Until it is made, treat the
+  "survives an edit" keying tests as Tier 3.
+
+## D19. Smaller rules to settle
+
+- **`labelIsName` on a copy.** Today it is dropped, and the copy shows the source's name. Keep
+  this as a named exception, "a copy shows the label its source showed", rather than pasting it.
+  It is the less surprising outcome.
+- **A type-changing extend of a scalar.** Lists take the source's same-named attributes and
+  scalars do not (REF-5). Choose "a type-changing extend takes the source's attributes that its
+  own class declares" for both.
+- **Display settings through arithmetic.** These are open from #2127. Keep "a sole child passes
+  its formatting up" (VAL-4) unless authors ask for more.
+- **Deep property chains** (`$l.points[1].coords`). Either commit to supporting them, and restore
+  the 20 commented-out assertions, or document "one property after an index" as the limit.
+- **`asList` defaults.** State "groups are not lists". Decide whether a conditionalContent
+  whose active case yields several items is a list. **Decided by D41:** the case is a wrapper,
+  not a list.
+- **`draggable`.** Move the check into the writer next to `fixLocation`. The behavior is
+  unchanged.
+
+## D20. Make what a property carries data-driven
+
+**Today** three per-variable mechanisms, in about 40 files, decide which attributes `$x.prop`
+carries.
+
+**Recommendation.** One default: a numeric property carries the five display settings. Declare an
+exception only where a property needs more, such as list entries carrying `fixed`, `hide`,
+`styleNumber`, `draggable` and `renderMode`. Keep `hide` on that list: an entry carrying its
+source's `hide` is what makes `$l[1].hide` true for a hidden source (#2265, D29). (#2339 already removed the third mechanism,
+`propagateToProps`, which only `modifyIndirectly` used.) This is
+mostly internal, but it makes VAL-1 true by construction.
+
+## D21. Which components does a bare reference read as a value?
+
+**Today.** A bare `$x` to most components puts x itself there again (REF-1). For classes with a
+`variableForImplicitProp` it gives a value instead (REF-1a):
+
+| Referent | `$x` gives |
+|---|---|
+| every input | its value: `$mi` is a math, `$ti` a text |
+| `<answer>` | its submitted responses |
+| `<award>` | whether it was awarded |
+| `<choice>` | whether it was submitted |
+
+A name on the reference, or an explicit type equal to the referent's own (`<mathInput extend="$mi"/>`),
+gives the component instead. A reference to something that *contains* an input
+(`$repeat[1]`, `$group`) copies the input.
+
+**Recommendation.**
+- Keep the input rule as a Tier 1 author guarantee, and state it in the docs: "a reference to an
+  input is the value the reader entered; use `extend` with the input's tag for a second input".
+- Decide whether answer, award and choice are worth keeping as special cases. Each could instead
+  require the explicit property (`$ans.submittedResponses`). Keeping them is cheap if they are
+  declared in one table, but each is one more thing an author must learn.
+- Either way, make it a declared, schema-visible property of the class ("a bare reference reads
+  `value`"), so that docs and a new core read the same list.
+
+## D22. How should names inside a `conditionalContent` work?
+
+**Decided: option (c), with (b)'s same-type rule** (decided together with D13). Names inside a
+`<conditionalContent>` are visible, like a `<group>`'s:
+- **A name inside a `<conditionalContent>` is visible outside it**, as a `<group>`'s is. A plain
+  `$x` from outside finds the `x` in the active case, and `$cc.x` still works.
+- **It resolves only if every case declares it, with the same type.**
+  - "Every case" means each `<case>` written, and the `<else>` if there is one. With no
+    `<else>`, `x` in every case is enough: while no case is active, `$x` names nothing.
+  - If a case or the `<else>` has no `x`, `$x` and `$cc.x` name nothing: a blank (VAL-5), with
+    **warning** `w0183` at the reference, bare or on a tag.
+  - If two of them declare `x` with different types, it is an **error** at the reference, bare
+    or on a tag, decided at load (`w0184` bare, `e0066` on a scalar tag; DIAG-7). A type error is
+    the same in both forms (REF-1). It is not a deprecation: the reference doesn't work.
+  - So a reference's type, and whether a parent accepts it as a child, never change with the
+    active case.
+- **Two cases declaring `x` don't make it ambiguous**, since only one can be active. An `x`
+  beside the `<conditionalContent>` does (`doenet-w0105`).
+- **On a tag**, `<math extend="$x"/>` is decided by REF-0: a mix of types or a missing `x` is an
+  error, and so is an `x` that can be absent because there's no `<else>`, as for
+  `<math extend="$cc"/>` without one (D36).
+  **Revised by D37:** a missing `x` gives the bare form's warning and a missing tag, and an `x`
+  that can be absent (no `<else>`) gives a missing tag with an info while no case is active.
+- **A `<select>` with one pick** (`numToSelect` written as `1`, or left out) works the same way,
+  with every option in place of every case. **With several picks**, names stay private, as in a
+  repeat: `$s[2].x`, under the same every-option, same-type rule (D27).
+
+COMP-11 states it. **Done by #2451** (closing #2450).
+
+**Today.** Names inside both forms of `<conditionalContent>` are private (**[probe]**):
+- a plain `$x` from outside reports "No referent found";
+- `$cc.x` reaches the `x` in the active case, and is empty when no case is active;
+- a name declared in only some cases, or with different types in different cases, is
+  accepted. With a math `x` in one case and a text `x` in another, `<math>$cc.x+1</math>`
+  becomes `h i + 1` when the case switches.
+
+Privacy is necessary for a repeat, which makes several instances of a name, and for a copy,
+which sits beside its source. A `conditionalContent` shows at most one case at a time, so for
+it privacy is a choice.
+
+**Options.**
+- **(a) Keep it private, as today.** Authors must always write `$cc.x`. Add a load-time
+  diagnostic when cases disagree about a name.
+- **(b) The branch interface of ADR 0009.** Keep `$cc.x` as the only way in, and allow it only
+  for a name that every case declares, with the same type. Names in only some cases are private
+  to their case. This is D13's rule, and PR #2281 already implements it.
+- **(c) Make the names visible, like a `<group>`'s.**
+  - A plain `$x` from outside finds the `x` in whichever case is active.
+  - Every case must declare it with the same type, or it is a load-time error.
+  - When no case is active, `$x` is missing, like an index past the end (VAL-5).
+  - Two cases of one `conditionalContent` declaring `x` do not make `$x` ambiguous, because only
+    one of them can exist at a time.
+
+**Discussion.**
+- Option (c) is the easiest to teach. Authors already think of a conditionalContent as
+  "this or that content shown here", and it then behaves like a group whose contents change.
+- It also treats the single-case form, `<conditionalContent condition="…">`, as what it looks
+  like: a group that is sometimes absent.
+- Its costs:
+  - names inside cases join the enclosing scope, so a case's `x` can collide with an `x` beside
+    the conditionalContent, giving an ambiguity that is reported;
+  - the resolver must treat sibling cases as mutually exclusive rather than ambiguous.
+- `<select>` with one pick could follow the same rule. With several picks it makes several
+  instances, so it stays private, like a repeat.
+
+**Recommendation.** Choose between (b) and (c) together with D13. Lean towards (c) with (b)'s
+same-type rule: one interface, reachable both as `$x` and as `$cc.x`. Whichever is chosen,
+warn on main now for names that cases disagree about, so that documents can migrate.
+
+**Tests that change under (c):**
+- the tests that assert `$x` from outside does not resolve;
+- the `conditionalcontent.test.ts` and `select.test.ts` tests listed under D13.
+
+## D23. What `fixed` means
+
+**Today** (CTX-1, INT-6):
+- **`fixed`** refuses every change pushed into the component. It still follows its children and
+  attributes.
+- **`draggable="false"`** refuses only the reader's direct drag.
+
+"Fixed" suggests a constant value. Authors may expect `<math fixed>$n+1</math>` not to follow
+`n`.
+
+**Recommendation.**
+- **Document `fixed` by what it refuses:** "A fixed component shows what its own definition
+  gives, and nothing can change it from outside — not the reader, not an input bound to it, not
+  an action". Keep the name, since many documents use it.
+- Keep `draggable="false"`. It answers a different author question: "can the reader grab this?".
+- Keep `fixLocation` as "`fixed`, for position only".
+
+**Done: `modifyIndirectly` is removed (#2339, closing #2336).** It refused only changes passed
+back from things that depend on a component, while still allowing the reader's direct drag. No
+author was likely to want that distinction from `fixed`.
+- The parser now drops the attribute from any element, with deprecation warning `doenet-w0177`.
+  The warning says to put `fixed` on the components that use the value, or `disabled` on an
+  input.
+- `$P.modifyIndirectly` is now a reference to a property that does not exist.
+- The core plumbing went with it: the refusal in `EssentialValueWriter.ts`, the `canBeModified`
+  dependencies, and `propagateToProps`.
+- Its tests were ported to `fixed` on the consumer.
+
+## D24. How to present repeating, choosing and grouping to authors
+
+**Today.** The docs and these principles group `group`, `repeat`, `select`, `conditionalContent`,
+`collect`, `module` and others as "composites" that disappear and are replaced by their content.
+That is how the current core is built, but it is not a distinction authors need. To an author:
+- a `<repeat>` shows its content once per item;
+- a `<select>` shows what it picked;
+- a `<conditionalContent>` shows the active case;
+- a `<group>` just holds content together.
+
+**Recommendation.** Teach each tag by what it shows, and drop "composite" from author-facing
+text. Three rules then cover what the category was used to explain:
+1. "Content a tag produces appears where the tag is written, and any parent reads it as if you
+   had written it there." This is true for every tag, so it needs no category name.
+2. "Several items that a tag repeats, picks or gathers are shown as a list, separated by
+   commas. A `<group>` is not a list unless you say `asList`."
+3. The naming rules, which depend on the tag: repeat iterations are private; a choice per D22.
+
+What remains genuinely composite-specific, such as an `extend` of a repeat ignoring `for` (REF-7)
+or children on a copy of a repeat (D4), should be stated on the tag's own reference page.
+
+**Words kept out of author-facing text** (decided, November 2026). The test for a word is
+whether authors meet it in what they write: a tag or attribute name, or its plain English sense.
+A word the core uses for how it is built, which authors never write, stays out of the docs, the
+diagnostic messages, the schema's descriptions (editor hover and reference pages) and the
+language server's text:
+- **composite** (the category of `<group>`, `<repeat>`, `<select>` …): name the tags, or say what
+  they do ("a tag that holds others", "a choice");
+- **template** for what is written inside a `<repeat>`: say "what is written inside the
+  repeat". Authors don't write a `<template>` in a `<repeat>` (they did in the older `<map>`).
+  Nothing else is wrong with the word: where authors type `<template>`, or in its plain sense
+  (an editor snippet, a `pattern`), it is fine;
+- **wrapper** (a group, iteration, pick or case holding several components): say what holds them;
+- **state variable**, **prop**: say "property";
+- **replacement**, **shadow**, **sugar**, **essential**, **adapter** in their implementation
+  senses;
+- internal ids and names: `componentIdx`, `_error`, `_copy`, and other tags starting with `_`,
+  also as the type of an attribute or property on a reference page (`_componentWithSelectableType`,
+  `_variableName`): name what the author writes instead ("number, math, text or letters, by
+  `type`", "variable name").
+
+A diagnostic locates its problem by position and by the names the author wrote, never by an
+internal id. Known violations: #2588.
+
+## D25. A table's title and a figure's caption take the first child, not the last
+
+**Today.** Wherever a component uses one `<label>`, `<title>` or `<shortDescription>`, the last
+one written wins (REF-4a). That holds for 22 label-taking components, for sections, hints and
+charts, and for `shortDescription`. So a label or title written inside an `extend` or `copy`
+replaces the source's.
+
+`<table>` (`Table.js:140`, `:165`) and `<figure>` (`Figure.js:155`, `:181`) instead take the
+**first** title or caption. As a result, `<table extend="$t"><title>New</title></table>` keeps
+the old title (**[probe]**). `Document.js:199` also takes the first.
+
+**Recommendation.** Make all three take the last child, so that one rule covers every
+single-use child. No test pins the current behavior. Add a sweep: for every component with a
+single-use child group, writing two of them uses the second, and adding one in an `extend` or
+`copy` replaces the source's.
+
+## D26. Which type changes may an `extend`, a `copy` or a `copyWithState` make?
+
+**Decided. Done by #2427 and #2436** (closing #2423, #2414, #2415, #2435). REF-5 states it.
+
+**Revised by D36.** The run-time rule below ("Known at load or at run time") is replaced. A
+composite written as a scalar tag must be guaranteed by the DoenetML to hold one component of one
+type, or it is an error at load. Only an index and a value conversion are still decided as values
+change.
+
+**Decided:** related types are allowed, and any other pair is an error. The same table decides
+all three forms: `extend`, `copy` and `copyWithState` (D33). Each asks
+for "a T made from x", and only the conversion differs: linked for an extend, a snapshot for a
+`copyWithState`, a fresh start for `copy`.
+
+**Today** (REF-5) an unrelated pair gives a default component of the written type. It comes
+sometimes with an "Invalid children" warning that confuses authors, and sometimes silently: for
+example `<boolean extend="$m"/>` of a math is `false`. None of these is "a T that behaves like
+x", which is what the syntax suggests. This behavior does not need to be reproduced.
+
+**Rule (decided).** One table, declared the way adapters are. A type change is allowed only in
+these cases:
+- **between value types:**
+  - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
+    math (decided after #2445, for #2440);
+  - point, vector and coords, among each other;
+  - math from a point, vector or coords, as the tuple of its coordinates (`<math extend="$P"/>`
+    gives `(1, 2)`, tested in `extend_references.test.ts`, "extend wraps to match specified
+    type");
+  - a point, vector or coords from a math whose value is a tuple. A math whose value is not a
+    tuple is a run-time mismatch (below);
+  - a value type from an input: `<math extend="$mi"/>` is mi's value, as `$mi` is (REF-1a);
+  - a list from the matching scalar or list (#2231).
+- **from a composite that stands for one component.** A composite, or an instance of one, whose
+  content is exactly one component counts as that component. This is D27's pass-through rule
+  applied to type changes. Authors think of a one-pick select as its value, and write `$s`
+  before they learn `$s[1]` (D72: `$s[1]` now reaches into the pick; `$s` is the pick):
+  - `<math extend="$s"/>` of a select that picked one option holding one math;
+  - `<text extend="$cc"/>` while the active case holds one text;
+  - `<math extend="$r[1]"/>` of an iteration holding one math;
+  - `<math extend="$g"/>` of a group holding one math;
+  - `<number extend="$s"/>` of a one-value `selectFromSequence`, `selectRandomNumbers` or
+    `sample…` tag;
+  - `<math extend="$sub"/>` of a `<substitute>`, and `<point extend="$i"/>` of an
+    `<intersection>` that makes one point;
+  - and the same for a `<collect>`, `<sort>` or `<shuffle>` that holds one component. (Since
+    D36, only when the DoenetML guarantees one: a `<sort>` of one written component, not a
+    `<collect>`, which is `e0064`.)
+- **a list from a composite whose components all match the entry type:** `<mathList
+  extend="$g"/>`, `<mathList extend="$cc"/>`, `<numberList extend="$c"/>` of a `<collect>` of
+  numbers, `<mathList extend="$s"/>` of a select with several picks (#2231). Not the reverse: a
+  `<group>` made from a collection is "any other pair" (#2649).
+
+**Not allowed, an error whose message gives the clearer form:**
+- **an input from a value type.** `<mathInput extend="$m1"/>` acts as
+  `<mathInput bindValueTo="$m1"/>` today. An input is not the same thing as its value, and under
+  `copy` it would be ambiguous between binding and starting from the value. The message offers
+  both: "To edit `$m1`, write `<mathInput bindValueTo="$m1"/>`. To start from its value, write
+  `<mathInput prefill="$m1"/>`." One test changes: `context_attributes.test.ts:249`
+  `<booleanInput extend="$m.fixed"/>` becomes `bindValueTo`, after checking that this reaches
+  `fixed` the same way.
+- **a container** (`<p>`, `<section>`, `<div>`, …) as another tag. A container is a component in
+  its own right, not a stand-in for its content. "Use `$p.text`." Today `<text extend="$p"/>`
+  warns "Invalid children" and shows nothing.
+- **a composite that does not stand for one component,** as a value tag: a group of two maths, a
+  repeat as a `<math>`. The message points to `$s[1]`, a name inside (`$cc.t`), or reading it
+  as a value (`<text>$cc</text>`).
+- **any other pair,** such as a section as a math.
+
+**Known at load or at run time.** An error is reported on the extend or copy and not
+rendered. When the mismatch depends on what the document makes at run time, it is an **info**,
+and nothing is shown while it lasts. Examples:
+- which case is active, or which option was picked;
+- how many components a collect holds;
+- whether a math's value is a tuple.
+
+Such a document can be valid: it may be meant to show nothing until the reader changes
+something. So the diagnostic only explains why nothing shows (D35, DIAG-1). Today such a mismatch is a
+silent blank: a group of two maths as
+a `<math>` gives `＿`, and a case holding a text as a `<math>` gives `＿`.
+
+A new core then needs only the table.
+
+**A copy (decided):** #2415: `<collect copy="$G.cc"/>` of a `<conditionalContent>`
+shows nothing and warns "No source found for collect", while `<text copy="$G.cc"/>` shows the
+case's text. A copy written as another tag is wrapped in a new component of that tag
+(`verifyReplacementsMatchSpecifiedType`), which for `<collect>` has no `from`. The same table
+decides copies:
+- what a composite stands for is its content, so `<text copy="$cc"/>` of a case holding a text
+  is a related pair;
+- `<collect>` is not related to a text, so it is an error that names the mismatch, not a
+  missing source.
+
+**Implementation: #2423** (includes #2415). One test changes:
+`context_attributes.test.ts` "a reference to fixed itself can change it" moves from
+`<booleanInput extend="$m.fixed"/>` to `bindValueTo`. The related-pair and composite tests keep
+passing. `extend_references.test.ts` "handle extending or copying with invalid component type" is
+about an unrecognized tag name, not an unrelated pair, and is unaffected.
+
+## D27. What may an index select?
+
+**Decided: an index never selects among a container's children. Done by #2424** (closing #2420; value half done by #2431, closing #2421).
+
+**Revised (November 2026): no deprecation period; child indexing is removed** (#2517; done by
+#2518). The
+cells core, meant to be 0.8's core, won't build a shim for the deprecated form, so the
+JavaScript core doesn't keep investing in one that won't survive to a 0.8 release. An index that
+would select a child (`w0179` today) names nothing, with a **warning** and a blank, like any
+reference that names nothing (D37). The warning says to name the child. It covers every
+`<group>` an index reaches: one the author wrote (and its extend or copy), a select's pick, a
+`<conditionalContent>` case or `<else>`, a repeat's iteration, an extend of an iteration, and a
+group reached through `<collect>`. Pass-through, instances and entries of values are unchanged.
+The v07-to-v08 converter (#2457) names the child and rewrites the reference where it can, with
+the same name in every branch; where those children differ in type, so the name couldn't be
+referenced (D22), it reports the reference instead.
+
+**Revised again (November 2026): a group, or an instance, whose content is one component stands
+for it** (#2517; done by #2518). Two changes to pass-through:
+1. **A `<group>` the author writes passes an index through like an instance.** A group already
+   stands for its content for a tag (`<math extend="$g"/>` of a group holding one math is that
+   math; of a `<span>` it is `e0065`) and for a property (`$g.value`, VAL-5's collections). So
+   `$g[2]` of `<group name="g">$nl</group>` is the list's second entry. Considered against:
+   authors may wonder why a group takes an index and a `<span>` doesn't. Accepted because the
+   group already differs from a span in the other two ways, and the author model now says what a
+   group is (README item 1).
+2. **"Indexable" includes values with entries.** Any one component passes the index on, and that
+   component decides what it means: a list's or value's entry (`$s[1][2]` of an option holding
+   `<math>(1,2,3)</math>` is `2`), an instance, or nothing with a warning (a scalar, `w0100`; a
+   `<p>`, `w0180`).
+
+"One component" ignores blank text, comments and a `<setup>`; any other text counts. It is
+decided at load. A composite inside passes the index to its own instances (`<group>$cc</group>`:
+`$g[1]` is the shown case). This changes the meaning of some 0.7 references with no warning:
+`[1]` after a group or instance holding one component selected that component, and now applies
+to it (`$s[1][1]` of an option holding one point was the point, and is now its x). The converter
+(#2457) drops that `[1]` (`$s[1][1]` → `$s[1]`, `$g[1]` → `$g`).
+
+NAME-2 states the rule. It selects among the
+instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
+index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
+
+**Also decided: an index selects the entries of a value that has entries** (see "Values with
+entries" at the end of this entry; #2421). A row of a matrix is a 1×n matrix.
+
+**Today** an index can select several different things, and which one depends on what the
+current core makes a composite (**[probe]**):
+
+| Written | Means today |
+|---|---|
+| `$l[2]` on a list, `$P.xs[2]` on an array prop | the second entry |
+| `$r[2]` on a repeat | the second iteration |
+| `$r[2][2]` on a repeat whose template has two children | the second child of iteration 2 |
+| `$s[1]` on a select | the first pick |
+| `$s[1][2]` on a select | the second child of the first pick's option |
+| `$g[2]` on a `<group>` | its second child |
+| `$sec[2]` on a `<section>`, `$p[2]` on a `<p>` | nothing ("Could not find prop sec[2]") |
+| `$o[1]` on a named `<option>` | nothing, though `$s[1][1]` reaches into an option |
+| `$r[1][2]` on `<repeat name="r"><repeat>…</repeat></repeat>` | nothing; `$r[1][1][2]` is needed, because `[1][1]` steps over the iteration's wrapper to the inner repeat |
+
+For the select from the question,
+`<select name="s"><option><text>a</text><number>1</number></option><option><text>b</text><number>2</number></option></select>`:
+
+| | `numToSelect="1"` | `numToSelect="2"` |
+|---|---|---|
+| `$s[1]` | the picked option's content, e.g. `b2` | the first pick, e.g. `a1` |
+| `$s[2]` | nothing | the second pick, e.g. `b2` |
+| `$s[1][1]` | the picked option's text, e.g. `b` | the first pick's text, e.g. `a` |
+| `$s[1][2]` | the picked option's number, e.g. `2` | the first pick's number, e.g. `1` |
+
+Adding `numToSelect` does not change what an index means; it only makes more picks exist. The
+diagnostics for a missing index are confusing. They name internal types and props:
+- "Could not find prop s[2] on a component of type text";
+- "… on a component of type _repeatValueList".
+
+**Why it is unsatisfying.** Indexing by child position works on a group, a repeat iteration and
+a picked option. Those are exactly the tags the current core makes composites. It does not work
+on a section, a `<p>` or a named option. Authors cannot predict this without the composite
+concept (D24). Positional child indices are also fragile: adding a child to an option or a
+template shifts every index after it.
+
+The docs for `<select>` (`reference/select.mdx:104-108`) currently recommend either style:
+- reach a child of a picked option by index;
+- or name the child, "the same names for that particular child over the range of all possible
+  options", and write `$s[1].num`.
+
+**Proposed rule.** An index selects among the *instances* a tag produces. It never selects among
+a container's children:
+- entries of a list or an array prop;
+- iterations of a repeat;
+- picks of a select (and of `selectFromSequence`, `shuffle`, `sort`, `collect`).
+
+To reach inside an instance, name what is inside: `$r[2].x`, `$s[1].x`. Consequences:
+1. **No child indexing on group, option, section or `<p>`.** `$g[2]` and `$s[1][2]` become
+   errors, with a diagnostic that says to name the child.
+2. **Names across the options of a select follow the same rule as across the cases of a
+   conditionalContent** (D22). A name reached as `$s[1].x` must be declared in every option,
+   with the same type. That is the docs' existing advice, made a rule, and matches ADR 0009.
+3. **An instance whose whole content is one indexable thing passes the next index through to
+   it.** Only one meaning is left for `[2]` after an iteration, so nested repeats become
+   unambiguous: in `<repeat name="r"><repeat>…</repeat></repeat>`, `$r[1][2]` is iteration 2 of
+   the inner repeat in iteration 1 of the outer. The same holds for an option holding one list,
+   and for an option holding one component, as `$f[1].formula` in `select.mdx` already does.
+4. **Diagnostics name what the author wrote** ("`$s[2]`: the select made only 1 pick"), never an
+   internal type.
+
+**Alternative.** Make positional indexing uniform the other way, so that every container takes
+child indices (`$sec[2]`). This is harder to define: text and whitespace children would need
+to be counted. It is also fragile under edits, and it would make (3) ambiguous again.
+
+**Tests and docs that change under the proposal:**
+- `repeatForSequence.test.ts:156` (`$a[2][1][3]` becomes `$a[2][3]`);
+- the positional option tests (`select.test.ts:2897`, `conditionalcontent.test.ts:1306`), already
+  rewritten in PR #2281;
+- `extend_references.test.ts:6549`'s `$sec2.g[1].t`;
+- `repeat.test.ts` / `repeatForSequence.test.ts` tests that index children of an iteration;
+- `compositeCommas.test.tsx:318`;
+- the select docs examples: the dice example `$roll[1][1]` and `$groupSelect[2][2]` in
+  `reference/select.mdx`, plus `option.mdx`, `vectorList.mdx` and `tupleList.mdx`.
+
+The list examples keep working, since entries are instances. Child indexing is on 0.7, and its
+select docs taught it (`$roll[1][1]`, `$groupSelect[2][2]`), so 0.8 was to give a deprecation
+warning first. **Superseded by the revision above:** no deprecation period; the converter
+migrates what it can (#2517, #2457). Pass-through takes its new meaning directly, with no compatibility mode: the old reading
+of nested repeats was confusing and little used. `$a[2][1][3]` becomes `$a[2][3]`, and the old
+form now reads differently (#2420).
+
+### Values with entries (decided)
+
+An index also selects among the entries of a value: the coordinates of a point, the entries of
+a tuple or vector, the rows and entries of a matrix. These are not a container's children, so
+the decision above does not touch them. They are what the value is made of.
+
+**Today** (**[probe]** on main at `7c2bb1f`), each kind works a different way:
+
+| Written | Shows |
+|---|---|
+| `$P[1]` of `<point>(3,4)</point>` | `3` (`variableForIndexAsProp = "xs"`) |
+| `$v[1]` of `<vector>(5,6)</vector>` | `5` (`variableForIndexAsProp = "displacement"`) |
+| `$c[1]` of `<coords>(1,2)</coords>` | `1` |
+| `$mt[1]` of `<math>(8,9)</math>`, and `$x[1]` of `<mathInput prefill="(1,2)"/>` | `8`, `1` |
+| `$mt.value[1]` | nothing, `doenet-w0100` |
+| `$mv[1]` of a `<math>` holding `⟨8,9⟩` | `＿` |
+| `$M[1]` and `$M[1][2]` of a `<matrix>`, or of a `<math>` holding a matrix | the whole matrix: the index is ignored |
+| `$M[2][1]` | nothing |
+| `$M.matrix[2][1]`, `$M.matrix[1]` | `3`; the first row as a 1×2 matrix |
+| `$ms[1]` of `<math>5</math>` | `5`: a scalar indexed as itself |
+| `$n[1]`, `$t[1]` of a `<number>`, a `<text>` | nothing, info `doenet-i0018` |
+| `$mi[1]`, `$mi[2][1]` of a `<matrixInput>` | nothing, info `doenet-i0018`; `$mi.matrix[2][1]` works |
+| `$ss[1]` of a `<spreadsheet>` | nothing, info `doenet-i0018`; `$ss.cells[1][2]` works |
+
+**Decided.** An index on a component whose value has entries selects them, the same way for
+every such component. The value decides, not the tag:
+- **a point, vector or coords, or a math whose value is a tuple or vector:** `[i]` is entry i.
+  The `⟨8,9⟩` case is a defect.
+- **a math whose value is a matrix, including `<matrix>`:** `[i]` is row i, `[i][j]` is the
+  entry. `$M[i]` is the same as `$M.matrix[i]` today.
+- **an input** follows the type of its value: `<mathInput>` as `<math>`, `<matrixInput>` as
+  `<matrix>`.
+- **`$x.value[i]` is the same as `$x[i]`**, since the index applies to the value either way.
+  Today it names nothing.
+- **a scalar has no entries.** `$ms[1]` names nothing, as `$n[1]` and `$t[1]` already do, rather
+  than showing the scalar. This is reported once, the same way for every type: `doenet-w0100`,
+  "this value has no entries", not an info naming an internal prop.
+- **out of range** follows NAME-2 and #2410: below 1, `doenet-w0104`; past the end, silent while
+  the value can change size (#1499).
+- **the pass-through rule (3)** applies: `$pl[2][1]` is the first coordinate of a point list's
+  second entry, and `$r[1][2]` is coordinate 2 of iteration 1's one point. #2413's list-entry
+  cases follow from it.
+
+**A `<spreadsheet>` keeps `.cells`.** It is a component with several arrays (`cells`, and
+whatever rows or columns it exposes), not a value with entries. `$ss[1]` should give a
+diagnostic that says to write `$ss.cells[1][2]`, not an info naming an internal prop.
+
+**A row of a matrix is a 1×n matrix,** as `$M.matrix[1]` is today. `$M[1]` and `$M.matrix[1]`
+agree.
+
+**A value whose shape changes.** `<math>$a</math>` can be a scalar at one moment and a tuple
+  the next. `$m[2]` then names an entry or nothing as it changes. That is consistent with an
+  index past the end, and needs no special rule.
+
+**Tests to add:** each row of the table, under the rule. Also `.value[i]` equal to `[i]`, a
+`<matrixInput>` and a `<mathInput>` holding a tuple and a matrix, `$ss[1]` giving its diagnostic,
+and pass-through into a list of points.
+
+## D28. Can "start from a passed-in value" work without `.value`?
+
+**Today** (CPY-7) `<number name="x" copy="$x0"/>` inside a module pastes x0's definition. When
+a caller passes `x0="$initial"`, that definition contains a live `$initial`. The copy then
+either cannot be dragged, or writes back to the caller's variables. The fix,
+`copy="$x0.value"`, works, but is not obvious.
+
+**Options.**
+- **(a) Document the idiom.** Teach CPY-7 on the module and copy pages. Add an info diagnostic
+  when a drag or typed value on a copy is refused because the pasted definition cannot be
+  inverted, or lands on a component outside the copy. Cheapest. Changes no behavior.
+- **(b) Treat module attributes as values.** A module attribute receives the value of what the
+  caller passes, as `$initial.value` would. A copy of it then starts from that value.
+  - **Cost:** module attributes become a special case. An author who wants the module to
+    *follow* `initial` live has to reference it some other way.
+  - This could be confusing, as noted in review.
+- **(c) A copy freezes references to things outside the copied part.** References inside the
+  copied part stay live, and point to the copy's own parts, as today. References to anything
+  outside become the value they had when the copy was made.
+  - The copy is then truly independent, and the module case works without `.value`.
+  - It reverses #559, "a copy keeps following an outside `$n`"
+    (`T/copying/unlinked copy.test.ts:1118`), which is currently Tier 1.
+  - It is the opposite of D1's decision (b), which keeps outside references live and pointing
+    at their original referents.
+- **(d) A dedicated way to say "initial value".** For example, `<number name="x"
+  start="$x0"/>`, analogous to an input's `prefill`, which already means "start here, then
+  change on your own".
+  - It is explicit, and needs no change to `copy`.
+  - It would have to be added to every value component, and authors must learn a new
+    attribute.
+
+**Recommendation.** Do (a) now. D1 is decided as (b), which keeps outside references live, so
+(c) would now be a separate reversal of #559, not part of D1. (b) solves only the module case,
+and adds a special case that users of modules would have to know about.
+
+## D29. Hidden entries in lists
+
+The rules are stated in VAL-9a ([values-and-attributes.md](values-and-attributes.md)).
+
+**Status: done for `hide` (#2368, closing #2265), on top of D3 (#2367).** Rules 1–6 below hold for
+every list, and so does the container model for a list's own `hide`. `listEntryHide.test.ts` is
+the sweep: 19 list forms, each with its first entry's source hidden. Still open:
+- `styleNumber` under the container model: done by #2426 (closing #2374);
+- a `<sort>` or `<shuffle>` that stays a composite still draws an entry hidden only by a
+  container: #2394 (below);
+- writes through `$l[k].hide`, a follow-up under VAL-9.
+
+A hidden list's entries in a `<choice>`'s text and an `<li>`'s lead are done too (#2388, closing
+#2375; decided below).
+
+**Before #2368** a list entry whose source is written with `hide` was handled by three different rules
+(#2265, survey at `34393fb`; **[probe]** confirms the main cases). Each list below was written
+with its first entry's source hidden:
+
+| Family | Lists | Hidden entry drawn? | `$l[1].hide` | `$l[1].hidden` | `$l[1]` placed elsewhere |
+|---|---|---|---|---|---|
+| A | `mathList`, `numberList`, `textList`, `booleanList`, `intervalList`, `tupleList` | **shown**, and included in text (`1, 2`) | false | false | shown |
+| B | `pointList`, `vectorList` | sent to the viewer marked hidden, so invisible in the graph | **false** | true | **shown** |
+| C | `sort`, `shuffle`, `collect`, `group asList` | left out of what is drawn, and out of text (`2`) | true | true | hidden |
+
+Only family C matches a plain hidden component.
+
+Family A also ignores `hide` on content nested inside it:
+`<numberList><sort><number hide>1</number><number>2</number></sort></numberList>` shows the 1, and
+so does the same with a `<group>`. That `<sort>` or `<group asList>` inside a `<p>` hides it. A
+`<sort>`, `<collect>` or `extend` of a mathList with a hidden child shows the child too.
+
+Family A's behavior is deliberate and pinned. Four tests are named "…ignore child hide":
+- `mathlist.test.ts:1133`;
+- `numberlist.test.ts:694`;
+- `textlist.test.ts:560`;
+- `booleanlist.test.ts:519`.
+
+Family B contradicts itself: `$pl[1].hidden` is true, yet `$pl[1]` placed in another graph is
+drawn. `listcomponentpointlists.test.ts:729` pins that a reference to the list is not hidden by an
+entry's own `hide`.
+
+`<collect hide>` is an exception within family C. It pushes its own `hide` into each entry:
+`$c[1].hide` reads true for a visible source, and `$c[1]` placed elsewhere is hidden
+(**[probe]**). `<sort hide>` does not: `$s[1].hide` is false, `$s[1].hidden` is true, and `$s[1]`
+placed elsewhere is shown.
+
+**Rule** (family C's, refined in planning the fix for #2265):
+1. **An entry carries its source's own `hide`.** `$l[k].hide` is the source's attribute, and false
+   for generated entries such as a sequence's (VAL-9, D20). A list's own `hide` does not become
+   its entries' `hide`. That includes `<collect hide>`.
+2. **`$l[k].hidden` is true when the entry's `hide` is true, or when the list is hidden.**
+3. **A hidden entry is not drawn.** So it is not in the displayed text of what holds it, such as
+   a `<p>`.
+   - It still counts for indices: `$l[k]` keeps its meaning.
+   - It also counts wherever the list is read as a value: `<math>$l</math>` and
+     `<text>$l</text>` include it. That is VAL-10 applied to lists, since every value position
+     ignores `hide`. It is also COMP-2's "`hide` affects display, never the values a list holds".
+4. **A reference follows the entry's own `hide`, not `.hidden`.**
+   - A reference to an entry (`$l[k]`) is hidden when the entry's `.hide` is true, that is, when
+     its source has a `hide` of its own, unless the reference sets `hide` itself.
+   - It is not hidden merely because the list is hidden (`.hidden` true, `.hide` false), just as
+     `$n` of a number inside a hidden section is shown (CTX-8).
+   - A reference to the whole list (`$l` placed elsewhere) keeps an entry hidden when that
+     entry's source is hidden, as `<sort>` does today. Whether `$l` of a *hidden list* is hidden
+     is D9, a separate question.
+5. **What is drawn leaves a hidden entry out; properties are values and include it.**
+   - What is drawn, including the text of a `<p>` that holds the list, leaves the entry out
+     (rule 3).
+   - The list's properties include it: `$l.text`, `$l.maths`, `$l.numbers`, the number of
+     entries, and indices. A list's `.text` is read entry by entry, so `$l.text[k]` is
+     `$l[k].text`. A property has no `hide` (VAL-1): `$n.text` of a hidden `<number>` is `5`.
+   - Leaving hidden entries out of `$l.text` would either shift `$l.text[k]` away from
+     `$l[k].text`, or make a property hidden. So `$l.text` is unchanged (#2368).
+6. **A copy hides the same entries as its source**, because a copy is the source's DoenetML
+   pasted (CPY-1). This needs no rule of its own. It follows from D3 (#2367).
+
+That makes `hide` on an entry mean what it means on any component, and makes every list one
+family.
+
+**Decided: a list's own attributes act on its entries as a container's do, for every list.**
+This is the model rule 1 already chose for `hide`. A list's attributes fill in for its entries,
+and never override or clear what an entry's source sets:
+- **`hide`.** `hide` on a list hides the list. It never sets, or clears, an entry's `hide`.
+  - So `hide="false"` on a `<collect>` no longer reveals entries whose sources are hidden. That
+    matches `<sort hide="false">`, and `hide="false"` inside a hidden container (CTX-5).
+  - #2368 removed the reveal. `collect.test.ts` "collect does not ignore hide" became "collect
+    does not ignore hide, and its own hide does not reveal what it collects". It also shows the
+    repeat of extends with `hide="false"` that does reveal (D31).
+- **`styleNumber`, and display settings such as `displayDigits`.** The entry's source's own
+  setting wins. The list's applies to entries whose source sets none, which is CTX-5's "nearest
+  wins": the source's own attribute is nearer.
+  - **Not done yet (#2374).** Collect and sort still let the list's `styleNumber` override each
+    source's (`LIST_SETTING_OF_PRESENTATION`). Authored lists and `<pointList>` still ignore a
+    child's `styleNumber`.
+  - For the common case, `<collect styleNumber="2">` of points that set no style, the result
+    does not change. Tests where a source with its own `styleNumber` is restyled by the list
+    change.
+  - For an authored `<mathList styleNumber="2"><math styleNumber="3">`, the entry is style 3.
+- Authors who want a list to override its entries opt in explicitly: D31.
+
+**Decided, and done in #2388: what a parent that ignores its own hiding counts is what would be
+drawn (#2375).**
+A few parents read their children while ignoring whether they themselves are hidden:
+- a `<choice>`'s text;
+- the child an `<li>` leads with (`childRendersSomething`);
+- a `<chart>`'s series.
+
+They read each child's `hiddenIgnoreParent`. The rule for them is:
+
+> A child counts exactly when it would be drawn if the parent were shown. Everything between the
+> child and the parent counts toward that, including a list whose entry it is, and the
+> composites the list came from.
+
+So an entry's `hiddenIgnoreParent` is its source's own `hide` OR the list's `hiddenIgnoreParent`,
+the same way a composite's replacements include the composite's. This does not touch D29 rule
+1: `$l[k].hide` stays the source's own attribute. `hiddenIgnoreParent` is not `hide`, and for
+every other component it already includes what stands between the component and its parent.
+
+Before the fix (**[probe]**, `<choice>`'s text, compared with what a `<p>` draws for the same
+content):
+
+| Choice | Text today | Drawn in a `<p>` | After the fix |
+|---|---|---|---|
+| `<textList hide>q</textList> r` | `q r` | nothing | ` r` |
+| `<group hide><text>q</text></group> r` | ` r` | nothing | ` r` (unchanged) |
+| `<group hide><textList>q</textList></group> r` | `q r` | nothing | ` r` |
+| `$c r`, `c` a `<collect hide>` | `q r` | nothing | ` r` |
+| `$tl r`, `tl` a `<textList hide>` | `q r` | shown | `q r` (unchanged) |
+| `$g r`, `g` a `<group hide>` | `q r` | shown | `q r` (unchanged) |
+| `<textList><text hide>q</text></textList> r` | ` r` | the entry is not drawn | ` r` (unchanged) |
+
+The two bare references stay as they are because today's D9 shows them. If D9 changes, they follow
+it automatically under this rule. The `<collect>` row needs the same treatment as its drawing:
+#2368's `listHiddenWithReferences` hides `$c`, so its entries must not count either.
+
+#2388 implements this, and asserts it directly in `listEntryHide.test.ts`: for 22 contents, a
+choice's text equals the text of a `<p>` holding the same content, and an `<li>` leads with a
+component only when the `<p>` draws it. It also covers lists with no per-entry `hide` (a
+`<sequence>`, the samplers, list operators such as `<cumulativeSum>`, and the list a repeat of
+one value becomes), whose entries now take the list's hiding. A list's own
+`hiddenIgnoreParent` follows `hideIsOwn`, as its `hidden` does, so `$tl` of a hidden list still
+counts (D9 today).
+
+**Decided and done: hidden content between an entry and its list (#2390, fixed by #2391).**
+Before #2391, content hidden on its own and nested inside another list was still drawn. Examples:
+`<textList><textList hide>q</textList> r</textList>` draws `q, r`, and so does a `<group hide>`,
+`<collect hide>` or `<sequence hide>` inside a list, or a `<group hide>` inside a `<sort>`. That
+broke rule 3.
+
+#2390 asks how such an entry behaves through a reference. Is the hidden inner list or group like
+the outer list's own `hide`, or like the entry's own?
+- **Decided: like the list's own `hide`.** The inner list or group is a container of the
+  entry's source, and a reference takes its source's own `hide`, not the hiding of the
+  container it sits in (CTX-8, rule 4).
+- So for the outer list `l`, `$l[1]` placed elsewhere is shown, `$l[1].hide` is the innermost
+  source's own (`false`), and `$l[1].hidden` is `true`.
+- It matches a plain component: `$n` of a `<number>` inside a `<group hide>` is shown.
+- It holds whatever D9 decides, because D9 concerns a referent's own `hide`, not its
+  container's.
+
+#2391 implements this: an entry's `hidden` also counts each child's `hiddenIgnoreParent`, and a
+`<sort>` or `<shuffle>` reads through a `<group>` child that sets nothing but `name` and `hide`, so
+that it becomes a list form. `listEntryHide.test.ts` checks every example above, plus `$l[1]` and
+`$l` placed elsewhere, `.hide`/`.hidden`, and the choice's text. A `copy=` or `extend=` of a list
+holding a hidden inner list leaves that entry out too (rule 6).
+
+**Fixed by #2474** (closing #2394). Was a known violation of rule 3, left by #2391. A `<sort>` or `<shuffle>` that stays a composite
+still draws an entry hidden only by a container. **[probe]** at `a90ac9b`, each in a `<p>`, draws
+`1, 2`:
+- mixed entry types: `<sort><group hide><number>1</number></group><math>2</math></sort>`;
+- another composite child:
+  `<sort><repeatForSequence length="1" hide><number>1</number></repeatForSequence><number>2</number></sort>`;
+- a group with another attribute:
+  `<sort><group hide styleNumber="2"><number>1</number></group><number>2</number></sort>`.
+
+The same `<group hide>` with only `hide` draws `2`. The `Sort` composite copies each source, so
+the container's `hide` is lost. #2391 notes that a fix needs per-replacement hiding in
+`BaseComponent`'s `hidden`. In the cells core, where a list form is the only form, the case does
+not arise.
+
+**Scope: `styleNumber` as well as `hide`.** Family A also drops a child's `styleNumber`
+(**[probe]**: `$ml[1].styleNumber` is 1 for a `<math styleNumber="2">` source). So does a
+`<pointList>` (#2265's follow-up). Display settings such as `displayDigits` do carry through.
+- **Recommendation:** rule 1 covers both. An entry carries its source's own `hide` and
+  `styleNumber`, the two presentation attributes D20 already lists for entries.
+- `hide` is done (#2368). `styleNumber` follows in #2374: the source's own `styleNumber` wins, and
+  the list's fills in.
+
+**Out of scope: writes through `$l[k].hide`.** `<booleanInput bindValueTo="$l[k].hide"/>` does
+nothing in any family, while `$n.hide` is writable (**[probe]**). VAL-9 notes it as a follow-up.
+
+**Tests changed in #2368:**
+- the four "…within …Lists, ignore child hide" tests, renamed "…a hidden child keeps its value but
+  is not shown";
+- `listcomponentpointlists.test.ts` "an authored point that is not draggable is drawn so, and one
+  that is hidden is not drawn", replacing the test that showed the hidden point through `$pl`;
+- `listcomponentcollections.test.ts`: `$ct.hide` is now the list's own, and the reveal cases;
+- `collect.test.ts` "collect does not ignore hide".
+
+## D30. Should identity that leaves the core be stable across a reload?
+
+**Today** a component's index is not stable (SAVE-5), but it still leaks into the identity
+handed to the outside, in three places:
+- **`componentIdx` on recorded events.** Most components' events name their object only as
+  `{ componentIdx, componentType }`, such as a point's drag event
+  (`W/components/Point.js:1440`).
+- **`rootName` on an answer's submission event** (`W/components/Answer.js:2829`).
+  - `rootName` is the component's shortest unique path from the document root, such as `ans` or
+    `sec.ans`.
+  - A component with no such path has `"_id_" + componentIdx` instead
+    (`W/core/ComponentBuilder.ts:712`). That includes an unnamed answer, and an answer inside
+    an unnamed copy.
+  - The event also carries `answerNumber`, which counts answers in document order.
+- **DOM ids.** The viewer builds them from the same `rootName`, so unnamed components get
+  `_id_<index>`.
+- **A section's or document's `"submitted"` event** names its object only as
+  `{ componentIdx, componentType }`, with no `rootName` (`submitAllAnswers` in
+  `W/utils/scoredSection.js`). Since #2496 these events carry attempt counts (`numSubmissions`,
+  `maxNumAttempts`, `numAttemptsLeft`), so a host has a reason to match them across a reload,
+  and can't. doenet.org is not affected: its `recordSubmittedEvent` skips events without a
+  `rootName`.
+
+**What doenet.org does with them** (DoenetApps, checked at `8954212`):
+- **Only submissions are recorded.** The assignment viewer records only `submitted` events, and
+  ignores the rest (`apps/app/src/paths/AssignmentViewer.tsx:459-471`).
+- **They are keyed by `rootName`.** Each submission is stored with `answerId = object.rootName`
+  (`:842`). Responses are counted grouped by `answerId` and the problem's position
+  (`apps/api/src/query/assign.ts:1304`), and the instructor's response drawer fetches by
+  `answerId`.
+- **Nothing else is used.** `answerNumber` is stored but never used, and nothing in DoenetApps
+  reads `componentIdx`.
+- **Edits are not a risk.** Once content is assigned, its source and DoenetML version cannot
+  change (`apps/api/src/query/activity.ts:450`). Only a reload with the reader's work can shift
+  an id.
+
+**The live problem is #2365.** An unnamed answer written directly in the document keeps its
+`_id_<n>` across a reload, because written components are numbered by their position in the
+source. One made by a copy, repeat or select at load is numbered in creation order, and can
+shift: `_id_27` became `_id_29` (**[probe]**, #2349's document with answers added). On
+doenet.org, that answer's submissions are then split between two ids.
+
+**Principle (Tier 2):**
+
+> Whatever the core hands to the outside to name a component is the same on every load of the
+> same document with the same saved state. It comes from the name path or the `stateId`, never
+> from the allocation index.
+
+**Recommendation.**
+- For a component without a root name, report a key that does not depend on allocation order,
+  most simply its `stateId`, which saved state already uses. Do this in `rootName` itself, so
+  that DoenetApps needs no change, at least for answers.
+- Account for existing data: ids already recorded as `_id_<n>` stay as they are, so the change
+  causes a one-time split for any answer whose id changes (see #2365). **Moot for saved state**
+  (SAVE-3, November 2026): state saved before 0.8 isn't carried over, so 0.8 can choose its ids
+  freely; a split at the 0.7 → 0.8 boundary happens anyway.
+- Keep `componentIdx` in event payloads for debugging, documented as unstable. No host reads it.
+- Keep root names that use child indices (`g:1`) in mind when deciding D27. Components reached
+  only through such an index would lose their root name and fall back.
+- The fix belongs in what events report, not in the core's creation order. #2349 closed that
+  route as not planned.
+
+## D31. An explicit way to set attributes on many components at once (deferred until authors ask)
+
+**Today** a list's, collect's or group's attributes act as a container's (CTX-5, D29): they fill
+in what a component does not set, and never override it. So there is no single attribute that
+takes a set of points and changes their `styleNumber`, `displayDigits` or `hide`.
+
+**What already works.** Write a reference for each one. Attributes written on a reference
+replace its source's (REF-3):
+
+```xml
+<collect name="c" componentType="point" from="$g"/>
+<graph>
+  <repeat for="$c" valueName="P">
+    <point extend="$P" styleNumber="2" hide="false"/>
+  </repeat>
+</graph>
+```
+
+**[probe]** Every collected point is style 2, including one whose source sets `styleNumber="3"`,
+and the point whose source is written with `hide` is shown. A repeat over a `<pointList>` does
+the same.
+
+**If authors ask for something shorter**, add one opt-in mechanism, defined as an abbreviation
+of the form above, rather than per-attribute exceptions. For example, a child element of any
+list or collection:
+
+```xml
+<collect componentType="point" from="$g">
+  <entryAttributes styleNumber="2" displayDigits="3"/>
+</collect>
+```
+
+The meaning would be: each entry behaves as `<T extend="$entry" styleNumber="2" displayDigits="3"/>`
+would.
+- **It inherits REF-3 and REF-3a.** It needs no new principle: writing either of an alternative
+  pair replaces both on the source.
+- **It inherits the reference rules for context attributes.** `fixed="false"` cannot unfix a
+  fixed source (D7), and `hide="false"` shows an entry whose source is hidden, as on an extend.
+- **It works on every list in the same way:** `collect`, `sort`, `shuffle`, the authored value
+  lists, `pointList`.
+- **It is checked against the entries' type.** An attribute the entry type does not have is an
+  error, as on an extend.
+- **It does not apply to `<group>`.** A group's children are written in place, so the author can
+  set them directly. An override from outside would contradict "a component's own attribute
+  wins".
+
+Rejected shapes:
+- **Per-attribute list attributes** (`entryStyleNumber`, `entryDisplayDigits`, …). They multiply
+  with every attribute.
+- **Letting a list's own attributes override,** as collect and sort did. That makes the same
+  attribute mean different things on different lists.
+- **Prefixed attribute names** such as `entry:styleNumber`. A colon is an XML namespace
+  separator.
+
+**Until then:** document the repeat-of-extends form as the way to restyle a set of components, on
+the `<collect>` and list reference pages.
+
+## D32. An extend cannot change what a tag makes
+
+**Decided. Done by #2409** (closing #2404). REF-7 states the rule as it now stands, with the
+error codes `doenet-e0056`–`e0061`. What #2409 adds or leaves:
+- `sortIndices` is in scope too, and `collect`, `sort` and `shuffle` are recognized in their list
+  forms;
+- extending a `<case>` or `<else>` inside another `<conditionalContent>`, which used to work, is
+  now an error. `copy` replaces it;
+- `doenet-w0178` is retired;
+- `w0168` and `w0169` stay for composites and lists outside the list, and for an attribute a
+  module does not declare. That leaves `displayDigits` on a `<module extend>` ignored, where the
+  Tier 1 rule says an appearance attribute takes effect;
+- #2219, `styleNumber` on an extend of `<intersection>`, was fixed by #2426.
+
+**Today** an `extend` of a tag that makes its own content shows the same content, and changes
+written on it are ignored, sometimes with a warning (w0168, w0169) and sometimes silently (B12).
+ADR 0009 bans `extend` of `<select>`, `<conditionalContent>` and `<case>` outright, with no stated
+reason for those three.
+
+**[probe]** on main at `64954c6`, for `repeat`, `repeatForSequence`, `select`,
+`selectFromSequence`, `shuffle`, `conditionalContent`, `collect`, `sort`, `sequence`,
+`intersection`, `substitute` and `pretzel`:
+- a bare `<T extend="$x"/>`, a named one, and one with `hide` all load and show the source's
+  content;
+- a named extend is reached through its name, as REF-8 says: `$e[2].y` through an extend of a
+  repeat, `$e.y` through an extend of a select;
+- a copy of a named extend loads and shows the same content.
+
+What fails is an extend that would change the content, which is why #2400 had to revert
+attempts to make it work. Examples:
+- `<repeat extend="$r" for="7 8 9">`;
+- `<select extend="$s" numToSelect="4">`;
+- a child added inside `<shuffle extend>`, which is never shown but can be reached by name
+  (#2366);
+- `replacement` on an extend of `<substitute>`, which fails to load (#2216).
+
+An earlier version of this entry proposed banning every `extend` of these tags. That broke
+REF-1's equivalence of `$x` and a bare extend, and removed extends that only change appearance.
+Neither was worth it: nobody has reported the failures above, while REF-1 is a shortcut authors
+use all the time.
+
+### Principle
+
+**Tier 1, what authors are told (decided):**
+
+> An `extend` is the same component again: it shares its source's content and state. It can
+> have its own name, and it can look different, but it cannot change what the component makes
+> or what its state can hold. Trying to is an error, and the error says why and what to write
+> instead.
+
+- `$x` is always the same as `<T extend="$x"/>` (REF-1), for every tag.
+- A name, and any attribute that only changes how the content looks (`hide`, `styleNumber`,
+  display settings such as `displayDigits`, `asList`, `disabled`, `fixed`), are allowed on any
+  extend, with no list to learn. Authors expect them to work, so they must. On a tag that makes
+  its own content they act as a container's attributes do on its content (CTX-5): they fill in
+  what the content does not set itself.
+- Authors are not given a list of banned forms. The error message carries the explanation, so it
+  is part of the rule.
+
+**Tier 2, what the implementation enforces:** the banned forms.
+- **Attributes that decide the content,** on a tag that makes its own content:
+  - repeating: `for`, `valueName`, `indexName` on `repeat`; `length`, `from`, `to`, `step` on
+    `repeatForSequence`;
+  - choosing at random: `numToSelect`, `withReplacement`, ranges, `exclude`, distribution
+    parameters, `numSamples`; the per-class lists from #2392 (`attributesDeterminingChoices`);
+  - choosing by condition: `condition` on `conditionalContent` and `case`;
+  - gathering: `componentType`, `from`, `maxNumber` on `collect`; sort keys on `sort`;
+  - generating: the sequence attributes on `sequence`;
+  - computing: `match`, `replacement` and `type` on `substitute`; the inputs of `intersection`;
+  - arranging: `mode` on `pretzel`;
+  - a module attribute on an extend of a `<module>` (it decides the module's content, as `for`
+    decides a repeat's).
+- **Children written inside the extend,** when the tag's children are its content or its inputs.
+  Only children the author actually wrote count. Before #2409, w0169 fired on every
+  `<conditionalContent extend>`, even a bare one, because the parser's sugar gave it a `<case>`
+  (#2404, comment). #2409 makes the sugar skip an element written with `extend`. The tags:
+  the template of a repeat, the options of a select, the children of `shuffle`, `sort`,
+  `conditionalContent`, `substitute` and `intersection`, the problems of a `pretzel`, and the
+  choices of a `choiceInput`;
+- **`shuffleOrder` on an extend of a `choiceInput`;**
+  Children added to an extend of a `<group>` or `<module>` stay allowed: those tags hold what is
+  written in them (REF-4, COMP-12, COMP-13).
+- **The parts of a choosing tag** (`case`, `else`, `option`) cannot be extended at all. A branch
+  means something only inside the tag that chooses it.
+
+Which tags make their own content: those whose content is produced rather than written, that is,
+the composites other than `group` and `module`, plus `pretzel`, whose arrangement is made by an
+internal composite.
+
+**Inputs whose children decide what can be selected.** An extend of an input shares its state,
+and for an input `$x` is its value (REF-1a), so an extend is the only way to show the same input
+twice. It stays allowed, bare, named or restyled. What it cannot do is change what the shared
+state can hold:
+- **choices added inside an extend of a `<choiceInput>`** are an error. **[probe]** on main at
+  `64954c6`: `<choiceInput extend="$ci"><choice>c</choice></choiceInput>` lists `a`, `b` and an
+  empty third choice. Selecting it sets the source's selected index to 3, a choice the source
+  does not have, with value `null`. The source has nothing it could show;
+- **`shuffleOrder` on an extend** is an error too. It would make a new random arrangement, and
+  an extend shares its source's. Today it is ignored with no warning.
+
+Other components whose children decide their state, such as an `<answer>` given more `<award>`s
+inside an extend, follow the same rule. They are not surveyed yet.
+
+**The error message is the rule's communication.** It must make an author think "of course".
+Each one names the tag, what it makes, why an extend cannot change it, and what to write
+instead. For example:
+
+> A `<repeat>` makes its content from `for`. An `extend` shows the same content as `$r`, so it
+> can't change `for`. To show `$r`'s content again, remove `for`. To make a new repeat with
+> different values, use `copy`.
+
+> Children written inside an `extend` of a `<select>` would be new options, but an extend shows
+> the same choice as `$s`. To choose from more options, use `copy`.
+
+Since D33, `copy` is the fresh form, so these messages already name the right form.
+
+### What it changes
+
+- **REF-1** stays as it is, with no exception.
+- **REF-7** becomes a consequence of this principle: an extend of such a tag shows the same
+  content, can be named and restyled, and cannot change the content.
+- **w0168 and w0169** on these tags become errors directly, and so does w0178 on a pretzel. No
+  deprecation step is needed: all three were added on `main` for 0.8 (#2213, #2341), and none is
+  on the `0.7` branch. On 0.7 these forms were ignored with no warning, or failed. A 0.7 document
+  meets the error only when it is moved to 0.8. Making the silent cases errors also fixes B12.
+- **Appearance attributes on these extends must take effect.** #2219 (`styleNumber` on an extend
+  of `<intersection>` is ignored) becomes a defect under this principle. Other tags were not
+  checked.
+- **#2216, #2215, the extend halves:** `replacement` on an extend of `<substitute>`, and `maxNumber`
+  on an extend of `<collect>`, become errors rather than bugs to fix.
+- **choiceInput:** choices added inside an extend, and `shuffleOrder` on one, become errors.
+  The extend itself stays.
+- **Pretzel:** `<pretzel extend="$p"/>` stays, sharing responses. Problems or a `mode` written on
+  it become an error, replacing warning w0178.
+- **Module attributes on an extend of a `<module>`** become an error that says to use `copy`.
+  The extend itself stays allowed.
+- **#2400** relies on this: it stops pairing references in a composite's template when an extend
+  adds children, because those become an error.
+- **ADR 0009's ban** on `extend` of `select`, `conditionalContent` and `case` is replaced by this
+  principle for `select` and `conditionalContent`. For `case`, the ban stands, as a part of a
+  choosing tag.
+
+The extends a tag makes internally are not covered. A `<repeat>` inside an extended `<group>` is
+shown again inside the extend (#2400). The principle is about what an author writes.
+
+**Tests that change:**
+- `T/diagnostics/warningsInfos.test.ts:1144-1406`: the w0168 and w0169 tests on these tags become
+  error tests, except those for appearance attributes;
+- the pretzel tests that check warning w0178 (`T/tagSpecific/pretzel.test.ts`);
+- `T/tagSpecific/module.test.ts:1441`, a module attribute on an extend;
+- extend tests that check that a content-changing attribute or child is ignored.
+
+Tests that check that an extend shows the same content keep passing. Unlike the earlier proposal,
+they need no rewriting to `$x`.
+
+**Tests to add:**
+- for each tag in scope: a bare, a named and an appearance-only extend show the content, with the
+  appearance applied; a copy of a named extend;
+- one error test for each banned attribute and for added children, checking the message;
+- a `<choiceInput>` extend with an added choice, and with `shuffleOrder`, giving the error.
+
+## D33. Two kinds of copy: written again here, or duplicated with its state (decided, Tier 1)
+
+**Decided.** `copy` is the fresh form: the source's DoenetML written again here, with no reader
+state and random choices of its own. `copyWithState` is the duplicating form: what `copy` did
+through 0.7, the DoenetML plus the reader's current state and the source's random choices. CPY-1,
+CPY-2 and CPY-8 state them. **Done by #2467** (closing #2459). Existing documents are migrated by the
+`v07-to-v08` converter (#2457). Open: the two smaller points at the end.
+
+**Today** a `copy` carries its source's reader state and random choices (CPY-2, CPY-8), and the
+attributes written on it override the source's (CPY-1, D4). The two conflict when what is written
+changes what is chosen: `<select copy="$x" numToSelect="4"/>` of a two-pick select cannot keep
+two picks and make four (#2389, B11). #2392 makes such a copy choose again when it writes an
+attribute that decides what is chosen with a different value. Two problems remain with any rule
+of that kind.
+
+**An author has to reason about values.** `<select copy="$s1" numToSelect="2"/>` would keep
+`s1`'s picks, while `numToSelect="3"` would choose again. When `s1`'s `numToSelect` is computed,
+the author cannot tell which one they wrote. Two variants were considered:
+- **(A) keep the choices unless an attribute that decides them is written.** Hard to state: the
+  author must know which attributes count. #2392 shows that it is hard to specify too. It needs a
+  list per class, comparison with defaults, attributes that set the same parameter
+  (`variance`/`standardDeviation`), and a rule that any reference counts as changed.
+- **(B) keep the choices only if nothing at all is written.** Easy to state, but it removes the
+  frozen copy (`<mathInput copy="$mi" disabled/>` keeps the reader's 5 today, **[probe]**). It
+  either resets everything nested in a `<section copy boxed>`, or misses the case below. Its
+  workaround, a plain copy then an extend that changes only appearance, is allowed under D32,
+  but it is a second step authors have to know about.
+
+**Changes reach nested content.** **[probe]** on main and on #2392's branch, variants 1–3:
+
+```xml
+<setup>
+  <module name="m">
+    <moduleAttributes><number name="k">2</number></moduleAttributes>
+    <p name="p"><selectFromSequence from="1" to="100" numToSelect="$k"/></p>
+  </module>
+</setup>
+<module name="m2" copy="$m" k="4"/>   <!-- shows nothing -->
+<module name="m3" copy="$m"/>         <!-- the same two numbers as m -->
+```
+
+Neither (A) nor (B), checking only the tag the copy is written on, sees this. Today the same
+happened when a reference inside a copy was looked up again where the copy landed. D1, done by
+#2397, removes that case.
+
+**Two intents behind `copy`.**
+1. **Duplicate it, as it is now.** A review section repeating a problem with the reader's
+   answers; a disabled copy of an input. The random choices must come along, because the reader's
+   work only makes sense against the numbers they saw. This is CPY-2 and CPY-8.
+2. **Write it again here.** A module defined in `<setup>` and used several times; a question
+   repeated with new numbers. The author expects what would happen if the DoenetML were pasted by
+   hand: no reader state, and random choices of its own. Two `<select>`s written by hand already
+   choose independently, so this needs no new rule for randomness.
+
+Authors who use a module from `<setup>` expect each use to have its own random values, even with
+the same attributes. Today every `<module copy>` repeats the source's draws.
+
+### Proposal
+
+Let the form decide, never the attributes. The fresh form is `copy`, and the duplicating form is
+`copyWithState` (see "Names").
+
+**The fresh form, `<T copy="$x" …/>`: written again here.**
+- It is the source's DoenetML pasted (CPY-1): attributes override, children are appended
+  (D4; a value's or object's content is replaced, D78.2), and names inside are private, reached through its name (NAME-3).
+- It carries no reader state and no random choices. It starts as written content does.
+- Its random components draw their own values, fixed for a given variant and kept through a
+  reload, as any written content's are. Two uses differ, and each is stable. Under D17 each is
+  seeded from its own position.
+- References keep meaning what they meant in the source, as for a copy (D1): a referent inside
+  the pasted part becomes its counterpart, and one outside is kept.
+- `<module copy="$m" k="4"/>`, with `m` in `<setup>`, is the documented module pattern. Each use
+  draws its own values.
+- A copy of a choosing tag chooses again: `<select copy="$x" numToSelect="4"/>` of a two-pick
+  select is a new select making four picks. A copy of a `<conditionalContent>` or `<repeat>` is a
+  new one, deciding its own case or iterations from what its pasted DoenetML refers to.
+- A copy of a property or list entry has no DoenetML, so it holds the value (CPY-5).
+
+**The duplicating form, `<T copyWithState="$x" …/>`: duplicated with its state** (what `copy` did
+through 0.7). It always keeps its source's
+reader state and random choices (CPY-2, CPY-8), whatever is written on it.
+- **Known before the document runs → error.** Writing on it an attribute that decides what a
+  choosing tag chooses (`numToSelect`, `withReplacement`, a range, `exclude`, a sampler's
+  `numSamples` or distribution) is an error, as is adding children that are options (an
+  `<option>` inside a copy of a `<select>`). The check goes by attribute name, so
+  `numToSelect="2"` and `numToSelect="3"` behave the same, computed or not. The error says to use
+  `copy`. This matches D32, which makes the same changes an error on an `extend`.
+- **Known only at run time → warning.** When what is written reaches nested content, as `k`
+  does above, the carried choices win and a
+  warning says to use `copy`. The mismatch may only appear after the reader interacts, so
+  it cannot be an error. `<module copyWithState="$m" k="2"/>` and `k="4"` then behave the same: the
+  source's choices. `k` itself still takes the written value. Only the nested choice, which
+  nothing written on the copy names, keeps the source's, so the result does not depend on the
+  value of `k`.
+- **A URI has no state → warning.** `<T copyWithState="doenet:…"/>` has nothing to carry beyond
+  what `copy` gives. It behaves as `copy`, with a warning that says to write `copy`.
+- **Everything else is allowed** and keeps the rest of the state: appearance attributes (`hide`,
+  `displayDigits`, `styleNumber`), `disabled`, `fixed`, and children added to a group or
+  section (a random child added there draws its own value, as #2344 settled).
+- **An attribute written on a copy or an extend takes precedence over carried state** (REF-3,
+  CPY-1). That is why a choice attribute is an error rather than a silent keep: the copy cannot
+  both honor the written attribute and keep the source's choices. **[probe]** on main, after the
+  reader drags `P` to (7,8):
+  - `<point copy="$P" x="3"/>` is at (3,8), and so is `<point extend="$P" x="3"/>`;
+  - `<point copy="$P" xs="3 4"/>` is at (3,4);
+  - `<mathInput copy="$mi" bindValueTo="7"/>` shows 7, though the reader typed 5 into `mi`;
+  - `prefill` is not an exception: it applies only until the reader interacts, so
+    `<mathInput copy="$mi" prefill="9"/>` showing the reader's 5 follows from what `prefill`
+    means;
+  - the same precedence should cover a reader's change to an attribute itself:
+    `<p copy="$x" hide="false"/>` of something the reader hid is shown (D2).
+- `<point copy="$P">(3,4)</point>` stays at (7,8) (**[probe]**), but not because of carried state:
+  the coordinates child is ignored on any copy or extend, at load too (B13, #2395).
+- Content attributes of tags that do not choose at random stay allowed: `for` on a copy of a
+  repeat, `condition` on a copy of a conditionalContent (D4, B5). Carried reader state attaches by
+  iteration and by case (D12, COMP-10).
+
+**Both forms are needed for every tag**, including the choosing ones. A `<select>` has reader
+state when its options hold inputs, so duplicating it with that state differs from writing it
+again.
+
+**For the author, one sentence each:**
+- `extend`: the same component, with your changes;
+- `copyWithState`: a duplicate, with the reader's work and the random choices;
+- `copy`: written again here.
+
+### Names (decided)
+
+**Direction 2:** `copy` has the fresh meaning, and the duplicating form is `copyWithState`.
+- The fresh form is stated simply: "`copy` is the DoenetML pasted". The duplicating form is stated
+  as an addition: "and also the reader's work and the random choices".
+- The module pattern uses plain `copy`, as authors write today.
+- `snapshot` was rejected: it suggests the result is frozen, but inputs in it still change and
+  references inside it stay live (CPY-3).
+
+### Migration (decided)
+
+DoenetML 0.8 ships a `v07-to-v08` converter, modeled on `packages/v06-to-v07`. It renames `copy`
+to `copyWithState`, so a 0.7 document keeps its meaning, with three exceptions that stay `copy`:
+- **a copy of a URI** (`copy="doenet:…"`): a document loaded from a URI has no reader state, so
+  there is nothing for `copyWithState` to carry;
+- **a copy of a module:** written as a `<module>` (or a type inheriting from it), or whose
+  referent is one. Authors use `<module copy>` to reuse a module and expect each use to have its
+  own random values, which 0.8's `copy` gives;
+- **a copy that writes an attribute deciding what a choosing tag chooses**, or adds options. In
+  0.7 it either failed to load (#2389) or chose again. Under `copyWithState` it would be an error.
+
+The converter notes each rename, so an author can switch a copy meant to be fresh back to `copy`.
+doenet.org does not let the source or DoenetML version of assigned content change, so assigned
+work is not affected. The spec is item 1 of #2457, which tracks every 0.8 migration.
+
+### What it changes
+
+- **CPY-8** applies to `copyWithState`, and becomes absolute there: it keeps its source's choices,
+  with no exception for copies that change what is chosen. B11 is resolved: under `copy` the select
+  chooses again, and under `copyWithState` the attribute is an error.
+- **#2392.** Its diagnostics, which stop a mismatch from failing the document, are needed in any
+  case. Its resampling becomes the error (by attribute name) or the warning (at run time). Its
+  per-class lists of attributes that decide choices (`attributesDeterminingChoices`) become what
+  the error checks.
+- **COMP-13.** The module pattern is `copy` with attributes. `copyWithState` of a module with
+  attributes stays allowed, as a duplicate.
+- **Documents that promise a new choice from a copy:**
+  - `reference/pretzel.mdx` says a copy with added problems, or a `mode` that does not allow the
+    source's order, makes a new order. That is still true of `copy`, which now always makes a new
+    order.
+  - **[probe]** `<choiceInput copy="$ci" shuffleOrder>` with an added `<choice>` shuffles again
+    today, which is what `copy` does now. Under `copyWithState` an added choice is an option, so
+    it is the error above when the order is shuffled. Whether that applies when `shuffleOrder` is not known until run time is a detail
+    to settle.
+- **D32.** Its error message already names `copy` as the way to make a new repeat or select, which
+  is now exactly the fresh form.
+- **D17** is the mechanism for the fresh form's randomness.
+- **D18** no longer has to say which carried state "still fits" a changed copy.
+- **D2** gains the rule that what is written on a copy takes precedence over carried state,
+  including the reader's change to that same attribute.
+- **D28.** `copy` gives option (d)'s "start here, then change on your own" a natural
+  place, though `copy="$x0.value"` is still needed for a single value.
+
+### Open points
+
+- ~~Whether `copyWithState` of a `choiceInput` with added choices is an error only when its order
+  is shuffled.~~ Decided in #2467: only when the source shuffles.
+- Whether several fresh uses of one module should ever share draws. If so, the author would ask
+  for it explicitly, for example with a seed attribute.
+
+**Tests that change:**
+- every test that relies on `copy` carrying reader state or random choices moves to
+  `copyWithState`: `unlinked copy.test.ts` (the snapshot tests, `:2112-2312`),
+  `unlinked_copy_reload.test.ts`, `group_copy_variants.test.ts`, `select.test.ts:432`,
+  `selectfromsequence.test.ts:567`, `shuffle.test.ts:47`, `conditionalcontent_case_state.test.ts`,
+  and the copy cases of `type_change_run_time.test.ts` and `valueDrivenDiagnostics.test.ts`;
+- tests of `copy` that pin only pasting (CPY-1, CPY-3 to CPY-7) stay on `copy`;
+- #2392's `copy_changes_choices.test.ts`, if merged: its cases split into `copy` (chooses again)
+  and `copyWithState` (error or warning).
+
+New tests:
+- each choosing tag under `copy`: it draws its own values, distinct between two uses and stable
+  through a reload;
+- `copy` of an input the reader changed starts at its prefill; `copyWithState` starts where the
+  reader left it;
+- the `copyWithState` error for each attribute that decides a choice, with literal and computed
+  values, and the run-time warning for the module case above.
+
+## D34. A text's notation when it is read as math: `isLatex` and `format` (decided, D65; Tier 2)
+
+**Today** (#2408 and its comment; **[probe]** on main at `a53fbb9`). `tl` is
+`<text isLatex>\frac{x+1}{2}</text>`, `tt` is `<text>x+1</text>`, and `mm` is `<math>y/3</math>`.
+
+| Written | Shows |
+|---|---|
+| `<math format="text">$tl</math>` | `(x + 1)/2`: the text's `isLatex` wins |
+| `<math format="latex">$t</math>`, `t` = `<text>\frac{x}{2}</text>` | `＿`: parsed as plain text (#2408) |
+| `<math format="latex">1 + $t</math>` | `1 + ＿` |
+| `<math>2$tt</math>` | `2 (x + 1)`: the text is parsed on its own, as one operand |
+| `<math>$mm.latex</math>` | `y/3`: a `.latex` property is read as LaTeX with no `isLatex` |
+| a write of `\sqrt{y}` through `<math>$tl</math>` | `tl` holds `\sqrt{y}`: written back in its own notation |
+
+A `<text>` child of a `<math>` goes through the text's math adapter, `textToMath({ value, isLatex })`
+(`W/utils/valueFunctions/text.js`), before the `<math>` sees it, so the `<math>`'s `format` is
+never consulted. `<math format="latex">$tt</math>` with `tt` = `x+1` shows `x + 1` only because
+`x+1` parses the same way in both notations.
+
+**Proposed rule (Tier 2): a text whose notation is known keeps it. A text whose notation is not
+known is read in the notation of the place that reads it.**
+- **Known notation:**
+  - `isLatex` written on the `<text>`, true or false;
+  - a value that is LaTeX by where it comes from, such as a `.latex` property. Main already reads
+    `$mm.latex` this way.
+
+  The reader's `format` does not override it.
+- **Unknown notation:** `isLatex` not written. The string is just characters, read as if
+  written at that place (VAL-3). Inside `<math format="latex">`, that is LaTeX.
+- **Defaults don't count.** "Written" means the author wrote the attribute, as for the reader's
+  own display settings in VAL-4. `format` defaults to `"text"` and `isLatex` to `false`. If
+  defaults counted, neither could ever give way.
+
+**Why the source's notation wins, unlike display settings in VAL-4.** In VAL-4 a reader's own
+setting overrides the referent's, but display settings only change how a value looks. Notation
+decides the value itself. A write through the reference lands on the text (VAL-11) and must be
+stored in the notation it is read in.
+- If `format="text"` overrode `isLatex`, a write would store LaTeX in `tl` that the reader then
+  parses as plain text, and the round trip would show `＿`.
+- When the known notation wins, reading and writing always use the same notation.
+
+**What follows:**
+- **One text reference is one operand,** as today. In `<math format="latex">1 + $tt</math>`, the
+  `1 + ` and `$tt` are each read as LaTeX, separately.
+- **Every place that reads a text as math** follows the rule: `<number>`, `<point>`, math-typed
+  attributes, `bindValueTo`. Only `<math>` has `format`, so it is the only place whose behavior
+  changes. Elsewhere an unknown-notation text is read as plain text, as today.
+- **A write through `<math format="latex">` into an unknown-notation text stores LaTeX
+  characters.** The text does not declare `isLatex`, consistent with "just characters". But
+  the stored string is now LaTeX:
+  - another reader of the same text with plain-text notation then shows `＿`;
+  - the text itself, drawn in a `<p>`, shows the LaTeX source.
+
+  This only happens when one text is read in two notations and written through one of them,
+  which is rare. An author who reads a text as LaTeX in several places should declare
+  `isLatex`.
+- **Text operators.** The motivating case in #2408 is a `<substitute type="text">` of
+  `$fp.latex`, which has no `isLatex`. Under the rule, `<math format="latex">` reads it as LaTeX,
+  which fixes it. Whether a text operator should keep its input's known notation is left open.
+  Without that, `<math>` with the default format still reads such a substitute as plain text.
+
+**Tests to add:**
+- `format="latex"` with an unknown-notation text parses it as LaTeX, using a string that parses
+  differently in the two notations (`\frac{x}{2}`);
+- `isLatex` written as true, and as false, wins over either `format`;
+- a `.latex` property is read as LaTeX under either `format`;
+- a write round-trips in each case;
+- `1 + $t` under `format="latex"` reads both parts as LaTeX.
+
+No test pins the #2408 case today.
+
+A candidate addition to VAL-3: "a reference to a text, read as math, is parsed in its known
+notation, or else in the reader's".
+
+## D35. What error, warning and info mean (decided, Tier 2)
+
+**Decided.** The principles are DIAG-1 and DIAG-2 in [diagnostics.md](diagnostics.md). The audit of
+every warning call site is #2422.
+
+**Today** no principle says which level a diagnostic should have. The code's letter (`e`, `w`, `i`)
+records what it was first raised as, and each call site picks the level it reports
+(`packages/i18n/README.md`). Many warnings fire for valid DoenetML whose values, at that moment,
+give nothing to show. **[probe]** on main, built from `7c2bb1f`:
+
+| Document | Diagnostic |
+|---|---|
+| `$l[$i]` while `<mathInput name="i">` is blank or 0 | warning `doenet-w0104` |
+| `<circle through="($a,1) (2,3) (4,1)"/>` while `a` is blank | warning `doenet-w0027` |
+| `<function through="($a,1) (2,3)"/>` while `a` is blank | warning `doenet-w0040` |
+| `<sampleRandomNumbers type="gaussian" standardDeviation="$s"/>` while `s` is blank | warning `doenet-w0126` |
+| `<collect from="$cc.S"/>` while the case holding `S` is not active | warning `doenet-w0072` |
+| `$r[2].q` after a reload with one iteration (#1499) | warning `doenet-w0104`, not shown before the reload |
+
+Each of these is a document waiting for the reader. None needs to be fixed.
+
+**Principle.** A diagnostic's level says what the author should do about it:
+- **error:** the DoenetML is invalid or cannot be honored as written. Something is not rendered,
+  or is replaced by the error. The author must change it. Examples: D32's extend errors, an
+  unrelated type change (D26), a cycle (NAME-7).
+- **warning:** the DoenetML is valid but almost certainly not what was meant, or does nothing.
+  The author should change it. Examples: an attribute that is ignored, a deprecated form, an
+  ambiguous name (`doenet-w0105`), a literal `$l[0]`, and D33's warning that a `copyWithState`'s nested
+  choices kept the source's.
+- **info:** the DoenetML is valid, and with the values it has now, part of it shows nothing or
+  something degenerate. The diagnostic only explains why, so that the author is not confused.
+  Nothing needs to change. Examples: an index that names nothing at the moment, a construction
+  from a blank input, a collect from content not shown, a type change that does not match the
+  active case (D26).
+
+**The same code can have different levels.** The level depends on where the condition comes
+from, not on the code:
+- **from what the author wrote** (literals, the structure of the document), the condition is a
+  mistake: a warning, or an error. `$l[0]` is a warning.
+- **from values that can change** (inputs, references, which case or option is active, a random
+  choice), it is an info. `$l[$i]` with `i` = 0 is an info.
+
+Run-time detection alone does not make a diagnostic an info. D33's nested choice stays a warning,
+although it is found only at run time, because the author should write `copy` instead.
+
+**What follows:**
+- **#1499** becomes simpler. An index past the end that can change is an info, reported the same
+  way before and after a reload (SAVE-1). Whether the length can change no longer decides
+  between a warning and silence.
+- **Infos should not crowd the editor.** An info belongs where the author looks for it, such as
+  next to the component that shows nothing, not as a count in the warning tally. That is a
+  question for the editor's display, not for the core.
+- **An audit:** go through the warning codes and mark each call site as authored or value-driven.
+  The geometry, sampling, function and chart warnings (`w0027`–`w0037`, `w0040`–`w0042`,
+  `w0126`–`w0136`, `w0144`–`w0159` and others) are the likely value-driven ones.
+
+**Tests that change:** tests that assert these warnings for value-driven conditions. They expect
+an info instead. The codes stay the same.
+
+
+## D36. A tag you write makes that tag (decided, Tier 1; revises D26)
+
+**Revised by D37.** The guarantee and the load-time type check stay. A missing referent on a
+tag is a warning, as for the bare reference, not an error; a tag with nothing to show is
+missing, shown as a blank, not `<T/>`; and a `<conditionalContent>` with no `<else>` gives a
+missing tag with an info, not an error.
+
+**Decided.** REF-0 states the guarantee, and REF-1 and REF-5 are restated to match. It replaces
+D26's run-time rule, which #2436 implemented: content made at run time is no longer checked against
+the tag as it changes. **Done by #2447** (closing #2445 and #2433).
+
+**How #2447 differs from the plan below:**
+- `typeChangeContent` still watches the composite, though it decides nothing, so the cost #2436
+  added remains (REF-5).
+- One component beside a child holding nothing (`<group><group/><math/></group>`) is not
+  decided at load.
+- Mutual extends (c1's case extends c2, whose case extends c1) give one `doenet-e0005` per cycle,
+  in place of the inner extend. Showing `<T/>` there recursed without end.
+- #2437 stays open (B22). New defects: B38, B39.
+- A literal index past what a selector picks is `w0181` at error level for a scalar tag. An index
+  that names nothing at run time is the new info `doenet-i0054`.
+
+**Today** (#2436), `<math extend="$cc"/>` is a math while the active case holds one, and nothing
+while no case is active or the case holds something else. **[probe]** on main, built from
+`4e609c6`:
+
+| Document | Shows | Diagnostic |
+|---|---|---|
+| `<math extend="$nothing"/>` | a blank math `＿` | warning `doenet-w0104` |
+| `<math extend="$r[1]"/>` of a repeat with no iterations | a blank math `＿` | none |
+| `<math extend="$cc"/>` while no case is active | nothing | info `doenet-e0064` |
+| `<math extend="$cc"/>` while the case holds a section | nothing | info `doenet-e0065` |
+| `<point extend="$cc"/>` while no case is active | nothing | info `doenet-e0064` |
+| `<point extend="$m"/>` while `m` is not a tuple | nothing | info `doenet-i0053` |
+
+An author who writes `<math>` needs to know it is a math. Anything that reads it relies on that:
+`$x + 1`, `$x.value`, an answer that checks `$x`. A bare reference is different. `$cc` takes the
+shape of what it finds, and may be nothing.
+
+### The principle
+
+**A tag you write makes that tag.** In a document without errors, `<T extend="$x" …>…</T>`
+always makes exactly one T. The same holds for `copy` and `copyWithState`. Errors are
+excluded: an error shows in place of the component, and the author must change the document
+(DIAG-1).
+
+**What the DoenetML could guarantee, it must.** Whether the tag can be made from x is decided at
+load, from the DoenetML alone. If the DoenetML does not guarantee it, the tag is an error. Nothing
+about what x holds is decided again as values change.
+
+### For a scalar tag
+
+`<T extend="$x"/>` of a composite (a `<conditionalContent>`, `<select>`, `<group>`, iteration and
+so on) is allowed only if x **always holds exactly one component, of one type S**, and S may become a
+T (REF-5's table). To decide this from the DoenetML:
+- **a `<conditionalContent>`** needs an `<else>`, and each case and the else must hold one
+  component of type S. "A case is always chosen" could be proven only when a condition is
+  literally `true`, so the rule is in practice an `<else>`.
+- **a `<select>` and the other selectors** (`selectFromSequence`, `selectRandomNumbers`,
+  `selectPrimeNumbers`, the `sample…` tags) need `numToSelect` written as the literal `1`, or
+  left out. A reference is an error, even though a select freezes its count at creation and the
+  value may be 1: knowing it would mean evaluating the document during the check. The message
+  suggests `$s[1]`.
+- **a `<group>`, `<sort>` or `<shuffle>`** needs one component.
+- **a `<repeat>`, `<collect>`, `<sequence>` or `<intersection>`**, whose count depends on values, is
+  an error as a scalar. The message suggests `$x[1]`. `<point extend="$i"/>` of an intersection
+  becomes `<point extend="$i[1]"/>`.
+- **what each part holds** is its tag. A bare reference `$y` holds y's tag (from the resolver).
+  A nested composite is looked through. A bare string is a text. A property, `$P.x`, holds its
+  declared type, once properties declare one (D20); until then it is an error.
+- **an attribute that decides the type**, such as `type="$t"` on a `<sequence>`, is an error.
+
+Different types that could each become a T are also an error: a math in one case and a number in
+the else, as a `<math>`. The author wraps it instead, `<math>$cc</math>`. A wrapper is a new
+component whose children are the reference, so it doesn't inherit the source's attributes.
+
+**A missing referent is an error.** `<math extend="$nothing"/>` is an error, not a blank math. The
+same goes for, when written on a tag:
+- an ambiguous name (`doenet-w0105`);
+- a literal index that names nothing (`<math extend="$s[2]"/>` of a one-pick select);
+- a property that doesn't exist (#2434 item 1).
+
+A bare `$nothing` stays a warning, since a bare reference may show nothing.
+
+### What can still change at run time
+
+Two cases depend on values, so they can't be decided at load. Neither changes what the component
+is.
+- **An index that names nothing because of its value.** `<math extend="$r[$i]"/>`, or `$r[1]` of
+  `<repeat for="1..$n">`, while there is no such iteration. An index is how an author says "this
+  may not exist". While it names nothing, the result is `<T/>` with the extend's own attributes
+  and children, with an info (DIAG-2). When it names a component again, the T takes it again.
+- **A conversion of a value.** `<point extend="$mi"/>` while mi's value is not a tuple, and
+  `<boolean extend="$t"/>` while t is not `true` or `false`. The component exists. Its value is
+  `<T/>`'s while the conversion fails, with info `doenet-i0053`.
+
+"`<T/>`'s value" is the current default: `＿` for a math, an empty text, `NaN` for a number,
+`false` for a boolean, and a point at (0, 0). These may change later (D10); `<angle/>` is the odd
+one. This decision does not change them.
+
+An input reached through such an index is a plain input while the index names nothing. The reader
+can type in it, and the link wins when the iteration returns.
+
+### For a list tag
+
+A list (`<mathList>`, `<numberList>`, `<textList>`, `<booleanList>`) takes **any number of
+components, including none**, all of one type S that converts to its entry type. So:
+- `<mathList extend="$c"/>` of a `<collect componentType="math">` is fine at any count.
+- a `<conditionalContent>` with no `<else>` is fine: holding nothing is an empty list, with no
+  info.
+- `numToSelect="$n"`, a repeat, or a sequence of variable length is fine.
+- mixed types are an error: `<mathList extend="$g"/>` of a group holding a math and a number. The
+  wrapper is `<mathList>$g</mathList>`.
+
+A list from the matching scalar or list (#2231) is unchanged.
+
+### What follows
+
+- **REF-1** holds only when there is a referent: `<math extend="$m"/>` is the same as `$m` while
+  `m` is a math.
+- **#2436's run-time path is removed.** The check of the whole composite is #2427's load-time
+  check, extended to every case and option. "Holds nothing now" is no longer possible for a
+  scalar. An index that names nothing gives `<T/>`, which is the blank-T fallback that existed
+  before #2436.
+- **#2437** becomes part of the load-time check. A case holding `$m` holds m's tag, decided from
+  the DoenetML, not by following a `_copy` as it changes.
+- **#2440**'s expected results change from "an info and nothing shown" to "an info and `<T/>`'s
+  value".
+- **#2443 and #2444 built on #2436's run-time path.** #2443 saves a copy's type-change decision
+  and case (`heldTypeChange`, `caseIndex`), and #2444 reports the mismatch infos as the copy's
+  `"typeChange"` condition. Under D36, only value conversions and indices are still decided as
+  values change, so most of the held decision and the condition reduce to those two.
+- **The infos for composite content** (`e0064` and `e0065` at info level) go away. Those
+  conditions become load-time errors. `i0053` stays, for a value conversion and for an index that
+  names nothing.
+- **DIAG-1's info examples** lose "a type change that does not match the active case".
+
+### Tests that change
+
+- Most of `T/copying/type_change_run_time.test.ts` becomes load-time errors: mixed-type cases,
+  collects whose count changes, picks of several components. The value-conversion tests and the
+  index tests stay, expecting `<T/>`'s value instead of nothing.
+- `T/copying/type_change.test.ts`: `<point extend="$i"/>` of an intersection, scalar extends of a
+  collect, and composites that may hold nothing become errors.
+- Tests of `<math extend="$nothing"/>` expect an error instead of `w0104`.
+
+No test outside the two type-change suites relies on what is removed. Every `<conditionalContent>`
+extended as a scalar tag in the other tests has an `<else>` holding one type
+(`conditionalcontent.test.ts:426`, `:1237`; `extend_references.test.ts:1274`). Every select
+extended as a scalar picks one.
+
+## D37. A missing value is a blank, and a bare reference is its extend again (decided, Tier 1; revises D10, D36, REF-0, REF-1)
+
+**Decided**, and with it D10. REF-0, REF-1, REF-5, VAL-5, COMP-11, DIAG-1 and DIAG-5 state it. **Done by #2458** (closing
+#2456), except a bare reference's index info, postponed to the new core (#2281) because
+deciding it again after every update cost too much. #2458 also made a bare reference of mixed types
+an error at load (COMP-11). Follow-ups: #2460, #2461, #2463.
+A reference to a component in error is missing too, and shows a blank (decided after D37, for
+#2449). It reverses parts of #2447
+and #2451 (below), and changes what 0.7 documents show for missing values. The implementation issue was #2456.
+
+**Today** (**[probe]** on main at `55db31b`) a missing value shows differently by where it is:
+
+| Written | Shows |
+|---|---|
+| `You answered $ans.submittedResponse.` before a submission | `You answered .` |
+| `You answered <math extend="$ans.submittedResponse"/>.` | `You answered ＿.` |
+| `<math>$nothing + 1</math>`, and `<math>$l[5] + 1</math>` past the end | `＿ + 1` |
+| `<sum>$l[5] 3</sum>` | `3`: the missing operand is left out |
+| `<number>$l[5] + 3</number>` | `NaN` |
+| `<text>a $nothing b</text>`, and `a $l[5] b` in a `<p>` | `a  b` |
+| `<point extend="$nothing"/>` in a graph | the error in its place (#2447) |
+| `[$cc] [$cc.x]` while no case is active | `[] []` |
+
+And since #2447, `$x` and `<X extend="$x"/>` differ for a missing referent: the bare one shows
+nothing with a warning, the tag is an error (REF-1, REF-0).
+
+### The idea
+
+An author is less surprised by a reference that always shows something than by one that shows
+nothing and appears later. Being missing becomes a state any component can be in, shown as a
+blank. Then REF-0 still holds, more strongly: `<math extend="$nothing"/>` is a math, which is
+missing. It is not `<T/>`, so the defaults D36 left in place (`NaN`, `false`, a point at (0, 0),
+`<angle/>`) no longer appear through references.
+
+### Proposed rules
+
+1. **A reference to one thing gives that thing, or a missing value.** One thing is a name, an
+   index, a property, an iteration or a pick. A missing value never equals anything, a blank
+   input or another missing value included (VAL-5's Tier 1 rule stays).
+2. **A reference to a collection gives its members, possibly none.** A list, a repeat, a collect,
+   a group, and `$cc` itself while no case is active show nothing when empty (**revised by D73**:
+   an empty group or shown case shows nothing too, and a tag made from any of these is missing). This is the only
+   way a reference shows nothing.
+3. **Missing shows as `＿` inline, and is not drawn in a graph.** This settles D10. A missing
+   point is not drawn and can't be dragged.
+4. **A tag whose source is missing is itself missing, whatever it adds.** `<T extend="$x"/>` is
+   a T, and while x is missing the T is missing too. Its own children and attributes don't make
+   it something else:
+
+   | Written | Shows while the source is missing |
+   |---|---|
+   | `<math extend="$nothing"/>`, `<math extend="$nothing">+1</math>` | `＿` |
+   | `<text extend="$nothing">hi</text>` | `＿` |
+   | `<p extend="$nothing">hi</p>`, `<section extend="$nothing">…</section>` | `＿` |
+   | `<group extend="$nothing">hi</group>` | `＿` |
+   | `<mathInput extend="$nothing"/>` | `＿`, with no input box |
+   | `<point extend="$nothing"/>` in a graph | not drawn |
+   | `<p extend="$r[$i]">note</p>` while the index names nothing | `＿`; the p and its `note` return when the index names an iteration |
+
+   An extend is the same component again, plus what is added (REF-7). With no component there is
+   nothing to add to, and the warning says why. So:
+   - a missing tag is not `<T/>`. `<text/>` is still `""`, `<number/>` `NaN`, `<boolean/>`
+     `false`, `<point/>` (0, 0);
+   - a name on a missing tag reads it as missing: `$m.value` of `<math name="m"
+     extend="$nothing"/>` is missing;
+   - `hide` still hides it, a blank included (question 4);
+   - a missing input shows no box, so the reader can't type into something the link will later
+     replace. This removes D36's question about inputs reached through an index.
+
+   **Accepted asymmetry:** `<math extend="$m">+1</math>` is `＿` while `m` is missing, because
+   the extended math is missing. `<math>$m + 1</math>` is `＿ + 1`, because it is a new math
+   that reads a blank operand. **Revised (REF-7, #2668):** children written inside an extend of a
+   value or an object are an error, not added; the message suggests `<math>$m+1</math>`. The
+   `<math>` and `<text>` rows of the table above and this asymmetry no longer apply.
+5. **`$x` is `<X extend="$x"/>` again**, where X is the type `$x` presents as: x's tag, or an
+   input's value type (REF-1a). With no referent, both are a blank.
+6. **A missing referent, an ambiguous name, a missing property, or a name failing D22's
+   every-branch rule is a warning in both forms.** (**Revised by D74 and D75:** each is an error
+   at load when the DoenetML proves it can never name anything.) It shows a blank. Errors stay for what can't
+   be honored as written: unrelated types and containers (REF-5), mixed types (`e0066`,
+   `w0184` on a composite tag), D32's extends, and cycles.
+
+### What it reverses
+
+**From #2447 (D36):**
+- `w0104` (no referent, missing property) and `w0105` (ambiguous) on a tag go back to warning
+  level, and the `_error` in the tag's place goes away. B38's example (#2449) goes with it; the
+  issue still covers other errors shown in a component's place.
+- A literal index past what a selector picks, `<math extend="$s[2]"/>`, `w0181` at error level,
+  goes back to a warning. It is authored, but the tag can be made: a math with a missing value.
+- `i0053` (a value that doesn't convert) and `i0054` (an index that names nothing) keep their
+  level, but the tag's value is missing rather than `<T/>`'s.
+
+**From #2451 (D22):**
+- `w0183` on a tag (`<math extend="$cc.x"/>` with a branch lacking `x`) goes back to a warning,
+  with a blank math.
+- `w0181` at error level for `<math extend="$s[2].x"/>` and `<math extend="$h[2].x"/>` goes
+  back to a warning.
+- `w0104` at error level for a missing property on a tag (`<math extend="$r[1].nonexistent"/>`)
+  goes back to a warning.
+- A bare reference that names nothing (`w0183`, `w0184`, `w0104`) shows a blank, not nothing.
+- **Stays:** `w0184` at error level on a composite tag (`<group extend="$x"/>` of mixed types),
+  since that tag would change type with the case; `e0066` for mixed types on a scalar or list
+  tag; #2454's rule that an error decided at load stays.
+- **Depends on question 3:** `e0064` (`noElse`) for `<math extend="$cc.x"/>` with no `<else>`.
+
+**In the principles:**
+- REF-0's "a missing referent on a tag is an error" and "`<T/>`'s value";
+- REF-1's one-directional note;
+- VAL-5's display table, and its Tier 2 rule that operators leave a missing operand out
+  (question 2);
+- DIAG-1's info examples, from "shows nothing" to "shows a blank".
+
+### What it fixes
+
+- The `<T/>` defaults stop leaking through references (D36's open question 1).
+- D36 required an `<else>` for `<math extend="$cc"/>`, while D22 allows a name in a
+  `<conditionalContent>` with no `<else>`. With a missing value, a math that is sometimes missing
+  is still a math, so presence no longer needs to be guaranteed for type safety (question 3).
+- The bare and extend forms report the same diagnostics, at the same level.
+
+### Questions
+
+1. **A missing component that isn't a value** (decided, rule 4). `$sec.p` for a `<p>` that
+   doesn't exist, an iteration past the end of a repeat of paragraphs, and `<p
+   extend="$nothing">hi</p>` are all blanks.
+2. **Operators** (decided). A missing operand is a blank, as `<math>` already does, so
+   `<sum>$l[5] 3</sum>` is missing rather than `3`. A missing number shows `＿`, and `NaN` stays
+   for a computation that has no value. This reverses VAL-5's Tier 2 rule that operators leave a
+   missing operand out.
+3. **D36's presence rules** (decided). "No `<else>`", "no case active", "a case holding
+   nothing" and "a name in no case" give a missing T and an info. Mixed and unrelated types, and a
+   composite that can hold several components, stay load-time errors. That keeps the type safety,
+   and drops the requirement to write an `<else>`.
+4. **Hidden referents** (decided). "Always shows something" means missing shows as blank, not
+   that hidden content shows. `hide` still hides a reference, a blank included: a hidden referent
+   stays hidden as VAL-10 says, and `<math extend="$nothing" hide/>` shows nothing. D9 (whether
+   a reference to a hidden component is hidden) is unchanged.
+
+### Cost and compatibility
+
+- The missing state has to survive conversions, properties and saved state. This is the work
+  D10 needed anyway, but most of it is in shared code (below).
+- 0.7 documents that look different: `$ans.submittedResponse` in feedback shows `＿` before a
+  submission; `$l[$i]` and `$s[$k]` out of range show `＿`; typos show `＿`, which helps.
+- Tests that pin today's display: VAL-5's (`drawn_value_references.test.ts:234`,
+  `extend_references.test.ts:4790-4830`, `:7507-7616`, `expressionAttributes.test.ts:400`); the
+  tests #2447 and #2451 changed to expect errors on a tag (`indexNamesNothing.test.ts`,
+  `type_change_run_time.test.ts`, `branch_names.test.ts`, `extend_references.test.ts`,
+  `external_references.test.ts`, `answer.test.ts`, the two `*WordsLocale` tests).
+
+### Implementation note
+
+Most of the plumbing exists for value references, and can be made general:
+- **The flag.** `ValueRef` has `valueMissing` (`valueMissingDefinition` in
+  `W/components/abstract/referenceSlotDefinitions.js`). It is separate from the value because an
+  empty value can't say "missing": a referent can hold `NaN` or `""`. While missing, the value is
+  `emptyValueOfType` (`＿`, `NaN`, `""`, `false`). Move the flag to `BaseComponent`, false by
+  default, and set it for an extend or copy whose source is missing: no referent, an index that
+  names nothing, a value that doesn't convert. Every component can then be missing, so containers
+  and composites need no flag of their own.
+- **Properties.** A property of a missing component is missing. That belongs where a reference
+  reads its referent's variable, not in each class.
+- **Drawing.** `RendererInstructionBuilder.ts` chooses `rendererType` in one place. A missing
+  component gets one shared blank renderer: `＿` inline, announced as blank, and its children not
+  drawn. In a graph it is not drawn, as a hidden component is not. Today a drawn `ValueRef` that
+  is missing is hidden instead (`hidden` in `W/components/abstract/ValueRef.js`); that becomes
+  the blank.
+- **Consumers.** `MathBaseOperator`, `BooleanBaseOperator`, comparisons
+  (`returnChildrenByCodeStateVariableDefinitions` in `W/utils/booleanLogic.js`), `<answer>` and
+  `CollectList` already read `valueMissing`. Operators change from leaving a missing operand out
+  to using a blank (question 2). Comparisons and answers keep treating it as never equal to
+  anything (rule 1).
+- **Hiding.** The blank renderer is chosen only for a component that is shown. One that is
+  hidden, by its own `hide` or with its referent or parent, stays hidden (question 4).
+- **Coming back.** When the source exists again (an index names something, a case becomes
+  active), the component is made from it again, with its own children and attributes.
+
+## D38. Errors are decided at load, the same for every variant (decided, Tier 1)
+
+**Decided.** DIAG-7 states it. The implementation is #2463: the end-of-load assertion is done by
+#2491, moving the remaining errors to load by #2507 (closing #2493); cycles by #2471 and #2513
+(closing #2473), with the shapes left in #2515.
+
+**Today** nothing stops an error from appearing while a reader works, or from appearing in some
+variants only. Errors are drawn in the document, so a reader sees them. **[examples]**
+`<group extend="$cc.x"/>` reports `doenet-e0005` only after the case changes (#2453), and
+`<selectFromSequence to="$a" numToSelect="3"/>` with a random `a` errors only in the variants
+where `a` is below 3.
+
+**Rule:** an error is decided at load from the DoenetML alone, never from values, the reader's
+actions or the variant. A problem that depends on them is missing (D37) with an info, or a
+warning when the author should write something else (DIAG-2).
+
+**Guarantee:** only load-time code may report an error. After load, an error-level report is an
+assertion in development and tests, and a warning in production. A variant-sweep test helper
+checks that a document's errors are the same across variants.
+
+**Not changed:** an error found at load is shown to readers too. The author sees it first.
+
+## D39. No variant is broken by a selection (decided, Tier 1)
+
+**Decided** (implementation: #2508), with the answers below. COMP-8 and the SEL principles in
+[composites-and-lists.md](composites-and-lists.md) state it.
+
+**Revised after the questions:**
+- **Existence and parameters are separate.** A reader may decide whether a choice exists (a
+  case revealed, iterations added through `<repeatForSequence to="$n">`), never what it chooses
+  from. A repeat's `indexName` is always allowed in a parameter, and its `valueName` when what
+  it iterates over is analysable. No user value reaches a parameter, even where its effect could
+  be worked out (`from="$n"`).
+- **An iteration index ranges over every iteration that can exist**, with no end when the count
+  comes from an input, and iteration *k*'s choice depends only on the variant and *k* (SEL-3).
+- **The author-facing rule is one Tier 1 statement**, worded so it doesn't change as analysable
+  forms are added; the rules that say how it is checked are Tier 2, renumbered SEL-1 to SEL-8. The
+  proposal below keeps its original numbering; the principle file's is current (proposal SEL-2 is
+  now SEL-4, SEL-3 is SEL-5, SEL-4 is SEL-6, SEL-5 is SEL-7, SEL-6 is SEL-8; SEL-2 and SEL-3 are
+  new). SEL-4 accepts an intermediate
+`<number>` or `<integer>` (decided after the questions below).
+- **Samplers are not choices (corrected after #2511).** #2508 listed the samplers among the
+  choices, which was a mistake. A sampler is meant to draw again when what it reads changes or
+  when it is resampled, so it may read what the reader changes, and redrawing then is correct.
+  Instead, **no selection parameter may depend on a sampler**, even one with literal parameters,
+  since it can be resampled (`e0070`, like a value a reader can change). COMP-8's "never made
+  again" is for selections only.
+
+**The goal.** A student should never get a variant the author didn't know was broken. A select
+that errors in some variants is broken, but so is one that selects nothing, a blank, or values
+that contradict what the author specified: the activity can't be completed. DIAG-7 (D38) already
+makes *errors* the same in every variant; #2468 made the select tags follow it, and turned a
+failure that a value decides into a missing selection with an info. That is not enough: those
+variants are still broken.
+
+**The guarantee wanted:**
+
+> Every variant makes selections that satisfy the constraints the author wrote. If that cannot
+> be guaranteed from the DoenetML, every variant has an error that says so.
+
+It must hold for every **potential** variant, not only the ones today's algorithm produces.
+Otherwise a document with no errors could break with no change to its DoenetML, only to how
+variants are seeded (D17, VAR-3). So a sweep over today's variants (DIAG-7) is a regression aid,
+never the guarantee.
+
+**Today** (**[probe]** cases from #2463 and #2468):
+- `<selectFromSequence from="1" to="$a" numToSelect="3"/>` with `a` from another random choice
+  that is sometimes below 3: in those variants, the selection is missing, with an info;
+- `numToSelect="$n"` on a `<select>` whose `selectForVariants` options don't match `n` in some
+  variants (`e0032` at info level);
+- `coprime` draws that find nothing in 200 tries (`i0057`), and the "fluke" codes `e0052`/`e0053`:
+  the selection fails by chance in some variants;
+- a cycle through a name every option of a one-pick `<select>` declares: the variant that picks
+  that option doesn't finish loading (#2473; fixed by #2513);
+- a sampler's draws aren't kept through a reload of a `copyWithState` (#2477), which breaks
+  COMP-8;
+- a parameter read from an input (`numToSelect="$mi"`) is read once, when the selection is made
+  (COMP-8). For content made later, such as a select in a case the reader reveals, that is the
+  input's value at that moment, which depends on the reader, not on the variant.
+
+### Proposed principles
+
+**SEL-1. What decides a selection is fixed by the DoenetML and the variant alone (Tier 1).**
+A selection's parameters (`numToSelect`, ranges, `step`, `exclude`, `withReplacement`,
+`coprime`, excluded combinations, weights, `selectForVariants`, the options) may reference other
+components, but only components whose values can't change by interaction. References to other
+selections stay allowed, so two random numbers can be made to differ (`exclude="$a"`). A
+reference that reaches anything the reader can change is an error at load:
+- an input, an answer, a draggable graphical component;
+- a target of `bindValueTo`, `updateValue` or another action;
+- a value a draggable graphical component depends on, since dragging writes back to it: `a` in
+  `<point>($a, 2)</point>` (INT-2);
+- anything that reads one of these.
+
+No value comes from an input, not even its prefill (question 1).
+
+Then a selection is a pure function of the DoenetML and the variant, so it can be checked
+without a reader. The cells core is built this way. In the JavaScript core it needs a load-time
+pass over the reference graph (like `typeChangeAtLoad.ts`) that marks what a reader can change.
+That pass may be deferred, but the principle holds now. It replaces COMP-8's allowance of a
+`numToSelect` read from an input.
+
+**SEL-2. A selection never fails by chance (Tier 1).** If a selection satisfying the constraints
+exists, the select finds one. Rejection sampling with a draw limit (`coprime`'s 200 tries,
+`e0052`/`e0053`) is replaced by drawing from the set of valid selections, by enumeration or by a
+constructive draw, uniformly or with the written weights. Then the only way to fail is
+infeasibility, which SEL-3 checks, and `i0057`, `e0052` and `e0053` go away.
+
+**SEL-3. Feasibility is proven at load, over every value the parameters can take (Tier 1).** For
+each selection, the load-time check finds the range of every parameter from the DoenetML, and
+checks that the constraints can be met for every combination. If they can't be met for some
+combination, or the check can't tell, it is an error in every variant (DIAG-7) that names the
+parameter and the range. Examples:
+- `to="$a" numToSelect="3"` with `a` from `<selectFromSequence from="5" to="10"/>`: `a` ≥ 5, so
+  at least 5 values, so 3 can be drawn. Proven.
+- the same with `from="1"`: when `a` is 1 or 2, fewer than 3 values. An error in every variant:
+  "`a` can be 1, which leaves 1 value for `numToSelect="3"`."
+- `exclude="$a"` on a draw from 1 to 10: at most one value excluded, so 9 remain. Proven.
+
+The check doesn't enumerate variants, so it doesn't depend on how variants are chosen.
+
+**SEL-4. A parameter is written in a form the check can analyse (Tier 2).** To make SEL-3
+decidable, a parameter is one of:
+- a literal;
+- a reference to a selection, or to a component SEL-1 allows, whose value range is known from
+  its DoenetML. A `<selectFromSequence>` ranges over its sequence. A `<select>` of literal options
+  ranges over them. A `<number>` or `<math>` written as a literal is its value;
+- arithmetic (`+ − ×`, integer division, `min`, `max`, `abs`) of those, analysed by interval
+  arithmetic.
+
+Anything else (a function evaluation, a `<solveEquations>`, a property of a graphical object) is
+outside the analysable set, and is an **error** that says so (question 2). This reduces
+DoenetML's flexibility on purpose, for selection parameters only. It could be loosened later,
+but the hope is that it needn't be.
+
+**Decided: an intermediate `<number>` is allowed.** Should a parameter be able to reference a `<number>` (or
+`<integer>`) whose content is itself in these forms, so an author can write
+`<number name="m">$a + 2</number>` and `numToSelect="$m"`?
+- **For:** the check follows a reference into the `<number>` and analyses its content the same
+  way, so nothing is lost. Authors often show the same value in the text, and would otherwise
+  write the arithmetic twice. SEL-1 still applies: a `<number>` that a reader can change (through
+  `updateValue`, or a point dragged through it) is rejected.
+- **Against:** arithmetic in the attribute makes it plain that only simple computations are
+  allowed. A `<number>` invites content outside the forms, whose error then appears at the
+  attribute, one step from the cause.
+- **Decided:** allow it, for `<number>` and `<integer>` only (extended to `<math>` after #2555; see the status below). The error names the `<number>` and
+  the part of its content that isn't analysable (DIAG-3, DIAG-4).
+
+**SEL-5. Selections that depend on each other form an order, and are checked in it (Tier 2).** A
+selection's parameters may reference earlier selections, never itself or a later one through a
+chain (a cycle is `e0005`, DIAG-7). Ranges flow forward: `b` excluding `a` is checked with `a`'s
+range.
+
+**SEL-6. Every option, picked or not, is checked (Tier 1).** Errors and warnings of every option
+of a `<select>`, every case of a `<conditionalContent>` and every iteration template are reported
+at load, whichever is picked in a given variant. #2458 does this for errors. Warnings, such as a
+reference in an unpicked option that names nothing, are needed too, or an author who tests one
+variant misses a blank another variant shows.
+
+### What stays outside the guarantee
+
+- **Values that are valid but make later content degenerate**, such as a random 0 that ends up
+  in a denominator. The author states such constraints with `exclude`, and SEL-3 checks only what
+  is stated.
+- **Constraints on derived values**, such as `$b^2 - 4$a$c > 0`. Authors have asked for these,
+  and they are wanted as a **future extension, once SEL-1 to SEL-6 are in place**. It was held
+  back because a constraint must be proven or rejected at load, like any other (SEL-3), and how
+  to do that for arbitrary expressions is not worked out. A first scope could be constraints over
+  the SEL-4 forms, decided by enumerating the (finite) ranges of integer parameters.
+- **A saved or requested variant from another version of the DoenetML** (COMP-8). Its choices are
+  taken as given, so they may contradict the current DoenetML. Only possible while the DoenetML is
+  edited.
+- **Samplers**, which aren't choices (see the correction above). One of a continuous
+  distribution cannot fail to draw, but can draw values the content handles badly. As above.
+
+### What it changes
+
+- COMP-8's allowance of `numToSelect` read through references stays for references SEL-1 allows,
+  including another random choice ("numToSelect from selectFromSequence"), and ends for inputs:
+  "select doesn't change dynamically" (`numToSelect="$numToSelect"` from an input) becomes an
+  error at load. The cells core's ban on non-literal `numToSelect` (ADR 0009) becomes SEL-1's
+  narrower ban.
+- #2468's info-level failures (`to="$a"`, `e0032` at info level, `i0057`) become SEL-3 errors
+  in every variant, or go away under SEL-2.
+- The 0.8 converter (#2457) can't fix a document SEL-1 or SEL-3 rejects; it should report them.
+
+### Answers
+
+1. **Yes:** anything the reader can change is out, including through a draggable component's
+   dependency. No values from an input.
+2. **Error** for a parameter outside the analysable forms. Loosen later only if needed.
+3. **Yes:** a change to which values a variant gets is acceptable (D17).
+4. **No separate display:** a warning is located at its line in the DoenetML (DIAG-4), so one
+   from an unpicked option isn't confusing.
+
+### Status
+
+- **Done:** SEL-1 and SEL-4 by #2511, SEL-3's test by #2511, and SEL-5 to SEL-7 by #2555. The
+  info-level failures listed under "Today" are gone: every selection failure is an error. The
+  leftovers are #2563, and #2553 for the run time's build order (done by #2597). SEL-8's warnings are part done
+  (#2547), and the rest wait for the cells core (#2506).
+- **Decided after #2555: a `<math>` is an intermediate like `<number>`.** This revises the
+  decision above, which allowed `<number>` and `<integer>` only. #2555 accepts a `<math>` whose
+  content is in the analysable forms, and `e0074`'s message lists it. This only matters for a
+  `<math>` holding a value from another selection, such as `<math name="m">$a + 2</math>` with
+  `numToSelect="$m"`. A parameter that reads nothing from the variant is its value in any form.
+  - **Why:** the value tags behave alike. The content is analysed the same way, and a `<math>`
+    whose value isn't a number fails the check, naming the value. A `type="math"` sequence's
+    parameters are maths anyway.
+  - **Cost accepted:** a `<math>` may hold a non-number, so that error comes one step from the
+    cause.
+
+## D40. Decisions from the review of open issues (November 2026)
+
+A review of the open issues (after #2466's plan; the next plan is #2509) found fifteen waiting on a decision. Seven are
+decided here; the rest are listed as still open.
+
+**Decided:**
+1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
+   and `<text>`, where the blank takes part, and containers, which show it inline. A missing
+   list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
+   Done by #2514, #2524 (lists), #2543 (#2516) and #2595 (#2544); the leftovers are #2596.
+2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
+   a missing input is missing** (#2460). Only a computation on present inputs that has no value
+   stays `NaN`. VAL-5. Done by #2543, with the type rule below, and #2595 (#2544); the leftovers
+   are #2596.
+3. **An `<angle>` whose measure isn't determined is blank** (#2324), for a bare `<angle/>`, one or
+   two `through` points, and one line. 0.7 documents are not converted. VAL-5, D10. Done by #2543.
+4. **Names in the arguments of a function reference that names nothing are made, as if in a
+   `<setup>`** (#2489; done by #2518). Feasible in the Rust expansion: keep the argument nodes in an unrendered
+   `<setup>`-like wrapper instead of dropping them and pointing their names at the failed
+   reference (`ref_expand.rs`, `compactify.rs`). NAME-4.
+5. **A property that some component a composite can hold lacks warns, decided at load; each such
+   component contributes a blank** (#2452). VAL-5.
+6. **From outside, withheld content acts as missing:** a value reference is `＿`, an action on
+   it does nothing with an info, reading it does not evaluate it, and its state is kept
+   (#2152). SAVE-4, D18. Done by #2549.
+7. **A space beside a reference keeps deciding a list's entries** (#2168); the editor hints at
+   it (`i0059`, done by #2522). VAL-12.
+
+**Decided after (November 2026): the result's type decides how a missing input acts** (#2460,
+VAL-5). A math holds the blank (`＿ + 1`, a symbolic function's `f(＿)`); a number or a boolean
+computed from a missing input is missing (`<number>$nothing + 1</number>`, a numeric function at a
+blank, `not ＿`, `＿ and true`). This replaces VAL-5's rule that a boolean operator takes a missing
+operand as not true. Comparisons stay false (`＿ = 1`), since a blank never equals anything.
+**Revised by D70:** a comparison with a missing operand is missing too (`＿ = 1` is `＿`).
+
+**Still open** (recommendations from the review, not decided):
+- #2235 (D7, D23): a write to `fixed` through a reference. Recommendation: to the source for a
+  component reference with no `fixed` of its own; refused for a property or list entry; a
+  sequence's default-fixed entries can't be unfixed through a reference; a `copy` has its own
+  `fixed`, an `extend` shares it.
+- #2257: a drag writing one value twice. Recommendation: first write wins.
+- #2365 (D30): report a `stateId` for a component with no root name, accepting a one-time split.
+- #2485 item 3: a copy's replacement ids derived from each source's `stateId`. Recommendation:
+  leave it to the new core.
+- #2408 (D34): accept D34 as proposed.
+- #2457: its four converter candidates. Recommendation: rewrite D32 extends to `copy` and an
+  input's `extend` to `bindValueTo`; report names that differ across branches. **Child indexing
+  decided** (D27 revised, #2517): the converter names the child, the same in every branch, and
+  rewrites the reference; where the children differ in type, it reports.
+- #2156: what a `<select>` returns. Recommendation: defer.
+- #2155: showing a student's answer without presenting a wrong one as fact. Recommendation: defer
+  (a feature).
+- #2127 item 9: the `_copy` name and role.
+
+
+## D41. One thing, many things, and wrappers: what an index and a property reach (decided, Tier 1)
+
+**Decided** (November 2026). The principles are COLL-1 to COLL-4 in
+[composites-and-lists.md](composites-and-lists.md). **Implemented by #2565** (closing #2523);
+its leftovers are #2569.
+
+**Why.** What an index or a property did after a tag depended on how the current core happened
+to build it, not on anything an author would think about. On `main` (**[probe]**):
+
+| Reference | Result | Why |
+|---|---|---|
+| `$pl.numComponents` of a `<pointList>`, `$cp.numComponents` of a collect of points | `2` | list components have it |
+| `$cpp.numComponents` of a collect of `<p>`s, `$sq.numComponents` of a `<sequence>`, `$rp.numComponents` of a repeat | `＿`, `w0104` | composites, and `<sequence>`, don't |
+| `$cp.numPoints` of a collect of points | `＿`, `w0104` | an alias the collect inherited from `<pointList>` by accident (#2271) |
+| `$g.x` of a group of two points | `57` | the property is given to each child, then run together, since a group isn't a list |
+| `$gmix.x` of a group of a point and a number | `1` | the number is dropped silently |
+| `$cc.x` of a case holding two points | `1, 3` | the case's children each give their `x` |
+| `$rmix.P`, `$rmix.P.x` (`P` named in the template) | nothing, `＿` | a name inside an iteration is reached only as `$rmix[1].P` |
+| `$s.P.x` (two picks, each with a `P`) | `w0105` | ambiguous |
+| `<sort><number>3</number><text>a</text></sort>` | `3, a` | sorted across types |
+| `<shuffle>` of three groups of two maths | `4, 1, 5, 6, 2, 3` | the groups are flattened, so the pairs are split |
+
+A mathList could be built as a composite (it once was) or as a list component; a collect is
+built either way depending on what it collects. The rules below are stated in categories an
+author has, so that a change of build can't change them (COMP-4 states the same for one tag).
+
+### The kinds
+
+**Index.** Only two kinds of thing take an index:
+1. **One thing: a value with entries.** A point, a vector, coords, a math holding a tuple or
+   vector, a matrix, and a math or matrix input. Its properties are its own and never apply per
+   coordinate (`$P.x` is the point's x). An index is secondary: it reaches an entry of the value
+   (NAME-2). A set, if it gets a tag, is one thing too, and takes no index, having no order.
+   `<solveEquations>` is one thing (its name doesn't say "a list of solutions").
+2. **Many things: a collection.** The lists (`<mathList>` … `<intervalList>`), `<sequence>`, the
+   random selectors and samplers, the list operators, `<collect>`, `<sort>`, `<shuffle>`,
+   `<repeat>`, `<select>`, `<conditionalContent>` (at most one item: the shown case), and
+   `<functionIterates>` (its name is plural). An index selects an item.
+
+**A wrapper is not an index kind.** A `<group>`, and each iteration, pick or shown case, never
+takes an index itself. With one component, the index passes to the component; with several, it
+names nothing (D27 revised, #2518).
+
+### Decided
+
+1. **A property or a name after a collection applies to each item.** *(Reverted by D59, except for a
+   `<conditionalContent>` and a one-pick chooser.)* `$pl.x` is `1, 3`. A name
+   applies the same way: `$rmix.P` is each iteration's `P`, and `$s.P.x` each pick's `P`'s x. A
+   name reached this way follows the rules for a name in branches: declared in every option or
+   case, with one type (D22, COMP-11); a template declares it in every iteration. An item that
+   lacks a property gives a blank, with a warning decided at load (#2452, D40 decision 5).
+2. **A collection's own properties are a fixed set,** the same for every collection however it is
+   built, and they win over the items' properties of the same name:
+   - `numItems`, the number of items an index selects among (entries, iterations, picks; 0 or 1
+     for a `<conditionalContent>`), on every collection;
+   - the settings every component has (`hide`, `fixed`, `disabled`, …).
+
+   Nothing else belongs to the collection, so a new attribute or property never shadows the
+   items' properties: attributes of a collection are not readable as properties, as on `main`
+   (`$cp.from`, `$rp.for`, `$sq.length` name nothing). An item that is itself a collection is
+   reached by index (`$c[1].numItems`). Accidental properties go away: an alias a collect or sort
+   inherits from the list it is built on (`numPoints`, `numVectors`, `numIntervals`).
+3. **A wrapper with several components is only a container.** A property after it names nothing,
+   with a warning to name the component; a name reaches a component (`$g.P`). With one
+   component it stands for it, for a tag, an index and a property alike (NAME-2). Its own
+   settings are its own either way (`$g.hide` is the group's). An empty wrapper is missing.
+4. **`<sort>` and `<shuffle>` take one type, decided at load.** A child that is a list or a
+   collection is flattened into its items, so several lists can be sorted together. A wrapper
+   is not flattened:
+   - a `<shuffle>` of wrappers shuffles them as units (`<shuffle>` of groups of two keeps each
+     pair together);
+   - a `<sort>` of wrappers with several components is an error, as there is nothing to compare;
+   - a wrapper with one component stands for it, and is sorted or shuffled as that component.
+
+   A mix (a number and a text, or a math and a group of several) is an error at load.
+5. **`<functionIterates>` is a collection,** so it renders its iterates as a list, as other
+   collections do (a list component since #2565; it rendered nothing).
+6. **`<solveEquations>` is one thing.** It is not a value with entries, so an index after it
+   names nothing; the solutions are `$s.solutions[1]`. #2565 made `$s[1]` `＿` with `w0182`,
+   which suggests `$s.solutions[1]` (DIAG-3), rather than `w0180`.
+
+### Open
+
+- **The count's older names on authored lists.** `numComponents` is documented on the lists, and
+  `numPoints`, `numVectors`, `numValues` and `numIntervals` are aliases on some. Keep them as
+  aliases of `numItems` on those tags only, or retire them (the converter can rewrite them, since
+  it knows the referent is a list). Recommendation: retire, so every collection has the same
+  set. #2565 kept them.
+- **Attributes a reference page documents as properties.** #2565 made a collection's attributes
+  not properties, but kept these because a reference page reads them: an authored list's
+  `maxNumber`, `unordered` and `mergeMathLists`; `<tally>`'s `categories`; a sampler's
+  distribution (`type`, `from`, `to`, `mean`, `variance`, …, mostly computed, such as the
+  expected mean); `<sampleMultivariateRandomNumber>`'s `means` and `variances`. Recommendation:
+  keep the ones that describe the collection as a whole (`categories`, the distribution's
+  `mean` and `variance`), as declared own properties of that tag, and retire the echoes of an
+  attribute as written (`maxNumber`, `unordered`, `mergeMathLists`), as for the count's older
+  names. Either way, an own property must not share a name with a property its items have.
+- **`$M.x` of a matrix** gives the whole matrix. As one thing, a matrix's `x` should be what a
+  math's `x` is, or name nothing.
+- **`<extrema>`** is not an author tag (`excludeFromSchema`, its `<maxima>`/`<minima>` are commented
+  out), so it is not classified. If it becomes one, its plural name makes it a collection.
+
+### What it changes
+
+- VAL-5's "collections" bullet: `$g` with several components is a container, not a collection.
+- #2452 (D40 decision 5) applies across a collection's items, not inside a wrapper.
+- D19's "is a case holding several items a list?": no, it is a wrapper.
+- D24: the three kinds replace "composite" in what authors are taught.
+- NAME-3: names in an iteration stay private; `$r.P` reaches them only per item, never one
+  iteration's `P` alone.
+- The converter (#2457): `$g.x` over several components becomes `$g.P.x` when exactly one
+  component has the property and can be named, and is reported otherwise; `$s[i]` of a
+  `<solveEquations>` becomes `$s.solutions[i]`; a sort or shuffle of mixed types is reported.
+
+## D42. An award or a choice can only be copied (decided, Tier 1)
+
+**Decided** (November 2026). **Done by #2571** (closing #2531): `extend` and `copyWithState` of
+an award or a choice are **`doenet-e0078`** at load, whose message suggests the `copy` to write.
+
+An `<award>`'s state (`awarded`) and a `<choice>`'s (`submitted`) record the last submission of
+the answer or choice input that holds them (ANS-1), and a choice's `selected` comes from its place
+in its choice input. So:
+- an `extend`, the same component again sharing state (REF-9), has no coherent meaning: another
+  answer's credit would come from this one's submission. The code already doesn't share this
+  state (`doNotShadowEssential`), so today an extend behaves as a copy. **[probe]**: an
+  `<award extend="$aw"/>` in another answer is awarded only when its own answer is submitted;
+- a `copyWithState` would start a new award or choice from another submission's record, which is
+  just as meaningless;
+- a `copy`, written again here (D33), is what every existing use wants: a tolerance ladder in one
+  answer, an award or choice defined in a `<setup>` and reused, a choice reused with another
+  `credit`.
+
+So `extend` and `copyWithState` of an award or a choice are an error at load whose message
+suggests `copy`, and the converter (#2457) rewrites the extend. An award or a choice outside an
+answer or choice input gets **no** warning: defining one in a `<setup>` and copying it into
+several is a supported use, and nothing else is required to be in a `<setup>`. A bare `$aw` or
+`$c` stays the value (whether awarded or submitted, REF-1a). `<answer extend>` is unchanged: two
+answers sharing state is coherent (REF-9; `answer.test.ts:5685`).
+
+## D43. A reference inside an extend to something inside it means the extend's counterpart (decided, Tier 1; revises REF-6)
+
+**Decided** (November 2026). REF-6 states it.
+
+An extend kept every internal reference bound to the source, because the counterpart is the same
+component again, so the value read is the same. That stops holding where identity matters (a
+`<label for>` inside an extended group labelled the source's input, which was read twice, and left
+the extend's input unlabelled, #2537 item 2) and where the extend changes its own root (an extended
+section with a new `<title>` still showed the old one through `$s.title`). So a reference inside the
+extended subtree to something inside it means its counterpart, as in a copy (CPY-3); a reference to
+something outside means the same as in the source; a `for` pointing outside is dropped. Extend and
+copy then follow one rule for references, and differ only in sharing state.
+
+**Not implemented in the JavaScript core.** It builds an extend's internal references as shadows of
+the source's, and the change isn't worth making there. The cells core implements it; REF-6 lists
+the examples that are its tests. #2537 items 2 and 3 wait for it.
+
+## D44. A repeat's `for` holds one type, decided at load (decided, Tier 1; done by #2600, closing #2567)
+
+**Decided** (November 2026). The principle is COLL-5 in
+[composites-and-lists.md](composites-and-lists.md).
+
+**Why.** The principles move toward types known from the DoenetML: a tag you write makes that tag
+(D36), a type change is allowed only between related types (REF-5), a name in branches has one
+type (COMP-11), and `<sort>` and `<shuffle>` take one type (COLL-4). `for` was left out. It is
+made as a `<group>`, so it takes anything, in any mix, and `$v` has no type until each iteration
+is built. On `main` (**[probe]**):
+
+| `for` | Result |
+|---|---|
+| `1 x hello` | three maths (`type` defaults to math), the last `h e l l o`; with `type="text"`, texts |
+| `$a $t $P` (a math, a text and a point) | allowed; `$v.x` is `x`, `＿` with `w0104`, `1` |
+| `2 $t` | a math and a text |
+| `$g`, a group of a point, a number and a `<p>` | three items, the `<p>` among them |
+| `$g`, a group holding a group of 1 and 2, and 5 | `1, 2, 5`: nested groups are flattened |
+| `$data`, a repeat whose template is a `<point name="P">` and a `<text name="L">` | four items, alternating; `$d.P` is `＿` with no diagnostic |
+| `$s`, a select of a math, a text and a number | allowed, mixed |
+
+So REF-5 can't type `$v` (`e0067`), a property `$v` lacks is found only per iteration, and there is
+no way to iterate over records (a point with its label).
+
+### Decided
+
+1. **The items of `for` follow COLL-4.** Literal text is cut into items by VAL-12. A list or a
+   collection is flattened into its items. A wrapper with one component stands for it. A wrapper
+   with several is one item, as in a `<shuffle>`: `for="$g"` of a group of several is one
+   iteration.
+2. **The items have one type, decided at load from the DoenetML,** by REF-5's typing of parts: a
+   bare `$y` is y's tag, a list's item is its entry type, a `<collect>`'s is its `componentType`,
+   and a `<select>` or `<conditionalContent>` is typed by COMP-11's every-branch rule. Items of
+   more than one type are an error at load. `$v` then has that type in every iteration, so the
+   template is checked at load like any other reference, and REF-5's `e0067` for `valueName`
+   goes away.
+3. **Integer, number and math are one type.** `$v` is the widest present (a math, if any item is
+   one). The same holds for `<sort>` and `<shuffle>` (COLL-4).
+4. **`type` types the literals, and, when written, every item.** `for="2 $t"` with `t` a `<text>`
+   is an error unless it says `type="text"`.
+5. **Wrappers of several count as one type,** whatever they hold: a `<group>`, an iteration, a
+   pick or a case. (Revised by D46: a wrapper of several is content, one type with `<p>` and the
+   other content.) This is how a repeat goes over records:
+   ```xml
+   <repeat name="data" for="1 2 3" valueName="k">
+     <point name="P">($k, $k^2)</point><text name="L">P$k</text>
+   </repeat>
+   <repeat for="$data" valueName="d">$d.P is labelled $d.L.</repeat>
+   ```
+6. **A name after `$v` follows COLL-2 and COMP-11** (option 2, chosen over option 1 below).
+   `$d.P` resolves when every item declares `P`, with one type, decided at load. If an item lacks
+   it, `$d.P` names nothing in every iteration (a blank, `w0183`); two types are an error
+   (`e0066`/`w0184`). A repeat's or a select's items satisfy this by construction, since one
+   template, or the every-option rule, declares the name.
+
+   **Rejected, option 1:** every wrapper must hold the same children, with the same names and
+   types. Unnamed components can't be reached from `$v` (an index after a wrapper of several
+   names nothing, COLL-3), so it would reject differences no reference can see, and it would be a
+   second rule beside COMP-11's. Positional pairs are better written as values with entries:
+   `for="(1, 2) (3, 4)"` gives tuples, and `$v[1]` is an entry.
+
+### What it costs
+
+- **Mixed graphical objects** can't share one repeat (a point and a line, for labels or
+  `$o.hide`). Write one repeat per type. COLL-2 already applies `$c.color` to each item without a
+  repeat. A common supertype ("graphical") could be added later if authors need it.
+- **`for="$g"` of a group of several** gives one iteration, where it gave one per child. Use a
+  list, a `<collect>`, or name each item in `for`. Four tests in `repeat.test.ts` do this.
+- **Mixed `for`s break.** `repeat.test.ts`'s "repeat iterates over combination of list, group,
+  sequence, components, and string" (`for="$ml $g $s $n7 $m8 9"`) keeps working under decision 3,
+  except that `$g` becomes one item. The v0.7 converter can only report a mix (#2457).
+
+### Related defect
+
+While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
+child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math. `<number>$b+1</number>`
+gives `1`, so it likely drops it too (#2566). Fixed by #2572 by reading it as `1`; **revised by
+D47 decision 3:** it is a type mix with a warning, unless the author asks with
+`<number convertBoolean>`.
+
+## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
+
+**Decided** (November 2026). The principle is TYPE in
+[values-and-attributes.md](values-and-attributes.md). Implementation: #2568, done by #2602 and #2603,
+and finished by #2642 (closing #2606, D52): no type is worked out as the document runs, and one the
+DoenetML doesn't decide is `e0091` at the reference. Leftovers #2646.
+
+**Why.** D36, REF-5, COMP-11, COLL-4 and D44 each make a type known from the DoenetML. Eleven
+properties still set their type as they compute (`hasVariableComponentType` with
+`setCreateComponentOfType`), so a reference to one can't be typed at load: REF-5 makes
+`<T extend="$x.p"/>` that depends on it an error (`e0067`). Most are decided by what is written,
+so they can be typed at load. A few aren't (listed under TYPE).
+
+**Decided:**
+1. **The Tier 1 statement and TYPE-1 to TYPE-4**, including an error at load when a type can't be
+   decided.
+2. **Each property's type is worked out at load, by one function per property** over the
+   serialized DoenetML, which the run time then reads in place of `setCreateComponentOfType`.
+   The load-time type checks, the language server and the cells core use the same result.
+   Considered and not taken: giving every property one fixed type, splitting the rest (renames
+   that break documents, and an answer's responses really differ); keeping run-time types with a
+   warning on a change (not strict).
+3. **An answer's responses may differ in type**, as long as each is decided at load: a response
+   is its input's type or its component's tag. A response from a component in a
+   `<conditionalContent>` is typed by COMP-11's every-branch rule, and cases of different types
+   are an error. `submittedResponses` has the types the DoenetML gives, not those saved (TYPE-4).
+4. **`$g.grid` is not public** until someone asks for it, since its type follows its value.
+5. **A `<tally>`'s categories are already typed by what is written:** numeric only when every
+   value is a number by its tag, and literal text by its content, at load. They move to the
+   load-time function with no change.
+6. **A mix of numbers and texts by tag is an error at load,** in a `<tally>` and in `<markers>`,
+   as COLL-4 makes it for `<sort>`, so every list operator follows one rule. Today
+   `<tally><number>1</number><text>a</text></tally>` counts as text and a `<markers>` with both
+   shows text, silently. Literal text is not a mix: it is cut into pieces and typed at load,
+   all numbers or all texts.
+7. **Literal text in a list is typed at load by one of two rules, kept as they are:**
+   - **Detected, number or text,** in the operators that compare or count values: `<sort>`,
+     `<sortIndices>`, `<shuffle>`, `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>`,
+     `<tally>` and `<binCounts>`. They share one function (`inferTypeFromStrings` in
+     `W/utils/listValues.js`): numbers if every piece reads as a real number, texts otherwise.
+     Detection matters here, because a number and a text behave very differently there
+     (`2 < 10`, but `"10" < "2"`).
+   - **Math unless `type` says otherwise,** where the pieces are values to show or compute
+     with: a `<repeat>`'s `for` (D44), `<select>`'s sugar and `<answer>`'s. Detecting a number
+     there would only choose between a number and a math, and reading a number as a math does
+     little harm, so it isn't worth a second detection rule.
+
+   Either way the type is decided from what is written (TYPE-1). A written `type` always wins.
+   Detection loses leading zeros once every piece is numeric (`007` is 7); write `type="text"`
+   to keep them.
+
+**Correction.** The first review of these properties said a tally of a `<textInput>` switched its
+categories from number to text as the student typed. It doesn't: a `<textInput>` is a text by
+its tag, so the categories are text throughout. `<number extend="$t.categories[1]"/>` gave `NaN` for
+`apple` because a text that isn't a number converts to `NaN` (REF-5), as it should.
+
+**Related:** a `<choiceInput>` whose choices are `<m>x^2</m>` and `cat` has text values, so its
+first value is the text `x²`, and `<math extend>` of it is blank. That follows from the type
+rule; the lost math is a display question for #2568 (a choice's value could keep its LaTeX).
+
+## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (decided; Tier 1)
+
+**Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
+COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599**, and for a repeat's
+`for` by #2600.
+
+### 2. What a type is: values, objects and content (decided)
+
+**Why.** #2565 decides COLL-4's "one type" by what a sort compares (`extractComparableValue` in
+`W/utils/dast/reorderedItemsAtLoad.ts`): number and math, text, boolean, point, vector, and every
+other component as one class. That is how the code compares, not what the components are to an
+author. So an `<atom>` counts as the same type as a `<p>` and an `<ion>`, while an `<atom>` and a
+`<point>` are two types only because a point is compared and an atom isn't (**[probe]** on
+`main` after #2565). And `<sort><p>b</p><p>a</p></sort>` shows nothing, with no diagnostic.
+
+**Decided: three kinds.**
+1. **A value** stands for a value: `<math>`, `<number>`, `<integer>`, `<text>`, `<boolean>`, and
+   the inputs, which stand for what they hold (`<mathInput>`, `<textInput>`, `<booleanInput>`,
+   `<choiceInput>`, `<slider>`, …). Its type is the value's, with integer, number and math one
+   type (D44 decision 3).
+2. **An object** is one thing with an identity of its own: `<point>`, `<vector>`, `<line>`,
+   `<circle>`, `<function>`, `<interval>`, `<matrix>`, `<angle>`, `<atom>`, `<ion>`, and
+   **`<answer>`**. An answer renders its inputs, but to an author it is one thing, not the
+   content it shows. Its type is its tag, with the tags built on it (a `<triangle>` is a
+   `<polygon>`). A point and a line are two types; a common "graphical" supertype is not
+   proposed (D44).
+3. **Content** is the content it holds and shows: `<p>`, `<div>`, `<span>`, `<li>`, sections,
+   `<feedback>`, `<hint>`, `<figure>`, **`<graph>`, `<image>`, `<table>`**, **`<m>`, `<me>`,
+   `<men>`, `<label>`**, and **a wrapper of several components** (a `<group>`, an iteration, a
+   pick or a shown case). All content is one type, so `<shuffle>` of a `<p>`, a `<feedback>` and
+   a `<group>` of two paragraphs is valid. This revises D44 decision 5, where a wrapper of
+   several was a type of its own.
+
+**`<m>` and `<label>` are content, not values,** though authors may think of `<m>` as math. An
+`<m>` holds LaTeX to show, not a math: it has no math value, and its LaTeX may not be math
+(`\text{…}`), so reading it as a math would make its type depend on what it holds (TYPE). A
+`<label>` holds markup, and its `value` is that markup as text. Since the confusion is likely,
+the `e0076` message for a mix of `<m>` and a math, or of `<label>` and a text, says how to make
+it one: wrap it. "`<m>` shows LaTeX; it isn't a math. To sort or shuffle it with other maths,
+write `<math><m>…</m></math>` (or `<math>$mm</math>`), which reads its LaTeX as math." Likewise
+`<text>` around a `<label>`. **[probe]** on `main`: `<math><m>\frac{x^2}{2}</m></math>` is
+`x²/2`, `<math>$mm</math>` of an `<m>` works, and `<text>$l</text>` of a label holding
+`Speed <m>v</m>` is `Speed v`. LaTeX that isn't math gives a blank:
+`<math><m>\text{hi}</m></math>` is `＿`, with no diagnostic (#2570 item 4).
+
+**A sort.** Values compare by value; points and vectors as now. Other objects and content have
+nothing to compare, so a `<sort>` of them needs `sortByProp` naming what to compare
+(`<sort sortByProp="atomicNumber">` of atoms), and without it is an error at load that says to
+add `sortByProp`. Today such a sort shows nothing, silently.
+
+**How to mark the kinds.** No existing flag separates them:
+- the base classes don't (`<atom>` and `<text>` are inline components, `<p>` a block);
+- `renderChildren` comes close for content, but inputs, `<label>`, `<image>` and `<m>` set it,
+  and `<answer>` does too;
+- `primaryStateVariableForDefinition` puts `<feedback>` with `<atom>`, `<point>` and `<math>`;
+- `variableForImplicitProp` doesn't mark values: `<answer>`, `<award>`, `<choice>` and `<label>`
+  set it too.
+
+So **content and values are each declared** (`static isContent = true`, `static isValue =
+true`), and everything else is an object. A test lists every author tag with its kind, so a new
+component has to be placed, and compares content against `renderChildren` to catch drift.
+
+**Applies to** `<sort>`, `<sortIndices>`, `<shuffle>`, a repeat's `for` (D44) and, if it is added,
+part 1's tag. A reference's own type is still its tag (TYPE, D45): "one type" for a collection
+compares kinds, and a tag or a property after `$sh[1]` still follows the every-item rule
+(COMP-11).
+
+**What it changes:**
+- `<atom>`, `<ion>` and `<answer>` move from #2565's "no comparable value" class to objects; a
+  `<shuffle>` of an atom and a `<p>` becomes `e0076`, and of two atoms stays valid;
+- objects such as a `<line>` and a `<circle>`, one class under #2565, are two types;
+- a wrapper of several mixes with content;
+- a `<sort>` of objects or content without `sortByProp` is an error (#2569 item 10).
+
+### 1. One `<list>` for every list (decided, November 2026)
+
+**Why.** A `<group>` is a wrapper (COLL-3): holding several components, it is one item, so authors
+who wrote a `<group asList>` of components to sort or index as a list have no tag for that. The
+typed lists (`<mathList>` … `<pointList>`) cover only values written as text, and are already one
+class (`AuthoredValueList`) whose attributes depend on its entry type (the number display
+attributes are removed for texts and booleans): one component spread over eight tags, which
+drift apart (#2649's `<booleanList>` leftover). The earlier proposal kept them, because with a
+`type` attribute "which attributes are valid and which properties exist would depend on an
+attribute's value". Since D63.4 (a type named in an attribute is a literal tag name), TYPE-3 and
+D45 (types decided at load), D75 (a missing property is an error at load) and D76 (an invalid
+attribute is an error), that is checkable: the list's entry type is fixed at load.
+
+1. **`<list>` replaces the typed lists** (`<mathList>`, `<numberList>`, `<textList>`,
+   `<booleanList>`, `<pointList>`, `<vectorList>`, …) and is also the tag for a list of
+   components with no typed list (`<atom>`s, `<p>`s, `<group>`s kept whole as records). It is a
+   collection (COLL-1's many things): an index picks an item, `numItems` counts them, a property
+   or a name applies to each item (COLL-2), a `<sort>` or `<shuffle>` flattens it, and it shows
+   its items with commas. A `<list>` inside a `<list>` is flattened (COLL-4).
+2. **Its entry type is decided at load**, with part 2's kinds: from `type` when written (a
+   literal tag name, D63.4: `type="text"`, `type="point"`), else from the components in it
+   (`<list><point/>…</list>`, `<list>$P $Q</list>`), with text beside components read as their
+   type (as for `<sort>`). Kinds that don't match are `e0076` (COLL-4). An attribute valid only
+   for another type (`displayDigits` on a text list) is `e0004` (D76), and a property of another
+   type (`$l.xs` of a math list) is an error at load (D75).
+3. **A list-valued attribute decides its own type:** `xs="1 2"` is a list of maths and
+   `vertices="(1,2),(3,4)"` a list of points, as the attribute declares. So is a property:
+   `$P.xs` is a list of maths, `$poly.vertices` a list of points, and messages name
+   `<list extend="$P.xs"/>`.
+4. **`<ol>` and `<ul>` stay, and are not folded into `<list>`.** They are content (part 2): one
+   block, moved whole by a `<shuffle>`, holding `<li>`s with blocks, answers and nested lists.
+   `<shuffle><p/><ol>…</ol></shuffle>` moves the `<ol>` whole; were it a `<list>`, its items would
+   mix with the `<p>`. An `<li>` directly in a `<list>` gets a misplaced-tag warning suggesting
+   `<ul>` or `<ol>`. There is no `numbered` attribute on `<list>`. A list shown as bullets is
+   written with a repeat: `<ul><repeat for="$l" valueName="v"><li>$v</li></repeat></ul>`;
+   `<ul>$l</ul>` does not make an item of each entry (DoenetML has no such vectorized forms).
+5. **Hints, not detection rules:** an info when the pieces of a math list are runs of several
+   letters that math reads as products (`<list>red, green, blue</list>` is `r·e·d, …`),
+   suggesting `type="text"`; and one for a math list of tuples in a `<graph>`, which draws
+   nothing, suggesting `type="point"`. Where a list sits never changes its type (TYPE-1).
+6. **Migration:** the converter (#2457) rewrites each typed list to `<list>`, writing `type` only
+   where the default differs, and the typed tags are removed. In the code, the typed lists first
+   become one `<list>` class, so behavior is unified before the author-facing change.
+7. **`<group asList>` stays a wrapper;** `asList` only sets commas. The converter rewrites a
+   `<group asList>` that is sorted, shuffled or indexed as a list to `<list>`.
+
+**Not now: PreTeXt's `<list>`.** In PreTeXt, `<list>` is a titled, numbered block wrapping an
+`<ol>`/`<ul>` (with `<title>`, `<introduction>`, `<conclusion>`) that can be cross-referenced.
+It is not supported initially. If authors ask for it, it could be added where the context makes
+it clear; that needs a decision then, since COLL-1 decides a tag's kind from the tag as written,
+and that `<list>` would be content, not a collection.
+
+8. **Pieces of text are math unless `type` says otherwise** (decided, option (a)): the rule a
+   `<repeat>`'s `for`, `<select>`'s and `<answer>`'s sugar use (D45 decision 7), so DoenetML keeps
+   one rule for values to show or compute with. `<list>1, 2, 3</list>` is a math list showing
+   `1, 2, 3`. Detecting numbers was rejected: numbers are floating point, so `1/3` would turn into
+   `0.3333…`, and the display would flip as a piece changed (`1/2, 3` showing `0.5, 3`, then
+   `1/2, 3, x`). `type="number"` asks for numbers.
+
+9. **A math whose value is a list is always merged into the list** (decided, November 2026;
+   `mergeMathLists` is removed). An entry of a math list is one math that isn't itself a list,
+   as a list inside a list is flattened (item 1, COLL-4). Today a `<math>` holding `b,c,d` is one
+   entry, shown `a, b, c, d` with no sign of the grouping, unless it is the only child or
+   `mergeMathLists` is written; so adding a second child changed the first's count, and
+   `mergeMathLists="$bi"` changed it as the reader clicked. Merged, `<list><math>b,c,d</math></list>`
+   is what `<list>b,c,d</list>` already is. A tuple (`(1,2)`) is one thing and stays one entry.
+   A list's count may then follow a value (a `<mathInput>` typed `1,2` holds two entries), as a
+   `<sequence length="$n">` does; the load decides the count only where the DoenetML does.
+
+Implementation: #2678 (PR 69; stage 2 with the converter, #2457).
+
+## D47. Decisions from the review of #2571–#2576 (November 2026)
+
+1. **`<variantControl>` never stops the document** (#2579, DIAG-5; done by #2610). Each case that threw is an
+   error at its attribute, with a fallback:
+   - valid names that exclude every variant: every variant is included, as when
+     `variantsToInclude` names none;
+   - `variantNames` repeating a name (compared without case): the first is kept;
+   - an empty `variantsToInclude`: `e0072` (attribute-empty), and the attribute is ignored;
+   - a reference in `variantsToInclude`, `variantsToExclude`, `variantNames` (and, for the same
+     reason, `numVariants` and `seeds`): ignored, with one coded error. Variants are decided
+     before anything else, so a reference can't be read there.
+2. **No warning now for a second `<when>` in an `<award>`** (#2580 item 1). REF-4a's "the last one
+   written wins" for it waits for the cells core's shared one-child mechanism.
+3. **A boolean is `1` or `0` only where the author asks** (option B below; implementation
+   #2582). `<number convertBoolean>` reads a boolean, or a boolean expression, as `1` or `0`;
+   nowhere else does. Reading `true` as `1` is a programming notation authors are unlikely to
+   know: an author who writes `<math>$b+1</math>` won't expect `2`.
+   - A boolean where a number or math is wanted (in a `<math>`, a `<number>` without
+     `convertBoolean`, a list, a math operator, a math attribute, `<mathInput bindValueTo>`) is a
+     type mix: a blank in its place (VAL-5) and a warning at load that names the way to ask:
+     "`$b` is true or false, not a number. To count it as 1 or 0, write
+     `<number convertBoolean>$b</number>`."
+   - A type change (`<math extend="$b"/>`, `<number extend="$b"/>`) is a REF-5 error with the
+     same suggestion.
+   - A comparison of a boolean with a number (`<boolean>$b = 1</boolean>`) is a type mix, with
+     the warning. `$b = true` compares booleans.
+   - A boolean still shows as the word `true` or `false` in text.
+   - **`credit` on an `<award>` or `<choice>` takes a boolean,** as it did in 0.7: `true` is full
+     credit and `false` none (`credit="$b"`, `credit="$n > 2"`, `credit="$b and not $c"`,
+     `credit="true"`). No other attribute is needed: the attribute is made as a
+     `<number convertBoolean>` (`returnCreditAttributeAndStateVariableDefinition` in
+     `W/utils/answer.js`), so it is the author asking, and "credit when this is true" needs no
+     notation. **[probe]** on `main`: each of these gives credit 1, and `false` gives 0. Only a
+     comparison (`$animal=cat`) and a `<mathInput>` were pinned by tests; #2582 adds tests for a
+     boolean reference and expression, so its change can't break them.
+
+   This reverses most of #2572's boolean adapter (closing #2566) and narrows REF-5's older
+   rule. Options considered: **A**, keep #2572 (a boolean is `1` or `0` wherever a number is
+   wanted); **C**, a lone boolean only (`<number>$b</number>`), the same notation with less
+   reach.
+
+4. **A number is never read as a boolean either** (the reverse of decision 3; #2582). Today a
+   nonzero number is silently `true` everywhere (**[probe]**: `<boolean>2</boolean>`,
+   `<boolean>$n</boolean>` and `<boolean extend="$n"/>` for `n` = 1, `hide="$n"`,
+   `<booleanInput bindValueTo="$n"/>`; `<boolean>$m</boolean>` of the math `x` is `false`).
+   Under the same rule:
+   - a number or math where a boolean is wanted (a `<boolean>`'s content, a boolean attribute
+     such as `hide`, a `<booleanList>`) is a type mix: a blank in its place and a warning at load
+     that suggests the comparison meant ("`$n` is a number, not true or false. To test it, write
+     a comparison such as `$n != 0`");
+   - a literal `1` or `0` in a `<boolean>` or a boolean attribute gets the same warning; `true`
+     and `false` are the way to write them;
+   - a type change (`<boolean extend="$n"/>`) is a REF-5 error with the same suggestion;
+   - `<booleanInput bindValueTo="$n">` is a type mix, with a warning.
+
+   **Decisions 3 and 4 done by #2651** (closing #2582; `W/utils/dast/booleanNumberMixAtLoad.ts`):
+   the adapter is removed; each mix is a blank with **`doenet-w0203`**, also on an `extend` or a
+   `copy`; type changes are `e0065` with the suggestion; `credit` keeps taking a boolean.
+   **Leftovers done by #2658** (closing #2656): logic holding a mix is missing, not `false`, so a
+   boolean answer no longer credits "false"; `convertBoolean` counts every boolean (D67 decision
+   1), with **`doenet-w0208`** for a comparison of a boolean with a number there (`$b = 1`, which
+   works but reads better as `$b`); `$n = true` and `$b + 1 = 2` in a `<boolean>` are mixes; a
+   named boolean in a `<math>` keeps its value. Left (#2669): `true` split into letters in a
+   `<boolean>`'s logic (`(1 < 2) = true` is `false`), a group reached by reference not judged at
+   load, booleans side by side, `in` under `convertBoolean`, and wording.
+
+   A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
+
+## D48. Decisions from the review of #2591 (November 2026)
+
+1. **NAME-4 holds for a copy's new children, also for a repeat's `valueName`** (#2594 item 1;
+   #2546 item 7). The idea of NAME-4 is that how every reference resolves can be seen directly
+   from the DoenetML, with no logic about what a copy brings. So in
+   `<repeat copy="$r"><number>2$v</number></repeat>`, of `<repeat name="r" for="1 2"
+   valueName="v">`, `$v` doesn't see the source's `v`. `<repeat copy="$r" valueName="v">` makes
+   `$v` the copy's value: an attribute written on a copy (or an extend) overrides the source's,
+   the standard rule. #2591 already does this. Left: `w0104` for such a `$v` could suggest writing
+   `valueName="v"` on the copy (DIAG-3).
+2. **One code for a tag made only from its own kind** (#2594 item 2). A `<repeat>`, `<select>`,
+   `<collect>`, `<sort>` or another tag that makes its own content, made with `extend` or `copy`
+   from anything but the same tag, is **`e0071`** ("A `<repeat>` makes its content itself, so it
+   can be made only from another `<repeat>`…"), however the source is written. #2591 gave
+   `e0071` for a property or a list entry (`$n.value`, `$s.value`, `$l[2]`), but left `e0065`
+   ("…can't be made from `$n`, which gives a `<number>`") for a component (`$n`) or an iteration
+   (`$r[1]`). The rule for these tags is "only from another of the same tag", which `e0071` says;
+   `e0065`'s naming of the source's type suggests another type might work, which is never so.
+   `e0065` stays for tags made from an unrelated type (REF-5).
+
+## D49. Decisions from the review of #2595 (November 2026)
+
+1. **A point or vector is missing only when a coordinate it uses is missing** (VAL-5; #2596 item
+   6). Its value takes `x`/`y` (or `z`) first, then `coords`, then the content, coordinate by
+   coordinate. Missingness follows the same order: `<point x="3" y="4">$nothing</point>` is the
+   point `(3, 4)`, while `<point x="3">$nothing</point>` is missing, its `y` coming from the
+   content. #2595 made a point missing whenever its content names nothing, whatever its
+   attributes give.
+2. **Content that attributes override entirely is a warning.** `(5,6)` in
+   `<point x="3" y="4">(5,6)</point>`, and in `<point coords="(3,4)">(5,6)</point>`, is unused;
+   the warning, decided at load, says the attributes give every coordinate, so the content isn't
+   used (as REF-4a warns of an unused second child). The same applies to a vector whose
+   attributes give its whole value.
+
+**Done by #2650** (closing #2596), for a point; the warning is `doenet-w0202`. For a vector, only
+a written `displacement` overrides its content. Left for a decision (#2655): a vector's `x`/`y`/`z`
+come after its content and `displacement`, the reverse of a point's; decided (D67 decisions 6 and
+7): the point's order, and a written `xs` ranks with `coords`.
+
+## D50. Decisions from the review of #2597 (November 2026)
+
+1. **An input that isn't focused never shows an edit that wasn't entered** (#2598 item 5; SAVE-1;
+   done by #2611, leftovers #2614).
+   The renderer commits an edit on blur, but a graph drag doesn't blur the input, and a condition
+   can read `$mi.immediateValue` as the reader types. So the core commits, when it is made, any
+   input made from saved state or carried by a copy (`copyWithState`) that isn't the input being
+   edited: its `immediateValue` becomes its `value`, and `valueUnderEdit` is cleared. This keeps
+   the rule in the core, and takes over `__componentNeedingUpdateValue`'s job at reload.
+2. **A disabled input enters its edit when it becomes disabled** (#2614 item 4; decided November 2026;
+   done by #2616).
+   A disabled input can't be focused, so it is treated as a withheld one is: an unentered edit is
+   entered when the input becomes disabled, or when it is made disabled, as at a reload. The entry
+   records the `answered` event a blur would.
+3. **Read-only enters the edit without an event** (#2614 item 5; done by #2616). Under `readOnly`, an unentered
+   edit is entered so the input shows its value, and nothing is saved or reported.
+
+
+## D51. Tag, attribute and property names are case-sensitive (decided, Tier 1; November 2026)
+
+From the review of #2603, which found #2605. Tag names were case-sensitive (`<MATH>` is
+`doenet-e0002`), names were case-sensitive (`$mm` doesn't find `name="Mm"`), but attribute and
+property names were matched without case. Some attributes were still matched exactly (`name`,
+`for`, `valueName`, `indexName`), and a tag with `copy`/`extend` was matched without case.
+
+**Decided:**
+1. **Tag, attribute and property names are matched exactly** (NAME-0), like the names an author gives
+   components. A name in another case is an unknown name:
+   - a tag is `doenet-e0002`, as now;
+   - an attribute is `doenet-e0004`, as a misspelled one is now;
+   - a property names nothing, as a misspelled one does now.
+
+   Each message suggests the name the written one differs from only in case.
+2. **A tag written with `copy` or `extend` follows the same rule** (#2605). That settles #2580 item 3
+   (`<Award copy>` in an `<answer>`) as an error, with no change to the answer's sugar.
+3. **Keywords in attribute values stay case-insensitive** (`simplify="FULL"`, `hide="True"`), since a
+   value can come from what a reader types.
+   A type named in an attribute (`type="math"`) is not a keyword but a tag name, matched exactly
+   (D63 decision 4).
+
+**Why not make tags case-insensitive instead?**
+- Names can't be: `$Mm` and `$mm` are different.
+- Matching without case would require every comparison of a tag to go through a lowercase table, and
+  each one that forgets is a bug (#2605).
+- The Rust core matches exactly.
+- The schema, autocomplete and docs use one spelling.
+
+A suggestion in the message gives the forgiveness without hiding the mistake.
+
+**Migration.** `e0004` is an error that replaces the component, as for a misspelled attribute
+today. So under D51, `<math SIMPLIFY="full">x+x</math>` shows an error in place of the math, not
+the math with a message. Before the switch, scan the tests, docs, Cypress specs and available
+course content for wrong-case attributes and property names, and fix them. If there are many in
+course content, a first release may give a warning and still apply the attribute. The scan
+decides. `<document>` is not replaced by an error (#2614 item 1, done by #2618), so a wrong-case
+attribute on it is reported and ignored.
+
+**Done by #2624.** The scan found about 1,500 wrong-case names in the repo's docs and tests, so
+the fallback was taken: for one release, a wrong-case attribute is applied, with `doenet-w0197`
+naming the right spelling. The parser renames it before anything reads it, with a backstop in the
+core. Tags and properties have no fallback. Leftovers are #2627, including a decision: rename the
+all-lowercase compound names (`halign`, `xintercept`, …) to camelCase before the release.
+
+## D52. Decisions from the review of #2603 (decided, November 2026)
+
+#2602 and #2603 type every property and an answer's responses at load where the DoenetML decides
+it. What's left of TYPE-3 (#2606) mostly follows from these three:
+
+1. **A missing response has its entry's type** (decided). An answer whose response is
+   `$l[3]` of a two-entry `<mathList>`, or a `<choiceInput>` with nothing selected, records it as
+   one blank math whatever its type; the run-time tests pin that ("a missing entry is recorded and
+   compared as an empty response"). TYPE says a response has its entry's type, and VAL-5 says a
+   missing T is still a T (D37). So `$l[3]` of a `<textList>` is a missing text, and the type is
+   known at load. A blank never equals anything (VAL-5), so credit doesn't change.
+2. **A property made into points or vectors declares that type** (decided). `$c.center`,
+   `$pl.vertices`, `$l.points[1]` and `$v.displacement` are points or vectors when read, but their
+   classes declare a math, so they can't be typed at load. Declare what they give (point,
+   vector), as for any other property (TYPE-1). Decided.
+3. **`<answer copyWithState="$a">` with children of its own** (an `<award>`, an input). D32
+   decides only `extend` (`e0083`/`e0084`). Decided: allowed, as for `copy`. A
+   `copyWithState` is its own answer that starts from a snapshot (CPY-2). Its saved credit is
+   the source's until the reader submits again, as for any snapshot.
+
+With these settled, each remaining undecided case in #2606 is either typed at load or an error at
+the reference that needs it (TYPE-3), and `hasVariableComponentType` can be removed.
+
+**Done by #2642** (PR 31), all three, and `hasVariableComponentType` removed. TYPE-3's error is
+`doenet-e0091`. Not reached: a missing list response is still typed `_missing`, and some `e0091`s
+are for types the DoenetML does decide (`forAnswer` inputs by place, a path through an index):
+#2646.
+
+## D53. Decisions from the review of #2569 (PR 23; decided, November 2026)
+
+1. **A sort, shuffle or sortIndices doesn't change its items** (#2569 item 9; COLL-4, COMP-4).
+   Points of different dimensions keep their own: `(1, 2)` stays `(1, 2)` beside `(3, 4, 5)`. The
+   composite build already does this; the list build pads to `(1, 2, 0)` and must match it.
+2. **`⟨ ⟩` are brackets in VAL-12** (#2569 item 16), as `( )`, `[ ]` and `{ }` are. A comma
+   inside them doesn't split a list: `<vectorList>⟨1,2⟩ ⟨0,3⟩</vectorList>` is two vectors, and
+   `⟨1,2⟩` beside `<vector>`s in a `<sort>` is one vector. As for the others, any closer closes any
+   opener, so there is still one rule.
+
+## D54. `<updateValue>` reads `newValue` as its target's type (decided, Tier 1; November 2026)
+
+Authors had to write `type="boolean"` for `<updateValue target="$b" newValue="true"/>` to work,
+and without `type`, a text target was unchanged and a `<textInput>` target crashed the core
+(#2607). The target's type is known from the DoenetML (TYPE, D45), so the author shouldn't
+repeat it.
+
+**Decided** (ACT-2a in [interaction-and-state.md](interaction-and-state.md)):
+1. `newValue` is read as the target's type, decided at load.
+2. A related type converts as REF-5 allows; booleans and numbers stay apart (D47).
+3. Targets of more than one type are an error at load.
+4. A written `type` that agrees is allowed; one that disagrees is an error at load. The docs drop it
+   from examples.
+5. A target whose type the DoenetML doesn't decide is TYPE-3's error at the `target` (#2606).
+6. An update that can't be applied gives a diagnostic, never silence or a throw.
+
+## D55. An answer's type comes from its input (decided, Tier 1; November 2026; done by #2648)
+
+`<answer><textInput/>hello there</answer>` earned no credit without `type="text"`: the answer's
+sugar worked out a type but never gave it to the awards, which read plain text as math (#2608).
+
+**Decided** (ANS-4 in [interaction-and-state.md](interaction-and-state.md)):
+1. The input written inside the answer decides its type; an award's content is compared with that
+   input.
+2. With no input inside, the awards' typed content decides it, references included (typed at
+   load), and so decides the input the answer adds.
+3. Plain text in every award of the answer is read as that type. For answers, this replaces D45
+   decision 7's "math unless `type`".
+4. `type` is needed only when nothing else decides; a `type` that disagrees with the input is an
+   error at load. `type="videoWatched"` is a different use and stays.
+5. Award content of another type than the input is a type-mix warning at load.
+6. With more than one input, an award with content and no `<when>` is compared with nothing: a
+   warning at load.
+7. An answer with a `forAnswer` input whose award has content and no `<when>` adds an input of its
+   own: a warning at load.
+
+Not part of the type: `<considerAsResponses>` (what is recorded), `referencesAreResponses` (what a
+`<when>` reads), and a `forAnswer` input (reached only through a `<when>`).
+
+## D56. A section's own number is a number; `sectionNumber` stays a text (decided, Tier 1; November 2026; done by #2635)
+
+`sectionNumber` is the label shown: a `<section>` in a `<section>` includes its parent's number,
+so it is `"2.3"` (`enumeration.join(".")` in `SectioningComponent.js`). It can't be a number:
+section 2.10 follows 2.9, but the number 2.10 is less than 2.9. So `$s.sectionNumber > 2` is
+never true, silently (#2623 item 8).
+
+**Decided:**
+1. `sectionNumber` stays a text, the label shown.
+2. A new public property, **`ownNumber`**, is the section's own position as a number: 3 for
+   section 2.3, 2 for top-level section 2, missing for an unnumbered section (VAL-5). A list item,
+   `<problem>`, `<part>` and every other component numbered the same way gets it too.
+3. `enumeration` (the parts, `[2, 3]`) stays internal.
+4. The type-mix warning for ordering a text against a number (#2623 item 8, if decided) suggests
+   `ownNumber` when the text is a `sectionNumber`.
+
+## D57. A circular dependency thrown while the document loads becomes a located `e0005` (decided, Tier 2; November 2026; done by #2625)
+
+The load-time cycle checks (#2471, #2513, #2618) predict what the run time waits for, and some
+shapes they miss still stop the whole document with "Circular dependency" (#2623 item 1; D14's main
+known violation).
+
+**Decided** (#2618's approach (c), then (a)):
+1. When `CircularDependencyError` is thrown while the document loads, the core catches it once.
+   - It blames one authored node on the cycle: the reference to a section's number if there is one,
+     else the first composite in document order (DIAG-4).
+   - It rebuilds with that node as `e0005`, through the load check's error path.
+   - The rest of the document renders (D14, NAME-7).
+2. The load-time prediction becomes an optimization. It should err toward missing an edge (the
+   backstop catches it) rather than adding one (a false `e0005`). **Amended by #2625's finding:**
+   this doesn't hold for an edge to a composite whose count the number changes
+   (`<repeatForSequence to="$s.sectionNumber">`). That cycle runs away without throwing, so only
+   the edge stops it. Edges stay for those; an edge to a case that can only flip is dropped
+   (D61 decision 1).
+3. A generated differential test pins the numbering check against the run time. It runs each
+   generated document with the number edges on and off, and CI runs a fixed sample.
+4. **Still a known violation:** a cycle that appears only after an update still stops the
+   document. Shapes the prediction misses may give variant-dependent outcomes (against #2471).
+
+## D58. Ordering a text against a number is a type mix (decided, Tier 1; November 2026)
+
+`$s.sectionNumber > 2` is never true, silently: `sectionNumber` is a text (D56), and `<`, `>`,
+`<=` and `>=` between a text and a number give false (#2623 item 8). `=` between them already
+works and is unchanged.
+
+**Decided:** ordering a text against a number is a type mix, with a warning at load saying the
+comparison can never be true, as D47's other type mixes are. Nothing is converted. When the text
+is a `sectionNumber`, the warning suggests `ownNumber` (D56). **Done by #2651:** `doenet-w0204`,
+naming each ordering as written.
+
+## D59. A name or property after a collection is the collection's own (decided, Tier 1; November 2026; done by #2636)
+
+Reverts D41 decision 1 for collections. With it, `$r.x` was each item's `x` but `$r.fixed` the
+repeat's own, and `$r.P` every iteration's `P`: authors found it hard to tell which a name or
+property reached.
+
+**Decided** (COLL-1, COLL-2):
+1. **After a collection, a name or property is the collection's own.** A collection is a list, a
+   sequence, a collect, a sort or shuffle, a repeat, the list operators, and a select or other
+   random chooser with `numToSelect` written as anything but a literal `1`. Its own properties are
+   `numItems`, `hide`, `fixed`, `disabled`, and those the tag declares for itself. Anything else
+   names nothing, with a warning suggesting an index: `$pl.x` → `$pl[1].x`, `$r.P` → `$r[1].P`.
+2. **A one-shown-thing tag stands for what it shows,** as a `<group>` of one does: a
+   `<conditionalContent>`, and a select or chooser with no `numToSelect` or a literal `1`. `$cc.x`
+   and `$s.P.x` keep working, with the every-branch rule (COMP-11). Its own settings stay its own.
+3. **Decided by the tag as written,** never by the number of items as the document runs: a
+   one-entry `<mathList>` is still a list, and `numToSelect="$n"` is a collection.
+4. **Every item later, by a slice:** `$r[:].P`, `$pl[:].x`, if authors need it. Not implemented.
+   This leaves a name or property after a collection free for the collection's own, such as
+   attributes (`maxNumber`) if they are exposed one day (D41's open question).
+5. **An action's target follows the same rule:** `target="$r.mi"` names nothing; write
+   `$r[1].mi`.
+
+Implementation: #2626, done by #2636. It reverts parts of #2565 (per-item names and properties,
+`w0192` for repeats) and #2611 (`$r.mi` as a target).
+
+**Decided in #2636:**
+6. **A list's `text`, `latex` and `value` name nothing.** They were its entries read together, never
+   the list's own state. Write `<text>$ml</text>`, `$ml`, or an entry's `$ml[2].text`.
+7. **A collection reached through a branch or an item is held to the same rule.** The check reuses
+   COMP-11's every-branch rule to follow a name in branches up to the first collection, so the two
+   never disagree (`$cc.r.P` names nothing, suggesting `$cc.r[1].P`).
+8. **A name written inside a list, sort or shuffle is that component** (`$pl.P`): ordinary name
+   resolution, not a reach into each item.
+
+Leftovers: #2638, done by #2644 (items 1–6). Its item 7, a `<group>` made from a repeat, is
+#2649: a collection keeps its kind (COLL-1, REF-5). #2644's own leftovers are #2652.
+
+## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026; done by #2632)
+
+Some components declared all-lowercase compound names where the convention is camelCase (`xMin`,
+`numItems`): `circumradius`, `inradius`, `coeffvar1`, `coeffvar2`, `xintercept`, `yintercept`,
+`righthandside`, `righthandsides`, `xoffset`/`yoffset`/`zoffset`, `xthreshold`/`ythreshold`/
+`zthreshold`, `halign`, `valign`, `valigns`. The docs taught the camelCase spellings, which
+worked until names became case-sensitive (D51, #2624) (#2627 item 1).
+
+**Decided:** rename them to camelCase (`circumRadius`, `inRadius`, `coeffVar1`, `xIntercept`,
+`rightHandSide`, `xOffset`, `xThreshold`, `hAlign`, `vAlign`, …), before the release that ships
+#2624, so authors meet one change rather than two. The one-release fallback (`w0197`) covers the
+old attribute spellings, since they differ only in case. A property written the old way names
+nothing, with a suggestion. Single words (`endpoints`, `eigenvalues`) are not in scope. The rename covers attributes and public
+properties alike: the implementing PR scans every declared attribute and public property for an
+all-lowercase compound, not only the names above. A new compound name is camelCase.
+
+## D61. Decisions from the review of #2625 (decided, November 2026)
+
+1. **A section's number gets a load-time edge only to a composite whose count it can change**
+   (#2633 item 1). That means a `<repeatForSequence>`'s `from`/`to`/`length`, a `<sequence>`'s, a
+   `<repeat>`'s `for`, a `<select>`'s `numToSelect`, and anything else that makes a section a variable
+   number of times. Such a cycle runs away without throwing, so only the edge stops it (D57
+   decision 2, amended). A cycle through a `condition` or a case can only flip a case, so it gets no
+   edge: the run time settles, reports a loop at the composite, or throws and the load backstop
+   catches it. This removes the false `e0005`s #2625's differential test found (`KNOWN_FALSE_ERRORS`).
+2. **The load backstop repeats, with a cap** (#2633 item 2; amends D57 decision 1's "once"; done by
+   #2639, with decision 1). Each
+   rebuild keeps the nodes already blamed and blames one more, up to 5 rebuilds. So two independent
+   cycles at load are each `e0005`. Past the cap, the document stops as before. Only documents that
+   would otherwise stop pay for the extra loads.
+
+## D62. Decisions from the review of #2628 (decided, November 2026)
+
+1. **An attribute written twice is a warning at the second** (#2627 item 10). `simplify="full"
+   simplify="none"` is collapsed by the parser with no diagnostic today. The second gets a warning
+   (a new code; `e0003` is retired) saying it is ignored and naming which one is kept.
+2. **A value that names a tag or a property is a name, matched exactly** (#2627 item 11; NAME-0).
+   Examples are `<collect componentType="Point">`, `sortByProp` and `propForSort`. For the
+   fallback release, a value in another case is applied with `w0197` naming the right spelling,
+   as for an attribute. Keywords in values (`simplify="FULL"`, `hide="True"`) stay
+   case-insensitive (D51 decision 3).
+
+**Done by #2641** (PR 44). Decision 1 is `doenet-w0201`, keeping the first. Decision 2 covers
+`componentType` and `sortByProp` (`propForSort` is no attribute), and an attribute a `<collect>`
+passes on. An attribute read at load and written with a reference is `doenet-e0090`. Left
+(#2647): `componentType="$t"` is still allowed (decided by D63: `e0090`), `<select type="Math">`
+isn't read as a keyword (D63 decision 4 may change this).
+
+## D63. A type, tag or property named in an attribute is written literally (TYPE-5; November 2026)
+
+**Why.** #2641 made a reference in an attribute read at load `doenet-e0090` (`sortByProp="$t"`,
+`<sort type="$t">`). A check after it found that every `type` that sets a value's type refuses a
+reference: on `<select>`, `<selectFromSequence>`, `<sequence>`, `<repeat>`,
+`<repeatForSequence>`, `<sort>`, `<shuffle>`, `<tally>`, `<indexOf>`, `<answer>`,
+`<updateValue>`, `<slider>`, `<split>`, `<substitute>` and `<animateFromSequence>`. But
+`<collect componentType="$t">` was allowed, and matched only as the document ran, so the
+collect's type wasn't known at load (TYPE). This also left a `<collect>`'s passed-on attributes
+uncorrected (#2641).
+
+1. **Decided: `componentType` is written literally, like `type`.** A reference is `e0090`. The
+   rule is TYPE-5: an attribute that names a type, a tag or a property is read at load, so it is
+   written as text. In the repo, only three tests write `componentType="$t"`.
+2. **Decided (follows from TYPE-5): `<dataFrame columnTypes>`** says each column's type and is
+   written literally too. Its values are `number` and `string`; TYPE's name for the second is
+   `text`. Its "auto" type is worked out from a data file as the document runs; a file is not
+   the DoenetML, so this is outside TYPE.
+3. **Decided: (a). Three `type` attributes choose a kind, not a type,** and stay keywords that
+   may take a reference, like `simplify`. They are not under TYPE-5. `<chart type="bar">`,
+   a sampler's distribution (`<sampleRandomNumbers type="uniform">`,
+   `<selectRandomNumbers>`, `<sampleMultivariateRandomNumber>`) and `<extractMath
+   type="operand">` take a reference today. A test lets a reader pick the chart's type with a
+   `<textInput>`, and another the distribution.
+   - (a) **Recommended:** leave them as keywords that take a reference, like `simplify`. TYPE-5
+     is about types. But then "every `type` is literal" isn't true, and the word means two
+     things.
+   - (b) Make them literal too, so every attribute named `type` is literal. A reader can no
+     longer pick the chart or distribution.
+   - (c) Rename them (`<chart kind>`, `distribution`, …) with `w0197`'s fallback for one release,
+     so that `type` always means a type and is always literal. The most uniform, at the cost of
+     a rename.
+4. **Decided: a type named in an attribute is a tag name, matched exactly** (the recommendation
+   below). Case: D51 decision 3 reads keywords without case "since a value can come
+   from what a reader types". A `type` can't now (TYPE-5), so that reason no longer holds for
+   it. Today `type="Math"` is read as `math` on most tags, while `componentType="Math"` is a tag
+   name: given its spelling with `w0197` (D62). `<select type="Math">` is `w0145`.
+   - **Recommended:** a type named in an attribute is a tag name, matched exactly, like
+     `componentType`: `type="Math"` is applied with `w0197` for the fallback release, then an
+     error (#2627 item 8). One rule for every place a type is named. The keywords that aren't
+     types (`simplify="FULL"`, `hide="True"`, and item 3's, if kept) stay case-insensitive.
+   - Or keep `type` values as keywords, read without case, and do the same for `componentType`.
+
+## D64. A collection keeps its kind when a tag is made from it (decided, November 2026)
+
+**Why.** #2644 (PR 46) first made `<group extend="$r"/>` of a repeat hold its iterations, then
+took it out: a `<group>` made from a collection isn't the same component (REF-7), changes the
+collection's kind (COLL-1), and is no pair D26's table allows. On `main`, a group made from a list
+or a `<collect>` acts as the list (`$g[2]` is the second entry, `$g.numItems` the count), while a
+group made from a group of several refuses an index (`w0188`), and one made from a `<repeat>` or a
+select of several shows nothing. #2649.
+
+1. **A `<group>` made from a collection by `extend`, `copy` or `copyWithState` is `doenet-e0065`**
+   at load ("any other pair" in REF-5), with a reason for a collection naming the forms that work:
+   `<group>$r…</group>`, a group holding the collection, and `<repeat extend="$r"/>`, the same
+   collection again. No new code.
+2. **This includes a list:** `<group extend="$pl"/>` is an error too. D26 allows a list made from a
+   group whose components match (`<mathList extend="$g"/>`), not the reverse; a list is many
+   things (COLL-1). `<group>$pl</group>` works, and `$g.P` reaches a name written in the list
+   through it (#2644).
+
+Unchanged: a `<group>` made from a group, an iteration, a pick or a one-shown-thing tag; a scalar
+tag made from a composite the DoenetML guarantees holds one component; a list made from a
+collection whose items all match its entry type. Implementation: PR 50 of #2509, with #2594 item 2.
+**Done by #2670** (closing #2649 and #1986); extended by D77. Leftovers done by #2683 (closing
+#2676); its own in #2686.
+
+## D65. The decisions waiting in #2509's table (decided, November 2026)
+
+Each follows the recommendation in #2509, except where noted.
+
+1. **A write to `fixed` through a reference** (#2235; D7). It goes to the source for a component
+   reference that has no `fixed` of its own; it is refused for a property or a list entry;
+   default-fixed sequence entries can't be unfixed; a `copy` has its own `fixed`, an `extend`
+   shares the source's.
+2. **A drag writing one value twice: the first write wins** (#2257), during the drag and on
+   release alike. #1510 (a rectangle with `width="$l" height="$l"` flashing as its corner is
+   dragged) is the same question.
+3. **An event's identity across a reload** (#2365, D30): a component with no root name is reported
+   by its `stateId`.
+4. **Copy replacement ids derived from the sources' `stateId`s** (#2485 item 3): left to the new
+   core.
+5. **D34 is accepted** (#2408): a text's `isLatex` decides how it is read as math.
+6. **The converter (#2457) writes an input bound to a value as a reference child**, not
+   `bindValueTo` (changed from the recommendation). `<mathInput>$m</mathInput>` shows `$m` and
+   writes to it exactly as `bindValueTo="$m"` does (INT-1; checked for `<mathInput>`,
+   `<textInput>` and `<booleanInput>`, a property included), and authors find the child clearer.
+   `bindValueTo` stays for a `<choiceInput>`, whose children are its choices. The same goes for
+   messages that suggest a form, such as REF-5's input-from-a-value error: "To edit `$m1`,
+   write `<mathInput>$m1</mathInput>`". D32 extends are still rewritten to `copy`.
+7. **What a `<select>` returns** (#2156) is answered by the rules decided since it was opened,
+   so nothing is left to decide:
+   - options need not agree; a reference that needs a type is checked where it is used: a name
+     after a one-pick select must be declared in every option with one type (COMP-11), and a tag
+     made from a select needs every option to hold one component of a type it can become
+     (REF-5, D36), else an error at load;
+   - every type is decided at load (TYPE); `type` only says how bare text becomes options;
+   - an option holding several components is a pick, a wrapper of several, reached by name
+     (COLL-3, D44), and a select of several is many things (COLL-1);
+   - a select between unlike content keeps working; only a reference that needs one type fails;
+   - whether a select whose options agree is built as a list (#2128) is the core's choice,
+     invisible to authors (COMP-4).
+8. **Showing a student's answer** (#2155) is a feature, deferred.
+9. **The older count names on authored lists** (`numComponents`, `numPoints`, `numVertices`, …)
+   are retired in favor of `numItems`, so that eventually every collection has the same names.
+   As in D60, an old property spelling names nothing, with a suggestion of `numItems`.
+10. **A property that echoes an attribute stays** (changed from the recommendation). A public
+    attribute's default definition already makes a property of the same name; this lets
+    DoenetML read the value without reasoning about attributes, which matters most when layers
+    of `extend` build up. A list's `maxNumber`, `unordered` and `mergeMathLists`, `<tally>`'s
+    `categories` and a sampler's `mean`, `variance`, … stay as the collection's own properties
+    (since D59 they can't collide with an item's).
+
+Still open: #2127 item 9 (the `_copy` name and role), D46 part 1 (since decided: one `<list>`), #2581 item 4
+(`$slider.items` of a `from`/`to`/`step` slider).
+
+## D66. Decisions from the sweep of older issues (decided, November 2026)
+
+The sweep checked 121 older open issues against the principles on `main`. These were decided,
+each following the recommendation except where noted:
+
+1. **D9 (#246): (a).** A component's own `hide` carries to every reference to it.
+2. **An `<answer>`'s `<label>` labels its one input** when the input is written out and has no
+   label of its own (#1674); with several inputs, a warning.
+3. **`$x{…}` is removed from the reference grammar** (#1910, #1911, #1858; changed from the
+   recommendation): now, on the 0.8 branch, with no warning first. 0.7 has been out for a while,
+   and the braces did nothing there either. The braces are then plain text. The docs examples
+   that still use them are rewritten (#1857).
+4. **The core decides what an author sees** (#1555): it warns of a tag placed where no parent uses
+   it (DIAG-1, #1886). The schema's checks stay as an editor hint.
+5. **`<searchSorted>` with a target that takes no part in the ordering gives `0`** (#1965), as
+   `<indexOf>` does, with a warning at load for a literal target.
+6. **`<number>` reads text as `<math>` does** (#1849; D44: one type): no JavaScript literals
+   (`0x10`, `0b101`), and `1E3` only with `parseScientificNotation`.
+7. **`<isNumber>` and `isnumber()` read the expression as written**, neither simplifying first
+   (#1797).
+8. **Operator words in a `<boolean>` are keywords**, read without case (#1326; D51 decision 3):
+   `true AND true` is `true`.
+9. **A one-value operator applies to each entry of a list and gives a list** (#1954; `<floor>`,
+   `<abs>`, …), with lists of different lengths an error at load where known. A feature, after the
+   type chain.
+10. **A `<text>`'s value is trimmed and its runs of spaces collapsed** (#21), so value and display
+    agree. Low priority.
+11. **Variants named without `numVariants`** (#1169; changed): unique variants are extended to
+    cover this, rather than a rule of their own. When the document's other selections are
+    counted, the named variants trim the combinations as unique variants do; when they can't be
+    counted, `numVariants` is needed. With #385 and the other places the unique-variant count
+    gives up, this is #2653.
+12. **A select whose options depend on another selection** (#385; changed): allowed, as SEL-1
+    allows any parameter, the options included, to read another selection
+    (`<selectFromSequence to="$a">` is the same kind). Unique variants are extended to count
+    such selections, using SEL-5's enumeration (#2653); until then they are not claimed.
+13. **#1510 is #2257**: the first write wins (D65 decision 2).
+14. **A page with nothing to score gets full credit** (#388; changed): `creditAchieved` already
+    does this, and #2634 makes `creditAchievedIfSubmit` follow it.
+15. **One `submitLabel`** (#349), its default depending on `showCorrectness`;
+    `submitLabelNoCorrectness` is retired.
+16. **Sections are numbered among themselves; titled blocks** (`<aside>`, `<definition>`,
+    `<example>`, `<problem>`, …) **share one counter within their section**, as PreTeXt does
+    (#1490, #1262).
+17. **An angle can be made from a math** (#478), the reverse of the allowed angle-as-math: a
+    related pair for REF-5. Only from a value (math, number, text), not a point or vector (D69
+    decision 3).
+18. **A `<module>`'s declared boolean written with no value is `true`** (#2013), as for a built-in
+    attribute, and a declared number left empty is `e0072` (COMP-13).
+
+**Done so far:** decisions 2 and 15 by #2671 (with #1874, #1873, #2097, #1853, #1279, #1565 from
+the sweep); decision 14 by #2634 (closing #2630 and #388).
+
+Also from the sweep: 34 issues were closed as fixed, superseded or duplicates (with #2156, answered
+by D65 decision 7), and the rest still broken were scheduled in #2509 (PRs 51–60) under rules
+already decided.
+
+## D67. Decisions from the leftovers of #2648, #2650 and #2651, and `$slider.items` (decided, November 2026)
+
+Each follows the recommendation in its issue.
+
+1. **`<number convertBoolean>` counts every boolean in its expression as `1` or `0`** (#2656 item
+   2): `<number convertBoolean>$b + 1</number>` is `2` when `b` is true. The author asked for
+   the conversion. Elsewhere a boolean in arithmetic stays a type mix (D47 decision 3).
+2. **An answer's `type` is matched exactly, `videoWatched` included** (#2657 item 1): one rule for
+   one attribute (D63 decision 4), with `w0197` for another case in the fallback release. The
+   value is trimmed.
+3. **One warning where two would pull apart** (#2657 item 2): content in an answer that is both a
+   boolean–number mix and of another type than the input (`<number>$b</number>` in a
+   `<booleanInput>` answer) gets only `w0205`, whose advice resolves both (DIAG-3).
+4. **A warning about a reference names its value** (#2657 item 3): "`$ti` gives a text", as
+   `e0065` does, not "this `<textInput>`".
+5. **`w0078` is at the `type` attribute** whichever part reports it (#2657 item 4; DIAG-4).
+6. **A vector takes the point's order** (#2655 item 1; D49): `x`/`y`/`z`, then `displacement`,
+   then its content, coordinate by coordinate, with `w0202` for content they override entirely.
+   A vector's value changes where both are written, and so does what a drag writes: a changeset.
+7. **A written `xs` ranks with `coords`** (#2655 item 2): it is the whole value, so it comes before
+   the content, with `w0202` when it overrides it entirely.
+8. **`$slider.items` of a `from`/`to`/`step` slider is the values it steps through** (#2581 item
+   4), as a list, as it is for a slider given its items. It can then take an index (#2581 item 5).
+
+## D68. A text is never read as a boolean; a comparison decides one (decided, November 2026)
+
+**Why.** REF-5 listed "boolean and text" among the related value types, so `<boolean extend="$t"/>`
+of a text holding `true` was `true`. Every other form gave a silent `false`: `<boolean><text>true
+</text></boolean>`, `<boolean>$t</boolean>`, `<boolean>$ti</boolean>` of a `<textInput>`,
+`hide="$t"` and `<booleanInput bindValueTo="$t"/>`. Reading the word "true" as the boolean is the
+conversion D47 decision 4 ruled out for a number: one the author didn't ask for. It also let a
+`<label>` that says "true" become a boolean through its text (#2659).
+
+**Decided** (the same rule as D47 decision 4):
+1. **`<boolean extend="$t"/>` of a text is `e0065`**, suggesting `<boolean>$t = true</boolean>`.
+   The same goes for anything that stands in as a text (a `<label>`, a `<textInput>`, a
+   `<choiceInput>` of texts).
+2. **A text where a boolean is wanted is a type mix:** a blank in its place with `w0203`, suggesting
+   the comparison. This covers a `<boolean>`'s or `<when>`'s content, a boolean attribute
+   (`hide="$t"`) and `<booleanInput bindValueTo="$t"/>`.
+3. **A comparison decides a boolean from a text:** `$t = true`, `$animal = cat`. A literal `true` or
+   `false` written as a boolean, or in a boolean attribute, is a keyword, not a text.
+4. **A boolean still shows as the word `true` or `false` in text** (`<text>$b</text>`,
+   `<text extend="$b"/>`): that is display, as for a number (D47).
+
+`<boolean extend="$ci"/>` of a `<choiceInput>` whose choices are "true" and "false" followed the
+selection (`type_change_run_time.test.ts`); it becomes `e0065`, suggesting `$ci = true`.
+Implementation: **done by #2672** (closing #2659). Leftovers in #2677 (items 2–4).
+
+## D69. A component becomes only what it stands in as (decided, November 2026)
+
+**Why.** `typeChange.js` let a component with an adapter to a value type become *any* value type,
+and treated a `<label>` as a text and an `<angle>` as a math "made from, and into, the others".
+So a chain past the adapter was accepted: `<number extend="$line"/>` (the line's equation as a
+number, always `NaN`), `<boolean extend="$ion"/>` (`false`), `<boolean extend="$l"/>` of a label,
+`<label extend="$m"/>`. Each was silent, or a blank with a misleading `w0107`, depending on which
+adapters a class declares (#2659).
+
+**Decided (option B):**
+1. **A component can be made into what it stands in as** (its adapters), and nothing further:
+   `<math extend="$line"/>` is the line's equation, `<text extend="$ion"/>` its name,
+   `<math extend="$m"/>` and `<text extend="$m"/>` an `<m>`'s math and text, `<text extend="$l"/>`
+   a label's text. A further conversion from there is not followed: `<number extend="$line"/>`,
+   `<text extend="$line"/>`, `<boolean extend="$ion"/>`, `<number extend="$l"/>` are `e0065`,
+   naming the property or form that says what's meant (`$line.slope`, `<text>$line.equation</text>`,
+   `$ion.name`).
+2. **The same holds where such a component is content of a value tag** (`<number>$line</number>`,
+   `<text>$line</text>`, which give `NaN` and a blank with `w0107` today): a blank in its place with
+   a warning naming the property, as for a type mix (D47).
+3. **An `<angle>` is the one non-value treated as a value type:** its measure, a math, so it is read
+   as math's pairs allow (`<number extend="$a"/>`, `<text extend="$a"/>`). It is **made only from a
+   value**: a math, a number or a text (D66 decision 17). From a point or a vector it is `e0065`
+   (`<angle extend="$P"/>` gave the radians `(1,2)` through math's pairs), and from a math holding
+   a tuple it is missing with an info, as a point from a non-tuple is. (Decided after #2672's
+   review.)
+   **An input is its value** (REF-1a, D46; #2484), so it is a value type here too and follows its
+   value's pairs: `<number extend="$mi"/>` and `<point extend="$mi"/>` of a `<mathInput>` holding
+   `(1,2)` stay allowed, and `<boolean extend="$ti"/>` of a `<textInput>` is `e0065` (D68).
+4. **A tag is made from a value only by REF-5's pairs:** a math doesn't stand in as a label, so
+   `<label extend="$m"/>` is `e0065`, suggesting `<label>$m</label>`.
+5. With D68, a text is never read as a boolean, so a label is never a boolean either.
+
+A value conversion that fails within an allowed pair is missing, with an info, as REF-5 already
+says (`<number extend="$t"/>` of `hello` was a silent `NaN`).
+Implementation: **done by #2672** (closing #2659 and #478). Leftovers in #2677: content through a
+composite, an angle writing back, and whether an angle reads a text as a math (item 13, open).
+
+## D70. A comparison with a missing operand is missing (decided, November 2026; revises D40)
+
+**Why.** D40 kept `<boolean>$nothing = 1</boolean>` `false`, "since a blank never equals
+anything". But `false` is a value that can equal something: a `<booleanInput>` answer whose award
+compares with something that names nothing credited the response "false", and `not ($nothing = 1)`
+was `true`. #2658 (PR 63) made logic holding a boolean–number mix missing for the same reason; one
+rule should cover both.
+
+**Decided:** any logic with a missing operand is missing, a comparison included: `＿ = 1`,
+`＿ < 2`, `not (＿ = 1)`, `＿ = ＿` are all `＿`. VAL-5's "a missing value never equals anything"
+still holds: a missing boolean equals nothing, so it never earns credit, and where a boolean decides
+something (an award's `<when>`, a case's `condition`, `credit`) a missing one doesn't hold.
+**Done by #2658** (PR 63). One shared rule (`valueFalseWhileMissing`): a missing boolean is shown
+`＿` and equals nothing, and whatever reads it as a condition (`hide`, a case's `condition`, an
+award) reads `false`, so `hide="$nothing != 1"` no longer hides. An input left blank is a value,
+not missing: `$mi != x` is true while `mi` is empty. `<isNumber>`, `<isBetween>`, `<matchesPattern>`
+and the like are missing with a missing operand. `credit="$nothing"` gives no credit.
+
+## D71. A container's extend can present more; a value's or object's can't (decided, November 2026; REF-7)
+
+**Why.** REF-7 allowed children only on a `<group>` or `<module>` extend, but every other tag
+appended them silently, so `<number extend="$n">5</number>` of `2` was `25` (#2668). The
+canonical way to reuse a section under another title, `<section extend="$mySec"><title>New
+Title</title></section>`, also gives the extend a `.title` its source doesn't have, and such
+divergence was a reason to disallow children on an extend. An author needs one reason why one is
+fine and the other isn't.
+
+**Decided:**
+1. **An extend shares its source's state** (what the reader has done to it, and what it holds) and
+   can be presented differently. This is REF-7's Tier 1 rule, restated.
+2. **A value or an object is what it holds** (D46's kinds: `<math>`, `<number>`, `<text>`,
+   `<boolean>`, lists and inputs; `<point>`, `<line>`, `<matrix>`, `<function>`, `<answer>`, …).
+   Children written inside an extend of one are an error at load. The message suggests a new tag
+   holding the reference and the children (`<math>$m+1</math>`, `<text>$t there</text>`), or
+   `copy` for an object (`<point copy="$P">(3,4)</point>`).
+3. **A container presents what it holds** (D46's content: `<section>`, `<p>`, `<graph>`,
+   `<figure>`, `<tabular>`, `<feedback>`, `<hint>`, …, and `<group>` and `<module>`). An extend of
+   one shows the same content again, still linked, and may present more: children written inside
+   are added, a `<title>` written inside replaces the title. What it adds is its own; the shared
+   content stays one (dragging a point in it moves the source's point).
+4. **So a container's properties that describe how it presents itself** (`.title`, `.text`, a
+   problem's credit over what it holds) **are the extend's own**, as `hide` is. They may differ
+   from the source's; its state never does.
+5. A `<label>`, `<shortDescription>` or `<description>` written inside an extend is allowed **on a
+   tag that takes one**: it changes only how it is presented. On a tag that takes none
+   (`<number extend="$n"><label>L</label></number>`, a silent `NaN` before) it is a child like any
+   other: the error above (`e0057`). (Narrowed after #2672's review.)
+
+6. **Why the line falls there: a value or object has an equivalent written form; a container
+   doesn't.** A new tag holding the reference and the children (`<math>$m+1</math>`,
+   `<m>$e+1</m>`) gives the value an extend with children would. A container has no such form:
+   `<section>$mySec</section>` puts a section inside a section. So an extend is the only way to get
+   a linked container presented differently.
+7. **`<m>`, `<me>` and `<men>` count as values here** (decided): they are content in D46, but
+   their children make one expression, and `<m>$e+1</m>` works the same way.
+   `<m extend="$e">+1</m>` is an error suggesting it.
+
+Implementation: **done by #2672** (closing #2668). Leftovers in #2677; what children on a
+`copy` of a value do is open (#2677 item 12).
+
+## D72. A one-shown-thing is not a collection: no item index, no `numItems` (decided, November 2026)
+
+**Why.** D41 and D59 kept a `<conditionalContent>` and a one-pick `<select>` "indexed by item"
+(`$cc[1]`, `$s[1]`) with a `numItems` of their own, a holdover from when a conditional could show
+several cases. On `main`, `$cc[1]` is `$cc` in every case but one (with no case shown, a blank
+with `w0104` instead of nothing), and `$cc[2]` always names nothing. That contradicts COLL-1's own
+statement that a one-shown-thing stands for what it shows, as a `<group>` of one does, after which
+an index reaches into the component (`$g[2]` of a group holding `(1,2)` is `2`). A one-pick
+select already behaves halfway: `$s[2]` reaches into the pick, with a `w0181` saying it names
+nothing.
+
+**Decided:**
+1. **An index after a one-shown-thing reaches into what it shows,** as after a `<group>` of one:
+   `$cc[2]` of a case holding `(1,2)` is `2`; `$s[1]` of a pick holding a point is its first
+   coordinate. Through a case or pick holding several components it names nothing, as for any
+   wrapper of several (COLL-3).
+2. **`numItems` is removed** from a `<conditionalContent>` and a one-pick chooser. It was vestigial.
+3. **No transitional warning.** Selects and conditionals already break backward compatibility in
+   0.8. (A converter candidate for #2457: `$s[1]`, `$cc[1]` → `$s`, `$cc`.)
+4. Wording that taught `$s[1]` for a one-pick select (REF-5: "before they learn `$s[1]`") is
+   revised.
+
+Implementation: **done by #2679** (closing #2673). Leftovers in #2682.
+
+## D73. A wrapper or conditional with nothing to show shows nothing (decided, November 2026)
+
+**Why.** VAL-5 lets a reference show nothing only when it reaches a collection with no members, and
+listed `$cc` with no case shown among them, because a `<conditionalContent>` counted as a
+collection of 0 or 1 cases. D72 ends that view. COLL-3 also said a wrapper holding none is missing,
+which disagreed with VAL-5's listing of a `<group>` among the collections.
+
+**Decided:**
+1. **`$cc` while no case is shown shows nothing,** as the `<conditionalContent>` does where it is
+   written. Showing something only while a condition holds is its main use; a blank would make
+   that use harder. (First decided as `＿`, then revised the same day.)
+2. **An empty `<group>` shows nothing,** bare or by reference: it says nothing is there, and a
+   blank would surprise an author. The same holds for a shown case, `<else>`, option or iteration
+   that holds nothing, so `$cc` whose shown case is empty shows nothing. An author who wants
+   nothing when no condition holds writes an empty `<else/>`.
+3. A tag made from an empty wrapper (`<math extend="$g"/>`) is still missing, since a tag needs one
+   component (D37), and an index into one names nothing.
+
+Revises D37 item 2 (the list of what shows nothing) and COLL-3's "None". Implementation: **done by
+#2679**.
+
+## D74. A reference whose meaning depends on the branch shown is an error (decided, November 2026)
+
+**Why.** An error is for DoenetML that can't do anything reasonable as written. A reference through
+a `<conditionalContent>` or a one-pick chooser that names one kind of thing in one branch and
+another kind, or nothing, in another has no meaning the author can rely on: what it shows, and its
+type, would change with the branch (TYPE-3, COMP-11). D37 item 6 had made a name failing the
+every-branch rule a warning with a blank; this moves it.
+
+**Decided:**
+1. **`$cc.x` when `x` is missing from some branch** is an error at the reference, decided at load
+   (it was warning `w0183`, a blank). **When `x` has different types in different branches** it
+   stays an error (`w0184`, reported at error level; it shows `""` today, where an error should
+   take its place).
+2. **An index after a `<conditionalContent>` or one-pick chooser** (D72) is an error at the
+   reference, decided at load, when a branch holds several components or the branches hold single
+   components of different types. When every branch holds at most one component, all of one
+   type, it reaches into the shown one, typed at load; while the shown branch is empty or no case
+   is shown, it names nothing (missing).
+3. The same for a one-pick `<select>`'s options. A one-pick `<selectFromSequence>` or
+   `<selectRandomNumbers>` gives one type, so it always qualifies.
+4. These are errors in both forms, bare and on a tag (REF-1), shown in the reference's place
+   (DIAG-5). The codes are errors' codes.
+
+Revises D37 item 6 for the every-branch rule. Implementation: **done by #2679** (`e0093`–`e0095`;
+`w0183` and `w0184` retired). Leftovers in #2682 and #2674.
+
+
+**Amendment (November 2026, with D78.1):** for the every-branch type check, a collection's type is
+**"a collection of T"**, not its tag. A `<repeat>` of maths in one case and a `<select>` of maths
+(of several) in another match, so bare `$cc.x` shows the list, `$cc.x[2]` is a math, and
+`<list extend="$cc.x"/>` works (REF-1: the bare form and the tag agree). `<repeat extend="$cc.x"/>`
+is still `e0071` (D78.1), and a property only one branch's tag has (`$cc.x.selectedIndices`) is
+missing in a branch, an error (D74, D75). Collections of different item types (maths and texts)
+stay `e0094`. Implementation: #2682 (PR 70).
+
+## D75. A reference the DoenetML proves can never give anything is an error (decided, November 2026)
+
+**Why.** D74 made a reference whose meaning depends on the branch shown an error. That left an odd
+order: `$cc.x` with `x` in one branch, which works some of the time, was an error, while
+`$g[1]` of a group of several, which never works, was a warning. An error is for DoenetML that can't
+do anything reasonable as written; a reference that the DoenetML proves can never give anything is
+such DoenetML. Chosen after community feedback, over keeping D37's warnings for these.
+
+**Decided:**
+1. **An error at load, at the reference, bare or on a tag, shown in its place (DIAG-5):** every
+   reference the DoenetML alone proves can never give anything. Examples, with today's codes:
+   - a name with no referent, a typo (`w0104`), keeping its "Did you mean" suggestion (DIAG-3);
+   - an ambiguous name (`w0105`);
+   - a property the component doesn't have (`w0104`), and an index that can't apply
+     (`w0100`, `$n.value[1]`);
+   - a literal index below 1 (`$l[0]`), and a literal index past an end fixed by the DoenetML;
+   - an index into a group or wrapper of several (`w0188`, `w0191`), a property after one
+     (`w0193`);
+   - a name or property after a collection (`w0200`, D59), a name after a repeat's value that the
+     items lack (`w0183`/`w0184`);
+   - a name or index whose meaning depends on the branch shown (D74);
+   - `$choice` inside a `<choiceInput>` (`w0210`), a reference to a `<variantControl>` (`w0199`),
+     a `<callAction>` target naming nothing (`w0211`), a `sortByProp` naming no property
+     (`w0198`).
+2. **Still missing (a blank), with a warning or an info as now:** a reference that may name
+   something as the document runs: an index past the end of a list or repeat whose length can
+   change, an index from an input or other changing value, a case or iteration not made yet,
+   `selectedIndex` before a choice, `$ans.submittedResponse` before a submission.
+3. **What decides "proves":** the load-time checks (DIAG-7). Where they can't tell, the
+   reference stays a warning or info: a false error is worse than a missed one.
+4. Content in a case not shown is checked too (DIAG-7), so the error is the same in every state.
+5. **Not covered: wrong content inside a tag that is still made.** An invalid child is a warning
+   (`w0107`): the parent is made and the child left out. A type mix in content is the same kind
+   of thing, so it stays a warning with a blank in its place (D47): `<math><boolean>true</boolean>
+   +1</math>` and `<math>$b+1</math>` both give `＿ + 1` with `w0203`, as the two forms are
+   equivalent (VAL-3). So do award content that can never earn credit (`w0205`) and an ignored
+   attribute. A tag that can't be made at all (`<math extend="$b"/>`, REF-5) is already an error.
+
+Revises D37 item 6 and the part of D37 that reverted #2447's errors for `w0104`/`w0105` on a tag.
+Implementation: #2674 (PR 66).
+
+## D76. An invalid attribute is an error; an attribute ignored in deference to another is a warning (decided, November 2026)
+
+**Why.** DIAG-1 gave "an attribute that is ignored" as a warning, and its example was one the tag
+doesn't have, written on a `copy`, `copyWithState` or `extend` (`w0187`, #2482). The same
+attribute written on the tag plainly is the error `e0004`. On `main`, `<math foo="1">` is `e0004`
+while `<math copy="$m" foo="1"/>` is `w0187`, and an attribute the tag has that does nothing as
+written (`mean` on a uniform `<sampleRandomNumbers>`, `<proof includeAutoNumber>`) is silent.
+
+**Decided:**
+1. **An attribute the tag doesn't have is an error** (`e0004`), in every form: written plainly,
+   and on a `copy`, `copyWithState` or `extend`. `w0187` goes. It can do nothing reasonable as
+   written (DIAG-1, D75).
+2. **An attribute ignored in deference to another is a warning:** overspecification (`<vector>`'s
+   `head` beside `tail` and `displacement`, `w0007`; content `coords` overrides, `w0202`) and an
+   attribute written twice (`w0201`, D62).
+3. **An attribute the tag has that does nothing as written** (a mode it doesn't apply to, such as
+   `mean` on a uniform sampler) is a warning saying it is ignored, not silence (DIAG-1). One that
+   does nothing on any tag (`<proof>`'s `includeAutoNumber`, #164) is removed, so it is invalid:
+   item 1.
+4. An attribute an extend can't apply follows REF-7 (`e0056` on the tags whose content is made).
+
+Implementation: #2675 (PR 51).
+
+## D77. A `<group>` is made only from a composite (decided, November 2026, in #2670's review)
+
+**Why.** D64 made a `<group>` from a collection an error. #2670 found the other side: a group
+made from one component that isn't a composite (`<group extend="$m"/>` of a `<math>`, a `<p>`, a
+`<section>`) was a group holding that component, with no message, and from a `<choiceInput>` or
+an `<answer>` it showed nothing with an internal message. A tag made from a component keeps its
+kind (COLL-1, REF-7), and REF-5 has no pair making a group from a math.
+
+1. **A `<group>` made by `extend`, `copy` or `copyWithState` from one component that isn't a
+   composite is `doenet-e0065`** at load: a value, an input, an object, or a container. The
+   message names `<group>$m</group>` (a group holding it) and `<math extend="$m"/>` (the same
+   component again).
+2. **The same for a property or a list's entry, as what it gives:** `$m.value` and `$ml[1]` give
+   one component (the `one` message); a property of several values (`$P.xs`,
+   `$poly.vertices`) gives a collection (D64's message, naming the list tag, `<mathList
+   extend="$P.xs"/>`). An index past the end of a list whose type is known is `e0065` too.
+
+Unchanged: a group from a group, a `<module>`, an iteration, a pick, a one-pick `<select>`, a
+`<conditionalContent>`, and other composites. Implementation: **done by #2670**. Leftovers in
+#2676, done by #2683 (a one-pick chooser, a name after an index inside a case).
+
+## D78. Decisions from the leftovers of #2670 and #2672 (decided, November 2026)
+
+1. **A tag that makes its own content is made by `extend`, `copy` or `copyWithState` only from a
+   reference that always names the same written tag of that kind** (#2676 item 9; refines D48
+   decision 2; decided after two revisions, see below). The tags are those of D48 decision 2
+   (`TAGS_MAKING_THEIR_CONTENT` in `Copy.js`): `<repeat>`, `<repeatForSequence>`, the selectors
+   and samplers, `<shuffle>`, `<sort>`, `<sortIndices>`, `<collect>`, `<sequence>`,
+   `<conditionalContent>`, `<intersection>`, `<substitute>`, `<split>`, `<lorem>`, `<idx>`,
+   `<pretzel>`: the tag computes its content (from `for`, options, `from`, randomness), so an
+   extend of one only shows it again (REF-7). Wrappers (`<group>`, `<module>`) are not among them
+   (D77, D71).
+   - **Allowed:** `$r`, `$sec.r`, `$g.r`, `$r2` of `<repeat name="r2" extend="$r"/>`, and
+     `$outer[k].inner`, even with an index a value decides: every iteration's `inner` comes from
+     the one written tag, as a repeat whose `for` changes.
+   - **`e0071` at load:** a source of another tag, and a reference that can name different
+     written tags as the case or pick changes: `$cc`, `$cc.r`, `$s.r` of a one-pick select,
+     `$s[2].r` of a select of several, a `<group>` holding one. The message says the tag would
+     depend on what is shown and suggests showing it (`$cc.r`), or, once `<list>` exists (D46
+     part 1), `<list extend="$cc.r"/>`, which doesn't pretend the result is a repeat.
+   - **Unchanged:** showing it (`$cc`, `$cc.r`, `$cc[2]`, `$cc.r[2].t`), and a new tag holding it
+     as content (`<sort>$cc</sort>`, `<shuffle>$cc.r</shuffle>`, `<collect from="$cc">`).
+   - **A name written in one branch only is through the branch too** (decided on review of
+     #2683): `$cc.r` of a `<conditionalContent>` with one case, `$s.r` of a select with one
+     option, and `$r` or `$sec.r` reached from outside a case they are written in name that tag
+     only while the branch is shown, so they are `e0071`.
+
+   **Why.** Through a branch, the tag made would be a different written repeat, select or sort
+   in each case, presented as one; the forms were fragile in practice (#2683: a number made from
+   `$r2.numItems` of `<repeat name="r2" extend="$cc.r"/>` was `NaN` after a switch, a
+   `<sort extend="$cc.r"/>`'s entry a blank, `copyWithState` stopped a reload), and following the
+   shown branch cost every copy a state variable. Nothing is lost but a name and a fresh random
+   pick from whichever select is shown.
+
+   *History:* first decided as "never through a wrapper" (`e0071` for `$cc`, `$cc.r` suggested
+   instead); revised to allow both, since D74 makes `$cc` and `$cc.r` alike (#2683 implemented
+   it); revised again to forbid both, on review of #2683.
+2. **Children written on a `copy` of a value or an object replace the source's content**
+   (#2677 item 12; REF-4a). The children that make its value (a number's or a math's
+   expression, a point's coordinates, a list's entries) are one thing the component uses only
+   one of, so the written ones replace the source's, as a written attribute replaces the
+   source's (REF-3) and a written `<title>` replaces a section's (REF-4a).
+   `<number copy="$n">5</number>` of `2` is `5` (it was `25`); `<point copy="$P">(3,4)</point>`
+   is at (3,4), as now. Other children keep their own rule: a `<label>`, `<shortDescription>` or
+   `<description>` written on the copy replaces only the source's label or description, and
+   leaves the content; one not written comes from the source. A container's children are still
+   added after the source's (REF-4).
+3. **An `<angle>` reads a text as a math** (#2677 item 13; D69.3). An angle is a math, and text
+   to math is an allowed pair, so `<angle extend="$t"/>` of `x` is `x` radians, as
+   `<angle extend="$m"/>` of a math `x` is; a text like `hello` makes what
+   `<math extend="$t"/>` makes. It is missing with `i0053` only when that math is not a measure
+   (a tuple, a list, a set).
+
+Implementation: items 2 and 3 with #2677 (PR 68); item 1 **done by #2683** (closing #2676), leftovers
+in #2686 (through a copy of a section, `$cc[1].r`) and #2682 (D74 through an iteration or a copy).
+
+## D79. An index into a list reads one entry, not the whole list (decided, November 2026; revises #2513's edge)
+
+**Why.** #2685, found converting an activity in use on doenet.org (0.7.30) to 0.8: a
+`<numberList>` whose entries are each made from the earlier ones
+(`<number>$L[1]+1</number>` as entry 2) is `e0005` on `main`, and every reference to it a blank.
+It worked in 0.7. #2513 made an index into a `<mathList>` or `<numberList>` an edge to the whole
+list at load (NAME-7), matching a run time whose entry structure reads every child's value, to
+count the entries a math holding a list gives.
+
+1. **`$L[k]` depends on entry k and on what decides where entry k is:** the children before it
+   whose count of entries can vary (a `<math>`, whose value may be a list, D46.9; a reference to
+   a list or a composite). A `<number>`, a `<text>`, a `<boolean>` or a literal piece of text is
+   one entry whatever its value, so it decides no place.
+2. **So an entry may read an earlier entry of its own list.** A real cycle is still `e0005`:
+   entry 1 reading `$L[2]` while entry 2 reads `$L[1]`, or a `<math>` child reading an entry after
+   it, since its own value then decides where that entry is.
+3. The load-time edge (`referenceCycles.ts`) and the run time's entry structure
+   (`AuthoredValueList.js`) both follow this; `<textList>` and `<booleanList>` already did.
+   PR 69's one `<list>` (D46 part 1, with D46.9's always-merging) must keep it.
+
+Implementation: #2685.
