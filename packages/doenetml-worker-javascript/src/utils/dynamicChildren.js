@@ -17,18 +17,27 @@
  *      and define `addChildren`/`deleteChildren` methods that call these helpers.
  */
 
-function findDynamicChildren(component) {
-    return component.definingChildren?.findLast(
-        (child) => child.componentType === "_dynamicChildren",
-    );
+/**
+ * The `<_dynamicChildren>` of `component` that takes added children: its own,
+ * which normalization appends last. With `useSource`, it is instead the first
+ * one, which on an extend is the shadow of the source's `<_dynamicChildren>`,
+ * so what is added goes to the source and shows in it and in every extend.
+ */
+function findDynamicChildren(component, { useSource = false } = {}) {
+    const isDynamicChildren = (child) =>
+        child.componentType === "_dynamicChildren";
+    return useSource
+        ? component.definingChildren?.find(isDynamicChildren)
+        : component.definingChildren?.findLast(isDynamicChildren);
 }
 
 /**
  * Add children to `component` by delegating to its `<_dynamicChildren>` child.
  * No-ops (returns undefined) if the component has no such child.
+ * `options.useSource`: see `findDynamicChildren`.
  */
-export async function addChildrenToDynamicChild(component, args) {
-    const dynamicChildren = findDynamicChildren(component);
+export async function addChildrenToDynamicChild(component, args, options) {
+    const dynamicChildren = findDynamicChildren(component, options);
 
     if (!dynamicChildren) {
         return undefined;
@@ -40,9 +49,10 @@ export async function addChildrenToDynamicChild(component, args) {
 /**
  * Delete children from `component` by delegating to its `<_dynamicChildren>` child.
  * No-ops (returns undefined) if the component has no such child.
+ * `options.useSource`: see `findDynamicChildren`.
  */
-export async function deleteChildrenFromDynamicChild(component, args) {
-    const dynamicChildren = findDynamicChildren(component);
+export async function deleteChildrenFromDynamicChild(component, args, options) {
+    const dynamicChildren = findDynamicChildren(component, options);
 
     if (!dynamicChildren) {
         return undefined;

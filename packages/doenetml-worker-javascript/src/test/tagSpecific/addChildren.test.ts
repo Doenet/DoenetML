@@ -255,6 +255,186 @@ describe("addChildren for non-graph parents @group4", () => {
         await check_cells("");
     });
 
+    it("cells added through an extend of a spreadsheet go to the spreadsheet", async () => {
+        // An extend takes no children of its own and shows its source's
+        // cells, so what is added through it, or through an extend of it,
+        // is added to the source and shows in all three.
+        const doenetML = `
+    <spreadsheet name="s">
+      <cell>a</cell>
+    </spreadsheet>
+    <spreadsheet extend="$s" name="s2" />
+    <spreadsheet extend="$s2" name="s3" />
+
+    <callAction name="addCell2" target="$s2" actionName="addChildren">
+      <cell colNum="B">x</cell>
+    </callAction>
+    <callAction name="addCell3" target="$s3" actionName="addChildren">
+      <cell colNum="C">y</cell>
+    </callAction>
+    <callAction name="deleteCell2" target="$s2" actionName="deleteChildren" number="1" />
+    <callAction name="deleteCell" target="$s" actionName="deleteChildren" number="1" />
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check_first_row(row: string[]) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["s", "s2", "s3"]) {
+                const cells =
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .cells;
+                expect(cells[0].slice(0, 3)).eqls(row);
+            }
+        }
+
+        await check_first_row(["a", "", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addCell2"),
+            core,
+        });
+        await check_first_row(["a", "x", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addCell3"),
+            core,
+        });
+        await check_first_row(["a", "x", "y"]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteCell2"),
+            core,
+        });
+        await check_first_row(["a", "x", ""]);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteCell"),
+            core,
+        });
+        await check_first_row(["a", "", ""]);
+    });
+
+    it("a tabular with no rows written takes rows, and deleting more than were added deletes them all", async () => {
+        const doenetML = `
+    <tabular name="t"></tabular>
+    <p name="n">$t.numColumns</p>
+
+    <callAction name="deleteRows" target="$t" actionName="deleteChildren" number="5" />
+    <callAction name="addRow" target="$t" actionName="addChildren">
+      <row><cell>a</cell><cell>b</cell><cell>c</cell></row>
+    </callAction>
+    `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        async function check(numRows: number, numColumns: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const t = stateVariables[await resolvePathToNodeIdx("t")];
+            expect(t.activeChildren.length).eq(numRows);
+            expect(t.stateValues.numColumns).eq(numColumns);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .text,
+            ).eq(String(numColumns));
+        }
+
+        await check(0, 0);
+
+        // Nothing has been added, so there is nothing to delete.
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteRows"),
+            core,
+        });
+        await check(0, 0);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await check(2, 3);
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("deleteRows"),
+            core,
+        });
+        await check(0, 0);
+    });
+
+    it("rows added to a tabular and cells added to a spreadsheet are restored from saved state", async () => {
+        const doenetML = `
+    <tabular name="t">
+      <row><cell>a</cell></row>
+    </tabular>
+    <spreadsheet name="s">
+      <cell>a</cell>
+    </spreadsheet>
+
+    <callAction name="addRow" target="$t" actionName="addChildren">
+      <row><cell>b</cell></row>
+    </callAction>
+    <callAction name="addCell" target="$s" actionName="addChildren">
+      <cell rowNum="2">b</cell>
+    </callAction>
+    `;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const t = stateVariables[await resolvePathToNodeIdx("t")];
+            expect(
+                t.activeChildren.map(
+                    (row: any) =>
+                        stateVariables[
+                            stateVariables[row.componentIdx].activeChildren[0]
+                                .componentIdx
+                        ].stateValues.text,
+                ),
+            ).eqls(["a", "b"]);
+            const cells =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .cells;
+            expect([cells[0][0], cells[1][0]]).eqls(["a", "b"]);
+        }
+
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addRow"),
+            core,
+        });
+        await callAction({
+            componentIdx: await resolvePathToNodeIdx("addCell"),
+            core,
+        });
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
     it.each(["aside", "proof"])(
         "does not create children added to a postponed %s until opened",
         async (sectionType) => {
