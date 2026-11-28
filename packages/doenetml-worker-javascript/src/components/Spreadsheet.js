@@ -1,6 +1,10 @@
 import { normalizeIndex } from "../utils/table";
 import { textToAst } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
+import {
+    addChildrenToDynamicChild,
+    deleteChildrenFromDynamicChild,
+} from "../utils/dynamicChildren";
 import { vectorOperators } from "@doenet/utils";
 import me from "math-expressions";
 import { HyperFormula } from "hyperformula";
@@ -13,6 +17,8 @@ export default class Spreadsheet extends BlockComponent {
         Object.assign(this.actions, {
             onChange: this.onChange.bind(this),
             recordVisibilityChange: this.recordVisibilityChange.bind(this),
+            addChildren: this.addChildren.bind(this),
+            deleteChildren: this.deleteChildren.bind(this),
         });
     }
     static componentType = "spreadsheet";
@@ -1690,6 +1696,33 @@ export default class Spreadsheet extends BlockComponent {
                 },
             });
         }
+    }
+
+    // An extend of a spreadsheet is the same spreadsheet: it takes no
+    // children of its own (`doenet-e0057`) and its cells are the source's.
+    // So children added to, or deleted from, an extend are added to, or
+    // deleted from, its source, which may itself be an extend. (The extend's
+    // own `<_dynamicChildren>` is never shown.)
+    async addChildren(args) {
+        if (this.shadows) {
+            return await this.coreFunctions.performAction({
+                componentIdx: this.shadows.componentIdx,
+                actionName: "addChildren",
+                args,
+            });
+        }
+        return await addChildrenToDynamicChild(this, args);
+    }
+
+    async deleteChildren(args) {
+        if (this.shadows) {
+            return await this.coreFunctions.performAction({
+                componentIdx: this.shadows.componentIdx,
+                actionName: "deleteChildren",
+                args,
+            });
+        }
+        return await deleteChildrenFromDynamicChild(this, args);
     }
 
     recordVisibilityChange({ isVisible }) {

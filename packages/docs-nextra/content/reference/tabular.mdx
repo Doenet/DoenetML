@@ -14,6 +14,10 @@ components. Settings that belong to a whole column instead of a whole row go on
 [`<col>{:dn}`](col) components, written before the rows — that is where a
 column's width lives.
 
+Rows can also be added to or removed from a `<tabular>{:dn}` at runtime using the
+[`<callAction>{:dn}`](callAction) `addChildren` and `deleteChildren` actions. Added rows
+come after the written ones, and `deleteChildren` removes only rows that were added.
+
 
 <AttrPropDisplay name='tabular'/>
 

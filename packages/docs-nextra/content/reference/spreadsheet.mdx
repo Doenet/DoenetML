@@ -13,6 +13,11 @@ component that renders a basic embedded spreadsheet tool.
 
 Its cells are selected through `cells`: `$ss.cells[1][2]{:dn}` is the cell in row 1 and column 2. An index on the spreadsheet itself, such as `$ss[1]{:dn}`, names nothing.
 
+Cells and rows can also be added to or removed from a `<spreadsheet>{:dn}` at runtime using the
+[`<callAction>{:dn}`](callAction) `addChildren` and `deleteChildren` actions, and
+`deleteChildren` removes only what was added. An extend of a spreadsheet is the same
+spreadsheet, so what is added through it is added to the spreadsheet it extends.
+
 <AttrPropDisplay name='spreadsheet'/>
 
 

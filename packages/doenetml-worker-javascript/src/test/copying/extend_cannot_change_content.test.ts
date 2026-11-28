@@ -395,6 +395,31 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         ]);
     });
 
+    it("a <spreadsheet> extend is an error only for children written inside it", async () => {
+        // A `<spreadsheet>` takes `addChildren`, so normalization gives it,
+        // and each extend of it, a `<_dynamicChildren>` that is not written.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<spreadsheet name="x"><cell>a</cell></spreadsheet>
+<spreadsheet extend="$x" name="y" />
+<spreadsheet extend="$x" name="z"><cell>q</cell></spreadsheet>`,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).eqls([]);
+        expect(
+            diagnosticsByType.errors.map((error) => [
+                error.code,
+                error.position?.start.line,
+            ]),
+        ).eqls([["doenet-e0057", 3]]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("y")].stateValues
+                .cells[0][0],
+        ).eq("a");
+    });
+
     it("a written attribute and children are each reported, with one error shown", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<p name="p0">${SOURCES.repeat.doenetML}</p>

@@ -56,6 +56,8 @@ const SECTIONING_COMPONENTS_WITH_DYNAMIC_CHILDREN = [
 export const COMPONENTS_WITH_DYNAMIC_CHILDREN = new Set([
     "graph",
     "stickyGroup",
+    "spreadsheet",
+    "tabular",
     ...SECTIONING_COMPONENTS_WITH_DYNAMIC_CHILDREN,
 ]);
 

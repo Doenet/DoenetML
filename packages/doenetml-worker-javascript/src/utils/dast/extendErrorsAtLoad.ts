@@ -413,17 +413,24 @@ export function checkExtendErrorsAtLoad({
      * is (kind `presentation` when nothing else is written; user decision
      * on D71 decision 5, 2026-11-24). An `<answer>` and a
      * `<choiceInput>` say what their children would change themselves
-     * (`extendChangesContentErrors`).
+     * (`extendChangesContentErrors`). The `<_dynamicChildren>` that
+     * normalization appends to a tag taking `addChildren` (a
+     * `<spreadsheet>`) is not written, so it is not counted.
      */
     function childrenOfValueOrObjectError(
         copy: SerializedComponent,
         writtenType: string | undefined,
         ref: { originalPath: any[] },
-        children: (SerializedComponent | string)[],
+        allChildren: (SerializedComponent | string)[],
     ): ExtendErrorAtLoad | undefined {
         if (writtenType === undefined) {
             return undefined;
         }
+        const children = allChildren.filter(
+            (child) =>
+                typeof child === "string" ||
+                child.componentType !== "_dynamicChildren",
+        );
         const componentType =
             componentInfoObjects.componentTypeAsWritten(writtenType) ??
             writtenType;
